@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React from 'react';
+import { useRef } from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/designsystemet-react';
@@ -12,7 +12,7 @@ import { useGiteaHeaderContext } from 'app-shared/components/GiteaHeader/context
 export const LocalChanges = (): ReactNode => {
   const { t } = useTranslation();
   const { owner, repoName } = useGiteaHeaderContext();
-  const deleteDialogRef = React.useRef<HTMLDialogElement>(null);
+  const deleteDialogRef = useRef<HTMLDialogElement>(null);
 
   const openDeleteDialog = () => {
     deleteDialogRef.current?.showModal();

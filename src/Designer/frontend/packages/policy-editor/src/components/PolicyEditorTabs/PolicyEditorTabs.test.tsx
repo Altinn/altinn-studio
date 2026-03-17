@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { PolicyEditorTabs } from './PolicyEditorTabs';
 import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';

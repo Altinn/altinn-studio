@@ -1,6 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioSelect } from './index';
 
 const ComposedComponent = (args): ReactElement => (
@@ -10,9 +9,7 @@ const ComposedComponent = (args): ReactElement => (
   </StudioSelect>
 );
 
-type Story = StoryFn<typeof ComposedComponent>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioSelect',
   component: ComposedComponent,
   argTypes: {
@@ -37,14 +34,16 @@ const meta: Meta = {
       options: [true, false],
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <ComposedComponent {...args} />;
-
-Preview.args = {
-  label: 'My select label',
-  description: 'My select description',
-  'data-size': 'sm',
-  width: 'full',
-};
-
+} satisfies Meta<typeof ComposedComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    label: 'My select label',
+    description: 'My select description',
+    'data-size': 'sm',
+    width: 'full',
+  },
+};

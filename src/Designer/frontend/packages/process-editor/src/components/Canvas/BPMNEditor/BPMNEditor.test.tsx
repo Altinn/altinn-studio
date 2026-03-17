@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BPMNEditor } from './BPMNEditor';
 import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';

@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
-import React from 'react';
 import { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubexpressionValueType';
 import type { SimpleSubexpressionValue } from '../../../../types/SimpleSubexpressionValue';
 import {

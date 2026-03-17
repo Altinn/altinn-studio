@@ -30,6 +30,11 @@ jobs:
           go-version-file: src/Runtime/operator/go.mod
           cache-dependency-path: src/Runtime/operator/go.sum
 
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
       - name: Build
         run: make build
 

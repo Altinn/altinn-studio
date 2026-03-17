@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioContentMenu, StudioButton, StudioHeading } from '@studio/components';
 import classes from './ThreadColumn.module.css';

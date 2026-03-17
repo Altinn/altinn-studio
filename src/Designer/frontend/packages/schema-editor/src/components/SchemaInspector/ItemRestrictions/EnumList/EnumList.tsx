@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './EnumList.module.css';
 import type { FieldNode } from '@altinn/schema-model';
 import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';

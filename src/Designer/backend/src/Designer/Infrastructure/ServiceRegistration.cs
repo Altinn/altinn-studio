@@ -71,6 +71,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeployEventRepository, DeployEventRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
+            services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
             services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
             services.AddScoped<IUserService, UserService>();

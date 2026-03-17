@@ -10,11 +10,11 @@ The routine for upgrading Gitea can be found [here](https://github.com/Altinn/al
 
 ## Updating configuration
 
-Ensure that our custom configuration is up to date by comparing it with the app.example.ini file provided by Gitea (see: https://github.com/go-gitea/gitea/blob/release/v{VERSION}/custom/conf/app.example.ini).
+Ensure that our custom configuration is up to date by comparing it with the app.example.ini file provided by Gitea (see: https://github.com/go-gitea/gitea/blob/v{VERSION}/custom/conf/app.example.ini).
 
 ## Updating templates
 
-Ensure that our custom templates are up to date by comparing them with the templates from Gitea (see: https://github.com/go-gitea/gitea/tree/release/v{VERSION}/templates).
+Ensure that our custom templates are up to date by comparing them with the templates from Gitea (see: https://github.com/go-gitea/gitea/tree/v{VERSION}/templates).
 
 ## Updating locales
 
@@ -22,7 +22,7 @@ Ensure that our custom templates are up to date by comparing them with the templ
 
 The files located in [./files/locale/base](./files/locale/base) are the original translations from Gitea. They must be updated when upgrading Gitea to a newer version.
 
-- Update [locale_en-US.ini](./files/locale/base/locale_en-US.ini) using https://github.com/go-gitea/gitea/tree/release/v{VERSION}/options/locale/locale_en-US.ini.
+- Update [locale_en-US.ini](./files/locale/base/locale_en-US.ini) using https://github.com/go-gitea/gitea/tree/v{VERSION}/options/locale/locale_en-US.ini.
 
 - Update [locale_nb-NO.ini](./files/locale/base/locale_nb-NO.ini) using [Crowdin](https://crowdin.com/project/gitea/no). Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
 

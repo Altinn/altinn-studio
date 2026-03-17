@@ -4,7 +4,6 @@ import type { FeatureToggle } from './useFeatureToggle';
 import { useFeatureToggle } from './useFeatureToggle';
 import { FeatureFlag } from './FeatureFlag';
 import { FeatureFlagsContextProvider } from './FeatureFlagsContext';
-import React from 'react';
 import { FeatureFlagMutationContextProvider } from './FeatureFlagMutationContext';
 
 // Test data:

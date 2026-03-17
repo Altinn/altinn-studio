@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';

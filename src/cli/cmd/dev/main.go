@@ -37,7 +37,11 @@ const (
 	filePermDefault = 0o644
 )
 
-var errNoPathsSpecified = errors.New("no paths specified")
+var (
+	errBinaryPathIsDirectory = errors.New("binary path is a directory")
+	errNoPathsSpecified      = errors.New("no paths specified")
+	errUnexpectedBinaryName  = errors.New("unexpected binary name")
+)
 
 func main() {
 	if len(os.Args) < 2 {
@@ -265,6 +269,11 @@ func goBuild(output, ldflags, pkg string) error {
 }
 
 func runBinary(binary string, env []string, args ...string) error {
+	if err := validateStudioctlBinary(binary); err != nil {
+		return err
+	}
+
+	//nolint:gosec // G204: binary is validated to be the local studioctl executable built by this dev helper.
 	cmd := exec.CommandContext(context.Background(), binary, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -276,6 +285,26 @@ func runBinary(binary string, env []string, args ...string) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("run binary failed: %w", err)
 	}
+	return nil
+}
+
+func validateStudioctlBinary(binary string) error {
+	absBinary, err := filepath.Abs(binary)
+	if err != nil {
+		return fmt.Errorf("resolve binary path: %w", err)
+	}
+
+	info, err := os.Stat(absBinary)
+	if err != nil {
+		return fmt.Errorf("stat binary: %w", err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("%w: %s", errBinaryPathIsDirectory, absBinary)
+	}
+	if filepath.Base(absBinary) != binaryNameWithExt("studioctl") {
+		return fmt.Errorf("%w: %s", errUnexpectedBinaryName, absBinary)
+	}
+
 	return nil
 }
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { OptionListUploader } from './OptionListUploader';
 import { screen } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';

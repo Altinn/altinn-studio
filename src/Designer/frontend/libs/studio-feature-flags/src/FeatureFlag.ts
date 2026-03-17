@@ -4,7 +4,6 @@ export enum FeatureFlag {
   CustomTemplates = 'customTemplates',
   Maskinporten = 'maskinporten',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
-  AppMetadata = 'appMetadata',
   NewCodeLists = 'newCodeLists',
   ValidateNavigation = 'validateNavigation',
   AiAssistant = 'aiAssistant',

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import type { AlertProps } from '@digdir/designsystemet-react';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioHeading, StudioCard } from '@studio/components';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './ConditionalRenderingModal.module.css';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import type { IRuleModelFieldElement } from '../../types/global';

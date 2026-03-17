@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './DeployPage.module.css';
 import { DeploymentContainer } from '../containers/DeploymentContainer';
 import { InfoCard } from '../components/InfoCard';

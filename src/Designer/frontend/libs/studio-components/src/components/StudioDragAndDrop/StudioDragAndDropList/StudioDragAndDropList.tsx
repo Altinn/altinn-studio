@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactElement } from 'react';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import type { DropTargetMonitor } from 'react-dnd';
 import { useDrop } from 'react-dnd';
 import type { DndItem } from '../types';

@@ -7,7 +7,7 @@ import type {
   ReactElement,
   ChangeEventHandler,
 } from 'react';
-import React, { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   changeDescription,
   changeHelpText,

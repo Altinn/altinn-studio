@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../testing/mocks';
 import { TaskAction, type TaskActionProps } from './TaskAction';
 import { screen } from '@testing-library/react';

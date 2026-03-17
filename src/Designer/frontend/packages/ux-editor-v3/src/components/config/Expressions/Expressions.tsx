@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useState, useContext } from 'react';
 import { Alert } from '@digdir/designsystemet-react';
 import { ExpressionContent } from './ExpressionContent';
 import { useText } from '../../../hooks';
@@ -24,10 +24,10 @@ export const Expressions = () => {
     formItem,
     availableProperties,
   );
-  const [propertiesWithExpressions, setPropertiesWithExpressions] = React.useState<
-    ExpressionProperty[]
-  >(propertiesFromComponentWithExpressions.length ? propertiesFromComponentWithExpressions : []);
-  const [newlyAddedProperty, setNewlyAddedProperty] = React.useState<ExpressionProperty>(undefined);
+  const [propertiesWithExpressions, setPropertiesWithExpressions] = useState<ExpressionProperty[]>(
+    propertiesFromComponentWithExpressions.length ? propertiesFromComponentWithExpressions : [],
+  );
+  const [newlyAddedProperty, setNewlyAddedProperty] = useState<ExpressionProperty>(undefined);
   const t = useText();
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     formItem.itemType as LayoutItemType,

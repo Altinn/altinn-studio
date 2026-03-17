@@ -1,4 +1,3 @@
-import React from 'react';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';

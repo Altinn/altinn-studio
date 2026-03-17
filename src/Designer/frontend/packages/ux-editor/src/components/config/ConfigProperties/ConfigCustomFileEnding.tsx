@@ -1,4 +1,3 @@
-import React from 'react';
 import { EditBooleanValue } from '../editModal/EditBooleanValue';
 import { EditStringValue } from '../editModal/EditStringValue';
 import type { FormComponent } from '../../../types/FormComponent';

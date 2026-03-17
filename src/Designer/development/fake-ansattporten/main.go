@@ -17,17 +17,25 @@ import (
 	"time"
 )
 
-type TestUser struct {
-	PID        string `json:"pid"`
-	Sub        string `json:"sub"`
-	GivenName  string `json:"given_name"`
-	FamilyName string `json:"family_name"`
+type FakeOrg struct {
+	ID   string // e.g. "0192:991825827"
+	Name string // e.g. "TESTDEPARTEMENTET"
 }
 
+type TestUser struct {
+	PID        string    `json:"pid"`
+	Sub        string    `json:"sub"`
+	GivenName  string    `json:"given_name"`
+	FamilyName string    `json:"family_name"`
+	Orgs       []FakeOrg `json:"-"`
+}
+
+var ttdOrg = FakeOrg{ID: "0192:991825827", Name: "TESTDEPARTEMENTET"}
+
 var testUsers = []TestUser{
-	{PID: "29922149761", Sub: "sub-29922149761", GivenName: "localgiteaadmin", FamilyName: "admin"},
-	{PID: "09858398468", Sub: "sub-09858398468", GivenName: "testUser", FamilyName: "test"},
-	{PID: "10866898516", Sub: "sub-10866898516", GivenName: "cypress_testuser", FamilyName: "test playwright"},
+	{PID: "29922149761", Sub: "sub-29922149761", GivenName: "localgiteaadmin", FamilyName: "admin", Orgs: []FakeOrg{ttdOrg}},
+	{PID: "09858398468", Sub: "sub-09858398468", GivenName: "testUser", FamilyName: "test", Orgs: []FakeOrg{ttdOrg}},
+	{PID: "10866898516", Sub: "sub-10866898516", GivenName: "cypress_testuser", FamilyName: "test playwright", Orgs: []FakeOrg{ttdOrg}},
 	{PID: "15076500565", Sub: "sub-15076500565", GivenName: "Ingrid", FamilyName: "Berg"},
 	{PID: "02056260016", Sub: "sub-02056260016", GivenName: "Erik", FamilyName: "Larsen"},
 	{PID: "15841396828", Sub: "sub-15841396828", GivenName: "Ola", FamilyName: "Mellomnavn Test Lastname"},
@@ -36,12 +44,17 @@ var testUsers = []TestUser{
 }
 
 type pendingAuth struct {
-	userIdx int
-	nonce   string
+	userIdx              int
+	nonce                string
+	authorizationDetails string   // raw JSON from authorize request, empty if not requested
+	selectedOrg          *FakeOrg // nil = "Meg selv" or no orgs
 }
 
 // pendingCodes maps authorization codes to the selected user and nonce.
 var pendingCodes = map[string]pendingAuth{}
+
+// pendingOrgSelect stores intermediate state between user picker and org picker.
+var pendingOrgSelect = map[string]pendingAuth{}
 
 var signingKey *rsa.PrivateKey
 
@@ -66,6 +79,7 @@ func main() {
 	mux.HandleFunc("/.well-known/openid-configuration", handleDiscovery)
 	mux.HandleFunc("/jwks", handleJWKS)
 	mux.HandleFunc("/authorize", handleAuthorize)
+	mux.HandleFunc("/org-select", handleOrgSelect)
 	mux.HandleFunc("/token", handleToken)
 	mux.HandleFunc("/userinfo", handleUserInfo)
 
@@ -133,16 +147,48 @@ func handleAuthorize(w http.ResponseWriter, r *http.Request) {
 		redirectURI := r.FormValue("redirect_uri")
 		state := r.FormValue("state")
 		nonce := r.FormValue("nonce")
-		userIdx := r.FormValue("user")
+		authDetails := r.FormValue("authorization_details")
+		userPID := r.FormValue("user")
 
 		idx := 0
 		for i, u := range testUsers {
-			if u.PID == userIdx {
+			if u.PID == userPID {
 				idx = i
 				break
 			}
 		}
 
+		user := testUsers[idx]
+
+		// If user has orgs and authorization_details was requested, show org picker
+		if len(user.Orgs) > 0 && authDetails != "" {
+			pendingID := generateCode()
+			pendingOrgSelect[pendingID] = pendingAuth{
+				userIdx:              idx,
+				nonce:                nonce,
+				authorizationDetails: authDetails,
+			}
+
+			data := struct {
+				User        TestUser
+				Orgs        []FakeOrg
+				PendingID   string
+				RedirectURI string
+				State       string
+			}{
+				User:        user,
+				Orgs:        user.Orgs,
+				PendingID:   pendingID,
+				RedirectURI: redirectURI,
+				State:       state,
+			}
+
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			orgPickerTemplate.Execute(w, data)
+			return
+		}
+
+		// No org picker needed — redirect directly
 		code := generateCode()
 		pendingCodes[code] = pendingAuth{userIdx: idx, nonce: nonce}
 
@@ -158,21 +204,65 @@ func handleAuthorize(w http.ResponseWriter, r *http.Request) {
 	redirectURI := r.URL.Query().Get("redirect_uri")
 	state := r.URL.Query().Get("state")
 	nonce := r.URL.Query().Get("nonce")
+	authDetails := r.URL.Query().Get("authorization_details")
 
 	data := struct {
-		Users       []TestUser
-		RedirectURI string
-		State       string
-		Nonce       string
+		Users                []TestUser
+		RedirectURI          string
+		State                string
+		Nonce                string
+		AuthorizationDetails string
 	}{
-		Users:       testUsers,
-		RedirectURI: redirectURI,
-		State:       state,
-		Nonce:       nonce,
+		Users:                testUsers,
+		RedirectURI:          redirectURI,
+		State:                state,
+		Nonce:                nonce,
+		AuthorizationDetails: authDetails,
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	pickerTemplate.Execute(w, data)
+}
+
+func handleOrgSelect(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	_ = r.ParseForm()
+
+	pendingID := r.FormValue("pending_id")
+	redirectURI := r.FormValue("redirect_uri")
+	state := r.FormValue("state")
+	choice := r.FormValue("choice") // "org" or "self"
+	orgID := r.FormValue("org_id")
+
+	pending, ok := pendingOrgSelect[pendingID]
+	if !ok {
+		http.Error(w, "invalid pending ID", http.StatusBadRequest)
+		return
+	}
+	delete(pendingOrgSelect, pendingID)
+
+	if choice == "org" && orgID != "" {
+		user := testUsers[pending.userIdx]
+		for _, org := range user.Orgs {
+			if org.ID == orgID {
+				pending.selectedOrg = &FakeOrg{ID: org.ID, Name: org.Name}
+				break
+			}
+		}
+	}
+
+	code := generateCode()
+	pendingCodes[code] = pending
+
+	sep := "?"
+	if strings.Contains(redirectURI, "?") {
+		sep = "&"
+	}
+	location := fmt.Sprintf("%s%scode=%s&state=%s", redirectURI, sep, code, state)
+	http.Redirect(w, r, location, http.StatusFound)
 }
 
 func handleToken(w http.ResponseWriter, r *http.Request) {
@@ -211,6 +301,12 @@ func handleToken(w http.ResponseWriter, r *http.Request) {
 
 	clientID := resolveClientID(r)
 
+	// Build authorization_details claims if an org was selected
+	var authDetailsClaim []map[string]any
+	if auth.selectedOrg != nil && auth.authorizationDetails != "" {
+		authDetailsClaim = buildAuthorizationDetailsClaim(auth.authorizationDetails, auth.selectedOrg)
+	}
+
 	idTokenClaims := map[string]any{
 		"iss":         issuer(),
 		"sub":         user.Sub,
@@ -225,6 +321,9 @@ func handleToken(w http.ResponseWriter, r *http.Request) {
 	if auth.nonce != "" {
 		idTokenClaims["nonce"] = auth.nonce
 	}
+	if authDetailsClaim != nil {
+		idTokenClaims["authorization_details"] = authDetailsClaim
+	}
 
 	idToken, err := signJWT(idTokenClaims)
 	if err != nil {
@@ -232,14 +331,19 @@ func handleToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := signJWT(map[string]any{
+	accessTokenClaims := map[string]any{
 		"iss":  issuer(),
 		"sub":  user.Sub,
 		"exp":  now.Add(time.Hour).Unix(),
 		"iat":  now.Unix(),
 		"pid":  user.PID,
 		"type": "access_token",
-	})
+	}
+	if authDetailsClaim != nil {
+		accessTokenClaims["authorization_details"] = authDetailsClaim
+	}
+
+	accessToken, err := signJWT(accessTokenClaims)
 	if err != nil {
 		http.Error(w, `{"error":"server_error"}`, http.StatusInternalServerError)
 		return
@@ -247,7 +351,11 @@ func handleToken(w http.ResponseWriter, r *http.Request) {
 
 	refreshToken := generateCode()
 	// Store the refresh token mapped to the same user for token refresh support
-	pendingCodes["refresh:"+refreshToken] = pendingAuth{userIdx: auth.userIdx}
+	pendingCodes["refresh:"+refreshToken] = pendingAuth{
+		userIdx:              auth.userIdx,
+		authorizationDetails: auth.authorizationDetails,
+		selectedOrg:          auth.selectedOrg,
+	}
 
 	resp := map[string]any{
 		"access_token":  accessToken,
@@ -258,6 +366,35 @@ func handleToken(w http.ResponseWriter, r *http.Request) {
 		"scope":         "openid profile",
 	}
 	writeJSON(w, resp)
+}
+
+// buildAuthorizationDetailsClaim parses the raw authorization_details from the
+// authorize request and enriches each entry with the selected org as a reportee.
+func buildAuthorizationDetailsClaim(rawAuthDetails string, org *FakeOrg) []map[string]any {
+	var requested []map[string]any
+	if err := json.Unmarshal([]byte(rawAuthDetails), &requested); err != nil {
+		log.Printf("Failed to parse authorization_details: %v", err)
+		return nil
+	}
+
+	reportee := map[string]any{
+		"Rights":    []string{"Read", "ArchiveDelete", "ArchiveRead"},
+		"Authority": "iso6523-actorid-upis",
+		"ID":        org.ID,
+		"Name":      org.Name,
+	}
+
+	var result []map[string]any
+	for _, detail := range requested {
+		enriched := map[string]any{
+			"type":          detail["type"],
+			"resource":      detail["resource"],
+			"resource_name": org.Name,
+			"reportees":     []map[string]any{reportee},
+		}
+		result = append(result, enriched)
+	}
+	return result
 }
 
 func handleUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -420,6 +557,7 @@ var pickerTemplate = template.Must(template.New("picker").Parse(`<!DOCTYPE html>
     <input type="hidden" name="redirect_uri" value="{{$.RedirectURI}}">
     <input type="hidden" name="state" value="{{$.State}}">
     <input type="hidden" name="nonce" value="{{$.Nonce}}">
+    <input type="hidden" name="authorization_details" value="{{$.AuthorizationDetails}}">
     <input type="hidden" name="user" value="{{.PID}}">
     <button type="submit" class="user-btn">
       <div class="name">{{.GivenName}} {{.FamilyName}}</div>
@@ -427,6 +565,73 @@ var pickerTemplate = template.Must(template.New("picker").Parse(`<!DOCTYPE html>
     </button>
   </form>
   {{end}}
+  <div class="badge">Testmiljo - ikke ekte innlogging</div>
+</div>
+</body>
+</html>`))
+
+// --- Org picker HTML template ---
+
+var orgPickerTemplate = template.Must(template.New("orgpicker").Parse(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fake Ansattporten - Velg virksomhet</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .card { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); padding: 32px; max-width: 480px; width: 100%; }
+  h1 { font-size: 18px; color: #1a1a2e; margin-bottom: 8px; }
+  p.subtitle { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .choice-group { margin-bottom: 20px; }
+  .choice-group label { display: inline-flex; align-items: center; margin-right: 20px; font-size: 14px; cursor: pointer; }
+  .choice-group input[type="radio"] { margin-right: 6px; }
+  .org-list { margin-bottom: 20px; }
+  .org-item { display: flex; align-items: center; padding: 14px 16px; margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+  .org-item:hover { border-color: #1a56db; background: #f0f5ff; }
+  .org-item.selected { border-color: #1a56db; background: #f0f5ff; }
+  .org-item input[type="radio"] { margin-right: 12px; }
+  .org-info .org-name { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+  .org-info .org-nr { font-size: 12px; color: #888; font-family: monospace; margin-top: 2px; }
+  .btn-row { display: flex; gap: 12px; margin-top: 20px; }
+  .btn { padding: 10px 24px; border-radius: 6px; border: 2px solid #e0e0e0; background: white; cursor: pointer; font-size: 14px; }
+  .btn-primary { background: #1a56db; color: white; border-color: #1a56db; }
+  .btn-primary:hover { background: #1544b0; }
+  .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Velg virksomhet du ønsker å representere</h1>
+  <p class="subtitle">Hei {{.User.GivenName}} {{.User.FamilyName}}</p>
+
+  <form method="POST" action="/org-select">
+    <input type="hidden" name="pending_id" value="{{.PendingID}}">
+    <input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
+    <input type="hidden" name="state" value="{{.State}}">
+
+    <div class="choice-group">
+      <label><input type="radio" name="choice" value="org" checked onchange="document.getElementById('org-list').style.display='block'"> Virksomhet</label>
+      <label><input type="radio" name="choice" value="self" onchange="document.getElementById('org-list').style.display='none'"> Meg selv</label>
+    </div>
+
+    <div id="org-list" class="org-list">
+      {{range $i, $org := .Orgs}}
+      <label class="org-item">
+        <input type="radio" name="org_id" value="{{$org.ID}}" {{if eq $i 0}}checked{{end}}>
+        <div class="org-info">
+          <div class="org-name">{{$org.Name}}</div>
+          <div class="org-nr">Org.nr. {{$org.ID}}</div>
+        </div>
+      </label>
+      {{end}}
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary">Neste</button>
+    </div>
+  </form>
+
   <div class="badge">Testmiljo - ikke ekte innlogging</div>
 </div>
 </body>

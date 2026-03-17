@@ -1,5 +1,4 @@
 import type { HTMLAttributes } from 'react';
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import type { StudioPageHeaderHeaderLinkProps } from './StudioPageHeaderHeaderLink';

@@ -12,7 +12,7 @@ class AgentState(BaseModel):
     session_id: str
     user_goal: str
     repo_path: str
-    gitea_token: Optional[str] = None  # Gitea token for git/API operations (passed to MCP)
+    designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
     attachments: List[AgentAttachment] = Field(default_factory=list)
     conversation_history: List[ConversationMessage] = Field(default_factory=list)  # Previous Q&A pairs
     general_plan: Optional[Dict[str, Any]] = None  # Goal-centric high level plan (LLM only)

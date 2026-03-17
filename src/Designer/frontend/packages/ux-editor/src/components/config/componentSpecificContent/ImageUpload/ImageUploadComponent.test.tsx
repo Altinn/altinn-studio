@@ -1,4 +1,3 @@
-import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ImageUploadComponent, type ImageUploadComponentProps } from './ImageUploadComponent';
 import { ShapeOptions } from './ImageUploadUtils';

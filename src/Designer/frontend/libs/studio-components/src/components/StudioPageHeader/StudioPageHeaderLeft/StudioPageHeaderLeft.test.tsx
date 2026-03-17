@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioPageHeaderLeft, type StudioPageHeaderLeftProps } from './StudioPageHeaderLeft';
 import { StudioPageHeaderContext } from '../context';

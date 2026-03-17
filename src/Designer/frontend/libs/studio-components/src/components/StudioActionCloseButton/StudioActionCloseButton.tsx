@@ -1,4 +1,5 @@
-import React, { forwardRef, type MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import React, { forwardRef } from 'react';
 import { CheckmarkIcon } from '@studio/icons';
 import { StudioButton, type StudioButtonProps } from '../StudioButton';
 

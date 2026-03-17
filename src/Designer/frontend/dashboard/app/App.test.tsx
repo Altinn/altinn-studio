@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { App } from './App';
@@ -13,6 +12,10 @@ import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from '../testing/mocks';
 import type { ProviderData } from '../testing/mocks';
+
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 

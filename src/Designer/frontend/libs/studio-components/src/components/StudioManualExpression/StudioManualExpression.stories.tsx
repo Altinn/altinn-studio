@@ -1,21 +1,22 @@
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { logicalExpression } from '../StudioExpression/test-data/expressions';
 import { texts } from '../StudioExpression/test-data/texts';
 import { StudioManualExpression } from './StudioManualExpression';
 import { fn } from 'storybook/test';
 
-type Story = StoryFn<typeof StudioManualExpression>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioManualExpression',
   component: StudioManualExpression,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioManualExpression {...args} />;
-
-Preview.args = {
-  expression: logicalExpression,
-  texts: texts,
-  onValidExpressionChange: fn(),
-  onValidityChange: fn(),
-};
+} satisfies Meta<typeof StudioManualExpression>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    expression: logicalExpression,
+    texts: texts,
+    onValidExpressionChange: fn(),
+    onValidityChange: fn(),
+  },
+};

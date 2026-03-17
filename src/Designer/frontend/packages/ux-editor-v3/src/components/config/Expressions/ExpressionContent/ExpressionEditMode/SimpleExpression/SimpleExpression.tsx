@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import type { Expression, SubExpression } from '../../../../../../types/Expressions';
 import { Operator } from '../../../../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
@@ -23,7 +23,7 @@ export const SimpleExpression = ({
     <>
       {expression.subExpressions?.map((subExp: SubExpression, index: number) => {
         return (
-          <React.Fragment key={index}>
+          <Fragment key={index}>
             <SubExpressionContent
               subExpression={subExp}
               onUpdateSubExpression={(subExpression: SubExpression) =>
@@ -44,7 +44,7 @@ export const SimpleExpression = ({
                 </ToggleGroup.Item>
               </ToggleGroup>
             )}
-          </React.Fragment>
+          </Fragment>
         );
       })}
     </>

@@ -1,4 +1,5 @@
-import React, { type ReactElement, useMemo, useState } from 'react';
+import type { ReactElement, ChangeEvent } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSearch } from '@studio/components';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
@@ -71,7 +72,7 @@ export const PolicyAccessPackages = ({
     });
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleSearch = (event: ChangeEvent<HTMLInputElement>): void => {
     setSearchValue(event.target.value);
   };
 
