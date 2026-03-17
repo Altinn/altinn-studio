@@ -34,7 +34,7 @@ public static class WorkflowEngineAppExtensions
             // Dashboard (non-production only)
             if (!app.Environment.IsProduction())
             {
-                app.UseCors("Dashboard");
+                app.MapDashboardUI();
                 app.MapDashboardEndpoints();
             }
 

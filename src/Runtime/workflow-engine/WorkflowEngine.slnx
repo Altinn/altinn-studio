@@ -2,7 +2,6 @@
   <Folder Name="/src/">
     <Project Path="src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
     <Project Path="src/WorkflowEngine.Commands/WorkflowEngine.Commands.csproj" />
-    <Project Path="src/WorkflowEngine.Dashboard/WorkflowEngine.Dashboard.csproj" />
     <Project Path="src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
     <Project Path="src/WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
     <Project Path="src/WorkflowEngine.Resilience/WorkflowEngine.Resilience.csproj" />

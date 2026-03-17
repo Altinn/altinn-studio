@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -27,6 +30,79 @@ public static class DashboardEndpoints
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
+    /// <summary>
+    /// Maps the dashboard UI: static files (embedded or physical), <c>/api/config</c>,
+    /// and the <c>/api/hot-reload</c> dev endpoint.
+    /// </summary>
+    public static WebApplication MapDashboardUI(this WebApplication app)
+    {
+        IFileProvider fileProvider;
+
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
+        {
+            // In dev/Docker, serve from disk so edits are picked up without a rebuild.
+            var coreAssemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+            var wwwrootOnDisk = Path.GetFullPath(Path.Combine(coreAssemblyDir, "..", "..", "..", "wwwroot"));
+
+            fileProvider = Directory.Exists(wwwrootOnDisk)
+                ? new PhysicalFileProvider(wwwrootOnDisk)
+                : new ManifestEmbeddedFileProvider(typeof(DashboardEndpoints).Assembly, "wwwroot");
+        }
+        else
+        {
+            fileProvider = new ManifestEmbeddedFileProvider(typeof(DashboardEndpoints).Assembly, "wwwroot");
+        }
+
+        app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = fileProvider });
+        app.UseStaticFiles(new StaticFileOptions { FileProvider = fileProvider });
+
+        // Hot-reload (dev/Docker only, physical files only)
+        if (fileProvider is PhysicalFileProvider physicalProvider)
+        {
+            var watchRoot = physicalProvider.Root;
+            app.MapGet(
+                    "/dashboard/hot-reload",
+                    async (HttpContext ctx, CancellationToken ct) =>
+                    {
+                        ctx.Response.ContentType = "text/event-stream";
+                        ctx.Response.Headers.CacheControl = "no-cache";
+                        ctx.Response.Headers.Connection = "keep-alive";
+
+                        var lastHash = HashWebRoot(watchRoot);
+                        var heartbeatInterval = 0;
+
+                        try
+                        {
+                            while (!ct.IsCancellationRequested)
+                            {
+                                await Task.Delay(500, ct);
+                                var currentHash = HashWebRoot(watchRoot);
+                                if (currentHash != lastHash)
+                                {
+                                    lastHash = currentHash;
+                                    await ctx.Response.WriteAsync("data: reload\n\n", ct);
+                                    await ctx.Response.Body.FlushAsync(ct);
+                                }
+                                else if (++heartbeatInterval >= 10)
+                                {
+                                    heartbeatInterval = 0;
+                                    await ctx.Response.WriteAsync(": heartbeat\n\n", ct);
+                                    await ctx.Response.Body.FlushAsync(ct);
+                                }
+                            }
+                        }
+                        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                        {
+                            // Clean shutdown
+                        }
+                    }
+                )
+                .ExcludeFromDescription();
+        }
+
+        return app;
+    }
+
     public static WebApplication MapDashboardEndpoints(this WebApplication app)
     {
         app.MapGet(
@@ -43,84 +119,91 @@ public static class DashboardEndpoints
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
 
-                    var scheduledCount = 0;
-                    var iteration = 0;
-                    string? previousFingerprint = null;
-                    var lastSendTime = Stopwatch.GetTimestamp();
-                    long minSendIntervalTicks = Stopwatch.Frequency / 20; // 50ms
-
-                    while (!ct.IsCancellationRequested)
+                    try
                     {
-                        if (iteration % 300 == 0) // refresh every ~5s
+                        var scheduledCount = 0;
+                        var iteration = 0;
+                        string? previousFingerprint = null;
+                        var lastSendTime = Stopwatch.GetTimestamp();
+                        long minSendIntervalTicks = Stopwatch.Frequency / 20; // 50ms
+
+                        while (!ct.IsCancellationRequested)
                         {
-                            try
+                            if (iteration % 300 == 0) // refresh every ~5s
                             {
-                                using IServiceScope scope = sp.CreateScope();
-                                var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                                scheduledCount = await repo.CountScheduledWorkflows(ct);
+                                try
+                                {
+                                    using IServiceScope scope = sp.CreateScope();
+                                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                                    scheduledCount = await repo.CountScheduledWorkflows(ct);
+                                }
+                                catch
+                                { /* non-critical */
+                                }
                             }
-                            catch
-                            { /* non-critical */
-                            }
-                        }
-                        iteration++;
+                            iteration++;
 
-                        EngineHealthStatus status = engineStatus.Status;
-                        ConcurrencyLimiter.SlotStatus dbSlot = limiter.DbSlotStatus;
-                        ConcurrencyLimiter.SlotStatus httpSlot = limiter.HttpSlotStatus;
-                        int activeWorkers = engineStatus.ActiveWorkerCount;
-                        int maxWorkers = engineStatus.MaxWorkers;
+                            EngineHealthStatus status = engineStatus.Status;
+                            ConcurrencyLimiter.SlotStatus dbSlot = limiter.DbSlotStatus;
+                            ConcurrencyLimiter.SlotStatus httpSlot = limiter.HttpSlotStatus;
+                            int activeWorkers = engineStatus.ActiveWorkerCount;
+                            int maxWorkers = engineStatus.MaxWorkers;
 
-                        string fingerprint =
-                            $"{(int)status}|{activeWorkers}|{dbSlot.Used}|{httpSlot.Used}|{scheduledCount}";
+                            string fingerprint =
+                                $"{(int)status}|{activeWorkers}|{dbSlot.Used}|{httpSlot.Used}|{scheduledCount}";
 
-                        long elapsed = Stopwatch.GetTimestamp() - lastSendTime;
-                        if (fingerprint != previousFingerprint && elapsed >= minSendIntervalTicks)
-                        {
-                            previousFingerprint = fingerprint;
-                            lastSendTime = Stopwatch.GetTimestamp();
-
-                            var payload = new
+                            long elapsed = Stopwatch.GetTimestamp() - lastSendTime;
+                            if (fingerprint != previousFingerprint && elapsed >= minSendIntervalTicks)
                             {
-                                timestamp = DateTimeOffset.UtcNow,
-                                engineStatus = new
-                                {
-                                    running = status.HasFlag(EngineHealthStatus.Running),
-                                    healthy = status.HasFlag(EngineHealthStatus.Healthy),
-                                    idle = activeWorkers == 0,
-                                    disabled = status.HasFlag(EngineHealthStatus.Disabled),
-                                    queueFull = status.HasFlag(EngineHealthStatus.QueueFull),
-                                },
-                                capacity = new
-                                {
-                                    workers = new
-                                    {
-                                        used = activeWorkers,
-                                        available = maxWorkers - activeWorkers,
-                                        total = maxWorkers,
-                                    },
-                                    db = new
-                                    {
-                                        used = dbSlot.Used,
-                                        available = dbSlot.Available,
-                                        total = dbSlot.Total,
-                                    },
-                                    http = new
-                                    {
-                                        used = httpSlot.Used,
-                                        available = httpSlot.Available,
-                                        total = httpSlot.Total,
-                                    },
-                                },
-                                scheduledCount,
-                            };
+                                previousFingerprint = fingerprint;
+                                lastSendTime = Stopwatch.GetTimestamp();
 
-                            string json = JsonSerializer.Serialize(payload, _jsonCompact);
-                            await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
-                            await ctx.Response.Body.FlushAsync(ct);
+                                var payload = new
+                                {
+                                    timestamp = DateTimeOffset.UtcNow,
+                                    engineStatus = new
+                                    {
+                                        running = status.HasFlag(EngineHealthStatus.Running),
+                                        healthy = status.HasFlag(EngineHealthStatus.Healthy),
+                                        idle = activeWorkers == 0,
+                                        disabled = status.HasFlag(EngineHealthStatus.Disabled),
+                                        queueFull = status.HasFlag(EngineHealthStatus.QueueFull),
+                                    },
+                                    capacity = new
+                                    {
+                                        workers = new
+                                        {
+                                            used = activeWorkers,
+                                            available = maxWorkers - activeWorkers,
+                                            total = maxWorkers,
+                                        },
+                                        db = new
+                                        {
+                                            used = dbSlot.Used,
+                                            available = dbSlot.Available,
+                                            total = dbSlot.Total,
+                                        },
+                                        http = new
+                                        {
+                                            used = httpSlot.Used,
+                                            available = httpSlot.Available,
+                                            total = httpSlot.Total,
+                                        },
+                                    },
+                                    scheduledCount,
+                                };
+
+                                string json = JsonSerializer.Serialize(payload, _jsonCompact);
+                                await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
+                                await ctx.Response.Body.FlushAsync(ct);
+                            }
+
+                            await Task.Delay(16, ct);
                         }
-
-                        await Task.Delay(16, ct);
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        // Clean shutdown
                     }
                 }
             )
@@ -164,13 +247,13 @@ public static class DashboardEndpoints
                             string activeFingerprint = string.Join(
                                 ",",
                                 activeMapped.Select(w =>
-                                    $"{w.IdempotencyKey}|{w.Status}|{w.BackoffUntil}|"
+                                    $"{w.DatabaseId}|{w.Status}|{w.BackoffUntil}|"
                                     + string.Join(";", w.Steps.Select(s => $"{s.Status}:{s.RetryCount}"))
                                 )
                             );
                             string recentFingerprint = string.Join(
                                 ",",
-                                recentMapped.Select(w => $"{w.IdempotencyKey}|{w.UpdatedAt}")
+                                recentMapped.Select(w => $"{w.DatabaseId}|{w.UpdatedAt}")
                             );
 
                             bool activeChanged = activeFingerprint != previousActiveFingerprint;
@@ -305,14 +388,11 @@ public static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/step",
-                async (IServiceProvider sp, string wf, string step, DateTimeOffset? createdAt, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wf, string step, CancellationToken ct) =>
                 {
-                    if (!createdAt.HasValue)
-                        return Results.NotFound();
-
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    Workflow? workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
+                    Workflow? workflow = await repo.GetWorkflow(wf, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -357,16 +437,11 @@ public static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/state",
-                async (IServiceProvider sp, string wf, DateTimeOffset? createdAt, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wf, CancellationToken ct) =>
                 {
-                    Workflow? workflow = null;
-
-                    if (createdAt.HasValue)
-                    {
-                        using IServiceScope scope = sp.CreateScope();
-                        var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                        workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
-                    }
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wf, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -413,5 +488,18 @@ public static class DashboardEndpoints
         }
 
         return filters.Count > 0 ? filters : null;
+    }
+
+    private static long HashWebRoot(string path)
+    {
+        long hash = 0;
+        foreach (var file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
+        {
+            using var stream = File.OpenRead(file);
+            int b;
+            while ((b = stream.ReadByte()) != -1)
+                hash = hash * 31 + b;
+        }
+        return hash;
     }
 }

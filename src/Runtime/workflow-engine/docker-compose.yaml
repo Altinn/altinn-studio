@@ -1,19 +1,4 @@
 services:
-  dashboard:
-    build:
-      context: src/WorkflowEngine.Dashboard
-    container_name: workflow-engine-dashboard
-    restart: unless-stopped
-    networks:
-      - workflow-engine-network
-    ports:
-      - "8090:8080"
-    volumes:
-      - ./src/WorkflowEngine.Dashboard/wwwroot:/app/wwwroot:ro
-    environment:
-      ASPNETCORE_ENVIRONMENT: Docker
-    profiles: [dash, dashboard, full]
-
   postgres:
     image: postgres:18
     container_name: workflow-engine-postgres

@@ -24,7 +24,7 @@ public static class WorkflowEngineBuilderExtensions
         /// <summary>
         /// Registers all core workflow engine services on the builder, including hosting
         /// configuration, authentication, database, health checks, telemetry, OpenAPI,
-        /// dashboard CORS, and the built-in <c>WebhookCommand</c>.
+        /// and the built-in <c>WebhookCommand</c>.
         /// <para>
         /// The <paramref name="connectionString"/> is stored as a singleton and consumed
         /// by all database services (repository, migrations, connection reset).
@@ -63,23 +63,6 @@ public static class WorkflowEngineBuilderExtensions
 
             // OpenAPI
             builder.Services.AddOpenApi(o => o.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
-
-            // Dashboard CORS
-            builder.Services.AddCors(cors =>
-            {
-                cors.AddPolicy(
-                    "Dashboard",
-                    policy =>
-                    {
-                        var origins =
-                            builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ??
-                            [
-                                "http://localhost:8090",
-                            ];
-                        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
-                    }
-                );
-            });
 
             return builder;
         }

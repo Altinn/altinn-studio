@@ -216,15 +216,13 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
         var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        var wfKey = status.IdempotencyKey;
         var stepKey = status.Steps[0].IdempotencyKey ?? throw new Exception("This is not null here");
-        var createdAt = status.CreatedAt.ToString("o");
 
         using var client = fixture.CreateEngineClient();
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/step?wf={Uri.EscapeDataString(wfKey)}&step={Uri.EscapeDataString(stepKey)}&createdAt={Uri.EscapeDataString(createdAt)}",
+            $"/dashboard/step?wf={workflowId}&step={Uri.EscapeDataString(stepKey)}",
             TestContext.Current.CancellationToken
         );
 
@@ -245,7 +243,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var response = await client.GetAsync(
-            "/dashboard/step?wf=nonexistent&step=nonexistent",
+            $"/dashboard/step?wf={Guid.Empty}&step=nonexistent",
             TestContext.Current.CancellationToken
         );
 
@@ -265,14 +263,11 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
         var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        var wfKey = status.IdempotencyKey;
-        var createdAt = status.CreatedAt.ToString("o");
-
         using var client = fixture.CreateEngineClient();
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/state?wf={Uri.EscapeDataString(wfKey)}&createdAt={Uri.EscapeDataString(createdAt)}",
+            $"/dashboard/state?wf={workflowId}",
             TestContext.Current.CancellationToken
         );
 
@@ -292,7 +287,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var response = await client.GetAsync(
-            "/dashboard/state?wf=nonexistent",
+            $"/dashboard/state?wf={Guid.Empty}",
             TestContext.Current.CancellationToken
         );
 
