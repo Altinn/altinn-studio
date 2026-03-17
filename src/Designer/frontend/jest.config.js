@@ -90,6 +90,7 @@ const config = {
     '^@studio/hooks/(.*)': path.join(__dirname, 'libs/studio-hooks/$1'),
     '^@studio/pure-functions/(.*)': path.join(__dirname, 'libs/studio-pure-functions/$1'),
     '^@studio/testing/(.*)': path.join(__dirname, 'testing/$1'),
+    '^@studio/ui-test/(.*)': path.join(__dirname, 'libs/studio-ui-test/$1'),
   },
   testRegex: '(\\.(test))\\.(ts|tsx)$',
   moduleFileExtensions: ['ts', 'tsx', 'js'],
