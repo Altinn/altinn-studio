@@ -125,6 +125,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
                 DefaultStepRetryStrategy = RetryStrategy.None(),
                 DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
                 DatabaseRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(10), maxRetries: maxRetries),
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
                 MaxWorkflowsPerRequest = 100,
                 MaxStepsPerWorkflow = 50,
                 MaxLabels = 50,

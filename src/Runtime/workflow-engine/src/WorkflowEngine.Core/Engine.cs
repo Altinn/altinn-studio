@@ -163,7 +163,7 @@ internal sealed class Engine(
             return new WorkflowEnqueueResponse.Rejected.Invalid(error.Message);
         }
 
-        if (ActiveWorkflowCount > _settings.Concurrency.BackpressureThreshold)
+        if (ActiveWorkflowCount >= _settings.Concurrency.BackpressureThreshold)
         {
             activity?.Errored(errorMessage: "Engine has too many items in the queue, please try again later.");
             return new WorkflowEnqueueResponse.Rejected.AtCapacity(

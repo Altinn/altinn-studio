@@ -32,7 +32,7 @@ internal sealed class MetricsCollector(
                 var active = await engineRepository.CountActiveWorkflows(cancellationToken: stoppingToken);
                 var scheduled = await engineRepository.CountScheduledWorkflows(cancellationToken: stoppingToken);
                 var failed = await engineRepository.CountFailedWorkflows(cancellationToken: stoppingToken);
-                var successful = await engineRepository.CountScheduledWorkflows(cancellationToken: stoppingToken);
+                var successful = await engineRepository.CountSuccessfulWorkflows(cancellationToken: stoppingToken);
                 Metrics.SetActiveWorkflowsCount(active);
                 Metrics.SetScheduledWorkflowsCount(scheduled);
                 Metrics.SetFailedWorkflowsCount(failed);
@@ -40,7 +40,9 @@ internal sealed class MetricsCollector(
                 Metrics.SetFinishedWorkflowsCount(failed + successful);
 
                 Metrics.SetUsedInboxSlots(active);
-                Metrics.SetAvailableInboxSlots(engineSettings.Value.Concurrency.BackpressureThreshold - active);
+                Metrics.SetAvailableInboxSlots(
+                    Math.Max(0, engineSettings.Value.Concurrency.BackpressureThreshold - active)
+                );
 
                 engine.UpdateWorkflowCounts(active, scheduled, failed);
 

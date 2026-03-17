@@ -49,6 +49,7 @@ internal sealed record WorkflowEngineTestFixture(
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
+            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
             MaxWorkflowsPerRequest = 100,
             MaxStepsPerWorkflow = 50,
             MaxLabels = 50,
