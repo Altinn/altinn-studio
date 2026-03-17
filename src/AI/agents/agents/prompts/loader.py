@@ -3,6 +3,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
 from shared.utils.logging_utils import get_logger
+from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_prompt, get_raw_langfuse_prompt
 
 log = get_logger(__name__)
 
@@ -15,7 +16,6 @@ def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> Opt
     Returns None if Langfuse is disabled or unavailable.
     """
     try:
-        from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_prompt
         if not is_langfuse_enabled():
             return None
         content = fetch_langfuse_prompt(prompt_name, variables)
@@ -106,7 +106,6 @@ def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
     ``langfuse_prompt=`` to link the generation to the prompt version in Langfuse.
     Falls back to the local file when Langfuse is unavailable (raw prompt is ``None``).
     """
-    from shared.utils.langfuse_utils import get_raw_langfuse_prompt
     lf_prompt = get_raw_langfuse_prompt(prompt_name)
     if lf_prompt is not None:
         return lf_prompt.compile(), lf_prompt

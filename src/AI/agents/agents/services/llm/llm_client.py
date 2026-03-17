@@ -354,8 +354,8 @@ class LLMClient:
             if langfuse_prompt is not None:
                 try:
                     langfuse.update_current_generation(prompt=langfuse_prompt)
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.debug("Failed to link langfuse prompt to generation: %s", e)
 
             try:
                 loop = asyncio.get_event_loop()
@@ -524,8 +524,8 @@ class LLMClient:
             if langfuse_prompt is not None:
                 try:
                     langfuse.update_current_generation(prompt=langfuse_prompt)
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.debug("Failed to link langfuse prompt to generation: %s", e)
 
             try:
                 if self.use_anthropic:
