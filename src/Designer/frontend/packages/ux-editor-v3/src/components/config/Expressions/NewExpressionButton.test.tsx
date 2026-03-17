@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import type { NewExpressionButtonProps } from './NewExpressionButton';
 import { NewExpressionButton } from './NewExpressionButton';

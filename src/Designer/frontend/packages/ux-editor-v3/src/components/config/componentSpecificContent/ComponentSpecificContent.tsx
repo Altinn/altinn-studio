@@ -1,4 +1,3 @@
-import React from 'react';
 import { ImageComponent } from './Image';
 import { PanelComponent } from './Panel';
 import { ButtonComponent } from './Button';

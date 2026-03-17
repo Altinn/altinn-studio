@@ -1,4 +1,5 @@
-import React, { type ReactElement, useState } from 'react';
+import type { ReactElement } from 'react';
+import React, { useState } from 'react';
 import classes from './DeployPopover.module.css';
 import { StudioButton, StudioParagraph, StudioPopover, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';

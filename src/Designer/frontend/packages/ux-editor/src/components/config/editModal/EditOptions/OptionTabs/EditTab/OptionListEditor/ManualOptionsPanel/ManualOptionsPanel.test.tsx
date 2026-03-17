@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';

@@ -1,32 +1,35 @@
+//nolint:cyclop,errcheck,forcetypeassert,funlen,gocognit,gocritic,gocyclo,govet,maintidx,nestif,nilnil // Production-critical state logic is intentionally kept close to the pre-refactor implementation; suppress lint-driven rewrites here.
 package maskinporten
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/assert"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/resourcename"
-	"github.com/jonboulle/clockwork"
-	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const JsonFileName = "maskinporten-settings.json"
 
-// Annotation to trigger manual JWK rotation (value must be "true")
+// AnnotationRotateJwk is used to trigger manual JWK rotation (value must be "true").
 const AnnotationRotateJwk = "altinn.studio/maskinporten-rotate-jwk"
 
-// FinalizerName is used to ensure cleanup before deletion
+// FinalizerName is used to ensure cleanup before deletion.
 const FinalizerName = "altinn.studio/maskinporten-finalizer"
 
-// Condition types for MaskinportenClient status
+// Condition types for MaskinportenClient status.
 const (
 	ConditionTypeReady            = "Ready"
 	ConditionTypeClientRegistered = "ClientRegistered"
@@ -34,14 +37,22 @@ const (
 	ConditionTypeDeleting         = "Deleting"
 )
 
+var (
+	errSerializeToNilSecret        = errors.New("cant serialize to nil secret")
+	errDeserializeFromNilSecret    = errors.New("cant deserialize from nil secret")
+	errHydrateWithoutCRD           = errors.New("tried to hydrate client state without CRD")
+	errUnexpectedAPIJWKSWithoutAPI = errors.New("unexpected condition, api resource was not created but api JWKS was")
+	errEmptyClientIDFromAPI        = errors.New("received empty ClientId when building client state")
+)
+
 // MissingSecretError is returned when the app secret doesn't exist yet
-// This is a recoverable error that should be handled gracefully
+// This is a recoverable error that should be handled gracefully.
 type MissingSecretError struct {
 	AppName string
 }
 
 func (e *MissingSecretError) Error() string {
-	return fmt.Sprintf("app secret not found for MaskinportenClient: %s", e.AppName)
+	return "app secret not found for MaskinportenClient: " + e.AppName
 }
 
 // ClientState reprsents a snapshot of the state of a Maskinporten client
@@ -59,20 +70,16 @@ func (e *MissingSecretError) Error() string {
 // in this package (such as `OidcClientRequest` which reflects the contract owned by `httpApiClient`).
 // This is OK since all parts of the maskinporten package are likely to change together.
 type ClientState struct {
-	AppId string
-
-	// Fields set in the MaskinportenClient CRD - we only manage the status
-	Crd *resourcesv1alpha1.MaskinportenClient
-	// State kept in the Maskinporten API
-	Api *ApiState
-	// The "output" of this operatator, serialized to field
 	Secret SecretState
+	Crd    *resourcesv1alpha1.MaskinportenClient
+	Api    *ApiState
+	AppId  string
 }
 
 type ApiState struct {
-	ClientId string
 	Req      *AddClientRequest
 	Jwks     *crypto.Jwks
+	ClientId string
 }
 
 type SecretState struct {
@@ -81,15 +88,15 @@ type SecretState struct {
 }
 
 type SecretStateContent struct {
-	ClientId  string       `json:"ClientId"`
-	Authority string       `json:"Authority"`
 	Jwks      *crypto.Jwks `json:"Jwks"`
 	Jwk       *crypto.Jwk  `json:"Jwk"`
+	ClientId  string       `json:"ClientId"`
+	Authority string       `json:"Authority"`
 }
 
 func (c *SecretStateContent) SerializeTo(secret *corev1.Secret) error {
 	if secret == nil {
-		return fmt.Errorf("cant serialize to nil secret")
+		return errSerializeToNilSecret
 	}
 	// Wrap in MaskinportenSettings for .NET configuration binding
 	wrapper := map[string]any{
@@ -97,7 +104,7 @@ func (c *SecretStateContent) SerializeTo(secret *corev1.Secret) error {
 	}
 	data, err := json.Marshal(wrapper)
 	if err != nil {
-		return err
+		return fmt.Errorf("serialize secret state content: %w", err)
 	}
 	if secret.Data == nil {
 		secret.Data = make(map[string][]byte)
@@ -113,7 +120,7 @@ func DeleteSecretStateContent(secret *corev1.Secret) {
 
 func DeserializeSecretStateContent(secret *corev1.Secret) (*SecretStateContent, error) {
 	if secret == nil {
-		return nil, fmt.Errorf("cant deserialize from nil secret")
+		return nil, errDeserializeFromNilSecret
 	}
 	if secret.Data == nil {
 		return nil, nil
@@ -128,7 +135,7 @@ func DeserializeSecretStateContent(secret *corev1.Secret) (*SecretStateContent, 
 		MaskinportenSettings *SecretStateContent `json:"MaskinportenSettings"`
 	}
 	if err := json.Unmarshal(data, &wrapper); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("deserialize secret state content: %w", err)
 	}
 	return wrapper.MaskinportenSettings, nil
 }
@@ -141,7 +148,7 @@ func NewClientState(
 	secretStateContent *SecretStateContent,
 ) (*ClientState, error) {
 	if crd == nil {
-		return nil, fmt.Errorf("tried to hydrate client state without CRD")
+		return nil, errHydrateWithoutCRD
 	}
 	// During normal reconcile we require the app secret.
 	// During deletion, Flux prune may remove the secret before finalizer cleanup runs.
@@ -149,12 +156,12 @@ func NewClientState(
 		return nil, &MissingSecretError{AppName: crd.Name}
 	}
 	if api == nil && apiJwks != nil {
-		return nil, fmt.Errorf("unexpected condition, api resource was not created but api JWKS was")
+		return nil, errUnexpectedAPIJWKSWithoutAPI
 	}
 
 	parsed, err := resourcename.ParseMaskinportenClientName(crd.Name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse MaskinportenClient name %q: %w", crd.Name, err)
 	}
 	appId := parsed.AppId
 
@@ -171,7 +178,7 @@ func NewClientState(
 
 	if api != nil {
 		if api.ClientId == "" {
-			return nil, fmt.Errorf("received empty ClientId when building client state")
+			return nil, errEmptyClientIDFromAPI
 		}
 		state.Api = &ApiState{
 			ClientId: api.ClientId,
@@ -183,7 +190,7 @@ func NewClientState(
 	return state, nil
 }
 
-func getNotAfter(clock clockwork.Clock, expiry time.Duration) time.Time {
+func getNotAfter(clock opclock.Clock, expiry time.Duration) time.Time {
 	return clock.Now().UTC().Add(expiry)
 }
 
@@ -191,15 +198,15 @@ func getNotAfter(clock clockwork.Clock, expiry time.Duration) time.Time {
 // Returns true if:
 // - force is true, OR
 // - the active key's certificate has been valid for longer than the threshold, OR
-// - the certificate expires within 24 hours
-func shouldRotateJwk(clock clockwork.Clock, threshold time.Duration, jwks *crypto.Jwks, force bool) (bool, error) {
+// - the certificate expires within 24 hours.
+func shouldRotateJwk(clock opclock.Clock, threshold time.Duration, jwks *crypto.Jwks, force bool) (bool, error) {
 	if force {
 		return true, nil
 	}
 
 	activeKey, err := crypto.FindActiveKey(jwks)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("find active JWK: %w", err)
 	}
 
 	cert := activeKey.Certificates()[0]
@@ -227,7 +234,7 @@ func (s *ClientState) Reconcile(
 	opCtx *operatorcontext.Context,
 	configValue *config.Config,
 	cryptoService *crypto.CryptoService,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 ) (CommandList, error) {
 	// ClientState keeps the state of Maskinporten-related config
 	// related to a specific app. This function evalues current state,
@@ -284,13 +291,16 @@ func (s *ClientState) Reconcile(
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(opCtx)
-		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry))
+		jwks, err := cryptoService.CreateJwks(
+			s.getCertSubject(opCtx),
+			getNotAfter(clock, configValue.MaskinportenController.JwkExpiry),
+		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("create JWKS: %w", err)
 		}
 		publicJwks, err := jwks.ToPublic()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("build public JWKS: %w", err)
 		}
 		apiState := &ApiState{
 			ClientId: "", // don't know yet
@@ -318,13 +328,16 @@ func (s *ClientState) Reconcile(
 			// * Someone else created the API client
 
 			// Since the private JWKS is stored in the secret, it has been lost and we need to create a new one
-			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry))
+			jwks, err := cryptoService.CreateJwks(
+				s.getCertSubject(opCtx),
+				getNotAfter(clock, configValue.MaskinportenController.JwkExpiry),
+			)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("create JWKS: %w", err)
 			}
 			publicJwks, err := jwks.ToPublic()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("build public JWKS: %w", err)
 			}
 			apiState := &ApiState{
 				ClientId: s.Api.ClientId,
@@ -341,20 +354,31 @@ func (s *ClientState) Reconcile(
 			}
 			commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 		} else {
-			authorityChanged := EnsureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl) != s.Secret.Content.Authority
+			authorityChanged := EnsureTrailingSlash(
+				configValue.MaskinportenApi.AuthorityUrl,
+			) != s.Secret.Content.Authority
 			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
 
-			needsRotation, err := shouldRotateJwk(clock, configValue.MaskinportenController.JwkRotationThreshold, s.Secret.Content.Jwks, forceRotate)
+			needsRotation, err := shouldRotateJwk(
+				clock,
+				configValue.MaskinportenController.JwkRotationThreshold,
+				s.Secret.Content.Jwks,
+				forceRotate,
+			)
 			if err != nil {
 				return nil, err
 			}
 
 			var jwks *crypto.Jwks
 			if needsRotation {
-				jwks, err = cryptoService.RotateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry), s.Secret.Content.Jwks)
+				jwks, err = cryptoService.RotateJwks(
+					s.getCertSubject(opCtx),
+					getNotAfter(clock, configValue.MaskinportenController.JwkExpiry),
+					s.Secret.Content.Jwks,
+				)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("rotate JWKS: %w", err)
 				}
 			}
 			jwksRotated := jwks != nil
@@ -365,7 +389,7 @@ func (s *ClientState) Reconcile(
 			if !jwksRotated && s.Api.Jwks != nil {
 				secretPublicJwks, err := s.Secret.Content.Jwks.ToPublic()
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("build public JWKS from secret: %w", err)
 				}
 				apiJwksDrifted = !jwksEqual(s.Api.Jwks, secretPublicJwks)
 			}
@@ -385,7 +409,7 @@ func (s *ClientState) Reconcile(
 						apiPublicJwks, err = s.Secret.Content.Jwks.ToPublic()
 					}
 					if err != nil {
-						return nil, err
+						return nil, fmt.Errorf("build public JWKS for API update: %w", err)
 					}
 				}
 
@@ -429,7 +453,7 @@ func (s *ClientState) Reconcile(
 	return commands, nil
 }
 
-// scopesEqual compares two scope slices, treating nil and empty as equal
+// scopesEqual compares two scope slices, treating nil and empty as equal.
 func scopesEqual(a, b []string) bool {
 	if len(a) == 0 && len(b) == 0 {
 		return true
@@ -447,7 +471,7 @@ func EnsureTrailingSlash(url string) string {
 	return url + "/"
 }
 
-// jwksEqual compares two JWKS by their key IDs
+// jwksEqual compares two JWKS by their key IDs.
 func jwksEqual(a, b *crypto.Jwks) bool {
 	if a == nil && b == nil {
 		return true
@@ -516,7 +540,7 @@ type CommandList []Command
 
 func (l CommandList) Strings() []string {
 	result := make([]string, len(l))
-	for i := 0; i < len(l); i++ {
+	for i := range l {
 		result[i] = reflect.ValueOf(l[i].Data).Elem().Type().Name()
 	}
 
@@ -607,33 +631,33 @@ func NewAddFinalizerCommand() Command {
 	}
 }
 
-// ErrSkipped indicates a command was not executed because a previous command failed
-var ErrSkipped = fmt.Errorf("skipped: previous command failed")
+// ErrSkipped indicates a command was not executed because a previous command failed.
+var ErrSkipped = errors.New("skipped: previous command failed")
 
 // CommandResult types - one per command type
 
 type CreateClientInApiCommandResult struct {
+	Err      error
 	ClientId string
 	Scopes   int
-	Err      error
 }
 
 type UpdateClientInApiCommandResult struct {
+	Err      error
 	ClientId string
 	Scopes   int
 	HasJwks  bool
-	Err      error
 }
 
 type UpdateSecretContentCommandResult struct {
+	Err       error
 	Authority string
 	KeyIds    []string
-	Err       error
 }
 
 type DeleteClientInApiCommandResult struct {
-	ClientId string
 	Err      error
+	ClientId string
 }
 
 type DeleteSecretContentCommandResult struct {
@@ -652,7 +676,7 @@ type AddFinalizerCommandResult struct {
 	Err error
 }
 
-// CommandResult wraps a command with its execution result
+// CommandResult wraps a command with its execution result.
 type CommandResult struct {
 	Command   any // One of the *Command types
 	Result    any // One of the *CommandResult types
@@ -689,42 +713,54 @@ func NewCommandResultBuilder(cmd any, timestamp time.Time) *CommandResultBuilder
 	}
 }
 
-func (b *CommandResultBuilder) WithCreateClientInApiResult(result *CreateClientInApiCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithCreateClientInApiResult(
+	result *CreateClientInApiCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*CreateClientInApiCommand)
 	assert.That(ok, "Command type mismatch: expected CreateClientInApiCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithUpdateClientInApiResult(result *UpdateClientInApiCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithUpdateClientInApiResult(
+	result *UpdateClientInApiCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*UpdateClientInApiCommand)
 	assert.That(ok, "Command type mismatch: expected UpdateClientInApiCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithUpdateSecretContentResult(result *UpdateSecretContentCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithUpdateSecretContentResult(
+	result *UpdateSecretContentCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*UpdateSecretContentCommand)
 	assert.That(ok, "Command type mismatch: expected UpdateSecretContentCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithDeleteClientInApiResult(result *DeleteClientInApiCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithDeleteClientInApiResult(
+	result *DeleteClientInApiCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*DeleteClientInApiCommand)
 	assert.That(ok, "Command type mismatch: expected DeleteClientInApiCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithDeleteSecretContentResult(result *DeleteSecretContentCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithDeleteSecretContentResult(
+	result *DeleteSecretContentCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*DeleteSecretContentCommand)
 	assert.That(ok, "Command type mismatch: expected DeleteSecretContentCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithRemoveRotateAnnotationResult(result *RemoveRotateAnnotationCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithRemoveRotateAnnotationResult(
+	result *RemoveRotateAnnotationCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*RemoveRotateAnnotationCommand)
 	assert.That(ok, "Command type mismatch: expected RemoveRotateAnnotationCommand")
 	b.result = result

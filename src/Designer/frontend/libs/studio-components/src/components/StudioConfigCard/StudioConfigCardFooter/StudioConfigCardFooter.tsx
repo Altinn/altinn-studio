@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioFormActions } from '../../StudioFormActions';
 import classes from './StudioConfigCardFooter.module.css';
 

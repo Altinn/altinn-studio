@@ -1,5 +1,5 @@
 import type { ForwardedRef, MouseEvent } from 'react';
-import React from 'react';
+import { createRef } from 'react';
 import type { ButtonRouterLinkProps } from './ButtonRouterLink';
 import { ButtonRouterLink } from './ButtonRouterLink';
 import type { RenderResult } from '@testing-library/react';
@@ -38,7 +38,7 @@ describe('ButtonRouterLink', () => {
   });
 
   it('Forwards the ref to the link element if given', () => {
-    const ref = React.createRef<HTMLButtonElement>();
+    const ref = createRef<HTMLButtonElement>();
     renderButtonRouterLink({}, ref);
     expect(ref.current).toBe(screen.getByRole('button'));
   });

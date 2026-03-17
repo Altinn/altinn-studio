@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -24,11 +23,7 @@ public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpoints
             $$"""
                {
                      "FeatureManagement": {
-                         "{{StudioFeatureFlags.AnsattPorten}}": true
-                     },
-                     "AnsattPortenLoginSettings": {
-                         "ClientId": "non-empty-for-testing",
-                         "ClientSecret": "non-empty-for-testing"
+                         "{{StudioFeatureFlags.StudioOidc}}": true
                      }
                }
             """
@@ -39,13 +34,13 @@ public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpoints
     {
         base.ConfigureTestServices(services);
 
-        // Replace test authentication handler with Ansattporten-specific test handler
+        // Replace test authentication handler with OIDC-specific test handler
         services.PostConfigure<Microsoft.AspNetCore.Authentication.AuthenticationOptions>(options =>
         {
             var testScheme = options.Schemes.FirstOrDefault(s => s.Name == TestAuthConstants.TestAuthenticationScheme);
             if (testScheme != null)
             {
-                testScheme.HandlerType = typeof(TestAnsattPortenAuthHandler);
+                testScheme.HandlerType = typeof(TestOidcAuthHandler);
             }
         });
 

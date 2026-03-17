@@ -118,6 +118,35 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
+    [Fact]
+    public async Task PostNewInstance_WithEmailUser_ShouldCreateInstanceAndNotFail()
+    {
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        using HttpClient client = GetRootedOrgClient(org, app);
+
+        // Create instance data
+        var body = $$"""
+                {
+                    "instanceOwner": {
+                        "username": "post@altinn.no"
+                    }
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        using var response = await client.PostAsync($"{org}/{app}/instances", content);
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var instance = JsonSerializer.Deserialize<Instance>(responseContent, JsonSerializerOptions);
+        Assert.NotNull(instance);
+        Assert.Equal("epost:post@altinn.no", instance.InstanceOwner.Username);
+    }
+
     [Theory]
     [ClassData(typeof(TestAuthentication.AllTokens))]
     public async Task PostNewInstance_Simplified(TestJwtToken token)

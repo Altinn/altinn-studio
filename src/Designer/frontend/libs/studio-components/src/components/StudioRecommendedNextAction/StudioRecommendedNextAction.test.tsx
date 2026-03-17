@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioRecommendedNextAction } from './StudioRecommendedNextAction';
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioRecommendedNextAction', () => {

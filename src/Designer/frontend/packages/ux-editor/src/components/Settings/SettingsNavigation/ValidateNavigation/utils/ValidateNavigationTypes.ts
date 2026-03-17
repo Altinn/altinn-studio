@@ -15,5 +15,3 @@ export type ExternalConfigState = {
   task?: string;
   pages?: string[];
 };
-
-export type ExternalConfigWithId = ExternalConfigState & { id: string };

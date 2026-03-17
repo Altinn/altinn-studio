@@ -1,0 +1,61 @@
+name: Approve PR
+
+on:
+  pull_request_target:
+    types: [ opened, labeled ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Check if auto-approval is needed
+        id: check-labels
+        run: |
+          has_approve_label=$(gh pr view ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --json labels --jq 'any(.labels[]?; .name == "approve")')
+
+          if [[ "$has_approve_label" != "true" ]]; then
+            echo "should_approve=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if ! permission=$(gh api repos/${{ github.repository }}/collaborators/"$ACTOR"/permission --jq '.permission' 2>/dev/null); then
+            echo "should_approve=false" >> $GITHUB_OUTPUT
+            echo "Could not determine permission for $ACTOR"
+            exit 0
+          fi
+
+          case "$permission" in
+            admin|maintain|write)
+              ;;
+            *)
+              echo "should_approve=false" >> $GITHUB_OUTPUT
+              echo "User $ACTOR cannot use the approve label: $permission"
+              exit 0
+              ;;
+          esac
+
+          # Check if already approved by github-actions bot
+          reviews=$(gh pr view ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --json reviews --jq '.reviews[] | select((.author.login == "github-actions" or .author.login == "github-actions[bot]") and .state == "APPROVED")')
+
+          if [ -n "$reviews" ]; then
+            echo "should_approve=false" >> $GITHUB_OUTPUT
+            echo "PR already approved by github-actions bot"
+          else
+            echo "should_approve=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          ACTOR: ${{ github.event.sender.login }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto approve PR
+        if: steps.check-labels.outputs.should_approve == 'true'
+        run: gh pr review ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --approve
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

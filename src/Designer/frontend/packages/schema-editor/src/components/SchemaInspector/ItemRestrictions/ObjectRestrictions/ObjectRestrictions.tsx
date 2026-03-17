@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ObjRestrictionKey } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';

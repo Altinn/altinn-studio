@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@studio/components-legacy';
 import { StudioAvatar, StudioPageHeader } from '@studio/components';

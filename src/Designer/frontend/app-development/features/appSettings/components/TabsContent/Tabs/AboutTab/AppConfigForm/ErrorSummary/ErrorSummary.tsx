@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement } from 'react';
 import classes from './ErrorSummary.module.css';
 import { StudioErrorSummary } from '@studio/components';

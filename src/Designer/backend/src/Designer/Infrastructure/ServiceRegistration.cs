@@ -10,7 +10,9 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.Implementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -69,6 +71,9 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeployEventRepository, DeployEventRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
+            services.AddScoped<IChatRepository, ChatRepository>();
+            services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
+            services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
             services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
@@ -117,6 +122,10 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IOrgLibraryService, OrgLibraryService>();
             services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
             services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+            services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
+            services.AddScoped<IApiKeyService, ApiKeyService>();
+            services.RegisterSettingsSingleton<ApiKeySettings>(configuration);
+            services.AddSingleton<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
             services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 
             return services;

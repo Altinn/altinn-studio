@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioPagination, type StudioPaginationProps } from './StudioPagination';
 import { render, screen, type RenderResult } from '@testing-library/react';
 

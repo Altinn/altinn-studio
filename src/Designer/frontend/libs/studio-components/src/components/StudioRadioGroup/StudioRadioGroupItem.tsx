@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioRadio } from '../StudioRadio';
 import type { StudioGetRadioProps } from './StudioGetRadioProps';

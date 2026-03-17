@@ -1,4 +1,3 @@
-import React from 'react';
 import { SelectSubformSection } from './SelectSubformSection';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

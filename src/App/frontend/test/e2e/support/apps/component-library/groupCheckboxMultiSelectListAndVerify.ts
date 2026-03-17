@@ -11,7 +11,7 @@ export const groupCheckboxMultiSelectListAndVerify = (checkboxText = '', multiSe
   cy.get(multiselect).click();
   cy.get(multiselectList).contains('span', multiSelectText).click();
   cy.get(multiselect).contains('span', multiSelectText).should('exist');
-  cy.findByRole('button', { name: new RegExp(`${multiSelectText}, Press to remove, 1 of 1`) }).should('exist');
+  cy.findByRole('option', { name: new RegExp(`${multiSelectText}, Press to remove`) }).should('exist');
   cy.get(repGroup).click({ force: true });
 
   cy.gotoNavPage('Liste (tabell)');

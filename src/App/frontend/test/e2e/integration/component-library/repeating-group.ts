@@ -221,7 +221,7 @@ describe('Group summary test', () => {
       .first()
       .click();
 
-    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 13);
+    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 16);
     cy.changeLayout((component) => {
       if (component.type === 'RepeatingGroup') {
         component.edit = component.edit ?? {};

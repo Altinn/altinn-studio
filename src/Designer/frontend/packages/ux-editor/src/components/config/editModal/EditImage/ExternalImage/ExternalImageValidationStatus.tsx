@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './ExternalImageValidationStatus.module.css';
 import { StudioSpinner } from '@studio/components-legacy';
 import { StudioParagraph } from '@studio/components';

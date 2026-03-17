@@ -135,6 +135,9 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         [
             $@"
               {{
+                    ""FeatureManagement"": {{
+                        ""StudioOidc"": false
+                    }},
                     ""OidcLoginSettings"": {{
                         ""ClientId"": ""{Guid.NewGuid()}"",
                         ""ClientSecret"": ""{Guid.NewGuid()}"",

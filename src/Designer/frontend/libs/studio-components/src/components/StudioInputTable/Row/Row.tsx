@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { StudioTable } from '../../StudioTable';
 
 type RowProps = ComponentProps<typeof StudioTable.Row>;

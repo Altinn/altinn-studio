@@ -1,4 +1,3 @@
-import React from 'react';
 import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { StudioPageSpinner } from '@studio/components';

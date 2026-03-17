@@ -1,4 +1,3 @@
-import React from 'react';
 import { LangSelector } from './LangSelector';
 import type { ILangSelectorProps } from './LangSelector';
 import { render as rtlRender, screen } from '@testing-library/react';

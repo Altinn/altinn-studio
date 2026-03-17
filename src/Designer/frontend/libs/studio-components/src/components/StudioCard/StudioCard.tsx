@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { Card } from '@digdir/designsystemet-react';
 import type { CardProps } from '@digdir/designsystemet-react';

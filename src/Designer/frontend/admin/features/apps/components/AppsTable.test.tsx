@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppsTable, type AppsTableProps } from './AppsTable';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

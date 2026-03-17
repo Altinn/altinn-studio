@@ -209,10 +209,14 @@ const createContentRepo = async (user, pass, org) => {
 const setupEnvironment = async (env) => {
   buildAndStartComposeService('studio_db');
   buildAndStartComposeService('studio_repositories');
+  buildAndStartComposeService('fake_ansattporten');
   await waitForHealthy('studio-repositories');
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
+  createFakeAnsattportenAuthSource();
+  linkAdminToFakeAnsattporten();
+  linkCypressUserToFakeAnsattporten(env.GITEA_CYPRESS_USER);
   await createOrganization(
     env.GITEA_ADMIN_USER,
     env.GITEA_ADMIN_PASS,
@@ -239,6 +243,35 @@ const setupEnvironment = async (env) => {
 
   return newEnv;
 };
+
+const createFakeAnsattportenAuthSource = () => {
+  const existing = require('child_process')
+    .execSync('docker exec studio-repositories gitea admin auth list')
+    .toString();
+  if (existing.includes('fake-ansattporten')) {
+    return;
+  }
+  runCommand(
+    [
+      `docker exec studio-repositories gitea admin auth add-oauth`,
+      `--name=fake-ansattporten`,
+      `--provider=openidConnect`,
+      `--key=fake-client`,
+      `--secret=fake-secret`,
+      `--auto-discover-url=http://fake-ansattporten:8443/.well-known/openid-configuration`,
+    ].join(' '),
+  );
+};
+
+const linkAdminToFakeAnsattporten = () =>
+  runCommand(
+    `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-29922149761', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = 'localgiteaadmin' ON CONFLICT DO NOTHING;"`,
+  );
+
+const linkCypressUserToFakeAnsattporten = (cypressUser) =>
+  runCommand(
+    `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-10866898516', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = '${cypressUser.toLowerCase()}' ON CONFLICT DO NOTHING;"`,
+  );
 
 const setupRunnersToken = async (env) => {
   const runnersToken = await giteaApi({

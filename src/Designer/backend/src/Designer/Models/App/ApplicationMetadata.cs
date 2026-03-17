@@ -40,6 +40,7 @@ public class AppMetadataAccess
 {
     public AppMetadataTranslatedString? RightDescription { get; set; }
     public bool? Delegable { get; set; }
+    public bool? Visible { get; set; }
     public List<ResourcePartyType>? AvailableForType { get; set; }
 }
 

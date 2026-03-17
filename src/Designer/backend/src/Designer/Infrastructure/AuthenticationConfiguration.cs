@@ -3,9 +3,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -35,6 +39,30 @@ namespace Altinn.Studio.Designer.Infrastructure
             IWebHostEnvironment env
         )
         {
+            // Register org access policy unconditionally so [Authorize] attributes
+            // are valid at startup regardless of which auth flow is active.
+            services
+                .AddAuthorizationBuilder()
+                .AddPolicy(
+                    StudioOidcConstants.OrgAccessAuthorizationPolicy,
+                    policy =>
+                    {
+                        policy.AuthenticationSchemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
+                        policy.RequireAuthenticatedUser();
+                        policy.Requirements.Add(new OrgAccessRequirement());
+                    }
+                );
+
+            services.AddScoped<IAuthorizationHandler, OrgAccessHandler>();
+
+            bool studioOidcEnabled =
+                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
+
+            if (studioOidcEnabled)
+            {
+                return services.AddStudioOidcAuthentication(config, env);
+            }
+
             return AddGiteaOidcAuthentication(services, config, env);
         }
 

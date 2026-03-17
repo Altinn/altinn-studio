@@ -1,7 +1,6 @@
 #nullable disable
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -27,6 +26,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             CancellationToken cancellationToken = default
         );
 
-        public Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId);
+        public Task<string> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId);
+
+        public string ReplacePolicyPlaceholderTokens(string policyFileContent, string org, string app);
     }
 }

@@ -11,7 +11,6 @@ export enum FeatureFlag {
   ComponentConfigBeta = 'componentConfigBeta',
   Maskinporten = 'maskinporten',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
-  AppMetadata = 'appMetadata',
   ImageUpload = 'imageUpload',
   HideGiteaFieldsInResourceList = 'hideGiteaFieldsInResourceList',
   SkipJsonParseJsonInResourceList = 'skipJsonParseJsonInResourceList',

@@ -11,7 +11,7 @@ module.exports = {
   },
   optimization: {
     minimize: true,
-        minimizer: [
+    minimizer: [
       new EsbuildPlugin({
         target: 'es2020',
         css: true,

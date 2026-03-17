@@ -54,7 +54,7 @@ class MCPVerifier:
         langfuse = get_client()
         result = MCPVerificationResult()
 
-        with langfuse.start_as_current_span(name="verification_phase", metadata={"span_type": "TOOL"}) as main_span:
+        with langfuse.start_as_current_observation(name="verification_phase", metadata={"span_type": "TOOL"}) as main_span:
             main_span.update(metadata={
                 "changed_files_count": len([f.get('file', '') for f in patch.get('changes', [])]),
                 "plan_step_id": plan_step.id if hasattr(plan_step, "id") else "unknown"
@@ -123,7 +123,7 @@ class MCPVerifier:
     async def _verify_layout(self, mcp_client, layout_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call schema_validator_tool for layout validation"""
         langfuse = get_client()
-        with langfuse.start_as_current_span(name="layout_schema_validation", metadata={"span_type": "TOOL"}) as span:
+        with langfuse.start_as_current_observation(name="layout_schema_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 # Read the layout file content
                 layout_file_path = Path(self.repo_path) / layout_files[0]['file']
@@ -214,7 +214,7 @@ class MCPVerifier:
     async def _verify_resources(self, mcp_client, resource_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call resource_validator_tool"""
         langfuse = get_client()
-        with langfuse.start_as_current_span(name="resource_text_validation", metadata={"span_type": "TOOL"}) as span:
+        with langfuse.start_as_current_observation(name="resource_text_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 # Read the resource file content
                 resource_file_path = Path(self.repo_path) / resource_files[0]['file']
@@ -312,7 +312,7 @@ class MCPVerifier:
     async def _verify_policies(self, mcp_client, patch: Dict, plan_step: PlanStep, result: MCPVerificationResult):
         """Call policy_validation_tool for generated files and constraint checks"""
         langfuse = get_client()
-        with langfuse.start_as_current_span(name="policy_validation", metadata={"span_type": "TOOL"}) as span:
+        with langfuse.start_as_current_observation(name="policy_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 tool_input = {
                     "changed_files": [f['file'] for f in patch.get('changes', [])],

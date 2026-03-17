@@ -1,4 +1,4 @@
-import React, { forwardRef, useId } from 'react';
+import { forwardRef, useId } from 'react';
 import type { ReactElement, ReactNode, Ref, HTMLAttributes } from 'react';
 import { StudioHeading } from '../StudioHeading';
 import { StudioParagraph } from '../StudioParagraph';

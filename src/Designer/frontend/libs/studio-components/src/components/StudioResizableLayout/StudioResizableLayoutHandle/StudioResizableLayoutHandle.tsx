@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useStudioResizableLayoutContext } from '../hooks/useStudioResizableLayoutContext';
 import type { StudioResizableOrientation } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import classes from './StudioResizableLayoutHandle.module.css';

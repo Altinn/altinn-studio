@@ -22,6 +22,7 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
+  # APP_AUTH_HEADER_NAME: '' # Optional header name for token auth (e.g. "X-Api-Key"). When set, uses header instead of URL-embedded token.
   # TRACEPARENT: '' # Optional W3C traceparent for correlation
   # TRACESTATE: '' # Optional W3C tracestate for correlation
   # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
@@ -133,9 +134,12 @@ steps:
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       script: |
-        # Should use oauth token when authenticating to private repo
-
-        git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        # Clone private repo using either header-based or URL-embedded token auth
+        if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+          git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" clone --recurse-submodules https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        else
+          git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        fi
         cd $APP_COMMIT_ID
 
         ## Ensure we use correct commit
@@ -147,7 +151,11 @@ steps:
             echo "Already using latest commit on this branch, moving on."
         else
             echo "Target commit ID is not latest commit on this branch. Fetching target commit"
-            git fetch origin $APP_COMMIT_ID
+            if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+              git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" fetch origin $APP_COMMIT_ID
+            else
+              git fetch origin $APP_COMMIT_ID
+            fi
             git reset --hard FETCH_HEAD
         fi
 
@@ -196,7 +204,11 @@ steps:
     condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       script: |
-        git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+          git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" clone https://$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        else
+          git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        fi
 
   - task: Bash@3
     displayName: 'Process custom IngressRoute for staf org'
@@ -394,6 +406,7 @@ steps:
         # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
         Write-Host "`nPowerShell script output START`n"
+        Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
         $apimSubscriptionId = "$appOwner-$appName"
 
@@ -434,7 +447,8 @@ steps:
 
         Write-Host "`nPowerShell script output END`n"
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: AzurePowerShell@4
@@ -456,6 +470,7 @@ steps:
         # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
         Write-Host "`nPowerShell script output START`n"
+        Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
         $apimSubscriptionId = "$appOwner-$appName"
 
@@ -496,7 +511,8 @@ steps:
 
         Write-Host "`nPowerShell script output END`n"
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: AzurePowerShell@4
@@ -509,6 +525,7 @@ steps:
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
 
         if ("$(APP_ENVIRONMENT)" -eq "production"){
+            Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
             $apimContext = New-AzApiManagementContext -ResourceId $(APIM_RESOURCE_ID_PROD)
 
@@ -534,7 +551,8 @@ steps:
             Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
         }
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: Bash@3

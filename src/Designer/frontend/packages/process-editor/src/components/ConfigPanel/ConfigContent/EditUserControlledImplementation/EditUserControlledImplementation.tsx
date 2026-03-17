@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useGetDefaultUserControlledSigningInterfaceId } from './useGetDefaultUserControlledSigningInterfaceId';
 import { useUpdateUserControlledImplementation } from './useUpdateUserControlledImplementation';

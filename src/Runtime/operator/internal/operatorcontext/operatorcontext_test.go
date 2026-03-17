@@ -28,7 +28,6 @@ func TestCancellationBefore(t *testing.T) {
 	Expect(operatorContext).To(BeNil())
 	Expect(ctx.Err()).To(MatchError(context.Canceled))
 	Expect(err).To(MatchError(context.Canceled))
-
 }
 
 func TestCancellationAfter(t *testing.T) {
@@ -49,14 +48,13 @@ func TestSpanStart(t *testing.T) {
 
 	originalContext := context.Background()
 	operatorContext := DiscoverOrDie(originalContext, EnvironmentLocal, nil)
-	originalSpan := trace.SpanFromContext(operatorContext.Context)
-	Expect(operatorContext.Context).To(Equal(originalContext))
+	originalSpan := trace.SpanFromContext(originalContext)
 
-	span := operatorContext.StartSpan("Test")
+	spanContext, span := operatorContext.StartSpan(originalContext, "Test")
 	defer span.End()
 	Expect(span).ToNot(Equal(originalSpan))
-	Expect(operatorContext.Context).ToNot(Equal(originalContext))
-	spanFromContext := trace.SpanFromContext(operatorContext.Context)
+	Expect(spanContext).ToNot(Equal(originalContext))
+	spanFromContext := trace.SpanFromContext(spanContext)
 	Expect(spanFromContext).To(Equal(span))
 }
 

@@ -19,7 +19,7 @@
         no-store, no-cache
       ],
       Location: [
-        https://app:5005/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[1]>
+        https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[1]>
       ],
       Transfer-Encoding: [
         chunked
