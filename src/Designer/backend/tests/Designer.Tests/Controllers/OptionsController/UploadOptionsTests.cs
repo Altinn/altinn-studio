@@ -15,11 +15,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UploadOptionsTests
+    : DesignerEndpointsTestsBase<UploadOptionsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public UploadOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public UploadOptionsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string VersionPrefix = "designer/api";
     private const string Org = "ttd";
@@ -35,7 +36,8 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "options.json";
-        string jsonOptions = @"[
+        string jsonOptions =
+            @"[
         {""label"": ""Label1"", ""value"": ""Value1"", ""description"": ""Description1"", ""helpText"": ""helpText"" },
         {""label"": ""Label2"", ""value"": ""Value2"" }
     ]";
@@ -48,7 +50,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         content.Add(optionsContent, "file", optionsFileName);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
-            Content = content
+            Content = content,
         };
 
         // Act
@@ -71,7 +73,8 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "simple-options.json";
-        string jsonOptions = @"[
+        string jsonOptions =
+            @"[
         {""label"": """", ""value"": """" },
     ]";
 
@@ -83,7 +86,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         content.Add(optionsContent, "file", optionsFileName);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
-            Content = content
+            Content = content,
         };
 
         // Act
@@ -103,7 +106,8 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "missing-fields-options.json";
-        string jsonOptions = @"[
+        string jsonOptions =
+            @"[
         {""value"": """" },
         {""label"": """" },
     ]";
@@ -116,7 +120,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         content.Add(optionsContent, "file", optionsFileName);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
-            Content = content
+            Content = content,
         };
 
         // Act
@@ -136,7 +140,8 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
         string optionsFileName = "null-options.json";
-        string jsonOptions = @"[
+        string jsonOptions =
+            @"[
         {""label"": null, ""value"": null }
     ]";
 
@@ -148,7 +153,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         content.Add(optionsContent, "file", optionsFileName);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
-            Content = content
+            Content = content,
         };
 
         // Act
@@ -178,7 +183,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         content.Add(optionsContent, "file", optionsFileName);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
-            Content = content
+            Content = content,
         };
 
         // Act

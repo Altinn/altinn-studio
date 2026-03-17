@@ -8,6 +8,7 @@ import {
 import { FormComponentConfig } from '../../FormComponentConfig';
 import type { FormComponent } from '../../../../../src/types/FormComponent';
 import type { SchemaConfigProps } from '../types';
+import { propHasValues } from '../ConfigPropertiesUtils';
 
 export interface ConfigObjectPropertyCardProps extends SchemaConfigProps {
   objectPropertyKey: string;
@@ -29,6 +30,7 @@ export const ConfigObjectPropertyCard = ({
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
   const t = useText();
+  const hasObjectValues = propHasValues(component[objectPropertyKey]);
 
   const isSaveButtonDisabled =
     JSON.stringify(currentValues) === JSON.stringify(component[objectPropertyKey]);
@@ -56,7 +58,7 @@ export const ConfigObjectPropertyCard = ({
         deleteAriaLabel={t('general.delete')}
         onDelete={() => handleDeleteProperty(objectPropertyKey)}
         confirmDeleteMessage={t('general.confirm.delete')}
-        isDeleteDisabled={!component[objectPropertyKey]}
+        isDeleteDisabled={!hasObjectValues}
       />
       <StudioConfigCard.Body>
         {componentPropertyDescription(objectPropertyKey) && (

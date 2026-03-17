@@ -24,9 +24,7 @@ public class CanUseUploadDataModelEvaluatorTests
     public async Task CanUseFeatureAsync_ReturnsTrue_WhenUserIsMemberOfOrganization()
     {
         var userOrgServiceMock = new Mock<IUserOrganizationService>();
-        userOrgServiceMock
-            .Setup(s => s.UserIsMemberOfAnyOrganization())
-            .ReturnsAsync(true);
+        userOrgServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
 
         var evaluator = new CanUseUploadDataModelEvaluator(userOrgServiceMock.Object);
         bool result = await evaluator.CanUseFeatureAsync();
@@ -38,9 +36,7 @@ public class CanUseUploadDataModelEvaluatorTests
     public async Task CanUseFeatureAsync_ReturnsFalse_WhenUserIsNotMemberOfOrganization()
     {
         var userOrgServiceMock = new Mock<IUserOrganizationService>();
-        userOrgServiceMock
-            .Setup(s => s.UserIsMemberOfAnyOrganization())
-            .ReturnsAsync(false);
+        userOrgServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(false);
 
         var evaluator = new CanUseUploadDataModelEvaluator(userOrgServiceMock.Object);
         bool result = await evaluator.CanUseFeatureAsync();

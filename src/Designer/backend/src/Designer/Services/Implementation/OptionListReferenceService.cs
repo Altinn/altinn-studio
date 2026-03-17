@@ -28,7 +28,10 @@ public class OptionListReferenceService : IOptionListReferenceService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">The git repository factory.</param>
     /// <param name="appDevelopmentService">The app development service.</param>
-    public OptionListReferenceService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
+    public OptionListReferenceService(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IAppDevelopmentService appDevelopmentService
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _appDevelopmentService = appDevelopmentService;
@@ -36,10 +39,17 @@ public class OptionListReferenceService : IOptionListReferenceService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListReference>> GetAllOptionListReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListReference>> GetAllOptionListReferences(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
+        _altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer
+        );
         _repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds().ToHashSet();
         if (_repoOptionListIds.Count > 0)
         {
@@ -68,7 +78,11 @@ public class OptionListReferenceService : IOptionListReferenceService
         }
     }
 
-    private async Task FindOptionListReferencesInLayout(string layoutSetName, string layoutName, CancellationToken cancellationToken)
+    private async Task FindOptionListReferencesInLayout(
+        string layoutSetName,
+        string layoutName,
+        CancellationToken cancellationToken
+    )
     {
         var layout = await _altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
         var components = GetComponentArray(layout);
@@ -138,23 +152,26 @@ public class OptionListReferenceService : IOptionListReferenceService
         return _optionListReferences.FirstOrDefault(reference => reference.OptionListId == optionListId);
     }
 
-    private static OptionListIdSource RetrieveOptionListIdSource(OptionListReference existingReference, string layoutSetName, string layoutName)
+    private static OptionListIdSource RetrieveOptionListIdSource(
+        OptionListReference existingReference,
+        string layoutSetName,
+        string layoutName
+    )
     {
-        return existingReference.OptionListIdSources.FirstOrDefault(
-            optionListIdSource =>
-                optionListIdSource.LayoutSetId == layoutSetName
-                && optionListIdSource.LayoutName == layoutName
+        return existingReference.OptionListIdSources.FirstOrDefault(optionListIdSource =>
+            optionListIdSource.LayoutSetId == layoutSetName && optionListIdSource.LayoutName == layoutName
         );
     }
 
-    private OptionListReference CreateOptionListReference(string optionListId, string layoutSetName, string layoutName, string componentId)
+    private OptionListReference CreateOptionListReference(
+        string optionListId,
+        string layoutSetName,
+        string layoutName,
+        string componentId
+    )
     {
         var newSource = CreateOptionListIdSource(layoutSetName, layoutName, componentId);
-        return new OptionListReference
-        {
-            OptionListId = optionListId,
-            OptionListIdSources = [newSource]
-        };
+        return new OptionListReference { OptionListId = optionListId, OptionListIdSources = [newSource] };
     }
 
     private OptionListIdSource CreateOptionListIdSource(string layoutSetName, string layoutName, string componentId)
@@ -166,7 +183,7 @@ public class OptionListReferenceService : IOptionListReferenceService
             LayoutName = layoutName,
             ComponentIds = [componentId],
             TaskId = layoutSetModel?.Task?.Id,
-            TaskType = layoutSetModel?.Task?.Type
+            TaskType = layoutSetModel?.Task?.Type,
         };
     }
 

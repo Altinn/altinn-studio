@@ -148,6 +148,7 @@
     "subUnit": false
   },
   "preventInstanceDeletionForDays": 3,
+  "promptForParty": "never",
   "autoDeleteOnProcessEnd": false,
   "disallowUserInstantiation": false,
   "created": "2024-11-08T09:01:02.4939342Z",

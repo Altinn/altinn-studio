@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -20,14 +19,22 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     private readonly GeneralSettings _generalSettings;
     private readonly IEnvironmentsService _environmentsService;
 
-    public RuntimeGatewayClient(IHttpClientFactory httpClientFactory, GeneralSettings generalSettings, IEnvironmentsService environmentsService)
+    public RuntimeGatewayClient(
+        IHttpClientFactory httpClientFactory,
+        GeneralSettings generalSettings,
+        IEnvironmentsService environmentsService
+    )
     {
         _httpClientFactory = httpClientFactory;
         _generalSettings = generalSettings;
         _environmentsService = environmentsService;
     }
 
-    public async Task<IEnumerable<AppDeployment>> GetAppDeployments(string org, AltinnEnvironment environment, CancellationToken cancellationToken)
+    public async Task<IEnumerable<AppDeployment>> GetAppDeployments(
+        string org,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
@@ -40,7 +47,12 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
             );
     }
 
-    public async Task<AppDeployment> GetAppDeployment(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
+    public async Task<AppDeployment> GetAppDeployment(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
@@ -53,11 +65,17 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
             );
     }
 
-    public async Task<bool> IsAppDeployedWithGitOpsAsync(string org, string app, AltinnEnvironment environment, CancellationToken cancellationToken)
+    public async Task<bool> IsAppDeployedWithGitOpsAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}/deployed";
+        var requestUrl =
+            $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}/deployed";
 
         var response = await client.GetFromJsonAsync<IsAppDeployedResponse>(requestUrl, cancellationToken);
         return response?.IsDeployed ?? false;
@@ -103,7 +121,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={Uri.EscapeDataString(app)}&range={range}";
+        string requestUrl =
+            $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={Uri.EscapeDataString(app)}&range={range}";
 
         return await client.GetFromJsonAsync<IEnumerable<AppMetric>>(requestUrl, cancellationToken) ?? [];
     }
@@ -119,41 +138,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={Uri.EscapeDataString(app)}&range={range}";
+        string requestUrl =
+            $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={Uri.EscapeDataString(app)}&range={range}";
 
         return await client.GetFromJsonAsync<IEnumerable<AppErrorMetric>>(requestUrl, cancellationToken) ?? [];
-    }
-
-    /// <inheritdoc />
-    public async Task<Uri?> GetAppErrorMetricsLogsAsync(
-        string org,
-        AltinnEnvironment environment,
-        IReadOnlyCollection<string> apps,
-        string metric,
-        DateTimeOffset from,
-        DateTimeOffset to,
-        CancellationToken cancellationToken
-    )
-    {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors/logs";
-
-        IEnumerable<string> queryParts = apps
-                .Where(appName => !string.IsNullOrWhiteSpace(appName))
-                .Select(appName => appName.Trim())
-                .Select(appName => $"apps={Uri.EscapeDataString(appName)}")
-                .Concat([
-            $"metric={Uri.EscapeDataString(metric)}",
-            $"from={Uri.EscapeDataString(from.ToUniversalTime().ToString("O"))}",
-            $"to={Uri.EscapeDataString(to.ToUniversalTime().ToString("O"))}",
-        ]);
-
-        string queryString = string.Join("&", queryParts);
-        requestUrl = $"{requestUrl}?{queryString}";
-
-        Dictionary<string, Uri> result = await client.GetFromJsonAsync<Dictionary<string, Uri>>(requestUrl, cancellationToken) ?? new();
-        return result.TryGetValue("url", out Uri? url) ? url : null;
     }
 
     /// <inheritdoc />
@@ -171,11 +159,38 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         return await client.GetFromJsonAsync<IEnumerable<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
     }
 
-    public async Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isUndeploy, CancellationToken cancellationToken)
+    public async Task<AppActivityMetricsResponse> GetAppActivityMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        int windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/activity?windowDays={windowDays}";
+
+        var response = await client.GetFromJsonAsync<AppActivityMetricsResponse>(requestUrl, cancellationToken);
+        return response
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing AppActivityMetricsResponse."
+            );
+    }
+
+    public async Task TriggerReconcileAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        bool isUndeploy,
+        CancellationToken cancellationToken
+    )
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}/reconcile";
+        var requestUrl =
+            $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}/reconcile";
 
         var request = new TriggerReconcileRequest(isUndeploy);
         var response = await HttpClientJsonExtensions.PostAsJsonAsync(client, requestUrl, request, cancellationToken);

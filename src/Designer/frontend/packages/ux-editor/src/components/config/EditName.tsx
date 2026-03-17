@@ -1,5 +1,4 @@
-import { StudioButton, StudioLabel, StudioParagraph, StudioTextfield } from '@studio/components';
-import { StudioCancelIcon, StudioEditIcon, StudioSaveIcon } from '@studio/icons';
+import { StudioFormActions, StudioTextfield, StudioProperty } from '@studio/components';
 import React, { type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './EditName.module.css';
@@ -18,21 +17,15 @@ export function EditName({ name, label, className, onChange, validationFn }: Edi
   const [isEditing, setIsEditing] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(name);
   const errorMessage = validationFn?.(inputValue);
-
+  const disableSaveButton = !!errorMessage || inputValue === name;
   if (!isEditing) {
     return (
-      <StudioButton
-        variant='tertiary'
-        className={classes.reading}
+      <StudioProperty.Button
         onClick={() => setIsEditing(true)}
-        aria-label={label}
-      >
-        <div>
-          <StudioLabel>{label}</StudioLabel>
-          <StudioParagraph>{name}</StudioParagraph>
-        </div>
-        <StudioEditIcon />
-      </StudioButton>
+        property={label}
+        title={label}
+        value={name}
+      />
     );
   }
 
@@ -57,28 +50,29 @@ export function EditName({ name, label, className, onChange, validationFn }: Edi
 
   return (
     <div className={cn(classes.editing, className)}>
-      <StudioTextfield
-        autoFocus={true}
-        className={classes.editingTextfield}
-        label={label}
-        value={inputValue}
-        onChange={onChangeName}
-        onKeyDown={onKeyDown}
-        error={errorMessage}
-      ></StudioTextfield>
-      <StudioButton
-        className={classes.saveButton}
-        disabled={!!errorMessage}
-        aria-label={t('general.save')}
-        icon={<StudioSaveIcon />}
-        onClick={saveName}
-      />
-      <StudioButton
-        className={classes.cancelButton}
-        aria-label={t('general.cancel')}
-        variant='tertiary'
-        icon={<StudioCancelIcon />}
-        onClick={cancelEditing}
+      <div className={classes.editingTextfield}>
+        <StudioTextfield
+          autoFocus={true}
+          label={label}
+          value={inputValue}
+          onChange={onChangeName}
+          onKeyDown={onKeyDown}
+          error={errorMessage}
+        />
+      </div>
+      <StudioFormActions
+        className={classes.editingActions}
+        isLoading={false}
+        iconOnly
+        primary={{
+          label: t('general.save'),
+          onClick: saveName,
+          disabled: disableSaveButton,
+        }}
+        secondary={{
+          label: t('general.cancel'),
+          onClick: cancelEditing,
+        }}
       />
     </div>
   );

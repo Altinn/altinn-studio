@@ -6,8 +6,8 @@ type IgnoredQueriesAndMutations = keyof Pick<
   | 'fetchProcessState'
   | 'doProcessNext'
   | 'doUpdateAttachmentTags'
-  | 'fetchUserProfile'
   | 'fetchInstanceData'
+  | 'fetchTextResources'
 >;
 
 type KeysStartingWith<T, U extends string> = {

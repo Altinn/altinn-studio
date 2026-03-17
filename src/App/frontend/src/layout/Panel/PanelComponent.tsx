@@ -2,6 +2,7 @@ import React from 'react';
 
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
+import { translationKey } from 'src/AppComponentsBridge';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -30,7 +31,7 @@ export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'P
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Panel
-        title={textResourceBindings.title ? <Lang id={textResourceBindings.title} /> : undefined}
+        title={translationKey(textResourceBindings.title)}
         showIcon={showIcon ?? true}
         variant={variant ?? PANEL_VARIANT.Info}
         forceMobileLayout={!fullWidth}

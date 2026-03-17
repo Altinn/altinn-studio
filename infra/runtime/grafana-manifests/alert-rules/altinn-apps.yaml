@@ -100,11 +100,12 @@ spec:
       annotations:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
+        ruleId: failed_process_next_requests
+        intervalInMinutes: "5"
       labels:
-        RuleId: failed_process_next_requests
         Type: Altinn
       isPaused: false
-    - uid: failed-instance-creation-requests
+    - uid: failed_instance_creation_requests
       title: Failed instance creation requests
       condition: C
       data:
@@ -196,7 +197,8 @@ spec:
       annotations:
         __dashboardUid__: AltinnApps
         __panelId__: "14"
+        ruleId: failed_instance_creation_requests
+        intervalInMinutes: "5"
       labels:
-        RuleId: failed_instance_creation_requests
         Type: Altinn
       isPaused: false

@@ -45,6 +45,7 @@ export class WSConnector {
         .withUrl(webSocketUrl, {
           skipNegotiation: true,
           transport: HttpTransportType.WebSockets,
+          withCredentials: true,
         })
         .withAutomaticReconnect()
         .build(),

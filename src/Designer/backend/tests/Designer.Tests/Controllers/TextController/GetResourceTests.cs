@@ -8,19 +8,31 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TextController
 {
-    public class GetResourceTests : DesignerEndpointsTestsBase<GetResourceTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetResourceTests
+        : DesignerEndpointsTestsBase<GetResourceTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public GetResourceTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public GetResourceTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "hvem-er-hvem", "testUser", "nb")]
-        public async Task GetLanguage_WithValidInput_ReturnsOk(string org, string app, string developer, string language)
+        public async Task GetLanguage_WithValidInput_ReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string language
+        )
         {
             string url = $"{VersionPrefix(org, app)}/language/{language}";
-            string expectedContent = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/config/texts/resource.{language}.json");
+            string expectedContent = TestDataHelper.GetFileFromRepo(
+                org,
+                app,
+                developer,
+                $"App/config/texts/resource.{language}.json"
+            );
 
             // Act
             using var response = await HttpClient.GetAsync(url);

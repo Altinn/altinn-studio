@@ -13,20 +13,18 @@ using MediatR;
 namespace Altinn.Studio.Designer.EventHandlers.LayoutSetCreated;
 
 public class SubformCreatedHandler(
-        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-        IAppDevelopmentService appDevelopmentService
+    IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+    IAppDevelopmentService appDevelopmentService
 ) : INotificationHandler<LayoutSetCreatedEvent>
 {
-    public async Task Handle(
-            LayoutSetCreatedEvent notification,
-            CancellationToken cancellationToken)
+    public async Task Handle(LayoutSetCreatedEvent notification, CancellationToken cancellationToken)
     {
-
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                notification.EditingContext.Org,
-                notification.EditingContext.Repo,
-                notification.EditingContext.Developer);
+            notification.EditingContext.Org,
+            notification.EditingContext.Repo,
+            notification.EditingContext.Developer
+        );
 
         await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
@@ -36,7 +34,10 @@ public class SubformCreatedHandler(
             {
                 if (notification.LayoutSet.Type == "subform")
                 {
-                    Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(notification.LayoutSet.Id, cancellationToken);
+                    Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(
+                        notification.LayoutSet.Id,
+                        cancellationToken
+                    );
                     foreach (string formLayoutName in formLayouts.Keys)
                     {
                         Guid guid = Guid.NewGuid();
@@ -45,13 +46,15 @@ public class SubformCreatedHandler(
                         {
                             id = $"CloseSubformButton-{randomId}",
                             type = "CustomButton",
-                            actions = new[] {
-                            new {
-                                type = "ClientAction",
-                                id = "closeSubform"
-                            }},
+                            actions = new[] { new { type = "ClientAction", id = "closeSubform" } },
                         };
-                        await appDevelopmentService.AddComponentToLayout(notification.EditingContext, notification.LayoutSet.Id, formLayoutName, buttonComponent, cancellationToken);
+                        await appDevelopmentService.AddComponentToLayout(
+                            notification.EditingContext,
+                            notification.LayoutSet.Id,
+                            formLayoutName,
+                            buttonComponent,
+                            cancellationToken
+                        );
                     }
                     return true;
                 }

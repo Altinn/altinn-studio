@@ -20,6 +20,8 @@ import {
   layoutSetsPath,
   layoutSetsExtendedPath,
   layoutSettingsPath,
+  validateNavigationLayoutSettingsPath,
+  validateNavigationPageSettingsPath,
   optionListIdsPath,
   optionListsPath,
   orgsListPath,
@@ -59,9 +61,9 @@ import {
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
   resourceAccessPackagesPath,
-  authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
+  appSettingsPath,
   resourceAccessPackageServicesPath,
   optionListPath,
   optionListReferencesPath,
@@ -77,6 +79,8 @@ import {
   canUseFeaturePath,
   orgLibraryPath,
   publishedResourcesPath,
+  customTemplatesPath,
+  userApiKeysPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -87,7 +91,7 @@ import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/typ
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
+import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -125,10 +129,13 @@ import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
+import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 
-export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
+export const getAppSettings = (org: string, app: string) => get<AppSettings>(appSettingsPath(org, app));
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
@@ -136,6 +143,7 @@ export const getAppValidation = (owner: string, app: string) => get<AppValidatio
 
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplatesPath());
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
@@ -146,6 +154,8 @@ export const getDeployPermissions = (owner: string, app: string) => get<string[]
 export const getDeployments = (owner: string, app: string) => get<DeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
+export const getValidationOnNavigationLayoutSettings = (owner: string, app: string) => get<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(owner, app));
+export const getValidationOnNavigationPageSettings = (owner: string, app: string) => get<IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(owner, app));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
@@ -153,6 +163,7 @@ export const getImageFileNames = (owner: string, app: string) => get<string[]>(g
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(owner, app)}/validation-on-navigation`);
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
@@ -163,6 +174,8 @@ export const getRepoMetadata = (owner: string, app: string) => get<Repository>(r
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
 export const getRepoDiff = (owner: string, app: string) => get<RepoDiffResponse>(repoDiffPath(owner, app));
+export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
+export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
 export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
@@ -221,6 +234,5 @@ export const getOrgTextLanguages = (org: string): Promise<string[] | null> => ge
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
 
-// Branches
-export const getBranches = (org: string, app: string) => get<Branch[]>(branchesPath(org, app));
-export const getCurrentBranch = (org: string, app: string) => get<CurrentBranchInfo>(currentBranchPath(org, app));
+// User settings
+export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());

@@ -6,12 +6,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetRuleHandlerV4Tests : PreviewControllerTestsBase<GetRuleHandlerV4Tests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetRuleHandlerV4Tests
+        : PreviewControllerTestsBase<GetRuleHandlerV4Tests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetRuleHandlerV4Tests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetRuleHandlerV4Tests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_RuleHandlerForV4AppWithoutRuleHandler_NoContent()

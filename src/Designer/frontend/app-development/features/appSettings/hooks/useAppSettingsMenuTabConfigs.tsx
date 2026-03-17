@@ -6,6 +6,7 @@ import {
   ShieldLockIcon,
   TimerStartIcon,
   MaskinportenIcon,
+  PlayFillIcon,
 } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
@@ -15,6 +16,7 @@ const setupTabId: SettingsPageTabId = 'setup';
 const policyTabId: SettingsPageTabId = 'policy';
 const accessControlTabId: SettingsPageTabId = 'access_control';
 const maskinportenTabId: SettingsPageTabId = 'maskinporten';
+const runTabId: SettingsPageTabId = 'run';
 
 export const useAppSettingsMenuTabConfigs =
   (): StudioContentMenuButtonTabProps<SettingsPageTabId>[] => {
@@ -40,6 +42,11 @@ export const useAppSettingsMenuTabConfigs =
         tabId: accessControlTabId,
         tabName: t(`app_settings.left_nav_tab_${accessControlTabId}`),
         icon: <TimerStartIcon />,
+      },
+      {
+        tabId: runTabId,
+        tabName: t(`app_settings.left_nav_tab_${runTabId}`),
+        icon: <PlayFillIcon />,
       },
       {
         tabId: maskinportenTabId,

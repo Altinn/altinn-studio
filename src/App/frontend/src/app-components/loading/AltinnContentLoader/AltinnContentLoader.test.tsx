@@ -1,18 +1,19 @@
 import React from 'react';
 
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import {
   AltinnContentLoader,
   IAltinnContentLoaderProps,
 } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 
 const render = (props: Omit<IAltinnContentLoaderProps, 'reason'> = {}) => {
   const allProps = {
     ...props,
   };
 
-  rtlRender(
+  renderWithAppComponentsProvider(
     <AltinnContentLoader
       reason='testing'
       {...allProps}

@@ -5,7 +5,7 @@ import { PolicyRuleContextProvider } from '../../contexts/PolicyRuleContext';
 import type { PolicyError, PolicyRuleCard } from '../../types';
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
-import { accessListSubjectSource, hasSubject, organizationSubject } from '../../utils';
+import { hasSubject, organizationSubject } from '../../utils';
 import {
   StudioAlert,
   StudioCheckbox,
@@ -17,6 +17,7 @@ import {
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
 import { PolicySubjects } from '../PolicyCardRules/PolicyRule/PolicySubjects';
+import { ACCESS_LIST_SUBJECT_SOURCE } from '@altinn/policy-editor/constants';
 
 export const ConsentResourcePolicyRulesEditor = () => {
   const { policyRules, showAllErrors } = usePolicyEditorContext();
@@ -118,7 +119,7 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   });
 
   const accessListSubjects = subjects.filter((subject) =>
-    subject.urn.toLowerCase().startsWith(accessListSubjectSource.toLowerCase()),
+    subject.urn.toLowerCase().startsWith(ACCESS_LIST_SUBJECT_SOURCE.toLowerCase()),
   );
 
   return (

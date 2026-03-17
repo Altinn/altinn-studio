@@ -4,9 +4,10 @@ import type { MonthCaption } from 'react-day-picker';
 import { Radio, Textfield } from '@digdir/designsystemet-react';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
 import { getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
+import type { TranslationKey } from 'src/app-components/types';
 
 export type FormDataValue = string | number | boolean | null | FormDataValue[] | { [key: string]: FormDataValue };
 
@@ -20,8 +21,9 @@ export interface DynamicFormProps {
   initialData?: FormDataObject;
   locale?: string;
   DropdownCaption: typeof MonthCaption;
-  buttonAriaLabel: string;
-  calendarIconTitle: string;
+  buttonAriaLabel: TranslationKey;
+  calendarIconTitle: TranslationKey;
+  getDatepickerFormat: (unicodeFormat: string) => string;
 }
 
 export function DynamicForm({
@@ -32,8 +34,10 @@ export function DynamicForm({
   DropdownCaption,
   buttonAriaLabel,
   calendarIconTitle,
+  getDatepickerFormat,
 }: DynamicFormProps) {
   const [formData, setFormData] = useState<FormDataObject>(initialData || {});
+  const { translate } = useTranslation();
 
   useEffect(() => {
     if (initialData) {
@@ -58,9 +62,10 @@ export function DynamicForm({
           schema={schema}
           renderFields={renderFields}
           locale={locale}
-          buttonAriaLabel={buttonAriaLabel}
-          calendarIconTitle={calendarIconTitle}
+          buttonAriaLabel={translate(buttonAriaLabel)}
+          calendarIconTitle={translate(calendarIconTitle)}
           DropdownCaption={DropdownCaption}
+          getDatepickerFormat={getDatepickerFormat}
         />
       ));
     }
@@ -89,6 +94,7 @@ interface FieldRendererProps {
   DropdownCaption: typeof MonthCaption;
   buttonAriaLabel: string;
   calendarIconTitle: string;
+  getDatepickerFormat: (unicodeFormat: string) => string;
 }
 
 export function FieldRenderer({
@@ -104,6 +110,7 @@ export function FieldRenderer({
   DropdownCaption,
   buttonAriaLabel,
   calendarIconTitle,
+  getDatepickerFormat,
 }: FieldRendererProps) {
   if (typeof fieldSchema === 'boolean') {
     return null;

@@ -125,7 +125,7 @@ describe('fetchChanges', () => {
     expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
   });
 
-  it('should call commitAndPushChanges and close popover when there is a merge conflict or checkout conflict', async () => {
+  it('should mark merge conflict and close popover when there is a merge conflict or checkout conflict', async () => {
     const user = userEvent.setup();
 
     const getRepoPull = mockGetRepoPull.mockImplementation(() =>
@@ -144,7 +144,7 @@ describe('fetchChanges', () => {
     await user.click(fetchButton);
 
     await waitFor(() => {
-      expect(mockVersionControlButtonsContextValue.commitAndPushChanges).toHaveBeenCalledWith('');
+      expect(mockVersionControlButtonsContextValue.setHasMergeConflict).toHaveBeenCalledWith(true);
     });
   });
 

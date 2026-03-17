@@ -18,10 +18,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGiteaClient _giteaClient;
 
-        public AdminPermissionHandler(
-            IHttpContextAccessor httpContextAccessor,
-            IGiteaClient giteaClient
-        )
+        public AdminPermissionHandler(IHttpContextAccessor httpContextAccessor, IGiteaClient giteaClient)
         {
             _httpContextAccessor = httpContextAccessor;
             _giteaClient = giteaClient;

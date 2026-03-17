@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import { formatISO, isValid, parseISO } from 'date-fns';
 
 import {
+  DateFlags,
   DatepickerMaxDateDefault,
   DatepickerMinDateDefault,
   formatISOString,
@@ -10,7 +11,6 @@ import {
   getSaveFormattedDateString,
   strictParseISO,
 } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { DateFlags } from 'src/types';
 
 describe('dateHelpers', () => {
   beforeAll(() => {

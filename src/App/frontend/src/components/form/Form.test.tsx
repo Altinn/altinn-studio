@@ -4,13 +4,21 @@ import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
+import { TextResourceMap } from 'src/features/language/textResources';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
+
+let mockTextResourcesValue: TextResourceMap = {};
+
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
+  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
+  useTextResources: jest.fn(() => mockTextResourcesValue),
+}));
 
 describe('Form', () => {
   const mockLayoutId = 'FormLayout';
@@ -257,6 +265,18 @@ describe('Form', () => {
     layoutTextId = mockLayoutId,
     layoutTextValue = mockLayoutName,
   }: RenderOptions = {}) {
+    // Set the mutable mock value before rendering
+    mockTextResourcesValue = { [layoutTextId]: { value: layoutTextValue } };
+
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: {
+          order: [mockLayoutId, '2', '3'],
+        },
+      };
+    });
+
     await renderWithInstanceAndLayout({
       renderer: () => <Form />,
       initialPage: mockLayoutId,
@@ -278,18 +298,7 @@ describe('Form', () => {
               },
             },
           }),
-        fetchLayoutSettings: () =>
-          Promise.resolve({ pages: { order: [mockLayoutId, '2', '3'] } as unknown as IPagesSettingsWithOrder }),
         fetchBackendValidations: () => Promise.resolve(validationIssues),
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: [
-            {
-              id: layoutTextId,
-              value: layoutTextValue,
-            },
-          ],
-        }),
       },
     });
   }

@@ -9,17 +9,13 @@ namespace Altinn.Studio.Designer.Exceptions.AppDevelopment;
 public class ConflictingFileNameException : Exception
 {
     /// <inheritdoc/>
-    public ConflictingFileNameException()
-    {
-    }
+    public ConflictingFileNameException() { }
 
     /// <inheritdoc/>
-    public ConflictingFileNameException(string message) : base(message)
-    {
-    }
+    public ConflictingFileNameException(string message)
+        : base(message) { }
 
     /// <inheritdoc/>
-    public ConflictingFileNameException(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+    public ConflictingFileNameException(string message, Exception innerException)
+        : base(message, innerException) { }
 }

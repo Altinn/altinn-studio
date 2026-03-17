@@ -100,6 +100,12 @@ jest.mock('react-i18next', () => ({
     },
 }));
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useBlocker: jest.fn().mockReturnValue({ state: 'idle' }),
+  useBeforeUnload: jest.fn(),
+}));
+
 // Mocked SignalR to be able to test in within the tests.
 jest.mock('@microsoft/signalr', () => ({
   ...jest.requireActual('@microsoft/signalr'),

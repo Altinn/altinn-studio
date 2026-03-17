@@ -41,7 +41,8 @@ public class EmbeddedResourceHelper
     public static Stream LoadEmbeddedResource(string resourceName)
     {
         string resourceNameEnding = resourceName.Replace('/', '.');
-        string embeddedResourceName = s_projectAssembly.GetManifestResourceNames()
+        string embeddedResourceName = s_projectAssembly
+            .GetManifestResourceNames()
             .Single(x => x.EndsWith(resourceNameEnding));
         return s_projectAssembly.GetManifestResourceStream(embeddedResourceName);
     }
@@ -58,8 +59,7 @@ public class EmbeddedResourceHelper
     public static IEnumerable<string> ListEmbeddedResources(string resourceFolder)
     {
         string resourceNameEnding = resourceFolder.Replace('/', '.');
-        return s_projectAssembly.GetManifestResourceNames()
-            .Where(x => x.Contains(resourceNameEnding));
+        return s_projectAssembly.GetManifestResourceNames().Where(x => x.Contains(resourceNameEnding));
     }
 
     /// <summary>
@@ -85,5 +85,4 @@ public class EmbeddedResourceHelper
 
         return resourceName;
     }
-
 }

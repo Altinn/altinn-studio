@@ -11,6 +11,7 @@ import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { getPropertyByRole } from './testConfigUtils';
 
 describe('ConfigBooleanProperties', () => {
   it('should render expected default boolean components', async () => {
@@ -21,18 +22,8 @@ describe('ConfigBooleanProperties', () => {
     });
     const properties = ['readOnly', 'required', 'hidden'];
     for (const property of properties) {
-      expect(
-        await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
-      ).toBeInTheDocument();
+      expect(getPropertyByRole('checkbox', property)).toBeInTheDocument();
     }
-  });
-
-  it('should render the show-button', async () => {
-    renderConfigBooleanProperties({});
-    const button = screen.getByRole('button', {
-      name: textMock('ux_editor.component_other_properties_show_many_settings'),
-    });
-    expect(button).toBeInTheDocument();
   });
 
   it('should render the hide-button after clicking on show-button', async () => {
@@ -67,9 +58,7 @@ describe('ConfigBooleanProperties', () => {
       'formatting',
     ];
     for (const property of properties) {
-      expect(
-        await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
-      ).toBeInTheDocument();
+      expect(getPropertyByRole('checkbox', property)).toBeInTheDocument();
     }
   });
 
@@ -86,10 +75,7 @@ describe('ConfigBooleanProperties', () => {
     });
     expect(button).toBeInTheDocument();
     await user.click(button);
-    const timeStampSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.timeStamp'),
-    });
-    expect(timeStampSwitch).toBeChecked();
+    expect(getPropertyByRole('checkbox', 'timeStamp')).toBeChecked();
   });
 
   it('should call handleComponentUpdate when a boolean value is toggled', async () => {
@@ -102,10 +88,7 @@ describe('ConfigBooleanProperties', () => {
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
-    const timeStampSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.readOnly'),
-    });
-    await user.click(timeStampSwitch);
+    await user.click(getPropertyByRole('checkbox', 'readOnly'));
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({ readOnly: true }),
     );

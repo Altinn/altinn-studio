@@ -2,11 +2,12 @@
   border: none;
   padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-10);
   white-space: nowrap;
+  font-size: var(--ds-size-4);
 }
 
 .metric:before {
   margin-top: 3px;
-  margin-left: -20px;
+  padding-left: var(--ds-size-4);
 }
 
 .heading {
@@ -14,7 +15,7 @@
   gap: var(--ds-size-4);
   justify-content: space-between;
   align-items: center;
-  padding-left: 10px;
+  padding-left: var(--ds-size-2);
 }
 
 .title {

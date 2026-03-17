@@ -11,9 +11,8 @@ namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
 
 public class GetSingleIntegrationTests : ReleaseEntityIntegrationTestsBase
 {
-    public GetSingleIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public GetSingleIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [InlineData("ttd")]
@@ -21,7 +20,10 @@ public class GetSingleIntegrationTests : ReleaseEntityIntegrationTestsBase
     {
         var repository = new ReleaseRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(releaseName, buildId: buildId.ToString());
+        var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(
+            releaseName,
+            buildId: buildId.ToString()
+        );
         await PrepareEntityInDatabase(releaseEntity);
 
         var result = (await repository.Get(releaseEntity.Org, buildId.ToString())).Single();

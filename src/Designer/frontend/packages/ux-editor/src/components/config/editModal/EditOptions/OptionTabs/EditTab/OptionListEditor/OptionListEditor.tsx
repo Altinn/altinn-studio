@@ -10,43 +10,63 @@ import { ManualOptionsPanel } from './ManualOptionsPanel';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
+import { retrieveOptionsType } from '../../utils/retrieveOptionsType';
+import { OptionsType } from '../../enums/OptionsType';
+import type { CodeListIdContextData } from '../../types/CodeListIdContextData';
+import { Guard } from '@studio/guard';
+import { PublishedCodeListEditor } from './PublishedCodeListEditor';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 > & {
+  codeListIdContextData: CodeListIdContextData;
   textResources: ITextResources;
-  onEditButtonClick: () => void;
+  onEditInternalButtonClick: () => void;
 };
 
 export function OptionListEditor({
+  codeListIdContextData,
   component,
   handleComponentChange,
-  onEditButtonClick,
+  onEditInternalButtonClick,
   textResources,
-}: OptionListEditorProps): React.ReactNode {
+}: OptionListEditorProps): React.ReactElement {
   const handleDeleteButtonClick = () => {
     const updatedComponent = resetComponentOptions(component);
     handleOptionsChange(updatedComponent, handleComponentChange);
   };
 
-  if (component.options !== undefined) {
-    return (
-      <ManualOptionsPanel
-        component={component}
-        onDeleteButtonClick={handleDeleteButtonClick}
-        onEditButtonClick={onEditButtonClick}
-        textResources={textResources}
-      />
-    );
-  } else {
-    return (
-      <OptionListResolver
-        optionsId={component.optionsId}
-        onDeleteButtonClick={handleDeleteButtonClick}
-        textResources={textResources}
-      />
-    );
+  const type = retrieveOptionsType(component, codeListIdContextData);
+  Guard.againstNull(type);
+  Guard.againstInvalidValue<OptionsType, OptionsType.CustomId>(type, OptionsType.CustomId);
+
+  switch (type) {
+    case OptionsType.Internal:
+      return (
+        <ManualOptionsPanel
+          component={component}
+          onDeleteButtonClick={handleDeleteButtonClick}
+          onEditButtonClick={onEditInternalButtonClick}
+          textResources={textResources}
+        />
+      );
+    case OptionsType.FromAppLibrary:
+      return (
+        <OptionListResolver
+          optionsId={component.optionsId}
+          onDeleteButtonClick={handleDeleteButtonClick}
+          textResources={textResources}
+        />
+      );
+    case OptionsType.Published:
+      return (
+        <PublishedCodeListEditor
+          component={component}
+          handleComponentChange={handleComponentChange}
+          orgName={codeListIdContextData.orgName}
+        />
+      );
   }
 }
 

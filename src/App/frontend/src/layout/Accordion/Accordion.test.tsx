@@ -29,8 +29,10 @@ describe('Accordion', () => {
   });
 });
 
-const render = async ({ title, openByDefault }: { title?: string; openByDefault?: boolean } = {}) =>
-  await renderGenericComponentTest<'Accordion'>({
+const render = ({ title, openByDefault }: { title?: string; openByDefault?: boolean } = {}) => {
+  window.altinnAppGlobalData.textResources!.resources = [{ id: 'accordion.title', value: 'This is a title' }];
+
+  return renderGenericComponentTest<'Accordion'>({
     type: 'Accordion',
     renderer: (props) => <Accordion {...props} />,
     component: {
@@ -41,15 +43,5 @@ const render = async ({ title, openByDefault }: { title?: string; openByDefault?
       },
       children: [],
     },
-    queries: {
-      fetchTextResources: async () => ({
-        language: 'nb',
-        resources: [
-          {
-            id: 'accordion.title',
-            value: 'This is a title',
-          },
-        ],
-      }),
-    },
   });
+};

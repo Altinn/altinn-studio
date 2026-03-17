@@ -6,6 +6,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json
     public enum ComplexTypeContentType
     {
         ComplexContent,
-        SimpleContentExtensionOrRestriction
+        SimpleContentExtensionOrRestriction,
     }
 }

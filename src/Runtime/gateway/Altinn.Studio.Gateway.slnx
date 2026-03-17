@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Altinn.Studio.Gateway.Api/Altinn.Studio.Gateway.Api.csproj" />
+    <Project Path="src/Altinn.Studio.Gateway.Contracts/Altinn.Studio.Gateway.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Altinn.Studio.Gateway.Api.Tests/Altinn.Studio.Gateway.Api.Tests.csproj" />
+  </Folder>
+</Solution>

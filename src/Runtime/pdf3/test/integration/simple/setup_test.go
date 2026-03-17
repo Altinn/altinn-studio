@@ -13,7 +13,7 @@ func TestMain(m *testing.M) {
 
 	collector := harness.NewLogsCollector(harness.Runtime)
 	if err := collector.Start(); err != nil {
-		fmt.Printf("Failed to start log streaming: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to start log streaming: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 
 	collector.Stop()
 	if err := collector.CheckForCrashes(); err != nil {
-		fmt.Printf("\n❌ CRASHES DETECTED:\n%v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "\nCRASHES DETECTED:\n%v\n", err)
 		os.Exit(1)
 	}
 

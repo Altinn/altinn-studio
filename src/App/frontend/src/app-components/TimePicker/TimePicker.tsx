@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Popover } from '@digdir/designsystemet-react';
 import { ClockIcon } from '@navikt/aksel-icons';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import styles from 'src/app-components/TimePicker/TimePicker.module.css';
 import { TimeSegment } from 'src/app-components/TimePicker/TimeSegment/TimeSegment';
 import { calculateNextFocusState } from 'src/app-components/TimePicker/utils/calculateNextFocusState/calculateNextFocusState';
@@ -36,6 +37,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   readOnly = false,
   labels = {},
 }) => {
+  const { translate } = useTranslation();
   const timeValue = parseTimeString(value, format);
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -73,10 +75,10 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   };
 
   const segmentLabels = {
-    hours: labels.hours || 'Hours',
-    minutes: labels.minutes || 'Minutes',
-    seconds: labels.seconds || 'Seconds',
-    period: labels.amPm || 'AM/PM',
+    hours: labels.hours ? translate(labels.hours) : 'Hours',
+    minutes: labels.minutes ? translate(labels.minutes) : 'Minutes',
+    seconds: labels.seconds ? translate(labels.seconds) : 'Seconds',
+    period: labels.amPm ? translate(labels.amPm) : 'AM/PM',
   };
 
   const segmentPlaceholders = {
@@ -84,7 +86,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     minutes: 'MM',
     seconds: 'SS',
     period: 'AM',
-  };
+  } as const;
 
   const scrollToSelectedOptions = () => {
     requestAnimationFrame(() => {
@@ -598,7 +600,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                 role='group'
                 aria-label='Seconds selection'
               >
-                <div className={styles.dropdownLabel}>Sekunder</div>
+                <div className={styles.dropdownLabel}>{segmentLabels.seconds}</div>
                 <div
                   className={`${styles.dropdownList} ${
                     dropdownFocus.isActive && dropdownFocus.column === 2 ? styles.dropdownListFocused : ''
@@ -655,7 +657,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                 role='group'
                 aria-label='AM/PM selection'
               >
-                <div className={styles.dropdownLabel}>AM/PM</div>
+                <div className={styles.dropdownLabel}>{segmentLabels.period}</div>
                 <div
                   className={`${styles.dropdownList} ${
                     dropdownFocus.isActive && dropdownFocus.column === (includesSeconds ? 3 : 2)

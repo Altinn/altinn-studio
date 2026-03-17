@@ -10,27 +10,21 @@ public class GitOpsConfigurationExistsTests : GitRepoGitOpsConfigurationManagerT
     [Fact]
     public async Task WhenRemoteRepositoryExists_ShouldReturnTrue()
     {
-        Given.That
-             .RemoteRepositoryExists();
+        Given.That.RemoteRepositoryExists();
 
-        await When
-            .GitOpsConfigurationExistsAsyncCalled();
+        await When.GitOpsConfigurationExistsAsyncCalled();
 
-        Then
-            .ResultShouldBe(true);
+        Then.ResultShouldBe(true);
     }
 
     [Fact]
     public async Task WhenRemoteRepositoryDoesNotExist_ShouldReturnFalse()
     {
-        Given.That
-            .RemoteRepositoryDoesNotExist();
+        Given.That.RemoteRepositoryDoesNotExist();
 
-        await When
-            .GitOpsConfigurationExistsAsyncCalled();
+        await When.GitOpsConfigurationExistsAsyncCalled();
 
-        Then
-            .ResultShouldBe(false);
+        Then.ResultShouldBe(false);
     }
 
     private bool Result { get; set; }

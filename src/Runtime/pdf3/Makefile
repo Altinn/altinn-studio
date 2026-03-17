@@ -1,4 +1,4 @@
-.PHONY: help format lint build-local test test-e2e test-e2e-simple test-e2e-smoke test-loop logs loadtest start start-minimal start-standard start-minimal-monitoring start-standard-monitoring stop golangci-lint
+.PHONY: help fmt lint lint-fix lint-config build test test-e2e test-e2e-simple test-e2e-smoke test-loop logs loadtest start start-minimal start-standard start-minimal-monitoring start-standard-monitoring stop golangci-lint
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -28,9 +28,18 @@ fmt: golangci-lint ## Format Go code
 	@"$(GOLANGCI_LINT)" fmt
 	@echo "✓ Code formatted"
 
-lint: golangci-lint ## Run linters with auto-fix
+lint: golangci-lint ## Run linters
 	@echo "Running linters..."
-	@"$(GOLANGCI_LINT)" run --fix
+	@"$(GOLANGCI_LINT)" run ./...
+	@echo "✓ Lint passed"
+
+lint-fix: golangci-lint ## Run linters with auto-fix
+	@echo "Running linters with auto-fix..."
+	@"$(GOLANGCI_LINT)" run --fix ./...
+	@echo "✓ Lint fixes applied"
+
+lint-config: golangci-lint ## Verify linter configuration
+	@"$(GOLANGCI_LINT)" config verify
 
 test: ## Run unit tests
 	@echo "Running unit tests..."
@@ -64,10 +73,10 @@ start-minimal: ## Start with minimal variant
 start-standard: ## Start with standard variant
 	@go run ./cmd/tester start standard
 
-start-minimal-monitoring: ## Start minimal with Prometheus/Grafana
+start-minimal-monitoring: ## Start minimal with monitoring stack
 	@go run ./cmd/tester start minimal --monitoring
 
-start-standard-monitoring: ## Start standard with Prometheus/Grafana
+start-standard-monitoring: ## Start standard with monitoring stack
 	@go run ./cmd/tester start standard --monitoring
 
 stop: ## Stop the runtime fixture/cluster
@@ -93,7 +102,7 @@ $(LOCALBIN):
 	mkdir -p "$(LOCALBIN)"
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.5.0
+GOLANGCI_LINT_VERSION ?= v2.11.2
 
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.

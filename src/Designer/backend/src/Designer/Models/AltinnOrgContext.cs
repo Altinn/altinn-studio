@@ -12,6 +12,7 @@ public record AltinnOrgContext
     ///  The organization owning the repository identfied by it's short name.
     /// </summary>
     public string Org { get; }
+
     protected AltinnOrgContext(string org)
     {
         Guard.AssertValidateOrganization(org);

@@ -1,4 +1,10 @@
-export type { ChatThread, UserMessage } from './types/ChatThread';
-export { mockChatThreads } from './mocks/mockChatThreads';
+export type * from './types/AssistantConfig';
+export { ErrorMessages } from './types/AssistantConfig';
+export { MessageAuthor } from './types/MessageAuthor';
+export type { ChatThread, UserMessage, UserAttachment, Source, Message } from './types/ChatThread';
 export { Assistant } from './Assistant/Assistant';
 export type { AssistantTexts } from './types/AssistantTexts';
+export type { AssistantMessage } from './types/ChatThread';
+export type { User } from './types/User';
+export type { WorkflowStatus } from './types/WorkflowStatus';
+export type { ConnectionStatus } from './types/ConnectionStatus';

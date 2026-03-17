@@ -7,7 +7,7 @@ import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsyste
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/app-components/Label/Label.module.css';
-import type { IGridStyling } from 'src/layout/common.generated';
+import type { IGridStyling } from 'src/app-components/types';
 
 type LabelProps = {
   id?: string;

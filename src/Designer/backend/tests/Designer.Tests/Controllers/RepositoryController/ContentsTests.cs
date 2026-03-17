@@ -15,18 +15,19 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ContentsTests : DesignerEndpointsTestsBase<ContentsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class ContentsTests
+        : DesignerEndpointsTestsBase<ContentsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
         private static string VersionPrefix => "/designer/api/repos";
-        public ContentsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public ContentsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_ => _repositoryMock.Object);
         }
@@ -39,16 +40,18 @@ namespace Designer.Tests.Controllers.RepositoryController
 
             _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new List<FileSystemObject>
-                {
-                    new FileSystemObject
+                .Returns(
+                    new List<FileSystemObject>
                     {
-                        Name = "appsettings.Development.json",
-                        Encoding = "Unicode (UTF-8)",
-                        Path = "App/appsettings.Development.json",
-                        Type = "File"
+                        new FileSystemObject
+                        {
+                            Name = "appsettings.Development.json",
+                            Encoding = "Unicode (UTF-8)",
+                            Path = "App/appsettings.Development.json",
+                            Type = "File",
+                        },
                     }
-                });
+                );
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -77,6 +80,5 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
-
     }
 }

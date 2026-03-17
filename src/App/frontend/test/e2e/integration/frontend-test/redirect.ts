@@ -23,9 +23,7 @@ describe('Redirect', () => {
 
   it('User is redirected to unknown error page when a network call fails', () => {
     cy.allowFailureOnEnd();
-    cy.intercept('GET', `**/orgs/altinn-orgs.json`, {
-      statusCode: 401,
-    }).as('getOrgs');
+    cy.intercept('GET', `**/instances/**`, { statusCode: 401 }).as('instanceData');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.instanceErrorCode).should('have.text', 'Ukjent feil');
     cy.get(appFrontend.altinnError).should('contain.text', texts.tryAgain);

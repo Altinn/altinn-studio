@@ -6,11 +6,11 @@ import { userEvent } from '@testing-library/user-event';
 import { type BackendValidationIssue, BackendValidationSeverity } from '.';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { AllowedValidationMasks, IPagesSettingsWithOrder } from 'src/layout/common.generated';
+import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
 function FormDataValue() {
   const formDataValue = FD.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
@@ -25,6 +25,11 @@ function FormDataValue() {
 }
 
 describe('ValidationPlugin', () => {
+  beforeEach(() => {
+    window.altinnAppGlobalData.textResources!.resources.push({ id: 'Form', value: 'This is a page title' });
+    window.altinnAppGlobalData.textResources!.resources.push({ id: 'NextPage', value: 'This is the next page title' });
+  });
+
   describe('validation visibility', () => {
     function render({
       text,
@@ -37,6 +42,21 @@ describe('ValidationPlugin', () => {
       validateOnNext: AllowedValidationMasks;
       backendValidations?: string[];
     }) {
+      window.altinnAppGlobalData.textResources = {
+        language: 'nb',
+        resources: [
+          { id: 'Form', value: 'This is a page title' },
+          { id: 'NextPage', value: 'This is the next page title' },
+        ],
+      };
+
+      window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+        ui.folders.Task_1 = {
+          defaultDataType: defaultDataTypeMock,
+          pages: { order: ['Form', 'NextPage'] },
+        };
+      });
+
       return renderWithInstanceAndLayout({
         renderer: () => (
           <>
@@ -76,21 +96,6 @@ describe('ValidationPlugin', () => {
               },
               required: ['TextField'],
             }),
-          fetchLayoutSettings: () =>
-            Promise.resolve({ pages: { order: ['Form', 'NextPage'] } as unknown as IPagesSettingsWithOrder }),
-          fetchTextResources: async () => ({
-            language: 'nb',
-            resources: [
-              {
-                id: 'Form',
-                value: 'This is a page title',
-              },
-              {
-                id: 'NextPage',
-                value: 'This is the next page title',
-              },
-            ],
-          }),
           fetchLayouts: () =>
             Promise.resolve({
               Form: {

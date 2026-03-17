@@ -12,20 +12,24 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ControlPlaneController;
 
-public class FeatureFlagDisabledTests : DesignerEndpointsTestsBase<FeatureFlagDisabledTests>, IClassFixture<WebApplicationFactory<Program>>
+public class FeatureFlagDisabledTests
+    : DesignerEndpointsTestsBase<FeatureFlagDisabledTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private const string VersionPrefix = "/designer/api/v1/controlplane/health";
 
-    public FeatureFlagDisabledTests(WebApplicationFactory<Program> factory) : base(factory)
+    public FeatureFlagDisabledTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         JsonConfigOverrides.Add(
             $$"""
-                 {
-                       "FeatureManagement": {
-                           "{{StudioFeatureFlags.Maskinporten}}": false
-                       }
-                 }
-              """);
+               {
+                     "FeatureManagement": {
+                         "{{StudioFeatureFlags.Maskinporten}}": false
+                     }
+               }
+            """
+        );
     }
 
     private HttpClient CreateUnauthenticatedClient()
@@ -37,16 +41,20 @@ public class FeatureFlagDisabledTests : DesignerEndpointsTestsBase<FeatureFlagDi
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureAppConfiguration((_, conf) =>
+        return Factory
+            .WithWebHostBuilder(builder =>
             {
-                conf.AddJsonFile(configPath);
-                conf.AddJsonStream(GenerateJsonOverrideConfig());
-            });
-            builder.ConfigureTestServices(ConfigureTestServices);
-        }).CreateDefaultClient(new CookieContainerHandler());
+                builder.UseConfiguration(configuration);
+                builder.ConfigureAppConfiguration(
+                    (_, conf) =>
+                    {
+                        conf.AddJsonFile(configPath);
+                        conf.AddJsonStream(GenerateJsonOverrideConfig());
+                    }
+                );
+                builder.ConfigureTestServices(ConfigureTestServices);
+            })
+            .CreateDefaultClient(new CookieContainerHandler());
     }
 
     [Fact]

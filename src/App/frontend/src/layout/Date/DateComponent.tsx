@@ -5,9 +5,9 @@ import { isValid, parseISO } from 'date-fns';
 
 import classes from 'src/app-components/Date/Date.module.css';
 import { DisplayDate } from 'src/app-components/Date/DisplayDate';
+import { translationKey } from 'src/AppComponentsBridge';
 import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { formatDateLocale } from 'src/utils/dateUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -18,7 +18,6 @@ export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Da
   const item = useItemWhenType(baseComponentId, 'Date');
   const { textResourceBindings, direction: _direction, value, icon, format } = item;
   const direction = _direction ?? 'horizontal';
-  const { langAsString } = useLanguage();
   const language = useCurrentLanguage();
   const parsedValue = parseISO(value);
   const indexedId = useIndexedId(baseComponentId);
@@ -58,7 +57,7 @@ export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Da
       <DisplayDate
         value={displayData}
         iconUrl={icon}
-        iconAltText={langAsString(textResourceBindings.title)}
+        iconAltText={translationKey(textResourceBindings.title)}
         labelId={getLabelId(indexedId)}
       />
     </ComponentStructureWrapper>

@@ -32,7 +32,14 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="key">Key.</param>
         /// <param name="title">Title.</param>
         /// <param name="url">Url.</param>
-        public PublicKey(DateTime? createdAt = default(DateTime?), string fingerprint = default(string), long? id = default(long?), string key = default(string), string title = default(string), string url = default(string))
+        public PublicKey(
+            DateTime? createdAt = default(DateTime?),
+            string fingerprint = default(string),
+            long? id = default(long?),
+            string key = default(string),
+            string title = default(string),
+            string url = default(string)
+        )
         {
             this.CreatedAt = createdAt;
             this.Fingerprint = fingerprint;
@@ -118,31 +125,18 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.CreatedAt == input.CreatedAt ||
-                    (this.CreatedAt != null &&
-                    this.CreatedAt.Equals(input.CreatedAt))) &&
-                (
-                    this.Fingerprint == input.Fingerprint ||
-                    (this.Fingerprint != null &&
-                    this.Fingerprint.Equals(input.Fingerprint))) &&
-                (
-                    this.Id == input.Id ||
-                    (this.Id != null &&
-                    this.Id.Equals(input.Id))) &&
-                (
-                    this.Key == input.Key ||
-                    (this.Key != null &&
-                    this.Key.Equals(input.Key))) &&
-                (
-                    this.Title == input.Title ||
-                    (this.Title != null &&
-                    this.Title.Equals(input.Title))) &&
-                (
-                    this.Url == input.Url ||
-                    (this.Url != null &&
-                    this.Url.Equals(input.Url)));
+            return (
+                    this.CreatedAt == input.CreatedAt
+                    || (this.CreatedAt != null && this.CreatedAt.Equals(input.CreatedAt))
+                )
+                && (
+                    this.Fingerprint == input.Fingerprint
+                    || (this.Fingerprint != null && this.Fingerprint.Equals(input.Fingerprint))
+                )
+                && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+                && (this.Key == input.Key || (this.Key != null && this.Key.Equals(input.Key)))
+                && (this.Title == input.Title || (this.Title != null && this.Title.Equals(input.Title)))
+                && (this.Url == input.Url || (this.Url != null && this.Url.Equals(input.Url)));
         }
 
         /// <summary>

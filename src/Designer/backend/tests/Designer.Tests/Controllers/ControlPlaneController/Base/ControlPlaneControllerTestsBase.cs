@@ -9,19 +9,21 @@ public class ControlPlaneControllerTestsBase<TControllerTest> : DesignerEndpoint
 {
     protected const string RequiredScope = "altinn:studio/designer";
 
-    public ControlPlaneControllerTestsBase(WebApplicationFactory<Program> factory) : base(factory)
+    public ControlPlaneControllerTestsBase(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         JsonConfigOverrides.Add(
             $$"""
-                 {
-                       "FeatureManagement": {
-                           "{{StudioFeatureFlags.Maskinporten}}": true
-                       },
-                       "Maskinporten": {
-                           "MetadataAddresses": ["http://localhost/.well-known/oauth-authorization-server"],
-                           "RequiredScope": "{{RequiredScope}}"
-                       }
-                 }
-              """);
+               {
+                     "FeatureManagement": {
+                         "{{StudioFeatureFlags.Maskinporten}}": true
+                     },
+                     "Maskinporten": {
+                         "MetadataAddresses": ["http://localhost/.well-known/oauth-authorization-server"],
+                         "RequiredScope": "{{RequiredScope}}"
+                     }
+               }
+            """
+        );
     }
 }

@@ -8,8 +8,8 @@ import {
   StudioAlert,
   StudioButton,
   StudioPopover,
-  StudioHeading,
   StudioDeleteButton,
+  StudioParagraph,
 } from '@studio/components';
 import {
   MenuElipsisVerticalIcon,
@@ -121,7 +121,7 @@ export const PageGroupAccordion = ({
         >
           <div className={classes.container} onClick={() => handleSelectGroup(groupIndex)}>
             <FolderIcon aria-hidden />
-            <StudioHeading level={2}>{groupDisplayName}</StudioHeading>
+            <StudioParagraph>{groupDisplayName}</StudioParagraph>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioPopover.TriggerContext>
@@ -151,11 +151,10 @@ export const PageGroupAccordion = ({
             </StudioPopover.TriggerContext>
             <StudioDeleteButton
               title={t('general.delete_item', { item: groupDisplayName })}
-              data-color='danger'
+              data-color='info'
               icon={<TrashIcon />}
               onDelete={handleConfirmDelete}
               variant='tertiary'
-              data-size='2xs'
               disabled={isPending}
             />
           </div>

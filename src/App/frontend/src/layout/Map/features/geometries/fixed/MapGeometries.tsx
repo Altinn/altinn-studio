@@ -7,6 +7,7 @@ import RetinaIcon from 'leaflet/dist/images/marker-icon-2x.png';
 import IconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 import { useMapParsedGeometries } from 'src/layout/Map/features/geometries/fixed/hooks';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 const markerIcon = icon({
   iconUrl: Icon,
@@ -22,9 +23,16 @@ type MapGeometriesProps = {
 };
 
 export function MapGeometries({ baseComponentId, readOnly }: MapGeometriesProps) {
-  const geometries = useMapParsedGeometries(baseComponentId);
+  const { toolbar } = useItemWhenType(baseComponentId, 'Map');
+  let geometries = useMapParsedGeometries(baseComponentId);
+
   if (!geometries || geometries.length === 0) {
     return null;
+  }
+
+  // if toolbar is defined, we want to render editable geometries separately
+  if (toolbar) {
+    geometries = geometries?.filter((g) => !g.isEditable);
   }
 
   return (

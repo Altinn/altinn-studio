@@ -3,8 +3,8 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
 import {
@@ -83,6 +83,8 @@ describe('RepeatingGroupsEditContainer', () => {
   });
 
   const render = async () => {
+    window.altinnAppGlobalData.textResources!.resources = [{ id: 'option.label', value: 'Value to be shown' }];
+
     const multiPageGroup = getMultiPageGroupMock({ id: 'group' });
     multiPageGroup.edit!.saveAndNextButton = true;
 
@@ -99,15 +101,6 @@ describe('RepeatingGroupsEditContainer', () => {
               layout: [multiPageGroup, ...components],
             },
           },
-        }),
-        fetchTextResources: async () => ({
-          language: 'en',
-          resources: [
-            {
-              id: 'option.label',
-              value: 'Value to be shown',
-            },
-          ],
         }),
         fetchFormData: async () => ({
           multipageGroup: [

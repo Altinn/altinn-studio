@@ -15,25 +15,52 @@ from mcp.types import (
 @register_tool(
     name="schema_validator_tool",
     description="""
-This tool validates JSON against Altinn Studio schema definitions.
-It can handle three types of input:
-1. Complete JSON files (with $schema and data.layout structure)
-2. json snippets (array of objects)
-3. Single objects
+Validates JSON against Altinn Studio schema definitions from altinncdn.no.
 
-It validates the json structure against the given schema which needs to be from the $schema field in the json.
-It can only validate schemas within the altinncdn.no domain. 
+## Purpose
+Validate layout JSON, component arrays, or single components against the official Altinn schema.
 
-Use this tool when you need to validate json configurations to ensure they
-conform to the Altinn Studio schema requirements.
+## Required Parameters
+- `json_obj`: JSON string to validate (complete layout, array of components, or single component)
+- `schema_path`: URL to the schema (MUST be from altinncdn.no domain)
 
-Not all URLs are valid, but the tool will try to validate them so feel free to try for multiple schemas.
-Args:
-    json_obj: JSON string that can be:
-                - Complete layout with $schema and data.layout structure
-                - Array of objects
-                - Single object
-    schema_path: URL to the schema file
+## Supported Input Formats
+1. **Complete layout file**: `{"$schema": "...", "data": {"layout": [...]}}`
+2. **Component array**: `[{"id": "...", "type": "Input", ...}, ...]`
+3. **Single component**: `{"id": "...", "type": "Input", ...}`
+
+## Valid schema_path Examples
+✅ `https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json`
+
+## Invalid schema_path Examples
+❌ `https://example.com/schema.json` - Wrong domain (security restriction)
+❌ `http://altinncdn.no/...` - Must use HTTPS
+❌ Relative paths - Must be full URL
+
+## Returns
+- `status`: "validation_passed" | "validation_failed" | "error"
+- `validation_errors`: List of specific errors with paths and messages
+- `message`: Summary of validation result
+
+## ⚠️ MANDATORY: Must Run After Creating/Modifying Layouts
+This validation is REQUIRED - not optional. A task is incomplete without it.
+
+If you created or modified ANY layout file, you MUST call this tool before finishing.
+
+## When to Use
+✅ **REQUIRED** after creating any layout file (e.g., Side1.json, Side2.json)
+✅ **REQUIRED** after modifying any existing layout file
+✅ When debugging layout issues to identify invalid properties
+
+## When NOT to Use
+❌ To understand what properties are valid (use `layout_properties_tool` instead)
+❌ To find component examples (use `layout_components_tool` instead)
+❌ With non-altinncdn.no schema URLs (will fail with security error)
+
+## Error Handling
+- If validation fails, examine `validation_errors` for specific issues
+- Each error includes the JSON path and what's wrong
+- Fix the issues and re-validate until validation passes
 """,
     annotations=ToolAnnotations(
         title="Layout Validator Tool",
@@ -65,9 +92,13 @@ def schema_validator_tool(
         except json.JSONDecodeError as e:
             return {
                 "status": "error",
-                "message": f"Invalid JSON format: {str(e)}",
+                "error_code": "INVALID_JSON",
+                "message": f"JSON_PARSE_ERROR: The json_obj parameter contains invalid JSON. Error: {str(e)}. "
+                           f"Check for: missing quotes, trailing commas, unescaped characters. "
+                           f"DO NOT RETRY with the same input - fix the JSON syntax first.",
                 "validation_errors": [],
-                "component_results": []
+                "component_results": [],
+                "hint": "Validate your JSON with a JSON linter before retrying."
             }
         
         # Load the schema
@@ -367,11 +398,20 @@ def load_layout_schema(schema_url: str) -> Dict[str, Any]:
         # Validate that the URL is from altinncdn.no domain for security
         parsed_url = urlparse(schema_url)
         if parsed_url.netloc != 'altinncdn.no':
-            raise Exception(f"Schema URL must be from altinncdn.no domain, got: {parsed_url.netloc}")
+            raise Exception(
+                f"INVALID_DOMAIN: Schema URL must be from altinncdn.no domain, got: '{parsed_url.netloc}'. "
+                f"Valid example: https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json. "
+                f"This is a security restriction - only official Altinn schemas are supported. "
+                f"DO NOT RETRY with the same URL."
+            )
         
         # Ensure HTTPS for security
         if parsed_url.scheme != 'https':
-            raise Exception(f"Schema URL must use HTTPS, got: {parsed_url.scheme}")
+            raise Exception(
+                f"INVALID_PROTOCOL: Schema URL must use HTTPS, got: '{parsed_url.scheme}'. "
+                f"Change the URL to use https:// instead of {parsed_url.scheme}://. "
+                f"DO NOT RETRY with the same URL."
+            )
         
         response = requests.get(schema_url)
         response.raise_for_status()

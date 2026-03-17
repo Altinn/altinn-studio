@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -10,23 +11,30 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-logr/logr"
+	"github.com/go-playground/validator/v10"
+	"go.opentelemetry.io/otel/trace"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
-	"github.com/go-logr/logr"
-	"github.com/go-playground/validator/v10"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
-	"sigs.k8s.io/controller-runtime/pkg/log"
+)
+
+var (
+	errRotationThresholdTooLow = errors.New("jwk_rotation_threshold must be at least the minimum duration")
+	errJwkExpiryTooLow         = errors.New("jwk_expiry must be at least the minimum duration")
+	errJwkExpiryTooHigh        = errors.New("jwk_expiry must be at most the maximum duration")
+	errJwkExpiryThresholdOrder = errors.New("jwk_expiry must be greater than jwk_rotation_threshold")
 )
 
 type ConfigMonitor struct {
+	tracer         trace.Tracer
 	current        atomic.Pointer[Config]
+	kvClient       *azureKeyVaultClient
+	baseConfig     *Config
 	environment    string
 	configFilePath string
-	kvClient       *azureKeyVaultClient // nil for local
-	baseConfig     *Config              // file-based config (non-secret fields)
-	tracer         trace.Tracer
 }
 
 // Get returns the current configuration atomically.
@@ -95,7 +103,8 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 		if err := m.kvClient.loadSecrets(ctx, &tempCfg); err != nil {
 			span.RecordError(err)
 			copyOldSecrets(&cfg, oldCfg)
-			log.FromContext(ctx).Error(err, "failed to load secrets from Key Vault, using base config values and old secrets if available")
+			log.FromContext(ctx).
+				Error(err, "failed to load secrets from Key Vault, using base config values and old secrets if available")
 		} else {
 			cfg = tempCfg
 		}
@@ -127,10 +136,10 @@ func configEqual(a, b *Config) bool {
 }
 
 type Config struct {
-	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"        validate:"required"`
-	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller" validate:"required"`
+	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"         validate:"required"`
+	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"             validate:"required"`
+	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller"  validate:"required"`
 	KeyVaultSyncController KeyVaultSyncControllerConfig `koanf:"keyvault_sync_controller" validate:"required"`
-	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"            validate:"required"`
 }
 
 type MaskinportenApiConfig struct {
@@ -173,16 +182,21 @@ func ValidateMaskinportenControllerConfig(c *MaskinportenControllerConfig, isLoc
 	maxExpiry := 365 * 24 * time.Hour
 
 	if c.JwkRotationThreshold < minThreshold {
-		return fmt.Errorf("jwk_rotation_threshold must be at least %s", minThreshold)
+		return fmt.Errorf("%w: %s", errRotationThresholdTooLow, minThreshold)
 	}
 	if c.JwkExpiry < minExpiry {
-		return fmt.Errorf("jwk_expiry must be at least %s", minExpiry)
+		return fmt.Errorf("%w: %s", errJwkExpiryTooLow, minExpiry)
 	}
 	if c.JwkExpiry > maxExpiry {
-		return fmt.Errorf("jwk_expiry must be at most %s", maxExpiry)
+		return fmt.Errorf("%w: %s", errJwkExpiryTooHigh, maxExpiry)
 	}
 	if c.JwkExpiry <= c.JwkRotationThreshold {
-		return fmt.Errorf("jwk_expiry (%s) must be greater than jwk_rotation_threshold (%s)", c.JwkExpiry, c.JwkRotationThreshold)
+		return fmt.Errorf(
+			"%w: jwk_expiry=%s jwk_rotation_threshold=%s",
+			errJwkExpiryThresholdOrder,
+			c.JwkExpiry,
+			c.JwkRotationThreshold,
+		)
 	}
 	return nil
 }
@@ -216,7 +230,7 @@ func (m *MaskinportenApiConfig) SafeLogValue() map[string]any {
 // The returned ConfigMonitor automatically starts background refresh.
 // Send SIGHUP to the process to trigger an immediate config reload.
 func GetConfig(ctx context.Context, environment string, configFilePath string) (*ConfigMonitor, error) {
-	tracer := otel.Tracer(telemetry.ServiceName)
+	tracer := telemetry.Tracer()
 	ctx, span := tracer.Start(ctx, "GetConfig")
 	defer span.End()
 
@@ -253,12 +267,12 @@ func GetConfig(ctx context.Context, environment string, configFilePath string) (
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(monitor.Get()); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
 
 	isLocal := environment == operatorcontext.EnvironmentLocal
 	if err := ValidateMaskinportenControllerConfig(&monitor.Get().MaskinportenController, isLocal); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("maskinporten controller config validation failed: %w", err)
 	}
 
 	monitor.start(ctx)
@@ -278,7 +292,7 @@ func NewConfigMonitorForTesting(cfg *Config) *ConfigMonitor {
 	monitor := &ConfigMonitor{
 		environment: "test",
 		baseConfig:  cfg,
-		tracer:      otel.Tracer(telemetry.ServiceName),
+		tracer:      telemetry.Tracer(),
 	}
 	monitor.current.Store(cfg)
 	return monitor

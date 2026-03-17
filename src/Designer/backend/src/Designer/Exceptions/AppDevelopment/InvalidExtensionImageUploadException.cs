@@ -9,18 +9,14 @@ namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
     public class InvalidExtensionImageUploadException : Exception
     {
         /// <inheritdoc/>
-        public InvalidExtensionImageUploadException()
-        {
-        }
+        public InvalidExtensionImageUploadException() { }
 
         /// <inheritdoc/>
-        public InvalidExtensionImageUploadException(string message) : base(message)
-        {
-        }
+        public InvalidExtensionImageUploadException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public InvalidExtensionImageUploadException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public InvalidExtensionImageUploadException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

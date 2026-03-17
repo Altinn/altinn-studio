@@ -30,7 +30,11 @@ public interface IGitOpsConfigurationManager
     /// <param name="altinnRepoName">Name of the app.</param>
     /// <param name="environment">The <see cref="AltinnEnvironment"/> to check against.</param>
     /// <returns>True if the application exists in the configuration; otherwise, false.</returns>
-    public Task<bool> AppExistsInGitOpsConfigurationAsync(AltinnOrgEditingContext context, AltinnRepoName altinnRepoName, AltinnEnvironment environment);
+    public Task<bool> AppExistsInGitOpsConfigurationAsync(
+        AltinnOrgEditingContext context,
+        AltinnRepoName altinnRepoName,
+        AltinnEnvironment environment
+    );
 
     /// <summary>
     /// Adds the application to the GitOps configuration for the specified environment.
@@ -44,7 +48,10 @@ public interface IGitOpsConfigurationManager
     /// </summary>
     /// <param name="context">The <see cref="AltinnRepoEditingContext"/> representing the repository editing context.</param>
     /// <param name="environment">The <see cref="AltinnEnvironment"/> to remove the application from.</param>
-    public Task RemoveAppFromGitOpsEnvironmentConfigurationAsync(AltinnRepoEditingContext context, AltinnEnvironment environment);
+    public Task RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+        AltinnRepoEditingContext context,
+        AltinnEnvironment environment
+    );
 
     /// <summary>
     /// Persists the GitOps configuration for the organization and environment.
@@ -53,4 +60,3 @@ public interface IGitOpsConfigurationManager
     /// <param name="environment">The <see cref="AltinnEnvironment"/> to persist the configuration for.</param>
     public void PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment);
 }
-

@@ -1,11 +1,24 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
-
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
+  const actual = jest.requireActual<TextResourcesProviderImport>(
+    'src/features/language/textResources/TextResourcesProvider',
+  );
+  return {
+    ...actual,
+    useTextResources: jest.fn(() => ({
+      mockGroupTitle: { value: 'Mock group' },
+      mockField1: { value: 'Mock field 1' },
+      mockField2: { value: 'Mock field 2' },
+    })),
+  };
+});
 
 describe('SummaryRepeatingGroup', () => {
   let mockHandleDataChange: () => void;
@@ -20,7 +33,7 @@ describe('SummaryRepeatingGroup', () => {
   });
 
   async function render() {
-    return await renderWithInstanceAndLayout({
+    const result = await renderWithInstanceAndLayout({
       renderer: (
         <SummaryRepeatingGroup
           changeText='Change'
@@ -93,16 +106,9 @@ describe('SummaryRepeatingGroup', () => {
             },
           },
         }),
-        fetchTextResources: () =>
-          Promise.resolve({
-            language: 'nb',
-            resources: [
-              { id: 'mockGroupTitle', value: 'Mock group' },
-              { id: 'mockField1', value: 'Mock field 1' },
-              { id: 'mockField2', value: 'Mock field 2' },
-            ],
-          }),
       },
     });
+
+    return result;
   }
 });

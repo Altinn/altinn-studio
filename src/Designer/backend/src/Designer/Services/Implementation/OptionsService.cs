@@ -30,7 +30,10 @@ public class OptionsService : IOptionsService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="giteaContentLibraryService">IGiteaContentLibraryService</param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaContentLibraryService giteaContentLibraryService)
+    public OptionsService(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IGiteaContentLibraryService giteaContentLibraryService
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _giteaContentLibraryService = giteaContentLibraryService;
@@ -53,7 +56,13 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> GetOptionsList(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
@@ -68,24 +77,38 @@ public class OptionsService : IOptionsService
         }
         catch (Exception ex) when (ex is ValidationException || ex is JsonException)
         {
-            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in option list: {optionsListId}.");
+            throw new InvalidOptionsFormatException(
+                $"One or more of the options have an invalid format in option list: {optionsListId}."
+            );
         }
 
         return optionsList;
     }
 
-    public async Task<List<OptionListData>> GetOptionLists(string org, string repo, string developer, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> GetOptionLists(
+        string org,
+        string repo,
+        string developer,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string[] optionListIds = GetOptionsListIds(org, repo, developer);
 
         var tasks = optionListIds.Select(optionListId =>
-            RetrieveOptionsListAndConvertToOptionListData(org, repo, developer, optionListId, cancellationToken));
+            RetrieveOptionsListAndConvertToOptionListData(org, repo, developer, optionListId, cancellationToken)
+        );
 
         return (await Task.WhenAll(tasks)).ToList();
     }
 
-    private async Task<OptionListData> RetrieveOptionsListAndConvertToOptionListData(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
+    private async Task<OptionListData> RetrieveOptionsListAndConvertToOptionListData(
+        string org,
+        string repo,
+        string developer,
+        string optionListId,
+        CancellationToken cancellationToken
+    )
     {
         try
         {
@@ -94,16 +117,12 @@ public class OptionsService : IOptionsService
             {
                 Title = optionListId,
                 Data = options,
-                HasError = false
+                HasError = false,
             };
         }
         catch (InvalidOptionsFormatException)
         {
-            return new OptionListData
-            {
-                Title = optionListId,
-                HasError = true
-            };
+            return new OptionListData { Title = optionListId, HasError = true };
         }
     }
 
@@ -114,33 +133,61 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> CreateOrOverwriteOptionsList(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        List<Option> payload,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
+        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(
+            optionsListId,
+            payload,
+            cancellationToken
+        );
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 
         return updatedOptions;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> UploadNewOption(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> UploadNewOption(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        IFormFile payload,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(
+            payload.OpenReadStream(),
+            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true }
+        );
 
-        bool optionListHasInvalidNullFields = deserializedOptions.Exists(option => option.Value == null || option.Label == null);
+        bool optionListHasInvalidNullFields = deserializedOptions.Exists(option =>
+            option.Value == null || option.Label == null
+        );
         if (optionListHasInvalidNullFields)
         {
-            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
+            throw new InvalidOptionsFormatException(
+                "Uploaded file is missing one of the following attributes for an option: value or label."
+            );
         }
 
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
+        await altinnAppGitRepository.CreateOrOverwriteOptionsList(
+            optionsListId,
+            deserializedOptions,
+            cancellationToken
+        );
 
         return deserializedOptions;
     }
@@ -154,7 +201,13 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<bool> OptionsListExists(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<bool> OptionsListExists(
+        string org,
+        string repo,
+        string developer,
+        string optionsListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -170,17 +223,30 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId,
-        string newOptionsListName, CancellationToken cancellationToken = default)
+    public void UpdateOptionsListId(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string optionsListId,
+        string newOptionsListName,
+        CancellationToken cancellationToken = default
+    )
     {
-        AltinnAppGitRepository altinnAppGitRepository =
-            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
         altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.json", $"{newOptionsListName}.json");
     }
 
     /// <inheritdoc />
-    public async Task<(List<OptionListData>, Dictionary<string, TextResource>)> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default)
+    public async Task<(List<OptionListData>, Dictionary<string, TextResource>)> ImportOptionListFromOrg(
+        string org,
+        string repo,
+        string developer,
+        string optionListId,
+        bool overwriteTextResources,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -190,35 +256,79 @@ public class OptionsService : IOptionsService
             throw new ConflictingFileNameException($"The options file {optionListId}.json already exists.");
         }
 
-        List<Option> importedCodeList = await CopyCodeListFromOrg(org, repo, developer, optionListId, cancellationToken);
-        Dictionary<string, TextResource> textResources = await CopyTextResourcesFromOrg(org, repo, developer, importedCodeList, overwriteTextResources, cancellationToken);
+        List<Option> importedCodeList = await CopyCodeListFromOrg(
+            org,
+            repo,
+            developer,
+            optionListId,
+            cancellationToken
+        );
+        Dictionary<string, TextResource> textResources = await CopyTextResourcesFromOrg(
+            org,
+            repo,
+            developer,
+            importedCodeList,
+            overwriteTextResources,
+            cancellationToken
+        );
         List<OptionListData> optionLists = await GetOptionLists(org, repo, developer, cancellationToken);
 
         await SaveMetadataForImportedOptionList(org, repo, developer, optionListId);
         return (optionLists, textResources);
     }
 
-    private async Task<List<Option>> CopyCodeListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
+    private async Task<List<Option>> CopyCodeListFromOrg(
+        string org,
+        string repo,
+        string developer,
+        string optionListId,
+        CancellationToken cancellationToken
+    )
     {
         List<Option> codeList = await _giteaContentLibraryService.GetCodeList(org, optionListId);
         return await CreateOrOverwriteOptionsList(org, repo, developer, optionListId, codeList, cancellationToken);
     }
 
-    private async Task<Dictionary<string, TextResource>> CopyTextResourcesFromOrg(string org, string repo, string developer, List<Option> optionList, bool overwriteTextResources, CancellationToken cancellationToken)
+    private async Task<Dictionary<string, TextResource>> CopyTextResourcesFromOrg(
+        string org,
+        string repo,
+        string developer,
+        List<Option> optionList,
+        bool overwriteTextResources,
+        CancellationToken cancellationToken
+    )
     {
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            repo,
+            developer
+        );
         List<string> orgLanguageCodes = await _giteaContentLibraryService.GetLanguages(org);
-        Dictionary<string, TextResource> appTextResources = await RetrieveAppTextResources(altinnAppGitRepository, cancellationToken);
+        Dictionary<string, TextResource> appTextResources = await RetrieveAppTextResources(
+            altinnAppGitRepository,
+            cancellationToken
+        );
 
         foreach (string orgLanguageCode in orgLanguageCodes)
         {
-            List<TextResourceElement> appTextResourceElements = RetrieveAppTextResourceElements(appTextResources, orgLanguageCode);
-            List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(org, orgLanguageCode, optionList);
+            List<TextResourceElement> appTextResourceElements = RetrieveAppTextResourceElements(
+                appTextResources,
+                orgLanguageCode
+            );
+            List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(
+                org,
+                orgLanguageCode,
+                optionList
+            );
 
             TextResource mergedTextResources = new()
             {
                 Language = orgLanguageCode,
-                Resources = MergeTextResources(appTextResourceElements, orgTextResourceElements, overwriteTextResources)
+                Resources = MergeTextResources(
+                    appTextResourceElements,
+                    orgTextResourceElements,
+                    overwriteTextResources
+                ),
             };
 
             appTextResources[orgLanguageCode] = mergedTextResources;
@@ -228,23 +338,28 @@ public class OptionsService : IOptionsService
         return appTextResources;
     }
 
-    private static async Task<Dictionary<string, TextResource>> RetrieveAppTextResources(AltinnAppGitRepository altinnAppGitRepository, CancellationToken cancellationToken)
+    private static async Task<Dictionary<string, TextResource>> RetrieveAppTextResources(
+        AltinnAppGitRepository altinnAppGitRepository,
+        CancellationToken cancellationToken
+    )
     {
         List<string> appLanguageCodes = altinnAppGitRepository.GetLanguages();
 
         var tasks = appLanguageCodes.Select(async languageCode => new
         {
             LanguageCode = languageCode,
-            Resources = await altinnAppGitRepository.GetText(languageCode, cancellationToken)
+            Resources = await altinnAppGitRepository.GetText(languageCode, cancellationToken),
         });
 
         var results = await Task.WhenAll(tasks);
 
         return results.ToDictionary(x => x.LanguageCode, x => x.Resources);
-
     }
 
-    private static List<TextResourceElement> RetrieveAppTextResourceElements(Dictionary<string, TextResource> appTextResources, string languageCode)
+    private static List<TextResourceElement> RetrieveAppTextResourceElements(
+        Dictionary<string, TextResource> appTextResources,
+        string languageCode
+    )
     {
         if (appTextResources.TryGetValue(languageCode, out TextResource textResource))
         {
@@ -252,10 +367,13 @@ public class OptionsService : IOptionsService
         }
 
         return [];
-
     }
 
-    private async Task<List<TextResourceElement>> RetrieveOrgTextResourceElements(string org, string languageCode, List<Option> optionList)
+    private async Task<List<TextResourceElement>> RetrieveOrgTextResourceElements(
+        string org,
+        string languageCode,
+        List<Option> optionList
+    )
     {
         TextResource orgTextResources = await _giteaContentLibraryService.GetTextResource(org, languageCode);
         HashSet<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
@@ -267,16 +385,32 @@ public class OptionsService : IOptionsService
         HashSet<string> textResourceIds = [];
         foreach (Option option in optionList)
         {
-            if (!string.IsNullOrEmpty(option.Label)) { textResourceIds.Add(option.Label); }
-            if (!string.IsNullOrEmpty(option.Description)) { textResourceIds.Add(option.Description); }
-            if (!string.IsNullOrEmpty(option.HelpText)) { textResourceIds.Add(option.HelpText); }
+            if (!string.IsNullOrEmpty(option.Label))
+            {
+                textResourceIds.Add(option.Label);
+            }
+            if (!string.IsNullOrEmpty(option.Description))
+            {
+                textResourceIds.Add(option.Description);
+            }
+            if (!string.IsNullOrEmpty(option.HelpText))
+            {
+                textResourceIds.Add(option.HelpText);
+            }
         }
         return textResourceIds;
     }
 
-    private static List<TextResourceElement> MergeTextResources(List<TextResourceElement> appTextResourceElements, List<TextResourceElement> orgTextResourceElements, bool overwriteTextResource)
+    private static List<TextResourceElement> MergeTextResources(
+        List<TextResourceElement> appTextResourceElements,
+        List<TextResourceElement> orgTextResourceElements,
+        bool overwriteTextResource
+    )
     {
-        HashSet<string> commonTextResourceIds = FindCommonTextResourceIds(appTextResourceElements, orgTextResourceElements);
+        HashSet<string> commonTextResourceIds = FindCommonTextResourceIds(
+            appTextResourceElements,
+            orgTextResourceElements
+        );
 
         if (overwriteTextResource)
         {
@@ -289,10 +423,17 @@ public class OptionsService : IOptionsService
         return appTextResourceElements.Concat(orgTextResourceElements).ToList();
     }
 
-    private static HashSet<string> FindCommonTextResourceIds(List<TextResourceElement> appTextResourceElements, List<TextResourceElement> orgTextResourceElements)
+    private static HashSet<string> FindCommonTextResourceIds(
+        List<TextResourceElement> appTextResourceElements,
+        List<TextResourceElement> orgTextResourceElements
+    )
     {
-        IEnumerable<string> appTextResourceIds = appTextResourceElements.Select(textResourceElement => textResourceElement.Id);
-        IEnumerable<string> orgTextResourceIds = orgTextResourceElements.Select(textResourceElement => textResourceElement.Id);
+        IEnumerable<string> appTextResourceIds = appTextResourceElements.Select(textResourceElement =>
+            textResourceElement.Id
+        );
+        IEnumerable<string> orgTextResourceIds = orgTextResourceElements.Select(textResourceElement =>
+            textResourceElement.Id
+        );
         return appTextResourceIds.Intersect(orgTextResourceIds).ToHashSet();
     }
 

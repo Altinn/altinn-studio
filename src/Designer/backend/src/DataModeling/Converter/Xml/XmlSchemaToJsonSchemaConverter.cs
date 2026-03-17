@@ -37,21 +37,19 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             schemaSet.Compile();
 
             JsonSchemaBuilder builder = new JsonSchemaBuilder()
-               .Schema(MetaSchemas.Draft202012Id)
-               .Id(schemaUri.OriginalString)
-               .Type(SchemaValueType.Object)
-               .XsdNamespaces(
-                    schema.Namespaces
-                       .ToArray()
-                       .Select(ns => (ns.Name, ns.Namespace)))
-               .XsdSchemaAttributes(schema.XsdAttributes().ToArray());
+                .Schema(MetaSchemas.Draft202012Id)
+                .Id(schemaUri.OriginalString)
+                .Type(SchemaValueType.Object)
+                .XsdNamespaces(schema.Namespaces.ToArray().Select(ns => (ns.Name, ns.Namespace)))
+                .XsdSchemaAttributes(schema.XsdAttributes().ToArray());
 
             if (schema.UnhandledAttributes is not null)
             {
                 builder.XsdUnhandledAttributes(schema.UnhandledAttributes.Select(a => (a.Name, a.Value)));
             }
 
-            List<(string Name, JsonSchemaBuilder Schema, bool PotentialRootElement)> items = new List<(string Name, JsonSchemaBuilder Schema, bool PotentialRootElement)>();
+            List<(string Name, JsonSchemaBuilder Schema, bool PotentialRootElement)> items =
+                new List<(string Name, JsonSchemaBuilder Schema, bool PotentialRootElement)>();
 
             foreach (XmlSchemaObject item in schema.Items.Cast<XmlSchemaObject>())
             {
@@ -83,7 +81,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         items.Add((x.Name, ConvertSchemaAttributeGroup(x, false, false), false));
                         break;
                     default:
-                        throw new XmlSchemaException("Unsupported global element in xml schema", null, item.LineNumber, item.LinePosition);
+                        throw new XmlSchemaException(
+                            "Unsupported global element in xml schema",
+                            null,
+                            item.LineNumber,
+                            item.LinePosition
+                        );
                 }
             }
 
@@ -113,7 +116,15 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 else
                 {
                     // Inline root message
-                    foreach (var keyword in rootSchema.Keywords.Filter(typeof(SchemaKeyword), typeof(IdKeyword), typeof(TypeKeyword), typeof(XsdNamespacesKeyword), typeof(XsdSchemaAttributesKeyword)))
+                    foreach (
+                        var keyword in rootSchema.Keywords.Filter(
+                            typeof(SchemaKeyword),
+                            typeof(IdKeyword),
+                            typeof(TypeKeyword),
+                            typeof(XsdNamespacesKeyword),
+                            typeof(XsdSchemaAttributesKeyword)
+                        )
+                    )
                     {
                         builder.Add(keyword);
                     }
@@ -185,9 +196,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// </summary>
         private static void AddSchemaRootAnnotation(XmlSchemaAnnotation annotation, JsonSchemaBuilder builder)
         {
-            XmlSchemaDocumentation documentation = (XmlSchemaDocumentation)annotation.Items
-               .OfType<XmlSchemaObject>()
-               .FirstOrDefault(obj => obj is XmlSchemaDocumentation);
+            XmlSchemaDocumentation documentation = (XmlSchemaDocumentation)
+                annotation.Items.OfType<XmlSchemaObject>().FirstOrDefault(obj => obj is XmlSchemaDocumentation);
 
             if (documentation == null)
             {
@@ -274,7 +284,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             AddUnhandledAttributes(item, builder);
         }
 
-        private void HandleSimpleType(XmlSchemaSimpleType schemaType, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleSimpleType(
+            XmlSchemaSimpleType schemaType,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             switch (schemaType.Content)
             {
@@ -285,11 +300,21 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     HandleSimpleTypeList(x, optional, array, builder);
                     break;
                 case XmlSchemaSimpleTypeUnion x:
-                    throw new XmlSchemaException("Altinn studio does not support xsd unions", null, x.LineNumber, x.LinePosition);
+                    throw new XmlSchemaException(
+                        "Altinn studio does not support xsd unions",
+                        null,
+                        x.LineNumber,
+                        x.LinePosition
+                    );
             }
         }
 
-        private void HandleSimpleTypeRestriction(XmlSchemaSimpleTypeRestriction item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleSimpleTypeRestriction(
+            XmlSchemaSimpleTypeRestriction item,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             var steps = new StepsBuilder();
             var hasRestrictions = item.Facets.Count > 0;
@@ -344,7 +369,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private static void HandleRestrictionFacet(XmlSchemaFacet facet, JsonSchemaBuilder builder, ref List<string> enumValues, ref List<string> xsdRestrictions)
+        private static void HandleRestrictionFacet(
+            XmlSchemaFacet facet,
+            JsonSchemaBuilder builder,
+            ref List<string> enumValues,
+            ref List<string> xsdRestrictions
+        )
         {
             decimal dLength;
             uint uiLength;
@@ -441,7 +471,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     break;
                 case XmlSchemaPatternFacet:
                     string pattern = facet.Value;
-                    builder.Pattern(pattern ?? throw new NullReferenceException("value of the pattern facet cannot be null"));
+                    builder.Pattern(
+                        pattern ?? throw new NullReferenceException("value of the pattern facet cannot be null")
+                    );
                     break;
                 case XmlSchemaWhiteSpaceFacet:
                     break;
@@ -450,7 +482,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void HandleSimpleTypeList(XmlSchemaSimpleTypeList item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleSimpleTypeList(
+            XmlSchemaSimpleTypeList item,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             builder.Type(SchemaValueType.Array);
 
@@ -466,13 +503,24 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else
             {
-                throw new XmlSchemaException("Invalid list definition, must include \"itemType\" or \"simpleType\"", null, item.LineNumber, item.LinePosition);
+                throw new XmlSchemaException(
+                    "Invalid list definition, must include \"itemType\" or \"simpleType\"",
+                    null,
+                    item.LineNumber,
+                    item.LinePosition
+                );
             }
 
             builder.Items(itemTypeSchema);
         }
 
-        private void HandleComplexType(XmlSchemaComplexType item, bool optional, bool array, bool nillable, JsonSchemaBuilder builder)
+        private void HandleComplexType(
+            XmlSchemaComplexType item,
+            bool optional,
+            bool array,
+            bool nillable,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(item, builder);
 
@@ -485,14 +533,23 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 {
                     case XmlSchemaAttribute x:
                         string name = x.Name ?? x.RefName.Name;
-                        attributeDefinitions.Add(name, ConvertSchemaAttribute(x, false, false), x.Use == XmlSchemaUse.Required);
+                        attributeDefinitions.Add(
+                            name,
+                            ConvertSchemaAttribute(x, false, false),
+                            x.Use == XmlSchemaUse.Required
+                        );
                         break;
                     case XmlSchemaAttributeGroupRef x:
                         attributeDefinitions.AddCurrentPropertiesToStep(steps);
                         steps.Add(b => HandleAttributeGroupRef(x, b));
                         break;
                     default:
-                        throw new XmlException("Expected attribute or attribute group reference", null, attribute.LineNumber, attribute.LinePosition);
+                        throw new XmlException(
+                            "Expected attribute or attribute group reference",
+                            null,
+                            attribute.LineNumber,
+                            attribute.LinePosition
+                        );
                 }
             }
 
@@ -608,7 +665,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             foreach (XmlSchemaElement element in all.Items.Cast<XmlSchemaElement>())
             {
                 string name = element.Name ?? element.RefName.Name;
-                properties.Add(name, ConvertSchemaElement(element, optional, array), !optional && element.MinOccurs > 0);
+                properties.Add(
+                    name,
+                    ConvertSchemaElement(element, optional, array),
+                    !optional && element.MinOccurs > 0
+                );
             }
 
             properties.Build(builder);
@@ -630,7 +691,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 switch (item)
                 {
                     case XmlSchemaElement x:
-                        properties.Add(x.Name ?? x.RefName.Name, ConvertSchemaElement(x, optional, array), !optional && x.MinOccurs > 0);
+                        properties.Add(
+                            x.Name ?? x.RefName.Name,
+                            ConvertSchemaElement(x, optional, array),
+                            !optional && x.MinOccurs > 0
+                        );
                         break;
                     case XmlSchemaGroupRef x:
                         properties.AddCurrentPropertiesToStep(steps);
@@ -656,7 +721,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             steps.BuildWithAllOf(builder);
         }
 
-        private void HandleSimpleContent(XmlSchemaSimpleContent item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleSimpleContent(
+            XmlSchemaSimpleContent item,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(item, builder);
 
@@ -690,7 +760,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void HandleSimpleContentRestriction(XmlSchemaSimpleContentRestriction item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleSimpleContentRestriction(
+            XmlSchemaSimpleContentRestriction item,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(item, builder);
 
@@ -712,10 +787,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 var valueBuilder = new JsonSchemaBuilder();
                 HandleSimpleType(item.BaseType, optional, array, valueBuilder);
-                var allOfSchemas = new List<JsonSchema>
-                {
-                    valueBuilder
-                };
+                var allOfSchemas = new List<JsonSchema> { valueBuilder };
                 var valueRestrictionsSchema = valueRestrictionsBuilder.Build();
                 if (valueRestrictionsSchema.Keywords?.Count > 0)
                 {
@@ -737,7 +809,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             AddAnyAttribute(item.AnyAttribute, builder);
         }
 
-        private void HandleSimpleContentExtension(XmlSchemaSimpleContentExtension item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleSimpleContentExtension(
+            XmlSchemaSimpleContentExtension item,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(item, builder);
 
@@ -757,7 +834,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             AddAnyAttribute(item.AnyAttribute, builder);
         }
 
-        private void HandleComplexContent(XmlSchemaComplexContent item, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleComplexContent(
+            XmlSchemaComplexContent item,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(item, builder);
 
@@ -772,7 +854,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void HandleComplexContentRestriction(XmlSchemaComplexContentRestriction complexContentRestriction, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleComplexContentRestriction(
+            XmlSchemaComplexContentRestriction complexContentRestriction,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(complexContentRestriction, builder);
 
@@ -792,7 +879,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             AddAnyAttribute(complexContentRestriction.AnyAttribute, builder);
         }
 
-        private void HandleComplexContentExtension(XmlSchemaComplexContentExtension complexConentExtension, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleComplexContentExtension(
+            XmlSchemaComplexContentExtension complexConentExtension,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(complexConentExtension, builder);
 
@@ -831,14 +923,24 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private void AddAttributes(XmlSchemaObjectCollection attributes, bool optional, bool array, StepsBuilder stepsBuilder, PropertiesBuilder propertiesBuilder)
+        private void AddAttributes(
+            XmlSchemaObjectCollection attributes,
+            bool optional,
+            bool array,
+            StepsBuilder stepsBuilder,
+            PropertiesBuilder propertiesBuilder
+        )
         {
             foreach (XmlSchemaObject attribute in attributes)
             {
                 switch (attribute)
                 {
                     case XmlSchemaAttribute x:
-                        propertiesBuilder.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
+                        propertiesBuilder.Add(
+                            x.Name ?? x.RefName.Name,
+                            ConvertSchemaAttribute(x, optional, array),
+                            !optional && x.Use == XmlSchemaUse.Required
+                        );
                         break;
                     case XmlSchemaAttributeGroupRef x:
                         propertiesBuilder.AddCurrentPropertiesToStep(stepsBuilder);
@@ -852,7 +954,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             if (item.UnhandledAttributes != null && item.UnhandledAttributes.Length > 0)
             {
-                IEnumerable<(string Name, string Value)> unhandledAttributes = item.UnhandledAttributes.Select(attr => (attr.Name, attr.Value));
+                IEnumerable<(string Name, string Value)> unhandledAttributes = item.UnhandledAttributes.Select(attr =>
+                    (attr.Name, attr.Value)
+                );
                 builder.XsdUnhandledAttributes(unhandledAttributes);
             }
         }
@@ -896,7 +1000,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return builder;
         }
 
-        private void HandleAttributeGroup(XmlSchemaAttributeGroup attributes, bool optional, bool array, JsonSchemaBuilder builder)
+        private void HandleAttributeGroup(
+            XmlSchemaAttributeGroup attributes,
+            bool optional,
+            bool array,
+            JsonSchemaBuilder builder
+        )
         {
             HandleAnnotation(attributes, builder);
 
@@ -908,7 +1017,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 switch (attribute)
                 {
                     case XmlSchemaAttribute x:
-                        properties.Add(x.Name ?? x.RefName.Name, ConvertSchemaAttribute(x, optional, array), !optional && x.Use == XmlSchemaUse.Required);
+                        properties.Add(
+                            x.Name ?? x.RefName.Name,
+                            ConvertSchemaAttribute(x, optional, array),
+                            !optional && x.Use == XmlSchemaUse.Required
+                        );
                         break;
                     case XmlSchemaAttributeGroupRef x:
                         properties.AddCurrentPropertiesToStep(steps);
@@ -944,7 +1057,14 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.SchemaTypeName.IsEmpty)
             {
-                HandleType(item.SchemaTypeName, optional ? 0 : item.MinOccurs, item.MaxOccurs, array, item.IsNillable, builder);
+                HandleType(
+                    item.SchemaTypeName,
+                    optional ? 0 : item.MinOccurs,
+                    item.MaxOccurs,
+                    array,
+                    item.IsNillable,
+                    builder
+                );
             }
             else
             {
@@ -1095,7 +1215,14 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return $"#/$defs/{name}";
         }
 
-        private static void HandleType(XmlQualifiedName typeName, decimal minOccurs, decimal maxOccurs, bool array, bool nillable, JsonSchemaBuilder builder)
+        private static void HandleType(
+            XmlQualifiedName typeName,
+            decimal minOccurs,
+            decimal maxOccurs,
+            bool array,
+            bool nillable,
+            JsonSchemaBuilder builder
+        )
         {
             array = array || maxOccurs > 1;
 
@@ -1166,7 +1293,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
         }
 
-        private static bool GetTypeAndFormat(XmlQualifiedName typename, out SchemaValueType? type, out Format format, out string xsdType)
+        private static bool GetTypeAndFormat(
+            XmlQualifiedName typename,
+            out SchemaValueType? type,
+            out Format format,
+            out string xsdType
+        )
         {
             if (typename.IsEmpty)
             {
@@ -1266,7 +1398,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         return true;
 
                     default:
-                        throw new ArgumentOutOfRangeException($"The provided typename {typename} could not be mapped to any SchemaValueType.");
+                        throw new ArgumentOutOfRangeException(
+                            $"The provided typename {typename} could not be mapped to any SchemaValueType."
+                        );
                 }
             }
 

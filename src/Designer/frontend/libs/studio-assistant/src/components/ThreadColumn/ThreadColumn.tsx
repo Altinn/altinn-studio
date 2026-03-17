@@ -6,21 +6,27 @@ import { InformationIcon, PlusIcon, SidebarLeftIcon } from '@studio/icons';
 import type { ChatThread } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 
-export type ChatHistorySidebarProps = {
+export type ThreadColumnProps = {
   texts: AssistantTexts;
   chatThreads: ChatThread[];
   selectedThreadId?: string;
-  onSelectThread: (threadId: string) => void;
+  currentSessionId?: string;
   onToggleCollapse?: () => void;
+  onSelectThread?: (threadId: string) => void;
+  onDeleteThread?: (threadId: string) => void;
+  onCreateThread?: () => void;
 };
 
 export function ThreadColumn({
   texts,
   chatThreads,
   selectedThreadId,
-  onSelectThread,
+  currentSessionId,
   onToggleCollapse,
-}: ChatHistorySidebarProps): ReactElement {
+  onSelectThread = (): void => {},
+  onDeleteThread,
+  onCreateThread,
+}: ThreadColumnProps): ReactElement {
   return (
     <div className={classes.threadColumn}>
       <div className={classes.threadButtons}>
@@ -28,8 +34,7 @@ export function ThreadColumn({
           <SidebarLeftIcon />
           {texts.hideThreads}
         </StudioButton>
-        {/* TODO: "New thread" button should create a new thread */}
-        <StudioButton>
+        <StudioButton onClick={onCreateThread}>
           <PlusIcon />
           {texts.newThread}
         </StudioButton>
@@ -37,19 +42,22 @@ export function ThreadColumn({
       <StudioHeading level={3} className={classes.threadHeading}>
         {texts.previousThreads}
       </StudioHeading>
-      <StudioContentMenu selectedTabId={selectedThreadId} onChangeTab={onSelectThread}>
-        {chatThreads.map((thread) => (
-          <StudioContentMenu.ButtonTab
-            key={thread.id}
-            tabId={thread.id}
-            tabName={thread.title}
-            icon={''} /* TODO: Remove Icon as required prop */
-          />
-        ))}
-      </StudioContentMenu>
-      {/* TODO: "About assistant" button should open a modal */}
+      <div className={classes.threadList}>
+        <StudioContentMenu selectedTabId={selectedThreadId} onChangeTab={onSelectThread}>
+          {chatThreads.map((thread) => (
+            <ThreadMenuTab
+              key={thread.id}
+              thread={thread}
+              // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+              onDelete={onDeleteThread ? () => onDeleteThread(thread.id) : undefined}
+            />
+          ))}
+        </StudioContentMenu>
+      </div>
       <div className={classes.aboutSection}>
         <StudioButton variant='tertiary'>
+          {' '}
+          {/* TODO: "About assistant" button should open a modal */}
           <InformationIcon />
           {texts.aboutAssistant}
         </StudioButton>
@@ -57,3 +65,32 @@ export function ThreadColumn({
     </div>
   );
 }
+
+type ThreadMenuTabProps = {
+  thread: ChatThread;
+  onDelete?: () => void;
+};
+
+const ThreadMenuTab = ({ thread, onDelete }: ThreadMenuTabProps): ReactElement => {
+  const title = 'Delete thread';
+
+  return (
+    <div className={classes.threadMenuTab}>
+      <StudioContentMenu.ButtonTab tabId={thread.id} tabName={thread.title} icon='' />
+      {onDelete && (
+        <StudioButton
+          variant='tertiary'
+          className={classes.deleteButton}
+          aria-label={title}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          title={title}
+        >
+          ×
+        </StudioButton>
+      )}
+    </div>
+  );
+};

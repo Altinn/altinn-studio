@@ -10,9 +10,13 @@ import { PreviewButton } from './PreviewButton';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { StudioButton, StudioDialog } from '@studio/components';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon, CheckmarkCircleFillIcon, SectionHeaderWarningIcon } from '@studio/icons';
+import {
+  ArrowLeftIcon,
+  CheckmarkCircleFillIcon,
+  ExclamationmarkTriangleIcon,
+  SectionHeaderWarningIcon,
+} from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 
@@ -24,13 +28,12 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
-  const appMetadataFlag = useFeatureFlag(FeatureFlag.AppMetadata);
 
   return (
     <GiteaHeader
       hasCloneModal
       leftComponent={<LeftContent repositoryType={repositoryType} />}
-      rightContent={appMetadataFlag && <ProblemStatusIndicator />}
+      rightContent={<ProblemStatusIndicator />}
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
       owner={org}
@@ -101,9 +104,23 @@ const ProblemStatusIndicator = () => {
   }
 
   const members = validationResult ? Object.entries(validationResult.errors) : [];
+  const validationSeverity: 'INFO' | 'WARNING' | 'ERROR' = 'WARNING'; // TODO: determine severity based on validation result errors
+  const icon =
+    validationSeverity === 'WARNING' ? (
+      <ExclamationmarkTriangleIcon />
+    ) : (
+      <SectionHeaderWarningIcon />
+    );
+
+  const dataColor = validationSeverity === 'WARNING' ? 'warning' : 'danger';
   return (
     <StudioDialog.TriggerContext>
-      <StudioDialog.Trigger variant='tertiary' icon={<SectionHeaderWarningIcon />}>
+      <StudioDialog.Trigger
+        variant='tertiary'
+        icon={icon}
+        data-color={dataColor}
+        className={classes.validationButton}
+      >
         {members.length}
       </StudioDialog.Trigger>
       <AppValidationDialog />

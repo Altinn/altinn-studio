@@ -24,7 +24,9 @@ public class OptionListReferenceServiceTests
         var optionListReferenceService = GetOptionListReferenceServiceForTest();
 
         // Act
-        List<OptionListReference> optionListsReferences = await optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
+        List<OptionListReference> optionListsReferences = await optionListReferenceService.GetAllOptionListReferences(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName)
+        );
 
         // Assert
         List<OptionListReference> expectedResponseList = OptionListReferenceTestData();
@@ -37,27 +39,29 @@ public class OptionListReferenceServiceTests
         // Arrange
         const string RepoName = "app-with-groups-and-task-navigation";
         var optionListReferenceService = GetOptionListReferenceServiceForTest();
-        List<OptionListReference> expectedResponseList = [
+        List<OptionListReference> expectedResponseList =
+        [
             new()
             {
-               OptionListId = "yesNo",
-               OptionListIdSources = [
-                   new OptionListIdSource {
-                       ComponentIds = ["brand"],
-                       LayoutName = "brand",
-                       LayoutSetId = "subform",
-                       TaskId = null,
-                       TaskType = null
-                   }
-               ]
-            }
+                OptionListId = "yesNo",
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["brand"],
+                        LayoutName = "brand",
+                        LayoutSetId = "subform",
+                        TaskId = null,
+                        TaskType = null,
+                    },
+                ],
+            },
         ];
 
-
         // Act
-        List<OptionListReference> optionListReferences =
-            await optionListReferenceService.GetAllOptionListReferences(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
+        List<OptionListReference> optionListReferences = await optionListReferenceService.GetAllOptionListReferences(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName)
+        );
 
         // Assert
         Assert.Equivalent(optionListReferences, expectedResponseList);
@@ -78,7 +82,7 @@ public class OptionListReferenceServiceTests
                         LayoutName = "layoutWithOneOptionListIdRef",
                         LayoutSetId = "layoutSet1",
                         TaskId = "Task_1",
-                        TaskType = "data"
+                        TaskType = "data",
                     },
                     new OptionListIdSource
                     {
@@ -86,7 +90,7 @@ public class OptionListReferenceServiceTests
                         LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
                         LayoutSetId = "layoutSet1",
                         TaskId = "Task_1",
-                        TaskType = "data"
+                        TaskType = "data",
                     },
                     new OptionListIdSource
                     {
@@ -94,9 +98,9 @@ public class OptionListReferenceServiceTests
                         LayoutName = "layoutWithTwoOptionListIdRefs",
                         LayoutSetId = "layoutSet2",
                         TaskId = "Task_2",
-                        TaskType = "data"
-                    }
-                ]
+                        TaskType = "data",
+                    },
+                ],
             },
             new OptionListReference
             {
@@ -109,16 +113,18 @@ public class OptionListReferenceServiceTests
                         LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
                         LayoutSetId = "layoutSet1",
                         TaskId = "Task_1",
-                        TaskType = "data"
-                    }
-                ]
-            }
+                        TaskType = "data",
+                    },
+                ],
+            },
         };
     }
 
     private static OptionListReferenceService GetOptionListReferenceServiceForTest()
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
         AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
         OptionListReferenceService optionListReferenceService = new(altinnGitRepositoryFactory, appDevelopmentService);

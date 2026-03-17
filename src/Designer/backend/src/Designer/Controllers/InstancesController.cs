@@ -24,10 +24,7 @@ public class InstancesController : ControllerBase
     private readonly ILogger<InstancesController> _logger;
     private readonly IAltinnStorageInstancesClient _instancesClient;
 
-    public InstancesController(
-        IAltinnStorageInstancesClient instancesClient,
-        ILogger<InstancesController> logger
-    )
+    public InstancesController(IAltinnStorageInstancesClient instancesClient, ILogger<InstancesController> logger)
     {
         _instancesClient = instancesClient;
         _logger = logger;

@@ -10,26 +10,22 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route(
-        "/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/validation"
-    )]
-    public class ValidationController(
-        IAltinnAppServiceResourceService altinnAppServiceResourceService
-    ) : ControllerBase
+    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/validation")]
+    public class ValidationController(IAltinnAppServiceResourceService altinnAppServiceResourceService) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult> ValidateAltinnAppResource(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ServiceResource serviceResource =
-                await altinnAppServiceResourceService.GenerateServiceResourceFromApp(
-                    org,
-                    app,
-                    developer
-                );
+            ServiceResource serviceResource = await altinnAppServiceResourceService.GenerateServiceResourceFromApp(
+                org,
+                app,
+                developer
+            );
 
-            (bool isValid, ValidationProblemDetails? errors) =
-                altinnAppServiceResourceService.ValidateServiceResource(serviceResource);
+            (bool isValid, ValidationProblemDetails? errors) = altinnAppServiceResourceService.ValidateServiceResource(
+                serviceResource
+            );
 
             return Ok(new { errors?.Errors, isValid });
         }

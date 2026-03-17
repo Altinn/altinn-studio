@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
-import { DataModelFormat } from 'app-shared/types/DataModelFormat';
 import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
@@ -18,13 +17,11 @@ const initialFormError: NewAppForm = {
   repoName: '',
 };
 
-type CreateServiceProps = {
+export type CreateServiceProps = {
   user: User;
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
-  const dataModellingPreference: DataModelFormat.XSD = DataModelFormat.XSD;
-
   const { t } = useTranslation();
 
   const {
@@ -49,13 +46,13 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const createAppRepo = async (newAppForm: NewAppForm) => {
-    const { org, repoName } = newAppForm;
+    const { org, repoName, template } = newAppForm;
 
     addRepoMutation(
       {
         org,
         repository: repoName,
-        dataModellingPreference: dataModellingPreference,
+        template: template ? { id: template.id, owner: template.owner } : undefined,
       },
       {
         onSuccess: (): void => {

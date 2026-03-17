@@ -10,9 +10,7 @@ namespace Altinn.Studio.DataModeling.Metamodel
         /// <summary>
         /// Initializes a new instance of the <see cref="Restriction"/> class
         /// </summary>
-        public Restriction()
-        {
-        }
+        public Restriction() { }
 
         /// <summary>
         /// Gets or sets base value type

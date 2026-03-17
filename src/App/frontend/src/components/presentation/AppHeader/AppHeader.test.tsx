@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
 import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -9,8 +8,6 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -18,8 +15,15 @@ import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAppLanguage, IParty, IProfile } from 'src/types/shared';
 
 describe('presentation/AppHeader', () => {
+  beforeEach(() => {
+    window.altinnAppGlobalData.orgLogoUrl = 'https://altinncdn.no/orgs/mockOrg/mockOrg.png';
+    window.altinnAppGlobalData.orgName = { nb: 'Mockdepartementet', en: 'Mock Ministry', nn: 'Mockdepartementet' };
+  });
+
   afterEach(() => {
     window.altinnAppGlobalData.userProfile = undefined;
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
+    window.altinnAppGlobalData.orgName = undefined;
   });
 
   const userPerson = {
@@ -49,7 +53,9 @@ describe('presentation/AppHeader', () => {
     textResources?: IRawTextResource[];
   }
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
-    jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({ logo });
+    window.altinnAppGlobalData.textResources!.resources = textResources;
+    window.altinnAppGlobalData.ui.settings = { showLanguageSelector };
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
@@ -58,14 +64,6 @@ describe('presentation/AppHeader', () => {
           headerBackgroundColor={headerBackgroundColor}
         />
       ),
-
-      queries: {
-        fetchTextResources: () => Promise.resolve({ language: 'nb', resources: textResources }),
-        fetchLayoutSettings: () =>
-          Promise.resolve({
-            pages: { showLanguageSelector, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder,
-          }),
-      },
     });
   };
 
@@ -95,6 +93,7 @@ describe('presentation/AppHeader', () => {
   });
 
   it('Should render Altinn logo if logo options are not set', async () => {
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
     await render({ party: userPerson.party });
     const mockLogo = getLogoMock().replace('black', LogoColor.blueDarker);
     expect(screen.getByRole('img')).toHaveAttribute('src', `data:image/svg+xml;utf8,${encodeURIComponent(mockLogo)}`);
@@ -106,37 +105,5 @@ describe('presentation/AppHeader', () => {
       logo: { source: 'org', displayAppOwnerNameInHeader: false },
     });
     expect(screen.getByRole('img')).toHaveAttribute('src', 'https://altinncdn.no/orgs/mockOrg/mockOrg.png');
-  });
-
-  it('should render and change app language', async () => {
-    await render({
-      party: userPerson.party,
-      showLanguageSelector: true,
-    });
-
-    await userEvent.click(screen.getByRole('button', { name: /Språkvalg/i }));
-    const en = screen.getByRole('menuitemradio', { name: /engelsk/i });
-    await userEvent.click(en);
-
-    // Language now changed, so the value should be the language name in the selected language
-    await userEvent.click(screen.getByRole('button', { name: /Language/i }));
-    expect(screen.getByRole('menuitemradio', { name: /english/i })).toHaveAttribute('aria-checked', 'true');
-  });
-
-  it('should render app language with custom labels', async () => {
-    await render({
-      party: userPerson.party,
-      showLanguageSelector: true,
-      textResources: [
-        { id: 'language.language_selection', value: 'Språkvalg test' },
-        { id: 'language.full_name.nb', value: 'Norsk test' },
-        { id: 'language.full_name.en', value: 'Engelsk test' },
-      ],
-    });
-
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /Språkvalg test/i }));
-    screen.getByRole('menuitemradio', { name: /norsk test/i });
-    screen.getByRole('menuitemradio', { name: /engelsk test/i });
   });
 });

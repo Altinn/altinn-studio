@@ -1,0 +1,56 @@
+name: Construct environments array
+
+on:
+  workflow_call:
+    inputs:
+      use-preapproved:
+        required: false
+        default: false
+        type: boolean
+      inputs:
+        required: false
+        default: "null"
+        type: string
+      override-default-studio-environments:
+        required: false
+        default: ""
+        type: string
+      allow-empty:
+        required: false
+        default: false
+        type: boolean
+    outputs:
+      result:
+        description: "Result json"
+        value: ${{ jobs.construct-environments-array.outputs.result }}
+
+jobs:
+  construct-environments-array:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.construct-environments.outputs.result }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts
+
+      - name: Construct environments
+        id: construct-environments
+        env:
+          INPUTS: ${{ inputs.inputs }}
+          ALLOW_EMPTY: ${{ inputs['allow-empty'] }}
+          USE_PREAPPROVED: ${{ inputs['use-preapproved'] }}
+          OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS: ${{ inputs['override-default-studio-environments'] }}
+        run: |
+          mode="studio"
+          if [[ "$USE_PREAPPROVED" == "true" ]]; then
+            mode="studio-preapproved"
+          fi
+
+          result="$(node .github/scripts/construct-environments.mjs \
+            --mode "${mode}" \
+            --inputs "$INPUTS" \
+            --allow-empty "$ALLOW_EMPTY")"
+          echo "result=${result}" >> "$GITHUB_OUTPUT"

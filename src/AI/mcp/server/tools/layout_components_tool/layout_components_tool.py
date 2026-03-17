@@ -30,11 +30,29 @@ from server.config import COMPONENT_SELECTION_CONFIG
 
 @register_tool(
     name="layout_components_tool",
-    description="""
-This tool finds relevant UI components for Altinn Studio applications. 
-Use this tool when you need to locate specific UI elements like date pickers, input fields, dropdowns, or any other interface components.
-Including functionality requirements will help me find the most relevant components. This is not a tool that handles validation of input or any other backend functionality. It only concerns UI components.
-Use of this tool requires subsequent use of the datamodel_tool to create datamodel bindings and resource_tool to create text resources.
+description="""
+This tool helps you choose and configure **Altinn Studio layout components** at a generic level.
+
+Use this tool when you want to:
+- Discover which UI components exist in Altinn Studio (e.g. Header, Input, Date picker, Dropdown, etc.)
+- Understand what properties, textResourceBindings, dataModelBindings, and expressions a component supports
+- Get example configurations for a component you are planning to use
+
+**Important limitations**
+
+- This tool **does not read, search, or inspect your specific application**.
+- It **cannot locate components by id** (for example `'/header-title'`) or return the exact configuration from your app’s layouts.
+- Do **not** ask it to “find” or “locate” a component inside your app. Instead, **describe the UI you want to build**, such as:
+  - “I need a header for the main page title; what Header variants exist and how do I configure size and text bindings?”
+  - “I need a date picker where the user selects a single date; show a recommended configuration.”
+
+Including your functional and UX requirements (validation rules, single vs. multiple selection, etc.) will help the tool suggest the most relevant components and configuration patterns.
+
+This is **only** about UI components and their configuration. It does not handle backend logic, validation implementation, or reading your existing codebase.
+
+When you decide on a component:
+- Use `datamodel_tool` to create or adjust data model bindings.
+- Use `resource_tool` to create or update text resources.
 """,
     title="Layout Components Tool",
     annotations=ToolAnnotations(
@@ -71,7 +89,7 @@ component_llm = AzureChatOpenAI(
     api_key=API_KEY,
     api_version=LLM_CONFIG["API_VERSION"],
     deployment_name=DEPLOYMENT_NAME,
-    temperature=0.1,  # Low temperature for consistent selection
+    # temperature=0.1,  # Low temperature for consistent selection
     max_tokens=LLM_CONFIG["MAX_TOKENS"]
 )
 

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-repositories
+  labels:
+    release: altinn-repositories
+spec:
+  selector:
+    matchLabels:
+      run: altinn-repositories
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        run: altinn-repositories
+        app: altinn-repositories
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      containers:
+        - name: gitea-proxy
+          image: "{{ .Values.proxy.image.repository }}:{{ required "proxy.image.tag not set" .Values.proxy.image.tag }}"
+          imagePullPolicy: {{ .Values.proxy.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+              name: public
+            - containerPort: 81
+              name: internal
+          env:
+            - name: GITEA_HOST
+              value: {{ .Values.proxy.giteaHost | quote }}
+            - name: DESIGNER_HOST
+              value: {{ .Values.proxy.designerHost | quote }}
+            {{- if not (hasKey .Values.proxy.distinctEnvironmentVariables .Values.environment) }}
+              {{ fail "the chosen environment does not exist for proxy" }}
+            {{- end }}
+            {{- $distinctProxyVars := index $.Values.proxy.distinctEnvironmentVariables $.Values.environment }}
+            {{- range $variable := $distinctProxyVars }}
+            - name: {{ $variable.name }}
+              value: {{ $variable.value | quote }}
+            {{- end }}
+      {{- if .Values.image.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecret }}
+      {{- end }}

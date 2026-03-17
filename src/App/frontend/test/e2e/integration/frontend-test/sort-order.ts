@@ -39,7 +39,7 @@ describe('sortOrder', () => {
       'Adoptivforelders etternavn eller mellomnavn',
     ];
 
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'RadioButtons' && component.id === 'reason') {
         component.sortOrder = 'desc';
       }

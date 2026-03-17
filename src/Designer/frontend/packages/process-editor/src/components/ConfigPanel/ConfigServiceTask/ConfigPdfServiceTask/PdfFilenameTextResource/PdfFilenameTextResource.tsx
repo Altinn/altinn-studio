@@ -10,7 +10,6 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { usePdfConfig } from '../usePdfConfig';
-import { useStickyBottomScroll } from '../useStickyBottomScroll';
 import { generateTextResourceId } from '../utils';
 import classes from './PdfFilenameTextResource.module.css';
 
@@ -31,16 +30,11 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     storedFilenameTextResourceId,
   );
 
-  const { ref: textResourceActionRef, onOpen: onOpenTextResourceEditor } =
-    useStickyBottomScroll<HTMLDivElement>(isTextResourceEditorOpen);
-  const modelerInstance = modelerRef?.current;
-
-  if (!modelerInstance || !bpmnDetails) {
+  // Todo: add eslint disable next line when updating eslint-react-hooks to v7
+  // Guard clause; ref is not used for rendering
+  if (!modelerRef?.current || !bpmnDetails) {
     return null;
   }
-
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
   const textResources: TextResource[] = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
 
@@ -65,6 +59,10 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
   const updateBpmnFilenameTextResourceKey = (textResourceId: string): void => {
     if (textResourceId === pdfConfig.filenameTextResourceKey?.value) return;
 
+    const modelerInstance = modelerRef.current;
+    const modeling: Modeling = modelerInstance.get('modeling');
+    const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
+
     const filenameElement = textResourceId
       ? bpmnFactory.create('altinn:FilenameTextResourceKey', { value: textResourceId })
       : null;
@@ -72,11 +70,6 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     modeling.updateModdleProperties(bpmnDetails.element, pdfConfig, {
       filenameTextResourceKey: filenameElement,
     });
-  };
-
-  const handleOpenTextResourceEditor = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    onOpenTextResourceEditor(event.currentTarget);
-    setIsTextResourceEditorOpen(true);
   };
 
   const handleTextResourceIdChange = (id: string): void => {
@@ -103,7 +96,7 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
       description={t('process_editor.configuration_panel_pdf_filename_description')}
     >
       {isTextResourceEditorOpen ? (
-        <div ref={textResourceActionRef} className={classes.filenameContent}>
+        <div className={classes.filenameContent}>
           <StudioTextResourceAction
             textResources={textResources}
             textResourceId={currentTextResourceId}
@@ -118,7 +111,7 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
       ) : (
         <div className={classes.filenameContent}>
           <StudioProperty.Button
-            onClick={handleOpenTextResourceEditor}
+            onClick={() => setIsTextResourceEditorOpen(true)}
             property={t('process_editor.configuration_panel_pdf_filename_label')}
             value={displayTextResourceValue}
           />

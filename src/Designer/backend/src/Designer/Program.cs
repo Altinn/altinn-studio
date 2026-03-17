@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Clients.Implementations;
@@ -12,23 +11,20 @@ using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.EventHandlers;
 using Altinn.Studio.Designer.Health;
+using Altinn.Studio.Designer.Hosting;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
-using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Infrastructure.DeveloperSession;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
+using Altinn.Studio.Designer.Middleware;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
-using Azure;
 using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -44,14 +40,13 @@ using Microsoft.Net.Http.Headers;
 
 ILogger logger;
 
-string applicationInsightsConnectionString = string.Empty;
-
 ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
 {
-    await SetConfigurationProviders(builder.Configuration, builder.Environment);
+    SetConfigurationProviders(builder.Configuration, builder.Environment);
     ConfigureLogging(builder.Logging);
+    builder.AddOpenTelemetry();
     ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 }
 
@@ -76,12 +71,16 @@ void ConfigureSetupLogging()
     logger = logFactory.CreateLogger<Program>();
 }
 
-async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
+void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
     logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure providers");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
-    config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+    config.AddJsonFile(
+        basePath + "app/altinn-appsettings/altinn-appsettings-secret.json",
+        optional: true,
+        reloadOnChange: true
+    );
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
@@ -90,7 +89,11 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     }
     else
     {
-        config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
+        config.AddJsonFile(
+            Directory.GetCurrentDirectory() + "/appsettings.json",
+            optional: false,
+            reloadOnChange: true
+        );
     }
 
     config.AddEnvironmentVariables();
@@ -104,25 +107,24 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     {
         logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault");
         DefaultAzureCredential azureCredentials = new();
-        SecretClient keyVaultClient = new(new Uri(secretUri), azureCredentials);
 
         try
         {
             config.AddAzureKeyVault(new Uri(secretUri), azureCredentials);
-            string secretId = "ApplicationInsights--ConnectionString";
-            Response<KeyVaultSecret> kvSecret = await keyVaultClient.GetSecretAsync(secretId);
-            KeyVaultSecret secretValue = kvSecret.Value;
-            applicationInsightsConnectionString = secretValue.Value;
         }
         catch (Exception vaultException)
         {
-            logger.LogError(vaultException, "Could not find secret for application insights");
+            logger.LogError(vaultException, "Could not connect to Azure Key Vault");
         }
     }
 
     if (hostingEnvironment.IsDevelopment() && !Directory.GetCurrentDirectory().Contains("app"))
     {
-        config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
+        config.AddJsonFile(
+            Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json",
+            optional: true,
+            reloadOnChange: true
+        );
         Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
         if (assembly != null)
         {
@@ -135,43 +137,10 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
 
 void ConfigureLogging(ILoggingBuilder builder)
 {
-    // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
-    // Console, Debug, EventSource
-    // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
-
-    // Clear log providers
     builder.ClearProviders();
-
-    // Setup up application insight if ApplicationInsightsKey is available
-    if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
-    {
-        // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
-        // Providing an instrumentation key here is required if you're using
-        // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-        // or if you want to capture logs from early in the application startup
-        // pipeline from Startup.cs or Program.cs itself.
-        builder.AddApplicationInsights(configureTelemetryConfiguration: config =>
-        {
-            config.ConnectionString = applicationInsightsConnectionString;
-        },
-        configureApplicationInsightsLoggerOptions: _ => { });
-
-        // Optional: Apply filters to control what logs are sent to Application Insights.
-        // The following configures LogLevel Information or above to be sent to
-        // Application Insights for all categories.
-        builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
-
-        // Adding the filter below to ensure logs of all severity from Program.cs
-        // is sent to ApplicationInsights.
-        builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
-    }
-    else
-    {
-        // If not application insight is available log to console
-        builder.AddFilter("Microsoft", LogLevel.Warning);
-        builder.AddFilter("System", LogLevel.Warning);
-        builder.AddConsole();
-    }
+    builder.AddFilter("Microsoft", LogLevel.Warning);
+    builder.AddFilter("System", LogLevel.Warning);
+    builder.AddConsole();
 }
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
@@ -183,14 +152,19 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AllowSynchronousIO = true;
     });
 
-    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
+    services.ConfigureResourceRegistryIntegrationSettings(
+        configuration.GetSection("ResourceRegistryIntegrationSettings")
+    );
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
     services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
     var maskinPortenClientName = "MaskinportenClient";
-    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
+    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
+        maskinPortenClientName,
+        configuration.GetSection("MaskinportenClientSettings")
+    );
     services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
 
     var maskinportenSettings = new MaskinportenClientSettings();
@@ -198,25 +172,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
-    // Add application insight telemetry
-    if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
-    {
-        services.AddApplicationInsightsTelemetry(options => { options.ConnectionString = applicationInsightsConnectionString; });
-        services.ConfigureTelemetryModule<EventCounterCollectionModule>(
-            (module, o) =>
-            {
-                module.Counters.Clear();
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
-                module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
-            });
-        services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
-        services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-    }
-
+    services.AddDeveloperContextAccessor();
     services.RegisterServiceImplementations(configuration);
 
     services.AddHttpContextAccessor();
@@ -231,7 +187,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration, env);
-    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
     services.AddMaskinportenAuthentication(configuration);
     services.ConfigureAuthentication(configuration, env);
 
@@ -270,8 +225,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
-            options.ForwardedHeaders =
-                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
@@ -301,18 +255,16 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseDefaultFiles();
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        OnPrepareResponse = context =>
+    app.UseStaticFiles(
+        new StaticFileOptions
         {
-            ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-            headers.CacheControl = new CacheControlHeaderValue
+            OnPrepareResponse = context =>
             {
-                Public = true,
-                MaxAge = TimeSpan.FromMinutes(60),
-            };
+                ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
+                headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes(60) };
+            },
         }
-    });
+    );
 
     app.MapOpenApi("/designer/openapi/{documentName}/openapi.json");
 
@@ -324,6 +276,7 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseAuthentication();
+    app.UseMiddleware<DeveloperContextMiddleware>();
     app.UseAuthorization();
 
     app.UseResponseCompression();
@@ -345,11 +298,16 @@ void CreateDirectory(IConfiguration configuration)
 
     // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
     // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-    var repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings:RepositoryLocation") ??
-                                                       configuration["ServiceRepositorySettings:RepositoryLocation"];
+    var repoLocation =
+        Environment.GetEnvironmentVariable("ServiceRepositorySettings:RepositoryLocation")
+        ?? configuration["ServiceRepositorySettings:RepositoryLocation"];
     if (string.IsNullOrWhiteSpace(repoLocation))
     {
-        repoLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "repos");
+        repoLocation = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "altinn",
+            "repos"
+        );
         configuration.GetSection("ServiceRepositorySettings")["RepositoryLocation"] = repoLocation;
     }
 

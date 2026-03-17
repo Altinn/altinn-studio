@@ -27,59 +27,69 @@
    {
     "command": "AddFinalizerCommand",
     "result": "added",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "CreateClientInApiCommand",
     "details": "clientId: <sanitized-client-id>, scopes: 2",
     "result": "created",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "UpdateSecretContentCommand",
     "details": "keys: 1",
     "result": "synced",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "UpdateClientInApiCommand",
     "details": "scopes: 1, jwks: false",
     "result": "updated",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "UpdateClientInApiCommand",
     "details": "scopes: 0, jwks: true",
     "result": "updated",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "UpdateSecretContentCommand",
     "details": "keys: 2",
     "result": "synced",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "RemoveRotateAnnotationCommand",
     "result": "removed",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "UpdateClientInApiCommand",
     "details": "scopes: 0, jwks: true",
     "result": "updated",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "UpdateSecretContentCommand",
     "details": "keys: 2",
     "result": "synced",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    },
    {
     "command": "RemoveRotateAnnotationCommand",
     "result": "removed",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2024-01-01T00:00:00Z",
+    "traceId": "<sanitized-trace-id>"
    }
   ],
   "authority": "http://fakes:8050/",

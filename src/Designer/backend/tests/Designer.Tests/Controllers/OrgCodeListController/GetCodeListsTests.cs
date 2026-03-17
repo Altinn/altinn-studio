@@ -16,11 +16,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetCodeListsTests
+    : DesignerEndpointsTestsBase<GetCodeListsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<ISharedContentClient> _contentClientMock;
 
-    public GetCodeListsTests(WebApplicationFactory<Program> factory) : base(factory)
+    public GetCodeListsTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         _contentClientMock = new Mock<ISharedContentClient>();
     }
@@ -47,9 +50,18 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
         string codeListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
         string repoPath = TestDataHelper.GetRepositoryDirectory(Developer, targetOrg, targetRepository);
-        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithObject")), codeListLabelWithObject);
-        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithNumber")), codeListLabelWithNumber);
-        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithBool")), codeListLabelWithBool);
+        await File.WriteAllTextAsync(
+            Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithObject")),
+            codeListLabelWithObject
+        );
+        await File.WriteAllTextAsync(
+            Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithNumber")),
+            codeListLabelWithNumber
+        );
+        await File.WriteAllTextAsync(
+            Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithBool")),
+            codeListLabelWithBool
+        );
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);

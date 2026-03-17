@@ -40,6 +40,13 @@ public class GitOpsManagementBuildParameters
     public string AppDeployToken { get; set; }
 
     /// <summary>
+    /// Optional HTTP header name for token-based auth (e.g. "X-Api-Key").
+    /// When set, the pipeline should use this header instead of embedding the token in the URL.
+    /// </summary>
+    [JsonPropertyName("APP_AUTH_HEADER_NAME")]
+    public string AppAuthHeaderName { get; set; }
+
+    /// <summary>
     /// The URI to the correct GITEA environment based on which environment Altinn Studio is located
     /// </summary>
     [JsonPropertyName("GITEA_ENVIRONMENT")]
@@ -56,5 +63,16 @@ public class GitOpsManagementBuildParameters
     /// </summary>
     [JsonPropertyName("PUSH_APPS_OCI_IMAGE")]
     public string PushAppsOciImage { get; set; } = "false";
-}
 
+    /// <summary>
+    /// W3C traceparent propagated from the request that queued the pipeline.
+    /// </summary>
+    [JsonPropertyName("TRACEPARENT")]
+    public string TraceParent { get; set; }
+
+    /// <summary>
+    /// W3C tracestate propagated from the request that queued the pipeline.
+    /// </summary>
+    [JsonPropertyName("TRACESTATE")]
+    public string TraceState { get; set; }
+}

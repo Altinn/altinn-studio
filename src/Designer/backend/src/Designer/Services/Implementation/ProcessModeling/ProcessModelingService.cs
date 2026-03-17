@@ -19,47 +19,70 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IAppDevelopmentService _appDevelopmentService;
 
-        public ProcessModelingService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-            IAppDevelopmentService appDevelopmentService)
+        public ProcessModelingService(
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+            IAppDevelopmentService appDevelopmentService
+        )
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _appDevelopmentService = appDevelopmentService;
         }
 
-        private string TemplatesFolderIdentifier(SemanticVersion version) => string.Join(".", nameof(Services),
-            nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
+        private string TemplatesFolderIdentifier(SemanticVersion version) =>
+            string.Join(
+                ".",
+                nameof(Services),
+                nameof(Implementation),
+                nameof(ProcessModeling),
+                "Templates",
+                $"v{version.Major}"
+            );
 
         /// <inheritdoc/>
-        public async Task SaveProcessDefinitionAsync(AltinnRepoEditingContext altinnRepoEditingContext,
-            Stream bpmnStream, CancellationToken cancellationToken = default)
+        public async Task SaveProcessDefinitionAsync(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            Stream bpmnStream,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository =
-                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
             await altinnAppGitRepository.SaveProcessDefinitionFileAsync(bpmnStream, cancellationToken);
         }
 
         /// <inheritdoc/>
         public Stream GetProcessDefinitionStream(AltinnRepoEditingContext altinnRepoEditingContext)
         {
-            AltinnAppGitRepository altinnAppGitRepository =
-                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
             return altinnAppGitRepository.GetProcessDefinitionFile();
         }
 
-        public async Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext,
-            string dataTypeId, string taskId, List<string>? allowedContributors,
-            CancellationToken cancellationToken = default)
+        public async Task AddDataTypeToApplicationMetadataAsync(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            string dataTypeId,
+            string taskId,
+            List<string>? allowedContributors,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository =
-                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
 
-            ApplicationMetadata applicationMetadata =
-                await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
+                cancellationToken
+            );
             if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
             {
                 var dataTypeToAdd = new DataType
@@ -82,28 +105,38 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
-        public async Task DeleteDataTypeFromApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext,
-            string dataTypeId, CancellationToken cancellationToken = default)
+        public async Task DeleteDataTypeFromApplicationMetadataAsync(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            string dataTypeId,
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository =
-                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            ApplicationMetadata applicationMetadata =
-                await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
+                cancellationToken
+            );
             applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
-        public async Task<string> GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext,
-            string layoutSetId)
+        public async Task<string> GetTaskTypeFromProcessDefinition(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            string layoutSetId
+        )
         {
             using (Stream processDefinitionStream = GetProcessDefinitionStream(altinnRepoEditingContext))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
                 Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
-                LayoutSetConfig layoutSet =
-                    await _appDevelopmentService.GetLayoutSetConfig(altinnRepoEditingContext, layoutSetId);
+                LayoutSetConfig layoutSet = await _appDevelopmentService.GetLayoutSetConfig(
+                    altinnRepoEditingContext,
+                    layoutSetId
+                );
                 string? taskId = layoutSet.Tasks?.First();
                 ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
                 return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
@@ -112,7 +145,8 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
 
         private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)
         {
-            return typeof(ProcessModelingService).Assembly.GetManifestResourceNames()
+            return typeof(ProcessModelingService)
+                .Assembly.GetManifestResourceNames()
                 .Where(resourceName => resourceName.Contains(TemplatesFolderIdentifier(version)));
         }
 

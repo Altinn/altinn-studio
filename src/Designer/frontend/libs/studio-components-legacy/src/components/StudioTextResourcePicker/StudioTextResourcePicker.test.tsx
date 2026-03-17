@@ -56,7 +56,7 @@ describe('StudioTextResourcePicker', () => {
     await user.click(getCombobox());
     const textResourceToPick = textResources[arbitraryTextResourceIndex];
     await user.click(screen.getByRole('option', { name: expectedOptionName(textResourceToPick) }));
-    await waitFor(expect(onValueChange).toBeCalled);
+    await waitFor(() => expect(onValueChange).toHaveBeenCalled());
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(textResourceToPick.id);
   });

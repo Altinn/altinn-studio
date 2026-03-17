@@ -3,8 +3,8 @@ import { useComponentPropertyLabel } from '../../../../hooks';
 import { StudioProperty } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
 import type { SchemaConfigProps } from '../types';
-import { useDisplayObjectValues } from './useDisplayObjectValues';
 import { ConfigObjectPropertyCard } from './ConfigObjectPropertyCard';
+import { useTranslateKeyValue } from '../useTranslateKeyValue';
 
 export interface ConfigObjectPropertyProps extends SchemaConfigProps {
   objectPropertyKey: string;
@@ -22,7 +22,7 @@ export const ConfigObjectProperty = ({
 }: ConfigObjectPropertyProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const [openObjectCard, setOpenObjectCard] = useState<boolean>(false);
-  const valuesToBeDisplayed = useDisplayObjectValues(component[objectPropertyKey]);
+  const translatedKeyValue = useTranslateKeyValue(component[objectPropertyKey]);
 
   if (!openObjectCard) {
     return (
@@ -31,7 +31,7 @@ export const ConfigObjectProperty = ({
         icon={!component[objectPropertyKey] && <PlusCircleIcon />}
         onClick={() => setOpenObjectCard(true)}
         property={componentPropertyLabel(objectPropertyKey)}
-        value={valuesToBeDisplayed}
+        value={translatedKeyValue}
       />
     );
   }

@@ -9,12 +9,15 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class GetDatamodelsTests : DesignerEndpointsTestsBase<GetDatamodelsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetDatamodelsTests
+    : DesignerEndpointsTestsBase<GetDatamodelsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public GetDatamodelsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/datamodels";
+
+    public GetDatamodelsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [InlineData("ttd", "hvem-er-hvem")]

@@ -13,12 +13,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class ImportResourceTests : ResourceAdminControllerTestsBaseClass<ImportResourceTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class ImportResourceTests
+        : ResourceAdminControllerTestsBaseClass<ImportResourceTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public ImportResourceTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public ImportResourceTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task ExportAltinn2Resource_Ok()
@@ -28,17 +28,28 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
             {
                 string resourceId = "new-resource-id";
-                httpRequestMessage.Content = new StringContent($"\"{resourceId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
-                ServiceResource serviceResource = new ServiceResource()
-                {
-                    Identifier = resourceId,
-                };
+                httpRequestMessage.Content = new StringContent(
+                    $"\"{resourceId}\"",
+                    Encoding.UTF8,
+                    MediaTypeNames.Application.Json
+                );
+                ServiceResource serviceResource = new ServiceResource() { Identifier = resourceId };
 
                 XacmlPolicy policy = AuthorizationUtil.ParsePolicy("resource_registry_delegatableapi.xml");
 
-                RepositoryMock.Setup(r => r.AddServiceResource(It.IsAny<string>(), It.IsAny<ServiceResource>())).Returns(new StatusCodeResult(201));
-                ResourceRegistryMock.Setup(r => r.GetServiceResourceFromService(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(serviceResource);
-                ResourceRegistryMock.Setup(r => r.GetXacmlPolicy(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(policy);
+                RepositoryMock
+                    .Setup(r => r.AddServiceResource(It.IsAny<string>(), It.IsAny<ServiceResource>()))
+                    .Returns(new StatusCodeResult(201));
+                ResourceRegistryMock
+                    .Setup(r =>
+                        r.GetServiceResourceFromService(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>())
+                    )
+                    .ReturnsAsync(serviceResource);
+                ResourceRegistryMock
+                    .Setup(r =>
+                        r.GetXacmlPolicy(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())
+                    )
+                    .ReturnsAsync(policy);
 
                 // Act
                 using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -56,7 +67,11 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
             {
                 string resourceId = "new";
-                httpRequestMessage.Content = new StringContent($"\"{resourceId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+                httpRequestMessage.Content = new StringContent(
+                    $"\"{resourceId}\"",
+                    Encoding.UTF8,
+                    MediaTypeNames.Application.Json
+                );
 
                 // Act
                 using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

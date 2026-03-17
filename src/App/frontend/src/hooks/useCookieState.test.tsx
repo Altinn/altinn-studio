@@ -3,7 +3,6 @@ import React from 'react';
 import { act, renderHook, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { useCookieState } from 'src/hooks/useCookieState';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
@@ -16,12 +15,7 @@ describe('useCookieState', () => {
       document.cookie = `${name}=; max-age=0; path=/${window.org}/${window.app}`;
     });
 
-    // Set default profile
-    window.altinnAppGlobalData.userProfile = getProfileMock();
-  });
-
-  afterEach(() => {
-    window.altinnAppGlobalData.userProfile = getProfileMock();
+    window.altinnAppGlobalData.availableLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
   });
 
   it('should return the default value when no cookie exists', () => {
@@ -30,7 +24,7 @@ describe('useCookieState', () => {
   });
 
   it('should return the cookie value when it exists', () => {
-    CookieStorage.setItem('ttd_test_12345_lang', 'nb');
+    CookieStorage.setItem('lang_12345', 'nb');
     const { result } = renderHook(() => useCookieState('lang', null));
     expect(result.current[0]).toBe('nb');
   });
@@ -43,11 +37,11 @@ describe('useCookieState', () => {
     });
 
     expect(result.current[0]).toBe('en');
-    expect(CookieStorage.getItem('ttd_test_12345_lang')).toBe('en');
+    expect(CookieStorage.getItem('lang_12345')).toBe('en');
   });
 
   it('should remove the cookie when setValue is called with null', () => {
-    CookieStorage.setItem('ttd_test_12345_lang', 'nb');
+    CookieStorage.setItem('lang_12345', 'nb');
     const { result } = renderHook(() => useCookieState('lang', null));
 
     expect(result.current[0]).toBe('nb');
@@ -57,7 +51,7 @@ describe('useCookieState', () => {
     });
 
     expect(result.current[0]).toBeNull();
-    expect(CookieStorage.getItem('ttd_test_12345_lang')).toBeNull();
+    expect(CookieStorage.getItem('lang_12345')).toBeNull();
   });
 
   it('should use the correct key format with org, app, and partyId', () => {
@@ -68,7 +62,7 @@ describe('useCookieState', () => {
     });
 
     // Verify the cookie is stored with the correct key including partyId
-    expect(CookieStorage.getItem('ttd_test_12345_lang')).toBe('nn');
+    expect(CookieStorage.getItem('lang_12345')).toBe('nn');
     expect(CookieStorage.getItem('lang')).toBeNull();
   });
 
@@ -81,8 +75,8 @@ describe('useCookieState', () => {
       result.current[1]('en');
     });
 
-    // Without partyId, the key should be org_app_lang
-    expect(CookieStorage.getItem('ttd_test_lang')).toBe('en');
+    // Without partyId, the key should be lang
+    expect(CookieStorage.getItem('lang')).toBe('en');
   });
 
   describe('component integration', () => {

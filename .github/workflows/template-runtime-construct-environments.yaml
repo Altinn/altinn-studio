@@ -1,0 +1,46 @@
+name: Construct rings array
+
+on:
+  workflow_call:
+    inputs:
+      inputs:
+        required: false
+        default: "null"
+        type: string
+      override-default-runtime-environments:
+        required: false
+        default: ""
+        type: string
+      allow-empty:
+        required: false
+        default: false
+        type: boolean
+    outputs:
+      result:
+        description: "Result json"
+        value: ${{ jobs.construct-rings-array.outputs.result }}
+
+jobs:
+  construct-rings-array:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.construct-rings.outputs.result }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts
+
+      - name: Construct rings
+        id: construct-rings
+        env:
+          INPUTS: ${{ inputs.inputs }}
+          ALLOW_EMPTY: ${{ inputs['allow-empty'] }}
+          OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS: ${{ inputs['override-default-runtime-environments'] }}
+        run: |
+          result="$(node .github/scripts/construct-environments.mjs \
+            --mode runtime \
+            --inputs "$INPUTS" \
+            --allow-empty "$ALLOW_EMPTY")"
+          echo "result=${result}" >> "$GITHUB_OUTPUT"

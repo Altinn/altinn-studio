@@ -1,0 +1,34 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kuberneteswrapper-repo
+  namespace: default
+spec:
+  interval: 5m
+  provider: generic
+  ref:
+    tag: ${ENVIRONMENT}
+  timeout: 5m
+  url: oci://ghcr.io/altinn/altinn-studio/kubernetes-wrapper-repo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kubernetes-wrapper
+  namespace: default
+spec:
+  targetNamespace: default
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: true
+  force: false
+  wait: true
+  path: ./studio/env/${ENVIRONMENT}
+  sourceRef:
+    kind: OCIRepository
+    name: kuberneteswrapper-repo
+    namespace: default
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}

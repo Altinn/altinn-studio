@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
@@ -13,10 +13,9 @@ import type { JSONSchema7 } from 'json-schema';
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
-import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
-import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -25,17 +24,14 @@ import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
-import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
-import type { IPagesSettingsWithOrder, IRawOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
@@ -126,8 +122,6 @@ const defaultPostalCodesMock = (() => {
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
   fetchActiveInstances: async () => [],
-  fetchSelectedParty: async () => getPartyMock(),
-  fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchDataModelSchema: async () => ({}),
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
   fetchRefreshJwtToken: async () => ({}),
@@ -136,9 +130,7 @@ const defaultQueryMocks: AppQueries = {
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
-  fetchTextResources: async (language) => ({ language, resources: getTextResourcesMock() }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchLayoutSettings: async () => ({ pages: { order: [] } as unknown as IPagesSettingsWithOrder }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
   fetchLayoutsForInstance: () => Promise.reject(new Error('fetchLayoutsForInstance not mocked')),
   fetchBackendValidations: async () => [],
@@ -207,7 +199,7 @@ function NotFound() {
 
 function DefaultRouter({ children }: PropsWithChildren) {
   return (
-    <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+    <MemoryRouter>
       <Routes>
         <Route
           path='/'
@@ -250,7 +242,6 @@ export function InstanceRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -259,12 +250,7 @@ export function InstanceRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export function StatelessRouter({
@@ -289,7 +275,6 @@ export function StatelessRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -298,12 +283,7 @@ export function StatelessRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 interface ProvidersProps extends PropsWithChildren {
@@ -318,23 +298,19 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <UiConfigProvider>
-          <PageNavigationProvider>
-            <Router>
+      <UiConfigProvider>
+        <PageNavigationProvider>
+          <Router>
+            <AppComponentsBridge>
               <NavigationEffectProvider>
                 <GlobalFormDataReadersProvider>
-                  <OrgsProvider>
-                    <PartyProvider>
-                      <TextResourcesProvider>{children}</TextResourcesProvider>
-                    </PartyProvider>
-                  </OrgsProvider>
+                  <PartyProvider>{children}</PartyProvider>
                 </GlobalFormDataReadersProvider>
               </NavigationEffectProvider>
-            </Router>
-          </PageNavigationProvider>
-        </UiConfigProvider>
-      </LangToolsStoreProvider>
+            </AppComponentsBridge>
+          </Router>
+        </PageNavigationProvider>
+      </UiConfigProvider>
     </AppQueriesProvider>
   );
 }
@@ -359,11 +335,11 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <LangToolsStoreProvider>
-        <Router>
-          <NavigationEffectProvider>{children}</NavigationEffectProvider>
-        </Router>
-      </LangToolsStoreProvider>
+      <Router>
+        <NavigationEffectProvider>
+          <AppComponentsBridge>{children}</AppComponentsBridge>
+        </NavigationEffectProvider>
+      </Router>
     </AppQueriesProvider>
   );
 }
@@ -581,6 +557,15 @@ export const renderWithInstanceAndLayout = async ({
     throw new Error('Cannot use custom router with renderWithInstanceAndLayout');
   }
 
+  const realTaskId = taskId ?? 'Task_1';
+  if (
+    window.altinnAppGlobalData.ui.folders[realTaskId]?.pages &&
+    'order' in window.altinnAppGlobalData.ui.folders[realTaskId].pages &&
+    !window.altinnAppGlobalData.ui.folders[realTaskId].pages.order.includes(initialPage)
+  ) {
+    window.altinnAppGlobalData.ui.folders[realTaskId].pages.order = [initialPage];
+  }
+
   const routerRef: RouterRef = { current: undefined };
   return {
     formDataMethods,
@@ -623,11 +608,6 @@ export const renderWithInstanceAndLayout = async ({
               ],
             },
           },
-        }),
-        fetchLayoutSettings: async () => ({
-          pages: {
-            order: [initialPage],
-          } as unknown as IPagesSettingsWithOrder,
         }),
         ...renderOptions.queries,
       },
@@ -689,11 +669,6 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
             layout: [realComponentDef],
           },
         },
-      }),
-      fetchLayoutSettings: async () => ({
-        pages: {
-          order: [initialPage],
-        } as unknown as IPagesSettingsWithOrder,
       }),
       ...rest.queries,
     },

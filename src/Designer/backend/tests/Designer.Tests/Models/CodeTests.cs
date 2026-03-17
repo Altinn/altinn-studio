@@ -12,7 +12,11 @@ public class CodeTests
 
     private readonly Dictionary<string, string> _labelEnOnly = new() { ["en"] = "Label A" };
     private readonly Dictionary<string, string> _labelNbOnly = new() { ["nb"] = "Etikett A" };
-    private readonly Dictionary<string, string> _labelMixedDifferent = new() { ["en"] = "Label B", ["nb"] = "Etikett B" };
+    private readonly Dictionary<string, string> _labelMixedDifferent = new()
+    {
+        ["en"] = "Label B",
+        ["nb"] = "Etikett B",
+    };
 
     private readonly Dictionary<string, string> _helpA = new() { ["en"] = "Help A" };
     private readonly Dictionary<string, string> _helpB = new() { ["en"] = "Help B" };
@@ -48,7 +52,8 @@ public class CodeTests
             label: label ?? _labelEnOnly,
             description: description,
             helpText: helpText,
-            tags: tags);
+            tags: tags
+        );
     }
 
     [Fact]

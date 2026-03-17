@@ -74,10 +74,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                    this.Emails == input.Emails ||
-                    (this.Emails != null &&
-                    this.Emails.SequenceEqual(input.Emails));
+            return this.Emails == input.Emails || (this.Emails != null && this.Emails.SequenceEqual(input.Emails));
         }
 
         /// <summary>

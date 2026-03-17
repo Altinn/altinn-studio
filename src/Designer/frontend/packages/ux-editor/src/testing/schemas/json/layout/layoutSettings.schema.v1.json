@@ -13,6 +13,37 @@
     "pages": {
       "type": "object",
       "$ref": "#/definitions/pages"
+    },
+    "validationOnNavigation": {
+      "title": "PageValidation",
+      "type": "object",
+      "description": "Settings for validation when navigating between pages",
+      "properties": {
+        "page": {
+          "title": "Page",
+          "description": "Which pages should be validated when navigating.",
+          "enum": ["current", "currentAndPrevious", "all"]
+        },
+        "show": {
+          "$comment": "Manually added because the automated script does not dereference this. Do not remove or replace this with a '$ref' without a solution to frontend ref following.",
+          "title": "Validation types",
+          "description": "List of validation types to show",
+          "type": "array",
+          "items": {
+            "enum": [
+              "Schema",
+              "Component",
+              "Expression",
+              "CustomBackend",
+              "Required",
+              "AllExceptRequired",
+              "All"
+            ]
+          }
+        }
+      },
+      "required": ["page", "show"],
+      "additionalProperties": false
     }
   },
   "definitions": {

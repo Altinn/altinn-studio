@@ -27,11 +27,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
             _cacheExpiryInSeconds = cacheExpiryInSeconds;
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
         {
             string cacheKey = $"{request.Method}_{request.RequestUri}";
 
-            if (IsEligibleForCaching(request) && _memoryCache.TryGetValue(cacheKey, out CacheResponseDataEntry cacheEntry))
+            if (
+                IsEligibleForCaching(request)
+                && _memoryCache.TryGetValue(cacheKey, out CacheResponseDataEntry cacheEntry)
+            )
             {
                 return GetCachedResponseMessage(cacheEntry);
             }
@@ -46,7 +52,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
             var newCacheEntry = new CacheResponseDataEntry()
             {
                 Data = await response.Content.ReadAsByteArrayAsync(cancellationToken),
-                StatusCode = response.StatusCode
+                StatusCode = response.StatusCode,
             };
 
             MemoryCacheEntryOptions cacheEntryOptions = GenerateMemoryCacheEntryOptions();
@@ -58,23 +64,25 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 
         private MemoryCacheEntryOptions GenerateMemoryCacheEntryOptions()
         {
-            var cancellationTokenSource = new CancellationTokenSource(
-                TimeSpan.FromSeconds(_cacheExpiryInSeconds));
+            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(_cacheExpiryInSeconds));
 
             var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .AddExpirationToken(
-                    new CancellationChangeToken(cancellationTokenSource.Token))
-                .RegisterPostEvictionCallback((key, value, reason, state) =>
-                {
-                    ((CancellationTokenSource)state).Dispose();
-                }, cancellationTokenSource);
+                .AddExpirationToken(new CancellationChangeToken(cancellationTokenSource.Token))
+                .RegisterPostEvictionCallback(
+                    (key, value, reason, state) =>
+                    {
+                        ((CancellationTokenSource)state).Dispose();
+                    },
+                    cancellationTokenSource
+                );
             return cacheEntryOptions;
         }
 
         /// <summary>
         /// Should cache only idempotent http methods. Currently only Get method is needed.
         /// </summary>
-        private static bool IsEligibleForCaching(HttpRequestMessage requestMessage) => requestMessage.Method == HttpMethod.Get;
+        private static bool IsEligibleForCaching(HttpRequestMessage requestMessage) =>
+            requestMessage.Method == HttpMethod.Get;
 
         private static HttpResponseMessage GetCachedResponseMessage(CacheResponseDataEntry cacheResponseDataEntry)
         {

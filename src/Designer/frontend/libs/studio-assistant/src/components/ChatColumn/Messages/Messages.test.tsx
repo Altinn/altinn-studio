@@ -17,6 +17,7 @@ const mockMessages: Message[] = [
     author: MessageAuthor.Assistant,
     content: assistantMessageContent,
     timestamp: new Date(),
+    filesChanged: [],
   },
 ];
 

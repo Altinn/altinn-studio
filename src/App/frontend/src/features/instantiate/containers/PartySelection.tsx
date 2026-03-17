@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMatch, useNavigate } from 'react-router-dom';
+import { useMatch, useNavigate } from 'react-router';
 
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -8,6 +8,7 @@ import cn from 'classnames';
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Input } from 'src/app-components/Input/Input';
+import { translationKey } from 'src/AppComponentsBridge';
 import { AltinnParty } from 'src/components/altinnParty';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
@@ -118,6 +119,7 @@ export const PartySelection = () => {
     <InstantiationContainer>
       <title>{`${getPageTitle(appName, langAsString('party_selection.header'), appOwner)}`}</title>
       <Flex
+        data-testid='presentation'
         container
         direction='row'
         style={{
@@ -140,8 +142,8 @@ export const PartySelection = () => {
       >
         <Input
           size='md'
-          aria-label={langAsString('party_selection.search_placeholder')}
-          placeholder={langAsString('party_selection.search_placeholder')}
+          aria-label={translationKey('party_selection.search_placeholder')}
+          placeholder={translationKey('party_selection.search_placeholder')}
           onChange={onFilterStringChange}
           value={filterString}
           inputMode='search'

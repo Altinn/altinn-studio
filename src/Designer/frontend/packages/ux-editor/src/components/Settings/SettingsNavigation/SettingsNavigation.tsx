@@ -7,6 +7,8 @@ import classes from './SettingsNavigation.module.css';
 import { TasksTable } from '../../TasksTable/TasksTable';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getHiddenTasks } from '../SettingsUtils';
+import { ValidateNavigation } from './ValidateNavigation/ValidateNavigation';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();
@@ -16,6 +18,7 @@ export const SettingsNavigation = (): ReactElement => {
     org,
     app,
   );
+  const displayValidateNavigation = useFeatureFlag(FeatureFlag.ValidateNavigation);
 
   if (tasksIsPending || layoutSetsPending)
     return (
@@ -26,21 +29,24 @@ export const SettingsNavigation = (): ReactElement => {
   const allTasks = [...taskNavigationGroups, ...hiddenTasks];
 
   return (
-    <div className={classes.navigationTabContent}>
-      <div>
-        <StudioHeading level={3} data-size='2xs'>
-          {t('ux_editor.settings.navigation_tab_header')}
+    <div className={classes.navigationSettingsWrapper}>
+      <div className={classes.navigationTabContent}>
+        <div>
+          <StudioHeading level={3} data-size='xs' spacing>
+            {t('ux_editor.settings.navigation_tab_header')}
+          </StudioHeading>
+          <StudioParagraph className={classes.navigationDescription}>
+            {t('ux_editor.settings.navigation_tab_description')}
+          </StudioParagraph>
+        </div>
+        <TasksTable tasks={taskNavigationGroups} />
+        <StudioDivider className={classes.divider} />
+        <StudioHeading level={4} data-size='2xs'>
+          {t('ux_editor.task_table_hidden_tasks')}
         </StudioHeading>
-        <StudioParagraph className={classes.navigationDescription} data-size='sm'>
-          {t('ux_editor.settings.navigation_tab_description')}
-        </StudioParagraph>
+        <TasksTable isNavigationMode={false} tasks={hiddenTasks} allTasks={allTasks} />
       </div>
-      <TasksTable tasks={taskNavigationGroups} />
-      <StudioDivider className={classes.divider} />
-      <StudioHeading level={4} data-size='2xs'>
-        {t('ux_editor.task_table_hidden_tasks')}
-      </StudioHeading>
-      <TasksTable isNavigationMode={false} tasks={hiddenTasks} allTasks={allTasks} />
+      {displayValidateNavigation && <ValidateNavigation />}
     </div>
   );
 };

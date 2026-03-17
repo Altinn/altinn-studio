@@ -39,7 +39,11 @@ public class OrgTextController : ControllerBase
     /// <returns>The JSON config</returns>
     [HttpGet]
     [Route("language/{languageCode}")]
-    public async Task<ActionResult<TextResource>> GetResources(string org, string languageCode, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TextResource>> GetResources(
+        string org,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -64,7 +68,12 @@ public class OrgTextController : ControllerBase
     /// <returns>The updated resource file</returns>
     [HttpPost]
     [Route("language/{languageCode}")]
-    public async Task<ActionResult<TextResource>> CreateResource([FromBody] TextResource jsonData, string languageCode, string org, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TextResource>> CreateResource(
+        [FromBody] TextResource jsonData,
+        string languageCode,
+        string org,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -93,7 +102,12 @@ public class OrgTextController : ControllerBase
     /// <returns>The updated resource file</returns>
     [HttpPatch]
     [Route("language/{languageCode}")]
-    public async Task<ActionResult<TextResource>> UpdateResource(string org, [FromBody] Dictionary<string, string> keysTexts, string languageCode, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TextResource>> UpdateResource(
+        string org,
+        [FromBody] Dictionary<string, string> keysTexts,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

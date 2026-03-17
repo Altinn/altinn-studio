@@ -18,7 +18,7 @@ export function EditOptions<T extends SelectionComponentType>({
   handleComponentChange,
 }: ISelectionEditComponentProvidedProps<T>) {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, isPending, isError } = useOptionListIdsQuery(org, app);
+  const { data: idsFromAppLibrary, isPending, isError } = useOptionListIdsQuery(org, app);
   const { t } = useTranslation();
 
   return (
@@ -37,9 +37,9 @@ export function EditOptions<T extends SelectionComponentType>({
         </ErrorMessage>
       ) : (
         <OptionTabs
+          codeListIdContextData={{ idsFromAppLibrary, orgName: org }}
           component={component}
           handleComponentChange={handleComponentChange}
-          optionListIdsFromLibrary={optionListIds}
         />
       )}
     </div>

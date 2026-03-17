@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
+import { useNavigation } from 'react-router';
 import { toast } from 'react-toastify';
 import type { FileRejection } from 'react-dropzone';
 

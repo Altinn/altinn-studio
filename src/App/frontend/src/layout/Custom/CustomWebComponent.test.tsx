@@ -8,6 +8,17 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 
 const jsonAttributeValue = { customKey: 'customValue' };
 
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
+  const actual = jest.requireActual<TextResourcesProviderImport>(
+    'src/features/language/textResources/TextResourcesProvider',
+  );
+  return {
+    ...actual,
+    useTextResources: jest.fn(() => ({ title: { value: 'Title' } })),
+  };
+});
+
 describe('CustomWebComponent', () => {
   it('should render the component with the provided tag name', async () => {
     await render({ component: { tagName: 'test-component' } });
@@ -56,17 +67,6 @@ describe('CustomWebComponent', () => {
         shouldFocus: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...({ 'data-CustomAttributeWithReact': <span>Hello world</span> } as any),
-      },
-      queries: {
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: [
-            {
-              id: 'title',
-              value: 'Title',
-            },
-          ],
-        }),
       },
     });
   };

@@ -19,6 +19,7 @@ export const typeItemId = (pointer) => `type-item-${pointer}`;
 export const userMenuItemId = 'user-menu-item';
 export const accordionHeaderId = (pageName) => `accordion-header-${pageName}`;
 export const pageGroupAccordionHeader = (nth) => `page-group-accordion-ellipsis-menu-${nth}`;
+export const createdForOrganization = 'created-for-organization';
 
 // resourceadm
 export const resourceAdmConsentPreview = 'consent-preview-markdown';

@@ -26,9 +26,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Permission"/> class.
         /// </summary>
-        public Permission()
-        {
-        }
+        public Permission() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Permission" /> class.
@@ -98,19 +96,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Admin == input.Admin ||
-                    (this.Admin != null &&
-                    this.Admin.Equals(input.Admin))) &&
-                (
-                    this.Pull == input.Pull ||
-                    (this.Pull != null &&
-                    this.Pull.Equals(input.Pull))) &&
-                (
-                    this.Push == input.Push ||
-                    (this.Push != null &&
-                    this.Push.Equals(input.Push)));
+            return (this.Admin == input.Admin || (this.Admin != null && this.Admin.Equals(input.Admin)))
+                && (this.Pull == input.Pull || (this.Pull != null && this.Pull.Equals(input.Pull)))
+                && (this.Push == input.Push || (this.Push != null && this.Push.Equals(input.Push)));
         }
 
         /// <summary>

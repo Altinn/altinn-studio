@@ -14,13 +14,13 @@ public abstract class BaseLayoutComponent : BaseComponent
     /// <param name="state">The current layout evaluator state.</param>
     /// <param name="defaultDataElementIdentifier">The default data element identifier for the layout.</param>
     /// <param name="rowIndexes">The current row indexes for components within repeating groups, or null for non-repeating contexts.</param>
-    /// <param name="layoutsLookup">A lookup dictionary for resolving layout set components.</param>
+    /// <param name="layoutsLookup">A lookup dictionary for resolving UI folder components.</param>
     /// <returns>A <see cref="ComponentContext"/> instance representing the current context of the component.</returns>
     public abstract Task<ComponentContext> GetContext(
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
+        Dictionary<string, UiFolderComponent> layoutsLookup
     );
 
     /// <summary>

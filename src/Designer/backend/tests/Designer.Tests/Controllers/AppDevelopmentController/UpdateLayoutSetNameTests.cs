@@ -15,17 +15,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-
     public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
-        : DesignerEndpointsTestsBase<UpdateLayoutSetNameTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+        : DesignerEndpointsTestsBase<UpdateLayoutSetNameTests>(factory),
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>
             $"/designer/api/{org}/{repository}/app-development";
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task UpdateLayoutSetName_ReturnsOk(string org, string app, string developer,
-            string oldLayoutSetName)
+        public async Task UpdateLayoutSetName_ReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string oldLayoutSetName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -36,7 +40,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
-                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -53,8 +57,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task UpdateLayoutSetName_NewLayoutSetNameExistsBefore_ReturnsBadRequest(string org, string app, string developer,
-            string oldLayoutSetName)
+        public async Task UpdateLayoutSetName_NewLayoutSetNameExistsBefore_ReturnsBadRequest(
+            string org,
+            string app,
+            string developer,
+            string oldLayoutSetName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -63,20 +71,30 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
-                Content = new StringContent($"\"{ExistingLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent(
+                    $"\"{ExistingLayoutSetName}\"",
+                    Encoding.UTF8,
+                    MediaTypeNames.Application.Json
+                ),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
-            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                responseContent
+            );
             Assert.Equal($"Layout set name, {ExistingLayoutSetName}, already exists.", responseMessage["infoMessage"]);
         }
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task UpdateLayoutSet_NewLayoutSetNameIsEmpty_ReturnsBadRequest(string org, string app, string developer,
-            string oldLayoutSetName)
+        public async Task UpdateLayoutSet_NewLayoutSetNameIsEmpty_ReturnsBadRequest(
+            string org,
+            string app,
+            string developer,
+            string oldLayoutSetName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -86,7 +104,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
-                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -95,8 +113,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task UpdateLayoutSet_NewLayoutSetNameDoesNotMatchRegex_ReturnsBadRequest(string org, string app, string developer,
-            string oldLayoutSetName)
+        public async Task UpdateLayoutSet_NewLayoutSetNameDoesNotMatchRegex_ReturnsBadRequest(
+            string org,
+            string app,
+            string developer,
+            string oldLayoutSetName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -106,7 +128,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
-                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -115,8 +137,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-        public async Task UpdateLayoutSetName_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
-            string oldLayoutSetName)
+        public async Task UpdateLayoutSetName_AppWithoutLayoutSets_ReturnsNotFound(
+            string org,
+            string app,
+            string developer,
+            string oldLayoutSetName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -126,7 +152,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
-                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -135,10 +161,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)
         {
-            AltinnGitRepositoryFactory altinnGitRepositoryFactory =
-                new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-            AltinnAppGitRepository altinnAppGitRepository =
-                altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+                TestDataHelper.GetTestDataRepositoriesRootDirectory()
+            );
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
 
             return await altinnAppGitRepository.GetLayoutSetsFile();
         }

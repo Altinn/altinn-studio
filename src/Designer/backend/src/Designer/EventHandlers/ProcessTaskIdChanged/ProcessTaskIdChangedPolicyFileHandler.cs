@@ -15,8 +15,10 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
     private readonly IRepository _repository;
 
-    public ProcessTaskIdChangedPolicyFileHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor,
-        IRepository repository)
+    public ProcessTaskIdChangedPolicyFileHandler(
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+        IRepository repository
+    )
     {
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
         _repository = repository;
@@ -31,19 +33,27 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
             "App/config/authorization/policy.xml",
             async () =>
             {
-                var xacmlPolicy = _repository.GetPolicy(notification.EditingContext.Org,
-                    notification.EditingContext.Repo, null);
+                var xacmlPolicy = _repository.GetPolicy(
+                    notification.EditingContext.Org,
+                    notification.EditingContext.Repo,
+                    null
+                );
                 var resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
                 if (TryChangeTaskIds(resourcePolicy, notification.OldId, notification.NewId))
                 {
                     xacmlPolicy = PolicyConverter.ConvertPolicy(resourcePolicy);
-                    await _repository.SavePolicy(notification.EditingContext.Org, notification.EditingContext.Repo,
-                        null, xacmlPolicy);
+                    await _repository.SavePolicy(
+                        notification.EditingContext.Org,
+                        notification.EditingContext.Repo,
+                        null,
+                        xacmlPolicy
+                    );
                     hasChanges = true;
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
     private static bool TryChangeTaskIds(ResourcePolicy resourcePolicy, string oldId, string newId)

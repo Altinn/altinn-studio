@@ -33,7 +33,7 @@ async def plan_atomic_step(user_goal, facts):
             "tool": "planning_tool",
             "guidance_type": "high_level"
         })
-        span.set_inputs({
+        span.update(input={
             "user_goal": user_goal,
             "repository_facts": facts
         })

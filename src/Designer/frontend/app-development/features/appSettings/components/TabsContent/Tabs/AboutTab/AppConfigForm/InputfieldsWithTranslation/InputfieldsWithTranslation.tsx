@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { StudioParagraph, StudioTag, StudioTabs, StudioTextfield } from '@studio/components';
 import { XMarkOctagonFillIcon } from '@studio/icons';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
@@ -32,7 +33,17 @@ export function InputfieldsWithTranslation({
   errors = [],
 }: InputfieldsWithTranslationProps): ReactElement {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
+
+  const focusParam = searchParams.get('focus') ?? '';
+  const hashPrefix = `${id}-`;
+  const languageFromFocus =
+    focusParam.startsWith(hashPrefix) &&
+    LANGUAGES.includes(focusParam.replace(hashPrefix, '') as ValidLanguage)
+      ? (focusParam.replace(hashPrefix, '') as ValidLanguage)
+      : undefined;
+  const activeLanguage = languageFromFocus ?? selectedLanguage;
 
   const tagText: string = required ? t('general.required') : t('general.optional');
 
@@ -46,6 +57,9 @@ export function InputfieldsWithTranslation({
 
   const handleTabChange = (newValue: string): void => {
     setSelectedLanguage(newValue as ValidLanguage);
+    const next = new URLSearchParams(searchParams);
+    next.delete('focus');
+    setSearchParams(next);
   };
 
   const languageTabs = LANGUAGES.map((language) => {
@@ -67,6 +81,9 @@ export function InputfieldsWithTranslation({
   const languagePanels = LANGUAGES.map((language) => {
     const currentError = getErrorMessagesForLanguage(errors, language);
     const errorMessage = currentError?.[0];
+    const isFocusTarget = focusParam === `${id}-${language}`;
+    const textFieldKey = isFocusTarget ? `${id}-${language}-focused` : `${id}-${language}`;
+    const ariaLabel = `${label} (${t(`language.${language}`)})`;
     const handleOnChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       handleChange(e, language);
     };
@@ -75,20 +92,24 @@ export function InputfieldsWithTranslation({
       <StudioTabs.Panel key={language} value={language}>
         {isTextArea ? (
           <StudioTextfield
+            key={textFieldKey}
             id={`${id}-${language}`}
             value={value[language] ?? ''}
             onChange={handleOnChange}
             error={errorMessage}
             multiline
-            aria-label={`${label} (${t(`language.${language}`)})`}
+            autoFocus={isFocusTarget}
+            aria-label={ariaLabel}
           />
         ) : (
           <StudioTextfield
+            key={textFieldKey}
             id={`${id}-${language}`}
             value={value[language] ?? ''}
             onChange={handleOnChange}
             error={errorMessage}
-            aria-label={`${label} (${t(`language.${language}`)})`}
+            autoFocus={isFocusTarget}
+            aria-label={ariaLabel}
           />
         )}
       </StudioTabs.Panel>
@@ -106,7 +127,7 @@ export function InputfieldsWithTranslation({
         </div>
         <StudioTag data-color={required ? 'warning' : 'info'}>{tagText}</StudioTag>
       </div>
-      <StudioTabs value={selectedLanguage} onChange={handleTabChange}>
+      <StudioTabs value={activeLanguage} onChange={handleTabChange}>
         <StudioTabs.List>{languageTabs}</StudioTabs.List>
         {languagePanels}
       </StudioTabs>

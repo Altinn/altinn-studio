@@ -66,7 +66,7 @@ describe('fetching new data from models', () => {
     cy.findByRole('textbox', { name: 'Navn' }).should('have.value', 'Ola Nordmann');
     cy.findByRole('textbox', { name: 'Adresse' }).should('have.value', 'Testveien 123');
     cy.findByRole('textbox', { name: 'Postnr' }).should('have.value', '4609');
-    cy.findByRole('textbox', { name: 'Poststed' }).should('have.value', 'KARDEMOMME BY');
+    cy.findByRole('textbox', { name: 'Poststed' }).should('have.value', 'Kardemomme By');
     cy.waitUntilSaved();
   });
 });

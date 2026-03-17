@@ -9,18 +9,14 @@ namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
     public class NoLayoutSetsFileFoundException : Exception
     {
         /// <inheritdoc/>
-        public NoLayoutSetsFileFoundException()
-        {
-        }
+        public NoLayoutSetsFileFoundException() { }
 
         /// <inheritdoc/>
-        public NoLayoutSetsFileFoundException(string message) : base(message)
-        {
-        }
+        public NoLayoutSetsFileFoundException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public NoLayoutSetsFileFoundException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public NoLayoutSetsFileFoundException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

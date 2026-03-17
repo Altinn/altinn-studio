@@ -1,14 +1,11 @@
 import React from 'react';
 
-import { beforeAll, expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { fetchInstanceData } from 'src/queries/queries';
@@ -52,15 +49,14 @@ async function render(props: TestProps) {
   });
   const instanceId = instanceData.id;
 
-  jest.mocked(getApplicationMetadata).mockImplementation(() =>
-    getApplicationMetadataMock((a) => {
-      a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
-      a.dataTypes.push(...generateDataTypes());
-    }),
-  );
-  jest
-    .mocked(getLayoutSets)
-    .mockReturnValue(getLayoutSetsMock().sets.map((set) => ({ ...set, dataType: props.defaultDataModel })));
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
+    a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
+    a.dataTypes.push(...generateDataTypes());
+  });
+  window.altinnAppGlobalData.ui = getUiConfigMock((obj) => {
+    obj.folders.Task_1.defaultDataType = props.defaultDataModel;
+  });
+  window.altinnAppGlobalData.textResources!.resources = props.textResources;
 
   jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
 
@@ -118,10 +114,6 @@ async function render(props: TestProps) {
     ),
     instanceId: instanceData.id,
     queries: {
-      fetchTextResources: async () => ({
-        resources: props.textResources,
-        language: 'nb',
-      }),
       fetchFormData: async (url) => {
         const path = new URL(url).pathname;
         const id = path.split('/').pop();

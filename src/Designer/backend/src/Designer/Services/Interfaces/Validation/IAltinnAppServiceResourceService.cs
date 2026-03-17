@@ -6,14 +6,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Validation
 {
     public interface IAltinnAppServiceResourceService
     {
-        Task<ServiceResource> GenerateServiceResourceFromApp(
-            string org,
-            string repo,
-            string developer
-        );
+        Task<ServiceResource> GenerateServiceResourceFromApp(string org, string repo, string developer);
 
-        (bool isValid, ValidationProblemDetails? errors) ValidateServiceResource(
-            ServiceResource serviceResource
-        );
+        (bool isValid, ValidationProblemDetails? errors) ValidateServiceResource(ServiceResource serviceResource);
     }
 }

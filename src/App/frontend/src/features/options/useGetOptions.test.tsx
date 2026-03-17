@@ -5,7 +5,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -15,6 +15,30 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 import type { fetchOptions } from 'src/queries/queries';
+
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
+  const actual = jest.requireActual<TextResourcesProviderImport>(
+    'src/features/language/textResources/TextResourcesProvider',
+  );
+  return {
+    ...actual,
+    useTextResources: jest.fn(() =>
+      actual.resourcesAsMap([
+        {
+          id: 'myLabel',
+          value: '{0}',
+          variables: [
+            {
+              dataSource: 'dataModel.default',
+              key: 'Group[{0}].label',
+            },
+          ],
+        },
+      ]),
+    ),
+  };
+});
 
 interface RenderProps {
   type: 'single' | 'multi';
@@ -109,21 +133,6 @@ async function render(props: RenderProps) {
             })),
             headers: {},
           }) as AxiosResponse<IRawOption[]>),
-      fetchTextResources: async () => ({
-        resources: [
-          {
-            id: 'myLabel',
-            value: '{0}',
-            variables: [
-              {
-                dataSource: 'dataModel.default',
-                key: 'Group[{0}].label',
-              },
-            ],
-          },
-        ],
-        language: 'nb',
-      }),
     },
   });
 }

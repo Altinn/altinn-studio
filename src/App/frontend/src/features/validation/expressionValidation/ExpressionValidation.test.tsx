@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import fs from 'node:fs';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
@@ -82,6 +81,7 @@ describe('Expression validation shared tests', () => {
       result = validations;
     });
     jest.spyOn(Validation, 'useUpdateDataModelValidations').mockImplementation(() => updateDataModelValidations);
+    window.altinnAppGlobalData.textResources!.resources = textResources ?? [];
 
     await renderWithInstanceAndLayout({
       renderer: () => <ExpressionValidation />,
@@ -89,10 +89,6 @@ describe('Expression validation shared tests', () => {
         fetchLayouts: async () => layouts,
         fetchCustomValidationConfig: async () => validationConfig,
         fetchFormData: async () => formData,
-        fetchTextResources: async (language) => ({
-          language,
-          resources: textResources ?? [],
-        }),
       },
     });
 

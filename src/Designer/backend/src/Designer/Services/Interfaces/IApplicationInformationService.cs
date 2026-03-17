@@ -22,6 +22,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             string app,
             string shortCommitId,
             string envName,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default
+        );
     }
 }

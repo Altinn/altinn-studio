@@ -48,12 +48,21 @@ namespace Designer.Tests.Services.Preview
 
         [Theory]
         [InlineData(1234, "f1e23d45-6789-1bcd-8c34-56789abcdef0", "dataType1423", "testProperty", "testValue")]
-        public void PatchDataElement_UpdatesObject(int partyId, Guid instanceGuid, string dataType, string testProperty, string testPropertyValue)
+        public void PatchDataElement_UpdatesObject(
+            int partyId,
+            Guid instanceGuid,
+            string dataType,
+            string testProperty,
+            string testPropertyValue
+        )
         {
             DataElement dataElement = _dataService.CreateDataElement(partyId, instanceGuid, dataType);
             JsonNode dataObject = _dataService.GetDataElement(new Guid(dataElement.Id));
             Assert.NotNull(dataObject);
-            JsonNode patchedObject = _dataService.PatchDataElement(new Guid(dataElement.Id), new JsonPatch(PatchOperation.Add(JsonPointer.Parse($"/{testProperty}"), testPropertyValue)));
+            JsonNode patchedObject = _dataService.PatchDataElement(
+                new Guid(dataElement.Id),
+                new JsonPatch(PatchOperation.Add(JsonPointer.Parse($"/{testProperty}"), testPropertyValue))
+            );
             Assert.NotNull(patchedObject);
             Assert.Equal(testPropertyValue, patchedObject[testProperty].ToString());
         }

@@ -6,5 +6,6 @@
       "RenderSpecificPageFromPreviousTask",
       "RenderSpecificComponentFromPreviousTask"
     ]
-  }
+  },
+  "defaultDataType": "model2"
 }

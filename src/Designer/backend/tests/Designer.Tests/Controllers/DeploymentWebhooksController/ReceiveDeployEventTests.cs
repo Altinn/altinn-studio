@@ -25,14 +25,18 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentWebhooksController;
 
-public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeployEventTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ReceiveDeployEventTests
+    : DbDesignerEndpointsTestsBase<ReceiveDeployEventTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private const string MaskinportenTestScheme = "MaskinportenTest";
     private const string RequiredScope = "altinn:studio/designer";
 
-    private static string WebhookUrl(string org, string app) => $"/designer/api/v1/{org}/{app}/deployments/webhooks/events";
+    private static string WebhookUrl(string org, string app) =>
+        $"/designer/api/v1/{org}/{app}/deployments/webhooks/events";
 
-    public ReceiveDeployEventTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture) : base(factory, designerDbFixture)
+    public ReceiveDeployEventTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
+        : base(factory, designerDbFixture)
     {
         JsonConfigOverrides.Add(
             $$"""
@@ -59,57 +63,68 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureAppConfiguration((_, conf) =>
+        return Factory
+            .WithWebHostBuilder(builder =>
             {
-                conf.AddJsonFile(configPath);
-                conf.AddJsonStream(GenerateJsonOverrideConfig());
-            });
-            builder.ConfigureTestServices(ConfigureTestServices);
-            builder.ConfigureTestServices(services =>
-            {
-                // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
-                ServiceDescriptor initializerDescriptor = services.FirstOrDefault(
-                    d => d.ImplementationType == typeof(IssuerSchemeCacheInitializer)
+                builder.UseConfiguration(configuration);
+                builder.ConfigureAppConfiguration(
+                    (_, conf) =>
+                    {
+                        conf.AddJsonFile(configPath);
+                        conf.AddJsonStream(GenerateJsonOverrideConfig());
+                    }
                 );
-                if (initializerDescriptor is not null)
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureTestServices(services =>
                 {
-                    services.Remove(initializerDescriptor);
-                }
+                    // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
+                    ServiceDescriptor initializerDescriptor = services.FirstOrDefault(d =>
+                        d.ImplementationType == typeof(IssuerSchemeCacheInitializer)
+                    );
+                    if (initializerDescriptor is not null)
+                    {
+                        services.Remove(initializerDescriptor);
+                    }
 
-                services.AddAuthentication(MaskinportenTestScheme)
-                    .AddScheme<MaskinportenTestAuthOptions, MaskinportenTestAuthHandler>(
-                        MaskinportenTestScheme,
-                        options =>
-                        {
-                            options.ShouldAuthenticate = shouldAuthenticate;
-                            options.Scope = scope;
-                            options.TimeProvider = TimeProvider.System;
-                        });
-
-                services.AddAuthorizationBuilder()
-                    .AddPolicy(
-                        MaskinportenConstants.AuthorizationPolicy,
-                        policy =>
-                        {
-                            policy.AddAuthenticationSchemes(MaskinportenTestScheme);
-                            policy.RequireAuthenticatedUser();
-                            policy.RequireAssertion(context =>
+                    services
+                        .AddAuthentication(MaskinportenTestScheme)
+                        .AddScheme<MaskinportenTestAuthOptions, MaskinportenTestAuthHandler>(
+                            MaskinportenTestScheme,
+                            options =>
                             {
-                                var scopeClaim = context.User.FindFirst(MaskinportenConstants.ScopeClaimType);
-                                if (scopeClaim is null)
-                                {
-                                    return false;
-                                }
+                                options.ShouldAuthenticate = shouldAuthenticate;
+                                options.Scope = scope;
+                                options.TimeProvider = TimeProvider.System;
+                            }
+                        );
 
-                                string[] scopes = scopeClaim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                                return scopes.Contains(RequiredScope);
-                            });
-                        });
-            });
-        }).CreateDefaultClient(new CookieContainerHandler());
+                    services
+                        .AddAuthorizationBuilder()
+                        .AddPolicy(
+                            MaskinportenConstants.AuthorizationPolicy,
+                            policy =>
+                            {
+                                policy.AddAuthenticationSchemes(MaskinportenTestScheme);
+                                policy.RequireAuthenticatedUser();
+                                policy.RequireAssertion(context =>
+                                {
+                                    var scopeClaim = context.User.FindFirst(MaskinportenConstants.ScopeClaimType);
+                                    if (scopeClaim is null)
+                                    {
+                                        return false;
+                                    }
+
+                                    string[] scopes = scopeClaim.Value.Split(
+                                        ' ',
+                                        StringSplitOptions.RemoveEmptyEntries
+                                    );
+                                    return scopes.Contains(RequiredScope);
+                                });
+                            }
+                        );
+                });
+            })
+            .CreateDefaultClient(new CookieContainerHandler());
     }
 
     [Theory]
@@ -120,12 +135,21 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
     [InlineData("ttd", "at22", "PipelineScheduled", "Pipeline scheduled")]
     [InlineData("ttd", "at22", "PipelineSucceeded", "Pipeline succeeded")]
     [InlineData("ttd", "at22", "PipelineFailed", "Pipeline failed")]
-    public async Task ReceiveDeployEvent_ForDeployment_ShouldCreateEvent(string org, string envName, string eventType, string message)
+    public async Task ReceiveDeployEvent_ForDeployment_ShouldCreateEvent(
+        string org,
+        string envName,
+        string eventType,
+        string message
+    )
     {
         // Arrange
         string app = TestDataHelper.GenerateTestRepoName();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Deploy);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Deploy
+        );
         await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var request = new DeployEventRequest
@@ -134,13 +158,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = eventType,
             Message = message,
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = envName
+            Environment = envName,
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -149,8 +173,8 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var events = await DesignerDbFixture.DbContext.DeployEvents
-            .AsNoTracking()
+        var events = await DesignerDbFixture
+            .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
@@ -162,12 +186,21 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
     [Theory]
     [InlineData("ttd", "at22", "UninstallSucceeded", "Uninstall succeeded")]
     [InlineData("ttd", "at22", "UninstallFailed", "Uninstall failed")]
-    public async Task ReceiveDeployEvent_ForDecommission_ShouldCreateEvent(string org, string envName, string eventType, string message)
+    public async Task ReceiveDeployEvent_ForDecommission_ShouldCreateEvent(
+        string org,
+        string envName,
+        string eventType,
+        string message
+    )
     {
         // Arrange
         string app = TestDataHelper.GenerateTestRepoName();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Decommission);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Decommission
+        );
         await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var request = new DeployEventRequest
@@ -176,13 +209,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = eventType,
             Message = message,
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = envName
+            Environment = envName,
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -191,8 +224,8 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var events = await DesignerDbFixture.DbContext.DeployEvents
-            .AsNoTracking()
+        var events = await DesignerDbFixture
+            .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
@@ -214,13 +247,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = "InvalidEventType",
             Message = "Some message",
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = "at22"
+            Environment = "at22",
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -245,13 +278,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = "InstallSucceeded",
             Message = "Install succeeded",
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = "at22"
+            Environment = "at22",
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -273,7 +306,11 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
 
         // Create a regular deployment, not a decommission
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Deploy);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Deploy
+        );
         await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var request = new DeployEventRequest
@@ -282,13 +319,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = "UninstallSucceeded",
             Message = "Uninstall succeeded",
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = envName
+            Environment = envName,
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -305,7 +342,9 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
     [InlineData("InstallFailed")]
     [InlineData("UpgradeSucceeded")]
     [InlineData("UpgradeFailed")]
-    public async Task ReceiveDeployEvent_ForDeployment_WhenHasFinalEvent_ShouldReturnOkWithoutAddingEvent(string finalEventType)
+    public async Task ReceiveDeployEvent_ForDeployment_WhenHasFinalEvent_ShouldReturnOkWithoutAddingEvent(
+        string finalEventType
+    )
     {
         // Arrange
         string org = "ttd";
@@ -313,7 +352,11 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         string envName = "at22";
 
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Deploy);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Deploy
+        );
         await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         // Add the final event first
@@ -323,7 +366,7 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             Message = "Final event",
             Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1),
             Created = DateTimeOffset.UtcNow.AddMinutes(-1),
-            Origin = DeployEventOrigin.Webhook
+            Origin = DeployEventOrigin.Webhook,
         };
         await DesignerDbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, existingFinalEvent);
 
@@ -334,13 +377,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = "PipelineSucceeded",
             Message = "This should not be added",
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = envName
+            Environment = envName,
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -350,8 +393,8 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         // Verify only the original final event exists
-        var events = await DesignerDbFixture.DbContext.DeployEvents
-            .AsNoTracking()
+        var events = await DesignerDbFixture
+            .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
@@ -370,7 +413,11 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         string envName = "at22";
 
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Decommission);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Decommission
+        );
         await DesignerDbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         // Add the final event first - this makes the decommission no longer "pending"
@@ -380,7 +427,7 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             Message = "Final event",
             Timestamp = DateTimeOffset.UtcNow.AddMinutes(-1),
             Created = DateTimeOffset.UtcNow.AddMinutes(-1),
-            Origin = DeployEventOrigin.Webhook
+            Origin = DeployEventOrigin.Webhook,
         };
         await DesignerDbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, existingFinalEvent);
 
@@ -392,13 +439,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = "UninstallSucceeded",
             Message = "This should not be added",
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = envName
+            Environment = envName,
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -408,8 +455,8 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 
         // Verify only the original final event exists (no new event was added)
-        var events = await DesignerDbFixture.DbContext.DeployEvents
-            .AsNoTracking()
+        var events = await DesignerDbFixture
+            .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
@@ -430,13 +477,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = "InstallSucceeded",
             Message = "Install succeeded",
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = "at22"
+            Environment = "at22",
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: false);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act
@@ -459,13 +506,13 @@ public class ReceiveDeployEventTests : DbDesignerEndpointsTestsBase<ReceiveDeplo
             EventType = "InstallSucceeded",
             Message = "Install succeeded",
             Timestamp = DateTimeOffset.UtcNow,
-            Environment = "at22"
+            Environment = "at22",
         };
 
         using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: "wrong:scope");
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request),
         };
 
         // Act

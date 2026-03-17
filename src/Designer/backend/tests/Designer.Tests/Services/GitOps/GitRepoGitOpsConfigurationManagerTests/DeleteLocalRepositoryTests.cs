@@ -13,20 +13,14 @@ public class DeleteLocalRepositoryTests : GitRepoGitOpsConfigurationManagerTests
     [Fact]
     public async Task WhenDirectoryDeletionFails_ShouldLogWarning()
     {
-        Given.That
-            .LocalRepositoryExists()
-            .And
-            .MakeRepositoryDirectoryUndeletable();
+        Given.That.LocalRepositoryExists().And.MakeRepositoryDirectoryUndeletable();
 
-        await And
-            .When
-            .EnsureGitOpsConfigurationExistsCalled("tt02");
+        await And.When.EnsureGitOpsConfigurationExistsCalled("tt02");
 
         // Give some time for the background task to execute
         await Task.Delay(100);
 
-        Then
-            .LoggerShouldHaveLoggedWarning();
+        Then.LoggerShouldHaveLoggedWarning();
     }
 
     private DeleteLocalRepositoryTests LocalRepositoryExists()
@@ -55,19 +49,25 @@ public class DeleteLocalRepositoryTests : GitRepoGitOpsConfigurationManagerTests
 
     private async Task EnsureGitOpsConfigurationExistsCalled(string environment)
     {
-        await GitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(OrgEditingContext, AltinnEnvironment.FromName(environment));
+        await GitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(
+            OrgEditingContext,
+            AltinnEnvironment.FromName(environment)
+        );
     }
 
     private DeleteLocalRepositoryTests LoggerShouldHaveLoggedWarning()
     {
         MockLogger.Verify(
-            x => x.Log(
-                LogLevel.Warning,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to delete local repository directory")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-            Times.AtLeastOnce);
+            x =>
+                x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to delete local repository directory")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()
+                ),
+            Times.AtLeastOnce
+        );
 
         return this;
     }

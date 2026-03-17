@@ -44,7 +44,7 @@ namespace Altinn.Studio.Designer.Repository.Models
             DeployEventType.UpgradeSucceeded,
             DeployEventType.UpgradeFailed,
             DeployEventType.UninstallSucceeded,
-            DeployEventType.UninstallFailed
+            DeployEventType.UninstallFailed,
         ];
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.Repository.Models
     public enum DeploymentType
     {
         Deploy = 0,
-        Decommission = 1
+        Decommission = 1,
     }
 
     /// <summary>
@@ -107,13 +107,13 @@ namespace Altinn.Studio.Designer.Repository.Models
         UpgradeSucceeded,
         UpgradeFailed,
         UninstallSucceeded,
-        UninstallFailed
+        UninstallFailed,
     }
 
     public enum DeployEventOrigin
     {
         Internal,
         Webhook,
-        PollingJob
+        PollingJob,
     }
 }

@@ -15,34 +15,50 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
 
+//nolint:containedctx // The session owns a shared cancellation context for its long-lived browser connection.
 type browserSession struct {
-	id       int
-	logger   *slog.Logger
-	browser  *browser.Process
-	conn     cdp.Connection
-	targetID string
-
-	queue          chan workerRequest
-	state          atomic.Uint32
+	conn           cdp.Connection
+	tracer         trace.Tracer
+	ctx            context.Context
 	currentRequest atomic.Pointer[workerRequest]
-
-	// Error tracking for current request
-	consoleErrors atomic.Int32
-	browserErrors atomic.Int32
-
-	// Shutdown coordination
-	ctx    context.Context
-	cancel context.CancelFunc
+	logger         *slog.Logger
+	browser        *browser.Process
+	cancel         context.CancelFunc
+	queue          chan workerRequest
+	targetID       string
+	id             int
+	consoleErrors  atomic.Int32
+	browserErrors  atomic.Int32
+	jsExceptions   atomic.Int32
+	cdpEventsSent  atomic.Int32
+	cdpEventsDrop  atomic.Int32
+	state          atomic.Uint32
 }
+
+const (
+	maxCDPEventsPerRequest  = 24
+	maxCDPPayloadJSONLength = 4096
+)
+
+var (
+	errRecoveredPanic     = errors.New("recovered panic")
+	errWaitTimedOut       = errors.New("timeout")
+	errWaitConditionError = errors.New("wait condition failed")
+)
 
 func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -62,13 +78,14 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 		state:  atomic.Uint32{},
 		ctx:    ctx,
 		cancel: cancel,
+		tracer: telemetry.Tracer(),
 	}
 
 	// Start browser process
 	var err error
 	w.browser, err = browser.Start(id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("start browser: %w", err)
 	}
 
 	// Connect to the browser with event handler
@@ -103,7 +120,7 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 }
 
 // tryEnqueue attempts to enqueue a request if the session is ready
-// Returns true if the request was enqueued, false otherwise
+// Returns true if the request was enqueued, false otherwise.
 func (w *browserSession) tryEnqueue(req workerRequest) bool {
 	select {
 	case w.queue <- req:
@@ -120,6 +137,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
 				w.logger.Warn("Console error", "details", p)
+				w.emitCDPEvent("cdp.console.error", method, p)
 			}
 		}
 	case "Log.entryAdded":
@@ -128,8 +146,15 @@ func (w *browserSession) handleEvent(method string, params any) {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
 					w.logger.Warn("Log error", "details", entry)
+					w.emitCDPEvent("cdp.log.error", method, entry)
 				}
 			}
+		}
+	case "Runtime.exceptionThrown":
+		if p, ok := params.(map[string]any); ok {
+			w.jsExceptions.Add(1)
+			w.logger.Warn("Runtime exception observed")
+			w.emitCDPEvent("cdp.runtime.exception", method, p)
 		}
 	}
 }
@@ -150,9 +175,14 @@ func (w *browserSession) handleRequests() {
 				return
 			}
 
+			w.recordQueueWait(&req)
+
 			// Reset error counters for this request
 			w.consoleErrors.Store(0)
 			w.browserErrors.Store(0)
+			w.jsExceptions.Store(0)
+			w.cdpEventsSent.Store(0)
+			w.cdpEventsDrop.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
 			w.currentRequest.Store(&req)
@@ -172,17 +202,64 @@ func (w *browserSession) handleRequests() {
 	}
 }
 
+func (w *browserSession) recordQueueWait(req *workerRequest) {
+	if req == nil {
+		return
+	}
+	ctx := req.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	start := req.enqueuedAt
+	now := time.Now()
+	if start.IsZero() || start.After(now) {
+		start = now
+	}
+	_, span := w.tracer.Start(ctx, "pdf.queue.wait", trace.WithTimestamp(start))
+	if data := telemetry.RequestEventDataFromContext(ctx); data != nil {
+		data.SetSessionID(w.id)
+		data.SetQueueStats(len(w.queue), cap(w.queue))
+	}
+	span.End()
+}
+
 func (w *browserSession) handleRequest(req *workerRequest) {
+	ctx := req.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx, span := w.tracer.Start(ctx, "pdf.session.process", trace.WithSpanKind(trace.SpanKindInternal))
+	req.ctx = ctx
+
+	if span.IsRecording() {
+		span.SetAttributes(attribute.Int("pdf.session.id", w.id))
+	}
+
 	w.logger.Info("Processing PDF request")
 	start := time.Now()
 
 	defer func() {
 		if r := recover(); r != nil {
 			w.logger.Error("Recovered from panic", "error", r)
-			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)))
+			if span.IsRecording() {
+				err := fmt.Errorf("%w: %v", errRecoveredPanic, r)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "panic")
+			}
+			req.tryRespondError(
+				types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%w: %v", errRecoveredPanic, r)),
+			)
 		}
 
+		if data := telemetry.RequestEventDataFromContext(ctx); data != nil {
+			data.SetSessionID(w.id)
+			data.SetConsoleErrors(int(w.consoleErrors.Load()))
+			data.SetBrowserErrors(int(w.browserErrors.Load()))
+			data.SetJSExceptions(int(w.jsExceptions.Load()))
+			data.SetCDPEventsDropped(int(w.cdpEventsDrop.Load()))
+		}
 		duration := time.Since(start)
+		span.End()
 		w.logger.Info("Completed PDF request", "duration", duration)
 	}()
 
@@ -199,226 +276,381 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 	err := w.generatePdf(req)
 	if err != nil {
+		if span.IsRecording() {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "generate_failed")
+		}
 		req.tryRespondError(mapCustomError(err))
 	}
 }
 
+func (w *browserSession) emitCDPEvent(name, method string, payload any) {
+	req := w.currentRequest.Load()
+	if req == nil || req.ctx == nil {
+		return
+	}
+	span := trace.SpanFromContext(req.ctx)
+	if !span.IsRecording() {
+		return
+	}
+	if w.cdpEventsSent.Add(1) > maxCDPEventsPerRequest {
+		w.cdpEventsDrop.Add(1)
+		return
+	}
+
+	var payloadJSON string
+	if payloadBytes, err := json.Marshal(payload); err == nil {
+		payloadJSON = string(payloadBytes)
+	} else {
+		payloadJSON = fmt.Sprintf(`{"marshal_error":%q}`, err.Error())
+	}
+	if len(payloadJSON) > maxCDPPayloadJSONLength {
+		payloadJSON = payloadJSON[:maxCDPPayloadJSONLength] + "...(truncated)"
+	}
+
+	span.AddEvent(name, trace.WithAttributes(
+		attribute.String("cdp.method", method),
+		attribute.String("cdp.payload_json", payloadJSON),
+	))
+}
+
 func (w *browserSession) generatePdf(req *workerRequest) error {
-	request := req.request
-
 	startedProcessing := false
-
-	// Ensure cleanup always runs
 	defer func() {
-		// When we get here we can already accept a request into the queue
-		// Cleanup should run fairly fast (low ms range)
-
-		// Capture browser state before cleanup (for test internals mode)
-		w.tryUpdateTestModeOutput(req, "BeforeCleanup", false)
-
-		if !startedProcessing {
-			w.logger.Info("Never started processing, skipping cleanup")
-			req.cleanedUp = true
-			return
-		}
-
-		// Navigate back to default
-		start := time.Now()
-		var err error
-		for range 3 {
-			// Not using request context here, the client might have dropped out already and we should always complete cleanup
-			_, err = w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{
-				"url": "about:blank",
-			})
-			if err == nil {
-				break
-			}
-			w.logger.Warn("Failed to navigate back to about:blank, retrying")
-		}
-		w.assertA(
-			err == nil,
-			"failed to navigate back to about:blank during cleanup",
-			"error", err,
-		)
-
-		if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
-			w.logger.Info("Waiting for cleanup delay", "seconds", testInput.CleanupDelaySeconds)
-			time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
-		}
-
-		// Cleanup browser storage
-		w.cleanupBrowser(req)
-
-		// Retry cleanup if it failed
-		if !req.cleanedUp {
-			w.logger.Warn("Failed to cleanup storage, retrying")
-			for range 3 {
-				w.cleanupBrowser(req)
-				if req.cleanedUp {
-					break
-				}
-			}
-
-			w.assert(
-				req.cleanedUp,
-				"Failed to cleanup storage, we're in an unsafe state and can't proceed",
-			)
-		}
-
-		duration := time.Since(start)
-		w.logger.Info("Cleanup completed", "duration", duration)
+		w.cleanupAfterRequest(req, startedProcessing)
 	}()
 
 	if req.ctx.Err() != nil {
 		return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
 	}
 
-	// Set cookies
-	if len(request.Cookies) > 0 {
-		// Build cookies array for Network.setCookies
-		cookies := make([]map[string]any, 0, len(request.Cookies))
-		for _, cookie := range request.Cookies {
-			sameSite := "Lax"
-			switch cookie.SameSite {
-			case "Strict":
-				sameSite = "Strict"
-			case "None":
-				sameSite = "None"
-			}
-
-			cookieValue := cookie.Value
-			if strings.HasSuffix(cookie.Name, "tracestate") && strings.ContainsRune(cookieValue, ';') {
-				// w3c tracestate values are e.g. baggage and can contain semicolons
-				// semicolons are invalid cookie values (CDP/chrome will complain).
-				// App backend and frontend are being updated to handle this through base64 encoding,
-				// but for now we need to handle this here as well since apps are not updated right away.
-				w.logger.Warn(
-					"Cookie value looks like a tracestate and has semicolons skipping",
-					"name", cookie.Name,
-				)
-				continue
-			}
-
-			cookieData := map[string]any{
-				"name":     cookie.Name,
-				"value":    cookieValue,
-				"sameSite": sameSite,
-			}
-			if cookie.Domain != "" {
-				cookieData["domain"] = cookie.Domain
-			}
-			if cookie.Path != "" {
-				cookieData["path"] = cookie.Path
-			}
-			if cookie.Secure != nil {
-				cookieData["secure"] = *cookie.Secure
-			}
-			if cookie.HttpOnly != nil {
-				cookieData["httpOnly"] = *cookie.HttpOnly
-			}
-			if cookie.Url != "" {
-				cookieData["url"] = cookie.Url
-			}
-			cookies = append(cookies, cookieData)
-		}
-
+	if len(req.request.Cookies) > 0 {
 		startedProcessing = true
-		_, err := w.conn.SendCommand(req.ctx, "Network.setCookies", map[string]any{
-			"cookies": cookies,
-		})
-		if err != nil {
-			req.tryRespondError(contextErrorToPDFError(err, types.ErrSetCookieFail, ""))
-			return nil
+		if err := w.setCookies(req); err != nil {
+			return err
 		}
 	}
 
-	// Navigate to URL
-	if req.hasResponded() {
-		return nil
-	}
-	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+	if req.hasResponded() || respondIfClientDropped(req) {
 		return nil
 	}
 
 	startedProcessing = true
-	_, err := w.conn.SendCommand(req.ctx, "Page.navigate", map[string]any{
-		"url": request.URL,
+	if err := w.navigateToPage(req); err != nil {
+		return err
+	}
+
+	if req.hasResponded() || respondIfClientDropped(req) {
+		return nil
+	}
+
+	if err := w.waitForRequest(req); err != nil {
+		return err
+	}
+
+	if req.hasResponded() || respondIfClientDropped(req) {
+		return nil
+	}
+
+	return w.printPDF(req)
+}
+
+func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessing bool) {
+	cleanupCtx := req.ctx
+	if cleanupCtx == nil {
+		cleanupCtx = context.Background()
+	}
+	_, cleanupSpan := w.tracer.Start(cleanupCtx, "pdf.session.cleanup", trace.WithSpanKind(trace.SpanKindInternal))
+	cleanupStart := time.Now()
+	defer cleanupSpan.End()
+
+	// The queue slot is already free by the time cleanup runs, so this path must stay
+	// fast enough that we do not accumulate dirty browser state under load.
+	w.tryUpdateTestModeOutput(req, "BeforeCleanup", false)
+
+	if !startedProcessing {
+		w.logger.Info("Never started processing, skipping cleanup")
+		// We never used any user-controlled page state, so there is nothing to revert.
+		req.cleanedUp = true
+		if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
+			data.SetSessionID(w.id)
+			data.SetCleanup(0, true, true)
+		}
+		return
+	}
+
+	err := w.navigateToBlankForCleanup()
+	if err != nil && cleanupSpan.IsRecording() {
+		cleanupSpan.RecordError(err)
+		cleanupSpan.SetStatus(codes.Error, "cleanup_navigate_failed")
+	}
+	w.assertA(err == nil, "failed to navigate back to about:blank during cleanup", "error", err)
+
+	if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
+		w.logger.Info("Waiting for cleanup delay", "seconds", testInput.CleanupDelaySeconds)
+		time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
+	}
+
+	cleanupAttempts := w.cleanupBrowserWithRetry(req)
+	if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
+		data.SetSessionID(w.id)
+		data.SetCleanup(cleanupAttempts, req.cleanedUp, false)
+	}
+	if !req.cleanedUp {
+		cleanupSpan.SetStatus(codes.Error, "cleanup_failed")
+	}
+
+	w.logger.Info("Cleanup completed", "duration", time.Since(cleanupStart))
+}
+
+func (w *browserSession) navigateToBlankForCleanup() error {
+	var err error
+	for range 3 {
+		// Not using the request context here: the client may already be gone, but
+		// the browser session must still reset itself before the next request.
+		_, err = w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{"url": "about:blank"})
+		if err == nil {
+			return nil
+		}
+		w.logger.Warn("Failed to navigate back to about:blank, retrying")
+	}
+	return fmt.Errorf("navigate to about:blank: %w", err)
+}
+
+func (w *browserSession) cleanupBrowserWithRetry(req *workerRequest) int {
+	cleanupAttempts := 0
+	w.cleanupBrowser(req)
+	cleanupAttempts++
+	if req.cleanedUp {
+		return cleanupAttempts
+	}
+
+	w.logger.Warn("Failed to cleanup storage, retrying")
+	for range 3 {
+		w.cleanupBrowser(req)
+		cleanupAttempts++
+		if req.cleanedUp {
+			return cleanupAttempts
+		}
+	}
+
+	w.assert(req.cleanedUp, "Failed to cleanup storage, we're in an unsafe state and can't proceed")
+	return cleanupAttempts
+}
+
+func respondIfClientDropped(req *workerRequest) bool {
+	if req.ctx.Err() == nil {
+		return false
+	}
+	req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+	return true
+}
+
+func (w *browserSession) setCookies(req *workerRequest) error {
+	_, cookiesSpan := w.tracer.Start(req.ctx, "pdf.session.set_cookies", trace.WithSpanKind(trace.SpanKindInternal))
+	defer cookiesSpan.End()
+
+	cookies := make([]map[string]any, 0, len(req.request.Cookies))
+	for _, cookie := range req.request.Cookies {
+		cookieData, ok := w.buildCookieData(cookie)
+		if !ok {
+			continue
+		}
+		cookies = append(cookies, cookieData)
+	}
+
+	_, err := w.conn.SendCommand(req.ctx, "Network.setCookies", map[string]any{"cookies": cookies})
+	if err == nil {
+		return nil
+	}
+	if cookiesSpan.IsRecording() {
+		cookiesSpan.RecordError(err)
+		cookiesSpan.SetStatus(codes.Error, "set_cookies_failed")
+	}
+	req.tryRespondError(contextErrorToPDFError(err, types.ErrSetCookieFail, ""))
+	return nil
+}
+
+func (w *browserSession) buildCookieData(cookie types.Cookie) (map[string]any, bool) {
+	sameSite := "Lax"
+	switch cookie.SameSite {
+	case "Strict":
+		sameSite = "Strict"
+	case "None":
+		sameSite = "None"
+	}
+
+	if strings.HasSuffix(cookie.Name, "tracestate") && strings.ContainsRune(cookie.Value, ';') {
+		// W3C tracestate values can legitimately contain semicolons, but Chrome rejects
+		// them as cookie values. Keep this compatibility shim until all callers encode
+		// those values before they reach pdf3.
+		w.logger.Warn("Cookie value looks like a tracestate and has semicolons skipping", "name", cookie.Name)
+		return nil, false
+	}
+
+	cookieData := map[string]any{
+		"name":     cookie.Name,
+		"value":    cookie.Value,
+		"sameSite": sameSite,
+	}
+	if cookie.Domain != "" {
+		cookieData["domain"] = cookie.Domain
+	}
+	if cookie.Path != "" {
+		cookieData["path"] = cookie.Path
+	}
+	if cookie.Secure != nil {
+		cookieData["secure"] = *cookie.Secure
+	}
+	if cookie.HttpOnly != nil {
+		cookieData["httpOnly"] = *cookie.HttpOnly
+	}
+	if cookie.Url != "" {
+		cookieData["url"] = cookie.Url
+	}
+	return cookieData, true
+}
+
+func (w *browserSession) navigateToPage(req *workerRequest) error {
+	_, navigateSpan := w.tracer.Start(req.ctx, "pdf.session.navigate", trace.WithSpanKind(trace.SpanKindInternal))
+	defer navigateSpan.End()
+
+	_, err := w.conn.SendCommand(req.ctx, "Page.navigate", map[string]any{"url": req.request.URL})
+	if err == nil {
+		return nil
+	}
+	if navigateSpan.IsRecording() {
+		navigateSpan.RecordError(err)
+		navigateSpan.SetStatus(codes.Error, "navigate_failed")
+	}
+	req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
+	return nil
+}
+
+func (w *browserSession) waitForRequest(req *workerRequest) error {
+	const maxWaitMs int32 = types.MaxTimeoutMs
+	waitFor := req.request.WaitFor
+	if waitFor == nil {
+		// Without an explicit waitFor contract, we still wait for the page load event so
+		// PrintToPDF does not race obviously incomplete navigations.
+		return w.waitForPageLoad(req, maxWaitMs)
+	}
+
+	if selector, ok := waitFor.AsString(); ok {
+		return w.runWait(req, func() error {
+			return w.waitForElement(req, selector, maxWaitMs, false, false)
+		})
+	}
+	if timeout, ok := waitFor.AsTimeout(); ok {
+		return w.waitForTimeout(req, timeout)
+	}
+	if opts, ok := waitFor.AsOptions(); ok {
+		timeoutMs := maxWaitMs
+		if opts.Timeout != nil {
+			timeoutMs = *opts.Timeout
+		}
+		checkVisible := opts.Visible != nil && *opts.Visible
+		checkHidden := opts.Hidden != nil && *opts.Hidden
+		return w.runWait(req, func() error {
+			return w.waitForElement(req, opts.Selector, timeoutMs, checkVisible, checkHidden)
+		})
+	}
+	return nil
+}
+
+func (w *browserSession) runWait(req *workerRequest, wait func() error) error {
+	_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
+	defer waitSpan.End()
+
+	waitErr := wait()
+	if waitErr == nil {
+		return nil
+	}
+	if waitSpan.IsRecording() {
+		waitSpan.RecordError(waitErr)
+		waitSpan.SetStatus(codes.Error, "wait_failed")
+	}
+	return nil
+}
+
+func (w *browserSession) waitForTimeout(req *workerRequest, timeout int32) error {
+	_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
+	defer waitSpan.End()
+
+	select {
+	case <-time.After(time.Duration(timeout) * time.Millisecond):
+		return nil
+	case <-req.ctx.Done():
+		if waitSpan.IsRecording() {
+			waitSpan.RecordError(req.ctx.Err())
+			waitSpan.SetStatus(codes.Error, "client_dropped")
+		}
+		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		return nil
+	}
+}
+
+func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) error {
+	_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
+	defer waitSpan.End()
+
+	expression := fmt.Sprintf("(function(timeoutMs){ return %s; })(%d)", loadWaitSnippet(), timeoutMs)
+	waitResp, waitErr := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
+		"expression":    expression,
+		"awaitPromise":  true,
+		"returnByValue": true,
 	})
+	if waitErr != nil {
+		w.logger.Warn("Failed to wait for page load event", "error", waitErr)
+		if waitSpan.IsRecording() {
+			waitSpan.RecordError(waitErr)
+			waitSpan.SetStatus(codes.Error, "wait_failed")
+		}
+		req.tryRespondError(contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load"))
+		return nil
+	}
+
+	if waitErr = w.processWaitResult(req, waitResp); waitErr != nil {
+		if waitSpan.IsRecording() {
+			waitSpan.RecordError(waitErr)
+			waitSpan.SetStatus(codes.Error, "wait_failed")
+		}
+		return waitErr
+	}
+
+	w.logger.Info("Page load event completed")
+	return nil
+}
+
+func (w *browserSession) printPDF(req *workerRequest) error {
+	_, printSpan := w.tracer.Start(req.ctx, "pdf.session.print_to_pdf", trace.WithSpanKind(trace.SpanKindInternal))
+	defer printSpan.End()
+
+	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(w.logger, req.request))
 	if err != nil {
+		if printSpan.IsRecording() {
+			printSpan.RecordError(err)
+			printSpan.SetStatus(codes.Error, "print_failed")
+		}
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
 
-	if req.hasResponded() {
-		return nil
-	}
-	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-		return nil
-	}
-
-	if request.WaitFor != nil {
-		const maxWaitMs int32 = types.MaxTimeoutMs
-		if selector, ok := request.WaitFor.AsString(); ok {
-			// Simple string selector - wait for element existence only
-			err := w.waitForElement(req, selector, maxWaitMs, false, false)
-			if err != nil {
-				return nil
-			}
-		} else if timeout, ok := request.WaitFor.AsTimeout(); ok {
-			// Simple timeout delay
-			select {
-			case <-time.After(time.Duration(timeout) * time.Millisecond):
-			case <-req.ctx.Done():
-				req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
-				return nil
-			}
-		} else if opts, ok := request.WaitFor.AsOptions(); ok {
-			// Full options with selector, visible, hidden, timeout
-			timeoutMs := maxWaitMs // default timeout
-			if opts.Timeout != nil {
-				timeoutMs = *opts.Timeout
-			}
-			checkVisible := opts.Visible != nil && *opts.Visible
-			checkHidden := opts.Hidden != nil && *opts.Hidden
-
-			err := w.waitForElement(req, opts.Selector, timeoutMs, checkVisible, checkHidden)
-			if err != nil {
-				return nil
-			}
+	pdfBytes, err := decodePDFData(resp)
+	if err != nil {
+		if printSpan.IsRecording() {
+			printSpan.RecordError(err)
+			printSpan.SetStatus(codes.Error, "print_failed")
 		}
-	} else {
-		// No waitFor specified - just wait for page load event
-		const maxWaitMs int32 = types.MaxTimeoutMs
-		expression := fmt.Sprintf("(function(timeoutMs){ return %s; })(%d)", loadWaitSnippet(), maxWaitMs)
-		resp, err := w.conn.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
-			"expression":    expression,
-			"awaitPromise":  true,
-			"returnByValue": true,
-		})
-		if err != nil {
-			w.logger.Warn("Failed to wait for page load event", "error", err)
-			req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, "page load"))
-			return nil
-		}
-
-		err = w.processWaitResult(req, resp)
-		if err != nil {
-			return err
-		}
-		w.logger.Info("Page load event completed")
-	}
-
-	if req.hasResponded() {
-		return nil
-	}
-	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		return nil
 	}
 
-	// Generate PDF with Puppeteer-compatible defaults
+	req.tryRespondOk(pdfBytes)
+	return nil
+}
+
+func buildPrintToPDFParams(logger *slog.Logger, request types.PdfRequest) map[string]any {
 	pdfParams := map[string]any{
 		"scale":                   1.0,
 		"displayHeaderFooter":     false,
@@ -435,22 +667,19 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		"paperHeight":             11.0,
 	}
 
-	// Handle paper format (compatible with Puppeteer)
 	if request.Options.Format != "" {
-		// Try lowercase first, then try as-is
 		formatKey := strings.ToLower(request.Options.Format)
 		if dimensions, ok := paperFormats[formatKey]; ok {
 			pdfParams["paperWidth"] = dimensions.width
 			pdfParams["paperHeight"] = dimensions.height
 		} else {
-			w.logger.Warn("Unknown paper format, using default", "format", request.Options.Format)
+			logger.Warn("Unknown paper format, using default", "format", request.Options.Format)
 		}
 	}
 
 	if request.Options.PrintBackground {
 		pdfParams["printBackground"] = true
 	}
-
 	if request.Options.DisplayHeaderFooter {
 		pdfParams["displayHeaderFooter"] = true
 		if request.Options.HeaderTemplate != "" {
@@ -461,54 +690,46 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		}
 	}
 
-	// Set margins if specified
-	if request.Options.Margin.Top != "" {
-		pdfParams["marginTop"] = convertMargin(request.Options.Margin.Top)
+	setMargin := func(key, value string) {
+		if value != "" {
+			pdfParams[key] = convertMargin(value)
+		}
 	}
-	if request.Options.Margin.Right != "" {
-		pdfParams["marginRight"] = convertMargin(request.Options.Margin.Right)
-	}
-	if request.Options.Margin.Bottom != "" {
-		pdfParams["marginBottom"] = convertMargin(request.Options.Margin.Bottom)
-	}
-	if request.Options.Margin.Left != "" {
-		pdfParams["marginLeft"] = convertMargin(request.Options.Margin.Left)
-	}
+	setMargin("marginTop", request.Options.Margin.Top)
+	setMargin("marginRight", request.Options.Margin.Right)
+	setMargin("marginBottom", request.Options.Margin.Bottom)
+	setMargin("marginLeft", request.Options.Margin.Left)
 
-	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", pdfParams)
-	if err != nil {
-		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
-		return nil
-	}
+	return pdfParams
+}
 
-	// Extract PDF data
+func decodePDFData(resp *cdp.CDPResponse) ([]byte, error) {
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("invalid PDF response format")))
-		return nil
+		return nil, errInvalidPDFResponseFormat
 	}
 
 	dataStr, ok := result["data"].(string)
 	if !ok {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", fmt.Errorf("no PDF data in response")))
-		return nil
+		return nil, errMissingPDFData
 	}
 
 	pdfBytes, err := base64.StdEncoding.DecodeString(dataStr)
 	if err != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
-		return nil
+		return nil, fmt.Errorf("decode pdf data: %w", err)
 	}
-
-	// Respond with PDF data
-	req.tryRespondOk(pdfBytes)
-	return nil
+	return pdfBytes, nil
 }
 
 // waitForElement waits for an element to match the given criteria using MutationObserver.
 // For simple existence checks, uses MutationObserver only.
 // For visibility checks, adds polling to catch CSS rule changes.
-func (w *browserSession) waitForElement(req *workerRequest, selector string, timeoutMs int32, checkVisible, checkHidden bool) error {
+func (w *browserSession) waitForElement(
+	req *workerRequest,
+	selector string,
+	timeoutMs int32,
+	checkVisible, checkHidden bool,
+) error {
 	if selector == "" {
 		return nil
 	}
@@ -537,12 +758,12 @@ func (w *browserSession) waitForElement(req *workerRequest, selector string, tim
 	if err != nil {
 		w.logger.Warn("Failed to wait for element", "selector", selector, "error", err)
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrElementNotReady, fmt.Sprintf("element %q", selector)))
-		return err
+		return fmt.Errorf("evaluate wait expression: %w", err)
 	}
 
 	err = w.processWaitResult(req, resp)
 	if err != nil {
-		return err
+		return fmt.Errorf("process wait result: %w", err)
 	}
 
 	return nil
@@ -554,7 +775,7 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 		return w.handleWaitError(req, "invalid response format", resp.Result, "malformed CDP response")
 	}
 
-	if errorObj, ok := result["exceptionDetails"]; ok {
+	if errorObj, hasExceptionDetails := result["exceptionDetails"]; hasExceptionDetails {
 		return w.handleWaitError(req, "JavaScript exception during wait", errorObj, "exception in wait expression")
 	}
 
@@ -571,7 +792,7 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 	if !value {
 		waitForData := waitForToJson(req.request.WaitFor)
 		w.logger.Warn("Wait condition not satisfied within timeout", "waitFor", waitForData)
-		err := fmt.Errorf("timeout")
+		err := errWaitTimedOut
 		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 		return err
 	}
@@ -579,19 +800,19 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 	return nil
 }
 
-// handleWaitError logs and responds with an error for wait failures
+// handleWaitError logs and responds with an error for wait failures.
 func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
 	waitForData := waitForToJson(req.request.WaitFor)
 
 	// Marshal the data for logging
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
-		dataBytes = []byte(fmt.Sprintf("(marshal error: %v)", err))
+		dataBytes = fmt.Appendf(nil, "(marshal error: %v)", err)
 	}
 
 	w.logger.Error(logMsg, "waitFor", waitForData, "data", string(dataBytes))
 
-	err = fmt.Errorf("%s", errDetail)
+	err = fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
 	req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 	return err
 }
@@ -683,7 +904,13 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 // buildVisibilityWaitExpression generates JavaScript for visibility checking with polling fallback.
 // Uses MutationObserver for attribute changes + polling for CSS rule changes.
 // Also waits for the page 'load' event to ensure the page is fully loaded.
-func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutMs int32, checkVisible, checkHidden bool) string {
+//
+//nolint:funlen // The generated JS stays readable when kept as one template.
+func (w *browserSession) buildVisibilityWaitExpression(
+	selector string,
+	timeoutMs int32,
+	checkVisible, checkHidden bool,
+) string {
 	// Visibility helper function
 	visibilityHelper := `
 	  // Check if element is visible using computed styles
@@ -786,12 +1013,12 @@ func (w *browserSession) getCookies() ([]map[string]any, error) {
 
 	resp, err := w.conn.SendCommand(w.ctx, "Storage.getCookies", map[string]any{})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get cookies from browser: %w", err)
 	}
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid cookie response format")
+		return nil, errInvalidCookieResponseFormat
 	}
 
 	cookies, ok := result["cookies"].([]any)
@@ -825,7 +1052,7 @@ func (w *browserSession) getBrowserState(state string) testing.BrowserState {
 	cookieInfos := make([]testing.CookieInfo, 0, len(cookies))
 	for _, cookie := range cookies {
 		name, hasName := cookie["name"].(string)
-		domain, _ := cookie["domain"].(string)
+		domain, _ := cookie["domain"].(string) //nolint:errcheck // Missing domain is acceptable for this debug snapshot.
 		if hasName {
 			cookieInfos = append(cookieInfos, testing.CookieInfo{
 				Name:   name,
@@ -897,8 +1124,11 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 			errors.WriteByte('\n')
 		}
 		if response.Resp.Error != nil {
-			json, _ := json.Marshal(response.Resp.Error)
-			errors.WriteString(string(json))
+			if responseErrJSON, marshalErr := json.Marshal(response.Resp.Error); marshalErr == nil {
+				errors.Write(responseErrJSON)
+			} else {
+				errors.WriteString(marshalErr.Error())
+			}
 			errors.WriteByte('\n')
 		}
 	}
@@ -958,7 +1188,7 @@ func (w *browserSession) close() {
 	w.logger.Info("Worker closed")
 }
 
-// isProcessing returns true if a request is currently being processed, or if there is a queue
+// isProcessing returns true if a request is currently being processed, or if there is a queue.
 func (w *browserSession) isProcessing() bool {
 	// NOTE: this should not be racy because we only call this when
 	// the sesions has been "swapped away" during session recycling..
@@ -967,18 +1197,19 @@ func (w *browserSession) isProcessing() bool {
 	return w.currentRequest.Load() != nil || queued > 0
 }
 
-// waitForDrain waits for active request to complete, up to timeout
-func (w *browserSession) waitForDrain(timeout time.Duration) {
+// waitForDrain waits for active request to complete, up to timeout.
+func (w *browserSession) waitForDrain(timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		if !w.isProcessing() {
 			w.logger.Info("Session drained successfully")
-			return // Drained successfully
+			return true
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 	// Timeout - log warning but don't crash
 	w.logger.Warn("Session drain timeout, forcing close", "timeout", timeout)
+	return false
 }
 
 // paperFormats defines standard paper sizes in inches (compatible with Puppeteer)
@@ -1006,7 +1237,7 @@ var unitToPixels = map[string]float64{
 
 // convertMargin converts margin strings to inches (compatible with Puppeteer)
 // Supports: px, in, cm, mm
-// Numbers without units are treated as pixels
+// Numbers without units are treated as pixels.
 func convertMargin(margin string) float64 {
 	margin = strings.TrimSpace(margin)
 	if margin == "" {
@@ -1049,6 +1280,12 @@ func convertMargin(margin string) float64 {
 // but rejects complex selectors like #id.class, #id[attr], #id > child, etc.
 // Allows any HTML5 ID characters except CSS selector metacharacters.
 var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
+
+var (
+	errInvalidPDFResponseFormat    = errors.New("invalid PDF response format")
+	errMissingPDFData              = errors.New("no PDF data in response")
+	errInvalidCookieResponseFormat = errors.New("invalid cookie response format")
+)
 
 // contextErrorToPDFError checks if an error is context-related and returns the appropriate PDFError.
 // If the error is context.Canceled, it returns ErrClientDropped.

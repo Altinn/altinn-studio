@@ -11,6 +11,24 @@ export interface ILayoutSettings {
   receiptLayoutName?: string;
 }
 
+export interface IValidationOnNavigationLayoutSets {
+  show?: string[];
+  page?: string;
+}
+
+export interface IValidationOnNavigationLayoutSettings {
+  tasks?: string[];
+  show?: string[];
+  page?: string;
+}
+
+export interface IValidationOnNavigationPageSettings {
+  task?: string;
+  pages?: string[];
+  show?: string[];
+  page?: string;
+}
+
 export interface IPagesSettings {
   order?: string[];
   groups?: any;

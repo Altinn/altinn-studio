@@ -8,17 +8,18 @@ import type { SelectionComponentType } from '../../../../../types/FormComponent'
 import { determineInitialTab } from './utils/optionsUtils';
 import classes from './OptionTabs.module.css';
 import { OptionsTabKey } from './enums/OptionsTabKey';
+import type { CodeListIdContextData } from './types/CodeListIdContextData';
 
 type OptionTabsProps = {
-  optionListIdsFromLibrary: string[];
+  codeListIdContextData: CodeListIdContextData;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export function OptionTabs({
+  codeListIdContextData,
   component,
   handleComponentChange,
-  optionListIdsFromLibrary,
 }: OptionTabsProps) {
-  const initialSelectedTab = determineInitialTab(component, optionListIdsFromLibrary);
+  const initialSelectedTab = determineInitialTab(component, codeListIdContextData);
   const [selectedTab, setSelectedTab] = useState(initialSelectedTab);
   const { t } = useTranslation();
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ThreadColumn } from './ThreadColumn';
 import { render, screen } from '@testing-library/react';
-import type { ChatHistorySidebarProps } from './ThreadColumn';
+import type { ThreadColumnProps } from './ThreadColumn';
 import { mockTexts } from '../../mocks/mockTexts';
 import type { ChatThread } from '../../types/ChatThread';
 
@@ -75,13 +75,13 @@ describe('ThreadColumn', () => {
   });
 });
 
-const defaultProps: ChatHistorySidebarProps = {
+const defaultProps: ThreadColumnProps = {
   texts: mockTexts,
   chatThreads: [],
   onSelectThread,
   onToggleCollapse,
 };
 
-const renderThreadColumn = (props?: Partial<ChatHistorySidebarProps>): void => {
+const renderThreadColumn = (props?: Partial<ThreadColumnProps>): void => {
   render(<ThreadColumn {...defaultProps} {...props} />);
 };

@@ -6,7 +6,8 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstracti
 /// <summary>
 /// Resolves the context for the incoming request.
 /// </summary>
-public interface IRequestContextResolver<TContext> where TContext : class
+public interface IRequestContextResolver<TContext>
+    where TContext : class
 {
     /// <summary>
     /// Attempts to resolve the context for the incoming request.

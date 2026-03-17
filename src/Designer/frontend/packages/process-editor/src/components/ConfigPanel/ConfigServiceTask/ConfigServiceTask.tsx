@@ -5,7 +5,9 @@ import { ConfigContentContainer } from '../ConfigContent/ConfigContentContainer'
 import classes from './ConfigServiceTask.module.css';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
-import { StudioDisplayTile } from '@studio/components';
+import { StudioDetails, StudioDisplayTile } from '@studio/components';
+import { EditActions } from '../ConfigContent/EditActions';
+import { EditPolicy } from '../ConfigContent/EditPolicy';
 
 export const ConfigServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -23,6 +25,24 @@ export const ConfigServiceTask = (): React.ReactElement => {
           showPadlock={false}
         />
         {isPdfTask && <ConfigPdfServiceTask />}
+        <div>
+          <StudioDetails>
+            <StudioDetails.Summary>
+              {t('process_editor.configuration_panel_actions_title')}
+            </StudioDetails.Summary>
+            <StudioDetails.Content className={classes.detailsContent}>
+              <EditActions />
+            </StudioDetails.Content>
+          </StudioDetails>
+          <StudioDetails>
+            <StudioDetails.Summary>
+              {t('process_editor.configuration_panel_policy_title')}
+            </StudioDetails.Summary>
+            <StudioDetails.Content className={classes.detailsContent}>
+              <EditPolicy />
+            </StudioDetails.Content>
+          </StudioDetails>
+        </div>
       </div>
     </ConfigContentContainer>
   );

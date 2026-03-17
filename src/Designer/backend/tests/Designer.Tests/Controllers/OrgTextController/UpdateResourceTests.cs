@@ -34,16 +34,8 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(developer, org, repo, targetOrg, targetRepository);
 
-        string file = TestDataHelper.GetFileFromRepo(
-            targetOrg,
-            targetRepository,
-            developer,
-            RelativePath(lang)
-        );
-        TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(
-            file,
-            s_jsonOptions
-        );
+        string file = TestDataHelper.GetFileFromRepo(targetOrg, targetRepository, developer, RelativePath(lang));
+        TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
         PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
         string apiUrl = ApiUrl(targetOrg, lang);
@@ -65,12 +57,7 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
             developer,
             RelativePath(lang)
         );
-        Assert.True(
-            JsonUtils.DeepEquals(
-                JsonSerializer.Serialize(expectedResource, s_jsonOptions),
-                actualContent
-            )
-        );
+        Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), actualContent));
     }
 
     [Theory]
@@ -94,10 +81,7 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
             developer,
             RelativePath(lang)
         );
-        TextResource originalResource = JsonSerializer.Deserialize<TextResource>(
-            originalFile,
-            s_jsonOptions
-        );
+        TextResource originalResource = JsonSerializer.Deserialize<TextResource>(originalFile, s_jsonOptions);
         List<TextResourceVariable> expectedVariables = originalResource
             .Resources.Find(e => e.Id == "TextUsingVariables")
             .Variables;
@@ -121,10 +105,7 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
             developer,
             RelativePath(lang)
         );
-        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(
-            actualContent,
-            s_jsonOptions
-        );
+        TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
         List<TextResourceVariable> actualVariables = actualResource
             .Resources.Find(e => e.Id == "TextUsingVariables")
             .Variables;
@@ -152,8 +133,8 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
     {
         foreach ((string key, string value) in updateDictionary)
         {
-            TextResourceElement textResourceContainsKey = resource.Resources.Find(
-                textResourceElement => textResourceElement.Id == key
+            TextResourceElement textResourceContainsKey = resource.Resources.Find(textResourceElement =>
+                textResourceElement.Id == key
             );
             if (textResourceContainsKey is null)
             {
@@ -161,14 +142,8 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
                 continue;
             }
 
-            int indexTextResourceElementUpdateKey = resource.Resources.IndexOf(
-                textResourceContainsKey
-            );
-            resource.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement
-            {
-                Id = key,
-                Value = value,
-            };
+            int indexTextResourceElementUpdateKey = resource.Resources.IndexOf(textResourceContainsKey);
+            resource.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = key, Value = value };
         }
     }
 
@@ -179,11 +154,7 @@ public class UpdateResourceTests(WebApplicationFactory<Program> factory)
                 "testUser",
                 "org-content",
                 "nb",
-                new Dictionary<string, string>
-                {
-                    { "Email", "new" },
-                    { "nonExistingKey", "new value" },
-                },
+                new Dictionary<string, string> { { "Email", "new" }, { "nonExistingKey", "new value" } },
             ],
         ];
 

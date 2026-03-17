@@ -11,7 +11,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.Preview;
 
-public class DataControllerTests(WebApplicationFactory<Program> factory) : PreviewControllerTestsBase<DataControllerTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class DataControllerTests(WebApplicationFactory<Program> factory)
+    : PreviewControllerTestsBase<DataControllerTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
     [Fact]
     public async Task Post_ReturnsCreated()
@@ -53,7 +55,8 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
         using HttpRequestMessage httpRequestMessagePatch = new(HttpMethod.Patch, dataPath);
 
-        string patch = "{\"patch\":[{\"op\":\"add\",\"path\":\"/RegNo\",\"value\":\"asdf\"}],\"ignoredValidators\":[\"DataAnnotations\",\"Required\",\"Expression\"]}";
+        string patch =
+            "{\"patch\":[{\"op\":\"add\",\"path\":\"/RegNo\",\"value\":\"asdf\"}],\"ignoredValidators\":[\"DataAnnotations\",\"Required\",\"Expression\"]}";
         httpRequestMessagePatch.Content = new StringContent(patch, System.Text.Encoding.UTF8, "application/json");
         using HttpResponseMessage responsePatch = await HttpClient.SendAsync(httpRequestMessagePatch);
         Assert.Equal(HttpStatusCode.OK, responsePatch.StatusCode);
@@ -72,12 +75,24 @@ public class DataControllerTests(WebApplicationFactory<Program> factory) : Previ
         string dataPath = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/data";
         using HttpRequestMessage httpRequestMessagePatchMultiple = new(HttpMethod.Patch, dataPath);
 
-        string patches = "{\"patches\":[{\"dataElementId\":\"" + dataElement1.Id + "\",\"patch\":[{\"op\":\"add\",\"path\":\"/RegNo\",\"value\":\"dataobj1\"}]},{\"dataElementId\":\"" + dataElement2.Id + "\",\"patch\":[{\"op\":\"add\",\"path\":\"/RegNo\",\"value\":\"dataobj2\"}]}],\"ignoredValidators\":[\"DataAnnotations\",\"Required\",\"Expression\"]}";
-        httpRequestMessagePatchMultiple.Content = new StringContent(patches, System.Text.Encoding.UTF8, "application/json");
+        string patches =
+            "{\"patches\":[{\"dataElementId\":\""
+            + dataElement1.Id
+            + "\",\"patch\":[{\"op\":\"add\",\"path\":\"/RegNo\",\"value\":\"dataobj1\"}]},{\"dataElementId\":\""
+            + dataElement2.Id
+            + "\",\"patch\":[{\"op\":\"add\",\"path\":\"/RegNo\",\"value\":\"dataobj2\"}]}],\"ignoredValidators\":[\"DataAnnotations\",\"Required\",\"Expression\"]}";
+        httpRequestMessagePatchMultiple.Content = new StringContent(
+            patches,
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
         using HttpResponseMessage responsePatchMultiple = await HttpClient.SendAsync(httpRequestMessagePatchMultiple);
         Assert.Equal(HttpStatusCode.OK, responsePatchMultiple.StatusCode);
         string responseBodyPatchMultiple = await responsePatchMultiple.Content.ReadAsStringAsync();
-        DataPatchResponseMultiple dataItem = JsonSerializer.Deserialize<DataPatchResponseMultiple>(responseBodyPatchMultiple, JsonSerializerOptions);
+        DataPatchResponseMultiple dataItem = JsonSerializer.Deserialize<DataPatchResponseMultiple>(
+            responseBodyPatchMultiple,
+            JsonSerializerOptions
+        );
         Assert.NotNull(dataItem);
         Assert.Equal(2, dataItem.NewDataModels.Count);
         object dataItem1 = JsonSerializer.Serialize(dataItem.NewDataModels[0].Data);

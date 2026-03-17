@@ -69,23 +69,23 @@ describe('Render summary of previous task', () => {
     cy.contains(zip);
     cy.contains(houseNumber);
 
-    cy.get('body').should('not.contain', inputText);
+    cy.get('main').should('not.contain', inputText);
 
-    cy.get('body').should('not.contain', fileName);
+    cy.get('main').should('not.contain', fileName);
 
-    cy.get('body').should('not.contain', fileType);
+    cy.get('main').should('not.contain', fileType);
 
     // Assert that the input field data is rendered on the next page as we are showing the Input component.
     // None of the other data should be shown
     cy.gotoNavPage('Oppsummering av komponent fra tidligere Task');
 
-    cy.get('body').should('not.contain', inputText);
+    cy.get('main').should('not.contain', inputText);
     cy.contains(address);
     cy.contains(co);
     cy.contains(zip);
     cy.contains(houseNumber);
-    cy.get('body').should('not.contain', fileName);
-    cy.get('body').should('not.contain', fileType);
+    cy.get('main').should('not.contain', fileName);
+    cy.get('main').should('not.contain', fileType);
 
     cy.url().then((currentUrl) => {
       cy.log(currentUrl);

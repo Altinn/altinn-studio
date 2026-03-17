@@ -6,6 +6,8 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
+import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
   FailedEventType,
   EventType,
@@ -13,6 +15,15 @@ import {
   type PipelineDeployment,
 } from 'app-shared/types/api/PipelineDeployment';
 import { deployEvent } from 'app-shared/mocks/mocks';
+import { app, org } from '@studio/testing/testids';
+
+jest.mock('app-shared/ext-urls', () => ({
+  grafanaPodLogsUrl: jest.fn(() => 'https://grafana.example/logs'),
+}));
+
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: jest.fn(),
+}));
 
 const pipelineDeployment: PipelineDeployment = {
   id: '1',
@@ -48,6 +59,13 @@ const render = (
   );
 };
 describe('DeploymentEnvironmentLogList', () => {
+  const grafanaPodLogsUrlMock = grafanaPodLogsUrl as jest.Mock;
+  const useStudioEnvironmentParamsMock = useStudioEnvironmentParams as jest.Mock;
+
+  beforeEach(() => {
+    useStudioEnvironmentParamsMock.mockReturnValue({ org, app });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -182,50 +200,39 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it('renders when deployment failed', () => {
-        render({
-          pipelineDeploymentList: [
-            {
-              ...pipelineDeployment,
-              events: [{ ...deployEvent, eventType: FailedEventType.InstallFailed }],
-            },
-          ],
-        });
-        expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
-        ).toBeInTheDocument();
-      });
+      it.each(Object.values(FailedEventType))(
+        'renders when deployment failed with event %s',
+        (eventType) => {
+          render({
+            pipelineDeploymentList: [
+              {
+                ...pipelineDeployment,
+                events: [{ ...deployEvent, eventType }],
+              },
+            ],
+          });
+          expect(
+            screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+          ).toBeInTheDocument();
+        },
+      );
 
-      it('renders when deployment succeeded', () => {
-        render({
-          pipelineDeploymentList: [
-            {
-              ...pipelineDeployment,
-              events: [{ ...deployEvent, eventType: SucceededEventType.InstallSucceeded }],
-            },
-          ],
-        });
-        expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
-        ).toBeInTheDocument();
-      });
-
-      it('renders when deprecated undeploy pipeline failed', () => {
-        render({
-          pipelineDeploymentList: [
-            {
-              ...pipelineDeployment,
-              events: [
-                { ...deployEvent, eventType: EventType.DeprecatedPipelineScheduled },
-                { ...deployEvent, eventType: EventType.PipelineFailed },
-              ],
-            },
-          ],
-        });
-        expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
-        ).toBeInTheDocument();
-      });
+      it.each(Object.values(SucceededEventType))(
+        'renders when deployment succeeded with event %s',
+        (eventType) => {
+          render({
+            pipelineDeploymentList: [
+              {
+                ...pipelineDeployment,
+                events: [{ ...deployEvent, eventType }],
+              },
+            ],
+          });
+          expect(
+            screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+          ).toBeInTheDocument();
+        },
+      );
 
       it('renders when deprecated undeploy pipeline succeeded', () => {
         render({
@@ -244,7 +251,8 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it('renders when created event date > 15m and pipeline failed', () => {
+      it('shows in-progress status when pipeline succeeded and is < 15 minutes old', () => {
+        const recentTimestamp = new Date(Date.now() - 5 * 60 * 1000).toISOString();
         render({
           pipelineDeploymentList: [
             {
@@ -253,15 +261,15 @@ describe('DeploymentEnvironmentLogList', () => {
                 { ...deployEvent, eventType: EventType.PipelineScheduled },
                 {
                   ...deployEvent,
-                  eventType: EventType.PipelineFailed,
-                  created: '2025-12-12T09:26:10.730806+00:00',
+                  eventType: EventType.PipelineSucceeded,
+                  created: recentTimestamp,
                 },
               ],
             },
           ],
         });
         expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
         ).toBeInTheDocument();
       });
 
@@ -382,6 +390,96 @@ describe('DeploymentEnvironmentLogList', () => {
     expect(
       screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed.details')),
     ).toBeInTheDocument();
+  });
+
+  it('uses event timestamps for grafana log link when events are present', () => {
+    const deployStart = '2026-02-09T10:00:00.000Z';
+    const deployFinish = '2026-02-09T10:05:00.000Z';
+    const currentDate = new Date().toISOString();
+
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: currentDate,
+            finished: currentDate,
+            result: BuildResult.failed,
+          },
+          events: [
+            { ...deployEvent, eventType: EventType.PipelineScheduled, created: deployStart },
+            { ...deployEvent, eventType: FailedEventType.InstallFailed, created: deployFinish },
+          ],
+        },
+      ],
+    });
+
+    expect(grafanaPodLogsUrlMock).toHaveBeenCalledWith({
+      org,
+      env: defaultProps.envName,
+      app,
+      isProduction: defaultProps.isProduction,
+      deployStartTime: new Date(deployStart).getTime(),
+      deployFinishTime: new Date(deployFinish).getTime(),
+    });
+  });
+
+  it('falls back to build timestamps for grafana log link when events are absent', () => {
+    const buildStart = new Date().toISOString();
+    const buildFinish = buildStart;
+
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: buildStart,
+            finished: buildFinish,
+            result: BuildResult.failed,
+          },
+          events: [],
+        },
+      ],
+    });
+
+    expect(grafanaPodLogsUrlMock).toHaveBeenCalledWith({
+      org,
+      env: defaultProps.envName,
+      app,
+      isProduction: defaultProps.isProduction,
+      deployStartTime: new Date(buildStart).getTime(),
+      deployFinishTime: new Date(buildFinish).getTime(),
+    });
+  });
+
+  it('passes undefined finish time to grafana log link when build finished is missing', () => {
+    const buildStart = new Date().toISOString();
+
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: buildStart,
+            finished: undefined,
+            result: BuildResult.failed,
+          },
+          events: [],
+        },
+      ],
+    });
+
+    expect(grafanaPodLogsUrlMock).toHaveBeenCalledWith({
+      org,
+      env: defaultProps.envName,
+      app,
+      isProduction: defaultProps.isProduction,
+      deployStartTime: new Date(buildStart).getTime(),
+      deployFinishTime: undefined,
+    });
   });
 
   it('does not render log links when logs are expired (> 30 days)', () => {

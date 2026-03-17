@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "outDir": "dist",
-    "module": "commonjs",
+    "module": "preserve",
     "target": "es6",
     "downlevelIteration": true,
     "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "rootDir": "./",
     "resolveJsonModule": true,
     "strictNullChecks": false,
@@ -39,8 +39,9 @@
     "node_modules",
     "tmp",
     "./testing/cypress/**",
-    "./testing/playwright/playwright-report",
+    "./testing/playwright/**",
     "dist",
-    "**/prettier.config.js"
+    "**/prettier.config.js",
+    "./scripts/**"
   ]
 }

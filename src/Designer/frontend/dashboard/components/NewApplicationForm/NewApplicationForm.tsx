@@ -1,6 +1,8 @@
 import React, { type FormEvent, type ChangeEvent, useState } from 'react';
+import { TemplateSelector } from '../TemplateSelector/TemplateSelector';
+import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import classes from './NewApplicationForm.module.css';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ServiceOwnerSelector } from '../ServiceOwnerSelector';
 import { RepoNameInput } from '../RepoNameInput';
@@ -12,6 +14,7 @@ import { type NewAppForm } from '../../types/NewAppForm';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
 import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 type CancelButton = {
   onClick: () => void;
@@ -29,6 +32,7 @@ export type NewApplicationFormProps = {
   user: User;
   organizations: Organization[];
   isLoading: boolean;
+  shouldUseCustomTemplate?: boolean;
   submitButtonText: string;
   formError: NewAppForm;
   setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
@@ -40,6 +44,7 @@ export const NewApplicationForm = ({
   user,
   organizations,
   isLoading,
+  shouldUseCustomTemplate = true,
   submitButtonText,
   formError,
   setFormError,
@@ -47,12 +52,14 @@ export const NewApplicationForm = ({
 }: NewApplicationFormProps): React.JSX.Element => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
+  const isCustomTemplatesEnabled = useFeatureFlag(FeatureFlag.CustomTemplates);
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
       ? user.login
       : selectedContext;
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
+  const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
   const { data: userOrgPermission, isFetching } = useUserOrgPermissionQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
   });
@@ -75,6 +82,7 @@ export const NewApplicationForm = ({
     const newAppForm: NewAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
+      template: selectedTemplate || undefined,
     };
 
     const isFormValid: boolean = validateNewAppForm(newAppForm);
@@ -109,6 +117,9 @@ export const NewApplicationForm = ({
 
   return (
     <form onSubmit={handleSubmit} className={classes.form}>
+      <StudioHeading level={1} spacing>
+        {t('dashboard.new_service')}
+      </StudioHeading>
       <ServiceOwnerSelector
         name='org'
         user={user}
@@ -122,6 +133,13 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
+      {isCustomTemplatesEnabled && shouldUseCustomTemplate && (
+        <TemplateSelector
+          selectedTemplate={selectedTemplate}
+          onChange={setSelectedTemplate}
+          username={user.login}
+        />
+      )}
       <div className={classes.actionContainer}>
         {isLoading ? (
           <StudioSpinner aria-hidden spinnerTitle={t('dashboard.creating_your_service')} />

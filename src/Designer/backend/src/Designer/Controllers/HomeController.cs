@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -26,7 +27,8 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
         private readonly GeneralSettings _generalSettings;
-        private readonly ApplicationInsightsSettings _applicationInsightsSettings;
+        private readonly IFeatureManager _featureManager;
+        private readonly StudioOidcLoginSettings _studioOidcLoginSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
@@ -35,20 +37,23 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="sourceControl">the source control</param>
-        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
+        /// <param name="featureManager">the feature manager</param>
+        /// <param name="studioOidcLoginSettings">the studio oidc login settings</param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             ISourceControl sourceControl,
-            ApplicationInsightsSettings applicationInsightsSettings
+            IFeatureManager featureManager,
+            StudioOidcLoginSettings studioOidcLoginSettings
         )
         {
             _logger = logger;
             _settings = repositorySettings;
             _generalSettings = generalSettings;
             _sourceControl = sourceControl;
-            _applicationInsightsSettings = applicationInsightsSettings;
+            _featureManager = featureManager;
+            _studioOidcLoginSettings = studioOidcLoginSettings;
         }
 
         /// <summary>
@@ -60,12 +65,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
         public async Task<ActionResult> StartPage()
         {
-            await Task.CompletedTask;
             bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
 
             if (isUserLoggedIn)
             {
                 return LocalRedirect("/dashboard");
+            }
+
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
+            {
+                ViewBag.AccountLinkUrl = _studioOidcLoginSettings.AccountLinkUrl;
             }
 
             Response.Cookies.Delete(General.DesignerCookieName);
@@ -77,11 +86,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// Login
         /// </summary>
         /// <returns>The login page</returns>
-        [Authorize]
         public async Task<IActionResult> Login()
         {
-            await Task.CompletedTask;
-            return LocalRedirect("/");
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return LocalRedirect("/");
+            }
+
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
+            {
+                string callbackUrl = "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString("/");
+                return Challenge(new AuthenticationProperties { RedirectUri = callbackUrl });
+            }
+
+            return Challenge(new AuthenticationProperties { RedirectUri = "/" });
         }
 
         /// <summary>

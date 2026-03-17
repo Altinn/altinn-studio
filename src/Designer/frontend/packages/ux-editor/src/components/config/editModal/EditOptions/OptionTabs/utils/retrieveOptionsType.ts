@@ -1,17 +1,19 @@
 import type { FormItem } from '../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { OptionsType } from '../enums/OptionsType';
+import { isPublishedCodeListReferenceString } from './published-code-list-reference-utils';
+import type { CodeListIdContextData } from '../types/CodeListIdContextData';
 
 type ReadonlySelectionComponent = Readonly<FormItem<SelectionComponentType>>;
 
 export function retrieveOptionsType(
   component: ReadonlySelectionComponent,
-  optionListIdsFromLibrary: string[],
+  codeListIdContextData: CodeListIdContextData,
 ): OptionsType | null {
   if (hasOptions(component) && hasNotEmptyOptionsId(component)) return null;
   if (hasOptions(component)) return OptionsType.Internal;
   if (hasNotEmptyOptionsId(component))
-    return retrieveOptionsIdType(component.optionsId, optionListIdsFromLibrary);
+    return retrieveOptionsIdType(component.optionsId, codeListIdContextData);
   return null;
 }
 
@@ -37,9 +39,9 @@ function hasOptions(
 
 function retrieveOptionsIdType(
   optionsId: string,
-  optionListIdsFromLibrary: string[],
-): OptionsType.FromAppLibrary | OptionsType.CustomId {
-  return optionListIdsFromLibrary.includes(optionsId)
-    ? OptionsType.FromAppLibrary
-    : OptionsType.CustomId;
+  { idsFromAppLibrary, orgName }: CodeListIdContextData,
+): OptionsType.FromAppLibrary | OptionsType.CustomId | OptionsType.Published {
+  if (isPublishedCodeListReferenceString(optionsId, orgName)) return OptionsType.Published;
+  else if (idsFromAppLibrary.includes(optionsId)) return OptionsType.FromAppLibrary;
+  else return OptionsType.CustomId;
 }

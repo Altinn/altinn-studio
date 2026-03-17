@@ -16,7 +16,6 @@ namespace Designer.Tests.Services;
 
 public class AppDevelopmentServiceTest : IDisposable
 {
-
     private readonly Mock<ISchemaModelService> _schemaModelServiceMock;
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -33,15 +32,22 @@ public class AppDevelopmentServiceTest : IDisposable
 
     public string CreatedTestRepoPath { get; set; }
 
-
     [Fact]
     public async Task GetLayoutSettings_FromAppWithOutLayoutSet_ShouldReturnSettings()
     {
         string repository = "app-without-layoutsets";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, repository, _developer, targetRepository);
-        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), null);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            repository,
+            _developer,
+            targetRepository
+        );
+        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            null
+        );
 
         Assert.NotNull(layoutSettings);
     }
@@ -53,7 +59,8 @@ public class AppDevelopmentServiceTest : IDisposable
         string layoutSetName = "layoutSet1";
         string layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
-        var jsonSettingsUpdatedString = $@"{{
+        var jsonSettingsUpdatedString =
+            $@"{{
             ""$schema"": ""{layoutSettingsSchemaUrl}"",
             ""pages"": {{
                 ""order"": [
@@ -64,12 +71,24 @@ public class AppDevelopmentServiceTest : IDisposable
             }}
         }}";
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
 
         var layoutSettingsUpdated = JsonNode.Parse(jsonSettingsUpdatedString);
 
-        await _appDevelopmentService.SaveLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSettingsUpdated, layoutSetName);
-        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetName);
+        await _appDevelopmentService.SaveLayoutSettings(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            layoutSettingsUpdated,
+            layoutSetName
+        );
+        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            layoutSetName
+        );
 
         Assert.NotNull(layoutSettings);
 
@@ -82,12 +101,19 @@ public class AppDevelopmentServiceTest : IDisposable
         string layoutSetName = "layoutSet1";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
-        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetName);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            layoutSetName
+        );
 
         Assert.NotNull(layoutSettings);
     }
-
 
     [Fact]
     public async Task GetLayoutSettings_FromAppWithLayoutSetButNoSettingsExist_ShouldReturnSettingsWithTwoPages()
@@ -95,8 +121,16 @@ public class AppDevelopmentServiceTest : IDisposable
         string layoutSetName = "layoutSet2";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
-        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetName);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+        var layoutSettings = await _appDevelopmentService.GetLayoutSettings(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            layoutSetName
+        );
 
         Assert.NotNull(layoutSettings);
 
@@ -111,12 +145,21 @@ public class AppDevelopmentServiceTest : IDisposable
         string existingLayoutSetName = "layoutSet2";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
 
         // Act and Assert
         await Assert.ThrowsAsync<NonUniqueLayoutSetIdException>(async () =>
         {
-            await _appDevelopmentService.UpdateLayoutSetName(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), oldLayoutSetName, existingLayoutSetName);
+            await _appDevelopmentService.UpdateLayoutSetName(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+                oldLayoutSetName,
+                existingLayoutSetName
+            );
         });
     }
 
@@ -127,22 +170,33 @@ public class AppDevelopmentServiceTest : IDisposable
         string oldLayoutSetName = "layoutSet1";
         string newLayoutSetName = "newLayoutSet";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        AltinnRepoEditingContext altinnRepoEditingContext =
-            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer);
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
+        AltinnRepoEditingContext altinnRepoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            _org,
+            targetRepository,
+            _developer
+        );
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
 
         // Act
 
         List<string> layoutSetFileNamesBeforeUpdate = GetFileNamesInLayoutSet(oldLayoutSetName);
 
-        var updatedLayoutSets = await _appDevelopmentService.UpdateLayoutSetName(altinnRepoEditingContext, oldLayoutSetName, newLayoutSetName);
+        var updatedLayoutSets = await _appDevelopmentService.UpdateLayoutSetName(
+            altinnRepoEditingContext,
+            oldLayoutSetName,
+            newLayoutSetName
+        );
         List<string> layoutSetFileNamesAfterUpdate = GetFileNamesInLayoutSet(newLayoutSetName);
 
         // Assert
         Assert.Equal(4, updatedLayoutSets.Sets.Count);
         Assert.NotNull(updatedLayoutSets.Sets.Find(set => set.Id == newLayoutSetName));
         Assert.Equal(layoutSetFileNamesBeforeUpdate.Count, layoutSetFileNamesAfterUpdate.Count);
-
     }
 
     [Fact]
@@ -152,10 +206,18 @@ public class AppDevelopmentServiceTest : IDisposable
         var newLayoutSet = new LayoutSetConfig { Id = "newLayoutSet", Tasks = ["newTask"] };
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
 
         // Act
-        var updatedLayoutSets = await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), newLayoutSet);
+        var updatedLayoutSets = await _appDevelopmentService.AddLayoutSet(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+            newLayoutSet
+        );
 
         // Assert
         Assert.NotNull(updatedLayoutSets);
@@ -170,12 +232,20 @@ public class AppDevelopmentServiceTest : IDisposable
         var newLayoutSet = new LayoutSetConfig { Id = "layoutSet1" };
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
 
         // Act and Assert
         await Assert.ThrowsAsync<NonUniqueLayoutSetIdException>(async () =>
         {
-            await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), newLayoutSet);
+            await _appDevelopmentService.AddLayoutSet(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+                newLayoutSet
+            );
         });
     }
 
@@ -186,10 +256,20 @@ public class AppDevelopmentServiceTest : IDisposable
         string repository = "app-without-layoutsets";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, repository, _developer, targetRepository);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            repository,
+            _developer,
+            targetRepository
+        );
 
         // Act
-        Func<Task> act = async () => await _appDevelopmentService.UpdateLayoutSetName(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), "layoutSet1", "someName");
+        Func<Task> act = async () =>
+            await _appDevelopmentService.UpdateLayoutSetName(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+                "layoutSet1",
+                "someName"
+            );
 
         // Assert
         await Assert.ThrowsAsync<NoLayoutSetsFileFoundException>(act);
@@ -202,10 +282,19 @@ public class AppDevelopmentServiceTest : IDisposable
         string repository = "app-without-layoutsets";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, repository, _developer, targetRepository);
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            repository,
+            _developer,
+            targetRepository
+        );
 
         // Act
-        Func<Task> act = async () => await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), new() { Id = "layoutSet1" });
+        Func<Task> act = async () =>
+            await _appDevelopmentService.AddLayoutSet(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer),
+                new() { Id = "layoutSet1" }
+            );
 
         // Assert
         await Assert.ThrowsAsync<NoLayoutSetsFileFoundException>(act);
@@ -213,7 +302,9 @@ public class AppDevelopmentServiceTest : IDisposable
 
     private List<string> GetFileNamesInLayoutSet(string layoutSetName)
     {
-        string[] layoutSetFileNamesPaths = Directory.GetFiles(Path.Combine(CreatedTestRepoPath, "App", "ui", layoutSetName, "layouts"));
+        string[] layoutSetFileNamesPaths = Directory.GetFiles(
+            Path.Combine(CreatedTestRepoPath, "App", "ui", layoutSetName, "layouts")
+        );
         List<string> fileNamesInSet = [];
         foreach (var filePath in layoutSetFileNamesPaths)
         {

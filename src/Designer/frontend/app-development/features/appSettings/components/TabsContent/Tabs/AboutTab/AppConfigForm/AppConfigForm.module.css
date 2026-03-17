@@ -2,7 +2,7 @@
   --field-spacing: var(--ds-size-6);
 
   padding-block: var(--field-spacing);
-  width: 40rem;
+  width: 50%;
 }
 
 .formWrapper {

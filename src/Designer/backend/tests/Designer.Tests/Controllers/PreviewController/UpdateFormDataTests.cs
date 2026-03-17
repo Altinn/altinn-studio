@@ -6,12 +6,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class UpdateFormDataTests : PreviewControllerTestsBase<UpdateFormDataTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateFormDataTests
+        : PreviewControllerTestsBase<UpdateFormDataTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public UpdateFormDataTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public UpdateFormDataTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Put_UpdateFormData_Ok()

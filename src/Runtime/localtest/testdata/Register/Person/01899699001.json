@@ -1,0 +1,19 @@
+{
+  "SSN": "01899699001",
+  "Name": "MultiParty Prompt",
+  "FirstName": "MultiParty",
+  "MiddleName": "",
+  "LastName": "Prompt",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "+4790000001",
+  "MailingAddress": "Testveien 1 0150 OSLO",
+  "MailingPostalCode": "0150",
+  "MailingPostalCity": "OSLO",
+  "AddressMunicipalNumber": "0301",
+  "AddressMunicipalName": "Oslo",
+  "AddressStreetName": "Testveien",
+  "AddressHouseNumber": "1",
+  "AddressHouseLetter": null,
+  "AddressPostalCode": "0150",
+  "AddressCity": "OSLO"
+}
