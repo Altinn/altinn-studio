@@ -70,8 +70,12 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IWorkflowUpdateBuffer>(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
             services.AddHostedService(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
 
-            services.AddHostedService<WorkflowProcessor>();
+            // HeartbeatService must be registered BEFORE the processor so it is stopped
+            // AFTER it (hosted services are stopped in reverse registration order).
+            // The heartbeat loop continues while the tracker is non-empty, which requires
+            // the processor's workers to finish first.
             services.AddHostedService<HeartbeatService>();
+            services.AddHostedService<WorkflowProcessor>();
 
             services.AddScoped<WorkflowHandler>();
 

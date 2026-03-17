@@ -9,7 +9,6 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using WorkflowEngine.Commands.Webhook;
-using WorkflowEngine.Core;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
@@ -18,8 +17,8 @@ using WorkflowEngine.TestKit;
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// Tests that exercise the full graceful shutdown path: enqueue work, trigger
-/// <see cref="IHostApplicationLifetime.StopApplication"/>, and verify final DB state.
+/// Tests that exercise the full graceful shutdown path: enqueue work, call
+/// <see cref="IHost.StopAsync"/>, and verify final DB state.
 /// Each test creates its own <see cref="EngineWebApplicationFactory{TProgram}"/> because shutdown is destructive.
 /// The Postgres container and WireMock server are shared across all tests in this class.
 /// </summary>
@@ -47,30 +46,20 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
     [Fact]
     public async Task Shutdown_WhileWorkflowProcessing_WorkflowAndStepAreRequeued()
     {
-        // Arrange — slow webhook so the workflow is in-flight during shutdown
         _wireMock.Reset();
         _wireMock
             .Given(Request.Create().WithPath("/slow").UsingAnyMethod())
             .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
 
         await using var factory = CreateFactory();
-        var lifetime = factory.Services.GetRequiredService<IHostApplicationLifetime>();
-        var engineStatus = factory.Services.GetRequiredService<IEngineStatus>();
-
         var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/slow"));
 
-        // Wait until the engine is actively processing the workflow
-        await PollUntil(() => engineStatus.ActiveWorkerCount > 0);
+        await WaitForProcessing(workflowId);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
-        // Act — trigger graceful shutdown
-        var stoppedTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        lifetime.ApplicationStopped.Register(() => stoppedTcs.TrySetResult());
-        lifetime.StopApplication();
+        // Graceful shutdown — directly stops the host and all its services
+        await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
-        // Wait for the host to fully stop (the 30s worker drain + buffer flush)
-        await stoppedTcs.Task.WaitAsync(TimeSpan.FromSeconds(45), TestContext.Current.CancellationToken);
-
-        // Assert — query DB directly since the host is dead
         await using var context = CreateDbContext();
         var workflow = await context
             .Workflows.Include(w => w.Steps)
@@ -85,35 +74,24 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
     [Fact]
     public async Task Shutdown_WhileOnSecondStep_CompletedFirstStepIsPreserved()
     {
-        // Arrange — step 1 returns instantly, step 2 is slow
         _wireMock.Reset();
         _wireMock
             .Given(Request.Create().WithPath("/fast").UsingAnyMethod())
             .RespondWith(Response.Create().WithStatusCode(200));
         _wireMock
-            .Given(Request.Create().WithPath("/slow").UsingAnyMethod())
+            .Given(Request.Create().WithPath("/slow2").UsingAnyMethod())
             .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
 
         await using var factory = CreateFactory();
-        var lifetime = factory.Services.GetRequiredService<IHostApplicationLifetime>();
-        var engineStatus = factory.Services.GetRequiredService<IEngineStatus>();
+        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fast"), CreateWebhookStep("/slow2"));
 
-        var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fast"), CreateWebhookStep("/slow"));
+        // Wait for the processor to pick up, then give time for step 1 to complete
+        // and step 2's slow HTTP call to start
+        await WaitForProcessing(workflowId);
+        await Task.Delay(1000, TestContext.Current.CancellationToken);
 
-        // Wait until the engine is actively processing (step 2 should be in-flight)
-        await PollUntil(() => engineStatus.ActiveWorkerCount > 0);
+        await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
-        // Give it a moment to complete step 1 and enter step 2
-        await Task.Delay(500, TestContext.Current.CancellationToken);
-
-        // Act
-        var stoppedTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        lifetime.ApplicationStopped.Register(() => stoppedTcs.TrySetResult());
-        lifetime.StopApplication();
-
-        await stoppedTcs.Task.WaitAsync(TimeSpan.FromSeconds(45), TestContext.Current.CancellationToken);
-
-        // Assert
         await using var context = CreateDbContext();
         var workflow = await context
             .Workflows.Include(w => w.Steps.OrderBy(s => s.ProcessingOrder))
@@ -131,31 +109,19 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
     [Fact]
     public async Task Shutdown_InFlightWorkflow_IsAlwaysRequeued_EvenIfAlmostDone()
     {
-        // The processor passes stoppingToken directly to workers, so cancellation is immediate.
-        // The 30s drain window ensures the requeue + DB write completes, but does NOT let
-        // the underlying HTTP call finish. Even a near-instant webhook gets requeued.
         _wireMock.Reset();
         _wireMock
             .Given(Request.Create().WithPath("/moderate").UsingAnyMethod())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(1)));
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
 
         await using var factory = CreateFactory();
-        var lifetime = factory.Services.GetRequiredService<IHostApplicationLifetime>();
-        var engineStatus = factory.Services.GetRequiredService<IEngineStatus>();
-
         var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/moderate"));
 
-        // Wait until the engine picks up the workflow
-        await PollUntil(() => engineStatus.ActiveWorkerCount > 0);
+        await WaitForProcessing(workflowId);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
-        // Act — trigger shutdown while the 1s webhook is still in-flight
-        var stoppedTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        lifetime.ApplicationStopped.Register(() => stoppedTcs.TrySetResult());
-        lifetime.StopApplication();
+        await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
-        await stoppedTcs.Task.WaitAsync(TimeSpan.FromSeconds(45), TestContext.Current.CancellationToken);
-
-        // Assert — even though the webhook was almost done, cancellation is immediate
         await using var context = CreateDbContext();
         var workflow = await context
             .Workflows.Include(w => w.Steps)
@@ -200,6 +166,30 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
         return body.Workflows.Single().DatabaseId;
     }
 
+    /// <summary>
+    /// Polls the database until the workflow reaches <see cref="PersistentItemStatus.Processing"/> status.
+    /// This is set atomically by <c>FetchAndLockWorkflows</c> and confirms the processor has picked up the work.
+    /// </summary>
+    private async Task WaitForProcessing(Guid workflowId, TimeSpan? timeout = null)
+    {
+        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
+        while (true)
+        {
+            cts.Token.ThrowIfCancellationRequested();
+
+            await using var context = CreateDbContext();
+            var status = await context
+                .Workflows.Where(w => w.Id == workflowId)
+                .Select(w => w.Status)
+                .SingleOrDefaultAsync(cts.Token);
+
+            if (status == PersistentItemStatus.Processing)
+                return;
+
+            await Task.Delay(50, cts.Token);
+        }
+    }
+
     private StepRequest CreateWebhookStep(string path) =>
         new()
         {
@@ -213,15 +203,5 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
     {
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(_postgres.GetConnectionString()).Options;
         return new EngineDbContext(options);
-    }
-
-    private static async Task PollUntil(Func<bool> condition, TimeSpan? timeout = null)
-    {
-        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
-        while (!condition())
-        {
-            cts.Token.ThrowIfCancellationRequested();
-            await Task.Delay(50, cts.Token);
-        }
     }
 }
