@@ -2,7 +2,6 @@ import { FeatureFlag } from './FeatureFlag';
 import { renderHook } from '@testing-library/react';
 import { FeatureFlagsContextProvider, useFeatureFlagsContext } from './FeatureFlagsContext';
 import type { FeatureFlagsContextValue } from './FeatureFlagsContext';
-import React from 'react';
 
 const testFlag1 = FeatureFlag.AddComponentModal;
 const testFlag2 = FeatureFlag.ComponentConfigBeta;

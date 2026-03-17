@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioDetails, StudioTabs } from '@studio/components';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';

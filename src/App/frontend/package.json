@@ -139,7 +139,7 @@
     "classnames": "2.5.1",
     "cypress-parallel": "0.15.0",
     "date-fns": "4.1.0",
-    "dompurify": "3.3.1",
+    "dompurify": "3.3.2",
     "dot-object": "2.1.5",
     "fast-array-diff": "1.1.0",
     "fast-json-patch": "3.1.1",

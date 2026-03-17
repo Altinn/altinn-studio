@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { isCaretAtEnd, isCaretAtStart, isSomethingSelected } from './caretUtils';
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 
 describe('caretUtils', () => {

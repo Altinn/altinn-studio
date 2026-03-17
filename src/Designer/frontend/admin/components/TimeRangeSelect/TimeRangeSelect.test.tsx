@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { TimeRangeSelect, type TimeRangeSelectProps } from './TimeRangeSelect';
 import userEvent from '@testing-library/user-event';

@@ -1,4 +1,5 @@
 #nullable disable
+using Altinn.Studio.Designer.Converters;
 using Altinn.Studio.Designer.Filters.ApiKey;
 using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Filters.DataModeling;
@@ -35,7 +36,11 @@ namespace Altinn.Studio.Designer.Infrastructure
                 })
                 .AddNewtonsoftJson(options =>
                     options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())
-                );
+                )
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new NextStepTypeJsonConverter());
+                });
 
             services.AddMvc(options => options.EnableEndpointRouting = false);
 

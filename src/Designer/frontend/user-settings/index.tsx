@@ -1,4 +1,3 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import i18next from 'i18next';

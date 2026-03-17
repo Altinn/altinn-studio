@@ -1,4 +1,3 @@
-﻿import React from 'react';
 import type { AlertProps } from '@digdir/designsystemet-react';
 import { Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';

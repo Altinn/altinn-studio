@@ -1,5 +1,5 @@
 import type { CodeList } from './types/CodeList';
-import React, { useMemo, useRef, useCallback } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';

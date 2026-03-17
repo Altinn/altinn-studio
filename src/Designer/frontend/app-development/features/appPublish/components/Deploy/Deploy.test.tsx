@@ -1,4 +1,3 @@
-import React from 'react';
 import type { DeployProps } from './Deploy';
 import { Deploy } from './Deploy';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';

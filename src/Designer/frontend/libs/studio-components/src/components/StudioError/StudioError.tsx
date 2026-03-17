@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { StudioAlert } from '../StudioAlert';
 import type { StudioAlertProps } from '../StudioAlert';

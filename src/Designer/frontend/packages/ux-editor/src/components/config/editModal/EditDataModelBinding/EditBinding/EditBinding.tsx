@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import type { FormItem } from '../../../../../types/FormItem';
 import { SelectDataModelBinding } from './SelectDataModelBinding';
 import { SelectDataFieldBinding } from './SelectDataFieldBinding';
@@ -34,7 +34,7 @@ export const EditBinding = ({
   onSetDataModelSelectVisible,
   internalBindingFormat,
 }: EditBindingProps) => {
-  const [binding, setBinding] = React.useState<ExplicitDataModelBinding | undefined>(
+  const [binding, setBinding] = useState<ExplicitDataModelBinding | undefined>(
     internalBindingFormat,
   );
   const { t } = useTranslation();

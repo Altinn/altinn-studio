@@ -1,4 +1,3 @@
-import React from 'react';
 import { ImageComponent } from './Image';
 import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';

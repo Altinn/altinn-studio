@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { ConvertChoicesModal } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig/ConvertPageToPdfWhenExistingModal/ConvertChoicesModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import type { Expression, SubExpression, ExpressionProperty } from '../../../../types/Expressions';
 import {
   convertExternalExpressionToInternal,

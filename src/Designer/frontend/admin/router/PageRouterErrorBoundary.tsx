@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioParagraph, StudioPageError } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from '@digdir/designsystemet-react';

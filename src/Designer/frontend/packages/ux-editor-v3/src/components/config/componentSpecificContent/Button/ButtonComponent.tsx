@@ -1,4 +1,3 @@
-import React from 'react';
 import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ButtonComponent.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';

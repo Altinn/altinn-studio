@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ITextResource } from 'app-shared/types/global';
 import type { TextResourceOptionProps } from './TextResource';
 import { TextResourceOption } from './TextResource';

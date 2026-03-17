@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import { texts } from '../../../../test-data/texts';
 import { SubexpressionErrors } from './SubexpressionErrors';

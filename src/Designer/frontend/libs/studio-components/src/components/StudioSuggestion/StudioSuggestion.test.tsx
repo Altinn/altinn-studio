@@ -1,4 +1,5 @@
-import React, { type ForwardedRef } from 'react';
+import type { ForwardedRef } from 'react';
+import React from 'react';
 import { render, screen, type RenderResult } from '@testing-library/react';
 import { StudioSuggestion } from '.';
 import { type StudioSuggestionOptionProps } from './StudioSuggestionOption/StudioSuggestionOption';

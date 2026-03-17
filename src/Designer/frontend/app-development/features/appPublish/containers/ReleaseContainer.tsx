@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import classes from './ReleaseContainer.module.css';
 import type { AppRelease as AppReleaseType } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';

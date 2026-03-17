@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { ResourceItem } from '../ResourceItem';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';

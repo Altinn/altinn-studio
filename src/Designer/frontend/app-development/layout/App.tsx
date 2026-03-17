@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import './App.css';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import classes from './App.module.css';

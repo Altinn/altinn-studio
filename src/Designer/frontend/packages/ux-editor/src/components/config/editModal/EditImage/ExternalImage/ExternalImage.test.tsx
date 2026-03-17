@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ExternalImageProps } from './ExternalImage';

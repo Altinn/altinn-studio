@@ -1,4 +1,4 @@
-import React, { type ForwardedRef } from 'react';
+import type { ForwardedRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { StudioAlertProps } from './StudioAlert';
 import { StudioAlert } from './StudioAlert';

@@ -540,4 +540,149 @@ public class SigningDelegationServiceTests
         // Assert
         Assert.False(success);
     }
+
+    [Fact]
+    public async Task DelegateSigneeRights_WithAdditionalActions_DelegatesAllRights()
+    {
+        // Arrange
+        DelegationRequest? capturedRequest = null;
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        accessManagementClient
+            .Setup(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<DelegationRequest, CancellationToken>((req, _) => capturedRequest = req)
+            .ReturnsAsync(new DelegationResponse());
+        var logger = new Mock<ILogger<SigningDelegationService>>();
+        var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
+        var taskId = "taskId";
+        Guid instanceGuid = Guid.NewGuid();
+        var instanceId = "instanceOwnerPartyId" + "/" + instanceGuid;
+        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+        var appIdentifier = new AppIdentifier("testOrg", "testApp");
+        var signeeContexts = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                SigneeState = new SigneeState() { IsAccessDelegated = false },
+                Signee = _signee,
+                AdditionalActionsToDelegate = ["reject"],
+            },
+        };
+        var ct = new CancellationToken();
+
+        // Act
+        (signeeContexts, var success) = await service.DelegateSigneeRights(
+            taskId,
+            instanceId,
+            instanceOwnerPartyUuid,
+            appIdentifier,
+            signeeContexts,
+            ct
+        );
+
+        // Assert
+        Assert.True(success);
+        Assert.True(signeeContexts[0].SigneeState.IsAccessDelegated);
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(3, capturedRequest!.Rights.Count);
+        Assert.Equal("read", capturedRequest.Rights[0].Action!.Value);
+        Assert.Equal("sign", capturedRequest.Rights[1].Action!.Value);
+        Assert.Equal("reject", capturedRequest.Rights[2].Action!.Value);
+    }
+
+    [Fact]
+    public async Task DelegateSigneeRights_WithNullAdditionalActions_DelegatesOnlyReadAndSign()
+    {
+        // Arrange
+        DelegationRequest? capturedRequest = null;
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        accessManagementClient
+            .Setup(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<DelegationRequest, CancellationToken>((req, _) => capturedRequest = req)
+            .ReturnsAsync(new DelegationResponse());
+        var logger = new Mock<ILogger<SigningDelegationService>>();
+        var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
+        var taskId = "taskId";
+        Guid instanceGuid = Guid.NewGuid();
+        var instanceId = "instanceOwnerPartyId" + "/" + instanceGuid;
+        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+        var appIdentifier = new AppIdentifier("testOrg", "testApp");
+        var signeeContexts = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                SigneeState = new SigneeState() { IsAccessDelegated = false },
+                Signee = _signee,
+                AdditionalActionsToDelegate = null,
+            },
+        };
+        var ct = new CancellationToken();
+
+        // Act
+        (_, bool success) = await service.DelegateSigneeRights(
+            taskId,
+            instanceId,
+            instanceOwnerPartyUuid,
+            appIdentifier,
+            signeeContexts,
+            ct
+        );
+
+        // Assert
+        Assert.True(success);
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(2, capturedRequest!.Rights.Count);
+        Assert.Equal("read", capturedRequest.Rights[0].Action!.Value);
+        Assert.Equal("sign", capturedRequest.Rights[1].Action!.Value);
+    }
+
+    [Fact]
+    public async Task RevokeSigneeRights_WithAdditionalActions_RevokesAllRights()
+    {
+        // Arrange
+        DelegationRequest? capturedRequest = null;
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        accessManagementClient
+            .Setup(x => x.RevokeRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<DelegationRequest, CancellationToken>((req, _) => capturedRequest = req)
+            .ReturnsAsync(new DelegationResponse());
+        var logger = new Mock<ILogger<SigningDelegationService>>();
+        var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
+        var taskId = "taskId";
+        Guid instanceGuid = Guid.NewGuid();
+        var instanceId = "instanceOwnerPartyId" + "/" + instanceGuid;
+        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+        var appIdentifier = new AppIdentifier("testOrg", "testApp");
+        var signeeContexts = new List<SigneeContext>()
+        {
+            new()
+            {
+                TaskId = taskId,
+                SigneeState = new SigneeState() { IsAccessDelegated = true },
+                Signee = _signee,
+                AdditionalActionsToDelegate = ["reject"],
+            },
+        };
+        var ct = new CancellationToken();
+
+        // Act
+        (signeeContexts, var success) = await service.RevokeSigneeRights(
+            taskId,
+            instanceId,
+            instanceOwnerPartyUuid,
+            appIdentifier,
+            signeeContexts,
+            ct
+        );
+
+        // Assert
+        Assert.True(success);
+        Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(3, capturedRequest!.Rights.Count);
+        Assert.Equal("read", capturedRequest.Rights[0].Action!.Value);
+        Assert.Equal("sign", capturedRequest.Rights[1].Action!.Value);
+        Assert.Equal("reject", capturedRequest.Rights[2].Action!.Value);
+    }
 }

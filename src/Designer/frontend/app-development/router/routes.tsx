@@ -1,20 +1,18 @@
-import React from 'react';
+import { lazy } from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-const Overview = React.lazy(() => import('app-development/features/overview/components/Overview'));
-const DataModellingContainer = React.lazy(
+const Overview = lazy(() => import('app-development/features/overview/components/Overview'));
+const DataModellingContainer = lazy(
   () => import('app-development/features/dataModelling/containers/DataModellingContainer'),
 );
-const DeployPage = React.lazy(() => import('app-development/features/appPublish/pages/DeployPage'));
-const ProcessEditor = React.lazy(
-  () => import('app-development/features/processEditor/ProcessEditor'),
-);
-const AppContentLibrary = React.lazy(
+const DeployPage = lazy(() => import('app-development/features/appPublish/pages/DeployPage'));
+const ProcessEditor = lazy(() => import('app-development/features/processEditor/ProcessEditor'));
+const AppContentLibrary = lazy(
   () => import('app-development/features/appContentLibrary/AppContentLibrary'),
 );
-const AppSettings = React.lazy(() => import('app-development/features/appSettings/AppSettings'));
-const TextEditor = React.lazy(() => import('app-development/features/textEditor/TextEditor'));
-const AiAssistant = React.lazy(() => import('app-development/features/aiAssistant/AiAssistant'));
-const UiEditor = React.lazy(() => import('app-development/features/uiEditor/UiEditor'));
+const AppSettings = lazy(() => import('app-development/features/appSettings/AppSettings'));
+const TextEditor = lazy(() => import('app-development/features/textEditor/TextEditor'));
+const AiAssistant = lazy(() => import('app-development/features/aiAssistant/AiAssistant'));
+const UiEditor = lazy(() => import('app-development/features/uiEditor/UiEditor'));
 
 interface RouterRoute {
   path: string;

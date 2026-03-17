@@ -1,4 +1,4 @@
-import React, { type ReactElement, type HTMLAttributes } from 'react';
+import type { ReactElement, HTMLAttributes } from 'react';
 import cn from 'classnames';
 import classes from './StudioRedirectBox.module.css';
 import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';

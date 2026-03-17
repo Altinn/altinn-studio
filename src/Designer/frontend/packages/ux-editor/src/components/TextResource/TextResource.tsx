@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTextResourceValue } from './hooks/useTextResourceValue';
 import { TextResourceAction } from './TextResourceAction';
