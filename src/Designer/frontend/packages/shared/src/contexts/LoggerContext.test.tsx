@@ -1,4 +1,4 @@
-import { LoggerContextProvider } from './LoggerContext';
+import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { render } from '@testing-library/react';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
@@ -47,8 +47,17 @@ describe('LoggerContextProvider', () => {
   test('does initialize ApplicationInsights when connectionString is provided', () => {
     mockEnvironmentConfig({ aiConnectionString: mockConnectionString });
 
-    renderLoggerContext();
-    expect(ApplicationInsights).toHaveBeenCalled();
+    const customConfig = { disableTelemetry: true };
+    renderLoggerContext({ config: customConfig });
+
+    expect(ApplicationInsights).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: expect.objectContaining({
+          connectionString: mockConnectionString,
+          disableTelemetry: true,
+        }),
+      }),
+    );
   });
 
   test('does not crash when ApplicationInsights constructor throws', () => {
@@ -83,10 +92,11 @@ function expectGracefulFailureWhenSdkThrows(mockImplementation: () => unknown): 
   consoleErrorSpy.mockRestore();
 }
 
-function renderLoggerContext() {
-  return render(
-    <LoggerContextProvider config={{}}>
-      <div>child</div>
-    </LoggerContextProvider>,
-  );
+const defaultProps: LoggerContextProviderProps = {
+  config: {},
+  children: <div>child</div>,
+};
+
+function renderLoggerContext(props: Partial<LoggerContextProviderProps> = {}) {
+  return render(<LoggerContextProvider {...defaultProps} {...props} />);
 }
