@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { SubformDataModel, type SubformDataModelProps } from './SubformDataModel';
 import userEvent from '@testing-library/user-event';

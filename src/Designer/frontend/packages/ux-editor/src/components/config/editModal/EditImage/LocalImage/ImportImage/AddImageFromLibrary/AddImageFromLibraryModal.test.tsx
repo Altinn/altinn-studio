@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { AddImageFromLibraryModal } from './AddImageFromLibraryModal';

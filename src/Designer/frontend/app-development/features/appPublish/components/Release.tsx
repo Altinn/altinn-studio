@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './Release.module.css';
 import { DateUtils } from '@studio/pure-functions';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';

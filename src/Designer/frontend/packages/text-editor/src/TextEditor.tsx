@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import classes from './TextEditor.module.css';
 import type { LangCode, TextResourceEntryDeletion, TextResourceIdMutation } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { idExists } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { useSelectedFormLayout } from '../../../hooks';

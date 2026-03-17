@@ -1,5 +1,4 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import type { StudioPropertyButtonProps } from './StudioPropertyButton';
 import { StudioPropertyButton } from './StudioPropertyButton';
 import { render, screen } from '@testing-library/react';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { EditTabProps } from './EditTab';
 import { EditTab } from './EditTab';
 import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';

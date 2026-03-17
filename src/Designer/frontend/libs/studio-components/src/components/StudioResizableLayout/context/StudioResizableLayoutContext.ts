@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext } from 'react';
 import type { StudioResizableOrientation } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 
 export type StudioResizableLayoutContextProps = {
@@ -8,6 +8,6 @@ export type StudioResizableLayoutContextProps = {
   resizeTo: (index: number, size: number) => void;
 };
 
-export const StudioResizableLayoutContext = React.createContext<
+export const StudioResizableLayoutContext = createContext<
   Partial<StudioResizableLayoutContextProps> | undefined
 >(undefined);

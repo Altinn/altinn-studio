@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 import userEvent from '@testing-library/user-event';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
 import type { ConfigCustomFileEndingProps } from './ConfigCustomFileEnding';

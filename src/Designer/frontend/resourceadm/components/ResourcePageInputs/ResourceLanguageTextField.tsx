@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement, ReactNode, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioButton, StudioTextfield, StudioTabs } from '@studio/components';

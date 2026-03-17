@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IToolbarElement } from '../../types/global';
 import { ToolbarItem } from './ToolbarItem';
 import { confOnScreenComponents } from '../../data/formItemConfig';

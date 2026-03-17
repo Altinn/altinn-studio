@@ -1,5 +1,4 @@
 import type { HTMLAttributes } from 'react';
-import React from 'react';
 import { useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';

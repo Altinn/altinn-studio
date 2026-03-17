@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
 import { StudioDragAndDropTree } from '@studio/components';

@@ -90,7 +90,7 @@ internal static class SetterGenerator
             if (modelPathNode.Properties.Count == 0)
             {
                 // Simple list element - direct set
-                if (modelPathNode.IsNullable)
+                if (modelPathNode.IsNullable || modelPathNode.IsCSharpValueType())
                 {
                     builder.Append(
                         $$"""

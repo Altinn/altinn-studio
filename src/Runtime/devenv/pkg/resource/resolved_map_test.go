@@ -80,7 +80,7 @@ func TestResolvedMap_Concurrent(t *testing.T) {
 	const goroutines = 100
 	var wg sync.WaitGroup
 
-	for i := 0; i < goroutines; i++ {
+	for i := range goroutines {
 		wg.Add(1)
 		go func(n int) {
 			defer wg.Done()

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
@@ -33,7 +33,7 @@ export const SelectDataModelComponent = ({
   const { org, app } = useStudioEnvironmentParams();
   const { selectedLayoutSet } = useAppContext();
   const { data } = useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined);
-  const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
+  const [dataModelElementNames, setDataModelElementNames] = useState<Option[]>([]);
 
   useEffect(() => {
     if (!data) return;

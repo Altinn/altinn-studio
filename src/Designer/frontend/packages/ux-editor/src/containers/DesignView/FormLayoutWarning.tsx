@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IInternalLayout } from '../../types/global';
 import { getDuplicatedIds } from '../../utils/formLayoutUtils';
 import { Paragraph } from '@digdir/designsystemet-react';

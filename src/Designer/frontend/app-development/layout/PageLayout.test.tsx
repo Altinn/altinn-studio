@@ -1,4 +1,3 @@
-import React from 'react';
 import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -17,6 +16,10 @@ import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
+}));
+
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
 
 describe('PageLayout', () => {

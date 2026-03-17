@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioHeading, StudioParagraph } from '@studio/components';
 import classes from './ValidateNavigation.module.css';
 import { useTranslation } from 'react-i18next';

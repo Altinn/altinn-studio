@@ -1,4 +1,5 @@
-import React, { useState, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import { useState } from 'react';
 import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';

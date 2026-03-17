@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import React, { useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { ContentLibrary } from '@studio/content-library';
 import type {
   CodeListWithMetadata,

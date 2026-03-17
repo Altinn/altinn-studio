@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';

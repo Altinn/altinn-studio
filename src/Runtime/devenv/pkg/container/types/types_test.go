@@ -92,3 +92,18 @@ func TestDefaultPodmanCapabilities(t *testing.T) {
 		t.Error("DefaultPodmanCapabilities() returned shared backing storage")
 	}
 }
+
+func TestContainerPlatformBuildCLI(t *testing.T) {
+	tests := map[ContainerPlatform]string{
+		PlatformDocker:  "docker",
+		PlatformColima:  "docker",
+		PlatformPodman:  "podman",
+		PlatformUnknown: "",
+	}
+
+	for platform, want := range tests {
+		if got := platform.BuildCLI(); got != want {
+			t.Fatalf("%v.BuildCLI() = %q, want %q", platform, got, want)
+		}
+	}
+}

@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../testing/mocks';
 import { EditNameAction, type EditNameActionProps } from './EditNameAction';
 import { screen } from '@testing-library/react';

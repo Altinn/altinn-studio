@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { GiteaFetchCompleted, type GiteaFetchCompletedProps } from './GiteaFetchCompleted';
 

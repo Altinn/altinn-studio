@@ -12,7 +12,6 @@ import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
 import type { ExtendedRenderOptions } from '../../../../../../../testing/mocks';
 import { FeatureFlag } from '@studio/feature-flags';
-import React from 'react';
 import { PublishedOptionListSelector } from './PublishedOptionListSelector';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';

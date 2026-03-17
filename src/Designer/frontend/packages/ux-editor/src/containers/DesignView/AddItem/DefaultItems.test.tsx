@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { DefaultItems, type DefaultItemsProps } from './DefaultItems';
 import { ComponentType } from 'app-shared/types/ComponentType';

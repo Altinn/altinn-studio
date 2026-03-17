@@ -1,4 +1,5 @@
-import React, { forwardRef, type ReactElement, type Ref } from 'react';
+import type { ReactElement, Ref } from 'react';
+import React, { forwardRef } from 'react';
 import { StudioTextfield } from '../StudioTextfield';
 import classes from './StudioIconViewer.module.css';
 import { StudioParagraph } from '../StudioParagraph';

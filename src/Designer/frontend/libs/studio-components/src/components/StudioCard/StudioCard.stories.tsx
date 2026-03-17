@@ -1,11 +1,11 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCard } from './';
 
-const meta: Meta<typeof StudioCard> = {
+const meta = {
   title: 'Components/StudioCard',
   component: StudioCard,
-};
+} satisfies Meta<typeof StudioCard>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -25,5 +25,3 @@ export const WithBlocks: Story = {
     ),
   },
 };
-
-export default meta;

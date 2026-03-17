@@ -8,12 +8,19 @@ import "fmt"
 type Status int
 
 const (
+	// StatusUnknown means the resource state could not be determined.
 	StatusUnknown Status = iota
+	// StatusPending means the resource exists but is not ready to act yet.
 	StatusPending
+	// StatusCreating means reconciliation is actively creating the resource.
 	StatusCreating
+	// StatusReady means the resource is healthy and available.
 	StatusReady
+	// StatusFailed means reconciliation completed in a failed state.
 	StatusFailed
+	// StatusDestroying means reconciliation is actively removing the resource.
 	StatusDestroying
+	// StatusDestroyed means the resource no longer exists.
 	StatusDestroyed
 )
 

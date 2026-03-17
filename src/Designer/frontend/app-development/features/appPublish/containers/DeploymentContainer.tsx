@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import classes from './DeploymentContainer.module.css';
 import {
   useOrgListQuery,

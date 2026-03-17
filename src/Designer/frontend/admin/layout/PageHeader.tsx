@@ -1,10 +1,9 @@
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
 import type { Org } from 'app-shared/types/OrgList';
 import type { StudioProfileMenuGroup } from '@studio/components-legacy';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { StudioAvatar } from '@studio/components';
 import type { ReactElement } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
@@ -12,6 +11,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { NavLink, useParams } from 'react-router-dom';
 import classes from './PageHeader.module.css';
 import { useCurrentOrg, useCurrentUser } from './PageLayout';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 
 export const PageHeader = (): ReactElement => {
   const org = useCurrentOrg();
@@ -87,24 +87,31 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
   });
 
   const { mutate: logout } = useLogoutMutation();
+  const { environment } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
+
+  const docsMenuItem = {
+    action: { type: 'link' as const, href: altinnDocsUrl() },
+    itemName: t('sync_header.documentation'),
+  };
+
+  const userSettingsMenuItem = {
+    action: {
+      type: 'link' as const,
+      href: USER_SETTINGS_BASENAME,
+      openInNewTab: false,
+    },
+    itemName: t('user.settings'),
+  };
+
+  const logOutMenuItem = {
+    action: { type: 'button' as const, onClick: logout },
+    itemName: t('shared.header_logout'),
+  };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    {
-      items: [
-        {
-          action: { type: 'link', href: altinnDocsUrl() },
-          itemName: t('sync_header.documentation'),
-        },
-      ],
-    },
-    {
-      items: [
-        {
-          action: { type: 'button', onClick: logout },
-          itemName: t('shared.header_logout'),
-        },
-      ],
-    },
+    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
+    { items: [logOutMenuItem] },
   ];
 
   return (

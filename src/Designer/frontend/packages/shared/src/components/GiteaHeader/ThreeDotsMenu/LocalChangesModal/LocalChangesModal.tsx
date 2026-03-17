@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';

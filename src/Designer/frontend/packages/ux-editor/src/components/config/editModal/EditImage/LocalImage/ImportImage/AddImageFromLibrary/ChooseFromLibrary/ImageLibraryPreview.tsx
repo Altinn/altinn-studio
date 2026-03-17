@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './ChooseFromLibrary.module.css';
 import { imagePath } from 'app-shared/api/paths';
 import { FileNameUtils } from '@studio/pure-functions';

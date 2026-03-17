@@ -1,10 +1,7 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioTextfield } from './StudioTextfield';
 
-type Story = StoryFn<typeof StudioTextfield>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioTextfield',
   component: StudioTextfield,
   argTypes: {
@@ -12,15 +9,17 @@ const meta: Meta = {
       control: 'boolean',
     },
   },
-};
-export const Preview: Story = (args) => <StudioTextfield {...args}></StudioTextfield>;
-
-Preview.args = {
-  label: 'Textfield',
-  description: '',
-  error: '',
-  required: false,
-  tagText: 'Må fylles ut',
-};
-
+} satisfies Meta<typeof StudioTextfield>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    label: 'Textfield',
+    description: '',
+    error: '',
+    required: false,
+    tagText: 'Må fylles ut',
+  },
+};

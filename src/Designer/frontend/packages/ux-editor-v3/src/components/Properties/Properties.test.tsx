@@ -1,4 +1,3 @@
-import React from 'react';
 import { Properties } from './Properties';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import { FormItemContext } from '../../containers/FormItemContext';
