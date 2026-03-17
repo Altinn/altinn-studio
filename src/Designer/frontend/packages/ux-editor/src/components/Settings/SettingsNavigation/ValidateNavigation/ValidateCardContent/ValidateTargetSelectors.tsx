@@ -4,23 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
-import {
-  dummyDataPages,
-  getAvailablePages,
-  getAvailableTasks,
-} from '../utils/ValidateNavigationUtils';
+import { getAvailablePages, getAvailableTasks } from '../utils/ValidateNavigationUtils';
 import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
+import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
 
 type RenderTaskOptionsProps = {
   tasksWithRules?: string[];
-  selectedTasks?: string[];
+  initialSelectedTasks?: string[];
 };
 
-const RenderTaskOptions = ({ tasksWithRules, selectedTasks }: RenderTaskOptionsProps) => {
+const RenderTaskOptions = ({ tasksWithRules, initialSelectedTasks }: RenderTaskOptionsProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
   const layoutSets = layoutSetsSchema?.sets || [];
-  const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, selectedTasks);
+  const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, initialSelectedTasks);
 
   return availableTasks.map((task) => (
     <StudioSuggestion.Option key={task} value={task}>
@@ -31,11 +28,17 @@ const RenderTaskOptions = ({ tasksWithRules, selectedTasks }: RenderTaskOptionsP
 
 export type TaskSelectorProps = {
   selectedTask: StudioSuggestionItem;
+  initialSelectedTask?: StudioSuggestionItem;
   onChange: (value: StudioSuggestionItem) => void;
 };
 
-export const TaskSelector = ({ selectedTask, onChange }: TaskSelectorProps) => {
+export const TaskSelector = ({
+  selectedTask,
+  initialSelectedTask,
+  onChange,
+}: TaskSelectorProps) => {
   const { t } = useTranslation();
+  const initialSelectedTaskValue = initialSelectedTask?.value;
 
   return (
     <StudioSuggestion
@@ -45,22 +48,31 @@ export const TaskSelector = ({ selectedTask, onChange }: TaskSelectorProps) => {
       onSelectedChange={onChange}
       multiple={false}
     >
-      <RenderTaskOptions />
+      <RenderTaskOptions initialSelectedTasks={[initialSelectedTaskValue]} />
     </StudioSuggestion>
   );
 };
 
 export type TasksSelectorProps = {
   selectedTasks: StudioSuggestionItem[];
+  initialSelectedTasks?: StudioSuggestionItem[];
   onChange: (value: StudioSuggestionItem[]) => void;
 };
 
-export const TasksSelector = ({ selectedTasks, onChange }: TasksSelectorProps) => {
+export const TasksSelector = ({
+  selectedTasks,
+  initialSelectedTasks,
+  onChange,
+}: TasksSelectorProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: settings } = useValidationOnNavigationGroupedSettingsQuery(org, app);
   const tasksWithRules = settings?.flatMap((config) => config.tasks) ?? [];
   const selectedTasksValues = selectedTasks.map((task) => task.value);
+  const initialSelectedTasksValues = initialSelectedTasks?.map((task) => task.value) || [];
+  const filteredTasksWithRules = tasksWithRules.filter(
+    (task) => !selectedTasksValues.includes(task),
+  );
 
   return (
     <StudioSuggestion
@@ -70,7 +82,10 @@ export const TasksSelector = ({ selectedTasks, onChange }: TasksSelectorProps) =
       onSelectedChange={onChange}
       multiple
     >
-      <RenderTaskOptions tasksWithRules={tasksWithRules} selectedTasks={selectedTasksValues} />
+      <RenderTaskOptions
+        tasksWithRules={filteredTasksWithRules}
+        initialSelectedTasks={initialSelectedTasksValues}
+      />
     </StudioSuggestion>
   );
 };
@@ -85,11 +100,15 @@ export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelect
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
+  const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
+
+  const configsForTask = (pageValidationData ?? []).filter((config) => config.task === taskName);
+
   const availablePages = getAvailablePages(
     formLayouts,
-    dummyDataPages,
+    configsForTask,
     selectedPages?.map((p) => p.value),
-  ); // dummyDataPages is just to simulate the rules that are already set, in real implementation this will be replaced with fetched query data
+  );
 
   const noAvailablePages = taskName && availablePages.length === 0;
   const emptyText = noAvailablePages

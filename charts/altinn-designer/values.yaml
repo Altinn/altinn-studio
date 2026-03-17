@@ -61,7 +61,33 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
-    - name: FeatureManagement__AnsattPorten
+    - name: StudioOidcLoginSettings__Authority
+      value: https://ansattporten.no
+    - name: StudioOidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: StudioOidcLoginSettings__CookieExpiryTimeInMinutes
+      value: "1440"
+    - name: StudioOidcLoginSettings__Scopes__0
+      value: openid
+    - name: StudioOidcLoginSettings__Scopes__1
+      value: profile
+    - name: StudioOidcLoginSettings__AcrValues
+      value: substantial
+    - name: StudioOidcLoginSettings__AccountLinkUrl
+      value: https://dev.altinn.studio/repos/user/oauth2/ansattporten
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__Type
+      value: "ansattporten:altinn:service"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
+      value: "urn:altinn:resource:2480:40"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
+      value: "enterprise"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
+      value: "ansattporten:altinn:service"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
+      value: "urn:altinn:resource:5613:1"
+    - name: MaskinPortenHttpClientSettings__BaseUrl
+      value: "https://api.samarbeid.digdir.no"
+    - name: FeatureManagement__StudioOidc
       value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
@@ -123,8 +149,34 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
-    - name: FeatureManagement__AnsattPorten
-      value: "false"
+    - name: StudioOidcLoginSettings__Authority
+      value: https://ansattporten.no
+    - name: StudioOidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: StudioOidcLoginSettings__CookieExpiryTimeInMinutes
+      value: "1440"
+    - name: StudioOidcLoginSettings__Scopes__0
+      value: openid
+    - name: StudioOidcLoginSettings__Scopes__1
+      value: profile
+    - name: StudioOidcLoginSettings__AcrValues
+      value: substantial
+    - name: StudioOidcLoginSettings__AccountLinkUrl
+      value: https://staging.altinn.studio/repos/user/oauth2/ansattporten
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__Type
+      value: "ansattporten:altinn:service"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
+      value: "urn:altinn:resource:2480:40"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
+      value: "enterprise"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
+      value: "ansattporten:altinn:service"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
+      value: "urn:altinn:resource:5613:1"
+    - name: MaskinPortenHttpClientSettings__BaseUrl
+      value: "https://api.samarbeid.digdir.no"
+    - name: FeatureManagement__StudioOidc
+      value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "true"
     - name: RedisCacheSettings__UseRedisCache
@@ -183,7 +235,33 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
-    - name: FeatureManagement__AnsattPorten
+    - name: StudioOidcLoginSettings__Authority
+      value: https://ansattporten.no
+    - name: StudioOidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: StudioOidcLoginSettings__CookieExpiryTimeInMinutes
+      value: "59"
+    - name: StudioOidcLoginSettings__Scopes__0
+      value: openid
+    - name: StudioOidcLoginSettings__Scopes__1
+      value: profile
+    - name: StudioOidcLoginSettings__AcrValues
+      value: substantial
+    - name: StudioOidcLoginSettings__AccountLinkUrl
+      value: https://altinn.studio/repos/user/oauth2/ansattporten
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__Type
+      value: "ansattporten:altinn:service"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
+      value: "urn:altinn:resource:2480:40"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
+      value: "enterprise"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
+      value: "ansattporten:altinn:service"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
+      value: "urn:altinn:resource:5613:1"
+    - name: MaskinPortenHttpClientSettings__BaseUrl
+      value: "https://api.samarbeid.digdir.no"
+    - name: FeatureManagement__StudioOidc
       value: "false"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
@@ -273,4 +351,5 @@ lifecycle:
         - -c
         - >
           mkdir -p wwwroot/designer/config &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\"}" > wwwroot/designer/config/env.json
+          STUDIO_OIDC_FLAG=$([ "${FeatureManagement__StudioOidc}" = "true" ] && echo true || echo false) &&
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"featureFlags\": {\"studioOidc\": ${STUDIO_OIDC_FLAG}}}" > wwwroot/designer/config/env.json

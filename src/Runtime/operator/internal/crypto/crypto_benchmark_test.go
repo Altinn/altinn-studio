@@ -5,12 +5,14 @@ import (
 	"testing"
 	"time"
 
+	opclock "altinn.studio/operator/internal/clock"
+
 	"altinn.studio/operator/test/utils"
-	"github.com/jonboulle/clockwork"
 )
 
 func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int) {
-	clock := clockwork.NewFakeClockAt(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC))
+	b.Helper()
+	clock := opclock.NewFakeClockAt(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
 	service := NewService(clock, random, algo, keySize)
 	subject := CertSubject{CommonName: "benchmark"}
@@ -19,7 +21,7 @@ func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		if _, err := service.CreateJwks(subject, notAfter); err != nil {
 			b.Fatalf("CreateJwks: %v", err)
 		}

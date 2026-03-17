@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: altinn-repositories
+  name: altinn-gitea
   labels:
-    release: altinn-repositories
+    release: altinn-gitea
 spec:
   selector:
     matchLabels:
-      run: altinn-repositories
+      run: altinn-gitea
   replicas: {{ .Values.replicaCount }}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        run: altinn-repositories
-        app: altinn-repositories
+        run: altinn-gitea
+        app: altinn-gitea
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
     spec:

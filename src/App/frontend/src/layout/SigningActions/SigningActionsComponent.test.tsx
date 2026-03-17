@@ -1,7 +1,6 @@
 import React, { ReactElement } from 'react';
 import { useParams } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
 import { randomUUID } from 'crypto';

@@ -1,5 +1,4 @@
-{{- $serviceName := include "altinn-repositories.fullname" . }}
-{{- $servicePort := .Values.service.externalPort }}
+{{- $servicePort := .Values.proxy.service.publicPort }}
 {{- $host := .Values.host }}
 {{- range $ingress := .Values.ingress }}
 apiVersion: networking.k8s.io/v1
@@ -24,8 +23,8 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: {{ $serviceName }}
-            port: 
+            name: altinn-repositories-public
+            port:
               number: {{ $servicePort }}
       {{- end }}
 ---

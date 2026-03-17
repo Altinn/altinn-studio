@@ -35,9 +35,7 @@ function TablePreview(props: StudioTableProps): ReactElement {
   );
 }
 
-type Story = StoryObj<typeof TablePreview>;
-
-const meta: Meta<typeof TablePreview> = {
+const meta = {
   title: 'Components/StudioTable',
   component: TablePreview,
   argTypes: {
@@ -55,8 +53,10 @@ const meta: Meta<typeof TablePreview> = {
       control: 'boolean',
     },
   },
-};
+} satisfies Meta<typeof TablePreview>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {

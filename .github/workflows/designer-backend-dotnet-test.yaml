@@ -44,6 +44,6 @@ jobs:
           dotnet test backend/Designer.sln --filter FullyQualifiedName~DataModelsController --no-build || exit 1;
           dotnet test backend/Designer.sln --filter FullyQualifiedName~ResourceAdminController --no-build || exit 1;
           dotnet test backend/Designer.sln --filter FullyQualifiedName~TextController --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
-          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build
+          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=StudioOidcGiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
+          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=StudioOidcGiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build
         working-directory: src/Designer

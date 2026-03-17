@@ -1,16 +1,16 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDeleteButton } from './StudioDeleteButton';
 
-type Story = StoryFn<typeof StudioDeleteButton>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioDeleteButton',
   component: StudioDeleteButton,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioDeleteButton {...args} />;
-
-Preview.args = {
-  confirmMessage: 'Are you sure you want to delete this item?',
-};
+} satisfies Meta<typeof StudioDeleteButton>;
 export default meta;
+
+type Story = StoryObj<typeof StudioDeleteButton>;
+
+export const Preview: Story = {
+  args: {
+    confirmMessage: 'Are you sure you want to delete this item?',
+  },
+};
