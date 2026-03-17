@@ -3,7 +3,6 @@ import { StudioLibraryElement } from './StudioLibraryElement';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import React from 'react';
 
 // Test data:
 const href = '#';

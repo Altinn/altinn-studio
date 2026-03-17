@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
 import type { FieldNode } from '@altinn/schema-model';

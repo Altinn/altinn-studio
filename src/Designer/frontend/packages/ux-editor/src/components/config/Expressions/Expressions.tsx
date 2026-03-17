@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { ExpressionContent } from '../ExpressionContent';
 import classes from './Expressions.module.css';

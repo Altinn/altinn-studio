@@ -1,5 +1,4 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { StudioDecimalInputProps } from './StudioDecimalInput';
 import { StudioDecimalInput } from './StudioDecimalInput';

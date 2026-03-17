@@ -68,7 +68,7 @@ internal sealed class SigningDelegationService(
                                 partyUuid.ToString()
                                 ?? throw new InvalidOperationException("Delegatee: PartyUuid is null"),
                         },
-                        Rights = CreateRights(appIdentifier, taskId),
+                        Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
                     };
                     await accessManagementClient.DelegateRights(delegationRequest, ct);
                     state.IsAccessDelegated = true;
@@ -125,7 +125,7 @@ internal sealed class SigningDelegationService(
                                 partyUuid.ToString()
                                 ?? throw new InvalidOperationException("Delegatee: PartyUuid is null"),
                         },
-                        Rights = CreateRights(appIdentifier, taskId),
+                        Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
                     };
                     await accessManagementClient.RevokeRights(delegationRequest, ct);
                     signeeContext.SigneeState.IsAccessDelegated = false;
@@ -155,7 +155,11 @@ internal sealed class SigningDelegationService(
         }
     }
 
-    private static List<RightRequest> CreateRights(AppIdentifier appIdentifier, string taskId)
+    private static List<RightRequest> CreateRights(
+        AppIdentifier appIdentifier,
+        string taskId,
+        List<string>? additionalActions
+    )
     {
         var resources = new List<Resource>
         {
@@ -164,7 +168,7 @@ internal sealed class SigningDelegationService(
             new TaskResource { Value = taskId },
         };
 
-        return
+        List<RightRequest> rights =
         [
             new RightRequest
             {
@@ -177,5 +181,21 @@ internal sealed class SigningDelegationService(
                 Action = new AltinnAction { Value = ActionType.Sign },
             },
         ];
+
+        if (additionalActions is not null)
+        {
+            foreach (string action in additionalActions)
+            {
+                rights.Add(
+                    new RightRequest
+                    {
+                        Resource = resources,
+                        Action = new AltinnAction { Value = action },
+                    }
+                );
+            }
+        }
+
+        return rights;
     }
 }

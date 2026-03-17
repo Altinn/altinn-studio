@@ -1,4 +1,3 @@
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 import type { StudioTextResourceValueEditorProps } from './StudioTextResourceValueEditor';
 import { StudioTextResourceValueEditor } from './StudioTextResourceValueEditor';

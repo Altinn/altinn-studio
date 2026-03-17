@@ -1,11 +1,5 @@
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-  useMemo,
-  type ReactElement,
-  type ReactNode,
-} from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { usePostHog } from '@posthog/react';
 import { CookieStorage } from '@studio/browser-storage';
 import type { ConsentState, ConsentPreferences, StoredConsentState } from './types';

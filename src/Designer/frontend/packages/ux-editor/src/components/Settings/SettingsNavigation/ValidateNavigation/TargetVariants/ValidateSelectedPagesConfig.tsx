@@ -1,4 +1,3 @@
-import React from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import { Scope, convertToExternalConfig } from '../utils/ValidateNavigationUtils';
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';

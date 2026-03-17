@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import { StudioDragAndDropList } from './';
 import type { StudioDragAndDropListItemContextProps } from '../StudioDragAndDropListItem/StudioDragAndDropListItemContext';
 import { StudioDragAndDropListItemContext } from '../StudioDragAndDropListItem/StudioDragAndDropListItemContext';

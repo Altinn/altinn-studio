@@ -7,7 +7,6 @@ import {
 } from '@studio/components';
 import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './InstancesTable.module.css';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/types/InstancesResponse';

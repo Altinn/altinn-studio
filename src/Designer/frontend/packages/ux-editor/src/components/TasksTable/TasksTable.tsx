@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioButton, StudioLinkButton, StudioTable } from '@studio/components';
 import classes from './TasksTable.module.css';
 import cn from 'classnames';

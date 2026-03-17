@@ -4,7 +4,6 @@ import type { CodeListDataEditorProps } from './CodeListDataEditor';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 
 // Test data:

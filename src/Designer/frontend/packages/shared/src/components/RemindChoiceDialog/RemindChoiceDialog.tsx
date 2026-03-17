@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './RemindChoiceDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';

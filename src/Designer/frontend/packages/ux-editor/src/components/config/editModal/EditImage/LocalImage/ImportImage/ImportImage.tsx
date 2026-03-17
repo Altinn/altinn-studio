@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { StudioButton } from '@studio/components';
 import classes from './ImportImage.module.css';
 import { AddImageFromLibraryModal } from './AddImageFromLibrary/AddImageFromLibraryModal';

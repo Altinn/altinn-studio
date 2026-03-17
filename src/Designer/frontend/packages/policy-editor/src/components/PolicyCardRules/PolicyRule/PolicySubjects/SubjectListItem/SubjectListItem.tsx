@@ -1,4 +1,4 @@
-import React, { type ElementType } from 'react';
+import type { ElementType } from 'react';
 import cn from 'classnames';
 import { StudioCheckbox } from '@studio/components';
 import classes from './SubjectListItem.module.css';

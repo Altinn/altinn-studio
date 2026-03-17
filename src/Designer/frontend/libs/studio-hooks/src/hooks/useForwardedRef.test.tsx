@@ -1,4 +1,4 @@
-import React, { createRef, forwardRef } from 'react';
+import { createRef, forwardRef } from 'react';
 import { useForwardedRef } from './useForwardedRef';
 import { render, screen } from '@testing-library/react';
 

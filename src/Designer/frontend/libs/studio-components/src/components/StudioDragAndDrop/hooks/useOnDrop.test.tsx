@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useOnDrop } from './useOnDrop';
 import type { ExistingDndItem, HandleAdd, HandleMove, ItemPosition, NewDndItem } from '../types';

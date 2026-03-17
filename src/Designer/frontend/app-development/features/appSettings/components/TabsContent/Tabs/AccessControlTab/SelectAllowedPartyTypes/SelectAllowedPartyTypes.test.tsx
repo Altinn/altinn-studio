@@ -1,4 +1,3 @@
-import React from 'react';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 import type { SelectAllowedPartyTypesProps } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';

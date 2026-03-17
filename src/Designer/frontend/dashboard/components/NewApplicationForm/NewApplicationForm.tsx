@@ -1,4 +1,5 @@
-import React, { type FormEvent, type ChangeEvent, useState } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { TemplateSelector } from '../TemplateSelector/TemplateSelector';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import classes from './NewApplicationForm.module.css';

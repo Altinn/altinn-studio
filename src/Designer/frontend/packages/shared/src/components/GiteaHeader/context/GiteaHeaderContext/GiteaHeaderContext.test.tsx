@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { useGiteaHeaderContext } from './GiteaHeaderContext';
 import { renderWithProviders } from '../../mocks/renderWithProviders';

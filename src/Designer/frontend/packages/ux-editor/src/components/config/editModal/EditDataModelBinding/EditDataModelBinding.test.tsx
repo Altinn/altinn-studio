@@ -1,4 +1,3 @@
-import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditDataModelBinding, type EditDataModelBindingProps } from './EditDataModelBinding';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';

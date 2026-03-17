@@ -1,4 +1,3 @@
-import React from 'react';
 import { DataModelling } from '../DataModelling';
 import classes from './DataModellingContainer.module.css';
 import { dataModellingContainerId } from '@studio/testing/testids';

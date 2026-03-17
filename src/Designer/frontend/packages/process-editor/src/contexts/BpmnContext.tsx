@@ -1,4 +1,5 @@
-import React, { createContext, type MutableRefObject, useContext, useRef, useState } from 'react';
+import type { MutableRefObject } from 'react';
+import React, { createContext, useContext, useRef, useState } from 'react';
 import { supportsProcessEditor } from '../utils/processEditorUtils';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import type Modeler from 'bpmn-js/lib/Modeler';

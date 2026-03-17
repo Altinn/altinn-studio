@@ -1,4 +1,5 @@
-import React, { type ChangeEventHandler } from 'react';
+import type { ChangeEventHandler } from 'react';
+import React from 'react';
 import { StudioSelect } from '../../../../../../StudioSelect';
 import type { Props } from './Props';
 import { PredefinedGatewayAction } from '../../../../../enums/PredefinedGatewayAction';

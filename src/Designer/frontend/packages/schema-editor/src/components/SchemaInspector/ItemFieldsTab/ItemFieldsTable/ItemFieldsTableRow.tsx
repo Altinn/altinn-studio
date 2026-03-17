@@ -1,5 +1,5 @@
 import type { ReactNode, KeyboardEvent, ChangeEventHandler } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
 import { deleteNode, setRequired, setPropertyName, type UiSchemaNode } from '@altinn/schema-model';

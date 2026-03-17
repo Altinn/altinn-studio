@@ -1,4 +1,3 @@
-import React from 'react';
 import { useIsParentDisabled } from './useIsParentDisabled';
 import { renderHook } from '@testing-library/react';
 import { StudioDragAndDrop } from '../';
