@@ -70,6 +70,7 @@ function countChangedLines(legacyPath: string, frontendPath: string): { changed:
       throw error;
     }
 
+    // Intentionally only count removed legacy lines, not insert-only changes in the monorepo.
     const changed = (stdout ?? '').split('\n').filter((line) => /^-[^-]/.test(line)).length;
 
     return { changed, total: Math.max(legacyContent.split('\n').length, 1) };
@@ -81,6 +82,7 @@ function collectChangedPaths(): string[] {
     throw new Error(`Legacy frontend repo not found: ${legacyDir}`);
   }
 
+  // Intentionally only scan legacy-tracked files. Monorepo-only additions are not included in this report.
   const legacyFiles = getTrackedFiles(legacyDir).filter(
     (file) => !skipExtensions.has(file.slice(file.lastIndexOf('.'))),
   );
