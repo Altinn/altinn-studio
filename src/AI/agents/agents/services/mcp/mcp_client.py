@@ -25,25 +25,25 @@ class MCPClient:
         self.server_url = server_url
         self._client = None
         self._available_tools = []
-        self._current_gitea_token = None  # Store token separately from tool arguments
+        self._current_designer_api_key = None  # Store key separately from tool arguments
 
-    async def _get_client(self, gitea_token: str = None):
+    async def _get_client(self, designer_api_key: str = None):
         """Get or create FastMCP client with Authorization header (MCP spec compliant)"""
-        # Always recreate client if token changes (for security)
-        if gitea_token and gitea_token != self._current_gitea_token:
+        # Always recreate client if key changes (for security)
+        if designer_api_key and designer_api_key != self._current_designer_api_key:
             self._client = None
-            self._current_gitea_token = gitea_token
+            self._current_designer_api_key = designer_api_key
 
         if self._client is None:
             try:
                 from fastmcp import Client
                 log.info(f"Connecting to FastMCP server at: {self.server_url}")
 
-                # MCP spec: Send token as Authorization header (Bearer token)
+                # Set X-Api-Key header for Gitea proxy authentication
                 headers = {}
-                if gitea_token:
-                    headers["Authorization"] = f"Bearer {gitea_token}"
-                    log.info("[AUTH] Using Bearer token authentication")
+                if designer_api_key:
+                    headers["X-Api-Key"] = designer_api_key
+                    log.info("[AUTH] Using X-Api-Key authentication")
 
                 # Create transport with headers
                 self._client = Client(StreamableHttpTransport(url=self.server_url, headers=headers))
@@ -52,11 +52,11 @@ class MCPClient:
                 raise Exception("FastMCP library not installed")
         return self._client
 
-    async def connect(self, gitea_token: str = None):
+    async def connect(self, designer_api_key: str = None):
         """Connect to the MCP server."""
         # List available tools
         try:
-            client = await self._get_client(gitea_token)
+            client = await self._get_client(designer_api_key)
             async with client:
                 await client.ping()
                 tools = await client.list_tools()
@@ -170,11 +170,11 @@ class MCPClient:
             log.error(f"MCP server check failed: {e}")
             raise Exception(f"MCP server check failed: {str(e)}")
 
-    async def call_tool(self, tool_name: str, arguments: dict, gitea_token: str = None):
+    async def call_tool(self, tool_name: str, arguments: dict, designer_api_key: str = None):
         """Call an MCP tool and return the result."""
         try:
             # Get client with Authorization header set
-            client = await self._get_client(gitea_token)
+            client = await self._get_client(designer_api_key)
 
             async with client:
                 result = await client.call_tool(tool_name, arguments)

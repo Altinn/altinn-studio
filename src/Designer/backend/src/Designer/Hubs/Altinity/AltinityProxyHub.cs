@@ -131,7 +131,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     }
 
     /// <summary>
-    /// Proxies the start workflow request to Altinity agent with user's Gitea token
+    /// Proxies the start workflow request to Altinity agent with a short-lived Designer API key
     /// </summary>
     /// <param name="request">The workflow start request</param>
     /// <returns>Agent response</returns>
@@ -141,7 +141,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateSessionOwnership(sessionId, developer);
 
-        string userToken = await CreateAltinityApiKeyAsync(developer, sessionId);
+        string apiKey = await CreateAltinityApiKeyAsync(developer, sessionId);
 
         _logger.LogInformation(
             "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
@@ -149,7 +149,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             sessionId
         );
 
-        var agentResponse = await ForwardRequestToAltinityAgentAsync(request, developer, userToken, sessionId);
+        var agentResponse = await ForwardRequestToAltinityAgentAsync(request, developer, apiKey, sessionId);
 
         return agentResponse;
     }
@@ -207,12 +207,12 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private async Task<JsonElement> ForwardRequestToAltinityAgentAsync(
         JsonElement request,
         string developer,
-        string userToken,
+        string apiKey,
         string sessionId
     )
     {
         var enrichedRequest = EnrichRequestWithRepoUrl(request);
-        var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, userToken, sessionId);
+        var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, apiKey, sessionId);
         var response = await SendRequestToAltinityAsync(httpRequest);
 
         return response;
@@ -252,7 +252,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private HttpRequestMessage CreateAltinityHttpRequest(
         JsonElement request,
         string developer,
-        string userToken,
+        string apiKey,
         string sessionId
     )
     {
@@ -261,7 +261,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             Content = JsonContent.Create(request),
         };
 
-        AddUserCredentialsToRequest(httpRequest, developer, userToken, sessionId);
+        AddUserCredentialsToRequest(httpRequest, developer, apiKey, sessionId);
 
         return httpRequest;
     }
@@ -269,11 +269,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private static void AddUserCredentialsToRequest(
         HttpRequestMessage httpRequest,
         string developer,
-        string userToken,
+        string apiKey,
         string sessionId
     )
     {
-        httpRequest.Headers.Add("X-Api-Key", userToken);
+        httpRequest.Headers.Add("X-Api-Key", apiKey);
         httpRequest.Headers.Add("X-Developer", developer);
         httpRequest.Headers.Add("X-Session-Id", sessionId);
     }
