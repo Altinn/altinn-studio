@@ -189,9 +189,6 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         var request = _testHelpers.CreateEnqueueRequest(wfRequest);
         await _client.Enqueue(request);
 
-        // Give the engine a moment to persist
-        await Task.Delay(500, TestContext.Current.CancellationToken);
-
         using var client = fixture.CreateEngineClient();
 
         // Act

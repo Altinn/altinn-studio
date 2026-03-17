@@ -78,6 +78,51 @@ public sealed class TelemetryCollector : IDisposable
     /// </summary>
     public bool HasMeasurement(string instrumentName) => Measurements.Any(m => m.Name == instrumentName);
 
+    /// <summary>
+    /// Polls until the counter total for <paramref name="instrumentName"/> reaches at least <paramref name="minValue"/>.
+    /// </summary>
+    public async Task WaitForCounterTotal(string instrumentName, long minValue, TimeSpan? timeout = null)
+    {
+        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(5));
+        while (true)
+        {
+            cts.Token.ThrowIfCancellationRequested();
+            if (GetCounterTotal(instrumentName) >= minValue)
+                return;
+            await Task.Delay(25, cts.Token);
+        }
+    }
+
+    /// <summary>
+    /// Polls until at least one measurement exists for <paramref name="instrumentName"/>.
+    /// </summary>
+    public async Task WaitForMeasurement(string instrumentName, TimeSpan? timeout = null)
+    {
+        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(5));
+        while (true)
+        {
+            cts.Token.ThrowIfCancellationRequested();
+            if (HasMeasurement(instrumentName))
+                return;
+            await Task.Delay(25, cts.Token);
+        }
+    }
+
+    /// <summary>
+    /// Polls until at least <paramref name="minCount"/> activities with the given operation name exist.
+    /// </summary>
+    public async Task WaitForActivities(string operationName, int minCount = 1, TimeSpan? timeout = null)
+    {
+        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(5));
+        while (true)
+        {
+            cts.Token.ThrowIfCancellationRequested();
+            if (GetActivities(operationName).Count >= minCount)
+                return;
+            await Task.Delay(25, cts.Token);
+        }
+    }
+
     public void Dispose()
     {
         _activityListener.Dispose();

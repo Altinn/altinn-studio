@@ -44,8 +44,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var workflowId = response.Workflows.Single().DatabaseId;
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        // Allow a brief window for async telemetry to flush
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for async telemetry to flush (histogram is recorded last in the update buffer)
+        await collector.WaitForMeasurement("engine.workflows.time.total");
 
         // Assert counters — request lifecycle
         Assert.True(
@@ -126,7 +126,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var workflowId = response.Workflows.Single().DatabaseId;
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for the last span in the processing pipeline
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync");
 
         // === Enqueue phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
@@ -190,7 +191,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var workflowId = response.Workflows.Single().DatabaseId;
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        // Wait for async telemetry to flush
+        await collector.WaitForMeasurement("engine.workflows.time.total");
 
         // Assert failure counters — step retries before permanent failure
         Assert.True(
@@ -252,7 +254,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.ListActiveWorkflows();
         await _client.GetWorkflow(workflowId);
 
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for both query counter increments (list + get)
+        await collector.WaitForCounterTotal("engine.workflows.query.received", 2);
 
         // Assert query counters
         Assert.True(
@@ -307,7 +310,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var workflowId = response.Workflows.Single().DatabaseId;
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for the last span in the processing pipeline
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync");
 
         // Resolve key span instances
         var processWorkflow = Single(collector, "WorkflowHandler.HandleAsync");

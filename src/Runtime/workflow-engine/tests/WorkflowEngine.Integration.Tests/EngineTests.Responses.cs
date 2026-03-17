@@ -202,8 +202,17 @@ public partial class EngineTests
         );
         await _client.Enqueue(request);
 
-        // Small delay to ensure the workflow is picked up and in-flight
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        // Poll until the engine picks up the workflow and starts processing
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(5);
+        List<WorkflowStatusResponse> active;
+        do
+        {
+            active = await _client.ListActiveWorkflows();
+            if (active.Exists(w => w.OverallStatus == PersistentItemStatus.Processing))
+                break;
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        } while (DateTimeOffset.UtcNow < deadline);
+        Assert.Contains(active, w => w.OverallStatus == PersistentItemStatus.Processing);
 
         // Act
         using var client = fixture.CreateEngineClient();

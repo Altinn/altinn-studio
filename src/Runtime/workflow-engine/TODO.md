@@ -43,7 +43,7 @@
 
 ### Telemetry and health collectors
 
-- [ ] `HealthEngineChecks` and `MetricsCollector` should use their own separate db-concurrency mechanism, disconnected from the API and workflow processing.
+- [x] `HealthEngineChecks` and `MetricsCollector` should use their own separate db-concurrency mechanism, disconnected from the API and workflow processing.
 
 #### Tests
 
