@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from langfuse import get_client
 from agents.services.llm import LLMClient
-from agents.prompts import get_prompt_content, render_template
-from shared.utils.langfuse_utils import get_raw_langfuse_prompt
+from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -32,8 +31,7 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
     langfuse = get_client()
     llm = LLMClient(role="planner")
 
-    lf_prompt = get_raw_langfuse_prompt("semantic_query_extraction")
-    system_prompt = lf_prompt.compile() if lf_prompt else get_prompt_content("semantic_query_extraction")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("semantic_query_extraction")
     user_prompt = render_template("semantic_query_user", user_input=user_input)
 
     with langfuse.start_as_current_observation(

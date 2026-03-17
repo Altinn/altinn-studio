@@ -9,8 +9,7 @@ from typing import Dict, List, Optional
 from langfuse import get_client
 
 from agents.services.llm import LLMClient
-from agents.prompts import get_prompt_content, render_template
-from shared.utils.langfuse_utils import get_raw_langfuse_prompt
+from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
 
@@ -41,8 +40,7 @@ def run_intake_pipeline(
     
     # Don't scan here - let the scan node handle repository discovery
     context = RepositoryContext()  # Use defaults
-    lf_prompt = get_raw_langfuse_prompt("intake_planning")
-    system_prompt = lf_prompt.compile() if lf_prompt else get_prompt_content("intake_planning")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("intake_planning")
     user_prompt = render_template("intake_planning_user", user_goal=user_goal)
 
     client = LLMClient(role="planner")

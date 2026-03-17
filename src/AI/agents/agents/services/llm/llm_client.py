@@ -14,7 +14,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
-from agents.prompts import get_prompt_content
+from agents.prompts import get_prompt_content, get_prompt_with_langfuse
 
 log = get_logger(__name__)
 config = get_config()
@@ -690,9 +690,7 @@ def get_llm_client(role: str = "default") -> LLMClient:
 
 async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
     """Parse user intent using LLM"""
-    from shared.utils.langfuse_utils import get_raw_langfuse_prompt
-    lf_prompt = get_raw_langfuse_prompt("intent_security")
-    system_prompt = lf_prompt.compile() if lf_prompt else get_prompt_content("intent_security")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("intent_security")
 
     user_prompt = f"Parse this goal: {goal}"
 
@@ -728,9 +726,7 @@ async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttac
 
 def suggest_goals_with_llm(unclear_goal: str) -> list[str]:
     """Generate goal suggestions using LLM"""
-    from shared.utils.langfuse_utils import get_raw_langfuse_prompt
-    lf_prompt = get_raw_langfuse_prompt("goal_suggestions")
-    system_prompt = lf_prompt.compile() if lf_prompt else get_prompt_content("goal_suggestions")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("goal_suggestions")
 
     user_prompt = f"Suggest clear goals similar to: {unclear_goal}"
 

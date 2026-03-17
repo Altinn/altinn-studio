@@ -99,6 +99,20 @@ def get_prompt_content(prompt_name: str) -> str:
     return load_prompt(prompt_name)["content"]
 
 
+def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
+    """Return ``(compiled_content, raw_langfuse_prompt)`` for use with LLM calls.
+
+    Pass the raw prompt object to ``call_sync``/``call_async`` via
+    ``langfuse_prompt=`` to link the generation to the prompt version in Langfuse.
+    Falls back to the local file when Langfuse is unavailable (raw prompt is ``None``).
+    """
+    from shared.utils.langfuse_utils import get_raw_langfuse_prompt
+    lf_prompt = get_raw_langfuse_prompt(prompt_name)
+    if lf_prompt is not None:
+        return lf_prompt.compile(), lf_prompt
+    return load_prompt(prompt_name)["content"], None
+
+
 def render_template(template_name: str, **variables) -> str:
     """
     Load and render a template with variable substitution.
