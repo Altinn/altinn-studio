@@ -473,14 +473,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <exception cref="FileNotFoundException">
         /// Thrown if layoutSettings file is not found
         /// </exception>
-        public async Task<LayoutSettings> GetLayoutSettings(string layoutSetName)
+        public async Task<LayoutSettings> GetLayoutSettings(
+            string layoutSetName,
+            CancellationToken cancellationToken = default
+        )
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
             if (!FileExistsByRelativePath(layoutSettingsPath))
             {
                 throw new FileNotFoundException("Layout settings file not found.");
             }
-            string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath);
+            string fileContent = await ReadTextByRelativePathAsync(layoutSettingsPath, cancellationToken);
             LayoutSettings layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(fileContent, s_jsonOptions);
             return layoutSettings;
         }

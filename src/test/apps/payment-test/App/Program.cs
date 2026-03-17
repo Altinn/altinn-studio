@@ -19,8 +19,8 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     // Register your apps custom service implementations here.
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IOrderDetailsCalculator, OrderDetailsCalculator>(); //Vi kunne hatt en standardimplementasjon av denne i library som leser en fastpris fra et bestemt sted.
-
     services.AddSSBClassificationCodelistProvider("countries", Classification.Countries);
+    services.ConfigureMaskinportenClient("MaskinPortenSettings");
 }
 
 // ###########################################################################
@@ -68,7 +68,8 @@ void ConfigureWebHostBuilder(IWebHostBuilder builder)
 }
 
 void Configure()
-    {string applicationId = StartupHelper.GetApplicationId();
+{
+    string applicationId = StartupHelper.GetApplicationId();
     if (!string.IsNullOrEmpty(applicationId))
     {
         app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");

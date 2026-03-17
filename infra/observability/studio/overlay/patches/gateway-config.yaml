@@ -8,6 +8,8 @@ spec:
       azuremonitor:
         spaneventsenabled: true
         connection_string: $${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
+      # Sink metrics while preserving pipeline structure for future re-enable.
+      nop: {}
 
     service:
       pipelines:
@@ -17,8 +19,8 @@ spec:
           exporters: [azuremonitor]
         metrics:
           receivers: [otlp]
-          processors: [filter/metrics_allowlist, cumulativetodelta/metrics, transform/metrics_cost_control, batch]
-          exporters: [azuremonitor]
+          processors: [filter/metrics_allowlist, batch]
+          exporters: [nop]
         logs:
           receivers: [otlp]
           processors: [batch]

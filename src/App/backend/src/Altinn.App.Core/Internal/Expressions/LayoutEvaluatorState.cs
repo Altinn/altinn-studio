@@ -224,14 +224,17 @@ public class LayoutEvaluatorState
                 ?? throw new InvalidOperationException("InstanceOwner or PartyId is null"),
             "appId" => Instance.AppId ?? throw new InvalidOperationException("AppId is null"),
             "instanceId" => Instance.Id ?? throw new InvalidOperationException("InstanceId is null"),
-            "instanceOwnerPartyType" => (
-                !string.IsNullOrWhiteSpace(Instance.InstanceOwner?.OrganisationNumber) ? "org"
-                : !string.IsNullOrWhiteSpace(Instance.InstanceOwner?.PersonNumber) ? "person"
-                : !string.IsNullOrWhiteSpace(Instance.InstanceOwner?.Username) ? "selfIdentified"
-                : "unknown"
-            ),
+            "instanceOwnerPartyType" => GetInstanceOwnerPartyType(Instance.InstanceOwner),
             _ => throw new ExpressionEvaluatorTypeErrorException($"Unknown Instance context property {key}"),
         };
+    }
+
+    private static string GetInstanceOwnerPartyType(InstanceOwner? instanceOwner)
+    {
+        return !string.IsNullOrWhiteSpace(instanceOwner?.OrganisationNumber) ? "org"
+            : !string.IsNullOrWhiteSpace(instanceOwner?.PersonNumber) ? "person"
+            : !string.IsNullOrWhiteSpace(instanceOwner?.Username) ? "selfIdentified"
+            : "unknown";
     }
 
     /// <summary>
@@ -431,7 +434,7 @@ public class LayoutEvaluatorState
     // }
 
     /// <summary>
-    /// Get the default data type from the current layoutset
+    /// Get the default data type from the current layout model
     /// </summary>
     public DataType? GetDefaultDataType()
     {

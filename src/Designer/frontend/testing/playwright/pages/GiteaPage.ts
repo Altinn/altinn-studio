@@ -23,6 +23,10 @@ export class GiteaPage extends BasePage {
     super(page, environment);
   }
 
+  public async useNewTab(newTab: Page): Promise<void> {
+    (this as any).page = newTab;
+  }
+
   public async verifyGiteaPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('gitea'));
   }

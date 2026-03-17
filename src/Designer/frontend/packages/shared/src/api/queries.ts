@@ -20,6 +20,8 @@ import {
   layoutSetsPath,
   layoutSetsExtendedPath,
   layoutSettingsPath,
+  validateNavigationLayoutSettingsPath,
+  validateNavigationPageSettingsPath,
   optionListIdsPath,
   optionListsPath,
   orgsListPath,
@@ -59,7 +61,6 @@ import {
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
   resourceAccessPackagesPath,
-  authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
   appSettingsPath,
@@ -79,6 +80,7 @@ import {
   orgLibraryPath,
   publishedResourcesPath,
   customTemplatesPath,
+  userApiKeysPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -89,7 +91,7 @@ import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/typ
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
+import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -129,8 +131,8 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 
-export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
 export const getAppSettings = (org: string, app: string) => get<AppSettings>(appSettingsPath(org, app));
@@ -152,6 +154,8 @@ export const getDeployPermissions = (owner: string, app: string) => get<string[]
 export const getDeployments = (owner: string, app: string) => get<DeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
+export const getValidationOnNavigationLayoutSettings = (owner: string, app: string) => get<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(owner, app));
+export const getValidationOnNavigationPageSettings = (owner: string, app: string) => get<IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(owner, app));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
@@ -229,3 +233,6 @@ export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeLi
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
+
+// User settings
+export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());

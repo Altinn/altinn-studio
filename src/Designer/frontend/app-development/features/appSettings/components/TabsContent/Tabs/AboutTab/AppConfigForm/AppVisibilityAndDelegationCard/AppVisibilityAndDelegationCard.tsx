@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './AppVisibilityAndDelegationCard.module.css';
 import { StudioCard, StudioParagraph, StudioSwitch } from '@studio/components';
@@ -8,6 +8,8 @@ import { InformationSquareFillIcon } from '@studio/icons';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
+import { useScrollAndFocusOnParamTarget } from '../../hooks/useScrollAndFocusOnParamTarget';
 
 const DESCRIPTION_ID = 'rightDescription';
 
@@ -35,6 +37,8 @@ export function AppVisibilityAndDelegationCard({
   onChangeDescription,
 }: AppVisibilityAndDelegationCardProps): ReactElement {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const descriptionSectionRef = useRef<HTMLDivElement | null>(null);
 
   const cardTitle = t('app_settings.about_tab_visibility_and_delegation_title');
   const visibleLabel = t('app_settings.about_tab_visibility_and_delegation_visible_label');
@@ -59,6 +63,17 @@ export function AppVisibilityAndDelegationCard({
     status === VisibilityStatus.HiddenDelegable ? warningHiddenDelegateViaApi : null;
 
   const showDescriptionSection = visible || delegable;
+
+  const focusParam = searchParams.get('focus') ?? '';
+  const isRightDescriptionFocusTarget =
+    focusParam === `${DESCRIPTION_ID}-nb` || focusParam.startsWith(`${DESCRIPTION_ID}-`);
+
+  useScrollAndFocusOnParamTarget({
+    isTarget: isRightDescriptionFocusTarget,
+    sectionRef: descriptionSectionRef,
+    searchParams,
+    setSearchParams,
+  });
 
   return (
     <StudioCard>
@@ -94,7 +109,7 @@ export function AppVisibilityAndDelegationCard({
       )}
 
       {showDescriptionSection && (
-        <div className={classes.descriptionContainer}>
+        <div ref={descriptionSectionRef} className={classes.descriptionContainer}>
           <InputfieldsWithTranslation
             id={DESCRIPTION_ID}
             label={descriptionLabel}

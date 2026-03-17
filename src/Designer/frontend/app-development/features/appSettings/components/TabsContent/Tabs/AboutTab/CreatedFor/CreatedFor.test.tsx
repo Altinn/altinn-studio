@@ -34,12 +34,19 @@ describe('CreatedFor', () => {
     expect(orgElement).toHaveTextContent(mockRepository2.owner.login);
   });
 
-  it('displays the created date mapped correctly', async () => {
+  it('displays the created date mapped correctly', () => {
     render(<CreatedFor {...defaultProps} />);
-
     const formattedDate = DateUtils.formatDateDDMMYYYY(mockRepository1.created_at);
-
-    expect(screen.getByText(textMock('app_settings.about_tab_created_by'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('dashboard.created_by'))).toBeInTheDocument();
     expect(screen.getByText(`${mockAuthorName} (${formattedDate})`)).toBeInTheDocument();
+  });
+
+  it('displays repository owner when authorName is empty', () => {
+    render(<CreatedFor repository={mockRepository1} authorName='' />);
+    const formattedDate = DateUtils.formatDateDDMMYYYY(mockRepository1.created_at);
+    expect(screen.getByText(textMock('dashboard.created_by'))).toBeInTheDocument();
+    expect(
+      screen.getByText(`${mockRepository1.owner.full_name} (${formattedDate})`),
+    ).toBeInTheDocument();
   });
 });

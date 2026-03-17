@@ -5,9 +5,7 @@ const appFrontend = new AppFrontend();
 
 describe('Stateless', () => {
   beforeEach(() => {
-    cy.intercept('**/api/layoutsettings/stateless').as('getLayoutStateless');
     cy.startAppInstance(appFrontend.apps.stateless);
-    cy.wait('@getLayoutStateless');
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
   });
 

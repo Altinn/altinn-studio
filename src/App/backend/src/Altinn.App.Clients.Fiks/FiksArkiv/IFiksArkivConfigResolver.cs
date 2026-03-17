@@ -49,11 +49,6 @@ public interface IFiksArkivConfigResolver
     Korrespondansepart GetRecipientParty(Instance instance, FiksArkivRecipient recipient);
 
     /// <summary>
-    /// Gets the service owner party (korrespondansepart).
-    /// </summary>
-    Task<Korrespondansepart> GetServiceOwnerParty(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Gets the instance owner party (korrespondansepart).
     /// </summary>
     Task<Korrespondansepart?> GetInstanceOwnerParty(Instance instance, CancellationToken cancellationToken = default);

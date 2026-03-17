@@ -2,8 +2,8 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Progress } from 'src/components/presentation/Progress';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 type RenderProps = {
@@ -11,15 +11,22 @@ type RenderProps = {
   currentPageId?: string;
 };
 
-const render = ({ order = [], currentPageId }: RenderProps) =>
-  renderWithInstanceAndLayout({
+const render = ({ order = [], currentPageId }: RenderProps) => {
+  window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+    ui.settings = { ...ui.settings!, showProgress: true };
+    ui.folders.Task_1 = {
+      defaultDataType: defaultDataTypeMock,
+      pages: {
+        order,
+      },
+    };
+  });
+
+  return renderWithInstanceAndLayout({
     renderer: () => <Progress />,
     initialPage: currentPageId,
-    queries: {
-      fetchLayoutSettings: () =>
-        Promise.resolve({ showProgress: true, pages: { order } as unknown as IPagesSettingsWithOrder }),
-    },
   });
+};
 
 describe('Progress', () => {
   it('should render progress', async () => {

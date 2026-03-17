@@ -50,7 +50,8 @@ public class GitRepoGitOpsConfigurationManager(
                 gitOpsSettings.GitOpsOrg,
                 GitOpsRepoName(context.Org),
                 context.Developer,
-                gitOpsSettings.BotPersonalAccessToken
+                gitOpsSettings.BotPersonalAccessToken,
+                mustUseTokenAuth: true
             );
         DeleteLocalRepositoryIfExists(context);
         await EnsureRemoteRepositoryExists(context);
@@ -261,7 +262,8 @@ public class GitRepoGitOpsConfigurationManager(
                 gitOpsSettings.GitOpsOrg,
                 GitOpsRepoName(context.Org),
                 context.Developer,
-                gitOpsSettings.BotPersonalAccessToken
+                gitOpsSettings.BotPersonalAccessToken,
+                mustUseTokenAuth: true
             );
         sourceControl.CommitAndPushChanges(
             authenticatedContext,

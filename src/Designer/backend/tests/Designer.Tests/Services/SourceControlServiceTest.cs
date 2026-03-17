@@ -6,12 +6,14 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
@@ -21,7 +23,6 @@ namespace Designer.Tests.Services
     {
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private Mock<IGiteaClient> _giteaClientMock;
-        private Mock<ILogger<SourceControlService>> _loggerMock;
         private ServiceRepositorySettings _settings;
         private Mock<HttpContext> _httpContextMock;
         private SourceControlService _sourceControlService;
@@ -35,7 +36,6 @@ namespace Designer.Tests.Services
             // Setup mocks
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _giteaClientMock = new Mock<IGiteaClient>();
-            _loggerMock = new Mock<ILogger<SourceControlService>>();
             _httpContextMock = new Mock<HttpContext>();
             _httpContextMock
                 .Setup(x => x.User)
@@ -52,7 +52,12 @@ namespace Designer.Tests.Services
             _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(_httpContextMock.Object);
 
             // Create the service under test
-            _sourceControlService = new SourceControlService(_settings, _giteaClientMock.Object, _loggerMock.Object);
+            _sourceControlService = new SourceControlService(
+                _settings,
+                _giteaClientMock.Object,
+                new Mock<IGitServerAuthHeadersProvider>().Object,
+                new Mock<IConfiguration>().Object
+            );
         }
 
         [Fact]
@@ -105,6 +110,7 @@ namespace Designer.Tests.Services
             string repoName = TestDataHelper.GenerateTestRepoName();
             string branchName = "new-feature-branch";
             AltinnRepoEditingContext context = CreateTestRepository(repoName);
+            string defaultBranchName = GetHeadBranchName();
             string commitSha;
             using (Repository repo = new(_repoDir))
             {
@@ -125,8 +131,8 @@ namespace Designer.Tests.Services
             Branch createdBranch = finalRepoState.Branches.Single(b => b.FriendlyName == branchName);
             Assert.NotNull(createdBranch);
             Assert.Equal(commitSha, createdBranch.Tip.Sha);
-            Branch masterBranch = finalRepoState.Branches.Single(b => b.FriendlyName == "master");
-            Assert.Equal("commitMessage", masterBranch.Tip.MessageShort);
+            Branch defaultBranch = finalRepoState.Branches.Single(b => b.FriendlyName == defaultBranchName);
+            Assert.Equal("commitMessage", defaultBranch.Tip.MessageShort);
         }
 
         [Fact]
@@ -175,6 +181,7 @@ namespace Designer.Tests.Services
             // Arrange
             string repoName = TestDataHelper.GenerateTestRepoName();
             AltinnRepoEditingContext context = CreateTestRepository(repoName);
+            string defaultBranchName = GetHeadBranchName();
             string branchName = "new-feature-branch";
             string commitMessageFeature = "broke it again!";
             string commitMessageMaster = "fixed everything!";
@@ -186,7 +193,7 @@ namespace Designer.Tests.Services
             _sourceControlService.CommitToLocalRepo(context, commitMessageFeature);
 
             // Add a commit to master
-            _sourceControlService.CheckoutRepoOnBranch(context, "master");
+            _sourceControlService.CheckoutRepoOnBranch(context, defaultBranchName);
             AddFileToRepo("file-on-master");
             _sourceControlService.CommitToLocalRepo(context, commitMessageMaster);
 
@@ -197,9 +204,9 @@ namespace Designer.Tests.Services
             // Assert
             using Repository repository = new(_repoDir);
             Assert.Equal(2, repository.Branches.Count()); // new-feature-branch + master
-            Branch master = repository.Branches.First(b => b.FriendlyName == "master");
-            Assert.Equal(2, master.Commits.Count());
-            Assert.Equal(commitMessageMaster, master.Tip.MessageShort);
+            Branch defaultBranch = repository.Branches.First(b => b.FriendlyName == defaultBranchName);
+            Assert.Equal(2, defaultBranch.Commits.Count());
+            Assert.Equal(commitMessageMaster, defaultBranch.Tip.MessageShort);
 
             Branch feature = repository.Branches.First(b => b.FriendlyName == branchName);
             Assert.Equal(3, feature.Commits.Count());
@@ -212,6 +219,7 @@ namespace Designer.Tests.Services
             // Arrange
             string repoName = TestDataHelper.GenerateTestRepoName();
             AltinnRepoEditingContext context = CreateTestRepository(repoName);
+            string defaultBranchName = GetHeadBranchName();
             string branchName = "new-feature-branch";
             string commitMessage = "broke it again!";
 
@@ -222,14 +230,14 @@ namespace Designer.Tests.Services
             _sourceControlService.CommitToLocalRepo(context, commitMessage);
 
             // Act
-            _sourceControlService.CheckoutRepoOnBranch(context, "master");
+            _sourceControlService.CheckoutRepoOnBranch(context, defaultBranchName);
             _sourceControlService.MergeBranchIntoHead(context, branchName);
 
             // Assert
             using Repository repository = new(_repoDir);
-            Branch masterBranch = repository.Branches.First(b => b.FriendlyName == "master");
-            Assert.Equal(2, masterBranch.Commits.Count());
-            Assert.Equal(commitMessage, masterBranch.Tip.MessageShort);
+            Branch defaultBranch = repository.Branches.First(b => b.FriendlyName == defaultBranchName);
+            Assert.Equal(2, defaultBranch.Commits.Count());
+            Assert.Equal(commitMessage, defaultBranch.Tip.MessageShort);
         }
 
         [Fact]
@@ -401,7 +409,8 @@ namespace Designer.Tests.Services
             SourceControlService service = new(
                 repoSettings,
                 giteaMock.Object,
-                new Mock<ILogger<SourceControlService>>().Object
+                new Mock<IGitServerAuthHeadersProvider>().Object,
+                new Mock<IConfiguration>().Object
             );
 
             return service;
@@ -424,6 +433,7 @@ namespace Designer.Tests.Services
             Commands.Stage(repo, "test.txt");
             var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
             repo.Commit("Initial commit", signature, signature);
+            EnsureServiceDefaultBranch(repo);
 
             // Create additional branch if specified
             if (!string.IsNullOrEmpty(additionalBranch))
@@ -439,6 +449,25 @@ namespace Designer.Tests.Services
             string filePath = Path.Join(_repoDir, filename ?? "new-file.txt");
             string content = "this is the content of the file.";
             File.WriteAllText(filePath, content);
+        }
+
+        private string GetHeadBranchName()
+        {
+            using var repo = new Repository(_repoDir);
+            return repo.Head.FriendlyName;
+        }
+
+        private static void EnsureServiceDefaultBranch(Repository repo)
+        {
+            string currentHeadBranch = repo.Head.FriendlyName;
+            if (currentHeadBranch == General.DefaultBranch)
+            {
+                return;
+            }
+
+            Branch defaultBranch = repo.CreateBranch(General.DefaultBranch, repo.Head.Tip);
+            Commands.Checkout(repo, defaultBranch);
+            repo.Branches.Remove(currentHeadBranch);
         }
 
         public void Dispose()

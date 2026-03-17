@@ -135,7 +135,7 @@ public sealed class PageComponent : Base.BaseComponent
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
+        Dictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         List<ComponentContext> childContexts = [];

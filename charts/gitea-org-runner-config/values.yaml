@@ -1,7 +1,7 @@
 chartVersion: ""
 releaseName: ""
 imageTag: ""
-giteaInstanceUrl: "http://altinn-repositories.default.svc.cluster.local:3000"
+giteaInstanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
 environment: "dev"
 
 # Environment-specific runner configurations

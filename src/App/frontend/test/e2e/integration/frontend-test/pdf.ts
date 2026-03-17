@@ -2,9 +2,9 @@ import type { Interception } from 'cypress/types/net-stubbing';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -51,7 +51,7 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(8);
+          expect(intercepts.length).to.be.greaterThan(7);
           for (const intercept of intercepts) {
             const { request } = intercept;
             const reqInfo = `${intercept.browserRequestId} ${intercept.routeId} ${request.method} ${request.url.split(domain)[1]}`;
@@ -69,7 +69,7 @@ describe('PDF', () => {
 
   it('should generate PDF for changename step', { retries: 0 }, () => {
     cy.interceptLayout(
-      'changename',
+      'Task_2',
       (component) => {
         if (component.type === 'Map' && component.id === 'map') {
           component.layers = [
@@ -231,13 +231,10 @@ describe('PDF', () => {
   });
 
   it('should generate PDF for group step (using Summary1 pdfLayout)', { retries: 0 }, () => {
-    cy.intercept('GET', '**/api/layoutsettings/group', (req) => {
-      req.on('response', (res) => {
-        const body = JSON.parse(res.body) as ILayoutSettings;
-        body.pages.pdfLayoutName = 'summary'; // Forces PDF engine to use the 'summary' page as the PDF page
-        res.send(body);
-      });
-    }).as('settings');
+    interceptAltinnAppGlobalData((data) => {
+      // Forces PDF engine to use the 'summary' page as the PDF page
+      data.ui.folders.Task_3.pages.pdfLayoutName = 'summary';
+    });
 
     cy.goto('group');
     cy.findByRole('checkbox', { name: /liten/i }).check();
@@ -249,7 +246,7 @@ describe('PDF', () => {
     cy.gotoNavPage('repeating');
     cy.findByRole('checkbox', { name: /ja/i }).check();
 
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
         component.pageBreak = {
           breakBefore: 'always',
@@ -280,7 +277,7 @@ describe('PDF', () => {
     cy.gotoNavPage('repeating');
     cy.findByRole('checkbox', { name: /ja/i }).check();
 
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
         component.pageBreak = {
           breakBefore: 'always',
@@ -339,13 +336,11 @@ describe('PDF', () => {
     // Removing Summary2 page. That page references previous tasks and data models in previous tasks that won't even
     // be created when we skip over those previous tasks by calling gotoAndComplete(). Not removing that page would
     // simply crash the whole PDF generation.
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: { pages: { order: string[] } } = JSON.parse(res.body);
-        body.pages.order = body.pages.order.filter((page) => page !== 'summary2');
-        res.send(body);
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      if ('order' in data.ui.folders.Task_5.pages) {
+        data.ui.folders.Task_5.pages.order = data.ui.folders.Task_5.pages.order.filter((page) => page !== 'summary2');
+      }
+    });
     cy.gotoAndComplete('datalist');
 
     cy.testPdf({
@@ -361,15 +356,9 @@ describe('PDF', () => {
   it('should use custom PDF if set', { retries: 0 }, () => {
     const pdfLayoutName = 'CustomPDF';
 
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: ILayoutSettings = JSON.parse(res.body);
-        res.send({
-          ...body,
-          pages: { ...body.pages, pdfLayoutName },
-        });
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_5.pages.pdfLayoutName = pdfLayoutName;
+    });
 
     cy.intercept('GET', '**/layouts/**', (req) =>
       req.on('response', (res) => {
@@ -422,15 +411,9 @@ describe('PDF', () => {
       }
     });
 
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: ILayoutSettings = JSON.parse(res.body);
-        res.send({
-          ...body,
-          pages: { ...body.pages, pdfLayoutName: 'incorrect-pdf-layout-name' },
-        });
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_1.pages.pdfLayoutName = 'incorrect-pdf-layout-name';
+    });
 
     cy.goto('message');
 

@@ -30,7 +30,7 @@ describe('Group summary test', () => {
 
   it('Should hide column when tableColumns hidden is set on a field', () => {
     cy.interceptLayout(
-      'ComponentLayouts',
+      'Task_1',
       (component) => {
         if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
           component.tableColumns = {
@@ -221,7 +221,7 @@ describe('Group summary test', () => {
       .first()
       .click();
 
-    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 13);
+    cy.findAllByRole('button', { name: /Endre/ }).should('have.length', 16);
     cy.changeLayout((component) => {
       if (component.type === 'RepeatingGroup') {
         component.edit = component.edit ?? {};

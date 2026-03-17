@@ -64,7 +64,7 @@ public class TestBackendExclusiveFunctions
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
         var dataType = new DataType() { Id = "default" };
-        var layout = new LayoutSetComponent(test.Layouts!, "layout", dataType);
+        var layout = new UiFolderComponent(test.Layouts!, "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(
             DynamicClassBuilder.DataAccessorFromJsonDocument(

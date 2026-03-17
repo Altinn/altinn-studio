@@ -330,7 +330,7 @@ describe('Validation', () => {
   });
 
   it('Clicking the error report should focus the correct field', () => {
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (
         (component.id === 'comments' || component.id === 'newValue' || component.id === 'currentValue') &&
         (component.type === 'Input' || component.type === 'TextArea')
@@ -597,7 +597,7 @@ describe('Validation', () => {
   });
 
   it('Submitting should be rejected if validation fails on field hidden using expression', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'Input' && c.id === 'sendersName') {
         c.hidden = ['equals', ['component', 'hideRepeatingGroupRow'], 748];
       }
@@ -629,7 +629,7 @@ describe('Validation', () => {
 
   it('Submitting should be rejected if validation fails on page hidden using expression', () => {
     cy.interceptLayout(
-      'group',
+      'Task_3',
       () => undefined,
       (layoutSet) => {
         layoutSet.hide.data.hidden = ['equals', ['component', 'hideRepeatingGroupRow'], 749];
@@ -691,7 +691,7 @@ describe('Validation', () => {
   });
 
   it('should validate boolean fields as set in the data model even when they are set to false', () => {
-    cy.interceptLayout('message', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.id === 'falsyRadioButton') {
         component.hidden = false;
       }
@@ -706,7 +706,7 @@ describe('Validation', () => {
   });
 
   it('should validate number fields as set in the data model when a falsy value is input', () => {
-    cy.interceptLayout('message', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.id === 'falsyInput') {
         component.hidden = false;
       }
@@ -763,7 +763,7 @@ describe('Validation', () => {
   });
 
   it('Datepicker should show component validation instead of format error from schema', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'Datepicker' && component.id === 'dateOfEffect') {
         component.showValidations = ['AllExceptRequired'];
       }
@@ -803,7 +803,7 @@ describe('Validation', () => {
   });
 
   it('should not show required validation when data is invalid and not saveable', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'Input' && component.id === 'int32AsNumber') {
         component.showValidations = ['All'];
         component.required = true;
@@ -821,7 +821,7 @@ describe('Validation', () => {
 
   it('deep validations should work, but should not include errors in the repeating group', () => {
     const requiredInputs = ['comments', 'currentValue', 'newValue'];
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
         component.minCount = 2;
         component.maxCount = 4;

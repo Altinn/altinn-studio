@@ -1,5 +1,6 @@
 #nullable disable
 using Altinn.Studio.Designer.Converters;
+using Altinn.Studio.Designer.Filters.ApiKey;
 using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Filters.Git;
@@ -31,6 +32,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.Filters.Add(typeof(GitExceptionFilterAttribute));
                     options.Filters.Add(typeof(IoExceptionFilterAttribute));
                     options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
+                    options.Filters.Add(typeof(ApiKeyExceptionFilterAttribute));
                 })
                 .AddNewtonsoftJson(options =>
                     options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())

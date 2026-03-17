@@ -12,32 +12,41 @@ import (
 // Client is a mock implementation of ContainerClient.
 // All methods can be configured with custom behavior via function fields.
 type Client struct {
-	mu sync.Mutex
-
 	// Method implementations - set these to customize behavior
 	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
-	PushFunc              func(ctx context.Context, image string) error
-	CreateContainerFunc   func(ctx context.Context, cfg types.ContainerConfig) (string, error)
-	ContainerStateFunc    func(ctx context.Context, nameOrID string) (types.ContainerState, error)
-	ContainerNetworksFunc func(ctx context.Context, nameOrID string) ([]string, error)
-	ExecFunc              func(ctx context.Context, container string, cmd []string) error
-	ExecWithIOFunc        func(ctx context.Context, container string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error
-	NetworkConnectFunc    func(ctx context.Context, network, container string) error
-	ImageInspectFunc      func(ctx context.Context, image string) (types.ImageInfo, error)
-	ImagePullFunc         func(ctx context.Context, image string) error
-	ContainerInspectFunc  func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
-	ContainerStartFunc    func(ctx context.Context, nameOrID string) error
-	ContainerStopFunc     func(ctx context.Context, nameOrID string, timeout *int) error
-	ContainerRemoveFunc   func(ctx context.Context, nameOrID string, force bool) error
-	NetworkCreateFunc     func(ctx context.Context, cfg types.NetworkConfig) (string, error)
-	NetworkInspectFunc    func(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
-	NetworkRemoveFunc     func(ctx context.Context, nameOrID string) error
-	ContainerLogsFunc     func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
-	ContainerWaitFunc     func(ctx context.Context, nameOrID string) (int, error)
-	InstallationFunc      func() types.RuntimeInstallation
+	ToolchainFunc         func() types.ContainerToolchain
+	BuildWithProgressFunc func(
+		ctx context.Context,
+		contextPath, dockerfile, tag string,
+		onProgress types.ProgressHandler,
+	) error
+	PushFunc                  func(ctx context.Context, image string) error
+	CreateContainerFunc       func(ctx context.Context, cfg types.ContainerConfig) (string, error)
+	ContainerStateFunc        func(ctx context.Context, nameOrID string) (types.ContainerState, error)
+	ContainerNetworksFunc     func(ctx context.Context, nameOrID string) ([]string, error)
+	ExecFunc                  func(ctx context.Context, container string, cmd []string) error
+	ExecWithIOFunc            func(ctx context.Context, container string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error
+	NetworkConnectFunc        func(ctx context.Context, network, container string) error
+	ImageInspectFunc          func(ctx context.Context, image string) (types.ImageInfo, error)
+	ImagePullFunc             func(ctx context.Context, image string) error
+	ImagePullWithProgressFunc func(
+		ctx context.Context,
+		image string,
+		onProgress types.ProgressHandler,
+	) error
+	ContainerInspectFunc func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
+	ContainerStartFunc   func(ctx context.Context, nameOrID string) error
+	ContainerStopFunc    func(ctx context.Context, nameOrID string, timeout *int) error
+	ContainerRemoveFunc  func(ctx context.Context, nameOrID string, force bool) error
+	NetworkCreateFunc    func(ctx context.Context, cfg types.NetworkConfig) (string, error)
+	NetworkInspectFunc   func(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
+	NetworkRemoveFunc    func(ctx context.Context, nameOrID string) error
+	ContainerLogsFunc    func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
+	ContainerWaitFunc    func(ctx context.Context, nameOrID string) (int, error)
 
 	// Call tracking
 	Calls []Call
+	mu    sync.Mutex
 }
 
 // Call records a method call for verification.
@@ -51,6 +60,7 @@ func New() *Client {
 	return &Client{}
 }
 
+//nolint:funcorder // Keeping the call recorder near the call log types improves test readability.
 func (c *Client) recordCall(method string, args ...any) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -60,6 +70,25 @@ func (c *Client) recordCall(method string, args ...any) {
 // Build implements ContainerClient.
 func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
 	c.recordCall("Build", contextPath, dockerfile, tag)
+	if c.BuildFunc != nil {
+		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
+	}
+	if c.BuildWithProgressFunc != nil {
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, nil)
+	}
+	return nil
+}
+
+// BuildWithProgress implements ContainerClient.
+func (c *Client) BuildWithProgress(
+	ctx context.Context,
+	contextPath, dockerfile, tag string,
+	onProgress types.ProgressHandler,
+) error {
+	c.recordCall("BuildWithProgress", contextPath, dockerfile, tag)
+	if c.BuildWithProgressFunc != nil {
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, onProgress)
+	}
 	if c.BuildFunc != nil {
 		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
 	}
@@ -112,7 +141,13 @@ func (c *Client) Exec(ctx context.Context, container string, cmd []string) error
 }
 
 // ExecWithIO implements ContainerClient.
-func (c *Client) ExecWithIO(ctx context.Context, container string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (c *Client) ExecWithIO(
+	ctx context.Context,
+	container string,
+	cmd []string,
+	stdin io.Reader,
+	stdout, stderr io.Writer,
+) error {
 	c.recordCall("ExecWithIO", container, cmd)
 	if c.ExecWithIOFunc != nil {
 		return c.ExecWithIOFunc(ctx, container, cmd, stdin, stdout, stderr)
@@ -141,6 +176,25 @@ func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInf
 // ImagePull implements ContainerClient.
 func (c *Client) ImagePull(ctx context.Context, image string) error {
 	c.recordCall("ImagePull", image)
+	if c.ImagePullFunc != nil {
+		return c.ImagePullFunc(ctx, image)
+	}
+	if c.ImagePullWithProgressFunc != nil {
+		return c.ImagePullWithProgressFunc(ctx, image, nil)
+	}
+	return nil
+}
+
+// ImagePullWithProgress implements ContainerClient.
+func (c *Client) ImagePullWithProgress(
+	ctx context.Context,
+	image string,
+	onProgress types.ProgressHandler,
+) error {
+	c.recordCall("ImagePullWithProgress", image)
+	if c.ImagePullWithProgressFunc != nil {
+		return c.ImagePullWithProgressFunc(ctx, image, onProgress)
+	}
 	if c.ImagePullFunc != nil {
 		return c.ImagePullFunc(ctx, image)
 	}
@@ -241,17 +295,12 @@ func (emptyReader) Read([]byte) (int, error) {
 	return 0, io.EOF
 }
 
-// Name implements ContainerClient.
-func (c *Client) Name() string {
-	return "Mock"
-}
-
-// Installation implements ContainerClient.
-func (c *Client) Installation() types.RuntimeInstallation {
-	if c.InstallationFunc != nil {
-		return c.InstallationFunc()
+// Toolchain implements ContainerClient.
+func (c *Client) Toolchain() types.ContainerToolchain {
+	if c.ToolchainFunc != nil {
+		return c.ToolchainFunc()
 	}
-	return types.InstallationUnknown
+	return types.ContainerToolchain{}
 }
 
 // Close implements ContainerClient.

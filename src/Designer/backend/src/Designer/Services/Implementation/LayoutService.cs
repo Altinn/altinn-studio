@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -18,14 +19,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         IAppDevelopmentService appDevelopmentService
     ) : ILayoutService
     {
-        public async Task<LayoutSettings> GetLayoutSettings(AltinnRepoEditingContext editingContext, string layoutSetId)
+        public async Task<LayoutSettings> GetLayoutSettings(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId,
+            CancellationToken cancellationToken = default
+        )
         {
             AltinnAppGitRepository appRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                 editingContext.Org,
                 editingContext.Repo,
                 editingContext.Developer
             );
-            return await appRepository.GetLayoutSettings(layoutSetId);
+            return await appRepository.GetLayoutSettings(layoutSetId, cancellationToken);
         }
 
         public async Task CreatePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId)

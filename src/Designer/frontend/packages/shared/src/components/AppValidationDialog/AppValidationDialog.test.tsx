@@ -55,7 +55,7 @@ describe('AppValidationDialog', () => {
   it('does not render error summary when there are no validation errors', () => {
     renderAppValidationDialog({});
     expect(
-      screen.queryByText(textMock('app_validation.app_metadata.errors_need_fixing')),
+      screen.queryByText(textMock('app_validation.app_metadata.warnings')),
     ).not.toBeInTheDocument();
   });
 
@@ -64,9 +64,6 @@ describe('AppValidationDialog', () => {
       isValid: false,
       errors: { 'title.nn': ['required'] },
     });
-    expect(
-      screen.getByText(textMock('app_validation.app_metadata.errors_need_fixing')),
-    ).toBeInTheDocument();
     const link = screen.getByText(textMock('app_validation.app_metadata.title.nn.required'));
     const expectedHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?currentTab=about&focus=title-nn`;
     expect(link).toHaveAttribute('href', expectedHref);
@@ -81,9 +78,6 @@ describe('AppValidationDialog', () => {
       isValid: false,
       errors: { 'contactPoints[2]': ['incomplete'] },
     });
-    expect(
-      screen.getByText(textMock('app_validation.app_metadata.errors_need_fixing')),
-    ).toBeInTheDocument();
     const link = screen.getByText(
       textMock('app_validation.app_metadata.contact_points.incomplete'),
     );

@@ -12,9 +12,9 @@ const task = 'task2';
 const pages = ['page1', 'page2'];
 
 describe('useConvertToInternalConfig', () => {
-  it('should return undefined when externalConfig is undefined', () => {
+  it('should return null when externalConfig is not defined', () => {
     const { result } = renderHook(() => useConvertToInternalConfig(undefined));
-    expect(result.current).toBeUndefined();
+    expect(result.current).toBeNull();
   });
 
   it('should convert externalConfig to internalConfig correctly', () => {

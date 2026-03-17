@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppSettings;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -23,16 +24,19 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
     private readonly IEnvironmentsService _environmentsService;
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
     private readonly IAppSettingsService _appSettingsService;
+    private readonly IDeploymentRepository _deploymentRepository;
 
     public AppInactivityUndeployService(
         IEnvironmentsService environmentsService,
         IRuntimeGatewayClient runtimeGatewayClient,
-        IAppSettingsService appSettingsService
+        IAppSettingsService appSettingsService,
+        IDeploymentRepository deploymentRepository
     )
     {
         _environmentsService = environmentsService;
         _runtimeGatewayClient = runtimeGatewayClient;
         _appSettingsService = appSettingsService;
+        _deploymentRepository = deploymentRepository;
     }
 
     public async Task<IReadOnlyList<InactivityUndeployCandidate>> GetAppsForDecommissioningAsync(
@@ -58,6 +62,7 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
         activity?.SetTag("app", options.App);
         activity?.SetTag("environment.filter", options.Environment);
         activity?.SetTag("window.days", options.WindowDays);
+        var recentDeploymentCutoffUtc = DateTimeOffset.UtcNow.AddDays(-options.WindowDays);
 
         var settings = await _appSettingsService.GetAllAsync(cancellationToken);
         var enabledApps = BuildEnabledSettingsLookup(settings, options.Org);
@@ -80,6 +85,11 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
         foreach (var environmentName in environments)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            using var environmentActivity = ServiceTelemetry.Source.StartActivity(
+                $"{nameof(AppInactivityUndeployService)}.EvaluateEnvironment"
+            );
+            environmentActivity?.SetTag("environment", environmentName);
+
             var environment = AltinnEnvironment.FromName(environmentName);
 
             List<AppDeployment> deployments;
@@ -95,8 +105,9 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                activity?.AddException(ex);
-                activity?.AddEvent(
+                environmentActivity?.SetStatus(ActivityStatusCode.Error, "Failed to fetch deployments.");
+                environmentActivity?.AddException(ex);
+                environmentActivity?.AddEvent(
                     CreateSkippedEvaluationEvent(options.Org, environmentName, "deployments_fetch_failed")
                 );
                 continue;
@@ -119,8 +130,9 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                activity?.AddException(ex);
-                activity?.AddEvent(
+                environmentActivity?.SetStatus(ActivityStatusCode.Error, "Failed to fetch activity metrics.");
+                environmentActivity?.AddException(ex);
+                environmentActivity?.AddEvent(
                     CreateSkippedEvaluationEvent(options.Org, environmentName, "activity_metrics_fetch_failed")
                 );
                 continue;
@@ -128,7 +140,7 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
 
             if (!string.Equals(activityMetrics.Status, MetricsStatusOk, StringComparison.OrdinalIgnoreCase))
             {
-                activity?.AddEvent(
+                environmentActivity?.AddEvent(
                     CreateSkippedEvaluationEvent(
                         options.Org,
                         environmentName,
@@ -143,9 +155,39 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
                 StringComparer.Ordinal
             );
 
+            if (!deployments.Any(d => enabledApps.Contains(d.App) && !activeApps.Contains(d.App)))
+            {
+                continue;
+            }
+
+            HashSet<string> recentlyDeployedApps;
+            try
+            {
+                recentlyDeployedApps = (
+                    await _deploymentRepository.GetAppsWithRecentDeployments(
+                        options.Org,
+                        environmentName,
+                        recentDeploymentCutoffUtc
+                    )
+                ).ToHashSet(StringComparer.Ordinal);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                environmentActivity?.SetStatus(ActivityStatusCode.Error, "Failed to fetch recent deployments.");
+                environmentActivity?.AddException(ex);
+                environmentActivity?.AddEvent(
+                    CreateSkippedEvaluationEvent(options.Org, environmentName, "recent_deployments_fetch_failed")
+                );
+                continue;
+            }
+
             foreach (var deployment in deployments)
             {
-                if (!enabledApps.Contains(deployment.App) || activeApps.Contains(deployment.App))
+                if (
+                    !enabledApps.Contains(deployment.App)
+                    || activeApps.Contains(deployment.App)
+                    || recentlyDeployedApps.Contains(deployment.App)
+                )
                 {
                     continue;
                 }

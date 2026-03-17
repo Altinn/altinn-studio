@@ -200,11 +200,15 @@ describe('AppMetrics', () => {
       const mockData = [
         {
           name: 'failed_process_next_requests',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          bucketSize: 5,
         },
         {
           name: 'failed_instance_creation_requests',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          bucketSize: 5,
         },
       ];
 
@@ -224,7 +228,9 @@ describe('AppMetrics', () => {
       const mockData = [
         {
           name: 'failed_instance_creation_requests',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          bucketSize: 5,
         },
       ];
 
@@ -243,10 +249,13 @@ describe('AppMetrics', () => {
     it('should render a danger alert when errors', () => {
       const queryClient = createQueryClientMock();
 
+      const timestampTest = Date.UTC(2024, 0, 1);
       const mockData = [
         {
           name: 'failed_process_next_requests',
-          dataPoints: [{ count: 5, dateTimeOffset: '2024-01-01T00:00:00Z' }],
+          timestamps: [timestampTest],
+          counts: [5],
+          bucketSize: 5,
         },
       ];
 
@@ -308,11 +317,15 @@ describe('AppMetrics', () => {
       const mockData = [
         {
           name: 'altinn_app_lib_processes_started',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          bucketSize: 5,
         },
         {
           name: 'altinn_app_lib_processes_ended',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          bucketSize: 5,
         },
       ];
 

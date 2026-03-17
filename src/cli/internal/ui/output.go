@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"altinn.studio/studioctl/internal/osutil"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -43,6 +45,10 @@ type Output struct {
 	err     io.Writer
 	verbose bool
 	mu      sync.Mutex
+}
+
+type fdWriter interface {
+	Fd() uintptr
 }
 
 // NewOutput creates a new Output instance.
@@ -88,6 +94,15 @@ func (o *Output) Printf(format string, args ...any) {
 	if err != nil {
 		o.logWriteErr(err)
 	}
+}
+
+// FD returns the stdout file descriptor when the underlying writer exposes one.
+func (o *Output) FD() (int, bool) {
+	writer, ok := o.out.(fdWriter)
+	if !ok {
+		return 0, false
+	}
+	return osutil.FDInt(writer.Fd())
 }
 
 // Error writes an error message to stderr.

@@ -28,6 +28,8 @@ spec:
       azuremonitor/data_plane:
         spaneventsenabled: true
         connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
+      # Sink metrics while preserving pipeline structure for future re-enable.
+      nop: {}
 
     service:
       pipelines:
@@ -47,12 +49,12 @@ spec:
           exporters: [routing/metrics]
         metrics/control_plane:
           receivers: [routing/metrics]
-          processors: [filter/metrics_allowlist, cumulativetodelta/metrics, transform/metrics_cost_control, batch]
-          exporters: [azuremonitor/control_plane]
+          processors: [filter/metrics_allowlist, batch]
+          exporters: [nop]
         metrics/data_plane:
           receivers: [routing/metrics]
-          processors: [filter/metrics_allowlist, cumulativetodelta/metrics, transform/metrics_cost_control, batch]
-          exporters: [azuremonitor/data_plane]
+          processors: [filter/metrics_allowlist, batch]
+          exporters: [nop]
         logs/in:
           receivers: [otlp]
           exporters: [routing/logs]

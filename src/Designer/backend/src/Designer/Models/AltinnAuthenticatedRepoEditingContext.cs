@@ -14,6 +14,16 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         public string DeveloperAppToken { get; }
 
+        /// <summary>
+        /// When true, git operations authenticate exclusively via the token (Basic Auth)
+        /// and no reverse-proxy identity headers (X-WEBAUTH-USER) are sent.
+        /// This is required for system/bot operations (e.g. gitops) where the token belongs
+        /// to a service account, not the logged-in user. Without this flag the proxy would
+        /// forward the current user's identity headers, causing Gitea to authenticate as
+        /// the user instead of the bot — silently failing pushes to repos the user cannot access.
+        /// </summary>
+        public bool MustUseTokenAuth { get; }
+
         public AltinnRepoEditingContext RepoEditingContext => FromOrgRepoDeveloper(Org, Repo, Developer);
 
         public AltinnOrgEditingContext OrgEditingContext => AltinnOrgEditingContext.FromOrgDeveloper(Org, Developer);
@@ -22,22 +32,25 @@ namespace Altinn.Studio.Designer.Models
             string org,
             string repo,
             string developer,
-            string developerAppToken
+            string developerAppToken,
+            bool mustUseTokenAuth = false
         )
             : base(org, repo, developer)
         {
             Guard.AssertNotNullOrEmpty(developerAppToken, nameof(developerAppToken));
             DeveloperAppToken = developerAppToken;
+            MustUseTokenAuth = mustUseTokenAuth;
         }
 
         public static AltinnAuthenticatedRepoEditingContext FromOrgRepoDeveloperToken(
             string org,
             string repo,
             string developer,
-            string developerAppToken
+            string developerAppToken,
+            bool mustUseTokenAuth = false
         )
         {
-            return new AltinnAuthenticatedRepoEditingContext(org, repo, developer, developerAppToken);
+            return new AltinnAuthenticatedRepoEditingContext(org, repo, developer, developerAppToken, mustUseTokenAuth);
         }
 
         /// <summary>

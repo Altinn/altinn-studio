@@ -78,57 +78,9 @@ internal sealed class PlatformHttpResponseSnapshotException : PlatformHttpExcept
                 cancellationToken
             );
 
-            string headers = FlattenHeaders(response.Headers, response.Content?.Headers, response.TrailingHeaders);
             string message = BuildMessage((int)response.StatusCode, response.ReasonPhrase, content, truncated);
 
-            // Build a sanitized, non-streaming HttpResponseMessage for the base class
-            var safeResponse = new HttpResponseMessage(response.StatusCode)
-            {
-                ReasonPhrase = response.ReasonPhrase,
-                Version = response.Version,
-            };
-
-            // Copy normal headers
-            foreach (KeyValuePair<string, IEnumerable<string>> h in response.Headers)
-            {
-                if (_redactedHeaders.Contains(h.Key))
-                {
-                    safeResponse.Headers.TryAddWithoutValidation(h.Key, [Redacted]);
-                }
-                else
-                {
-                    safeResponse.Headers.TryAddWithoutValidation(h.Key, h.Value);
-                }
-            }
-
-            // Attach a diagnostic snapshot body for legacy consumers
-            StringContent safeContent = new StringContent(content, Encoding.UTF8);
-            safeContent.Headers.ContentType = response.Content?.Headers?.ContentType;
-            safeResponse.Content = safeContent;
-
-            // Copy trailing headers if present (HTTP/2+)
-            foreach (KeyValuePair<string, IEnumerable<string>> h in response.TrailingHeaders)
-            {
-                if (_redactedHeaders.Contains(h.Key))
-                {
-                    safeResponse.TrailingHeaders.TryAddWithoutValidation(h.Key, [Redacted]);
-                }
-                else
-                {
-                    safeResponse.TrailingHeaders.TryAddWithoutValidation(h.Key, h.Value);
-                }
-            }
-
-            return new PlatformHttpResponseSnapshotException(
-                safeResponse,
-                statusCode: (int)response.StatusCode,
-                reasonPhrase: response.ReasonPhrase,
-                httpVersion: response.Version?.ToString() ?? string.Empty,
-                headers: headers,
-                content: content,
-                contentTruncated: truncated,
-                message: message
-            );
+            return Create(message, response, content, truncated);
         }
         finally
         {
@@ -141,6 +93,76 @@ internal sealed class PlatformHttpResponseSnapshotException : PlatformHttpExcept
                 /* ignore dispose failures */
             }
         }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="PlatformHttpResponseSnapshotException"/> by snapshotting
+    /// the provided <see cref="HttpResponseMessage"/> into immutable string values,
+    /// constructing a sanitized clone for the base class.
+    /// </summary>
+    /// <param name="message">The exception message.</param>
+    /// <param name="response">The HTTP response to snapshot.</param>
+    /// <param name="content">The response body content as a string (possibly truncated).</param>
+    /// <param name="contentTruncated">Whether the content was truncated.</param>
+    /// <returns>The constructed <see cref="PlatformHttpResponseSnapshotException"/>.</returns>
+    public static PlatformHttpResponseSnapshotException Create(
+        string message,
+        HttpResponseMessage response,
+        string? content = null,
+        bool contentTruncated = false
+    )
+    {
+        string headers = FlattenHeaders(response.Headers, response.Content?.Headers, response.TrailingHeaders);
+        content ??= string.Empty;
+
+        // Build a sanitized, non-streaming HttpResponseMessage for the base class
+        var safeResponse = new HttpResponseMessage(response.StatusCode)
+        {
+            ReasonPhrase = response.ReasonPhrase,
+            Version = response.Version,
+        };
+
+        // Copy normal headers
+        foreach (KeyValuePair<string, IEnumerable<string>> h in response.Headers)
+        {
+            if (_redactedHeaders.Contains(h.Key))
+            {
+                safeResponse.Headers.TryAddWithoutValidation(h.Key, [Redacted]);
+            }
+            else
+            {
+                safeResponse.Headers.TryAddWithoutValidation(h.Key, h.Value);
+            }
+        }
+
+        // Attach a diagnostic snapshot body for legacy consumers
+        StringContent safeContent = new StringContent(content, Encoding.UTF8);
+        safeContent.Headers.ContentType = response.Content?.Headers?.ContentType;
+        safeResponse.Content = safeContent;
+
+        // Copy trailing headers if present (HTTP/2+)
+        foreach (KeyValuePair<string, IEnumerable<string>> h in response.TrailingHeaders)
+        {
+            if (_redactedHeaders.Contains(h.Key))
+            {
+                safeResponse.TrailingHeaders.TryAddWithoutValidation(h.Key, [Redacted]);
+            }
+            else
+            {
+                safeResponse.TrailingHeaders.TryAddWithoutValidation(h.Key, h.Value);
+            }
+        }
+
+        return new PlatformHttpResponseSnapshotException(
+            safeResponse,
+            statusCode: (int)response.StatusCode,
+            reasonPhrase: response.ReasonPhrase,
+            httpVersion: response.Version?.ToString() ?? string.Empty,
+            headers: headers,
+            content: content,
+            contentTruncated: contentTruncated,
+            message: message
+        );
     }
 
     /// <summary>

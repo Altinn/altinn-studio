@@ -7,7 +7,7 @@ const __default__ = '';
 
 function lookupPostPlace(data: PostalCodesRegistry, zip: string): string {
   const index = parseInt(zip, 10);
-  if (isNaN(index) || index < 0 || index >= data.mapping.length) {
+  if (isNaN(index) || index < 0 || index >= data.mapping.length || zip.length !== 4) {
     return '';
   }
   const placeIndex = data.mapping[index];

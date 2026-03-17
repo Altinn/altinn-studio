@@ -324,7 +324,11 @@ func validateTarballPath(path string) (string, error) {
 }
 
 func normalizeVersionForURL(version string) string {
+	version = strings.TrimSpace(version)
 	version = strings.TrimPrefix(version, "studioctl/")
+	if version != "" && !strings.HasPrefix(version, "v") {
+		version = "v" + version
+	}
 	return "studioctl/" + version
 }
 

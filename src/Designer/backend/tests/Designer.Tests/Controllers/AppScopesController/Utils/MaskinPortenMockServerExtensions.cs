@@ -17,7 +17,9 @@ public static class MaskinPortenMockServerExtensions
             .Create()
             .UsingGet()
             .WithPath("/api/v1/scopes/all")
-            .WithParam("accessible_for_all", "true");
+            .WithParam("accessible_for_all", "true")
+            .WithParam("integration_type", "maskinporten")
+            .WithParam("inactive", "false");
 
         var allScopesResponse = Response
             .Create()
@@ -27,7 +29,12 @@ public static class MaskinPortenMockServerExtensions
 
         mockServerFixture.MockApi.Given(allScopesRequest).RespondWith(allScopesResponse);
 
-        var accessScopesRequest = Request.Create().UsingGet().WithPath("/api/v1/scopes/access/all");
+        var accessScopesRequest = Request
+            .Create()
+            .UsingGet()
+            .WithPath("/api/v1/scopes/access/all")
+            .WithParam("integration_type", "maskinporten")
+            .WithParam("inactive", "false");
 
         var accessScopesResponse = Response
             .Create()

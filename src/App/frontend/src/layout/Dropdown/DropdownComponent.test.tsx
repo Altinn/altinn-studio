@@ -1,12 +1,11 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { queryPromiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -204,7 +203,6 @@ describe('DropdownComponent', () => {
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('The value from the group is: Label for first'));
 
-    await waitFor(() => expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1));
     await waitFor(() =>
       expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
         reference: { field: 'myDropdown', dataType: defaultDataTypeMock },

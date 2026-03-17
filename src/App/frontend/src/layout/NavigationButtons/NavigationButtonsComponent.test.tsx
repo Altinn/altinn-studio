@@ -1,11 +1,8 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getLayoutSets } from 'src/features/form/layoutSets';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompNavigationButtonsExternal } from 'src/layout/NavigationButtons/config.generated';
@@ -15,8 +12,6 @@ interface RenderProps extends Omit<Partial<RenderGenericComponentTestProps<'Navi
   component: CompNavigationButtonsExternal;
   currentPageId?: 'layout1' | 'layout2';
 }
-
-jest.mocked(getLayoutSets).mockReturnValue([{ dataType: 'test-data-model', id: 'message', tasks: ['Task_1'] }]);
 
 describe('NavigationButtons', () => {
   const navButton1: CompNavigationButtonsExternal = {
@@ -31,8 +26,12 @@ describe('NavigationButtons', () => {
     textResourceBindings: {},
   };
 
-  const render = async ({ component, genericProps, currentPageId = 'layout1' }: RenderProps) =>
-    await renderGenericComponentTest({
+  const render = async ({ component, genericProps, currentPageId = 'layout1' }: RenderProps) => {
+    window.altinnAppGlobalData.ui = getUiConfigMock(
+      (obj) => (obj.folders.Task_1.pages = { order: ['layout1', 'layout2'] }),
+    );
+
+    return await renderGenericComponentTest({
       type: 'NavigationButtons',
       renderer: (props) => <NavigationButtonsComponent {...props} />,
       component,
@@ -75,11 +74,9 @@ describe('NavigationButtons', () => {
             },
           },
         }),
-        fetchLayoutSettings: async () => ({
-          pages: { order: ['layout1', 'layout2'] } as unknown as IPagesSettingsWithOrder,
-        }),
       },
     });
+  };
 
   test('renders default NavigationButtons component', async () => {
     await render({

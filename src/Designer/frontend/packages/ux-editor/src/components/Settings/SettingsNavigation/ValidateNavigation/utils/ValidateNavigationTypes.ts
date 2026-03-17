@@ -9,11 +9,9 @@ export type InternalConfigState = {
 };
 
 export type ExternalConfigState = {
-  show: string[];
-  page: string;
+  show?: string[];
+  page?: string;
   tasks?: string[];
   task?: string;
   pages?: string[];
 };
-
-export type ExternalConfigWithId = ExternalConfigState & { id: string };
