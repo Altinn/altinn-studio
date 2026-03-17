@@ -3,7 +3,7 @@ import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,
 } from 'app-shared/types/ComponentSpecificConfig';
-import React from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
 import { PlusCircleIcon } from '@studio/icons';
@@ -30,7 +30,7 @@ export const Summary2Override = ({
   className,
 }: Summary2OverrideProps): JSX.Element => {
   const { t } = useTranslation();
-  const [openOverrides, setOpenOverrides] = React.useState([]);
+  const [openOverrides, setOpenOverrides] = useState([]);
   const { overrides, target } = component;
 
   const componentOptions = useTargetComponentOptions(target);

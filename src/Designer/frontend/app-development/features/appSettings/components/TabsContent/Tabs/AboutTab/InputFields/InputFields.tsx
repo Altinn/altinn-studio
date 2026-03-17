@@ -1,5 +1,5 @@
 import type { FormEvent, ReactElement } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './InputFields.module.css';
 import { useTranslation } from 'react-i18next';
 import type { AppConfig } from 'app-shared/types/AppConfig';

@@ -1,4 +1,4 @@
-import React, { type Ref } from 'react';
+import type { Ref } from 'react';
 import { StudioLinkButton, type StudioLinkButtonProps } from './StudioLinkButton';
 import { screen, render, type RenderResult } from '@testing-library/react';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';

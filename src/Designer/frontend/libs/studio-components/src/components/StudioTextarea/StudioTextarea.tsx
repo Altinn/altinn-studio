@@ -1,4 +1,4 @@
-import React, { forwardRef, useId } from 'react';
+import { forwardRef, useId } from 'react';
 import type { Ref, ReactElement } from 'react';
 import { Paragraph, Textarea } from '@digdir/designsystemet-react';
 import type { TextareaProps } from '@digdir/designsystemet-react';

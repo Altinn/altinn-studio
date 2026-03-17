@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import cn from 'classnames';
 import { PolicyAccessPackageAccordion } from '../PolicyAccessPackageAccordion';
 import { PolicyAccordion } from '../PolicyAccordion';

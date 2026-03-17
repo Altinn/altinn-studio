@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { app, org } from '@studio/testing/testids';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';

@@ -1,4 +1,4 @@
-import React, { type HTMLAttributes, type ReactElement } from 'react';
+import type { HTMLAttributes, ReactElement } from 'react';
 import classes from './ItemWrapper.module.css';
 
 type ItemWrapperProps = HTMLAttributes<HTMLDivElement>;

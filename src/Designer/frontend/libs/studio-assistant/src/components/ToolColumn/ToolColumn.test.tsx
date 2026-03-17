@@ -1,4 +1,3 @@
-import React from 'react';
 import { ToolColumn } from './ToolColumn';
 import { render, screen } from '@testing-library/react';
 import type { ToolColumnProps } from './ToolColumn';

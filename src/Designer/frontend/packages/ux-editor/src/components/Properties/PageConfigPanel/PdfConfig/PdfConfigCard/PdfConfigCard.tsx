@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import classes from './PdfConfigCard.module.css';
 import { StudioSwitch, StudioParagraph, StudioCard, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';

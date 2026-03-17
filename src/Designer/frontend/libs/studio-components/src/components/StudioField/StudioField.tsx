@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { Field } from '@digdir/designsystemet-react';
 import type { FieldProps } from '@digdir/designsystemet-react';

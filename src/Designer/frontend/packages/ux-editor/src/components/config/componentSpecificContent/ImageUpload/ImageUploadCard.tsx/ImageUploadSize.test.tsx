@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { ShapeOptions } from '../ImageUploadUtils';
 import { ImageUploadSize, type ImageUploadSizeProps } from './ImageUploadSize';

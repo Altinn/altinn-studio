@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SetupTabInputFields.module.css';

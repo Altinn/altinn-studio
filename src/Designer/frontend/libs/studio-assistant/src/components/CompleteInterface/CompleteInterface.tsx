@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import type { ReactElement } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { StudioResizableLayout } from '@studio/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
@@ -33,7 +33,7 @@ export function CompleteInterface({
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
 
   // Get the current thread - prefer activeThreadId, then most recently updated thread
-  const currentThread = React.useMemo(() => {
+  const currentThread = useMemo(() => {
     // First try to find the explicitly requested thread
     if (activeThreadId && chatThreads) {
       const thread = chatThreads.find((t) => t.id === activeThreadId);
@@ -48,7 +48,7 @@ export function CompleteInterface({
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
-  const handleCreateThread = React.useCallback(() => {
+  const handleCreateThread = useCallback(() => {
     if (onCreateThread) {
       onCreateThread();
       setIsThreadColumnCollapsed(false);

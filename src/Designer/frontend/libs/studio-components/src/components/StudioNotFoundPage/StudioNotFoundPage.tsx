@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import PCImage404Url from './images/PCImage404.png';
 import type { HTMLAttributes, ReactElement, ReactNode, Ref } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import classes from './StudioNotFoundPage.module.css';
 import cn from 'classnames';
 import { StudioHeading } from '../StudioHeading';

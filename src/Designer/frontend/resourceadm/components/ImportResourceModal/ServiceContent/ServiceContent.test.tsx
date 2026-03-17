@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ServiceContentProps } from './ServiceContent';
 import { ServiceContent } from './ServiceContent';

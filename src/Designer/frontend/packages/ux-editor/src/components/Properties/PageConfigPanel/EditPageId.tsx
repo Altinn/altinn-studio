@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './EditPageId.module.css';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
 import { useTextIdMutation } from 'app-development/hooks/mutations';

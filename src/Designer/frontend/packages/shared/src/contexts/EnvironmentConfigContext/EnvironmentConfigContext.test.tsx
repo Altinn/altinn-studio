@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { EnvironmentConfigProvider, useEnvironmentConfig } from './EnvironmentConfigContext';

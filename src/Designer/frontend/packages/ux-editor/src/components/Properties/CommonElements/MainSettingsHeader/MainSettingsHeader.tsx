@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioHeading, StudioTag } from '@studio/components';
 import classes from './MainSettingsHeader.module.css';
 import { useTranslation } from 'react-i18next';

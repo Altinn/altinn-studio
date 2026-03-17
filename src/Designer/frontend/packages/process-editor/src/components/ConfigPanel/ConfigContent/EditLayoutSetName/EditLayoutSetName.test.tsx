@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';

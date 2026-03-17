@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioBreadcrumbs } from '@studio/components';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { DigdirLogoLink, type DigdirLogoLinkProps } from './DigdirLogoLink';
 import { StudioPageHeaderContext } from '../../context';

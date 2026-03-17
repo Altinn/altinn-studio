@@ -1,7 +1,7 @@
 import { Button } from '@digdir/designsystemet-react';
 import type { ButtonProps } from '@digdir/designsystemet-react';
 import type { ComponentProps, ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioButton.module.css';
 import type { OverridableComponent } from '../../types/OverridableComponent';

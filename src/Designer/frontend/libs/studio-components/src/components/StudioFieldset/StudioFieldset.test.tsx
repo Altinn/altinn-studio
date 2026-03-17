@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ForwardedRef } from 'react';
 import type { StudioFieldsetProps } from './';
 import { StudioFieldset } from './';

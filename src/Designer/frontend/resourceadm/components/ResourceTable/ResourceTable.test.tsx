@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { ResourceTableProps } from './ResourceTable';
 import { ResourceTable } from './ResourceTable';

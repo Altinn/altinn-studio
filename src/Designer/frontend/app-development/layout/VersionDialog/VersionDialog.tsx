@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import {
   StudioAlert,

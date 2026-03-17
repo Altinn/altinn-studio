@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
 import { Switch } from '@digdir/designsystemet-react';

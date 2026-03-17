@@ -1,4 +1,5 @@
-import React, { type ReactNode, type ReactElement, useId, useState } from 'react';
+import type { ReactNode, ReactElement } from 'react';
+import { useId, useState } from 'react';
 import { StudioButton } from '@studio/components';
 import { ChevronUpIcon, ChevronDownIcon } from '@studio/icons';
 import classes from './PolicyAccordion.module.css';

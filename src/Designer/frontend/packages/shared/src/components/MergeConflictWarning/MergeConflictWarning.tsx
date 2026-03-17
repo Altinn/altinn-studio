@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './MergeConflictWarning.module.css';
 import { Trans, useTranslation } from 'react-i18next';
 import { StudioParagraph, StudioPopover, StudioHeading, StudioLink } from '@studio/components';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { LargeNavigationMenu, type LargeNavigationMenuProps } from './LargeNavigationMenu';
 import { MemoryRouter } from 'react-router-dom';

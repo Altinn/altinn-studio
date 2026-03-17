@@ -1,4 +1,3 @@
-import React from 'react';
 import { SchemaTree } from '../SchemaTree';
 import { Link } from '@digdir/designsystemet-react';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';

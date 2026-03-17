@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioHeading } from '@studio/components';
 import { useParams } from 'react-router-dom';
 import { InstanceDataView } from './components/InstanceDataView';

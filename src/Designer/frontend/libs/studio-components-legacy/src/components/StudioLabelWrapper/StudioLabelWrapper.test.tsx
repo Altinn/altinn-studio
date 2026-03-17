@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioLabelWrapper } from './StudioLabelWrapper';
 import { render, screen } from '@testing-library/react';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';

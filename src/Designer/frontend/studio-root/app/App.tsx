@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './App.module.css';
 import { Route, Routes } from 'react-router-dom';
 import { StudioNotFoundPage } from '@studio/components';
