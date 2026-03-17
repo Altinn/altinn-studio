@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './ToolColumn.module.css';
 import { ToolColumnMode } from '../../types/ToolColumnMode';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';

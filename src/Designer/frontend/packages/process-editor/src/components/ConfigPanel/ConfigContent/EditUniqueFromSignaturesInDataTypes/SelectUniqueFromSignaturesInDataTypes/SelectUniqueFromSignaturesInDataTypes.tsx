@@ -1,4 +1,4 @@
-import React, { useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { Combobox, Label } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { useDebounce } from '@studio/hooks';

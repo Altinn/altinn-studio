@@ -1,6 +1,5 @@
 import { isCombobox } from './isCombobox';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 
 describe('isCombobox', () => {
   it('Returns true when the element is a combobox', () => {

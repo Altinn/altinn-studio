@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { ResourceDeployEnvCardProps } from './ResourceDeployEnvCard';
 import { ResourceDeployEnvCard } from './ResourceDeployEnvCard';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioHeading, StudioToggleGroup, StudioTag } from '@studio/components';
 import classes from './HeadingBar.module.css';

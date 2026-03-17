@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { AddItem, type AddItemProps, InlineItemAdder, type InlineItemAdderProps } from './AddItem';
 import { renderWithProviders } from '../../../testing/mocks';

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useRef } from 'react';
 import { ImageIcon } from '@studio/icons';
 import { StudioDeleteButton } from '@studio/components-legacy';
 import classes from './PreviewImageSummary.module.css';
@@ -18,7 +18,7 @@ export const PreviewImageSummary = ({
   onDeleteImageReferenceOnly,
 }: PreviewImageSummaryProps) => {
   const { t } = useTranslation();
-  const deleteOptionsDialogRef = React.useRef<HTMLDialogElement>(null);
+  const deleteOptionsDialogRef = useRef<HTMLDialogElement>(null);
 
   const openDeleteOptionsDialog = () => {
     deleteOptionsDialogRef.current?.showModal();

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, renderHook, screen } from '@testing-library/react';
 import { BpmnContextProvider, useBpmnContext } from './BpmnContext';
 

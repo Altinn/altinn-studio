@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './PreviewLimitationsInfo.module.css';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/designsystemet-react';

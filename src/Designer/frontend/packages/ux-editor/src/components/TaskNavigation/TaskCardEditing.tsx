@@ -13,7 +13,8 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import React, { type ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import { useState } from 'react';
 import classes from './TaskCardEditing.module.css';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
@@ -37,8 +38,8 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
-  const [id, setId] = React.useState(layoutSetModel.id);
-  const [dataType, setDataType] = React.useState(layoutSetModel.dataType || '');
+  const [id, setId] = useState(layoutSetModel.id);
+  const [dataType, setDataType] = useState(layoutSetModel.dataType || '');
 
   const idChanged = id !== layoutSetModel.id;
   const dataTypeChanged = dataType !== layoutSetModel.dataType;

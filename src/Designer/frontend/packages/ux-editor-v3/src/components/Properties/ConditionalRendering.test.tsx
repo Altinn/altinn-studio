@@ -1,4 +1,3 @@
-import React from 'react';
 import { ConditionalRendering } from './ConditionalRendering';
 import { screen } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

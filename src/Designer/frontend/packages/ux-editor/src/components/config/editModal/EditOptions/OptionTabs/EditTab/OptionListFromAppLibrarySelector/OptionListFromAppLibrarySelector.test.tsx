@@ -1,4 +1,3 @@
-import React from 'react';
 import { OptionListFromAppLibrarySelector } from './OptionListFromAppLibrarySelector';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';

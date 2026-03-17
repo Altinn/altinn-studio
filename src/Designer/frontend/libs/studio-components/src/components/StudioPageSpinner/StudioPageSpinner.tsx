@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactElement, Ref } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import classes from './StudioPageSpinner.module.css';
 import { StudioCenter } from '../StudioCenter';
 import { StudioSpinner } from '../StudioSpinner';

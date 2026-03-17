@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList } from '../renderItemList';

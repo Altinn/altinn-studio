@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { type Repository, type User } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
 import { StudioProperty, StudioConfigCard } from '@studio/components';

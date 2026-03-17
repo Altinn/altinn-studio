@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSchemaQuery } from '../../../hooks/queries';
 import { useSchemaMutation } from '../../../hooks/mutations';
 import { StudioCenter, StudioError, StudioPageSpinner } from '@studio/components';

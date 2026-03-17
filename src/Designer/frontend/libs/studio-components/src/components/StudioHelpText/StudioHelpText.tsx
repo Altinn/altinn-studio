@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioHelpText.module.css';
 import { Popover } from '@digdir/designsystemet-react';

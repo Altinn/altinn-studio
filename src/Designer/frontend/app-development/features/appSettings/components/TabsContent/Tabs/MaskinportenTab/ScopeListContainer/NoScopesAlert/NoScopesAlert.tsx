@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './NoScopesAlert.module.css';
 import { GetInTouchWith } from 'app-shared/getInTouch';

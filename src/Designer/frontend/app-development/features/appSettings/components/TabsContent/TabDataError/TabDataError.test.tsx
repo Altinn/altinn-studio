@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { TabDataErrorProps } from './TabDataError';
 import { TabDataError } from './TabDataError';

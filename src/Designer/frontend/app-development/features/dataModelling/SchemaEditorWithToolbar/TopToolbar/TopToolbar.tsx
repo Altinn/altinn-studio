@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import classes from './TopToolbar.module.css';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { XSDUpload } from './XSDUpload';

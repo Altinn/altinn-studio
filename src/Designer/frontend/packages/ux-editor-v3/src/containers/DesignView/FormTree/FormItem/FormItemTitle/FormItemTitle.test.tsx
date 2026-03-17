@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';

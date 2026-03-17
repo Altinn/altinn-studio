@@ -1,4 +1,3 @@
-import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { LandingPage } from './views/LandingPage';
 import { NoMatch } from './views/NoMatch';

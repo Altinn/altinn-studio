@@ -1,4 +1,4 @@
-import React, { type ComponentType, type ReactElement, type ReactNode } from 'react';
+import type { ComponentType, ReactElement, ReactNode } from 'react';
 import { StudioParagraph, StudioHeading, StudioLink } from '@studio/components';
 import { type IconProps } from '@studio/icons';
 import classes from './ContactSection.module.css';

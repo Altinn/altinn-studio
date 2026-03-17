@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 

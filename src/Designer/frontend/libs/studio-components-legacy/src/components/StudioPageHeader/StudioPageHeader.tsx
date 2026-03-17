@@ -1,4 +1,5 @@
-import React, { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './StudioPageHeader.module.css';
 import { type StudioPageHeaderVariant } from './types/StudioPageHeaderVariant';
 import { StudioPageHeaderContextProvider } from './context';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

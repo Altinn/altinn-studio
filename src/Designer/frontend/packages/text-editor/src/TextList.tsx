@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { TextRow } from './TextRow';
 import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';

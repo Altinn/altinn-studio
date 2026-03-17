@@ -1,4 +1,3 @@
-import React from 'react';
 import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../../hooks';
 import { StudioDropdown } from '@studio/components';

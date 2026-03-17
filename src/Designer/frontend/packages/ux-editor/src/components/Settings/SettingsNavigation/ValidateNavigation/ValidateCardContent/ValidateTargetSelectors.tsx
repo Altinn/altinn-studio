@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

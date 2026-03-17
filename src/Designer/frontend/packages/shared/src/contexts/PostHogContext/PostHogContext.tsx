@@ -1,4 +1,5 @@
-import React, { type ReactNode, type ReactElement, useEffect, useState, useMemo } from 'react';
+import type { ReactNode, ReactElement } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import posthog from 'posthog-js';
 import { PostHogProvider as PostHogReactProvider } from '@posthog/react';
 import { useEnvironmentConfig } from '../EnvironmentConfigContext';
