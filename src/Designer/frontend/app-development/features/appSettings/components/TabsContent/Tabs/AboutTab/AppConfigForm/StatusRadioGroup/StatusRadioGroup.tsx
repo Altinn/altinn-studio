@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { useStudioRadioGroup, StudioRadioGroup } from '@studio/components';
 import type { StatusOption } from 'app-shared/types/AppConfig';

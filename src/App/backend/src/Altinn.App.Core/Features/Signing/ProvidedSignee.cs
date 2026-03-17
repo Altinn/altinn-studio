@@ -12,6 +12,13 @@ public abstract class ProvidedSignee
     /// </summary>
     [JsonPropertyName("communicationConfig")]
     public CommunicationConfig? CommunicationConfig { get; init; }
+
+    /// <summary>
+    /// Additional actions to delegate to this signee. Read and sign are always delegated by default.
+    /// Use this to delegate additional actions, e.g. "reject". Custom action strings are also supported.
+    /// </summary>
+    [JsonPropertyName("additionalActionsToDelegate")]
+    public List<string>? AdditionalActionsToDelegate { get; init; }
 }
 
 /// <summary>

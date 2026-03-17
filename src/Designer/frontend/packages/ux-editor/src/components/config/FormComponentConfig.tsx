@@ -1,4 +1,3 @@
-import React from 'react';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { usePropertyTypes } from './ConfigProperties/usePropertyTypes';

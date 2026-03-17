@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IInternalLayout } from '../../../types/global';
 import { StudioDragAndDropTree } from '@studio/components';
 import { renderItemList } from './renderItemList';

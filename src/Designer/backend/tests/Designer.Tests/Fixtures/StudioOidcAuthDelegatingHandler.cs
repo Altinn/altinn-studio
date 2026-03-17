@@ -115,13 +115,59 @@ namespace Designer.Tests.Fixtures
 
             using var userSelectResponse = await base.SendAsync(userSelectRequest, cancellationToken);
 
-            if (userSelectResponse.StatusCode != HttpStatusCode.Found)
+            HttpResponseMessage responseWithCode = userSelectResponse;
+
+            // Step 3b: If org picker is shown (200 OK with HTML), select the first org and submit
+            if (userSelectResponse.StatusCode == HttpStatusCode.OK)
             {
-                throw new Exception($"Expected redirect from fake-ansattporten, got {userSelectResponse.StatusCode}");
+                string orgPickerContent = await userSelectResponse.Content.ReadAsStringAsync(cancellationToken);
+
+                string pendingId = WebScrapingUtils.ExtractTextBetweenMarkers(
+                    orgPickerContent,
+                    "name=\"pending_id\" value=\"",
+                    "\""
+                );
+                string orgRedirectUri = WebScrapingUtils.ExtractTextBetweenMarkers(
+                    orgPickerContent,
+                    "name=\"redirect_uri\" value=\"",
+                    "\""
+                );
+                string orgState = WebScrapingUtils.ExtractTextBetweenMarkers(
+                    orgPickerContent,
+                    "name=\"state\" value=\"",
+                    "\""
+                );
+                string orgId = WebScrapingUtils.ExtractTextBetweenMarkers(
+                    orgPickerContent,
+                    "name=\"org_id\" value=\"",
+                    "\""
+                );
+
+                var orgSelectFormValues = new List<KeyValuePair<string, string>>
+                {
+                    new("pending_id", pendingId),
+                    new("redirect_uri", orgRedirectUri),
+                    new("state", orgState),
+                    new("choice", "org"),
+                    new("org_id", orgId),
+                };
+
+                using var orgSelectContent = new FormUrlEncodedContent(orgSelectFormValues);
+                using var orgSelectRequest = new HttpRequestMessage(HttpMethod.Post, $"{authorizePostUrl}/org-select")
+                {
+                    Content = orgSelectContent,
+                };
+
+                responseWithCode = await base.SendAsync(orgSelectRequest, cancellationToken);
+            }
+
+            if (responseWithCode.StatusCode != HttpStatusCode.Found)
+            {
+                throw new Exception($"Expected redirect from fake-ansattporten, got {responseWithCode.StatusCode}");
             }
 
             // Step 4: Follow redirect back to Designer's OIDC callback (studio-oidc-signin)
-            var callbackUri = userSelectResponse.Headers.Location;
+            var callbackUri = responseWithCode.Headers.Location;
             using var callbackRequest = new HttpRequestMessage(HttpMethod.Get, callbackUri);
             callbackRequest.AddCookies(correlationCookies);
 

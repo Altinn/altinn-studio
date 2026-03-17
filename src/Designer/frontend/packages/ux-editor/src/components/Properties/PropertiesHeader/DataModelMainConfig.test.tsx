@@ -1,4 +1,3 @@
-import React from 'react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { screen } from '@testing-library/react';

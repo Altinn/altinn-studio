@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Deployments } from './Deployments';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';

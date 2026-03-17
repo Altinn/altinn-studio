@@ -2033,6 +2033,8 @@ namespace Altinn.App.Core.Features.Signing
     public abstract class ProvidedSignee
     {
         protected ProvidedSignee() { }
+        [System.Text.Json.Serialization.JsonPropertyName("additionalActionsToDelegate")]
+        public System.Collections.Generic.List<string>? AdditionalActionsToDelegate { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("communicationConfig")]
         public Altinn.App.Core.Features.Signing.CommunicationConfig? CommunicationConfig { get; init; }
     }

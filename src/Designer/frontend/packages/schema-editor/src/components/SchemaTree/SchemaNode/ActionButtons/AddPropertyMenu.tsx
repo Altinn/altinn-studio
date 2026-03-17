@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
 import type { FieldType, ObjectKind } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';

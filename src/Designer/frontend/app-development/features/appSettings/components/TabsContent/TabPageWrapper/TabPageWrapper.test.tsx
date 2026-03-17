@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { TabPageWrapperProps } from './TabPageWrapper';
 import { TabPageWrapper } from './TabPageWrapper';

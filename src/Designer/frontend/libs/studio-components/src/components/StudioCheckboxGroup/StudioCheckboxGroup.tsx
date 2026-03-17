@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioFieldset } from '../StudioFieldset';
 import type { StudioFieldsetProps } from '../StudioFieldset';

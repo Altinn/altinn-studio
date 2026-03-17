@@ -2,7 +2,6 @@ import { PageName } from '@studio/content-library';
 import type { ContentLibraryRouter } from '@studio/content-library';
 import { useNavigate as useReactRouterNavigate, useParams, Link } from 'react-router-dom';
 import type { HTMLAttributes } from 'react';
-import React from 'react';
 
 export function useContentLibraryRouter(basePath: string): ContentLibraryRouter {
   const location = useElementType();

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { UndefinedBinding, type UndefinedBindingProps } from './UndefinedBinding';
 import { textMock } from '@studio/testing/mocks/i18nMock';

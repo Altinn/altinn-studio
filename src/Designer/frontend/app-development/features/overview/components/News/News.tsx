@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ForwardedRef } from 'react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { render, screen } from '@testing-library/react';

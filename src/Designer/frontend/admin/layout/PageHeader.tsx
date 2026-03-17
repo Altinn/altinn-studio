@@ -4,7 +4,6 @@ import type { StudioProfileMenuGroup } from '@studio/components-legacy';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { StudioAvatar } from '@studio/components';
 import type { ReactElement } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';

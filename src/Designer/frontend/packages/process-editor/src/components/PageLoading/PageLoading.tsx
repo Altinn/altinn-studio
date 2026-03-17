@@ -1,4 +1,3 @@
-import React from 'react';
 import { Spinner, type SpinnerProps } from '@digdir/designsystemet-react';
 
 import classes from './PageLoading.module.css';

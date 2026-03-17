@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

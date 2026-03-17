@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioAvatar, type StudioAvatarProps } from './StudioAvatar';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';

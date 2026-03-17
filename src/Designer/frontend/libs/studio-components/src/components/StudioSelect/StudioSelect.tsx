@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import { useId } from 'react';
 import type { ReactElement } from 'react';
 import classes from './StudioSelect.module.css';
 import { Select } from '@digdir/designsystemet-react';

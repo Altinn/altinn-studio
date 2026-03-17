@@ -1,4 +1,3 @@
-import React from 'react';
 import { TextResource } from '../../../../TextResource/TextResource';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useTranslation } from 'react-i18next';

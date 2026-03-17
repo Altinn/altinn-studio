@@ -1,4 +1,4 @@
-import React, { forwardRef, useId } from 'react';
+import { forwardRef, useId } from 'react';
 import type { ReactElement, Ref } from 'react';
 import classes from './StudioSpinner.module.css';
 import cn from 'classnames';

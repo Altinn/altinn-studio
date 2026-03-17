@@ -1,4 +1,5 @@
-import React, { type ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import { useState } from 'react';
 import classes from './EmptyTextField.module.css';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { StudioProperty, StudioTextfield } from '@studio/components';
@@ -11,7 +12,7 @@ type EmptyTextFieldProps = {
 
 export const EmptyTextField = ({ onChange, override }: EmptyTextFieldProps) => {
   const { t } = useTranslation();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   if (!open) {
     return (

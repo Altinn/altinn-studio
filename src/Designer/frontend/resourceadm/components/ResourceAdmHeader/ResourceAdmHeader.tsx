@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './ResourceAdmHeader.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
