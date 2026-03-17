@@ -155,7 +155,7 @@ async def _sync_single_file(
     # Call MCP tool with langfuse tracking
     from langfuse import get_client
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
+    with langfuse.start_as_current_observation(name="tool_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
         try:
             result = await mcp_client.call_tool("datamodel_sync", sync_request, gitea_token=gitea_token)
             span.update(output={"result": result})

@@ -450,7 +450,7 @@ async def execute_tool_plan(
 ) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
     langfuse = get_client()
-    with langfuse.start_as_current_span(
+    with langfuse.start_as_current_observation(
         name="tool_execution_phase",
         input={
             "tool_names": [entry.get("tool") for entry in tool_plan],
@@ -520,7 +520,7 @@ async def execute_tool_plan(
             entry["arguments"] = arguments
 
             objective = entry.get("objective", "")
-            with langfuse.start_as_current_span(
+            with langfuse.start_as_current_observation(
                 name=f"tool::{tool_name}",
                 input={"arguments": arguments},
                 metadata={"span_type": "TOOL", "tool": tool_name, "objective": objective}
