@@ -62,8 +62,14 @@ public static class DashboardEndpoints
             var watchRoot = physicalProvider.Root;
             app.MapGet(
                     "/dashboard/hot-reload",
-                    async (HttpContext ctx, CancellationToken ct) =>
+                    async (IHostApplicationLifetime lifetime, HttpContext ctx, CancellationToken ct) =>
                     {
+                        using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                            ct,
+                            lifetime.ApplicationStopping
+                        );
+                        ct = cts.Token;
+
                         ctx.Response.ContentType = "text/event-stream";
                         ctx.Response.Headers.CacheControl = "no-cache";
                         ctx.Response.Headers.Connection = "keep-alive";
@@ -111,10 +117,14 @@ public static class DashboardEndpoints
                     IEngineStatus engineStatus,
                     IConcurrencyLimiter limiter,
                     IServiceProvider sp,
+                    IHostApplicationLifetime lifetime,
                     HttpContext ctx,
                     CancellationToken ct
                 ) =>
                 {
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, lifetime.ApplicationStopping);
+                    ct = cts.Token;
+
                     ctx.Response.ContentType = "text/event-stream";
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
@@ -211,8 +221,17 @@ public static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/stream/active",
-                async (AsyncSignal workflowSignal, IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+                async (
+                    AsyncSignal workflowSignal,
+                    IServiceProvider sp,
+                    IHostApplicationLifetime lifetime,
+                    HttpContext ctx,
+                    CancellationToken ct
+                ) =>
                 {
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, lifetime.ApplicationStopping);
+                    ct = cts.Token;
+
                     ctx.Response.ContentType = "text/event-stream";
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
@@ -288,9 +307,9 @@ public static class DashboardEndpoints
                         // Wait for a workflow change signal or timeout after 500ms
                         try
                         {
-                            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                            cts.CancelAfter(500);
-                            await workflowSignal.WaitAsync(cts.Token);
+                            using var signalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                            signalCts.CancelAfter(500);
+                            await workflowSignal.WaitAsync(signalCts.Token);
                         }
                         catch (OperationCanceledException)
                         {
