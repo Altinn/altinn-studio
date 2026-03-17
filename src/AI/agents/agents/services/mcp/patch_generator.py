@@ -30,7 +30,7 @@ class PatchGenerator:
         tool_results: Optional[List[Dict[str, Any]]] = None,
         implementation_plan: Optional[Dict[str, Any]] = None,
         attachments: Optional[list] = None,
-        gitea_token: Optional[str] = None,
+        designer_api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate a patch while caching intermediate artefacts."""
 
@@ -50,7 +50,7 @@ class PatchGenerator:
                 tool_results_override=tool_results,
                 implementation_plan_override=implementation_plan,
                 attachments=attachments,
-                gitea_token=gitea_token,
+                designer_api_key=designer_api_key,
             )
             
             if not pipeline_output:

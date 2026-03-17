@@ -5,6 +5,11 @@ import { Language } from '../../enum/Language';
 import { waitFor } from '@testing-library/dom';
 
 test('It is not possible to log in with invalid credentials', async ({ page }): Promise<void> => {
+  test.skip(
+    process.env.STUDIO_OIDC_ENABLED === 'true',
+    'No invalid credentials flow with fake-ansattporten',
+  );
+
   const loginPage = new LoginPage(page);
 
   await loginPage.goToAltinnLoginPage();

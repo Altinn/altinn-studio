@@ -66,8 +66,8 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
 
             // Check if file is pushed to gitea
-            var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
-                $"repos/{org}/{targetRepo}/contents/test.txt"
+            var giteaFileResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
+                await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test.txt")
             );
             Assert.Equal(HttpStatusCode.OK, giteaFileResponse.StatusCode);
 

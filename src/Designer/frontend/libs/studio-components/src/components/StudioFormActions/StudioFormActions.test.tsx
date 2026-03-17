@@ -1,4 +1,5 @@
-import React, { type Ref } from 'react';
+import type { Ref } from 'react';
+import { createRef } from 'react';
 import { StudioFormActions, type StudioFormActionsProps } from './StudioFormActions';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -79,7 +80,7 @@ describe('StudioFormActions', () => {
   });
 
   it('should forward ref to the container div', () => {
-    const ref = React.createRef<HTMLDivElement>();
+    const ref = createRef<HTMLDivElement>();
     renderStudioFormActions({}, ref);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });

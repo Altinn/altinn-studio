@@ -1,3 +1,4 @@
+//nolint:revive // ResourceID and ResourceRef are core domain names used throughout the resource package.
 package resource
 
 // ResourceID is a unique identifier for a resource within a graph.
@@ -11,8 +12,8 @@ func (id ResourceID) String() string {
 // ResourceRef references a resource either by ID or by direct reference.
 // Use Ref() or RefID() to construct.
 type ResourceRef struct {
-	id       ResourceID
 	resource Resource
+	id       ResourceID
 }
 
 // Ref creates a reference from a Resource.

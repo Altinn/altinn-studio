@@ -6,6 +6,7 @@
       personNumber: 01039012345,
       organisationNumber: null,
       username: null,
+      externalIdentifier: null,
       party: {
         partyId: 501337,
         partyUuid: null,
@@ -92,6 +93,7 @@
       personNumber: 01039012345,
       organisationNumber: null,
       username: null,
+      externalIdentifier: null,
       party: {
         partyId: 501337,
         partyUuid: null,

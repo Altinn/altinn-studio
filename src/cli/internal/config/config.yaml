@@ -6,10 +6,10 @@ images:
   core:
     localtest:
       image: ghcr.io/altinn/altinn-studio/runtime-localtest
-      tag: 5edd759
+      tag: "0962e962"
     pdf3:
       image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
-      tag: 82f085564e
+      tag: "2c3af43983"
 
   monitoring:
     tempo:

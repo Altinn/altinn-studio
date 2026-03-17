@@ -11,7 +11,7 @@ export type NavigationEffect = {
 
 interface Context {
   effect: NavigationEffect | null;
-  setEffect: (effect: NavigationEffect) => void;
+  setEffect: (effect: NavigationEffect | null) => void;
 }
 
 const { useCtx, Provider } = createContext<Context>({

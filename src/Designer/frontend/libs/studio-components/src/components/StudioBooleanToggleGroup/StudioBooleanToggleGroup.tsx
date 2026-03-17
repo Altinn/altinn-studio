@@ -1,6 +1,6 @@
 import type { ToggleGroupProps } from '@digdir/designsystemet-react';
 import { ToggleGroup } from '@digdir/designsystemet-react';
-import React, { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import type { Override } from '../../types/Override';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
 

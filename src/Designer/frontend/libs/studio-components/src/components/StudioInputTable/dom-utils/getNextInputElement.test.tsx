@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import type { CellCoords } from '../types/CellCoords';
 import { render, screen } from '@testing-library/react';
 import { getNextInputElement } from './getNextInputElement';

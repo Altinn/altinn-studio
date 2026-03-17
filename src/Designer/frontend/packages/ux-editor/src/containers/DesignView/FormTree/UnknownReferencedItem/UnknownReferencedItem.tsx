@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioHelpText } from '@studio/components';
 import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';

@@ -1,7 +1,7 @@
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
 import type { OverridableComponent } from '../../types/OverridableComponent';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { TrashIcon } from '@studio/icons';
 import type { MouseEvent } from 'react';
 

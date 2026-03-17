@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useState } from 'react';
+import { forwardRef, useCallback, useState } from 'react';
 import { Combobox } from '@digdir/designsystemet-react';
 //TODO: Update import path when v1 of the Design system has been updated to export it from index: https://github.com/Altinn/altinn-studio/issues/13531
 import type { ComboboxProps } from '@digdir/designsystemet-react/dist/types/components/form/Combobox/Combobox';

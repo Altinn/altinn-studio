@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LinkIcon } from '@studio/icons';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,5 @@
-import React, { type ReactNode, type ReactElement, createContext, useContext } from 'react';
+import type { ReactNode, ReactElement } from 'react';
+import { createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import axios from 'axios';

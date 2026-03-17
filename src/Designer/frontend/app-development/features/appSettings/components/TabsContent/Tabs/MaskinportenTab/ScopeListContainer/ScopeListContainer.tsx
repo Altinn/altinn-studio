@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioSpinner } from '@studio/components';
 import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQuery';
 import { useTranslation } from 'react-i18next';

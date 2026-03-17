@@ -16,7 +16,6 @@ using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
@@ -81,7 +80,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ActionResult> PublishServiceResource(
             ServiceResource serviceResource,
             string env,
-            string policyPath = null,
             byte[] policyContent = null
         )
         {
@@ -157,35 +155,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return await GetPublishResponse(response);
             }
 
-            if (policyPath != null)
-            {
-                if (!ResourceAdminHelper.ValidFilePath(policyPath))
-                {
-                    Console.WriteLine($"Invalid filepath for policyfile. Path: {policyPath}");
-                    return new StatusCodeResult(400);
-                }
-                byte[] policyFileContentBytes;
-
-                try
-                {
-                    string canonicalPolicyPath = Path.GetFullPath(policyPath);
-
-                    if (canonicalPolicyPath.EndsWith(".xml"))
-                    {
-                        policyFileContentBytes = File.ReadAllBytes(policyPath);
-                        policyContent = policyFileContentBytes;
-                    }
-                    else
-                    {
-                        return new StatusCodeResult(400);
-                    }
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine($"Error while reading policy from path {policyPath}");
-                    return new StatusCodeResult(400);
-                }
-            }
             if (policyContent != null)
             {
                 using MultipartFormDataContent content = new();

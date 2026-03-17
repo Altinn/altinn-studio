@@ -1,4 +1,5 @@
-import React, { useState, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSwitch, StudioButton, StudioBanner } from '@studio/components';
 import { useConsent, useConsentMutation } from '../../utils/consent';

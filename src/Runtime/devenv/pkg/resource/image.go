@@ -2,6 +2,12 @@ package resource
 
 import "errors"
 
+var (
+	errImageReferenceRequired = errors.New("image reference is required")
+	errContextPathRequired    = errors.New("context path is required")
+	errImageTagRequired       = errors.New("image tag is required")
+)
+
 // PullPolicy specifies when to pull an image.
 type PullPolicy int
 
@@ -47,7 +53,7 @@ func (r *RemoteImage) ImageRef() string {
 // Validate checks that the image configuration is valid.
 func (r *RemoteImage) Validate() error {
 	if r.Ref == "" {
-		return errors.New("image reference is required")
+		return errImageReferenceRequired
 	}
 	return nil
 }
@@ -79,15 +85,15 @@ func (l *LocalImage) ImageRef() string {
 // Validate checks that the image configuration is valid.
 func (l *LocalImage) Validate() error {
 	if l.ContextPath == "" {
-		return errors.New("context path is required")
+		return errContextPathRequired
 	}
 	if l.Tag == "" {
-		return errors.New("image tag is required")
+		return errImageTagRequired
 	}
 	return nil
 }
 
-// Compile-time interface checks
+// Compile-time interface checks.
 var (
 	_ Resource      = (*RemoteImage)(nil)
 	_ Resource      = (*LocalImage)(nil)

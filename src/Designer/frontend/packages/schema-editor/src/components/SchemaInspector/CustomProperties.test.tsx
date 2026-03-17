@@ -1,4 +1,3 @@
-import React from 'react';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { FieldType, ROOT_POINTER, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';

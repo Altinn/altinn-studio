@@ -12,3 +12,14 @@
 .configDefined div {
   margin-bottom: var(--ds-size-1);
 }
+
+.modalFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
+.modalActions {
+  display: flex;
+  gap: var(--ds-size-2);
+}

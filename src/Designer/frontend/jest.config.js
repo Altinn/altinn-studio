@@ -44,7 +44,18 @@ const resolveNodeModulesPath = (subPath) => {
 /** @type {import('jest').Config} */
 const config = {
   transform: {
-    '\\.(ts|tsx|js)': '@swc/jest',
+    '\\.(ts|tsx|js)': [
+      '@swc/jest',
+      {
+        jsc: {
+          transform: {
+            react: {
+              runtime: 'automatic',
+            },
+          },
+        },
+      },
+    ],
     [`node_modules(\\\\|/)(${packagesToTransform})(\\\\|/).+\\.(j|t)sx?$`]: '@swc/jest',
   },
   transformIgnorePatterns: [

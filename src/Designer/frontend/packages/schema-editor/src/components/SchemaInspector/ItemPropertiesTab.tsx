@@ -1,4 +1,3 @@
-import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { ObjectKind } from '@altinn/schema-model';
 import { InlineObject } from './InlineObject';

@@ -18,7 +18,7 @@ describe('RepeatingGroupTableSummary', () => {
     jest.restoreAllMocks();
   });
 
-  const layoutWithHidden = (hidden: NodeId[], editButton?: boolean): ILayoutCollection => ({
+  const layoutWithHidden = (hidden: NodeId[], editButton?: boolean, withRowsAfter?: boolean): ILayoutCollection => ({
     FormPage1: {
       data: {
         layout: [
@@ -32,6 +32,13 @@ describe('RepeatingGroupTableSummary', () => {
             children: ['input1', 'input2', 'input3'],
             maxCount: 3,
             hidden: hidden.includes('repeating-group'),
+            ...(withRowsAfter && {
+              rowsAfter: [
+                {
+                  cells: [{ text: 'summary.total' }],
+                },
+              ],
+            }),
             ...(editButton !== undefined && {
               edit: {
                 editButton,
@@ -70,6 +77,58 @@ describe('RepeatingGroupTableSummary', () => {
               title: 'Input 3',
             },
             hidden: hidden.includes('input3'),
+          },
+        ],
+      },
+    },
+    FormPage2: {
+      data: {
+        layout: [
+          {
+            id: 'summary2',
+            type: 'Summary2',
+            target: {
+              type: 'component',
+              id: 'repeating-group',
+            },
+            overrides: [{ componentType: 'RepeatingGroup', display: 'table' }],
+          },
+        ],
+      },
+    },
+  });
+
+  const layoutWithNestedGroupChild = (): ILayoutCollection => ({
+    FormPage1: {
+      data: {
+        layout: [
+          {
+            id: 'repeating-group',
+            type: 'RepeatingGroup',
+            dataModelBindings: {
+              group: { dataType: defaultDataTypeMock, field: 'group' },
+            },
+            children: ['inner-group'],
+            tableHeaders: ['nested-input'],
+            maxCount: 3,
+            edit: {
+              editButton: true,
+            },
+          },
+          {
+            id: 'inner-group',
+            type: 'Group',
+            children: ['nested-input'],
+          },
+          {
+            id: 'nested-input',
+            type: 'Input',
+            dataModelBindings: {
+              simpleBinding: { dataType: defaultDataTypeMock, field: 'group.nestedField' },
+            },
+            textResourceBindings: {
+              title: 'Nested input',
+            },
           },
         ],
       },
@@ -153,6 +212,24 @@ describe('RepeatingGroupTableSummary', () => {
   test('should render edit button when edit.editButton is true', async () => {
     await render({ layout: layoutWithHidden([], true) });
     expect(screen.getByRole('button', { name: /endre/i })).toBeInTheDocument();
+  });
+
+  test('should render rowsAfter in summary table', async () => {
+    await render({ layout: layoutWithHidden([], true, true) });
+    expect(screen.getByText('summary.total')).toBeInTheDocument();
+  });
+
+  test('should handle nested child component inside group when editing', async () => {
+    const user = userEvent.setup();
+    const navigate = jest.fn();
+    await render({ navigate, layout: layoutWithNestedGroupChild() });
+
+    const editButton = screen.getByRole('button', { name: /endre/i });
+    await user.click(editButton);
+
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith('repeating-group', 'repeating-group', expect.any(Object)),
+    );
   });
 
   type IRenderProps = {

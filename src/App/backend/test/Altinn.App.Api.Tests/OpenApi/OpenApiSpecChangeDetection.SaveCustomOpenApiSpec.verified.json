@@ -2126,7 +2126,7 @@
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "externalIdentifier": {
             "type": "string",
             "nullable": true
           }

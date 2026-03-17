@@ -1,3 +1,4 @@
+// Package helm wraps the Helm SDK operations used by the local runtime fixture.
 package helm
 
 import (
@@ -9,10 +10,12 @@ import (
 	"helm.sh/helm/v3/pkg/registry"
 )
 
+// Client wraps Helm chart packaging and registry operations.
 type Client struct {
 	registryClient *registry.Client
 }
 
+// NewClient creates a Helm client backed by Helm's OCI registry client.
 func NewClient(plainHTTP bool) (*Client, error) {
 	opts := []registry.ClientOption{}
 	if plainHTTP {
@@ -48,11 +51,12 @@ func (c *Client) PackageChart(chartPath, destDir string) (string, error) {
 // The chart name and version are extracted from the chart and appended to form the full ref.
 func (c *Client) PushChart(chartFile, ociRef string) error {
 	// Load chart to get metadata
+	//nolint:gosec // chartFile is produced from the local project configuration.
 	f, err := os.Open(chartFile)
 	if err != nil {
 		return fmt.Errorf("failed to open chart file: %w", err)
 	}
-	defer func() { _ = f.Close() }()
+	defer closeFile(f)
 
 	chart, err := loader.LoadArchive(f)
 	if err != nil {
@@ -60,6 +64,7 @@ func (c *Client) PushChart(chartFile, ociRef string) error {
 	}
 
 	// Read file contents for push
+	//nolint:gosec // chartFile is produced from the local project configuration.
 	chartBytes, err := os.ReadFile(chartFile)
 	if err != nil {
 		return fmt.Errorf("failed to read chart file %s: %w", chartFile, err)
@@ -74,4 +79,9 @@ func (c *Client) PushChart(chartFile, ociRef string) error {
 	}
 
 	return nil
+}
+
+//nolint:errcheck,gosec // Chart file close only releases the local descriptor.
+func closeFile(f *os.File) {
+	f.Close()
 }

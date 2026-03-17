@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { StudioList, StudioLink } from '@studio/components';

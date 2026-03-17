@@ -1,6 +1,5 @@
 import type { CombinationNode, ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
 import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { NodeIconProps } from './';
 import { NodeIcon } from './';

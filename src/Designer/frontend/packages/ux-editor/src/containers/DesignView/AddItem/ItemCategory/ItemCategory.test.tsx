@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IToolbarElement } from '../../../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ItemCategory, type ItemCategoryProps } from './ItemCategory';

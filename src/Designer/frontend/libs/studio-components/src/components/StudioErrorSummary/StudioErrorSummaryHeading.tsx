@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { ErrorSummaryHeading } from '@digdir/designsystemet-react';
 import type { ErrorSummaryHeadingProps } from '@digdir/designsystemet-react';

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { ReferenceIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButtons.module.css';

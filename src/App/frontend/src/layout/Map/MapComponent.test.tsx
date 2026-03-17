@@ -136,4 +136,22 @@ describe('MapComponent', () => {
     expect(screen.queryByRole('button', { name: 'Zoom in' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Zoom out' })).not.toBeInTheDocument();
   });
+
+  it('should have expression support for latitude and longitude in centerLocation', async () => {
+    const { formDataMethods, container } = await render({
+      component: {
+        centerLocation: {
+          latitude: ['if', true, 59.9121],
+          longitude: ['if', true, 10.73333],
+        },
+      },
+    });
+
+    await clickMap(container);
+
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { dataType: defaultDataTypeMock, field: 'myCoords' },
+      newValue: '59.933000,10.722656',
+    } satisfies FDNewValue);
+  });
 });
