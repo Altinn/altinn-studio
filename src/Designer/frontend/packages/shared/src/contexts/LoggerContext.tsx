@@ -20,34 +20,52 @@ export const LoggerContextProvider = ({
   const reactPlugin = useMemo(() => new ReactPlugin(), []);
   const { environment } = useEnvironmentConfig();
 
-  const applicationInsights = useMemo(() => {
-    // check if we have a connectionString, if not, don't initialize app insights (we do not want AI to run on localhost)
-    if (!environment?.aiConnectionString) return null;
+  const applicationInsights = useMemo(
+    () => createApplicationInsights(environment?.aiConnectionString, config, reactPlugin),
+    [config, reactPlugin, environment],
+  );
 
+  useEffect(() => {
+    if (!applicationInsights) return;
+
+    const handleWindowError = (event: ErrorEvent) =>
+      trackException(applicationInsights, event.error);
+
+    window.addEventListener('error', handleWindowError);
+    return () => window.removeEventListener('error', handleWindowError);
+  }, [applicationInsights]);
+
+  return <LoggerContext.Provider value={applicationInsights}>{children}</LoggerContext.Provider>;
+};
+
+function createApplicationInsights(
+  connectionString: string | undefined,
+  config: LoggerConfig,
+  reactPlugin: ReactPlugin,
+): ApplicationInsights | null {
+  if (!connectionString) return null;
+
+  try {
     const insights = new ApplicationInsights({
       config: {
         ...config,
-        connectionString: environment.aiConnectionString,
+        connectionString,
         extensions: [reactPlugin as unknown as ITelemetryPlugin],
       },
     });
 
     insights.loadAppInsights();
     return insights;
-  }, [config, reactPlugin, environment]);
+  } catch (error) {
+    console.error('Failed to initialize Application Insights:', error);
+    return null;
+  }
+}
 
-  useEffect(() => {
-    const handleWindowError = (event: ErrorEvent) => {
-      applicationInsights?.trackException({ error: event.error });
-    };
-
-    if (applicationInsights) {
-      window.addEventListener('error', handleWindowError);
-
-      return () => {
-        window.removeEventListener('error', handleWindowError);
-      };
-    }
-  }, [applicationInsights]);
-  return <LoggerContext.Provider value={applicationInsights}>{children}</LoggerContext.Provider>;
-};
+function trackException(applicationInsights: ApplicationInsights, error: Error): void {
+  try {
+    applicationInsights.trackException({ error });
+  } catch (trackingError) {
+    console.error('Failed to track exception in Application Insights:', trackingError);
+  }
+}
