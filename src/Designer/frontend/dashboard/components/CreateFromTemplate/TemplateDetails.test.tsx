@@ -1,4 +1,3 @@
-import React from 'react';
 import { TemplateDetails, type TemplateDetailsProps } from './TemplateDetails';
 import { render, screen } from '@testing-library/react';
 
