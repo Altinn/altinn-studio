@@ -57,6 +57,13 @@ type ContainerClient interface {
 	// Build builds a container image from a Dockerfile
 	Build(ctx context.Context, contextPath, dockerfile, tag string) error
 
+	// BuildWithProgress builds a container image and emits best-effort progress updates.
+	BuildWithProgress(
+		ctx context.Context,
+		contextPath, dockerfile, tag string,
+		onProgress types.ProgressHandler,
+	) error
+
 	// Push pushes an image to a registry
 	Push(ctx context.Context, image string) error
 
@@ -84,6 +91,9 @@ type ContainerClient interface {
 
 	// ImagePull pulls an image from a registry
 	ImagePull(ctx context.Context, image string) error
+
+	// ImagePullWithProgress pulls an image and emits best-effort progress updates.
+	ImagePullWithProgress(ctx context.Context, image string, onProgress types.ProgressHandler) error
 
 	// ContainerInspect returns detailed information about a container.
 	// Returns ErrContainerNotFound if the container does not exist.

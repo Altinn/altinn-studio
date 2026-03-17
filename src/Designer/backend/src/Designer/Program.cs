@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hosting;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Infrastructure;
-using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Infrastructure.DeveloperSession;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
@@ -188,7 +187,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration, env);
-    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
     services.AddMaskinportenAuthentication(configuration);
     services.ConfigureAuthentication(configuration, env);
 

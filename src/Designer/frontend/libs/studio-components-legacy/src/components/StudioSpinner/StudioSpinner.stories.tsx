@@ -1,10 +1,7 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioSpinner } from './StudioSpinner';
 
-type Story = StoryFn<typeof StudioSpinner>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioSpinner',
   component: StudioSpinner,
   argTypes: {
@@ -17,13 +14,16 @@ const meta: Meta = {
       options: ['default', 'interaction', 'inverted'],
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <StudioSpinner {...args} />;
-
-Preview.args = {
-  spinnerTitle: 'Text',
-  showSpinnerTitle: false,
-  size: 'medium',
-  variant: 'interaction',
-};
+} satisfies Meta<typeof StudioSpinner>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    spinnerTitle: 'Text',
+    showSpinnerTitle: false,
+    size: 'medium',
+    variant: 'interaction',
+  },
+};

@@ -2,6 +2,28 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { PageHeaderContextProvider, usePageHeaderContext } from './PageHeaderContext';
 import { renderWithProviders } from 'app-development/test/mocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+
+const mockEnvironment = { environment: null, isLoading: false, error: null };
+
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => mockEnvironment,
+}));
+
+const UserSettingsLinkConsumer = () => {
+  const { profileMenuGroups } = usePageHeaderContext();
+  const allItems = profileMenuGroups?.flatMap((group) => group.items) ?? [];
+  const userSettingsItem = allItems.find((item) => item.itemName === textMock('user.settings'));
+  const href = userSettingsItem?.action.type === 'link' ? userSettingsItem.action.href : null;
+  return <div data-testid='user-settings-href'>{href ?? 'none'}</div>;
+};
+
+const renderPageHeaderContext = () =>
+  renderWithProviders()(
+    <PageHeaderContextProvider>
+      <UserSettingsLinkConsumer />
+    </PageHeaderContextProvider>,
+  );
 
 describe('PageHeaderContext', () => {
   it('should render children', () => {
@@ -41,5 +63,21 @@ describe('PageHeaderContext', () => {
       'usePageHeaderContext must be used within a PageHeaderContextProvider',
     );
     expect(consoleError).toHaveBeenCalled();
+  });
+
+  it('should include user settings link in profile menu when studioOidc feature flag is enabled', () => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
+
+    renderPageHeaderContext();
+
+    expect(screen.getByTestId('user-settings-href')).not.toHaveTextContent('none');
+  });
+
+  it('should not include user settings link in profile menu when studioOidc feature flag is disabled', () => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+
+    renderPageHeaderContext();
+
+    expect(screen.getByTestId('user-settings-href')).toHaveTextContent('none');
   });
 });

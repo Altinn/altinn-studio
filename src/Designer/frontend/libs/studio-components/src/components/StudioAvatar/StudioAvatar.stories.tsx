@@ -1,14 +1,12 @@
-import React from 'react';
-import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioAvatar } from './StudioAvatar';
 
-type Story = StoryFn<typeof StudioAvatar>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioAvatar',
   component: StudioAvatar,
-};
-export const Preview: Story = (args): ReactElement => <StudioAvatar {...args} />;
-
+} satisfies Meta<typeof StudioAvatar>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {};

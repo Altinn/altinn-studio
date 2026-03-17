@@ -239,6 +239,10 @@ func (w *Workflow) validateTagNotExists(ctx context.Context) error {
 	}
 
 	if exists {
+		if w.config.DryRun {
+			w.log.Info("(dry-run) Tag %s already exists; continuing to validate build and release packaging", tagFull)
+			return nil
+		}
 		w.log.Error("Tag %s already exists. Create a new patch version instead.", tagFull)
 		return fmt.Errorf("%w: %s", ErrTagExists, tagFull)
 	}

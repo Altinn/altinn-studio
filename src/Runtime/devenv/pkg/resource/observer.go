@@ -21,12 +21,16 @@ const (
 	EventDestroyDone
 	// EventDestroyFailed signals that destroy failed.
 	EventDestroyFailed
+	// EventApplyProgress signals that apply emitted best-effort progress for a resource.
+	EventApplyProgress
 )
 
 func (e EventType) String() string {
 	switch e {
 	case EventApplyStart:
 		return "apply_start"
+	case EventApplyProgress:
+		return "apply_progress"
 	case EventApplyDone:
 		return "apply_done"
 	case EventApplyFailed:
@@ -42,9 +46,18 @@ func (e EventType) String() string {
 	}
 }
 
+// Progress describes best-effort progress data for a resource event.
+type Progress struct {
+	Message       string
+	Current       int64
+	Total         int64
+	Indeterminate bool
+}
+
 // Event represents a resource lifecycle event.
 type Event struct {
 	Error    error
+	Progress *Progress
 	Resource ResourceID
 	Type     EventType
 }

@@ -1,11 +1,9 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { ReactElement } from 'react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDragAndDrop } from './index';
 import { StudioParagraph } from '../StudioParagraph';
 
-type Story = StoryFn<typeof StudioDragAndDrop>;
-
-export const Preview: Story = (): React.ReactElement => (
+const PreviewComponent = (): ReactElement => (
   <StudioDragAndDrop.Provider onAdd={() => {}} onMove={() => {}} rootId='1'>
     <StudioDragAndDrop.List>
       <StudioDragAndDrop.ListItem
@@ -18,12 +16,13 @@ export const Preview: Story = (): React.ReactElement => (
   </StudioDragAndDrop.Provider>
 );
 
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioDragAndDrop',
-  component: Preview,
+  component: PreviewComponent,
   argTypes: {},
-};
-
-Preview.args = {};
-
+} satisfies Meta<typeof PreviewComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {};
