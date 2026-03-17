@@ -13,9 +13,5 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
-    <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Commands/WorkflowEngine.Commands.csproj" />
-    <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
-    <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
-    <ProjectReference Include="../../../../common/Altinn.Studio.Runtime.Common.csproj" />
   </ItemGroup>
 </Project>
