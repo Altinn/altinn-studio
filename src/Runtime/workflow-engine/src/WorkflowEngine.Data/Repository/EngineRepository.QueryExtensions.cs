@@ -87,8 +87,8 @@ internal static class EngineRepositoryQueryExtensions
                 .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Successful.Contains(wf.Status));
 
-        public IQueryable<WorkflowEntity> GetFinishedWorkflows(
-            IReadOnlyList<PersistentItemStatus> statuses,
+        public IQueryable<WorkflowEntity> GetWorkflowsByStatus(
+            IReadOnlyCollection<PersistentItemStatus> statuses,
             string? search = null,
             int? take = null,
             DateTimeOffset? before = null,

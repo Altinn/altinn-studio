@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -130,7 +131,6 @@ internal sealed partial class EngineRepository
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
-        IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
         DateTimeOffset? before = null,
@@ -151,8 +151,8 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetFinishedWorkflows(
-                    statuses,
+                .GetWorkflowsByStatus(
+                    PersistentItemStatusMap.Finished,
                     search,
                     take,
                     before,
@@ -182,7 +182,7 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> GetFinishedWorkflowsWithCount(
+    public async Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> QueryWorkflowsWithCount(
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
@@ -195,17 +195,17 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetFinishedWorkflowsWithCount");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.QueryWorkflowsWithCount");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            logger.FetchingWorkflows("finished (with count)");
+            logger.FetchingWorkflows("query (with count)");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
             // Count uses the base filters (statuses, search, since, retried) but not cursor/take
-            var baseQuery = context.GetFinishedWorkflows(
+            var baseQuery = context.GetWorkflowsByStatus(
                 statuses,
                 search,
                 take: null,
@@ -219,7 +219,7 @@ internal sealed partial class EngineRepository
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
             // Data query adds cursor and limit
-            var dataQuery = context.GetFinishedWorkflows(
+            var dataQuery = context.GetWorkflowsByStatus(
                 statuses,
                 search,
                 take,

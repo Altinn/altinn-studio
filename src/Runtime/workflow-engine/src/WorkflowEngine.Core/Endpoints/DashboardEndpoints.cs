@@ -251,7 +251,6 @@ public static class DashboardEndpoints
 
                             IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(cancellationToken: ct);
                             IReadOnlyList<Workflow> recent = await repo.GetFinishedWorkflows(
-                                statuses: [PersistentItemStatus.Completed, PersistentItemStatus.Failed],
                                 take: 100,
                                 cancellationToken: ct
                             );
@@ -375,7 +374,7 @@ public static class DashboardEndpoints
                     // Parse label filters from comma-separated "key:value" pairs
                     Dictionary<string, string>? labelFilters = ParseLabelFilters(labels);
 
-                    (IReadOnlyList<Workflow> workflows, int totalCount) = await repo.GetFinishedWorkflowsWithCount(
+                    (IReadOnlyList<Workflow> workflows, int totalCount) = await repo.QueryWorkflowsWithCount(
                         statuses: statuses,
                         search: search,
                         take: maxResults,

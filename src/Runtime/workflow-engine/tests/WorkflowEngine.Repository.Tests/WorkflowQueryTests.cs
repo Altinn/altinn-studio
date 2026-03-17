@@ -127,7 +127,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act — pass `before` = middleTime, which should exclude wf3 and wf2 (UpdatedAt >= before is excluded)
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             before: middleTime,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -157,7 +156,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             since: middleTime,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -184,7 +182,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             retriedOnly: true,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -206,7 +203,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             labelFilters: new Dictionary<string, string> { ["app"] = "app-alpha" },
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -228,7 +224,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             labelFilters: new Dictionary<string, string> { ["org"] = "org-x" },
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -262,7 +257,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act — filter by both org and app labels
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             labelFilters: new Dictionary<string, string> { ["org"] = "org-m", ["app"] = "app-m" },
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -286,7 +280,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         // Act — search by a partial namespace ID substring
         var searchTerm = targetNamespace[..8];
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             search: searchTerm,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -307,7 +300,6 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act — the default OperationId from WorkflowTestHelper is "next"
         var results = await repo.GetFinishedWorkflows(
-            [PersistentItemStatus.Completed],
             search: "next",
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -318,14 +310,14 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetFinishedWorkflows_NoMatches_ReturnsEmptyListAndZeroCount()
+    public async Task QueryWorkflowsWithCount_NoMatches_ReturnsEmptyListAndZeroCount()
     {
         // Arrange
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
 
         // Act
-        var (workflows, totalCount) = await repo.GetFinishedWorkflowsWithCount(
+        var (workflows, totalCount) = await repo.QueryWorkflowsWithCount(
             [PersistentItemStatus.Completed],
             cancellationToken: TestContext.Current.CancellationToken
         );

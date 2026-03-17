@@ -29,8 +29,8 @@
 
 ### [Repository](src/WorkflowEngine.Data/Repository/EnginePgRepository.cs)
 
-- [ ] It doesn't make sense that `GetFinishedWorkflows` takes a list of statuses to check. This method should know what the relevant statuses are.
-- [ ] It doesn't make sense that `GetFinishedWorkflowsWithCount` takes a list of statuses to check. This method should know what the relevant statuses are.
+- [x] It doesn't make sense that `GetFinishedWorkflows` takes a list of statuses to check. This method should know what the relevant statuses are.
+- [x] `GetFinishedWorkflowsWithCount` renamed to `QueryWorkflowsWithCount` — general-purpose query that takes statuses.
 
 #### Tests
 

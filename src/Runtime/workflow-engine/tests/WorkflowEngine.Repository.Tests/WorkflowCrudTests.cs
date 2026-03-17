@@ -204,13 +204,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var failedStatuses = new List<PersistentItemStatus>
-        {
-            PersistentItemStatus.Failed,
-            PersistentItemStatus.Canceled,
-            PersistentItemStatus.DependencyFailed,
-        };
-        var results = await queryRepo.GetFinishedWorkflows(
+        var failedStatuses = PersistentItemStatusMap.Failed.ToList();
+        var (results, _) = await queryRepo.QueryWorkflowsWithCount(
             failedStatuses,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -642,7 +637,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var results = await queryRepo.GetFinishedWorkflows(
+        var (results, _) = await queryRepo.QueryWorkflowsWithCount(
             PersistentItemStatusMap.Successful.ToList(),
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -807,7 +802,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetFinishedWorkflowsWithCount_ReturnsWorkflowsAndTotalCount()
+    public async Task QueryWorkflowsWithCount_ReturnsWorkflowsAndTotalCount()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -826,7 +821,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Page of 2 from completed workflows
         var statuses = PersistentItemStatusMap.Successful.ToList();
-        var (workflows, totalCount) = await queryRepo.GetFinishedWorkflowsWithCount(
+        var (workflows, totalCount) = await queryRepo.QueryWorkflowsWithCount(
             statuses,
             take: 2,
             cancellationToken: TestContext.Current.CancellationToken
@@ -838,7 +833,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetFinishedWorkflowsWithCount_FiltersCorrectly()
+    public async Task QueryWorkflowsWithCount_FiltersCorrectly()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -870,7 +865,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var statuses = PersistentItemStatusMap.Successful.ToList();
 
         // Filter by org label
-        var (byOrg, orgCount) = await queryRepo.GetFinishedWorkflowsWithCount(
+        var (byOrg, orgCount) = await queryRepo.QueryWorkflowsWithCount(
             statuses,
             labelFilters: new Dictionary<string, string> { ["org"] = "org-a" },
             cancellationToken: TestContext.Current.CancellationToken
@@ -880,7 +875,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(wf1.DatabaseId, byOrg[0].DatabaseId);
 
         // Search by namespace (text search applies to Namespace and OperationId)
-        var (bySearch, searchCount) = await queryRepo.GetFinishedWorkflowsWithCount(
+        var (bySearch, searchCount) = await queryRepo.QueryWorkflowsWithCount(
             statuses,
             search: wf2.Namespace,
             cancellationToken: TestContext.Current.CancellationToken

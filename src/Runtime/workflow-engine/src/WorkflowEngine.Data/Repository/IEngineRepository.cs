@@ -18,10 +18,9 @@ public interface IEngineRepository
     Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets finished workflows filtered by the specified statuses.
+    /// Gets finished workflows (completed, failed, canceled, dependency-failed).
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
-        IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
         DateTimeOffset? before = null,
@@ -34,10 +33,10 @@ public interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets finished workflows with a total count of matching rows (single DB slot).
+    /// Queries workflows by status with a total count of matching rows (single DB slot).
     /// The count ignores the <paramref name="take"/> and <paramref name="before"/> (cursor) parameters.
     /// </summary>
-    Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> GetFinishedWorkflowsWithCount(
+    Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> QueryWorkflowsWithCount(
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
         int? take = null,
