@@ -93,11 +93,12 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           queryClient.invalidateQueries({
             queryKey: [QueryKey.CurrentBranch, org, app],
           });
-          window.dispatchEvent(
-            new CustomEvent('altinity-repo-reset', {
-              detail: { branch, sessionId },
-            }),
-          );
+          queryClient.invalidateQueries({
+            queryKey: [QueryKey.LayoutSets, org, app],
+          });
+          queryClient.invalidateQueries({
+            queryKey: [QueryKey.FormLayoutSettings, org, app],
+          });
         })
         .catch((error) => {
           console.warn('Failed to reset repository:', error);

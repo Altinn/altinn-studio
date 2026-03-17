@@ -31,7 +31,7 @@ export const useCheckoutBranchMutation = (
 };
 
 const handleUiRefresh = (queryClient: QueryClient, org: string, app: string) => {
-  if (currentPathRequiresReload()) {
+  if (!isAiAssistantPath()) {
     window.location.reload();
   } else {
     queryClient.invalidateQueries({
@@ -40,14 +40,7 @@ const handleUiRefresh = (queryClient: QueryClient, org: string, app: string) => 
   }
 };
 
-// Workaround for pages that have problems with stale data when switching branches
-const currentPathRequiresReload = (): boolean => {
+const isAiAssistantPath = (): boolean => {
   const currentPath = window.location.pathname;
-  const reloadPaths = [
-    RoutePaths.UIEditor,
-    RoutePaths.ProcessEditor,
-    RoutePaths.AppSettings,
-    RoutePaths.DataModel,
-  ];
-  return reloadPaths.some((path) => RegExp(`/${path}/?$`).test(currentPath));
+  return currentPath.includes(RoutePaths.AiAssistant);
 };

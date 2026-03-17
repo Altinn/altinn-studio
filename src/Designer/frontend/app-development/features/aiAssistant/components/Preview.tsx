@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { previewPage } from 'app-shared/api/paths';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
@@ -12,7 +12,6 @@ export const Preview = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user, isPending: userPending } = useUserQuery();
 
-  const [iframeKey, setIframeKey] = useState(0);
   const {
     mutate: createInstance,
     data: instance,
@@ -24,6 +23,7 @@ export const Preview = (): ReactElement => {
     metadata: layoutMetadata,
     isPending: layoutMetadataPending,
     error: layoutMetadataError,
+    dataUpdatedAt,
   } = usePreviewLayoutMetadata(org, app);
 
   useEffect(() => {
@@ -41,19 +41,6 @@ export const Preview = (): ReactElement => {
     layoutMetadataPending,
     user,
   ]);
-
-  // Listen for repository reset events to reload the preview
-  useEffect(() => {
-    const handleRepoReset = (): void => {
-      setIframeKey((prev) => prev + 1);
-    };
-
-    window.addEventListener('altinity-repo-reset', handleRepoReset as EventListener);
-
-    return (): void => {
-      window.removeEventListener('altinity-repo-reset', handleRepoReset as EventListener);
-    };
-  }, []);
 
   const { layoutSetName, layoutName, taskId } = layoutMetadata;
   const previewError =
@@ -84,7 +71,7 @@ export const Preview = (): ReactElement => {
   return (
     <div className={classes.previewContainer}>
       <iframe
-        key={iframeKey}
+        key={dataUpdatedAt}
         className={classes.previewIframe}
         title='App Preview'
         src={previewURL}
