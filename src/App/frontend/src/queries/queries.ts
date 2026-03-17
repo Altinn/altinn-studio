@@ -4,7 +4,6 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
@@ -12,15 +11,12 @@ import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   appPath,
   getActionsUrl,
-  getActiveInstancesUrl,
-  getCreateInstancesUrl,
   getCustomValidationConfigUrl,
   getDataElementIdUrl,
   getDataElementUrl,
   getDataModelTypeUrl,
   getFileUploadUrl,
   getInstanceLayoutsUrl,
-  getInstantiateUrl,
   getJsonSchemaUrl,
   getLayoutsUrl,
   getOrderDetailsUrl,
@@ -31,7 +27,6 @@ import {
   getSetSelectedPartyUrl,
   getUpdateFileTagsUrl,
   getValidationUrl,
-  instancesControllerUrl,
   postalCodesUrl,
   refreshJwtTokenUrl,
   textResourcesUrl,
@@ -41,7 +36,6 @@ import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
-import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';
@@ -53,8 +47,8 @@ import type {
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
-import type { IActionType, IData, IInstance, IParty, IProcess, PostalCodesRegistry } from 'src/types/shared';
+import type { LooseAutocomplete } from 'src/types';
+import type { IActionType, IData, IParty, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));

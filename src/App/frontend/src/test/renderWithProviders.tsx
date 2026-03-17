@@ -99,8 +99,6 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
   doPatchMultipleFormData: makeMock('doPatchMultipleFormData'),
   doPostStatelessFormData: makeMock('doPostStatelessFormData'),
   doSetSelectedParty: makeMock('doSetSelectedParty'),
-  doInstantiate: makeMock('doInstantiate'),
-  doInstantiateWithPrefill: makeMock('doInstantiateWithPrefill'),
   doPerformAction: makeMock('doPerformAction'),
   doSubformEntryAdd: makeMock('doSubformEntryAdd'),
   doSubformEntryDelete: makeMock('doSubformEntryDelete'),
@@ -121,7 +119,6 @@ const defaultPostalCodesMock = (() => {
 
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
-  fetchActiveInstances: async () => [],
   fetchDataModelSchema: async () => ({}),
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
   fetchRefreshJwtToken: async () => ({}),

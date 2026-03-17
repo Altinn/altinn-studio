@@ -23,7 +23,7 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
-import type { doProcessNext, doUpdateAttachmentTags, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import type { doProcessNext, doUpdateAttachmentTags, fetchProcessState } from 'src/queries/queries';
 import type { AppQueries } from 'src/queries/types';
 import type { IProcess } from 'src/types/shared';
 
@@ -137,8 +137,16 @@ jest.mock('src/queries/queries', () => ({
   ...jest.requireActual<AppQueries>('src/queries/queries'),
   fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
   doProcessNext: jest.fn<typeof doProcessNext>(async () => ({ data: getProcessDataMock() }) as AxiosResponse<IProcess>),
-  fetchInstanceData: jest.fn<typeof fetchInstanceData>(async () => getInstanceDataMock()),
   doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
     tags: setTagsRequest.tags,
   })),
+}));
+
+jest.mock('src/core/api-client/instance.api', () => ({
+  InstanceApi: {
+    getInstance: jest.fn(async () => ({ ...getInstanceDataMock(), process: getProcessDataMock() })),
+    getActiveInstances: jest.fn(async () => []),
+    create: jest.fn(),
+    createWithPrefill: jest.fn(),
+  },
 }));
