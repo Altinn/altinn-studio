@@ -1,5 +1,9 @@
+using System.Net;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
+using WorkflowEngine.Core;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Integration.Tests;
@@ -86,5 +90,50 @@ public partial class EngineTests
         Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
         Assert.Equal(PersistentItemStatus.Failed, status.Steps[0].Status);
         Assert.Equal(0, status.Steps[0].RetryCount);
+    }
+
+    [Fact]
+    public async Task Enqueue_WhenAtBackpressureThreshold_Returns429()
+    {
+        // Arrange — seed the cached workflow count to match the threshold
+        var engineStatus = fixture.Services.GetRequiredService<IEngineStatus>();
+        var settings = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value;
+        engineStatus.UpdateWorkflowCounts(active: settings.Concurrency.BackpressureThreshold, scheduled: 0, failed: 0);
+
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/backpressure")])
+        );
+
+        // Act
+        using var response = await _client.EnqueueRaw(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+
+        // Clean up — restore counts so other tests aren't affected
+        engineStatus.UpdateWorkflowCounts(active: 0, scheduled: 0, failed: 0);
+    }
+
+    [Fact]
+    public async Task HealthCheck_WhenAtBackpressureThreshold_ReturnsDegraded()
+    {
+        // Arrange — seed the cached workflow count to match the threshold
+        var engineStatus = fixture.Services.GetRequiredService<IEngineStatus>();
+        var settings = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value;
+        engineStatus.UpdateWorkflowCounts(active: settings.Concurrency.BackpressureThreshold, scheduled: 0, failed: 0);
+
+        // Act
+        using var client = fixture.CreateEngineClient();
+        using var response = await client.GetAsync("/api/v1/health/ready", TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // Assert — health check should report degraded (QueueFull flag triggers DegradedMask)
+        // Note: ASP.NET returns 200 for Degraded by default (only Unhealthy maps to 503)
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Degraded", body, StringComparison.Ordinal);
+        Assert.Contains("QueueFull", body, StringComparison.Ordinal);
+
+        // Clean up — restore counts so other tests aren't affected
+        engineStatus.UpdateWorkflowCounts(active: 0, scheduled: 0, failed: 0);
     }
 }

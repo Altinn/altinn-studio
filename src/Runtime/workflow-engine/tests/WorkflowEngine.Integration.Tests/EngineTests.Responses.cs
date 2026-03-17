@@ -33,7 +33,7 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
+        await VerifyJson(body).ScrubMembers("active_workflows", "scheduled_workflows", "failed_workflows");
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
+        await VerifyJson(body).ScrubMembers("active_workflows", "scheduled_workflows", "failed_workflows");
     }
 
     // ── Enqueue endpoint responses ────────────────────────────────────────────

@@ -20,9 +20,9 @@
           limit: 90
         },
         queue: {
-          active_workflows: 1,
-          scheduled_workflows: 0,
-          failed_workflows: 0
+          active_workflows: {Scrubbed},
+          scheduled_workflows: {Scrubbed},
+          failed_workflows: {Scrubbed}
         }
       }
     },
