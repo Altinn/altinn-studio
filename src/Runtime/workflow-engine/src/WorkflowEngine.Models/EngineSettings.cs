@@ -118,8 +118,8 @@ public sealed record ConcurrencySettings
     public int MaxHttpCalls { get; set; }
 
     /// <summary>
-    /// When greater than 0, the engine reports <see cref="EngineHealthStatus.QueueFull"/> if the
-    /// active workflow count reaches or exceeds this threshold. Set to 0 (default) to disable.
+    /// The maximum number of active workflows allowed in the database before the engine reports backpressure
+    /// and refuses new jobs (http-429).
     /// </summary>
     [JsonPropertyName("backpressureThreshold")]
     public int BackpressureThreshold { get; set; }

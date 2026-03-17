@@ -195,6 +195,12 @@ public static class OptionsBuilderExtensions
                 if (config.Concurrency.MaxHttpCalls <= 0)
                     config.Concurrency.MaxHttpCalls = Defaults.EngineSettings.Concurrency.MaxHttpCalls;
 
+                if (config.Concurrency.BackpressureThreshold <= 0)
+                    config.Concurrency.BackpressureThreshold = Defaults
+                        .EngineSettings
+                        .Concurrency
+                        .BackpressureThreshold;
+
                 ApplyBufferDefaults(config.WriteBuffer, Defaults.EngineSettings.WriteBuffer);
                 ApplyBufferDefaults(config.UpdateBuffer, Defaults.EngineSettings.UpdateBuffer);
 
@@ -229,6 +235,11 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.DatabaseCommandTimeout > TimeSpan.Zero,
                 $"{ns}.{nameof(EngineSettings.DatabaseCommandTimeout)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Concurrency.BackpressureThreshold >= config.WriteBuffer.MaxQueueSize,
+                $"{ns}.{nameof(EngineSettings.Concurrency)}.{nameof(EngineSettings.Concurrency.BackpressureThreshold)} must be greater than or equal to {ns}.{nameof(EngineSettings.WriteBuffer)}.{nameof(EngineSettings.WriteBuffer.MaxQueueSize)}."
             );
 
             return builder;

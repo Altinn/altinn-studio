@@ -30,6 +30,7 @@ internal static class Defaults
             MaxWorkers = 400,
             MaxHttpCalls = 400,
             MaxDbOperations = 90,
+            BackpressureThreshold = 500_000,
         },
         WriteBuffer = new BufferSettings
         {

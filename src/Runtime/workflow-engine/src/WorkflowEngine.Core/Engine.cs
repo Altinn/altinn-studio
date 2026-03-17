@@ -163,6 +163,14 @@ internal sealed class Engine(
             return new WorkflowEnqueueResponse.Rejected.Invalid(error.Message);
         }
 
+        if (ActiveWorkflowCount > _settings.Concurrency.BackpressureThreshold)
+        {
+            activity?.Errored(errorMessage: "Engine has too many items in the queue, please try again later.");
+            return new WorkflowEnqueueResponse.Rejected.AtCapacity(
+                "Engine has too many items in the queue, please try again later."
+            );
+        }
+
         try
         {
             var hash = request.ComputeHash();
@@ -198,11 +206,6 @@ internal sealed class Engine(
         {
             activity?.Errored(ex);
             return new WorkflowEnqueueResponse.Rejected.Invalid(ex.Message);
-        }
-        catch (EngineAtCapacityException ex)
-        {
-            activity?.Errored(ex);
-            return new WorkflowEnqueueResponse.Rejected.AtCapacity(ex.Message);
         }
     }
 
