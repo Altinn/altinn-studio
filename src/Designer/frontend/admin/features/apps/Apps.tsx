@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { AppsTable } from './components/AppsTable';
 import { useTranslation } from 'react-i18next';

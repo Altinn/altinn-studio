@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReferenceNode } from '@altinn/schema-model';
 import { extractNameFromPointer } from '@altinn/schema-model';
 import { StudioButton } from '@studio/components';

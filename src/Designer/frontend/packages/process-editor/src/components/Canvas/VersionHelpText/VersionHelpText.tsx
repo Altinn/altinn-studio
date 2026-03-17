@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './VersionHelpText.module.css';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioHelpText } from '@studio/components';

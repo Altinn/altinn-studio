@@ -25,7 +25,7 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name:
     span_name = display_name or f"{tool_name.replace('_tool', '')}_generation"
     
     langfuse = get_client()
-    with langfuse.start_as_current_span(name=span_name, metadata={"span_type": "TOOL"}) as span:
+    with langfuse.start_as_current_observation(name=span_name, metadata={"span_type": "TOOL"}) as span:
         client = get_mcp_client()
         
         # Set detailed metadata

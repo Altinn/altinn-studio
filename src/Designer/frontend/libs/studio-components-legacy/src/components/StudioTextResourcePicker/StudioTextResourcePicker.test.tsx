@@ -1,5 +1,4 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { StudioTextResourcePickerProps } from './StudioTextResourcePicker';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';

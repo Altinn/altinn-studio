@@ -1,4 +1,3 @@
-import React from 'react';
 import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { ItemMetadataTab } from './ItemMetadataTab';

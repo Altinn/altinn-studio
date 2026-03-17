@@ -1,5 +1,5 @@
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';

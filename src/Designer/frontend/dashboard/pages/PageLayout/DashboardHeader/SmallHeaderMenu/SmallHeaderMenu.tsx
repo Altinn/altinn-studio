@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
@@ -86,7 +86,7 @@ const DropdownMenuGroups = ({ onClickMenuItem }: DropdownMenuGroupsProps): React
     <DropdownMenu.Group
       heading={menuGroup.showName && t(menuGroup.name)}
       className={classes.dropDownMenuGroup}
-      key={menuGroup.name}
+      key={menuGroup.items.map((item) => item.itemName).join('-')}
     >
       {menuGroup.items.map((menuItem: NavigationMenuItem) => (
         <SmallHeaderMenuItem

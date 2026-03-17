@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { DetailsContent } from '@digdir/designsystemet-react';
 import type { DetailsContentProps } from '@digdir/designsystemet-react';

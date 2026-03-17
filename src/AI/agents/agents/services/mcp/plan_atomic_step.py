@@ -17,7 +17,7 @@ async def plan_atomic_step(user_goal, facts):
     The detailed plan will be created after gathering tool information.
     """
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="planning_guidance_generation", metadata={"span_type": "TOOL"}) as span:
+    with langfuse.start_as_current_observation(name="planning_guidance_generation", metadata={"span_type": "TOOL"}) as span:
         client = get_mcp_client()
         
         # Create planning tool input for high-level guidance

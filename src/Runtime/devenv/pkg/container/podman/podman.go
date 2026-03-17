@@ -18,10 +18,12 @@ import (
 )
 
 // Client implements ContainerClient for Podman using CLI.
-type Client struct{}
+type Client struct {
+	toolchain types.ContainerToolchain
+}
 
 // New creates a new Podman CLI client.
-func New(ctx context.Context) (*Client, error) {
+func New(ctx context.Context, toolchain types.ContainerToolchain) (*Client, error) {
 	// Verify podman is available
 	if _, err := exec.LookPath("podman"); err != nil {
 		return nil, fmt.Errorf("podman not found in PATH: %w", err)
@@ -31,7 +33,11 @@ func New(ctx context.Context) (*Client, error) {
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("podman not responsive: %w", err)
 	}
-	return &Client{}, nil
+	toolchain.AccessMode = types.AccessPodmanCLI
+	if toolchain.Platform == types.PlatformUnknown {
+		toolchain.Platform = types.PlatformPodman
+	}
+	return &Client{toolchain: toolchain}, nil
 }
 
 // Close releases resources (no-op for CLI client).
@@ -39,24 +45,56 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// Name returns the runtime name.
-func (c *Client) Name() string {
-	return types.RuntimeNamePodmanCLI
+// Toolchain returns the resolved platform and access mode metadata.
+func (c *Client) Toolchain() types.ContainerToolchain {
+	return c.toolchain
 }
 
-// Installation returns the container runtime installation type.
-func (c *Client) Installation() types.RuntimeInstallation {
-	return types.InstallationPodman
+func reportProgress(onProgress types.ProgressHandler, progress types.ProgressUpdate) {
+	if onProgress != nil {
+		onProgress(progress)
+	}
+}
+
+//nolint:gosec // The podman binary is fixed and the arguments come from explicit caller configuration.
+func runPodmanCommand(ctx context.Context, args []string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, "podman", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return output, fmt.Errorf("run podman command %q: %w", strings.Join(args, " "), err)
+	}
+	return output, nil
 }
 
 // Build builds a container image from a Dockerfile.
 func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	//nolint:gosec // The podman binary is fixed and the arguments come from explicit caller configuration.
-	cmd := exec.CommandContext(ctx, "podman", "build", "-t", tag, "-f", dockerfile, contextPath)
-	output, err := cmd.CombinedOutput()
+	return c.BuildWithProgress(ctx, contextPath, dockerfile, tag, nil)
+}
+
+// BuildWithProgress builds a container image and emits best-effort progress updates.
+func (c *Client) BuildWithProgress(
+	ctx context.Context,
+	contextPath, dockerfile, tag string,
+	onProgress types.ProgressHandler,
+) error {
+	// Podman CLI does not expose a stable structured progress stream here.
+	// Emit lifecycle progress only to avoid brittle output parsing.
+	reportProgress(onProgress, types.ProgressUpdate{
+		Message:       "build started",
+		Indeterminate: true,
+	})
+
+	output, err := runPodmanCommand(ctx, []string{"build", "-t", tag, "-f", dockerfile, contextPath})
 	if err != nil {
 		return fmt.Errorf("podman build failed: %w\nOutput: %s", err, string(output))
 	}
+
+	reportProgress(onProgress, types.ProgressUpdate{
+		Message:       "build completed",
+		Current:       1,
+		Total:         1,
+		Indeterminate: false,
+	})
 	return nil
 }
 
@@ -320,12 +358,32 @@ func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInf
 
 // ImagePull pulls an image from a registry.
 func (c *Client) ImagePull(ctx context.Context, image string) error {
-	//nolint:gosec // The podman binary is fixed and the image reference is passed as an argument.
-	cmd := exec.CommandContext(ctx, "podman", "pull", image)
-	output, err := cmd.CombinedOutput()
+	return c.ImagePullWithProgress(ctx, image, nil)
+}
+
+// ImagePullWithProgress pulls an image and emits best-effort progress updates.
+func (c *Client) ImagePullWithProgress(
+	ctx context.Context,
+	image string,
+	onProgress types.ProgressHandler,
+) error {
+	reportProgress(onProgress, types.ProgressUpdate{
+		Message:       "pull started",
+		Indeterminate: true,
+	})
+
+	output, err := runPodmanCommand(ctx, []string{"pull", image})
 	if err != nil {
 		return fmt.Errorf("podman pull failed: %w\nOutput: %s", err, string(output))
 	}
+
+	reportProgress(onProgress, types.ProgressUpdate{
+		Message:       "pull completed",
+		Current:       1,
+		Total:         1,
+		Indeterminate: false,
+	})
+
 	return nil
 }
 

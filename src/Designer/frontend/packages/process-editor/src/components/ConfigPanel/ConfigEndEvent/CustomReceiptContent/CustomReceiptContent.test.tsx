@@ -1,4 +1,3 @@
-import React from 'react';
 import { CustomReceiptContent } from './CustomReceiptContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';

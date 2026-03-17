@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Provider } from 'react-redux';
 import { App } from './App';
 import { setupStore } from './store';

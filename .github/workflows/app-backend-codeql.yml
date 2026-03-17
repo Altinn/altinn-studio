@@ -1,6 +1,13 @@
 name: App Backend - CodeQL
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/App/backend/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
+      - '.github/workflows/app-backend-codeql.yml'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
@@ -10,7 +17,7 @@ on:
       - '.github/workflows/app-backend-codeql.yml'
   workflow_dispatch:
   schedule:
-    - cron: '37 20 * * 3'
+    - cron: '5 1 * * 0'
 
 jobs:
   analyze:
@@ -57,4 +64,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
-          category: '/language:${{matrix.language}}'
+          category: '/codeql/app/backend/${{ matrix.language }}'

@@ -8,8 +8,6 @@ on:
       - 'src/Designer/frontend/testing/cypress/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
-      - '.github/actions/codeql-config/**'
-      - '.github/codeql/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
       - 'yarn.lock'
@@ -23,39 +21,6 @@ env:
   CYPRESS_INSTALL_BINARY: 0
 
 jobs:
-  codeql:
-    name: 'CodeQL'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 0
-
-      - name: 'Generate CodeQL config'
-        id: codeql-config
-        uses: ./.github/actions/codeql-config
-        with:
-          language: javascript
-          paths: |
-            src/Designer/frontend
-
-      - name: 'Initialize CodeQL'
-        uses: github/codeql-action/init@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
-        with:
-          languages: javascript
-          queries: ${{ steps.codeql-config.outputs.queries }}
-          config-file: ${{ steps.codeql-config.outputs.config-file }}
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
-        with:
-          category: '/language:javascript'
-
   typecheck:
     name: 'Typechecking and linting'
     runs-on: ubuntu-latest

@@ -1,4 +1,3 @@
-import React from 'react';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { screen } from '@testing-library/react';
 import { component1Mock } from '../../../testing/layoutMock';

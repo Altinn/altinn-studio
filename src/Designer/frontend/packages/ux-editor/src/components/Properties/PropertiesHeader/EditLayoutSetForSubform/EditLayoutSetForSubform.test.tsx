@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentType } from 'app-shared/types/ComponentType';

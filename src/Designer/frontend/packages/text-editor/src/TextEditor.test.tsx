@@ -1,4 +1,3 @@
-import React from 'react';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
 import { render as rtlRender, screen } from '@testing-library/react';

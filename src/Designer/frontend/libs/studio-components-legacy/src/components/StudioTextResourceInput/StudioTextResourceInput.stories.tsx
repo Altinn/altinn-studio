@@ -2,12 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import { StudioTextResourceInput } from './StudioTextResourceInput';
 import { ArrayUtils } from '@studio/pure-functions';
-import React from 'react';
 import { FixedWidthDecorator } from '../../storybook-utils/decorators/FixedWidthDecorator';
 
-type Story = StoryObj<typeof StudioTextResourceInput>;
-
-const meta: Meta<typeof StudioTextResourceInput> = {
+const meta = {
   title: 'Components/StudioTextResourceInput',
   component: StudioTextResourceInput,
   argTypes: {
@@ -28,8 +25,10 @@ const meta: Meta<typeof StudioTextResourceInput> = {
       </FixedWidthDecorator>
     ),
   ],
-};
+} satisfies Meta<typeof StudioTextResourceInput>;
 export default meta;
+
+type Story = StoryObj<typeof StudioTextResourceInput>;
 
 export const WithId: Story = {
   args: {

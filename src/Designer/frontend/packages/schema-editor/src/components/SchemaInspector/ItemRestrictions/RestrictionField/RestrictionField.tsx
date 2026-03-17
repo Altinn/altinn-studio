@@ -1,5 +1,4 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
-import React from 'react';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { StudioTextfield } from '@studio/components';
 

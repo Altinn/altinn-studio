@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { Table } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
 

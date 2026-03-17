@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConsentProvider, CONSENT_COOKIE_KEY, CONSENT_COOKIE_EXPIRY_DAYS } from './ConsentProvider';

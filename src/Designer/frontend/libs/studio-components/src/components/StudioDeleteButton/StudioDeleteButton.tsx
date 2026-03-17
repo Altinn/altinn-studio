@@ -1,6 +1,6 @@
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { TrashIcon } from '@studio/icons';
 import type { MouseEvent, ReactElement, Ref } from 'react';
 

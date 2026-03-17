@@ -66,18 +66,17 @@ function evalBool({ expr, defaultValue = false, dataSources, groupBinding, rowIn
 }
 
 /**
- * Helper function to check if a child component is editable in a repeating group
+ * Helper function to check if a single form component is editable in a repeating group row
  */
-function isChildEditableCheck(
+function isEditableFormComponent(
   childBaseComponentId: string,
   layoutLookups: LayoutLookups,
   parentComponent: CompExternal<'RepeatingGroup'>,
   rowWithExpressions: RepGroupRowWithExpressions | undefined,
 ): boolean {
   const childComponent = layoutLookups.getComponent(childBaseComponentId);
-
-  const def = getComponentDef(childComponent.type);
-  if (def.category !== CompCategory.Form) {
+  const componentDef = getComponentDef(childComponent.type);
+  if (componentDef.category !== CompCategory.Form) {
     return false; // Must be a form component
   }
 
@@ -92,6 +91,29 @@ function isChildEditableCheck(
   }
 
   return editInTable && !hiddenInTable;
+}
+
+function collectEditableChildren(
+  childBaseComponentId: string,
+  layoutLookups: LayoutLookups,
+  parentComponent: CompExternal<'RepeatingGroup'>,
+  rowWithExpressions: RepGroupRowWithExpressions | undefined,
+  acc: string[],
+) {
+  const childComponent = layoutLookups.getComponent(childBaseComponentId);
+  const componentDef = getComponentDef(childComponent.type);
+
+  if (componentDef.category === CompCategory.Container) {
+    const containerChildren = (childComponent as { children?: string[] }).children ?? [];
+    for (const grandChildId of containerChildren) {
+      collectEditableChildren(grandChildId, layoutLookups, parentComponent, rowWithExpressions, acc);
+    }
+    return;
+  }
+
+  if (isEditableFormComponent(childBaseComponentId, layoutLookups, parentComponent, rowWithExpressions)) {
+    acc.push(childBaseComponentId);
+  }
 }
 
 export const RepGroupHooks = {
@@ -268,8 +290,10 @@ export const RepGroupHooks = {
     const layoutLookups = useLayoutLookups();
     const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
 
-    return childrenBaseIds.filter((childId) =>
-      isChildEditableCheck(childId, layoutLookups, component, rowWithExpressions),
-    );
+    const editableChildIds: string[] = [];
+    for (const childId of childrenBaseIds) {
+      collectEditableChildren(childId, layoutLookups, component, rowWithExpressions, editableChildIds);
+    }
+    return editableChildIds;
   },
 };

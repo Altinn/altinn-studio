@@ -45,34 +45,114 @@ func MergeCapabilities(defaults, explicit []string) []string {
 	return result
 }
 
-// Runtime name constants returned by ContainerClient.Name().
+const runtimeNameUnknown = "Unknown"
+
 const (
-	RuntimeNameDockerEngineAPI = "Docker Engine API"
-	RuntimeNamePodmanCLI       = "Podman CLI"
+	buildCLIDocker = "docker"
+	buildCLIPodman = "podman"
 )
 
-// RuntimeInstallation represents the actual container runtime installed on the system.
-// This is independent of the transport mechanism used to communicate with the runtime.
-type RuntimeInstallation int
+// ContainerPlatform describes the local container platform product in use.
+type ContainerPlatform int
 
-// Supported runtime installation kinds.
+// Supported container platforms.
 const (
-	InstallationUnknown RuntimeInstallation = iota
-	InstallationDocker
-	InstallationPodman
+	PlatformUnknown ContainerPlatform = iota
+	PlatformDocker
+	PlatformPodman
+	PlatformColima
 )
 
-func (i RuntimeInstallation) String() string {
-	switch i {
-	case InstallationUnknown:
-		return "Unknown"
-	case InstallationDocker:
+func (p ContainerPlatform) String() string {
+	switch p {
+	case PlatformUnknown:
+		return runtimeNameUnknown
+	case PlatformDocker:
 		return "Docker"
-	case InstallationPodman:
+	case PlatformPodman:
 		return "Podman"
+	case PlatformColima:
+		return "Colima"
 	default:
-		return "Unknown"
+		return runtimeNameUnknown
 	}
+}
+
+// BuildCLI returns the CLI binary used for shell-out build semantics on this platform.
+func (p ContainerPlatform) BuildCLI() string {
+	switch p {
+	case PlatformUnknown:
+		return ""
+	case PlatformDocker, PlatformColima:
+		return buildCLIDocker
+	case PlatformPodman:
+		return buildCLIPodman
+	default:
+		return ""
+	}
+}
+
+// ContainerAccessMode describes how the client communicates with the platform.
+type ContainerAccessMode int
+
+// Supported access modes.
+const (
+	AccessUnknown ContainerAccessMode = iota
+	AccessDockerEngineAPI
+	AccessPodmanCLI
+)
+
+func (m ContainerAccessMode) String() string {
+	switch m {
+	case AccessUnknown:
+		return runtimeNameUnknown
+	case AccessDockerEngineAPI:
+		return "Docker Engine API"
+	case AccessPodmanCLI:
+		return "Podman CLI"
+	default:
+		return runtimeNameUnknown
+	}
+}
+
+// DetectionSource describes which detection path resolved the selected toolchain.
+type DetectionSource int
+
+// Supported detection sources.
+const (
+	SourceUnknown DetectionSource = iota
+	SourceDefault
+	SourceDockerHostEnv
+	SourceDockerContext
+	SourceKnownSocket
+	SourcePodmanCLI
+)
+
+func (s DetectionSource) String() string {
+	switch s {
+	case SourceUnknown:
+		return runtimeNameUnknown
+	case SourceDefault:
+		return "Default"
+	case SourceDockerHostEnv:
+		return "DOCKER_HOST"
+	case SourceDockerContext:
+		return "Docker Context"
+	case SourceKnownSocket:
+		return "Known Socket"
+	case SourcePodmanCLI:
+		return "Podman CLI"
+	default:
+		return runtimeNameUnknown
+	}
+}
+
+// ContainerToolchain describes the selected platform and how this package talks to it.
+type ContainerToolchain struct {
+	SocketPath string
+	Platform   ContainerPlatform
+	AccessMode ContainerAccessMode
+	Source     DetectionSource
 }
 
 // PortMapping defines a container port binding.

@@ -151,3 +151,71 @@ func TestExecutor_StopAndRemoveContainer_IgnoresContainerNotFound(t *testing.T) 
 		t.Fatalf("stopAndRemoveContainer() error = %v, want nil", err)
 	}
 }
+
+func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+
+	inspectCalls := 0
+	client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+		inspectCalls++
+		if inspectCalls == 1 {
+			return types.ImageInfo{}, types.ErrImageNotFound
+		}
+		return types.ImageInfo{ID: "sha256:test-image"}, nil
+	}
+
+	client.ImagePullWithProgressFunc = func(
+		context.Context,
+		string,
+		types.ProgressHandler,
+	) error {
+		return nil
+	}
+
+	img := &RemoteImage{
+		Ref:        "ghcr.io/altinn/test:latest",
+		PullPolicy: PullAlways,
+	}
+
+	graph := NewGraph()
+	if err := graph.Add(img); err != nil {
+		t.Fatalf("graph.Add() error = %v", err)
+	}
+	if err := graph.Validate(); err != nil {
+		t.Fatalf("graph.Validate() error = %v", err)
+	}
+
+	var progressEvents int
+	client.ImagePullWithProgressFunc = func(
+		_ context.Context,
+		_ string,
+		onProgress types.ProgressHandler,
+	) error {
+		if onProgress != nil {
+			onProgress(types.ProgressUpdate{Message: "layer 1", Current: 2, Total: 10})
+			onProgress(types.ProgressUpdate{Message: "layer 1", Current: 10, Total: 10})
+		}
+		return nil
+	}
+
+	exec := NewExecutor(client)
+	exec.SetObserver(ObserverFunc(func(event Event) {
+		if event.Type != EventApplyProgress || event.Resource != img.ID() {
+			return
+		}
+		if event.Progress == nil {
+			t.Fatal("EventApplyProgress without Progress payload")
+		}
+		progressEvents++
+	}))
+
+	if err := exec.Apply(t.Context(), graph); err != nil {
+		t.Fatalf("Apply() error = %v", err)
+	}
+
+	if progressEvents < 2 {
+		t.Fatalf("progress events = %d, want at least 2", progressEvents)
+	}
+}

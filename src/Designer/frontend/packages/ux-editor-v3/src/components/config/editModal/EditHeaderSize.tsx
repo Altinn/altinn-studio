@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';

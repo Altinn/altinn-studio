@@ -1,5 +1,4 @@
 import classes from './SchemaGenerationErrorsPanel.module.css';
-import React from 'react';
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { StudioCloseIcon } from '@studio/icons';

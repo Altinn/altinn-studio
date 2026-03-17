@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { PolicyEditorPageProps } from './PolicyEditorPage';
 import { PolicyEditorPage } from './PolicyEditorPage';

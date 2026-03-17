@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ScopeListContainer } from './ScopeListContainer';
 import type { MaskinportenScope, MaskinportenScopes } from 'app-shared/types/MaskinportenScope';

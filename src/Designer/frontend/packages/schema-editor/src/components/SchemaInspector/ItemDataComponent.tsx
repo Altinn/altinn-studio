@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
 import { Fieldset, Switch } from '@digdir/designsystemet-react';

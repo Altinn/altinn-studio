@@ -1,4 +1,3 @@
-import React from 'react';
 import { PreviewImageSummary } from './PreviewImageSummary';
 import { ImportImage } from './ImportImage';
 import { ConflictingImageSourceAlert } from '../ConflictingImageSourceAlert';

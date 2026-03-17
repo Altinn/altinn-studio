@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { IDataModelBindingsKeyValueExplicit } from '../../../../../types/global';

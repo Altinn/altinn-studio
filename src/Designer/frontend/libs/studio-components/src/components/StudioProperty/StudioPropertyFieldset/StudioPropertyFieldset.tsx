@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioPropertyFieldset.module.css';
 import type { StudioFieldsetProps } from '../../StudioFieldset';

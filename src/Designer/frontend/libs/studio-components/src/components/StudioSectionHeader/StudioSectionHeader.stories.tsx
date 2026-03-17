@@ -1,11 +1,8 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioSectionHeader } from './StudioSectionHeader';
 import { PencilIcon } from '@studio/icons';
 
-type Story = StoryFn<typeof StudioSectionHeader>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioSectionHeader',
   component: StudioSectionHeader,
   argTypes: {
@@ -13,18 +10,21 @@ const meta: Meta = {
       control: false,
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <StudioSectionHeader {...args} />;
-
-Preview.args = {
-  icon: <PencilIcon />,
-  heading: {
-    text: 'Heading',
-    level: 2,
-  },
-  helpText: {
-    text: 'My descriptive help text goes here!',
-    title: 'Help text title',
-  },
-};
+} satisfies Meta<typeof StudioSectionHeader>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    icon: <PencilIcon />,
+    heading: {
+      text: 'Heading',
+      level: 2,
+    },
+    helpText: {
+      text: 'My descriptive help text goes here!',
+      title: 'Help text title',
+    },
+  },
+};

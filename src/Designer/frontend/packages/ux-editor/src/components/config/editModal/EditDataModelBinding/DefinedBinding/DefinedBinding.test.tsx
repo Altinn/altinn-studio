@@ -1,4 +1,3 @@
-import React from 'react';
 import { DefinedBinding, type DefinedBindingProps } from './DefinedBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';

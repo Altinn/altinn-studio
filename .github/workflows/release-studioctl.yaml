@@ -67,9 +67,9 @@ jobs:
           echo "- **Version source**: latest released section in src/cli/CHANGELOG.md" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [[ -d "src/tools/releaser/build/release" ]]; then
+          if [[ -d "build/release" ]]; then
             echo "### Assets" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            ls -la src/tools/releaser/build/release/ >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No assets found"
+            ls -la build/release/ >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No assets found"
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -31,12 +32,20 @@ var (
 	kustomizationGVR = kustomizev1.GroupVersion.WithResource("kustomizations")
 	ociRepositoryGVR = sourcev1.GroupVersion.WithResource("ocirepositories")
 
-	errKubeClientRequired = errors.New("kubeClient is required")
-	errUnknownSourceKind  = errors.New("unknown source kind")
+	errKubeClientRequired       = errors.New("kubeClient is required")
+	errUnknownSourceKind        = errors.New("unknown source kind")
+	errFluxBuildInfoUnavailable = errors.New("resolve flux install version: Go build info unavailable")
+	errFluxVersionUnavailable   = errors.New(
+		"resolve flux install version: github.com/fluxcd/flux2/v2 version unavailable in Go build info",
+	)
+	errFluxModuleNotFound = errors.New(
+		"resolve flux install version: github.com/fluxcd/flux2/v2 not found in Go build info",
+	)
 )
 
 const (
 	fluxInstallConcurrency = 8
+	fluxModulePath         = "github.com/fluxcd/flux2/v2"
 	yamlDecoderBufferSize  = 4096
 )
 
@@ -96,8 +105,10 @@ func LocalTestInstallOptions() InstallOptions {
 
 // Install installs Flux to the cluster with the specified components and options.
 func (c *FluxClient) Install(components []string, installOpts InstallOptions) error {
-	opts := install.MakeDefaultOptions()
-	opts.Components = components
+	opts, err := defaultInstallOptions(components)
+	if err != nil {
+		return err
+	}
 
 	manifest, err := install.Generate(opts, "")
 	if err != nil {
@@ -116,6 +127,42 @@ func (c *FluxClient) Install(components []string, installOpts InstallOptions) er
 	}
 
 	return nil
+}
+
+func defaultInstallOptions(components []string) (install.Options, error) {
+	version, err := fluxInstallVersion()
+	if err != nil {
+		return install.Options{}, err
+	}
+
+	opts := install.MakeDefaultOptions()
+	opts.Version = version
+	opts.Components = components
+	return opts, nil
+}
+
+func fluxInstallVersion() (string, error) {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "", errFluxBuildInfoUnavailable
+	}
+
+	for _, dep := range info.Deps {
+		if dep.Path != fluxModulePath {
+			continue
+		}
+
+		version := dep.Version
+		if dep.Replace != nil && dep.Replace.Version != "" {
+			version = dep.Replace.Version
+		}
+		if version == "" || version == "(devel)" {
+			return "", errFluxVersionUnavailable
+		}
+		return version, nil
+	}
+
+	return "", errFluxModuleNotFound
 }
 
 func parseManifestYAML(content string) ([]*unstructured.Unstructured, error) {

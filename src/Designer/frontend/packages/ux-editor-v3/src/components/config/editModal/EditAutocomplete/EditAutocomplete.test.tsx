@@ -1,4 +1,3 @@
-import React from 'react';
 import type { EditAutocompleteProps } from './';
 import { EditAutocomplete } from './';
 import type { RenderResult } from '@testing-library/react';

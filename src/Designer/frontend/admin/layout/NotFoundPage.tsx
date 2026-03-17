@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioNotFoundPage } from '@studio/components';
 import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { useTranslation, Trans } from 'react-i18next';

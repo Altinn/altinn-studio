@@ -1,4 +1,5 @@
-import React, { forwardRef, type HTMLAttributes } from 'react';
+import type { HTMLAttributes } from 'react';
+import React, { forwardRef } from 'react';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioLabel } from '../StudioLabel';

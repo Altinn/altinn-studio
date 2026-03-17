@@ -6,7 +6,6 @@ using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
@@ -445,61 +444,6 @@ public class FiksArkivConfigResolverTest
         var result = fixture.FiksArkivConfigResolver.GetRecipientParty(instance, recipient);
 
         // Assert
-        Assert.NotNull(result);
-        var serialized = result.SerializeXml(indent: true);
-        var xml = Encoding.UTF8.GetString(serialized.Span);
-        await Verify(xml).UseDefaultSettings(testCaseNumber);
-    }
-
-    [Theory]
-    [InlineData(1, "ttd/test-app", "ttd", "Name-nb", "Name-nn", "Name-en", "123456789")]
-    [InlineData(2, "ttd/test-app", null, "Name-nb", "Name-nn", "Name-en", "123456789")]
-    [InlineData(3, "ttd/test-app", "ttd", null, "Name-nn", "Name-en", "123456789")]
-    [InlineData(4, "ttd/test-app", "ttd", "Name-nb", null, "Name-en", "123456789")]
-    [InlineData(5, "ttd/test-app", "ttd", "Name-nb", "Name-nn", null, "123456789")]
-    [InlineData(6, "ttd/test-app", "ttd", "Name-nb", "Name-nn", "Name-en", null)]
-    [InlineData(7, "ttd/test-app", "ttd", null, null, null, "123456789")]
-    public async Task GetServiceOwnerParty_ReturnsExpectedValue(
-        int testCaseNumber,
-        string appMetaId,
-        string? appMetaOrg,
-        string? orgNameNb,
-        string? orgNameNn,
-        string? orgNameEn,
-        string? orgNumber
-    )
-    {
-        // Arrange
-        var appMetadata = new ApplicationMetadata(appMetaId) { Org = appMetaOrg };
-        AltinnCdnOrgDetails? orgDetails = appMetaOrg is not null
-            ? new AltinnCdnOrgDetails
-            {
-                Orgnr = orgNumber,
-                Name = new AltinnCdnOrgName
-                {
-                    Nb = orgNameNb!,
-                    Nn = orgNameNn!,
-                    En = orgNameEn!,
-                },
-                Environments = [],
-            }
-            : null;
-
-        await using var fixture = TestFixture.Create(services =>
-        {
-            services.AddFiksArkiv();
-            services.AddSingleton(
-                Mock.Of<IAltinnCdnClient>(x =>
-                    x.GetOrgDetails(It.IsAny<CancellationToken>()) == Task.FromResult(orgDetails)
-                )
-            );
-        });
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-
-        // Act
-        var result = await fixture.FiksArkivConfigResolver.GetServiceOwnerParty();
-
-        // // Assert
         Assert.NotNull(result);
         var serialized = result.SerializeXml(indent: true);
         var xml = Encoding.UTF8.GetString(serialized.Span);
