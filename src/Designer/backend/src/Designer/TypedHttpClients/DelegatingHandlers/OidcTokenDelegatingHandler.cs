@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
+namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 
 public class OidcTokenDelegatingHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
