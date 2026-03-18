@@ -23,6 +23,7 @@ src/features/form/layout/quirks.ts
 src/features/form/layoutSets/
 src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
+src/features/formData/FormDataWrite.test.ts
 src/features/formData/LegacyRules.ts
 src/features/language/LangDataSourcesProvider.tsx
 src/features/language/LangToolsStore.tsx
@@ -40,4 +41,3 @@ src/utils/refs/
 src/utils/versioning/versions.ts
 test/e2e/integration/frontend-test/language.ts
 test/e2e/integration/frontend-test/process-next.ts
-test/e2e/integration/signing-test/validation.ts
