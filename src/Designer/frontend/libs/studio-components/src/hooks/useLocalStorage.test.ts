@@ -24,9 +24,13 @@ describe('useLocalStorage', () => {
     const key = 'keyThatIsNotYetSet';
     const { result } = renderHook(() => useLocalStorage(key));
     const value = 'value';
-    await waitFor(() => result.current[1](value));
+
+    await waitFor(() => {
+      result.current[1](value);
+      expect(result.current[0]).toBe(value);
+    });
+
     expect(typedLocalStorage.getItem(key)).toBe(value);
-    expect(result.current[0]).toBe(value);
   });
 
   it('Provides a function that removes the stored value', async () => {
@@ -34,8 +38,12 @@ describe('useLocalStorage', () => {
     const value = 'value';
     typedLocalStorage.setItem(key, value);
     const { result } = renderHook(() => useLocalStorage(key));
-    await waitFor(() => result.current[2]());
+
+    await waitFor(() => {
+      result.current[2]();
+      expect(result.current[0]).toBeUndefined();
+    });
+
     expect(typedLocalStorage.getItem(key)).toBeNull();
-    expect(result.current[0]).toBeUndefined();
   });
 });
