@@ -437,7 +437,7 @@ public class EngineEndpointTests
         repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var workflow = new Workflow
         {
             OperationId = "test",
@@ -473,7 +473,7 @@ public class EngineEndpointTests
         repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
@@ -501,7 +501,7 @@ public class EngineEndpointTests
         repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WorkflowCancellationInfo(PersistentItemStatus.Completed, null));
 
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
@@ -529,7 +529,7 @@ public class EngineEndpointTests
         repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((WorkflowCancellationInfo?)null);
 
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
@@ -556,7 +556,7 @@ public class EngineEndpointTests
         repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WorkflowCancellationInfo(PersistentItemStatus.Processing, originalTimestamp));
 
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(

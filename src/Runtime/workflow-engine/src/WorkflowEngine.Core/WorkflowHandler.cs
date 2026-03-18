@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
@@ -38,15 +39,23 @@ internal sealed class WorkflowHandler(
 
         RecordWorkflowQueueTime(workflow);
 
-        if (
-            workflow.Dependencies?.Any(x =>
-                x.Status
-                    is PersistentItemStatus.Failed
-                        or PersistentItemStatus.DependencyFailed
-                        or PersistentItemStatus.Canceled
-            )
-            is true
-        )
+        // Early exit: cancellation was requested before processing started
+        if (workflow.CancellationRequestedAt is not null)
+        {
+            workflow.Status = PersistentItemStatus.Canceled;
+            workflow.EngineActivity?.Errored(errorMessage: "Canceled before processing started");
+
+            Metrics.WorkflowsCanceled.Add(1);
+            RecordWorkflowServiceTime(workflow);
+            RecordWorkflowTotalTime(workflow);
+
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+
+            StopActivity(workflow);
+            return;
+        }
+
+        if (workflow.Dependencies?.Any(x => PersistentItemStatusMap.Failed.Contains(x.Status)) is true)
         {
             workflow.Status = PersistentItemStatus.DependencyFailed;
 
@@ -57,21 +66,6 @@ internal sealed class WorkflowHandler(
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
-            return;
-        }
-
-        // Early exit: cancellation was requested before processing started
-        if (workflow.CancellationRequestedAt is not null)
-        {
-            workflow.Status = PersistentItemStatus.Canceled;
-
-            Metrics.WorkflowsCanceled.Add(1);
-            RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow);
-
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
-
-            StopActivity(workflow);
             return;
         }
 

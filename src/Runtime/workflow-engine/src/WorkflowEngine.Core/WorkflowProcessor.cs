@@ -131,7 +131,7 @@ internal sealed class WorkflowProcessor(
             // trigger the CTS immediately so the handler sees it
             if (workflow.CancellationRequestedAt is not null)
             {
-                workflowCts.Cancel();
+                await workflowCts.CancelAsync();
             }
 
             using var scope = scopeFactory.CreateScope();

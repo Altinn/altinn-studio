@@ -220,7 +220,7 @@ public class CancellationTests
     [Fact]
     public void TryCancel_SetsWorkflowCancellationRequestedAt()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var workflow = CreateWorkflow(CreateStep());
         var id = Guid.NewGuid();
         using var cts = new CancellationTokenSource();
@@ -239,7 +239,7 @@ public class CancellationTests
     [Fact]
     public void TryCancel_DoesNotOverwriteExistingTimestamp()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var workflow = CreateWorkflow(CreateStep());
         var originalTimestamp = DateTimeOffset.UtcNow.AddMinutes(-5);
         workflow.CancellationRequestedAt = originalTimestamp;
@@ -255,7 +255,7 @@ public class CancellationTests
     [Fact]
     public void TryCancel_WorkflowNotInTracker_ReturnsFalse()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var result = tracker.TryCancel(Guid.NewGuid());
         Assert.False(result);
     }
@@ -263,7 +263,7 @@ public class CancellationTests
     [Fact]
     public void TryCancel_AfterRemoval_ReturnsFalse()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var workflow = CreateWorkflow(CreateStep());
         var id = Guid.NewGuid();
         using var cts = new CancellationTokenSource();
@@ -278,7 +278,7 @@ public class CancellationTests
     [Fact]
     public void CancelMany_CancelsAllPresentWorkflows()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var workflow1 = CreateWorkflow(CreateStep());
         var workflow2 = CreateWorkflow(CreateStep());
         var workflow3 = CreateWorkflow(CreateStep());
@@ -308,7 +308,7 @@ public class CancellationTests
     [Fact]
     public void TryCancel_DisposedCts_DoesNotThrow()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var workflow = CreateWorkflow(CreateStep());
         var id = Guid.NewGuid();
         var cts = new CancellationTokenSource();

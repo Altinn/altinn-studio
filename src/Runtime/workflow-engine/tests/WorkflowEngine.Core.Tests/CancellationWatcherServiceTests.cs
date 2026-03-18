@@ -45,7 +45,7 @@ public class CancellationWatcherServiceTests
     [Fact]
     public async Task PollsCancellations_AndTriggersCts()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
 
@@ -82,7 +82,7 @@ public class CancellationWatcherServiceTests
     [Fact]
     public async Task SkipsDbCall_WhenTrackerEmpty()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
 
@@ -111,7 +111,7 @@ public class CancellationWatcherServiceTests
     [Fact]
     public async Task SurvivesTransientErrors()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
 

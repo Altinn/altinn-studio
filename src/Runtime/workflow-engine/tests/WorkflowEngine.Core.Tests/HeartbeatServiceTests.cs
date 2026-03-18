@@ -43,7 +43,7 @@ public class HeartbeatServiceTests
     [Fact]
     public async Task HeartbeatService_CallsBatchUpdateHeartbeats_AfterInterval()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
         var service = new HeartbeatService(
@@ -83,7 +83,7 @@ public class HeartbeatServiceTests
     [Fact]
     public async Task HeartbeatService_ContinuesAfterStoppingToken_UntilTrackerEmpty()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
         var service = new HeartbeatService(
@@ -126,7 +126,7 @@ public class HeartbeatServiceTests
     [Fact]
     public async Task HeartbeatService_SkipsDbCall_WhenTrackerEmpty()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
         var service = new HeartbeatService(
@@ -155,7 +155,7 @@ public class HeartbeatServiceTests
     [Fact]
     public async Task HeartbeatService_SurvivesExceptions()
     {
-        var tracker = new InFlightTracker();
+        var tracker = new InFlightTracker(TimeProvider.System);
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
         var service = new HeartbeatService(
