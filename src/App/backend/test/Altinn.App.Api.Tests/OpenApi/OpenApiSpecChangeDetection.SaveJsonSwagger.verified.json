@@ -8686,7 +8686,7 @@
             "nullable": true
           },
           "process": {
-            "$ref": "#/components/schemas/ProcessState"
+            "$ref": "#/components/schemas/AppProcessState"
           },
           "status": {
             "$ref": "#/components/schemas/InstanceStatus"
