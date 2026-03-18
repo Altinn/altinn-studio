@@ -92,34 +92,34 @@ export const getAvailablePages = (
   });
 };
 
-type ValidateFormProps = {
+type IsSaveDisabledProps = {
   scope: Scope;
   config: InternalConfigState;
   newConfig: InternalConfigState;
 };
 
-export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): boolean => {
+export const isSaveDisabled = ({ scope, config, newConfig }: IsSaveDisabledProps): boolean => {
   const noChangesMade = !newConfig || JSON.stringify(config) === JSON.stringify(newConfig);
   if (noChangesMade) {
-    return false;
+    return true;
   }
 
   const hasTypes = newConfig.types?.length > 0;
   const hasPageScope = Boolean(newConfig.pageScope?.value);
 
   if (!hasTypes || !hasPageScope) {
-    return false;
+    return true;
   }
 
   switch (scope) {
     case Scope.AllTasks:
-      return true;
-    case Scope.SelectedTasks:
-      return newConfig.tasks?.length > 0;
-    case Scope.SelectedPages:
-      return Boolean(newConfig.task?.value) && newConfig.pages?.length > 0;
-    default:
       return false;
+    case Scope.SelectedTasks:
+      return !newConfig.tasks?.length;
+    case Scope.SelectedPages:
+      return !newConfig.task?.value || !newConfig.pages?.length;
+    default:
+      return true;
   }
 };
 
@@ -128,7 +128,7 @@ type FindDuplicateRuleProps = {
   newConfig: InternalConfigState;
   initialConfig?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
-  isFormValid?: boolean;
+  saveDisabled: boolean;
 };
 
 export const findDuplicateRule = ({
@@ -136,9 +136,9 @@ export const findDuplicateRule = ({
   newConfig,
   initialConfig,
   existingConfigs,
-  isFormValid,
+  saveDisabled,
 }: FindDuplicateRuleProps): { key: string; values: string } | null => {
-  if (!existingConfigs || !isFormValid) return null;
+  if (!existingConfigs || saveDisabled) return null;
 
   const filteredConfigs = initialConfig
     ? existingConfigs.filter((config) => JSON.stringify(config) !== JSON.stringify(initialConfig))

@@ -13,7 +13,7 @@ import {
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
-  validateForm,
+  isSaveDisabled,
   findDuplicateRule,
 } from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
@@ -93,14 +93,14 @@ const ConfigModal = ({
   const [newConfig, setNewConfig] = useState<InternalConfigState>(
     initialConfig || getDefaultConfig(scope),
   );
-  const isFormValid = validateForm({ scope, config: initialConfig, newConfig });
+  const saveDisabled = isSaveDisabled({ scope, config: initialConfig, newConfig });
 
   const duplicateRule = findDuplicateRule({
     scope,
     newConfig,
     initialConfig,
     existingConfigs,
-    isFormValid,
+    saveDisabled,
   });
 
   const update = (updates: Partial<InternalConfigState>) => {
@@ -140,7 +140,7 @@ const ConfigModal = ({
           primary={{
             label: t('general.save'),
             onClick: handleSaveAndClose,
-            disabled: !isFormValid,
+            disabled: saveDisabled,
           }}
           secondary={{
             label: t('general.cancel'),
