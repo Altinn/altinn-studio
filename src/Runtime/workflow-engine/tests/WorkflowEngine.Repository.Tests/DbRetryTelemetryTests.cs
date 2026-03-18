@@ -132,7 +132,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
                 HeartbeatInterval = TimeSpan.FromSeconds(3),
                 StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
                 MaxReclaimCount = 3,
-                Concurrency = new()
+                Concurrency = new ConcurrencySettings
                 {
                     MaxWorkers = 10,
                     MaxDbOperations = 50,

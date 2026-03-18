@@ -56,7 +56,7 @@ internal sealed record WorkflowEngineTestFixture(
             HeartbeatInterval = TimeSpan.FromSeconds(3),
             StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
             MaxReclaimCount = 3,
-            Concurrency = new()
+            Concurrency = new ConcurrencySettings
             {
                 MaxWorkers = 5,
                 MaxDbOperations = 5,

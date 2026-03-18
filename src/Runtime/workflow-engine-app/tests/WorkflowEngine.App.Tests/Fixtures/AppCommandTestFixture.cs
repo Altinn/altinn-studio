@@ -44,13 +44,14 @@ internal sealed record AppCommandTestFixture(
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
+            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
             MaxWorkflowsPerRequest = 100,
             MaxStepsPerWorkflow = 50,
             MaxLabels = 50,
             HeartbeatInterval = TimeSpan.FromSeconds(3),
             StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
             MaxReclaimCount = 3,
-            Concurrency = new()
+            Concurrency = new ConcurrencySettings
             {
                 MaxWorkers = 5,
                 MaxDbOperations = 5,
