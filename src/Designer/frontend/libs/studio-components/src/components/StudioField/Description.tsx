@@ -1,5 +1,5 @@
 import type { FieldDescriptionProps } from '@digdir/designsystemet-react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { Field } from '@digdir/designsystemet-react';
 
 export type StudioDescriptionProps = FieldDescriptionProps;
