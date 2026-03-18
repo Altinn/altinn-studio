@@ -3,19 +3,19 @@ import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { activeInstancesQuery } from 'src/core/queries/instance/instance.queries';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
 const useActiveInstancesQuery = () => {
   const selectedParty = useSelectedParty();
-  const partyId = String(selectedParty?.partyId ?? -1);
+  const partyId = String(selectedParty?.partyId ?? '');
 
   const utils = useQuery({
-    queryKey: ['activeInstances', partyId],
-    queryFn: () => InstanceApi.getActiveInstances(partyId),
+    ...activeInstancesQuery(partyId),
+    enabled: Boolean(selectedParty?.partyId),
   });
 
   useEffect(() => {
