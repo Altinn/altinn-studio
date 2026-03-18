@@ -274,6 +274,12 @@ public class DataController_RequiredActionTests : ApiTestBase, IClassFixture<Web
                     }
             );
 
+        authorizationClientMock
+            .Setup(x => x.AuthorizeActions(It.IsAny<Instance>(), It.IsAny<ClaimsPrincipal>(), It.IsAny<List<string>>()))
+            .ReturnsAsync(
+                (Instance _, ClaimsPrincipal _, List<string> actions) => actions.ToDictionary(a => a, _ => true)
+            );
+
         services.AddSingleton(authorizationClientMock.Object);
     }
 }

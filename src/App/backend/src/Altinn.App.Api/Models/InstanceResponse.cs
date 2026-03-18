@@ -3,6 +3,7 @@ using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
+using CoreAppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 
 namespace Altinn.App.Api.Models;
 
@@ -47,9 +48,9 @@ public sealed class InstanceResponse
     public required DateTime? VisibleAfter { get; init; }
 
     /// <summary>
-    /// An object containing the instance process state.
+    /// An object containing the enriched instance process state with authorized actions.
     /// </summary>
-    public required ProcessState Process { get; init; }
+    public required CoreAppProcessState Process { get; init; }
 
     /// <summary>
     /// The type of finished status of the instance.
@@ -102,7 +103,7 @@ public sealed class InstanceResponse
         return JsonConvert.SerializeObject(this);
     }
 
-    internal static InstanceResponse From(Instance instance, Party instanceOwnerParty)
+    internal static InstanceResponse From(Instance instance, Party instanceOwnerParty, CoreAppProcessState processState)
     {
         return new InstanceResponse
         {
@@ -121,7 +122,7 @@ public sealed class InstanceResponse
             SelfLinks = instance.SelfLinks,
             DueBefore = instance.DueBefore,
             VisibleAfter = instance.VisibleAfter,
-            Process = instance.Process,
+            Process = processState,
             Status = instance.Status,
             CompleteConfirmations = instance.CompleteConfirmations,
             Data = instance.Data,
