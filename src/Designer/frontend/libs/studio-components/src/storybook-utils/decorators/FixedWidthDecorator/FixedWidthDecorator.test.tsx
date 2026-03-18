@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import { FixedWidthDecorator } from './FixedWidthDecorator';
-import React from 'react';
 
 describe('FixedWidthDecorator', () => {
   it('Renders content', () => {

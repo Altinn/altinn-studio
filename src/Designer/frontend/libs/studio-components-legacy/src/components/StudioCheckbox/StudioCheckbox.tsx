@@ -1,4 +1,4 @@
-import React, { forwardRef, useContext } from 'react';
+import { forwardRef, useContext } from 'react';
 import type { CheckboxProps } from '@digdir/designsystemet-react';
 import { Checkbox } from '@digdir/designsystemet-react';
 import type { StudioCheckboxGroupContextProps } from './StudioCheckboxGroupContext';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import type { DeploymentLogListProps } from './DeploymentLogList';
 import { DeploymentLogList } from './DeploymentLogList';

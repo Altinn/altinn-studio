@@ -1,4 +1,3 @@
-import React from 'react';
 import { EditStringValue } from '../editModal/EditStringValue';
 import { SelectPropertyEditor } from '../SelectPropertyEditor';
 import type { SchemaConfigProps } from './types';

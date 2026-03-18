@@ -1,4 +1,3 @@
-import React from 'react';
 import type { CompleteInterfaceProps } from './CompleteInterface';
 import { CompleteInterface } from './CompleteInterface';
 import { render, screen } from '@testing-library/react';

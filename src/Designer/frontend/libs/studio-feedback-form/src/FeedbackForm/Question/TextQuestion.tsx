@@ -1,8 +1,8 @@
-import React, { type ChangeEvent } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
 import type { QuestionsProps } from '../../types/QuestionsProps';
 import { StudioTextarea } from '@studio/components';
 
-export function TextQuestion({ id, label, value, onChange }: QuestionsProps): React.ReactElement {
+export function TextQuestion({ id, label, value, onChange }: QuestionsProps): ReactElement {
   return (
     <StudioTextarea
       id={id}

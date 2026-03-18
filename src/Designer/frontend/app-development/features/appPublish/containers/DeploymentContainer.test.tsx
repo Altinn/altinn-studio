@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';

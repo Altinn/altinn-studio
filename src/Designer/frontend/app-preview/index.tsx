@@ -1,4 +1,3 @@
-import React from 'react';
 import './App.css';
 import { createRoot } from 'react-dom/client';
 import { PreviewApp } from './src/PreviewApp';

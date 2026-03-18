@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';

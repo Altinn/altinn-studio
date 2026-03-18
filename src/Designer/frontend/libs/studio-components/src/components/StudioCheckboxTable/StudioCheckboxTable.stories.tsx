@@ -1,6 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCheckboxTable } from './';
 import { useStudioCheckboxTable } from './hook/useStudioCheckboxTable';
 
@@ -56,14 +55,12 @@ const PreviewComponent = (args): ReactElement => {
   );
 };
 
-type Story = StoryFn<typeof StudioCheckboxTable>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioCheckboxTable',
   component: PreviewComponent,
-};
-export const Preview: Story = (args): ReactElement => <PreviewComponent {...args} />;
-
-Preview.args = {};
-
+} satisfies Meta<typeof PreviewComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {};

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   MenuElipsisVerticalIcon,
@@ -36,7 +36,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
   const { layoutSet } = useUxEditorParams();
   const { data: pagesModel } = usePagesQuery(org, app, layoutSet);
   const { mutate: changePageOrder } = useChangePageOrderMutation(org, app, layoutSet);
-  const [isMoveToGroupDialogOpen, setIsMoveToGroupDialogOpen] = React.useState(false);
+  const [isMoveToGroupDialogOpen, setIsMoveToGroupDialogOpen] = useState(false);
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, layoutSet);
 
   const isUsingGroups = isPagesModelWithGroups(pagesModel);

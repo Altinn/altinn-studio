@@ -1,4 +1,3 @@
-import React from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { Environment } from 'app-shared/types/Environment';
 import { DeploymentStatus } from './DeploymentStatus';

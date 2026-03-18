@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';

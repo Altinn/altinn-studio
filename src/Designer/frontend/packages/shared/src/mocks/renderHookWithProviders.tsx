@@ -4,7 +4,7 @@ import {
   type ServicesContextProps,
   ServicesContextProvider,
 } from 'app-shared/contexts/ServicesContext';
-import React, { type ReactElement, type ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import { screen, waitFor } from '@testing-library/react';

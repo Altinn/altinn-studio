@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
@@ -20,7 +20,7 @@ export const EditTextResourceBindings = ({
 }: EditTextResourceBindingsProps) => {
   const { t } = useTranslation();
 
-  const [keysSet, setKeysSet] = React.useState(Object.keys(component.textResourceBindings || {}));
+  const [keysSet, setKeysSet] = useState(Object.keys(component.textResourceBindings || {}));
 
   const keysToAdd = useMemo(
     () => textResourceBindingKeys.filter((key) => !keysSet.includes(key)),

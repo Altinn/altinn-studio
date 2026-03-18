@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import { useId } from 'react';
 import { NativeSelect } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';

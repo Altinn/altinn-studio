@@ -1,4 +1,5 @@
-import React, { type ReactNode, type ReactElement } from 'react';
+import type { ReactNode, ReactElement } from 'react';
+import React from 'react';
 import classes from './StudioPaginatedContent.module.css';
 import { StudioButton } from '../StudioButton';
 import { ChevronLeftIcon, ChevronRightIcon } from '@studio/icons';

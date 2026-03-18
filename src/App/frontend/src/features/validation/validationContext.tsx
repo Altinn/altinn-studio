@@ -189,6 +189,13 @@ function useWaitForValidation(): WaitForValidation {
   return useCallback(
     async (forceSave = true) => {
       if (!enabled || !hasWritableDataTypes) {
+        // Even when validation is not enabled, we may still have pending query data written by
+        // updateInitialValidations() (e.g. from process/next returning task validation issues).
+        // Wait for BackendValidation to process it into the zustand store before returning.
+        await waitForState((state) => {
+          const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
+          return !isFetching && deepEqual(state.processedLast.initial, cachedInitialValidations);
+        });
         return;
       }
 

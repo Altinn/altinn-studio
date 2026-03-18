@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { Tabs } from '@digdir/designsystemet-react';
 import classes from './EditGrid.module.css';

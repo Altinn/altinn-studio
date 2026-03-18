@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { Action, LocalChangesActionButtonProps } from './LocalChangesActionButton';
 import { LocalChangesActionButton } from './LocalChangesActionButton';

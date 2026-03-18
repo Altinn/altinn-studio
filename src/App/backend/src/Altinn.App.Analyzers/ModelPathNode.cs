@@ -101,4 +101,44 @@ public record ModelPathNode
     {
         return this is { JsonName: "altinnRowId", CSharpName: "AltinnRowId", TypeName: "global::System.Guid" };
     }
+
+    public bool IsCSharpValueType()
+    {
+        return TypeName switch
+        {
+            "global::System.Guid" => true,
+            "global::System.DateTime" => true,
+            "global::System.DateTimeOffset" => true,
+            "global::System.TimeSpan" => true,
+            "global::System.DateOnly" => true,
+            "global::System.TimeOnly" => true,
+            "global::System.Int32" => true,
+            "global::System.Int64" => true,
+            "global::System.UInt32" => true,
+            "global::System.UInt64" => true,
+            "global::System.Single" => true,
+            "global::System.Double" => true,
+            "global::System.Decimal" => true,
+            "global::System.Boolean" => true,
+            "global::System.Char" => true,
+            "global::System.Byte" => true,
+            "global::System.SByte" => true,
+            "global::System.Int16" => true,
+            "global::System.UInt16" => true,
+            "int" => true,
+            "long" => true,
+            "uint" => true,
+            "ulong" => true,
+            "float" => true,
+            "double" => true,
+            "decimal" => true,
+            "bool" => true,
+            "char" => true,
+            "byte" => true,
+            "sbyte" => true,
+            "short" => true,
+            "ushort" => true,
+            _ => false,
+        };
+    }
 };

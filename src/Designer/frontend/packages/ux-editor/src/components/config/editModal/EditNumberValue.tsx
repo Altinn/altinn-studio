@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { FormField } from '../../FormField';
 import { setComponentProperty } from '@altinn/ux-editor/utils/component';

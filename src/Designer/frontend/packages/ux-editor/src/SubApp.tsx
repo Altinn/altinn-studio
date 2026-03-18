@@ -1,4 +1,3 @@
-import React from 'react';
 import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 import { App as FormDesigner } from './App';

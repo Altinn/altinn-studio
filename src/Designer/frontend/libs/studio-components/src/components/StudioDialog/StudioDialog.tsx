@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { Dialog } from '@digdir/designsystemet-react';
 import type { DialogProps } from '@digdir/designsystemet-react';

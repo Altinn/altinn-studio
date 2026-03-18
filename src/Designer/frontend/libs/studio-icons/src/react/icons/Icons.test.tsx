@@ -1,7 +1,6 @@
 // This test file is used to test that all icons in the studio-icons module
 import { render, screen } from '@testing-library/react';
 import * as StudioIcons from './index';
-import React from 'react';
 
 // Get all icon names from the StudioIcons module
 const studioIcons = Object.keys(StudioIcons);

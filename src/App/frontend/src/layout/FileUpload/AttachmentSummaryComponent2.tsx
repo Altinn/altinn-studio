@@ -10,6 +10,7 @@ import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
+import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -47,16 +48,22 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
           : SummaryContains.SomeUserContent
       }
     >
-      <Label
-        textResourceBindings={{
-          title: component.textResourceBindings?.summaryTitle || component.textResourceBindings?.title,
-        }}
-        baseComponentId={targetBaseComponentId}
-        overrideId={`attachment-summary2-${targetBaseComponentId}`}
-        renderLabelAs='span'
-        className={classes.summaryLabelMargin}
-        weight='regular'
-      />
+      <div className={classes.summaryHeader}>
+        <Label
+          textResourceBindings={{
+            title: component.textResourceBindings?.summaryTitle || component.textResourceBindings?.title,
+          }}
+          baseComponentId={targetBaseComponentId}
+          overrideId={`attachment-summary2-${targetBaseComponentId}`}
+          renderLabelAs='span'
+          className={classes.summaryLabelMargin}
+          weight='regular'
+        />
+        <EditButton
+          className={classes.summaryEditButton}
+          targetBaseComponentId={targetBaseComponentId}
+        />
+      </div>
       {filteredAttachments.length === 0 ? (
         <Paragraph asChild>
           <span className={classes.emptyField}>

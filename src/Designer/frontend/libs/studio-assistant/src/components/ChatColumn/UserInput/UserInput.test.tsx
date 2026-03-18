@@ -1,4 +1,3 @@
-import React from 'react';
 import { UserInput } from './UserInput';
 import { render, screen } from '@testing-library/react';
 import type { UserInputProps } from './UserInput';

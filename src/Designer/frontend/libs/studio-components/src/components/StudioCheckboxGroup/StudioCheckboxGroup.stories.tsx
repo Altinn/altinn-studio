@@ -1,6 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCheckboxGroup, useStudioCheckboxGroup } from './';
 import type { StudioCheckboxGroupProps } from './StudioCheckboxGroup';
 
@@ -35,9 +34,7 @@ const ComposedComponent = (args: ArgsProps): ReactElement => {
   );
 };
 
-type Story = StoryFn<typeof ComposedComponent>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioCheckboxGroup',
   component: ComposedComponent,
   argTypes: {
@@ -45,13 +42,16 @@ const meta: Meta = {
       control: 'boolean',
     },
   },
-};
-export const Preview: Story = (args): ReactElement => <ComposedComponent {...args} />;
-Preview.args = {
-  legend: 'My label',
-  description: 'My description',
-  tagText: 'Required',
-  required: true,
-};
-
+} satisfies Meta<typeof ComposedComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    legend: 'My label',
+    description: 'My description',
+    tagText: 'Required',
+    required: true,
+  },
+};

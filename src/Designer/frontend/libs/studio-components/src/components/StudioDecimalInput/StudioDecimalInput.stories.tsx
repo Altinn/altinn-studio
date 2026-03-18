@@ -1,10 +1,7 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDecimalInput } from './StudioDecimalInput';
 
-type Story = StoryFn<typeof StudioDecimalInput>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioDecimalInput',
   component: StudioDecimalInput,
   argTypes: {
@@ -12,14 +9,16 @@ const meta: Meta = {
       control: 'text',
     },
   },
-};
-
+} satisfies Meta<typeof StudioDecimalInput>;
 export default meta;
-export const Preview: Story = (args) => <StudioDecimalInput {...args}></StudioDecimalInput>;
 
-Preview.args = {
-  description: 'This is a decimal input',
-  value: 2.3,
-  label: 'Decimal input',
-  validationErrorMessage: 'Your custom error message!',
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    description: 'This is a decimal input',
+    value: 2.3,
+    label: 'Decimal input',
+    validationErrorMessage: 'Your custom error message!',
+  },
 };

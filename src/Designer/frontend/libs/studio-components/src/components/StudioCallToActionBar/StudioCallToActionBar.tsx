@@ -1,4 +1,4 @@
-import React, { type HTMLAttributes, type ReactElement, type ReactNode } from 'react';
+import type { HTMLAttributes, ReactElement, ReactNode } from 'react';
 import cn from 'classnames';
 import { PlusIcon } from '@studio/icons';
 import classes from './StudioCallToActionBar.module.css';

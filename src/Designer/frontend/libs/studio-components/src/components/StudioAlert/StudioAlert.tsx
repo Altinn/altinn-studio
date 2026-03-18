@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { Alert } from '@digdir/designsystemet-react';
 import type { AlertProps } from '@digdir/designsystemet-react';

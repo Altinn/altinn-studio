@@ -1,21 +1,21 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioExpression } from './StudioExpression';
 import { logicalExpression } from './test-data/expressions';
 import { texts } from './test-data/texts';
 import { dataLookupOptions } from './test-data/dataLookupOptions';
 
-type Story = StoryFn<typeof StudioExpression>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioExpression',
   component: StudioExpression,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioExpression {...args} />;
-
-Preview.args = {
-  expression: logicalExpression,
-  texts: texts,
-  dataLookupOptions: dataLookupOptions,
-};
+} satisfies Meta<typeof StudioExpression>;
 export default meta;
+
+type Story = StoryObj<typeof StudioExpression>;
+
+export const Preview: Story = {
+  args: {
+    expression: logicalExpression,
+    texts: texts,
+    dataLookupOptions: dataLookupOptions,
+  },
+};
