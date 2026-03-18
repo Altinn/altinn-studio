@@ -1,6 +1,6 @@
 import { StudioTable } from '../../StudioTable';
 import type { FocusEvent, ForwardedRef, ReactElement } from 'react';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import classes from './Cell.module.css';
 import { BaseInputCell } from './BaseInputCell';
 import cn from 'classnames';

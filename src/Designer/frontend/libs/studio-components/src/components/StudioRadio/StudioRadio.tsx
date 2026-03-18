@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { Radio, type RadioProps } from '@digdir/designsystemet-react';
 import { hasAriaLabel, hasAriaLabelledBy } from '../../utils/labelUtils';

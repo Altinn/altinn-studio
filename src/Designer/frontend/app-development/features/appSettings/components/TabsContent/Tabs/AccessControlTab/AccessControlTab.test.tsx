@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AccessControlTab } from './AccessControlTab';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';

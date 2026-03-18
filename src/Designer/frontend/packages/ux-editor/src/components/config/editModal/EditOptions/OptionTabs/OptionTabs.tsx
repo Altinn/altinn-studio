@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTabs } from '@studio/components';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';

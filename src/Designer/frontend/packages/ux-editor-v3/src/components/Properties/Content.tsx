@@ -1,4 +1,3 @@
-import React from 'react';
 import { TextResourceEdit } from '../TextResourceEdit';
 import { EditFormComponent } from '../config/EditFormComponent';
 import { EditFormContainer } from '../config/EditFormContainer';

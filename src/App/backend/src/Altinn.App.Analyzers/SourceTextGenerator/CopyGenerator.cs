@@ -104,7 +104,7 @@ internal static class CopyGenerator
                 {
                     if (list is null)
                     {
-                        return null;
+                        return null!;
                     }
                     // csharpier-ignore
                     {{node.ListType}} result = new (list.Count);

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { LibraryHeaderProps } from './LibraryHeader';
 import { LibraryHeader } from './LibraryHeader';
 import { render, screen } from '@testing-library/react';

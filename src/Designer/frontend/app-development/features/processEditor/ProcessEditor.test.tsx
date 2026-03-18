@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import ProcessEditor from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

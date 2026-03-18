@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioDetails } from './';
 import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';

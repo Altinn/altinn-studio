@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { dataModelMetadataResponseMock } from '@altinn/ux-editor/testing/dataModelMock';
 import { EditBinding, type EditBindingProps } from './EditBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
@@ -38,7 +38,7 @@ type MockedParentComponentProps = EditBindingProps;
 
 const MockedParentComponent = (props: MockedParentComponentProps) => {
   const [newInternalBindingFormat, setNewInternalBindingFormat] =
-    React.useState<ExplicitDataModelBinding>(props.internalBindingFormat);
+    useState<ExplicitDataModelBinding>(props.internalBindingFormat);
 
   return (
     <EditBinding

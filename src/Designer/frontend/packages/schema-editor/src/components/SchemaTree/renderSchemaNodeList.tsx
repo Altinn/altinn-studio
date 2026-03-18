@@ -1,4 +1,3 @@
-import React from 'react';
 import { SchemaNode } from './SchemaNode';
 import type { SavableSchemaModel } from '../../classes/SavableSchemaModel';
 

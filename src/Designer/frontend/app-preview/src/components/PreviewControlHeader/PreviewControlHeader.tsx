@@ -1,4 +1,4 @@
-import React, { type ReactElement, type ChangeEvent } from 'react';
+import type { ReactElement, ChangeEvent } from 'react';
 import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';

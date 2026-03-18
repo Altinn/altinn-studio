@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './ActionButtons.module.css';
 import { StudioButton } from '@studio/components';

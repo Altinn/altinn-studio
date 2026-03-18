@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Link } from '@digdir/designsystemet-react';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { FeedbackForm } from './FeedbackForm';
 import type { ButtonTexts } from '../types/QuestionsProps';

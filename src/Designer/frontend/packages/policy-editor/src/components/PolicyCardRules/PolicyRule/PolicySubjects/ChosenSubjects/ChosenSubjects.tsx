@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Buildings3Icon, PersonIcon } from '@studio/icons';
 import { SubjectListItem } from '../SubjectListItem';

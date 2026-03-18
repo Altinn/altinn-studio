@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { PageHeaderContextProvider, usePageHeaderContext } from './PageHeaderContext';
 import { renderWithProviders } from 'app-development/test/mocks';

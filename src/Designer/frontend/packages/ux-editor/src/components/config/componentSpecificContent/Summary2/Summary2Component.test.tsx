@@ -4,7 +4,6 @@ import { screen, waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import React from 'react';
 import { componentMocks } from '../../../../testing/componentMocks';
 import { component1IdMock, layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
 import {

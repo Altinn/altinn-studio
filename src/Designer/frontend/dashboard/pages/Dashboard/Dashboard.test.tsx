@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import { textMock } from '@studio/testing/mocks/i18nMock';

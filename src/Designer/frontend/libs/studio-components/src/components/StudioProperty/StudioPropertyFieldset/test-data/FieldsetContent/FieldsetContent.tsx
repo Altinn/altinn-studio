@@ -1,5 +1,4 @@
 import { StudioTextfield } from '../../../../StudioTextfield';
-import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './FieldsetContent.module.css';
 

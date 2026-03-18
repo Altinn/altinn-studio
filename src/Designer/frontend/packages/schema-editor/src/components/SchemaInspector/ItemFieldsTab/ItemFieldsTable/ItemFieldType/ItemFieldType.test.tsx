@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { ItemFieldType } from './ItemFieldType';
 import type { ItemFieldTypeProps } from './ItemFieldType';

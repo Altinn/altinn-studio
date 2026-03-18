@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';

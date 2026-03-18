@@ -183,6 +183,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task SetCoreProperties(string org, string app, string appTitle)
         {
+            DateTime now = DateTime.UtcNow;
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
             var appMetadata = await GetApplicationMetadataFromRepository(org, app);
@@ -191,7 +192,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             appMetadata.Org = org;
             appMetadata.Id = id;
             appMetadata.Title = new Dictionary<string, string> { { "nb", appTitle ?? app } };
-            appMetadata.LastChanged = DateTime.UtcNow;
+            appMetadata.Created = now;
+            appMetadata.CreatedBy = developer;
+            appMetadata.LastChanged = now;
             appMetadata.LastChangedBy = developer;
             await UpdateApplicationMetaDataLocally(org, app, appMetadata);
         }

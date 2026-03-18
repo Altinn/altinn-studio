@@ -1,4 +1,3 @@
-import React from 'react';
 import { EditTextResourceBinding } from './EditTextResourceBinding/EditTextResourceBinding';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormComponent } from '../../../../types/FormComponent';

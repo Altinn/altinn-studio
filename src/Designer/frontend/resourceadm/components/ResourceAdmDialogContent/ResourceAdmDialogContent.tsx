@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 import { StudioDialog, StudioHeading } from '@studio/components';
 import classes from './ResourceAdmDialogContent.module.css';

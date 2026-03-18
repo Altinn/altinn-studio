@@ -1,7 +1,6 @@
 import classes from './StudioMenuTab.module.css';
 import { StudioParagraph } from '@studio/components';
 import type { ReactNode, ReactElement } from 'react';
-import React from 'react';
 
 type StudioMenuTabProps = {
   icon: ReactNode;

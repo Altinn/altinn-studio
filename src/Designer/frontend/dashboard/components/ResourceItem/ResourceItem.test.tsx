@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ResourceItem, type ResourceItemProps } from './ResourceItem';
 import { textMock } from '@studio/testing/mocks/i18nMock';

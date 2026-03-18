@@ -24,6 +24,12 @@ internal sealed class SigneeContext
     public CommunicationConfig? CommunicationConfig { get; init; }
 
     /// <summary>
+    /// Additional actions to delegate to this signee beyond the default read and sign.
+    /// </summary>
+    [JsonPropertyName("additionalActionsToDelegate")]
+    public List<string>? AdditionalActionsToDelegate { get; init; }
+
+    /// <summary>
     /// The state of the signee.
     /// </summary>
     [JsonPropertyName("signeeState")]

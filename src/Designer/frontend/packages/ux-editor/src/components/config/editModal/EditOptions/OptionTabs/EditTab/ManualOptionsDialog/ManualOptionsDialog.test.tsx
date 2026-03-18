@@ -17,7 +17,7 @@ import {
 } from 'app-shared/mocks/textResourcesMock';
 
 import type { MutableRefObject } from 'react';
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
