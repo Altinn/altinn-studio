@@ -137,11 +137,36 @@ function toFileContent(paths: string[]): string {
   return `${paths.join('\n')}\n`;
 }
 
+function toPathList(content: string): string[] {
+  return content
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function formatPathDiff(_actual: string, _expected: string): string[] {
+  const actual = new Set(toPathList(_actual));
+  const expected = new Set(toPathList(_expected));
+
+  const removed = [...actual].filter((path) => !expected.has(path)).sort();
+  const added = [...expected].filter((path) => !actual.has(path)).sort();
+
+  return [...removed.map((path) => `Unexpected line: ${path}`), ...added.map((path) => `Expected line: ${path}`)];
+}
+
 const expectedContent = toFileContent(collectChangedPaths());
 
 if (mode === 'verify') {
-  if (!existsSync(outputFile) || readFileSync(outputFile, 'utf8') !== expectedContent) {
+  const actualContent = existsSync(outputFile) ? readFileSync(outputFile, 'utf8') : '';
+
+  if (actualContent !== expectedContent) {
     console.error(`${outputFile} is out of date. Run: tsx scripts/compare-frontend-repos.ts update`);
+    const diffLines = formatPathDiff(actualContent, expectedContent);
+
+    if (diffLines.length > 0) {
+      console.error(diffLines.join('\n'));
+    }
+
     process.exit(1);
   }
 
