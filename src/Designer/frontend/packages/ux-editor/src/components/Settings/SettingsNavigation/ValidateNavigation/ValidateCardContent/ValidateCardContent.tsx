@@ -38,6 +38,7 @@ export const ValidateCardContent = ({
           <PagesSelector
             taskName={newConfig.task?.value}
             selectedPages={newConfig.pages}
+            initialSelectedPages={initialConfig?.pages}
             onChange={(value) => onChange({ pages: value })}
           />
         </>
