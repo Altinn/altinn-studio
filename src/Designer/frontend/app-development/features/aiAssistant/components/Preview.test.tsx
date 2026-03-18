@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings } from 'app-shared/types/global';
