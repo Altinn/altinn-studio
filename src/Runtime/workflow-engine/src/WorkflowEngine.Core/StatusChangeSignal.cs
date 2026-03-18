@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace WorkflowEngine.Core;
@@ -12,8 +14,8 @@ internal sealed class StatusChangeSignal(NpgsqlDataSource dataSource, ILogger<St
 {
     private readonly AsyncSignal _inner = new();
 
-    /// <inheritdoc cref="AsyncSignal.WaitAsync"/>
-    public Task WaitAsync(CancellationToken ct) => _inner.WaitAsync(ct);
+    /// <inheritdoc cref="AsyncSignal.Wait"/>
+    public Task WaitAsync(CancellationToken ct) => _inner.Wait(ct);
 
     /// <inheritdoc cref="AsyncSignal.Reset"/>
     public void Reset() => _inner.Reset();

@@ -12,6 +12,7 @@ public sealed record Step : PersistentItem
 
     public RetryStrategy? RetryStrategy { get; init; }
     public int RequeueCount { get; set; }
+    public string? LastError { get; set; }
     public List<ErrorEntry> ErrorHistory { get; set; } = [];
     public string? StateOut { get; set; }
 

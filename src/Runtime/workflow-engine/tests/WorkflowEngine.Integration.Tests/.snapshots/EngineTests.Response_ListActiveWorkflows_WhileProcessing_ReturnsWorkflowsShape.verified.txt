@@ -18,11 +18,10 @@
         idempotencyKey: idem-Guid_2//slow,
         operationId: /slow,
         processingOrder: 0,
-        updatedAt: {Scrubbed},
         command: {
           type: webhook
         },
-        status: Processing,
+        status: Enqueued,
         retryCount: 0
       }
     ]
