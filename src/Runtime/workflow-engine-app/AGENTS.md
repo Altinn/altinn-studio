@@ -30,7 +30,7 @@ docker-compose.yaml          # Profiles: "app" (engine+postgres), "full" (everyt
 | Container           | Port             | Purpose                                             |
 |---------------------|------------------|-----------------------------------------------------|
 | `workflow-engine`   | 8080, 8081       | App runtime                                         |
-| `postgres`          | 5432             | Database                                            |
+| `postgres`          | 5433             | Database                                            |
 | `pgadmin`           | 5050             | PostgreSQL admin UI                                 |
 | `lgtm`              | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP          |
 | `wiremock`          | 6060             | Mock app callbacks                                  |

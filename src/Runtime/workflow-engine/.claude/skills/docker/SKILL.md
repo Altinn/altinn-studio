@@ -49,7 +49,7 @@ docker compose logs -f <service-name>
 |---|---|---|
 | `workflow-engine` | 8080, 8081 | API |
 | `dashboard` | 8090 | Monitoring UI |
-| `postgres` | 5432 | Database |
+| `postgres` | 5433 | Database |
 | `pgadmin` | 5050 | PostgreSQL admin UI |
 | `lgtm` | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
 | `blackbox-exporter` | — | Prometheus blackbox exporter |
