@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
-using Altinn.Studio.Designer.Services.Altinity;
+using System.Threading;
+using Altinn.Studio.Designer.Services.Implementation.Altinity;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -47,48 +49,88 @@ public class AltinityAttachmentBufferTests
     }
 
     [Fact]
-    public void ClaimAll_ReturnsAndRemovesMatchingAttachments()
+    public void PeekAll_ReturnsMatchingAttachments_WithoutRemoving()
     {
         var buffer = new AltinityAttachmentBuffer();
         var id1 = buffer.Store(CreateAttachment("a.pdf"));
         var id2 = buffer.Store(CreateAttachment("b.pdf"));
         var id3 = buffer.Store(CreateAttachment("c.pdf"));
 
-        var claimed = buffer.ClaimAll(new[] { id1, id3 });
+        var peeked = buffer.PeekAll(new[] { id1, id3 });
 
-        Assert.Equal(2, claimed.Count);
-        Assert.Contains(claimed, a => a.Name == "a.pdf");
-        Assert.Contains(claimed, a => a.Name == "c.pdf");
+        Assert.Equal(2, peeked.Count);
+        Assert.Contains(peeked, a => a.Name == "a.pdf");
+        Assert.Contains(peeked, a => a.Name == "c.pdf");
 
-        // Claimed items should be removed
-        Assert.False(buffer.TryGet(id1, out _));
-        Assert.False(buffer.TryGet(id3, out _));
-
-        // Unclaimed item should still exist
+        // Peeked items should still exist
+        Assert.True(buffer.TryGet(id1, out _));
+        Assert.True(buffer.TryGet(id3, out _));
         Assert.True(buffer.TryGet(id2, out _));
     }
 
     [Fact]
-    public void ClaimAll_IgnoresUnknownIds()
+    public void PeekAll_IgnoresUnknownIds()
     {
         var buffer = new AltinityAttachmentBuffer();
         var id = buffer.Store(CreateAttachment());
 
-        var claimed = buffer.ClaimAll(new[] { id, "unknown-id" });
+        var peeked = buffer.PeekAll(new[] { id, "unknown-id" });
 
-        Assert.Single(claimed);
+        Assert.Single(peeked);
     }
 
     [Fact]
-    public void ClaimAll_CannotClaimSameAttachmentTwice()
+    public void RemoveAll_RemovesSpecifiedEntries()
+    {
+        var buffer = new AltinityAttachmentBuffer();
+        var id1 = buffer.Store(CreateAttachment("a.pdf"));
+        var id2 = buffer.Store(CreateAttachment("b.pdf"));
+
+        buffer.RemoveAll(new[] { id1 });
+
+        Assert.False(buffer.TryGet(id1, out _));
+        Assert.True(buffer.TryGet(id2, out _));
+    }
+
+    [Fact]
+    public void RemoveAll_AfterPeek_CompletesClaimCycle()
     {
         var buffer = new AltinityAttachmentBuffer();
         var id = buffer.Store(CreateAttachment());
 
-        var first = buffer.ClaimAll(new[] { id });
-        var second = buffer.ClaimAll(new[] { id });
+        var peeked = buffer.PeekAll(new[] { id });
+        Assert.Single(peeked);
 
-        Assert.Single(first);
-        Assert.Empty(second);
+        buffer.RemoveAll(new[] { id });
+        Assert.False(buffer.TryGet(id, out _));
+
+        // Second peek returns nothing
+        var secondPeek = buffer.PeekAll(new[] { id });
+        Assert.Empty(secondPeek);
+    }
+
+    [Fact]
+    public void TryGet_ReturnsFalse_ForExpiredEntry()
+    {
+        var buffer = new AltinityAttachmentBuffer(TimeSpan.FromMilliseconds(100));
+        var id = buffer.Store(CreateAttachment());
+
+        Assert.True(buffer.TryGet(id, out _));
+
+        Thread.Sleep(300);
+
+        Assert.False(buffer.TryGet(id, out _));
+    }
+
+    [Fact]
+    public void PeekAll_ExcludesExpiredEntries()
+    {
+        var buffer = new AltinityAttachmentBuffer(TimeSpan.FromMilliseconds(100));
+        var id = buffer.Store(CreateAttachment());
+
+        Thread.Sleep(300);
+
+        var peeked = buffer.PeekAll(new[] { id });
+        Assert.Empty(peeked);
     }
 }

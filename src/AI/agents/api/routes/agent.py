@@ -168,7 +168,8 @@ async def start_agent(req: StartReq, request: Request):
                             {"role": msg["role"], "content": msg["content"][:300]}
                             for msg in sink.get_conversation_history(req.session_id)
                         ]
-                        with langfuse.start_as_current_span(
+                        with langfuse.start_as_current_observation(
+                            as_type="span",
                             name="Altinity Assistant Query",
                             input={
                                 "user_goal": str(req.goal)[:500],

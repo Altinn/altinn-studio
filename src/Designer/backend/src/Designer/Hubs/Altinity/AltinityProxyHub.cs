@@ -7,7 +7,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Services.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
@@ -120,6 +121,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         var developer = GetDeveloper();
         var token = GetToken();
         var sessionId = ExtractSessionId(request);
+        ValidateSessionId(sessionId);
 
         _logger.LogInformation("StartWorkflow: developer={Developer}, sessionId={SessionId}", developer, sessionId);
 
@@ -133,9 +135,16 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         );
 
         var enriched = EnrichWithRepoUrl(request);
-        var withAttachments = ResolveAttachments(enriched);
+        var (withAttachments, attachmentIds) = ResolveAttachments(enriched);
         var httpRequest = BuildAgentHttpRequest(withAttachments, developer, token, sessionId);
-        return await SendToAgentAsync(httpRequest);
+        try
+        {
+            return await SendToAgentAsync(httpRequest);
+        }
+        finally
+        {
+            _attachmentStore.RemoveAll(attachmentIds);
+        }
     }
 
     /// <summary>
@@ -143,6 +152,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// </summary>
     public async Task<object> CancelWorkflow(string sessionId)
     {
+        ValidateSessionId(sessionId);
         var developer = GetDeveloper();
 
         _logger.LogInformation("CancelWorkflow: developer={Developer}, sessionId={SessionId}", developer, sessionId);
@@ -165,6 +175,20 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private string GetToken() =>
         Context.Items.TryGetValue(ContextItemToken, out var t) ? t as string ?? string.Empty : string.Empty;
+
+    private string GetSessionId() =>
+        Context.Items.TryGetValue(ContextItemSessionId, out var s) ? s as string ?? string.Empty : string.Empty;
+
+    private void ValidateSessionId(string callerSessionId)
+    {
+        var connectionSessionId = GetSessionId();
+        if (!string.Equals(callerSessionId, connectionSessionId, StringComparison.Ordinal))
+        {
+            throw new HubException(
+                $"Session ID mismatch: caller provided '{callerSessionId}' but connection owns '{connectionSessionId}'"
+            );
+        }
+    }
 
     private static string ExtractSessionId(JsonElement request)
     {
@@ -206,11 +230,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         return JsonSerializer.SerializeToElement(dict);
     }
 
-    private JsonElement ResolveAttachments(JsonElement request)
+    private (JsonElement Request, IReadOnlyList<string> AttachmentIds) ResolveAttachments(JsonElement request)
     {
         if (!request.TryGetProperty("attachment_ids", out var idsEl))
         {
-            return request;
+            return (request, Array.Empty<string>());
         }
 
         var ids = new List<string>();
@@ -223,7 +247,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             }
         }
 
-        var attachments = _attachmentStore.ClaimAll(ids);
+        var attachments = _attachmentStore.PeekAll(ids);
 
         var dict =
             JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText())
@@ -243,7 +267,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         _logger.LogInformation("Resolved {Count} attachment(s) for StartWorkflow", attachments.Count);
 
-        return JsonSerializer.SerializeToElement(dict);
+        return (JsonSerializer.SerializeToElement(dict), ids);
     }
 
     private static bool HasInvalidPathCharacters(string value) =>

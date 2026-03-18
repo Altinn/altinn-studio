@@ -154,7 +154,7 @@ def trace_span(name: str, **kwargs):
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_span(name=name, **kwargs) as span:
+    with get_client().start_as_current_observation(as_type="span", name=name, **kwargs) as span:
         yield span
 
 

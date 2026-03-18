@@ -6,6 +6,7 @@ altinn_layout_validate - Validate layout JSON.
 
 import json
 from typing import Dict, Any, Optional
+from urllib.parse import urlparse
 from server.handlers import (
     register_tool,
     ToolCategory,
@@ -14,6 +15,18 @@ from server.handlers import (
 )
 
 LAYOUT_SCHEMA_URL = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
+
+
+def _validate_schema_url(schema_url: str) -> Optional[Dict[str, Any]]:
+    """Return a ToolError dict if schema_url is not https://altinncdn.no, else None."""
+    parsed = urlparse(schema_url)
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or not (host == "altinncdn.no" or host.endswith(".altinncdn.no")):
+        return ToolError(
+            error_code="INVALID_SCHEMA_URL",
+            message="schema_url must use HTTPS and point to altinncdn.no",
+        ).to_dict()
+    return None
 
 
 @register_tool(
@@ -95,6 +108,10 @@ def layout_props(
         component_type: The component type (e.g., "Input", "Checkboxes").
         schema_url: URL to the Altinn layout schema.
     """
+    schema_url_error = _validate_schema_url(schema_url)
+    if schema_url_error:
+        return schema_url_error
+
     if not component_type or not component_type.strip():
         return ToolError(
             error_code="MISSING_COMPONENT_TYPE",
@@ -158,6 +175,10 @@ def layout_validate(
         json_content: The layout JSON content as a string.
         schema_url: URL to the Altinn layout schema.
     """
+    schema_url_error = _validate_schema_url(schema_url)
+    if schema_url_error:
+        return schema_url_error
+
     if not json_content or not json_content.strip():
         return ToolError(
             error_code="MISSING_JSON_CONTENT",

@@ -127,9 +127,10 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 
     # Create single root trace for entire workflow
     if langfuse:
-        # Use start_as_current_span as the root - this creates a trace and sets context
-        # so all nested start_as_current_span calls will be children of this root
-        with langfuse.start_as_current_span(
+        # Use start_as_current_observation as the root - this creates a trace and sets context
+        # so all nested observations will be children of this root
+        with langfuse.start_as_current_observation(
+            as_type="span",
             name="Altinity Agent Workflow",
             input={
                 "user_goal": str(state.user_goal)[:500],  # Truncate for display

@@ -28,7 +28,7 @@ fastmcp>=2.0.0
 langfuse>=3.0.0
 
 # PDF processing
-pypdf>=5.1.0
+pypdf>=6.1.3
 
 # JSON repair for malformed LLM outputs
 json-repair>=0.30.0

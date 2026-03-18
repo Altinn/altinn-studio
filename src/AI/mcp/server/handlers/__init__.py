@@ -33,7 +33,16 @@ def register_tool(name=None, description=None, title=None, annotations=None, met
     If category is provided, uses new-style registration.
     Otherwise, returns function unchanged (legacy tools are called via wrappers).
     """
-    if category is not None:
+    using_v2 = any(
+        value is not None
+        for value in (category, mode, prerequisites, schema_hints)
+    )
+
+    if using_v2:
+        if category is None or mode is None:
+            raise TypeError(
+                "register_tool() requires both 'category' and 'mode' for v2 registration"
+            )
         # New-style registration
         return _register_tool_new(
             name=name,

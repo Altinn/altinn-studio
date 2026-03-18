@@ -36,7 +36,7 @@ class SuppressLangfuseTimeouts(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:  # type: ignore[override]
         msg = record.getMessage()
-        if ("cloud.langfuse.com" or "langfuse.digdir.cloud") in msg and "ReadTimeout" in msg:
+        if ("cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg) and "ReadTimeout" in msg:
             return False
         return True
 

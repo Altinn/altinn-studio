@@ -120,7 +120,8 @@ def trace_tool_call(func: Callable) -> Callable:
                 "mcp_meta": mcp_meta,
             }
             
-            with client.start_as_current_span(
+            with client.start_as_current_observation(
+                as_type="span",
                 name=tool_name,
                 input=input_data,
                 metadata=span_metadata,

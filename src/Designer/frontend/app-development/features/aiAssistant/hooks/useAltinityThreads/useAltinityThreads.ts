@@ -19,6 +19,7 @@ export interface AltinityThreadState {
   deleteThread: (threadId: string) => void;
   addMessageToThread: (threadId: string, message: UserMessage | AssistantMessage) => void;
   removeLoadingMessage: (threadId: string) => void;
+  replaceLoadingWithMessage: (threadId: string, message: AssistantMessage) => void;
   removeLastUserMessage: (threadId: string) => string | null;
   removeCancelledMessages: (threadId: string) => string | null;
   upsertAssistantMessage: (
@@ -154,6 +155,23 @@ export const useAltinityThreads = (): AltinityThreadState => {
     [getThread, updateThread],
   );
 
+  const replaceLoadingWithMessage = useCallback(
+    (threadId: string, message: AssistantMessage) => {
+      const existingThread = getThread(threadId);
+      if (!existingThread) return;
+      const withoutLoading = existingThread.messages.filter(
+        (msg, index) =>
+          !(
+            msg.author === MessageAuthor.Assistant &&
+            index === existingThread.messages.length - 1 &&
+            (msg as AssistantMessage).isLoading
+          ),
+      );
+      updateThread(threadId, { messages: [...withoutLoading, message] });
+    },
+    [getThread, updateThread],
+  );
+
   const upsertAssistantMessage = useCallback(
     (
       sessionId: string,
@@ -211,6 +229,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
     deleteThread,
     addMessageToThread,
     removeLoadingMessage,
+    replaceLoadingWithMessage,
     removeLastUserMessage,
     removeCancelledMessages,
     upsertAssistantMessage,

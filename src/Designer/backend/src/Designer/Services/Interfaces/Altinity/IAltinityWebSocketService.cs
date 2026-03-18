@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Altinn.Studio.Designer.Services.Altinity;
+namespace Altinn.Studio.Designer.Services.Interfaces.Altinity;
 
 /// <summary>
 /// Manages the per-developer WebSocket connection to the Altinity agents service.

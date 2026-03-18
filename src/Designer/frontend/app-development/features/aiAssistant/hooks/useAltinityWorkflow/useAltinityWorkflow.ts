@@ -57,6 +57,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     setCurrentSession,
     addMessageToThread,
     removeLoadingMessage,
+    replaceLoadingWithMessage,
     removeCancelledMessages,
     upsertAssistantMessage,
     updateWorkflowStatusMessage,
@@ -179,21 +180,27 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       } else if (event.type === 'error') {
         setWorkflowStatus({ isActive: false });
         const currentSession = currentSessionIdRef.current;
-        if (currentSession && event.data?.status !== 'cancelled') {
-          addErrorMessage(
-            currentSession,
-            event.data?.message || 'An error occurred in the AI agent workflow',
-          );
-        } else if (currentSession && event.data?.status === 'cancelled') {
-          removeLoadingMessage(currentSession);
+        if (currentSession) {
+          if (event.data?.status === 'cancelled') {
+            removeLoadingMessage(currentSession);
+          } else {
+            const errorMessage: AssistantMessage = {
+              author: MessageAuthor.Assistant,
+              content:
+                'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+              timestamp: new Date(),
+              filesChanged: [],
+            };
+            replaceLoadingWithMessage(currentSession, errorMessage);
+          }
         }
       }
     },
     [
-      addErrorMessage,
       currentSessionIdRef,
       handleAssistantMessage,
       removeLoadingMessage,
+      replaceLoadingWithMessage,
       updateWorkflowStatusMessage,
     ],
   );

@@ -8,11 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Hubs.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.Designer.Services.Altinity;
+namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 
 /// <summary>
 /// Manages one persistent WebSocket connection per developer to the Altinity agents service.
