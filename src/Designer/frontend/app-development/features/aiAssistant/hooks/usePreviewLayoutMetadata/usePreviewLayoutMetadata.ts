@@ -13,7 +13,6 @@ export type UsePreviewLayoutMetadataResult = {
   metadata: PreviewLayoutMetadata;
   isPending: boolean;
   error?: string;
-  dataUpdatedAt: number;
 };
 
 export const usePreviewLayoutMetadata = (
@@ -38,13 +37,7 @@ export const usePreviewLayoutMetadata = (
   const taskId = Array.isArray(tasks) ? tasks[0] : undefined;
 
   const isPending = layoutSetsQuery.isPending || layoutSettingsQuery.isPending;
-  const errorMessage =
-    layoutSetsQuery.error?.message ?? layoutSettingsQuery.error?.message ?? undefined;
-
-  const dataUpdatedAt = Math.max(
-    layoutSetsQuery.dataUpdatedAt ?? 0,
-    layoutSettingsQuery.dataUpdatedAt ?? 0,
-  );
+  const errorMessage = layoutSetsQuery.error?.message ?? layoutSettingsQuery.error?.message;
 
   const metadata: PreviewLayoutMetadata =
     layoutSetName && firstLayoutName
@@ -59,6 +52,5 @@ export const usePreviewLayoutMetadata = (
     metadata,
     isPending,
     error: errorMessage,
-    dataUpdatedAt,
   };
 };

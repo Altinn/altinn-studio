@@ -4,6 +4,7 @@ import { previewPage } from 'app-shared/api/paths';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { StudioCenter, StudioSpinner } from '@studio/components';
 import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
 import classes from './Preview.module.css';
@@ -11,6 +12,7 @@ import classes from './Preview.module.css';
 export const Preview = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user, isPending: userPending } = useUserQuery();
+  const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
 
   const {
     mutate: createInstance,
@@ -23,7 +25,6 @@ export const Preview = (): ReactElement => {
     metadata: layoutMetadata,
     isPending: layoutMetadataPending,
     error: layoutMetadataError,
-    dataUpdatedAt,
   } = usePreviewLayoutMetadata(org, app);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export const Preview = (): ReactElement => {
   return (
     <div className={classes.previewContainer}>
       <iframe
-        key={dataUpdatedAt}
+        key={currentBranchInfo?.branchName}
         className={classes.previewIframe}
         title='App Preview'
         src={previewURL}
