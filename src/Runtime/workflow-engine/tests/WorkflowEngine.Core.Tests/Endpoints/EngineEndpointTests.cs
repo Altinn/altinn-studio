@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Endpoints;
@@ -422,5 +424,154 @@ public class EngineEndpointTests
 
         // Assert
         Assert.IsType<NotFound>(result.Result);
+    }
+
+    // === CancelWorkflow Handler Tests ===
+
+    [Fact]
+    public async Task CancelWorkflow_ActiveWorkflow_Returns200()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var repo = new Mock<IEngineRepository>();
+        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var tracker = new InFlightTracker();
+        var workflow = new Workflow
+        {
+            OperationId = "test",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Steps = [],
+        };
+        using var cts = new CancellationTokenSource();
+        tracker.TryAdd(workflowId, cts, workflow);
+
+        // Act
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            workflowId,
+            repo.Object,
+            tracker,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var ok = Assert.IsType<Ok<CancelWorkflowResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(workflowId, ok.Value.WorkflowId);
+        Assert.True(ok.Value.CanceledImmediately);
+    }
+
+    [Fact]
+    public async Task CancelWorkflow_NotInTracker_Returns200WithCanceledImmediatelyFalse()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var repo = new Mock<IEngineRepository>();
+        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var tracker = new InFlightTracker();
+
+        // Act
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            workflowId,
+            repo.Object,
+            tracker,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var ok = Assert.IsType<Ok<CancelWorkflowResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.False(ok.Value.CanceledImmediately);
+    }
+
+    [Fact]
+    public async Task CancelWorkflow_TerminalWorkflow_Returns409()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var repo = new Mock<IEngineRepository>();
+        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowCancellationInfo(PersistentItemStatus.Completed, null));
+
+        var tracker = new InFlightTracker();
+
+        // Act
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            workflowId,
+            repo.Object,
+            tracker,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var conflict = Assert.IsType<Conflict<ProblemDetails>>(result.Result);
+        Assert.NotNull(conflict.Value);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.Value.Status);
+    }
+
+    [Fact]
+    public async Task CancelWorkflow_NotFound_Returns404()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var repo = new Mock<IEngineRepository>();
+        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((WorkflowCancellationInfo?)null);
+
+        var tracker = new InFlightTracker();
+
+        // Act
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            workflowId,
+            repo.Object,
+            tracker,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task CancelWorkflow_AlreadyCancelling_Returns200WithOriginalTimestamp()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var originalTimestamp = DateTimeOffset.UtcNow.AddMinutes(-1);
+        var repo = new Mock<IEngineRepository>();
+        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false); // Idempotency guard: already flagged
+        repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowCancellationInfo(PersistentItemStatus.Processing, originalTimestamp));
+
+        var tracker = new InFlightTracker();
+
+        // Act
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            workflowId,
+            repo.Object,
+            tracker,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var accepted = Assert.IsType<Accepted<CancelWorkflowResponse>>(result.Result);
+        Assert.NotNull(accepted.Value);
+        Assert.Equal(workflowId, accepted.Value.WorkflowId);
+        Assert.Equal(originalTimestamp, accepted.Value.CancellationRequestedAt);
+        Assert.False(accepted.Value.CanceledImmediately);
     }
 }

@@ -81,7 +81,6 @@ internal sealed class WorkflowProcessor(
                     foreach (var workflow in result.Workflows)
                     {
                         await limiter.AcquireWorkerSlot(stoppingToken);
-                        tracker.TryAdd(workflow.DatabaseId);
                         _ = ProcessWorkflow(workflow, stoppingToken);
                     }
 
@@ -120,17 +119,28 @@ internal sealed class WorkflowProcessor(
         logger.ProcessorStopped();
     }
 
-    private async Task ProcessWorkflow(Workflow workflow, CancellationToken ct)
+    private async Task ProcessWorkflow(Workflow workflow, CancellationToken stoppingToken)
     {
+        using var workflowCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+
         try
         {
+            tracker.TryAdd(workflow.DatabaseId, workflowCts, workflow);
+
+            // If cancellation was already requested before we picked up the workflow,
+            // trigger the CTS immediately so the handler sees it
+            if (workflow.CancellationRequestedAt is not null)
+            {
+                workflowCts.Cancel();
+            }
+
             using var scope = scopeFactory.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<WorkflowHandler>();
-            await handler.Handle(workflow, ct);
+            await handler.Handle(workflow, workflowCts.Token);
         }
         finally
         {
-            tracker.TryRemove(workflow.DatabaseId);
+            tracker.TryRemove(workflow.DatabaseId, out _);
             limiter.ReleaseWorkerSlot();
         }
 

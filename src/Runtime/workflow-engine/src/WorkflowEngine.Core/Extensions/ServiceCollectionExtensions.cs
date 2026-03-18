@@ -75,6 +75,7 @@ public static class ServiceCollectionExtensions
             // The heartbeat loop continues while the tracker is non-empty, which requires
             // the processor's workers to finish first.
             services.AddHostedService<HeartbeatService>();
+            services.AddHostedService<CancellationWatcherService>();
             services.AddHostedService<WorkflowProcessor>();
             services.AddHostedService<MetricsCollector>();
 
@@ -188,6 +189,9 @@ public static class OptionsBuilderExtensions
 
                 if (config.MaxReclaimCount <= 0)
                     config.MaxReclaimCount = Defaults.EngineSettings.MaxReclaimCount;
+
+                if (config.CancellationWatcherInterval <= TimeSpan.Zero)
+                    config.CancellationWatcherInterval = Defaults.EngineSettings.CancellationWatcherInterval;
 
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;

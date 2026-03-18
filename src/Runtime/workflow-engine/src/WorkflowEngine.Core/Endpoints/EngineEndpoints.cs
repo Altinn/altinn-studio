@@ -33,6 +33,11 @@ public static class EngineEndpoints
             .WithName("GetWorkflow")
             .WithDescription("Gets details of a single workflow by database ID");
 
+        group
+            .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
+            .WithName("CancelWorkflow")
+            .WithDescription("Requests cancellation of a workflow");
+
         return app;
     }
 }
@@ -137,6 +142,52 @@ internal static class EngineRequestHandlers
         //     return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
+    }
+
+    public static async Task<
+        Results<Ok<CancelWorkflowResponse>, Accepted<CancelWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
+    > CancelWorkflow(
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngineRepository repository,
+        [FromServices] InFlightTracker tracker,
+        [FromServices] TimeProvider timeProvider,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
+
+        var now = timeProvider.GetUtcNow();
+        var updated = await repository.RequestCancellation(workflowId, now, cancellationToken);
+
+        if (updated)
+        {
+            var canceledImmediately = tracker.TryCancel(workflowId);
+            return TypedResults.Ok(new CancelWorkflowResponse(workflowId, now, canceledImmediately));
+        }
+
+        // Not updated — either not found, already canceling, or already terminal
+        var info = await repository.GetCancellationInfo(workflowId, cancellationToken);
+
+        if (info is null)
+            return TypedResults.NotFound();
+
+        // Idempotent: cancellation was already requested — return the original timestamp
+        if (info.CancellationRequestedAt is not null)
+        {
+            return TypedResults.Accepted(
+                (string?)null,
+                new CancelWorkflowResponse(workflowId, info.CancellationRequestedAt.Value, CanceledImmediately: false)
+            );
+        }
+
+        return TypedResults.Conflict(
+            new ProblemDetails
+            {
+                Title = "Workflow cannot be canceled",
+                Detail = $"Workflow {workflowId} is already in a terminal state.",
+                Status = StatusCodes.Status409Conflict,
+            }
+        );
     }
 
     /// <summary>

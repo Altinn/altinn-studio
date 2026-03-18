@@ -9,6 +9,15 @@ namespace WorkflowEngine.Core.Tests;
 
 public class HeartbeatServiceTests
 {
+    private static Workflow DummyWorkflow() =>
+        new()
+        {
+            OperationId = "heartbeat-test",
+            IdempotencyKey = "heartbeat-test-key",
+            Namespace = "test-ns",
+            Steps = [],
+        };
+
     private static EngineSettings DefaultSettings(TimeSpan? heartbeatInterval = null) =>
         new()
         {
@@ -47,8 +56,8 @@ public class HeartbeatServiceTests
 
         var id1 = Guid.NewGuid();
         var id2 = Guid.NewGuid();
-        tracker.TryAdd(id1);
-        tracker.TryAdd(id2);
+        tracker.TryAdd(id1, new CancellationTokenSource(), DummyWorkflow());
+        tracker.TryAdd(id2, new CancellationTokenSource(), DummyWorkflow());
 
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
@@ -66,8 +75,8 @@ public class HeartbeatServiceTests
         );
 
         cts.Cancel();
-        tracker.TryRemove(id1);
-        tracker.TryRemove(id2);
+        tracker.TryRemove(id1, out _);
+        tracker.TryRemove(id2, out _);
         await service.StopAsync(CancellationToken.None);
     }
 
@@ -86,7 +95,7 @@ public class HeartbeatServiceTests
         );
 
         var id = Guid.NewGuid();
-        tracker.TryAdd(id);
+        tracker.TryAdd(id, new CancellationTokenSource(), DummyWorkflow());
 
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
@@ -110,7 +119,7 @@ public class HeartbeatServiceTests
         );
 
         // Now empty the tracker — service should exit
-        tracker.TryRemove(id);
+        tracker.TryRemove(id, out _);
         await service.StopAsync(CancellationToken.None);
     }
 
@@ -158,7 +167,7 @@ public class HeartbeatServiceTests
         );
 
         var id = Guid.NewGuid();
-        tracker.TryAdd(id);
+        tracker.TryAdd(id, new CancellationTokenSource(), DummyWorkflow());
 
         var callCount = 0;
         repo.Setup(r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
@@ -181,7 +190,7 @@ public class HeartbeatServiceTests
         Assert.True(callCount >= 2, $"Expected at least 2 calls but got {callCount}");
 
         cts.Cancel();
-        tracker.TryRemove(id);
+        tracker.TryRemove(id, out _);
         await service.StopAsync(CancellationToken.None);
     }
 }

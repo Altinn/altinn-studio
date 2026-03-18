@@ -53,6 +53,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [Column(TypeName = "jsonb")]
     public string? MetadataJson { get; set; }
 
+    public DateTimeOffset? CancellationRequestedAt { get; set; }
+
     public string? InitialState { get; set; }
 
     public ICollection<StepEntity> Steps { get; set; } = [];
@@ -80,6 +82,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             DistributedTraceContext = workflow.DistributedTraceContext,
             MetadataJson = workflow.Metadata,
             EngineTraceContext = workflow.EngineTraceContext,
+            CancellationRequestedAt = workflow.CancellationRequestedAt,
             InitialState = workflow.InitialState,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
@@ -115,6 +118,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             DistributedTraceContext = DistributedTraceContext,
             Metadata = MetadataJson,
             EngineTraceContext = EngineTraceContext,
+            CancellationRequestedAt = CancellationRequestedAt,
             InitialState = InitialState,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
             Dependencies = Dependencies?.Select(x => x.ToDomainModel()).ToList(),

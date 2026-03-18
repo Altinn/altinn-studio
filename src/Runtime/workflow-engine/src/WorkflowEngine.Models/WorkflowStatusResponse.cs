@@ -66,6 +66,13 @@ public sealed record WorkflowStatusResponse
     public DateTimeOffset? BackoffUntil { get; init; }
 
     /// <summary>
+    /// When cancellation was requested for this workflow, if applicable.
+    /// </summary>
+    [JsonPropertyName("cancellationRequestedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CancellationRequestedAt { get; init; }
+
+    /// <summary>
     /// Optional metadata associated with the workflow (json).
     /// </summary>
     [JsonPropertyName("metadata")]
@@ -118,6 +125,7 @@ public sealed record WorkflowStatusResponse
             UpdatedAt = workflow.UpdatedAt,
             StartAt = workflow.StartAt,
             BackoffUntil = workflow.BackoffUntil,
+            CancellationRequestedAt = workflow.CancellationRequestedAt,
             Metadata = workflow.Metadata,
             Labels = workflow.Labels,
             OverallStatus = workflow.Status,
