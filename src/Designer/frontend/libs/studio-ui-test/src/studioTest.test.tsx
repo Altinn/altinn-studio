@@ -44,7 +44,7 @@ describe('studioTest', () => {
       expect(studioTest.areTimersFake()).toBe(false);
     });
 
-    it('Does not restore timers when fake timers are off in the test scope', () => {
+    it('Does not restore timers when fake timers are on in the test scope', () => {
       studioTest.useFakeTimers();
       studioTest.runWithFakeTimers(studioTest.fn());
       const areTimersStillFakeAfterExecution = studioTest.areTimersFake();
