@@ -17,6 +17,9 @@ export const useCheckoutWithUncommittedChangesHandling = (
   const { onUncommittedChanges, onOtherError } = options;
 
   return useCheckoutBranchMutation(org, app, {
+    onSuccess: async () => {
+      location.reload();
+    },
     onError: (error: AxiosError<UncommittedChangesError>) => {
       if (HttpResponseUtils.isConflict(error) && error.response?.data) {
         onUncommittedChanges(error.response.data);
