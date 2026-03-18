@@ -6,13 +6,6 @@ export type StudioTest = typeof jest & {
   runWithFakeTimers<T>(fun: () => T): T;
 };
 
-// Jest adds the isFake flag to the Date object; see https://github.com/jestjs/jest/issues/10555#issuecomment-1820587985
-declare global {
-  interface DateConstructor {
-    isFake: boolean;
-  }
-}
-
 export const studioTest: StudioTest = {
   ...jest,
   runWithFakeTimers<T>(fun: () => T): T {
