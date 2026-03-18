@@ -76,7 +76,10 @@ function InstanceSelection() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);
 
-  const instances = instanceSelectionOptions?.sortDirection === 'desc' ? [..._instances].reverse() : _instances;
+  const sortedInstances = [..._instances].sort(
+    (a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime(),
+  );
+  const instances = instanceSelectionOptions?.sortDirection === 'desc' ? sortedInstances.reverse() : sortedInstances;
   const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   function handleRowsPerPageChanged(newRowsPerPage: number) {
