@@ -56,7 +56,7 @@ function processOrder(order: Order) {
 - **Boolean-returning functions are questions** — prefix with `is`, `has`, `should`, `are`: `isValid`, `hasPermission`.
 - **Include units** for numeric values: `debounceTimeInMilliseconds`, `maxRetryCount`.
 - **Long and precise beats short and vague** — a long name may signal unclear responsibility, but it's still better than an ambiguous one.
-- **Use snake case for Python** — e.g. `fetch_user_profile`, not fetchUserProfile.
+- **Use snake case for Python** — e.g. `fetch_user_profile`, not `fetchUserProfile`.
 
 ### No magic values
 
