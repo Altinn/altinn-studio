@@ -76,12 +76,9 @@ public static class ServiceCollectionExtensions
             // the processor's workers to finish first.
             services.AddHostedService<HeartbeatService>();
             services.AddHostedService<WorkflowProcessor>();
-
-            services.AddScoped<WorkflowHandler>();
-
             services.AddHostedService<MetricsCollector>();
 
-            services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromMinutes(2));
+            services.AddScoped<WorkflowHandler>();
 
             return services;
         }
