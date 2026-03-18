@@ -169,3 +169,33 @@ const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: str
   const setA = new Set(existingTypes);
   return newTypes.every((value) => setA.has(value));
 };
+
+type GetAlertMessageProps = {
+  scope: Scope;
+  newConfig: InternalConfigState;
+  existingConfigs: InternalConfigState[];
+};
+
+export const getAlertMessage = ({
+  scope,
+  newConfig,
+  existingConfigs,
+}: GetAlertMessageProps): { key: string; values: string } => {
+  const isPageScope = scope === Scope.SelectedPages;
+
+  const match = existingConfigs.find((config) =>
+    isPageScope
+      ? config.task.value === newConfig.task.value
+      : config.pageScope.value === newConfig.pageScope.value,
+  );
+
+  const labels = isPageScope ? match.pages.map((p) => p.label) : match.tasks.map((t) => t.label);
+
+  return {
+    key: 'ux_editor.settings.navigation_validation_alert_message',
+    values: formatList(labels),
+  };
+};
+
+const formatList = (list: string[]): string =>
+  new Intl.ListFormat('nb-NO', { style: 'long', type: 'conjunction' }).format(list);

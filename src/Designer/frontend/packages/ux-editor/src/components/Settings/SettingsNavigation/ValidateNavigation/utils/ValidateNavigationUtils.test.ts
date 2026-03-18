@@ -1,6 +1,7 @@
 import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import {
   convertToExternalConfig,
+  getAlertMessage,
   getAvailablePages,
   getAvailableTasks,
   getCardLabel,
@@ -301,5 +302,62 @@ describe('isRuleDuplicateInScope', () => {
       isFormValid: true,
     });
     expect(result).toBe(false);
+  });
+});
+
+describe('getAlertMessage', () => {
+  const defaultConfig = {
+    types: [{ value: 'type1', label: 'Type 1' }],
+    pageScope: { value: 'current', label: 'Current Page' },
+  };
+  const defaultKey = 'ux_editor.settings.navigation_validation_alert_message';
+
+  it('should return correct alert message for page scope', () => {
+    const pageScopeConfig = {
+      ...defaultConfig,
+      task: { value: 'task1', label: 'Task 1' },
+      pages: [
+        { value: 'page1', label: 'Page 1' },
+        { value: 'page2', label: 'Page 2' },
+      ],
+    };
+
+    const existingConfigs = [
+      pageScopeConfig,
+      {
+        ...defaultConfig,
+        task: { value: 'task1', label: 'Task 1' },
+        pages: [{ value: 'page3', label: 'Page 3' }],
+      },
+    ];
+
+    const message = getAlertMessage({
+      scope: Scope.SelectedPages,
+      newConfig: pageScopeConfig,
+      existingConfigs: existingConfigs,
+    });
+
+    expect(message).toEqual({ key: defaultKey, values: 'Page 1 og Page 2' });
+  });
+
+  it('should return correct alert message for task scope', () => {
+    const pageScopeConfig = {
+      ...defaultConfig,
+      tasks: [{ value: 'task1', label: 'Task 1' }],
+    };
+    const existingConfigs = [
+      pageScopeConfig,
+      {
+        ...defaultConfig,
+        tasks: [{ value: 'task2', label: 'Task 2' }],
+      },
+    ];
+    const message = getAlertMessage({
+      scope: Scope.SelectedTasks,
+      newConfig: pageScopeConfig,
+      existingConfigs: existingConfigs,
+    });
+
+    expect(message).toEqual({ key: defaultKey, values: 'Task 1' });
   });
 });

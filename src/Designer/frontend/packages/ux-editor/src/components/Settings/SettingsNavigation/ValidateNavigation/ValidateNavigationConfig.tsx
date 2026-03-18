@@ -15,6 +15,7 @@ import {
   getDefaultConfig,
   getValuesToDisplay,
   validateForm,
+  getAlertMessage,
 } from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
@@ -117,6 +118,10 @@ const ConfigModal = ({
     onClose();
   };
 
+  const alertMessage = isRuleDuplicate
+    ? getAlertMessage({ scope, newConfig, existingConfigs })
+    : null;
+
   return (
     <StudioDialog open={true} onClose={onClose}>
       <StudioDialog.Block>
@@ -131,7 +136,7 @@ const ConfigModal = ({
         />
         {isRuleDuplicate && (
           <StudioAlert data-color='info'>
-            {t('ux_editor.settings.navigation_validation_alert_message')}
+            {t(alertMessage.key, { values: alertMessage.values })}
           </StudioAlert>
         )}
       </StudioDialog.Block>
