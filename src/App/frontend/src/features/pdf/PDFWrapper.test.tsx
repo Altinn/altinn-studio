@@ -12,7 +12,6 @@ import { InstanceApi } from 'src/core/api-client/instance.api';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
-import { fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AppQueries } from 'src/queries/types';
 
@@ -30,11 +29,6 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
     m.partyTypesAllowed.person = true;
     m.partyTypesAllowed.organisation = true;
   });
-  jest.mocked(fetchProcessState).mockImplementation(async () =>
-    getProcessDataMock((p) => {
-      p.processTasks = [p.currentTask!];
-    }),
-  );
   jest.mocked(InstanceApi.getInstance).mockImplementation(async () => {
     const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
     return {
@@ -45,7 +39,9 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
         instanceOwnerParty.orgNumber,
         instanceOwnerParty,
       ),
-      process: getProcessDataMock(),
+      process: getProcessDataMock((p) => {
+        p.processTasks = [p.currentTask!];
+      }),
     };
   });
 

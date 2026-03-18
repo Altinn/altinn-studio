@@ -2,7 +2,6 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { InstanceApi } from 'src/core/api-client/instance.api';
 import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'src/core/queries/instance/utils';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 
 type InstantiationArgs = number | Instantiation;
@@ -24,8 +23,7 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid }: Instan
     queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
     queryFn: async () => {
       try {
-        const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
-        return removeProcessFromInstance(instance);
+        return await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
       } catch (error) {
         window.logError('Fetching instance data failed:\n', error);
         throw error;
@@ -54,7 +52,7 @@ export function useCreateInstance(language: string) {
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId(data.id);
       const queryKey = instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid });
-      queryClient.setQueryData(queryKey, removeProcessFromInstance(data));
+      queryClient.setQueryData(queryKey, data);
     },
   });
 }

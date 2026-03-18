@@ -51,6 +51,21 @@ function invalidateInstanceData(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
 }
 
+function useOptimisticallyUpdateInstance() {
+  const queryClient = useQueryClient();
+
+  return (updater: (oldData: IInstance) => IInstance) => {
+    const cached = queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() });
+    const entry = cached.find(([, data]) => data);
+    if (entry) {
+      const [queryKey, oldData] = entry;
+      if (oldData) {
+        queryClient.setQueryData(queryKey, updater(oldData));
+      }
+    }
+  };
+}
+
 export {
   extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId,
   invalidateInstanceData,
@@ -59,4 +74,5 @@ export {
   useActiveInstances,
   useCreateInstance,
   useCurrentInstance,
+  useOptimisticallyUpdateInstance,
 };

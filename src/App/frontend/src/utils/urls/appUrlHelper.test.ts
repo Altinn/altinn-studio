@@ -7,7 +7,6 @@ import {
   getInstantiateUrl,
   getLayoutsUrl,
   getOptionsUrl,
-  getProcessStateUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
   getValidationUrl,
@@ -28,11 +27,6 @@ describe('Frontend urlHelper.ts', () => {
     });
     it('should return the expected url for textResourcesUrl', () => {
       expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');
-    });
-    it('should return the expected url for getProcessStateUrl', () => {
-      expect(getProcessStateUrl('12345/instanceId-1234')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/process',
-      );
     });
     it('should return the expected url for getInstantiateUrl', () => {
       expect(getInstantiateUrl()).toBe('https://local.altinn.cloud/ttd/test/instances/create');

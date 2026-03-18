@@ -19,7 +19,6 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -185,10 +184,10 @@ function setupMocks(test: FunctionTest): void {
   };
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
-  jest.mocked(fetchProcessState).mockImplementation(async () => createProcess(test) ?? getProcessDataMock());
-  jest
-    .mocked(InstanceApi.getInstance)
-    .mockImplementation(async () => ({ ...createInstanceData(test), process: getProcessDataMock() }));
+  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => ({
+    ...createInstanceData(test),
+    process: createProcess(test) ?? getProcessDataMock(),
+  }));
 }
 
 function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {

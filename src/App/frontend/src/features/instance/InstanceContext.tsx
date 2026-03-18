@@ -8,11 +8,9 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { invalidateInstanceData } from 'src/core/queries/instance';
+import { invalidateInstanceData, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import { instanceDataQuery, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
 import { FileScanResults } from 'src/features/attachments/types';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -28,8 +26,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instantiation = useInstantiation();
   const navigation = useNavigation();
 
-  const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
-
   const hasPendingScans = useHasPendingScans();
   const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
 
@@ -37,16 +33,13 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
   }
 
-  const error = instantiation.error ?? instanceDataError ?? processError;
+  const error = instantiation.error ?? instanceDataError;
   if (error) {
     return <DisplayError error={error} />;
   }
 
   if (!data) {
     return <Loader reason='loading-instance' />;
-  }
-  if (isLoadingProcess) {
-    return <Loader reason='fetching-process' />;
   }
 
   if (navigation.state === 'loading') {
@@ -142,31 +135,8 @@ export function useInvalidateInstanceDataCache() {
  * OPTIMISTIC UPDATES
  *********************/
 
-const useOptimisticInstanceUpdate = () => {
-  const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
-
-  const queryKey =
-    !instanceOwnerPartyId || !instanceGuid
-      ? undefined
-      : instanceQueryKeys.instance({
-          instanceOwnerPartyId,
-          instanceGuid,
-        });
-
-  return (updater: (oldData: IInstance) => IInstance | undefined) => {
-    queryKey &&
-      queryClient.setQueryData(queryKey, (oldData: IInstance | undefined) => {
-        if (!oldData) {
-          throw new Error('Cannot update instance data cache when there is not cached data');
-        }
-        return updater(oldData);
-      });
-  };
-};
-
 export const useOptimisticallyAppendDataElements = () => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (elements: IData[]) =>
     updateInstance((oldData) => ({
@@ -175,7 +145,7 @@ export const useOptimisticallyAppendDataElements = () => {
     }));
 };
 export const useOptimisticallyUpdateDataElement = () => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (elementId: string, mutator: (element: IData) => IData) =>
     updateInstance((oldData) => ({
@@ -184,7 +154,7 @@ export const useOptimisticallyUpdateDataElement = () => {
     }));
 };
 export const useOptimisticallyRemoveDataElement = () => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (elementId: string) =>
     updateInstance((oldData) => ({
@@ -193,13 +163,12 @@ export const useOptimisticallyRemoveDataElement = () => {
     }));
 };
 export const useOptimisticallyUpdateCachedInstance = (): ChangeInstanceData => {
-  const updateInstance = useOptimisticInstanceUpdate();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   return (callback: (instance: IInstance | undefined) => IInstance | undefined) => {
     updateInstance((oldData) => {
       const next = callback(oldData);
-      const clean = next ? removeProcessFromInstance(next) : undefined;
-      if (clean && !deepEqual(oldData, clean)) {
+      if (next && !deepEqual(oldData, next)) {
         return next;
       }
       return oldData;

@@ -65,7 +65,6 @@ export const getDataModelTypeUrl = (instanceId: string, dataType: string) =>
 export const getDataElementUrl = (instanceId: string, dataElementId: string, language: string) =>
   `${appPath}/instances/${instanceId}/data/${dataElementId}?language=${language}`;
 
-export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
 export const getActionsUrl = (partyId: string, instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${appPath}/instances/${partyId}/${instanceId}/actions${queryString}`;

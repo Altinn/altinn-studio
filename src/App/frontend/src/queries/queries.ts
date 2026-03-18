@@ -23,7 +23,6 @@ import {
   getPaymentInformationUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
-  getProcessStateUrl,
   getSetSelectedPartyUrl,
   getUpdateFileTagsUrl,
   getValidationUrl,
@@ -180,8 +179,6 @@ export const doPostStatelessFormData = async (
 
 export const fetchLogo = async (): Promise<string> =>
   (await axios.get('https://altinncdn.no/img/Altinn-logo-blue.svg')).data;
-
-export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
 export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
 

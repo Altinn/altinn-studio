@@ -11,7 +11,6 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 import { InstanceApi } from 'src/core/api-client/instance.api';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
-import { fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -143,7 +142,6 @@ describe('All known UI folders should render successfully', () => {
 
     window.altinnAppGlobalData.applicationMetadata = uiFolder.app.getAppMetadata();
     window.altinnAppGlobalData.ui = uiFolder.app.getUiConfig();
-    jest.mocked(fetchProcessState).mockImplementation(async () => mainFolder.simulateProcessData());
     jest
       .mocked(InstanceApi.getInstance)
       .mockImplementation(async () => ({ ...uiFolder.simulateInstance(), process: mainFolder.simulateProcessData() }));

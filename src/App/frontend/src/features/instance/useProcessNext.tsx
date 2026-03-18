@@ -4,9 +4,10 @@ import { toast } from 'react-toastify';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useCurrentInstance } from 'src/core/queries/instance';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useOptimisticallyUpdateProcess } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
@@ -32,7 +33,7 @@ export function getProcessNextMutationKey(action?: IActionType) {
 export function useProcessNext({ action }: ProcessNextProps = {}) {
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const language = useCurrentLanguage();
-  const { data: process, refetch: refetchProcessData } = useProcessQuery();
+  const process = useCurrentInstance()?.process;
   const navigateToTask = useNavigateToTask();
   const instanceId = useLaxInstanceId();
   const onFormSubmitValidation = useOnFormSubmitValidation();
@@ -78,7 +79,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     onSuccess: async ([processData, validationIssues]) => {
       if (processData) {
         optimisticallyUpdateProcess(processData);
-        await Promise.all([refetchProcessData(), reFetchInstanceData()]);
+        await reFetchInstanceData();
         await invalidateFormDataQueries(queryClient);
 
         const task = getTargetTaskFromProcess(processData);
@@ -99,11 +100,10 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
       window.logError('Process next failed:\n', error);
 
-      const { data: newProcess } = await refetchProcessData();
-      const newCurrentTask = newProcess?.currentTask;
+      const { data: newInstance } = await reFetchInstanceData();
+      const newCurrentTask = newInstance?.process?.currentTask;
 
       if (newCurrentTask?.elementId && newCurrentTask?.elementId !== process?.currentTask?.elementId) {
-        await reFetchInstanceData();
         navigateToTask(newCurrentTask.elementId);
       }
 

@@ -1,16 +1,17 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useCurrentInstance } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
-import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useOptimisticallyUpdateProcess } from 'src/features/instance/useProcessQuery';
 import { LangAsParagraph } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
 export function Feedback() {
-  const { refetch: reFetchProcessData, data: previousData } = useProcessQuery();
+  const previousProcess = useCurrentInstance()?.process;
   const navigateToTask = useNavigateToTask();
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -19,33 +20,27 @@ export function Feedback() {
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
 
   const callback = useCallback(async () => {
-    const result = await reFetchProcessData();
-    if (!result.data) {
+    const result = await reFetchInstanceData();
+    const process = result.data?.process;
+    if (!process) {
       return;
     }
 
     let navigateTo: undefined | string;
-    if (result.data.ended) {
+    if (process.ended) {
       navigateTo = TaskKeys.ProcessEnd;
     } else if (
-      result.data.currentTask?.elementId &&
-      result.data.currentTask.elementId !== previousData?.currentTask?.elementId
+      process.currentTask?.elementId &&
+      process.currentTask.elementId !== previousProcess?.currentTask?.elementId
     ) {
-      navigateTo = result.data.currentTask.elementId;
+      navigateTo = process.currentTask.elementId;
     }
 
     if (navigateTo) {
-      optimisticallyUpdateProcess(result.data);
-      await reFetchInstanceData();
+      optimisticallyUpdateProcess(process);
       navigateToTask(navigateTo);
     }
-  }, [
-    navigateToTask,
-    optimisticallyUpdateProcess,
-    previousData?.currentTask?.elementId,
-    reFetchInstanceData,
-    reFetchProcessData,
-  ]);
+  }, [navigateToTask, optimisticallyUpdateProcess, previousProcess?.currentTask?.elementId, reFetchInstanceData]);
 
   // Continually re-fetch process data while the user is on the feedback page
   useBackoff(callback);
