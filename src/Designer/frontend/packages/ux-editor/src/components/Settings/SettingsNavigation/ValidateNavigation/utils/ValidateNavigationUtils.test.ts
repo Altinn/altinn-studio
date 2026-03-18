@@ -1,13 +1,12 @@
 import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import {
   convertToExternalConfig,
-  getAlertMessage,
   getAvailablePages,
   getAvailableTasks,
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
-  isRuleDuplicateInScope,
+  findDuplicateRule,
   Scope,
   validateForm,
 } from './ValidateNavigationUtils';
@@ -252,12 +251,7 @@ describe('validateForm', () => {
   });
 });
 
-describe('isRuleDuplicateInScope', () => {
-  const option = (value: string) => ({
-    value,
-    label: value,
-  });
-
+describe('findDuplicateRule', () => {
   const createConfig = (overrides?: Partial<InternalConfigState>): InternalConfigState => ({
     types: [option('type1')],
     pageScope: option('current'),
@@ -265,99 +259,66 @@ describe('isRuleDuplicateInScope', () => {
     pages: [option('page1')],
     ...overrides,
   });
+  const defaultKey = 'ux_editor.settings.navigation_validation_alert_message';
 
-  it('should return false if existingConfigs is undefined', () => {
-    const result = isRuleDuplicateInScope({
-      scope: Scope.AllTasks,
-      newConfig: createConfig(),
-    });
-    expect(result).toBe(false);
+  const option = (value: string) => ({
+    value,
+    label: value,
   });
 
-  it('should return false if form is not valid', () => {
-    const result = isRuleDuplicateInScope({
+  it('should return null if scope is all tasks, since it only can be one rule', () => {
+    const result = findDuplicateRule({
       scope: Scope.AllTasks,
       newConfig: createConfig(),
       existingConfigs: [createConfig()],
       isFormValid: false,
     });
-    expect(result).toBe(false);
-  });
-
-  it('should return true if there is a duplicate rule in scope', () => {
-    const result = isRuleDuplicateInScope({
-      scope: Scope.SelectedPages,
-      newConfig: createConfig(),
-      existingConfigs: [createConfig()],
-      isFormValid: true,
-    });
-    expect(result).toBe(true);
+    expect(result).toBe(null);
   });
 
   it('should return false if there is no duplicate rule in scope', () => {
-    const result = isRuleDuplicateInScope({
+    const result = findDuplicateRule({
       scope: Scope.SelectedPages,
       newConfig: createConfig(),
       existingConfigs: [createConfig({ task: option('task2') })],
       isFormValid: true,
     });
-    expect(result).toBe(false);
+    expect(!!result).toBe(false);
   });
-});
-
-describe('getAlertMessage', () => {
-  const defaultConfig = {
-    types: [{ value: 'type1', label: 'Type 1' }],
-    pageScope: { value: 'current', label: 'Current Page' },
-  };
-  const defaultKey = 'ux_editor.settings.navigation_validation_alert_message';
 
   it('should return correct alert message for page scope', () => {
-    const pageScopeConfig = {
-      ...defaultConfig,
-      task: { value: 'task1', label: 'Task 1' },
-      pages: [
-        { value: 'page1', label: 'Page 1' },
-        { value: 'page2', label: 'Page 2' },
-      ],
-    };
-
-    const existingConfigs = [
-      pageScopeConfig,
-      {
-        ...defaultConfig,
-        task: { value: 'task1', label: 'Task 1' },
-        pages: [{ value: 'page3', label: 'Page 3' }],
-      },
-    ];
-
-    const message = getAlertMessage({
+    const message = findDuplicateRule({
       scope: Scope.SelectedPages,
-      newConfig: pageScopeConfig,
-      existingConfigs: existingConfigs,
+      newConfig: createConfig({
+        task: option('task1'),
+        pages: [option('page1'), option('page2')],
+      }),
+      existingConfigs: [
+        createConfig({
+          task: option('task1'),
+          pages: [option('page1'), option('page2')],
+        }),
+      ],
+      isFormValid: true,
     });
 
-    expect(message).toEqual({ key: defaultKey, values: 'Page 1 og Page 2' });
+    expect(message).toEqual({ key: defaultKey, values: 'page1 og page2' });
   });
 
   it('should return correct alert message for task scope', () => {
-    const pageScopeConfig = {
-      ...defaultConfig,
-      tasks: [{ value: 'task1', label: 'Task 1' }],
-    };
-    const existingConfigs = [
-      pageScopeConfig,
-      {
-        ...defaultConfig,
-        tasks: [{ value: 'task2', label: 'Task 2' }],
-      },
-    ];
-    const message = getAlertMessage({
+    const message = findDuplicateRule({
       scope: Scope.SelectedTasks,
-      newConfig: pageScopeConfig,
-      existingConfigs: existingConfigs,
+      newConfig: createConfig({
+        tasks: [option('task1')],
+      }),
+      existingConfigs: [
+        createConfig({
+          tasks: [option('task1')],
+        }),
+      ],
+      isFormValid: true,
     });
 
-    expect(message).toEqual({ key: defaultKey, values: 'Task 1' });
+    expect(message).toEqual({ key: defaultKey, values: 'task1' });
   });
 });

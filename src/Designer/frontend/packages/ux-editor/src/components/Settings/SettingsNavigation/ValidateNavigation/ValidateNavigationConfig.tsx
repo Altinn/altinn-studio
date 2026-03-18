@@ -10,12 +10,11 @@ import {
 } from '@studio/components';
 import {
   type Scope,
-  isRuleDuplicateInScope,
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
   validateForm,
-  getAlertMessage,
+  findDuplicateRule,
 } from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
@@ -96,7 +95,7 @@ const ConfigModal = ({
   );
   const isFormValid = validateForm({ scope, config: initialConfig, newConfig });
 
-  const isRuleDuplicate = isRuleDuplicateInScope({
+  const duplicateRule = findDuplicateRule({
     scope,
     newConfig,
     initialConfig,
@@ -118,10 +117,6 @@ const ConfigModal = ({
     onClose();
   };
 
-  const alertMessage = isRuleDuplicate
-    ? getAlertMessage({ scope, newConfig, existingConfigs })
-    : null;
-
   return (
     <StudioDialog open={true} onClose={onClose}>
       <StudioDialog.Block>
@@ -134,9 +129,9 @@ const ConfigModal = ({
           newConfig={newConfig}
           onChange={update}
         />
-        {isRuleDuplicate && (
+        {!!duplicateRule && (
           <StudioAlert data-color='info'>
-            {t(alertMessage.key, { values: alertMessage.values })}
+            {t(duplicateRule.key, { values: duplicateRule.values })}
           </StudioAlert>
         )}
       </StudioDialog.Block>

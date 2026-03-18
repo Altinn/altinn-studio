@@ -123,7 +123,7 @@ export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): b
   }
 };
 
-type IsRuleDuplicateInScope = {
+type FindDuplicateRuleProps = {
   scope: Scope;
   newConfig: InternalConfigState;
   initialConfig?: InternalConfigState;
@@ -131,20 +131,29 @@ type IsRuleDuplicateInScope = {
   isFormValid?: boolean;
 };
 
-export const isRuleDuplicateInScope = ({
+export const findDuplicateRule = ({
   scope,
   newConfig,
   initialConfig,
   existingConfigs,
   isFormValid,
-}: IsRuleDuplicateInScope): boolean => {
-  if (!existingConfigs || !isFormValid) return false;
+}: FindDuplicateRuleProps): { key: string; values: string } | null => {
+  if (!existingConfigs || !isFormValid) return null;
 
   const filteredConfigs = initialConfig
     ? existingConfigs.filter((config) => JSON.stringify(config) !== JSON.stringify(initialConfig))
     : existingConfigs;
 
-  return filteredConfigs.some((existingConfig) => isSameRule(existingConfig, newConfig, scope));
+  const match = filteredConfigs.find((config) => isSameRule(config, newConfig, scope));
+  if (!match) return null;
+
+  const isPageScope = scope === Scope.SelectedPages;
+  const labels = isPageScope ? match.pages.map((p) => p.label) : match.tasks.map((t) => t.label);
+
+  return {
+    key: 'ux_editor.settings.navigation_validation_alert_message',
+    values: formatList(labels),
+  };
 };
 
 const isSameRule = (config: InternalConfigState, newConfig: InternalConfigState, scope: Scope) => {
@@ -169,27 +178,6 @@ const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: str
   if (!existingTypes || existingTypes.length !== newTypes.length) return false;
   const setA = new Set(existingTypes);
   return newTypes.every((value) => setA.has(value));
-};
-
-type GetAlertMessageProps = {
-  scope: Scope;
-  newConfig: InternalConfigState;
-  existingConfigs: InternalConfigState[];
-};
-
-export const getAlertMessage = ({
-  scope,
-  newConfig,
-  existingConfigs,
-}: GetAlertMessageProps): { key: string; values: string } => {
-  const match = existingConfigs.find((config) => isSameRule(config, newConfig, scope));
-  const isPageScope = scope === Scope.SelectedPages;
-  const labels = isPageScope ? match.pages.map((p) => p.label) : match.tasks.map((t) => t.label);
-
-  return {
-    key: 'ux_editor.settings.navigation_validation_alert_message',
-    values: formatList(labels),
-  };
 };
 
 const formatList = (list: string[]): string =>
