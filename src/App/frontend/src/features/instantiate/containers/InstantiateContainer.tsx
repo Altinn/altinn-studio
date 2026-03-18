@@ -20,14 +20,18 @@ export const InstantiateContainer = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const shouldCreateInstance = !!party;
-    if (shouldCreateInstance) {
-      instantiation.instantiate(party.partyId).then((data) => {
-        if (data) {
-          navigate(`/instance/${data.id}`);
-        }
-      });
-    }
+    const createInstance = async () => {
+      if (!party) {
+        return;
+      }
+      const data = await instantiation.instantiate(party.partyId);
+      if (data) {
+        navigate(`/instance/${data.id}`);
+      } else if (instantiation.lastResult) {
+        navigate(`/instance/${instantiation.lastResult.id}`);
+      }
+    };
+    createInstance();
   }, [instantiation, party, navigate]);
 
   if (isAxiosError(instantiation.error) && instantiation.error.response?.status === HttpStatusCodes.Forbidden) {

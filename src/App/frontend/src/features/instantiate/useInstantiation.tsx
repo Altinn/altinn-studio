@@ -43,6 +43,6 @@ export function useInstantiation() {
     },
 
     error: lastMutation?.error,
-    lastResult: lastMutation?.data,
+    lastResult: lastMutation?.data as IInstance | undefined,
   };
 }
