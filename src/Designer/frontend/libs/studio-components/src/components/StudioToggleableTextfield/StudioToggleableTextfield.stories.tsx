@@ -1,23 +1,21 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioToggleableTextfield } from './StudioToggleableTextfield';
 
-type Story = StoryFn<typeof StudioToggleableTextfield>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioToggleableTextfield',
   component: StudioToggleableTextfield,
-};
-
-export const Preview: Story = (args) => (
-  <StudioToggleableTextfield {...args}></StudioToggleableTextfield>
-);
-
-Preview.args = {
-  onIsViewMode: (): void => {},
-  label: 'My awesome label',
-  value: 'value',
-  error: 'error',
-};
-
+} satisfies Meta<typeof StudioToggleableTextfield>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  render: (args) => <StudioToggleableTextfield {...args}></StudioToggleableTextfield>,
+
+  args: {
+    onIsViewMode: (): void => {},
+    label: 'My awesome label',
+    value: 'value',
+    error: 'error',
+  },
+};

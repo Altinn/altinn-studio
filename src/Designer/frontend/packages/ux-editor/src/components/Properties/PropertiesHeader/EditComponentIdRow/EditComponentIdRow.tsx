@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
 import { Alert } from '@digdir/designsystemet-react';
 import classes from './EditComponentIdRow.module.css';

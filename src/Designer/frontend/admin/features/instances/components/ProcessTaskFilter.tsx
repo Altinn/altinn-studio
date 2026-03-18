@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioSpinner, StudioError } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { StatusFilter } from './StatusFilter';

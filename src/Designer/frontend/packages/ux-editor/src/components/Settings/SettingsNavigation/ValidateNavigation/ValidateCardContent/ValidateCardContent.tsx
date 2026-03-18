@@ -1,4 +1,3 @@
-import React from 'react';
 import { type InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { ValidateRuleConfig } from './ValidateRuleConfig';
 import { PagesSelector, TaskSelector, TasksSelector } from './ValidateTargetSelectors';

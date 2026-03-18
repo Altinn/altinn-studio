@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { TasksTableBody, type TasksTableBodyProps } from './TasksTableBody';
 import { StudioTable } from '@studio/components';

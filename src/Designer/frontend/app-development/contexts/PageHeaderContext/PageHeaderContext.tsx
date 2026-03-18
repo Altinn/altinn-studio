@@ -1,4 +1,5 @@
-import React, { type ReactElement, type ReactNode, createContext, useContext } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import { type User } from 'app-shared/types/Repository';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import {

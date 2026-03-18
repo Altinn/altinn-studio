@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { ValidationMessage } from '@digdir/designsystemet-react';
 import type { ValidationMessageProps } from '@digdir/designsystemet-react';

@@ -784,7 +784,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     {
         if (list is null)
         {
-            return null;
+            return null!;
         }
         // csharpier-ignore
         global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold result = new (list.Count);

@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioBlobDownloader } from './StudioBlobDownloader';
 
-type Story = StoryObj<typeof StudioBlobDownloader>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioBlobDownloader',
   component: StudioBlobDownloader,
-};
+} satisfies Meta<typeof StudioBlobDownloader>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {

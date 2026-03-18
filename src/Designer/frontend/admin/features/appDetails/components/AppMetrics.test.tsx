@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppMetrics, type AppMetricsProps } from './AppMetrics';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

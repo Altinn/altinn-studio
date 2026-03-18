@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { StudioHeading, StudioParagraph, StudioAlert, StudioTable } from '@studio/components';
 import classes from './TasksTableBody.module.css';

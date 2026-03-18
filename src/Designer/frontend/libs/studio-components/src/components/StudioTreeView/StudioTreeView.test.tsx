@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { StudioTreeViewRootProps } from './';
 import { StudioTreeView } from './';
 import type { ByRoleOptions } from '@testing-library/react';

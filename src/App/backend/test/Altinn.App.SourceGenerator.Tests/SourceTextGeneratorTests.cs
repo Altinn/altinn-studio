@@ -7,6 +7,9 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.SourceGenerator.Tests;
 
+/// <summary>
+/// Somewhat silly tests that uses reflection instead of roslyn parser to create the input for the source text generator, but it is a good way to quickly create test cases without having to write a lot of code to parse the syntax tree and convert it to the model used by the generator.
+/// </summary>
 public class SourceTextGeneratorTests(ITestOutputHelper outputHelper)
 {
     [Fact]

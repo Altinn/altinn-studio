@@ -1,6 +1,5 @@
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { MergeConflictWarning, type MergeConflictWarningProps } from './MergeConflictWarning';
 import { MemoryRouter } from 'react-router-dom';
 import { org, app } from '@studio/testing/testids';

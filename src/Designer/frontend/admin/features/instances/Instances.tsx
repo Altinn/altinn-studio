@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './Instances.module.css';
 import { useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen, waitFor } from '@testing-library/react';

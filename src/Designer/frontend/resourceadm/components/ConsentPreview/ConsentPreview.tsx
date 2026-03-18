@@ -1,4 +1,5 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import React from 'react';
 import DOMPurify from 'dompurify';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';

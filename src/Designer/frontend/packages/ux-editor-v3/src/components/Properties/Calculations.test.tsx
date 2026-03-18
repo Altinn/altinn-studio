@@ -1,4 +1,3 @@
-﻿import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Calculations } from './Calculations';
 import { FormItemContext } from '../../containers/FormItemContext';

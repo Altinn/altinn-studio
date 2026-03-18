@@ -1,7 +1,7 @@
 import type { FieldsetProps } from '@digdir/designsystemet-react';
 import { Fieldset } from '@digdir/designsystemet-react';
 import type { ReactNode } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioPropertyFieldset.module.css';
 

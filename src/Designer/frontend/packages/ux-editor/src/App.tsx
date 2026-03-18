@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText } from './hooks';
 import { StudioPageError, StudioPageSpinner } from '@studio/components';

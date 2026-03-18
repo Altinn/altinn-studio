@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';

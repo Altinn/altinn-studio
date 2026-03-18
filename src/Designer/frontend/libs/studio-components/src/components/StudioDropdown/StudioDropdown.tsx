@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { Dropdown } from '@digdir/designsystemet-react';
 import type { DropdownProps } from '@digdir/designsystemet-react';

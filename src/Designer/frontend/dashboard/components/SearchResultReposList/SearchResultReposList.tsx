@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';

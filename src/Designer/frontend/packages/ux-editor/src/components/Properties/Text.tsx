@@ -1,4 +1,3 @@
-import React from 'react';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';

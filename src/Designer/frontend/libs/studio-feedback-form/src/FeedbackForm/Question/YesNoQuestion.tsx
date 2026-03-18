@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@studio/icons';
 import type { QuestionsProps } from '../../types/QuestionsProps';

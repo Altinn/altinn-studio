@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, renderHook, screen, waitFor, act } from '@testing-library/react';
 import { PreviewContextProvider, usePreviewContext } from './PreviewContext';
 
