@@ -274,6 +274,72 @@ public partial class EngineTests
     }
 
     [Fact]
+    public async Task Response_Enqueue_MaxWorkflowsExceeded_Returns400WithDetails()
+    {
+        // Create more workflows than allowed (max is 100 per the test config)
+        var workflows = Enumerable
+            .Range(1, 101)
+            .Select(i => _testHelpers.CreateWorkflow($"wf-{i}", [_testHelpers.CreateWebhookStep($"/step-{i}")]))
+            .ToList();
+        var request = _testHelpers.CreateEnqueueRequest(workflows);
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_MaxWorkflowsAtLimit_Succeeds()
+    {
+        // Exactly at the limit (100) should succeed
+        var workflows = Enumerable
+            .Range(1, 100)
+            .Select(i => _testHelpers.CreateWorkflow($"wf-{i}", [_testHelpers.CreateWebhookStep($"/step-{i}")]))
+            .ToList();
+        var request = _testHelpers.CreateEnqueueRequest(workflows);
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_MaxLabelsExceeded_Returns400WithDetails()
+    {
+        // Create more labels than allowed (max is 50 per the test config)
+        var labels = Enumerable.Range(1, 51).ToDictionary(i => $"key-{i}", i => $"value-{i}");
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping")])
+        );
+        request = request with { Labels = labels };
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_MaxLabelsAtLimit_Succeeds()
+    {
+        // Exactly at the limit (50) should succeed
+        var labels = Enumerable.Range(1, 50).ToDictionary(i => $"key-{i}", i => $"value-{i}");
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping")])
+        );
+        request = request with { Labels = labels };
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Response_GetWorkflow_AfterRetries_ShowsRetryState()
     {
         // Arrange – WireMock returns 500 twice, then 200
