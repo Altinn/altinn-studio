@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="WorkflowEngine.TestKit" />
     <InternalsVisibleTo Include="WorkflowEngine.Core.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.App" />
     <InternalsVisibleTo Include="WorkflowEngine.App.Tests" />

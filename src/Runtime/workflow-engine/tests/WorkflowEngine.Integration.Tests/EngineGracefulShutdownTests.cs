@@ -9,6 +9,7 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Core;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
@@ -49,13 +50,12 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
         _wireMock.Reset();
         _wireMock
             .Given(Request.Create().WithPath("/slow").UsingAnyMethod())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
 
         await using var factory = CreateFactory();
         var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/slow"));
 
-        await WaitForProcessing(workflowId);
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await WaitForStepProcessing(factory, workflowId);
 
         // Graceful shutdown — directly stops the host and all its services
         await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
@@ -80,15 +80,14 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
             .RespondWith(Response.Create().WithStatusCode(200));
         _wireMock
             .Given(Request.Create().WithPath("/slow2").UsingAnyMethod())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
 
         await using var factory = CreateFactory();
         var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/fast"), CreateWebhookStep("/slow2"));
 
-        // Wait for the processor to pick up, then give time for step 1 to complete
-        // and step 2's slow HTTP call to start
-        await WaitForProcessing(workflowId);
-        await Task.Delay(1000, TestContext.Current.CancellationToken);
+        // Wait for step 1 to complete and step 2's slow HTTP call to start.
+        // WaitForStepProcessing checks the second step specifically since step 1 completes instantly.
+        await WaitForStepProcessing(factory, workflowId, stepIndex: 1);
 
         await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
@@ -112,13 +111,12 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
         _wireMock.Reset();
         _wireMock
             .Given(Request.Create().WithPath("/moderate").UsingAnyMethod())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
 
         await using var factory = CreateFactory();
         var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/moderate"));
 
-        await WaitForProcessing(workflowId);
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await WaitForStepProcessing(factory, workflowId);
 
         await factory.Services.GetRequiredService<IHost>().StopAsync(TestContext.Current.CancellationToken);
 
@@ -167,26 +165,32 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Polls the database until the workflow reaches <see cref="PersistentItemStatus.Processing"/> status.
-    /// This is set atomically by <c>FetchAndLockWorkflows</c> and confirms the processor has picked up the work.
+    /// Polls the in-memory <see cref="InFlightTracker"/> until the specified step (by index)
+    /// reaches <see cref="PersistentItemStatus.Processing"/> status. This confirms the command
+    /// is actually executing — no fixed delays needed.
     /// </summary>
-    private async Task WaitForProcessing(Guid workflowId, TimeSpan? timeout = null)
+    private static async Task WaitForStepProcessing(
+        EngineWebApplicationFactory<Program> factory,
+        Guid workflowId,
+        int stepIndex = 0,
+        TimeSpan? timeout = null
+    )
     {
+        var tracker = factory.Services.GetRequiredService<InFlightTracker>();
         using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
+
         while (true)
         {
             cts.Token.ThrowIfCancellationRequested();
 
-            await using var context = CreateDbContext();
-            var status = await context
-                .Workflows.Where(w => w.Id == workflowId)
-                .Select(w => w.Status)
-                .SingleOrDefaultAsync(cts.Token);
-
-            if (status == PersistentItemStatus.Processing)
+            if (
+                tracker.TryGetWorkflow(workflowId, out var workflow)
+                && workflow!.Steps.Count > stepIndex
+                && workflow.Steps[stepIndex].Status == PersistentItemStatus.Processing
+            )
                 return;
 
-            await Task.Delay(50, cts.Token);
+            await Task.Delay(25, cts.Token);
         }
     }
 

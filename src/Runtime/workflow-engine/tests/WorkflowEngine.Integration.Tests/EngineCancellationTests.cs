@@ -2,12 +2,14 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Testcontainers.PostgreSql;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Core;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
@@ -47,14 +49,13 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         SetupWireMock();
         _wireMock
             .Given(Request.Create().WithPath("/slow-cancel").UsingAnyMethod())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
 
         await using var factory = CreateFactory();
         var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/slow-cancel"));
 
-        // Wait for the processor to pick up and start executing the step
-        await WaitForProcessing(workflowId);
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        // Wait until the step's command is actually executing
+        await WaitForStepProcessing(factory, workflowId);
 
         // Cancel via the API
         using var client = factory.CreateEngineClient();
@@ -90,7 +91,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
             .RespondWith(Response.Create().WithStatusCode(200));
         _wireMock
             .Given(Request.Create().WithPath("/slow-cancel-2").UsingAnyMethod())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
 
         await using var factory = CreateFactory();
         var workflowId = await EnqueueWorkflow(
@@ -99,10 +100,8 @@ public sealed class EngineCancellationTests : IAsyncLifetime
             CreateWebhookStep("/slow-cancel-2")
         );
 
-        // Wait for step 1's instant webhook to complete (its log entry appears immediately
-        // since there's no response delay), then allow a moment for step 2 to begin
-        await WaitForWireMockHit("/fast-cancel");
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        // Wait for step 2's command to start executing (step 1 completes instantly)
+        await WaitForStepProcessing(factory, workflowId, stepIndex: 1);
 
         // Cancel via the API
         using var client = factory.CreateEngineClient();
@@ -151,13 +150,12 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         SetupWireMock();
         _wireMock
             .Given(Request.Create().WithPath("/slow-idem").UsingAnyMethod())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(30)));
+            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
 
         await using var factory = CreateFactory();
         var workflowId = await EnqueueWorkflow(factory, CreateWebhookStep("/slow-idem"));
 
-        await WaitForProcessing(workflowId);
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await WaitForStepProcessing(factory, workflowId);
 
         using var client = factory.CreateEngineClient();
 
@@ -241,25 +239,32 @@ public sealed class EngineCancellationTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Polls the database until the workflow reaches <see cref="PersistentItemStatus.Processing"/> status.
+    /// Polls the in-memory <see cref="InFlightTracker"/> until the specified step (by index)
+    /// reaches <see cref="PersistentItemStatus.Processing"/> status. This confirms the command
+    /// is actually executing — no fixed delays needed.
     /// </summary>
-    private async Task WaitForProcessing(Guid workflowId, TimeSpan? timeout = null)
+    private static async Task WaitForStepProcessing(
+        EngineWebApplicationFactory<Program> factory,
+        Guid workflowId,
+        int stepIndex = 0,
+        TimeSpan? timeout = null
+    )
     {
+        var tracker = factory.Services.GetRequiredService<InFlightTracker>();
         using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
+
         while (true)
         {
             cts.Token.ThrowIfCancellationRequested();
 
-            await using var context = CreateDbContext();
-            var status = await context
-                .Workflows.Where(w => w.Id == workflowId)
-                .Select(w => w.Status)
-                .SingleOrDefaultAsync(cts.Token);
-
-            if (status == PersistentItemStatus.Processing)
+            if (
+                tracker.TryGetWorkflow(workflowId, out var workflow)
+                && workflow!.Steps.Count > stepIndex
+                && workflow.Steps[stepIndex].Status == PersistentItemStatus.Processing
+            )
                 return;
 
-            await Task.Delay(50, cts.Token);
+            await Task.Delay(25, cts.Token);
         }
     }
 
@@ -287,25 +292,6 @@ public sealed class EngineCancellationTests : IAsyncLifetime
                     or PersistentItemStatus.Canceled
                     or PersistentItemStatus.DependencyFailed
             )
-                return;
-
-            await Task.Delay(50, cts.Token);
-        }
-    }
-
-    /// <summary>
-    /// Polls WireMock log entries until a request to <paramref name="path"/> is observed.
-    /// Only works for requests with no response delay — delayed responses are not logged
-    /// until the response completes.
-    /// </summary>
-    private async Task WaitForWireMockHit(string path, TimeSpan? timeout = null)
-    {
-        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
-        while (true)
-        {
-            cts.Token.ThrowIfCancellationRequested();
-
-            if (_wireMock.LogEntries.Any(e => e.RequestMessage.AbsolutePath.Contains(path, StringComparison.Ordinal)))
                 return;
 
             await Task.Delay(50, cts.Token);

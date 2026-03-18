@@ -70,4 +70,22 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     }
 
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
+
+    /// <summary>
+    /// Attempts to retrieve the in-memory <see cref="Workflow"/> object for a tracked workflow.
+    /// The returned object is the live reference being mutated by the processing pipeline,
+    /// so its <see cref="Workflow.Steps"/> reflect real-time in-memory state (e.g. step status
+    /// transitions to <see cref="Models.PersistentItemStatus.Processing"/> before command execution).
+    /// </summary>
+    public bool TryGetWorkflow(Guid workflowId, out Workflow? workflow)
+    {
+        if (_workflows.TryGetValue(workflowId, out var entry))
+        {
+            workflow = entry.Workflow;
+            return true;
+        }
+
+        workflow = null;
+        return false;
+    }
 }

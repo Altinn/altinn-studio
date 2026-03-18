@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Core;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -88,6 +90,38 @@ public sealed class TestHelpers(EngineAppFixture fixture)
 
     private static JsonElement CreateDefaultContext() =>
         JsonSerializer.SerializeToElement(new { Org = EngineAppFixture.DefaultOrg, App = EngineAppFixture.DefaultApp });
+
+    /// <summary>
+    /// Polls the in-memory <see cref="InFlightTracker"/> until a step on the specified workflow
+    /// reaches <paramref name="expectedStatus"/>. This checks the live object reference held by
+    /// the processing pipeline — no database round-trip required.
+    /// Useful for waiting until a step's command is actually executing (status = Processing)
+    /// before triggering shutdown or cancellation in tests.
+    /// </summary>
+    public async Task WaitForInMemoryStepStatus(
+        Guid workflowId,
+        PersistentItemStatus expectedStatus,
+        int stepIndex = 0,
+        TimeSpan? timeout = null
+    )
+    {
+        var tracker = fixture.Services.GetRequiredService<InFlightTracker>();
+        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
+
+        while (true)
+        {
+            cts.Token.ThrowIfCancellationRequested();
+
+            if (
+                tracker.TryGetWorkflow(workflowId, out var workflow)
+                && workflow!.Steps.Count > stepIndex
+                && workflow.Steps[stepIndex].Status == expectedStatus
+            )
+                return;
+
+            await Task.Delay(25, cts.Token);
+        }
+    }
 
     public async Task AssertDbEmpty()
     {
