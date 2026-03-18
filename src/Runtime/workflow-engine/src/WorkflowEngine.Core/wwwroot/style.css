@@ -1199,6 +1199,91 @@ body {
     font-style: italic;
 }
 
+/* ── Modal action buttons ────────────────────────────────── */
+.modal-action-btn {
+    display: inline-block;
+    padding: 6px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+    margin-right: 8px;
+    transition: filter 0.15s;
+}
+.modal-action-btn:hover { filter: brightness(1.2); }
+.modal-action-btn.retry {
+    background: var(--success);
+    color: #fff;
+}
+.modal-action-btn.skip {
+    background: var(--warn);
+    color: #fff;
+}
+
+/* ── Error history ───────────────────────────────────────── */
+.error-history-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+.error-history-arrow {
+    font-size: 10px;
+    margin-left: 4px;
+    display: inline-block;
+    transition: transform 0.15s;
+}
+.error-history {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.error-entry {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+}
+.error-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+.error-http-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+}
+.error-retryable {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.error-retryable.retryable {
+    background: rgba(255, 193, 7, 0.15);
+    color: var(--warn);
+}
+.error-retryable.fatal {
+    background: rgba(244, 67, 54, 0.15);
+    color: var(--error);
+}
+.error-entry-message {
+    color: var(--text-dim);
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
 /* ── Step command-type badges ─────────────────────────────── */
 .step-type {
     font-size: 10px;

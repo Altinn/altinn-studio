@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
@@ -838,6 +839,7 @@ internal sealed partial class EngineRepository
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
                         var stepLastErrors = new object[allSteps.Count];
+                        var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
 
@@ -848,6 +850,10 @@ internal sealed partial class EngineRepository
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
                             stepLastErrors[i] = (object?)s.LastError ?? DBNull.Value;
+                            stepErrorHistories[i] =
+                                s.ErrorHistory.Count > 0
+                                    ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
+                                    : DBNull.Value;
                             stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
                             stepEngineTraceContexts[i] = (object?)s.EngineTraceContext ?? DBNull.Value;
                         }
@@ -857,11 +863,12 @@ internal sealed partial class EngineRepository
                         SET "Status"             = v.status,
                             "RequeueCount"       = v.requeue_count,
                             "LastError"          = v.last_error,
+                            "ErrorHistoryJson"   = v.error_history,
                             "StateOut"           = v.state_out,
                             "EngineTraceContext" = v.engine_trace_context,
                             "UpdatedAt"          = @now
-                        FROM unnest(@ids, @statuses, @requeue_counts, @last_errors, @engine_trace_contexts, @state_outs)
-                            AS v(id, status, requeue_count, last_error, engine_trace_context, state_out)
+                        FROM unnest(@ids, @statuses, @requeue_counts, @last_errors, @error_histories, @engine_trace_contexts, @state_outs)
+                            AS v(id, status, requeue_count, last_error, error_history, engine_trace_context, state_out)
                         WHERE s."Id" = v.id
                         """;
 
@@ -873,6 +880,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("last_errors", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
                                 Value = stepLastErrors,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("error_histories", NpgsqlDbType.Array | NpgsqlDbType.Jsonb)
+                            {
+                                Value = stepErrorHistories,
                             }
                         );
                         cmd.Parameters.Add(
@@ -896,6 +909,10 @@ internal sealed partial class EngineRepository
                     }
 
                     await tx.CommitAsync(ct);
+
+                    // Signal dashboard SSE subscribers via PG NOTIFY
+                    await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
+                    await notifyCmd.ExecuteNonQueryAsync(ct);
                 },
                 cancellationToken
             );
@@ -908,6 +925,111 @@ internal sealed partial class EngineRepository
         {
             activity?.Errored(ex);
             logger.FailedToBatchUpdateWorkflowsAndSteps(updates.Count, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task ResetWorkflowForRetry(Guid workflowId, CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.ResetWorkflowForRetry");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    await using var tx = await conn.BeginTransactionAsync(ct);
+
+                    // Reset workflow to Enqueued, clear backoff
+                    const string resetWorkflowSql = """
+                    UPDATE engine."Workflows"
+                    SET "Status" = @status, "BackoffUntil" = NULL, "UpdatedAt" = @now
+                    WHERE "Id" = @id
+                    """;
+                    await using (var cmd = new NpgsqlCommand(resetWorkflowSql, conn, tx))
+                    {
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Enqueued));
+                        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
+                        await cmd.ExecuteNonQueryAsync(ct);
+                    }
+
+                    // Reset failed/requeued steps to Enqueued
+                    const string resetStepsSql = """
+                    UPDATE engine."Steps"
+                    SET "Status" = @status, "UpdatedAt" = @now
+                    WHERE "JobId" = @id AND "Status" IN (@failed, @requeued)
+                    """;
+                    await using (var cmd = new NpgsqlCommand(resetStepsSql, conn, tx))
+                    {
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Enqueued));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
+                        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
+                        await cmd.ExecuteNonQueryAsync(ct);
+                    }
+
+                    await tx.CommitAsync(ct);
+
+                    await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
+                    await notifyCmd.ExecuteNonQueryAsync(ct);
+                },
+                cancellationToken
+            );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateWorkflow("retry", workflowId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.SkipBackoff");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+                    const string sql = """
+                    UPDATE engine."Workflows"
+                    SET "BackoffUntil" = NULL, "UpdatedAt" = @now
+                    WHERE "Id" = @id
+                    """;
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
+                    await cmd.ExecuteNonQueryAsync(ct);
+
+                    await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
+                    await notifyCmd.ExecuteNonQueryAsync(ct);
+                },
+                cancellationToken
+            );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateWorkflow("skip-backoff", workflowId, ex.Message, ex);
             throw;
         }
     }

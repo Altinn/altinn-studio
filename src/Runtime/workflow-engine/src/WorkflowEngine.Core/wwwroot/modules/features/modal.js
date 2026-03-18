@@ -12,6 +12,9 @@ import {
     fmtAgo,
 } from '../core/helpers.js';
 
+/** Current workflow ID for retry/skip-backoff actions */
+let _currentWfId = '';
+
 /**
  * Pretty-print a state value for display / diff.
  * @param {unknown} raw
@@ -207,6 +210,39 @@ const buildDetailsContent = (data) => {
         html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
     }
 
+    // Action buttons
+    if (status === 'Failed') {
+        html += `<button class="modal-action-btn retry" onclick="retryWorkflow()">Retry Workflow</button>`;
+    } else if (status === 'Requeued') {
+        html += `<button class="modal-action-btn skip" onclick="skipBackoff()">Skip Backoff</button>`;
+    }
+
+    // Error history
+    const errors = /** @type {Array<{timestamp:string, message:string, httpStatusCode:number|null, wasRetryable:boolean}>|undefined} */ (
+        data.errorHistory
+    );
+    if (errors && errors.length > 0) {
+        html += `<div class="detail-section error-history-toggle" onclick="toggleErrorHistory()">Error History (${errors.length}) <span class="error-history-arrow">&#9654;</span></div>`;
+        html += `<div class="error-history" style="display:none">`;
+        for (const e of errors) {
+            const ts = fmtTime(e.timestamp);
+            const ago = fmtAgo(e.timestamp);
+            const httpBadge = e.httpStatusCode
+                ? `<span class="error-http-badge">${e.httpStatusCode}</span>`
+                : '';
+            const retryBadge = e.wasRetryable
+                ? '<span class="error-retryable retryable">retryable</span>'
+                : '<span class="error-retryable fatal">fatal</span>';
+            html += `<div class="error-entry">`;
+            html += `<div class="error-entry-header"><span class="timestamp" data-iso="${esc(e.timestamp)}">${esc(ts || '')}</span>`;
+            if (ago) html += `<span class="detail-ago">${esc(ago)}</span>`;
+            html += `${httpBadge}${retryBadge}</div>`;
+            html += `<div class="error-entry-message">${esc(e.message)}</div>`;
+            html += `</div>`;
+        }
+        html += `</div>`;
+    }
+
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="status-pill ${status}">${esc(status)}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);
 
@@ -309,6 +345,7 @@ window.switchStateView = (/** @type {HTMLElement} */ btn, /** @type {string} */ 
 };
 
 window.openStepModal = async (wfId, stepKey, stepName, initialTab) => {
+    _currentWfId = wfId;
     dom.modalTitle.textContent = stepName || 'Step Details';
     dom.modalTabs.innerHTML = '';
     dom.modalTabs.style.display = 'none';
@@ -350,6 +387,45 @@ window.closeModal = () => {
     dom.modal.classList.remove('open');
     dom.modalTabs.style.display = 'none';
     dom.modalSubtabs.style.display = 'none';
+};
+
+window.retryWorkflow = async () => {
+    if (!_currentWfId) return;
+    try {
+        const res = await fetch('/dashboard/retry', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workflowId: _currentWfId }),
+        });
+        if (!res.ok) throw new Error(`Retry failed: ${res.status}`);
+        window.closeModal();
+    } catch (err) {
+        alert(/** @type {Error} */ (err).message);
+    }
+};
+
+window.skipBackoff = async () => {
+    if (!_currentWfId) return;
+    try {
+        const res = await fetch('/dashboard/skip-backoff', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workflowId: _currentWfId }),
+        });
+        if (!res.ok) throw new Error(`Skip backoff failed: ${res.status}`);
+        window.closeModal();
+    } catch (err) {
+        alert(/** @type {Error} */ (err).message);
+    }
+};
+
+window.toggleErrorHistory = () => {
+    const el = dom.modalBody.querySelector('.error-history');
+    const arrow = dom.modalBody.querySelector('.error-history-arrow');
+    if (!el) return;
+    const hidden = el.style.display === 'none';
+    el.style.display = hidden ? 'block' : 'none';
+    if (arrow) arrow.textContent = hidden ? '\u25BC' : '\u25B6';
 };
 
 document.addEventListener('keydown', (e) => {

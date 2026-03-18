@@ -143,6 +143,11 @@ internal sealed class WorkflowHandler(
 
             step.Status = PersistentItemStatus.Processing;
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
+            step.HasPendingChanges = true;
+
+            // Flush "Processing" status so dashboard sees step transitions in real-time
+            // and crashed instances don't lose progress (~1-5ms amortized)
+            await statusWriteBuffer.Submit(workflow, ct);
 
             ExecutionResult result;
             try
@@ -165,6 +170,9 @@ internal sealed class WorkflowHandler(
 
             step.UpdatedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
+
+            // Flush result status immediately for real-time dashboard visibility
+            await statusWriteBuffer.Submit(workflow, ct);
 
             RecordStepServiceTime(step);
             RecordStepTotalTime(step, previous);
@@ -216,6 +224,14 @@ internal sealed class WorkflowHandler(
         {
             currentStep.Status = PersistentItemStatus.Failed;
             currentStep.LastError = result.Message;
+            currentStep.ErrorHistory.Add(
+                new ErrorEntry(
+                    timeProvider.GetUtcNow(),
+                    result.Message ?? "Unknown error",
+                    result.HttpStatusCode,
+                    WasRetryable: false
+                )
+            );
             workflow.BackoffUntil = null;
 
             Metrics.StepsFailed.Add(1);
@@ -233,6 +249,14 @@ internal sealed class WorkflowHandler(
             currentStep.RequeueCount++;
             currentStep.Status = PersistentItemStatus.Requeued;
             currentStep.LastError = result.Message;
+            currentStep.ErrorHistory.Add(
+                new ErrorEntry(
+                    timeProvider.GetUtcNow(),
+                    result.Message ?? "Unknown error",
+                    result.HttpStatusCode,
+                    WasRetryable: true
+                )
+            );
             workflow.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
 
             Metrics.StepsRequeued.Add(1);
@@ -244,6 +268,14 @@ internal sealed class WorkflowHandler(
         // No more retries
         currentStep.Status = PersistentItemStatus.Failed;
         currentStep.LastError = result.Message;
+        currentStep.ErrorHistory.Add(
+            new ErrorEntry(
+                timeProvider.GetUtcNow(),
+                result.Message ?? "Unknown error",
+                result.HttpStatusCode,
+                WasRetryable: false
+            )
+        );
         workflow.BackoffUntil = null;
 
         Metrics.StepsFailed.Add(1);

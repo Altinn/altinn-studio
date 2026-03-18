@@ -44,6 +44,9 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public string? LastError { get; set; }
 
+    [Column(TypeName = "jsonb")]
+    public string? ErrorHistoryJson { get; set; }
+
     public string? StateOut { get; set; }
 
     // Foreign key and navigation property
@@ -69,6 +72,8 @@ internal sealed class StepEntity : IHasCommonMetadata
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
             MetadataJson = step.Metadata,
             LastError = step.LastError,
+            ErrorHistoryJson =
+                step.ErrorHistory.Count > 0 ? JsonSerializer.Serialize(step.ErrorHistory, JsonOptions.Default) : null,
             StateOut = step.StateOut,
         };
     }
@@ -97,6 +102,10 @@ internal sealed class StepEntity : IHasCommonMetadata
             Command = command,
             RetryStrategy = retryStrategy,
             LastError = LastError,
+            ErrorHistory =
+                ErrorHistoryJson != null
+                    ? JsonSerializer.Deserialize<List<ErrorEntry>>(ErrorHistoryJson, JsonOptions.Default) ?? []
+                    : [],
             StateOut = StateOut,
         };
     }

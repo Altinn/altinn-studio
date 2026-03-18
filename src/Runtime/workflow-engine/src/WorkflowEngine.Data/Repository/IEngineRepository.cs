@@ -147,4 +147,15 @@ public interface IEngineRepository
         IReadOnlyList<BatchWorkflowStatusUpdate> updates,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Resets a failed/completed workflow and its steps back to Enqueued for re-processing.
+    /// Clears BackoffUntil so the workflow is immediately eligible for pickup.
+    /// </summary>
+    Task ResetWorkflowForRetry(Guid workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Clears BackoffUntil on a workflow so a requeued step resumes retrying immediately.
+    /// </summary>
+    Task SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default);
 }

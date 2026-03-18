@@ -27,17 +27,22 @@ export const bindLiveCallbacks = (fns) => {
 const fingerprint = (wf) =>
     `${wf.status}|${wf.steps.map((s) => `${s.status}:${s.retryCount}:${s.backoffUntil || ''}`).join(',')}`;
 
-/** @param {import('../core/state.js').Workflow[]} workflows */
-export const updateLiveWorkflows = (workflows) => {
+/**
+ * @param {import('../core/state.js').Workflow[]} workflows
+ * @param {Set<string>|null} [recentKeys] - idempotency keys of workflows now in recent; skip exit animation for these
+ */
+export const updateLiveWorkflows = (workflows, recentKeys) => {
     const currentKeys = new Set(workflows.map((w) => w.databaseId));
 
     // Animate out cards for workflows no longer in inbox
     for (const key of Object.keys(state.previousWorkflows)) {
         if (!currentKeys.has(key)) {
             const card = document.getElementById(`wf-${cssId(key)}`);
+            const idemKey = state.previousWorkflows[key]?.idempotencyKey;
+            const movedToRecent = idemKey && recentKeys?.has(idemKey);
             if (card && !card.dataset.exiting) {
                 const visible = card.offsetParent !== null;
-                if (visible) {
+                if (visible && !movedToRecent) {
                     const failed = state.previousWorkflows[key]?.status === 'Failed';
                     if (failed) card.classList.add('exit-fail');
                     card.dataset.exiting = '1';

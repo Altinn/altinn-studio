@@ -220,9 +220,9 @@ public static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
-                "/dashboard/stream/active",
+                "/dashboard/stream/live",
                 async (
-                    AsyncSignal workflowSignal,
+                    StatusChangeSignal workflowSignal,
                     IServiceProvider sp,
                     IHostApplicationLifetime lifetime,
                     HttpContext ctx,
@@ -303,12 +303,12 @@ public static class DashboardEndpoints
                             // Non-critical — retry next cycle
                         }
 
-                        // Wait for a workflow change signal or timeout after 500ms
+                        // Wait for a PG NOTIFY signal or timeout after 2s
                         try
                         {
                             using var signalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                            signalCts.CancelAfter(500);
-                            await workflowSignal.Wait(signalCts.Token);
+                            signalCts.CancelAfter(2000);
+                            await workflowSignal.WaitAsync(signalCts.Token);
                         }
                         catch (OperationCanceledException)
                         {
@@ -437,9 +437,17 @@ public static class DashboardEndpoints
                             processingOrder = s.ProcessingOrder,
                             retryCount = s.RequeueCount,
                             lastError = s.LastError,
+                            errorHistory = s.ErrorHistory.Select(e => new
+                            {
+                                timestamp = e.Timestamp,
+                                message = e.Message,
+                                httpStatusCode = e.HttpStatusCode,
+                                wasRetryable = e.WasRetryable,
+                            }),
                             createdAt = s.CreatedAt,
                             executionStartedAt = s.ExecutionStartedAt,
                             updatedAt = s.UpdatedAt,
+                            backoffUntil = workflow.BackoffUntil,
                             command = s.Command,
                             retryStrategy = s.RetryStrategy,
                             traceId = Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
@@ -483,6 +491,48 @@ public static class DashboardEndpoints
                         },
                         _jsonIndented
                     );
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapPost(
+                "/dashboard/retry",
+                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+                {
+                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
+                    if (
+                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
+                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
+                    )
+                    {
+                        return Results.BadRequest("Missing or invalid workflowId");
+                    }
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    await repo.ResetWorkflowForRetry(workflowId, ct);
+                    return Results.Ok();
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapPost(
+                "/dashboard/skip-backoff",
+                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+                {
+                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
+                    if (
+                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
+                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
+                    )
+                    {
+                        return Results.BadRequest("Missing or invalid workflowId");
+                    }
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    await repo.SkipBackoff(workflowId, ct);
+                    return Results.Ok();
                 }
             )
             .ExcludeFromDescription();
