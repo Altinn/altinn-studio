@@ -2,6 +2,7 @@ import type { ExternalConfigState, InternalConfigState } from './ValidateNavigat
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -99,7 +100,7 @@ type ValidateFormProps = {
 };
 
 export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): boolean => {
-  const noChangesMade = !newConfig || JSON.stringify(config) === JSON.stringify(newConfig);
+  const noChangesMade = !newConfig || ObjectUtils.areObjectsEqual(config, newConfig);
   if (noChangesMade) {
     return false;
   }
