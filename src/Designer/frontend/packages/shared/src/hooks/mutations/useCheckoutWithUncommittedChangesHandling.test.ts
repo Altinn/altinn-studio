@@ -25,7 +25,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
     jest.clearAllMocks();
     Object.defineProperty(window, 'location', {
       writable: true,
-      value: { reload: jest.fn() },
+      value: { reload: jest.fn(), pathname: '/' },
     });
   });
 
