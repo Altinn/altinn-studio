@@ -144,24 +144,25 @@ export const isRuleDuplicateInScope = ({
     ? existingConfigs.filter((config) => JSON.stringify(config) !== JSON.stringify(initialConfig))
     : existingConfigs;
 
-  const newConfigTypeValues = newConfig.types.map((type) => type.value);
-  const newPageScopeValue = newConfig.pageScope.value;
-  const newTaskValue = newConfig.task?.value;
+  return filteredConfigs.some((existingConfig) => isSameRule(existingConfig, newConfig, scope));
+};
 
-  return filteredConfigs.some((existingConfig) => {
-    const existingTypeValues = existingConfig.types?.map((type) => type.value);
-    const existingPageScopeValue = existingConfig.pageScope?.value;
-    const existingTaskValue = existingConfig.task?.value;
+const isSameRule = (config: InternalConfigState, newConfig: InternalConfigState, scope: Scope) => {
+  const existingTypeValues = config.types?.map((t) => t.value);
+  const newTypeValues = newConfig.types.map((t) => t.value);
 
-    if (scope === Scope.SelectedPages && existingTaskValue !== newTaskValue) {
-      return false;
-    }
+  const typesMatch = arraysEqualUnordered(existingTypeValues, newTypeValues);
+  const pageScopeMatches = config.pageScope?.value === newConfig.pageScope.value;
 
-    const typesMatch = arraysEqualUnordered(existingTypeValues, newConfigTypeValues);
-    const pageScopeMatches = existingPageScopeValue === newPageScopeValue;
+  if (!typesMatch || !pageScopeMatches) {
+    return false;
+  }
 
-    return typesMatch && pageScopeMatches;
-  });
+  if (scope === Scope.SelectedPages) {
+    return config.task?.value === newConfig.task?.value;
+  }
+
+  return true;
 };
 
 const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: string[]) => {
@@ -181,14 +182,8 @@ export const getAlertMessage = ({
   newConfig,
   existingConfigs,
 }: GetAlertMessageProps): { key: string; values: string } => {
+  const match = existingConfigs.find((config) => isSameRule(config, newConfig, scope));
   const isPageScope = scope === Scope.SelectedPages;
-
-  const match = existingConfigs.find((config) =>
-    isPageScope
-      ? config.task.value === newConfig.task.value
-      : config.pageScope.value === newConfig.pageScope.value,
-  );
-
   const labels = isPageScope ? match.pages.map((p) => p.label) : match.tasks.map((t) => t.label);
 
   return {
