@@ -10,29 +10,9 @@ public static class WorkflowExtensions
         public bool IsDone() => workflow.Status.IsDone();
 
         /// <summary>
-        /// Returns the status of the database update task.
-        /// </summary>
-        public TaskStatus DatabaseUpdateStatus() => workflow.DatabaseTask.Status();
-
-        /// <summary>
-        /// Cleans up and disposes of the database task.
-        /// </summary>
-        public void CleanupDatabaseTask()
-        {
-            workflow.DatabaseTask?.Dispose();
-            workflow.DatabaseTask = null;
-        }
-
-        /// <summary>
         /// The list of workflow steps ordered by processing order.
         /// </summary>
         public IEnumerable<Step> OrderedSteps() => workflow.Steps.OrderBy(t => t.ProcessingOrder);
-
-        /// <summary>
-        /// A list of workflow steps that are incomplete (not completed, canceled, or failed), ordered by processing order.
-        /// </summary>
-        public IEnumerable<Step> OrderedIncompleteSteps() =>
-            workflow.Steps.Where(x => x.IsIncomplete()).OrderBy(x => x.ProcessingOrder);
 
         /// <summary>
         /// The overall workflow status (based on step statuses)
@@ -44,6 +24,9 @@ public static class WorkflowExtensions
 
             if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Failed))
                 return PersistentItemStatus.Failed;
+
+            if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.DependencyFailed))
+                return PersistentItemStatus.DependencyFailed;
 
             if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Canceled))
                 return PersistentItemStatus.Canceled;
@@ -57,34 +40,15 @@ public static class WorkflowExtensions
         }
 
         /// <summary>
-        /// Returns true if the workflow has any steps ready for execution.
-        /// </summary>
-        public bool IsReadyForExecution(DateTimeOffset now)
-        {
-            if (workflow.StartAt > now)
-                return false;
-
-            return workflow.OrderedIncompleteSteps().FirstOrDefault()?.IsReadyForExecution(now) ?? true;
-        }
-
-        /// <summary>
-        /// Returns true if the workflow has any steps ready for execution.
-        /// </summary>
-        public bool IsReadyForExecution(TimeProvider timeProvider) =>
-            workflow.IsReadyForExecution(timeProvider.GetUtcNow());
-
-        /// <summary>
         /// Workflow metadata useful for enriching telemetry activities.
         /// </summary>
         public (string key, object? value)[] GetActivityTags() =>
             [
-                ("workflow.actor.id", workflow.Actor.UserIdOrOrgNumber),
                 ("workflow.database.id", workflow.DatabaseId),
+                ("workflow.correlation.id", workflow.CorrelationId),
+                ("workflow.idempotency.key", workflow.IdempotencyKey),
                 ("workflow.operation.id", workflow.OperationId),
-                ("workflow.instance.guid", workflow.InstanceInformation.InstanceGuid),
-                ("workflow.instance.party.id", workflow.InstanceInformation.InstanceOwnerPartyId),
-                ("workflow.instance.lock.key", workflow.InstanceLockKey),
-                ("workflow.instance.app", $"{workflow.InstanceInformation.Org}/{workflow.InstanceInformation.App}"),
+                ("workflow.namespace", workflow.Namespace),
             ];
 
         /// <summary>

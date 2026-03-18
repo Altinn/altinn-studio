@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import { useDeleteDataModelMutation } from '../../../../../hooks/mutations';
@@ -14,7 +14,7 @@ export interface DeleteWrapperProps {
 }
 
 export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
-  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { t } = useTranslation();
   const { mutate } = useDeleteDataModelMutation();
   const { org, app } = useStudioEnvironmentParams();

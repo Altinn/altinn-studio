@@ -1,49 +1,50 @@
+using System.Text.Json;
+
 namespace WorkflowEngine.Models;
 
 public sealed record Workflow : PersistentItem
 {
-    public string? InstanceLockKey { get; init; }
-    public required Actor Actor { get; init; }
-    public required InstanceInformation InstanceInformation { get; init; }
+    /// <summary>
+    /// Optional correlation ID shared by all workflows in a batch.
+    /// Used for grouping and looking up related workflows.
+    /// </summary>
+    public Guid? CorrelationId { get; init; }
+
+    /// <summary>
+    /// Primary isolation boundary. Idempotency keys are unique within a namespace.
+    /// Example: an instance GUID, a customer ID, a project ID — whatever the host defines.
+    /// </summary>
+    public required string Namespace { get; init; }
+
+    /// <summary>
+    /// Indexed key-value pairs for filtering, grouping, and dashboard queries.
+    /// The engine stores and indexes these but never interprets them.
+    /// Example: {"org":"ttd", "app":"test", "partyId":"12345"}
+    /// </summary>
+    public Dictionary<string, string>? Labels { get; init; }
+
+    /// <summary>
+    /// Opaque context passed to command handlers at execution time.
+    /// The engine stores but never inspects this. Handlers deserialize what they need.
+    /// Example: {"lockToken":"...", "actor":{...}, "commandEndpoint":"..."}
+    /// </summary>
+    public JsonElement? Context { get; init; }
+
     public DateTimeOffset? StartAt { get; init; }
+    public DateTimeOffset? BackoffUntil { get; set; }
+    public DateTimeOffset? HeartbeatAt { get; set; }
+    public int ReclaimCount { get; set; }
     public required IReadOnlyList<Step> Steps { get; init; }
     public string? DistributedTraceContext { get; set; }
     public IEnumerable<Workflow>? Dependencies { get; init; }
     public IEnumerable<Workflow>? Links { get; init; }
     public string? InitialState { get; init; }
 
-    internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
-
-    public static Workflow FromRequest(
-        WorkflowRequest request,
-        WorkflowRequestMetadata metadata,
-        string idempotencyKey,
-        IEnumerable<Workflow>? dependencies,
-        IEnumerable<Workflow>? links
-    ) =>
-        new()
-        {
-            DatabaseId = Guid.CreateVersion7(),
-            IdempotencyKey = idempotencyKey,
-            InstanceLockKey = metadata.InstanceLockKey,
-            InstanceInformation = metadata.InstanceInformation,
-            Actor = metadata.Actor,
-            CreatedAt = metadata.CreatedAt,
-            StartAt = request.StartAt,
-            DistributedTraceContext = metadata.TraceContext,
-            OperationId = request.OperationId,
-            Dependencies = dependencies,
-            Links = links,
-            Steps = request
-                .Steps.Select((step, i) => Step.FromRequest(request, step, metadata, idempotencyKey, i))
-                .ToList(),
-            InitialState = request.State,
-        };
 
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";
 
     public override int GetHashCode() => DatabaseId.GetHashCode();
 
     public bool Equals(Workflow? other) => other?.DatabaseId == DatabaseId;
-};
+}

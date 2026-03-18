@@ -49,6 +49,10 @@ public static class Metrics
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
     );
+    public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
+        "engine.workflows.execution.reclaimed",
+        description: "Number of stale workflows reclaimed from crashed workers"
+    );
     public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
         "engine.workflows.time.queue",
         "s",
@@ -114,6 +118,18 @@ public static class Metrics
         static () => _failedWorkflowsCount
     );
 
+    private static long _successfulWorkflowsCount;
+    public static readonly ObservableGauge<long> SuccessfulWorkflows = Meter.CreateObservableGauge(
+        "engine.workflows.successful",
+        static () => _successfulWorkflowsCount
+    );
+
+    private static long _finishedWorkflowsCount;
+    public static readonly ObservableGauge<long> FinishedWorkflows = Meter.CreateObservableGauge(
+        "engine.workflows.finished",
+        static () => _finishedWorkflowsCount
+    );
+
     private static long _availableInboxSlotsCount;
     public static readonly ObservableGauge<long> AvailableInboxSlots = Meter.CreateObservableGauge(
         "engine.slots.inbox.available",
@@ -150,11 +166,27 @@ public static class Metrics
         static () => _usedHttpSlotsCount
     );
 
+    private static long _availableWorkerSlotsCount;
+    public static readonly ObservableGauge<long> AvailableWorkerSlots = Meter.CreateObservableGauge(
+        "engine.slots.workers.available",
+        static () => _availableWorkerSlotsCount
+    );
+
+    private static long _usedWorkerSlotsCount;
+    public static readonly ObservableGauge<long> UsedWorkerSlots = Meter.CreateObservableGauge(
+        "engine.slots.workers.used",
+        static () => _usedWorkerSlotsCount
+    );
+
     public static void SetActiveWorkflowsCount(long count) => _activeWorkflowsCount = count;
 
     public static void SetScheduledWorkflowsCount(long count) => _scheduledWorkflowsCount = count;
 
     public static void SetFailedWorkflowsCount(long count) => _failedWorkflowsCount = count;
+
+    public static void SetSuccessfulWorkflowsCount(long count) => _successfulWorkflowsCount = count;
+
+    public static void SetFinishedWorkflowsCount(long count) => _finishedWorkflowsCount = count;
 
     public static void SetAvailableInboxSlots(int count) => _availableInboxSlotsCount = count;
 
@@ -168,13 +200,22 @@ public static class Metrics
 
     public static void SetUsedHttpSlots(int count) => _usedHttpSlotsCount = count;
 
-    public static IEnumerable<ActivityLink>? ParseSourceContext(string? traceContext)
-    {
-        if (traceContext is not null && ActivityContext.TryParse(traceContext, null, out var context))
-        {
-            return [new ActivityLink(context)];
-        }
+    public static void SetAvailableWorkerSlots(int count) => _availableWorkerSlotsCount = count;
 
-        return null;
+    public static void SetUsedWorkerSlots(int count) => _usedWorkerSlotsCount = count;
+
+    public static ActivityContext? ParseTraceContext(string? traceContext)
+    {
+        if (traceContext is null)
+            return null;
+
+        ActivityContext.TryParse(traceContext, null, out var context);
+        return context;
     }
+
+    public static IEnumerable<ActivityLink> ToActivityLinks(this ActivityContext? context) =>
+        context is null ? [] : [new ActivityLink(context.Value)];
+
+    public static IEnumerable<ActivityLink> ToActivityLinks(this IEnumerable<ActivityContext?> contexts) =>
+        contexts.OfType<ActivityContext>().Select(x => new ActivityLink(x));
 }

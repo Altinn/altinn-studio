@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Testcontainers.PostgreSql;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -16,19 +17,28 @@ namespace WorkflowEngine.Repository.Tests.Fixtures;
 public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:18").Build();
-    private readonly ConcurrencyLimiter _limiter = new(50, 50);
+    private readonly ConcurrencyLimiter _limiter = new(50, 50, 5);
 
     private readonly IOptions<EngineSettings> _settings = Options.Create(
         new EngineSettings
         {
-            QueueCapacity = 100,
-            MaxDegreeOfParallelism = 10,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
             DatabaseRetryStrategy = RetryStrategy.None(),
-            MaxConcurrentDbOperations = 50,
-            MaxConcurrentHttpCalls = 50,
+            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+            MaxWorkflowsPerRequest = 100,
+            MaxStepsPerWorkflow = 50,
+            MaxLabels = 50,
+            HeartbeatInterval = TimeSpan.FromSeconds(3),
+            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+            MaxReclaimCount = 3,
+            Concurrency = new ConcurrencySettings
+            {
+                MaxWorkers = 10,
+                MaxDbOperations = 50,
+                MaxHttpCalls = 50,
+            },
         }
     );
 
@@ -55,26 +65,60 @@ public sealed class PostgresFixture : IAsyncLifetime
         return new EngineDbContext(options);
     }
 
-    internal EnginePgRepository CreateRepository(EngineDbContext context)
-    {
-        return new EnginePgRepository(context, _settings, NullLogger<EnginePgRepository>.Instance, _limiter);
-    }
-
-    internal DashboardPgRepository CreateDashboardRepository(EngineDbContext context)
-    {
-        return new DashboardPgRepository(context, _limiter, NullLogger<DashboardPgRepository>.Instance);
-    }
-
-    internal EngineNpgsqlRepository CreateNpgsqlRepository()
+    internal EngineRepository CreateRepository()
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
-        return new EngineNpgsqlRepository(
+        var sqlBulkInserter = new SqlBulkInserter(factory);
+        return new EngineRepository(
             dataSource,
+            factory,
+            _settings,
+            _limiter,
+            sqlBulkInserter,
             TimeProvider.System,
-            NullLogger<EngineNpgsqlRepository>.Instance,
-            factory
+            NullLogger<EngineRepository>.Instance
+        );
+    }
+
+    internal EngineRepository CreateRepository(IOptions<EngineSettings> settings)
+    {
+        var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
+        var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        var sqlBulkInserter = new SqlBulkInserter(factory);
+        return new EngineRepository(
+            dataSource,
+            factory,
+            settings,
+            _limiter,
+            sqlBulkInserter,
+            TimeProvider.System,
+            NullLogger<EngineRepository>.Instance
+        );
+    }
+
+    internal EngineRepository CreateRepositoryWithInterceptor(
+        Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor interceptor,
+        IOptions<EngineSettings>? settings = null
+    )
+    {
+        var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        var options = new DbContextOptionsBuilder<EngineDbContext>()
+            .UseNpgsql(ConnectionString)
+            .AddInterceptors(interceptor)
+            .Options;
+        var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        var sqlBulkInserter = new SqlBulkInserter(factory);
+        return new EngineRepository(
+            dataSource,
+            factory,
+            settings ?? _settings,
+            _limiter,
+            sqlBulkInserter,
+            TimeProvider.System,
+            NullLogger<EngineRepository>.Instance
         );
     }
 
@@ -98,9 +142,9 @@ public sealed class PostgresFixture : IAsyncLifetime
         return entity?.ToDomainModel();
     }
 
-    public async Task ResetAsync()
+    public async Task Reset()
     {
         await using var context = CreateDbContext();
-        await context.Database.ExecuteSqlRawAsync("""TRUNCATE "Workflows", "Steps" CASCADE""");
+        await context.Database.ExecuteSqlRawAsync("""TRUNCATE "engine"."Workflows", "engine"."Steps" CASCADE""");
     }
 }

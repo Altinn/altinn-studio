@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
 import { Fieldset, Radio, ErrorMessage } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';

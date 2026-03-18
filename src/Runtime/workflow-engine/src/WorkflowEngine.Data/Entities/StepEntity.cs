@@ -8,7 +8,7 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Steps")]
+[Table("Steps", Schema = Constants.SchemaNames.Engine)]
 internal sealed class StepEntity : IHasCommonMetadata
 {
     [Key]
@@ -20,6 +20,9 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public required string IdempotencyKey { get; set; }
 
+    [MaxLength(100)]
+    public string? EngineTraceContext { get; set; }
+
     public PersistentItemStatus Status { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
@@ -28,15 +31,7 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public int ProcessingOrder { get; set; }
 
-    public DateTimeOffset? BackoffUntil { get; set; }
-
     public int RequeueCount { get; set; }
-
-    [MaxLength(50)]
-    public required string ActorUserIdOrOrgNumber { get; set; }
-
-    [MaxLength(10)]
-    public string? ActorLanguage { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string CommandJson { get; set; } = "{}";
@@ -45,10 +40,9 @@ internal sealed class StepEntity : IHasCommonMetadata
     public string? RetryStrategyJson { get; set; }
 
     [Column(TypeName = "jsonb")]
-    public string? ErrorHistoryJson { get; set; }
-
-    [Column(TypeName = "jsonb")]
     public string? MetadataJson { get; set; }
+
+    public string? LastError { get; set; }
 
     public string? StateOut { get; set; }
 
@@ -64,20 +58,17 @@ internal sealed class StepEntity : IHasCommonMetadata
             Id = step.DatabaseId,
             OperationId = step.OperationId,
             IdempotencyKey = step.IdempotencyKey,
+            EngineTraceContext = step.EngineTraceContext,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
-            BackoffUntil = step.BackoffUntil,
             RequeueCount = step.RequeueCount,
-            ActorUserIdOrOrgNumber = step.Actor.UserIdOrOrgNumber,
-            ActorLanguage = step.Actor.Language,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
-            ErrorHistoryJson =
-                step.ErrorHistory.Count > 0 ? JsonSerializer.Serialize(step.ErrorHistory, JsonOptions.Default) : null,
-            MetadataJson = step?.Metadata,
+            MetadataJson = step.Metadata,
+            LastError = step.LastError,
             StateOut = step.StateOut,
         };
     }
@@ -85,32 +76,27 @@ internal sealed class StepEntity : IHasCommonMetadata
     public Step ToDomainModel()
     {
         var command =
-            JsonSerializer.Deserialize<Command>(CommandJson, JsonOptions.Default)
+            JsonSerializer.Deserialize<CommandDefinition>(CommandJson, JsonOptions.Default)
             ?? throw new InvalidOperationException("Failed to deserialize CommandJson");
         var retryStrategy =
             RetryStrategyJson != null
                 ? JsonSerializer.Deserialize<RetryStrategy>(RetryStrategyJson, JsonOptions.Default)
                 : null;
 
-        List<ErrorEntry> errorHistory = ErrorHistoryJson is not null
-            ? JsonSerializer.Deserialize<List<ErrorEntry>>(ErrorHistoryJson, JsonOptions.Default) ?? []
-            : [];
-
         return new Step
         {
             DatabaseId = Id,
             OperationId = OperationId,
             IdempotencyKey = IdempotencyKey,
+            EngineTraceContext = EngineTraceContext,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
-            BackoffUntil = BackoffUntil,
             RequeueCount = RequeueCount,
-            ErrorHistory = errorHistory,
-            Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
+            LastError = LastError,
             StateOut = StateOut,
         };
     }

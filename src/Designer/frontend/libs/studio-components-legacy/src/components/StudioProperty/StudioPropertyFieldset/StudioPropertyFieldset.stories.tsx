@@ -1,13 +1,10 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioProperty } from '../index';
 import { StudioButton } from '../../StudioButton';
 import { TrashIcon, FloppydiskIcon, XMarkIcon } from '@studio/icons';
 import { FieldsetContent } from './test-data/FieldsetContent';
 
-type Story = StoryFn<typeof StudioProperty.Fieldset>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioProperty/Fieldset',
   component: StudioProperty.Fieldset,
   argTypes: {
@@ -18,18 +15,21 @@ const meta: Meta = {
       table: { disable: true },
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <StudioProperty.Fieldset {...args} />;
-
-Preview.args = {
-  legend: 'Contact details',
-  children: <FieldsetContent />,
-  menubar: (
-    <>
-      <StudioButton variant='secondary' color='success' title='Save' icon={<FloppydiskIcon />} />
-      <StudioButton variant='secondary' title='Delete' color='danger' icon={<TrashIcon />} />
-      <StudioButton variant='secondary' title='Cancel' icon={<XMarkIcon />} />
-    </>
-  ),
-};
+} satisfies Meta<typeof StudioProperty.Fieldset>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    legend: 'Contact details',
+    children: <FieldsetContent />,
+    menubar: (
+      <>
+        <StudioButton variant='secondary' color='success' title='Save' icon={<FloppydiskIcon />} />
+        <StudioButton variant='secondary' title='Delete' color='danger' icon={<TrashIcon />} />
+        <StudioButton variant='secondary' title='Cancel' icon={<XMarkIcon />} />
+      </>
+    ),
+  },
+};

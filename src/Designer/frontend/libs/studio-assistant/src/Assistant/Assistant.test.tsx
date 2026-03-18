@@ -1,4 +1,3 @@
-import React from 'react';
 import { Assistant } from './Assistant';
 import { render, screen } from '@testing-library/react';
 import type { AssistantProps } from '../Assistant/Assistant';

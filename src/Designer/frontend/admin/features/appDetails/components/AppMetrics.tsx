@@ -1,4 +1,3 @@
-import React from 'react';
 import { useEnvironmentTitle } from 'admin/hooks/useEnvironmentTitle';
 import classes from './AppMetrics.module.css';
 import { useParams } from 'react-router-dom';

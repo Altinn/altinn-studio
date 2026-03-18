@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
-using WorkflowEngine.Models.Exceptions;
 
 namespace WorkflowEngine.Data.Extensions;
 
@@ -16,22 +15,24 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Adds the database-backed repository for the workflow engine.
         /// </summary>
-        public IServiceCollection AddDbRepository(bool enableSensitiveDataLogging = false)
+        /// <param name="connectionStringFactory">
+        /// Factory that resolves the database connection string from the service provider.
+        /// Called once when the <see cref="NpgsqlDataSource"/> singleton is first resolved.
+        /// </param>
+        /// <param name="enableSensitiveDataLogging">Enable EF Core sensitive data logging.</param>
+        public IServiceCollection AddDbRepository(
+            Func<IServiceProvider, string> connectionStringFactory,
+            bool enableSensitiveDataLogging = false
+        )
         {
             services.AddSingleton(sp =>
             {
-                var connectionString =
-                    sp.GetRequiredService<IConfiguration>().GetConnectionString("WorkflowEngine")
-                    ?? throw new EngineConfigurationException(
-                        "Database connection string 'WorkflowEngine' is required, but has not been configured."
-                    );
-
+                var connectionString = connectionStringFactory(sp);
                 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
                 {
                     ConnectionStringBuilder =
                     {
                         MaxPoolSize = 100,
-                        MinPoolSize = 10,
                         Timeout = 30,
                         KeepAlive = 60,
                     },
@@ -40,13 +41,14 @@ public static class ServiceCollectionExtensions
                 return dataSourceBuilder.Build();
             });
 
-            services.AddTransient<IEngineRepository, EnginePgRepository>();
-            services.AddTransient<IDashboardRepository, DashboardPgRepository>();
-            services.AddSingleton<IEngineNpgsqlRepository, EngineNpgsqlRepository>();
+            services.AddSingleton<IEngineRepository, EngineRepository>();
             services.AddDbContext<EngineDbContext>(
                 (sp, options) =>
                 {
-                    options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>());
+                    options.UseNpgsql(
+                        sp.GetRequiredService<NpgsqlDataSource>(),
+                        o => o.MigrationsHistoryTable("__EFMigrationsHistory", SchemaNames.Engine)
+                    );
                     if (enableSensitiveDataLogging)
                         options.EnableSensitiveDataLogging();
                 },
@@ -56,11 +58,15 @@ public static class ServiceCollectionExtensions
             services.AddDbContextFactory<EngineDbContext>(
                 (sp, options) =>
                 {
-                    options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>());
+                    options.UseNpgsql(
+                        sp.GetRequiredService<NpgsqlDataSource>(),
+                        o => o.MigrationsHistoryTable("__EFMigrationsHistory", SchemaNames.Engine)
+                    );
                     if (enableSensitiveDataLogging)
                         options.EnableSensitiveDataLogging();
                 }
             );
+            services.AddSingleton<SqlBulkInserter>();
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();
             services.AddHostedService<DbMaintenanceService>();

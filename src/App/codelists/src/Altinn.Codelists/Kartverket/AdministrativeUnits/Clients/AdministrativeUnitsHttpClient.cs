@@ -34,7 +34,7 @@ internal sealed class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
     }
 
     /// <summary>
-    /// Sends a asynchronus GET request to get all the unicipalities of Norway.
+    /// Sends a asynchronus GET request to get all the municipalities of Norway.
     /// </summary>
     public async Task<List<Municipality>> GetMunicipalities()
     {

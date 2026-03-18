@@ -1,7 +1,7 @@
 import type { StudioTextResourceActionTexts } from '@studio/components';
 import { StudioTextResourceAction } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { type GenerateTextResourceIdOptions } from '../TextResource';

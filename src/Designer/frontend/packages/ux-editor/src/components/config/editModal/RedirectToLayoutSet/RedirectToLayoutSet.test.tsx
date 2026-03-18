@@ -1,4 +1,3 @@
-import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RedirectToLayoutSet } from './RedirectToLayoutSet';
 import { screen } from '@testing-library/react';

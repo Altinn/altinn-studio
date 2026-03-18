@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Telemetry;
 
@@ -35,7 +36,9 @@ public sealed class DbMigrationService
         await connection.OpenAsync(cancellationToken);
         await using var dbLock = await AdvisoryLockScope.Acquire(MigrationLockId, connection, cancellationToken);
 
-        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(connection).Options;
+        var options = new DbContextOptionsBuilder<EngineDbContext>()
+            .UseNpgsql(connection, o => o.MigrationsHistoryTable("__EFMigrationsHistory", SchemaNames.Engine))
+            .Options;
         await using var dbContext = new EngineDbContext(options);
 
         await ExecuteMigrations(dbContext, cancellationToken);

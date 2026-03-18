@@ -1,4 +1,3 @@
-import React from 'react';
 import { ClipboardIcon } from '@studio/icons';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';

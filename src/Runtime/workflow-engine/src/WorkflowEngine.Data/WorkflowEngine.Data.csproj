@@ -24,7 +24,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.Repository.Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.TestKit" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.App.Tests" />
   </ItemGroup>
 
 </Project>

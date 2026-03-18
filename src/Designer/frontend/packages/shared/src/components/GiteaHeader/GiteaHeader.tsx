@@ -1,5 +1,4 @@
 import type { ReactElement, ReactNode } from 'react';
-import React from 'react';
 import classes from './GiteaHeader.module.css';
 import { VersionControlButtons } from './VersionControlButtons';
 import { ThreeDotsMenu } from './ThreeDotsMenu';

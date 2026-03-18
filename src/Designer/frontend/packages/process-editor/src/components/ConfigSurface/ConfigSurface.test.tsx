@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import { ConfigSurface } from './ConfigSurface';
-import React from 'react';
 
 describe('ConfigSurface', () => {
   it('should render children', () => {

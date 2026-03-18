@@ -1,4 +1,4 @@
-import React from 'react';
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioDivider } from './StudioDivider';
 
@@ -10,7 +10,7 @@ describe('StudioDivider', () => {
   });
 
   it('should forward ref correctly', () => {
-    const ref = React.createRef<HTMLHRElement>();
+    const ref = createRef<HTMLHRElement>();
     render(<StudioDivider ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLHRElement);
   });

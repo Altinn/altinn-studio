@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import classes from './Alert.module.css';
 import type { StudioAlertProps } from '@studio/components';
 import { StudioAlert, StudioLink } from '@studio/components';

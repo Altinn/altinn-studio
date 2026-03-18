@@ -2,7 +2,11 @@ namespace WorkflowEngine.Resilience.Tests;
 
 public sealed class ConcurrencyLimiterTests : IDisposable
 {
-    private readonly ConcurrencyLimiter _limiter = new(maxConcurrentDbOperations: 3, maxConcurrentHttpCalls: 2);
+    private readonly ConcurrencyLimiter _limiter = new(
+        maxConcurrentDbOperations: 3,
+        maxConcurrentHttpCalls: 2,
+        maxWorkers: 4
+    );
 
     [Fact]
     public void InitialSlotStatus_ReflectsConstructorValues()

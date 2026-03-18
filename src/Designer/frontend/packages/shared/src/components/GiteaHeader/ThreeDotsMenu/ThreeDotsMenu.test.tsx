@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
@@ -64,7 +63,7 @@ const queryCloneButton = () => queryButton(cloneButtonName);
 const queryButton = (name: string) => screen.queryByRole('button', { name });
 
 const getRepositoryLink = () => getLink(repositoryLinkName);
-const getLink = (name: string) => screen.getByRole('button', { name });
+const getLink = (name: string) => screen.getByRole('link', { name });
 
 const getLocalChangesHeading = () => getHeading(localChangesHeading);
 const getHeading = (name: string) => screen.getByRole('heading', { name });

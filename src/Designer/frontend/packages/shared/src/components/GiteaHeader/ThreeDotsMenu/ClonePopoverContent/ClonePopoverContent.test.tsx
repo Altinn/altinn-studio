@@ -1,4 +1,3 @@
-import React from 'react';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

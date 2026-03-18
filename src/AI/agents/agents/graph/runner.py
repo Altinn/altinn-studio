@@ -95,7 +95,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 
     # Create single root trace for entire workflow
     if langfuse:
-        with langfuse.start_as_current_span(
+        with langfuse.start_as_current_observation(
             name="altinity_agent_workflow",
             metadata={"span_type": "AGENT"},
             input={

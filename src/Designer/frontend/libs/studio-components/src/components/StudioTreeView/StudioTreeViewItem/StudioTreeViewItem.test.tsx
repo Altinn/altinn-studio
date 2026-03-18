@@ -1,4 +1,3 @@
-import React from 'react';
 import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
 import type { ByRoleOptions } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';

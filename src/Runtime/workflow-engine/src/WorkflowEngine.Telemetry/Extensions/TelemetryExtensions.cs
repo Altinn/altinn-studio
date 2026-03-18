@@ -11,7 +11,7 @@ public static class TelemetryExtensions
         /// Starts a new activity with the specified name and optional kind, links and tags.
         /// </summary>
         /// <remarks>
-        /// To create links from a stored trace context, see <see cref="Metrics.ParseSourceContext"/> method.
+        /// To create links from a stored trace context, see <see cref="Metrics.ParseTraceContext"/> method.
         /// </remarks>
         public Activity? StartActivity(
             string name,
@@ -114,6 +114,15 @@ public static class TelemetryExtensions
                     activity.AddEvent(@event);
                 }
             }
+        }
+
+        /// <summary>
+        /// Explicitly sets the activity status to successful (overrides past .Errored() calls).
+        /// </summary>
+        public void Succeeded()
+        {
+            activity.Record();
+            activity.SetStatus(ActivityStatusCode.Ok);
         }
 
         public void NoData()

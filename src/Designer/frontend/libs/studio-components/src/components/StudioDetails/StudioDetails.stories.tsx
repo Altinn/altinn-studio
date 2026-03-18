@@ -1,6 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDetails } from './index';
 import type { StudioDetailsProps } from './StudioDetails';
 import { StudioCard } from '../StudioCard';
@@ -21,15 +20,18 @@ const ComposedComponentInCard = (args: StudioDetailsProps): ReactElement => (
   </StudioCard>
 );
 
-const meta: Meta<typeof StudioDetails> = {
+const meta = {
   title: 'Components/StudioDetails',
   component: StudioDetails,
+} satisfies Meta<typeof StudioDetails>;
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  render: (args: StudioDetailsProps): ReactElement => <ComposedComponent {...args} />,
 };
 
-export const Preview = (args: StudioDetailsProps): ReactElement => <ComposedComponent {...args} />;
-
-export const InCard = (args: StudioDetailsProps): ReactElement => (
-  <ComposedComponentInCard {...args} />
-);
-
-export default meta;
+export const InCard: Story = {
+  render: (args: StudioDetailsProps): ReactElement => <ComposedComponentInCard {...args} />,
+};

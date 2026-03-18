@@ -1,38 +1,4 @@
 services:
-  workflow-engine:
-    build:
-      context: ../../
-      dockerfile: Runtime/workflow-engine/Dockerfile
-    container_name: workflow-engine-api
-    restart: unless-stopped
-    networks:
-      - workflow-engine-network
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    environment:
-      ASPNETCORE_ENVIRONMENT: Docker
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317
-    depends_on:
-      postgres:
-        condition: service_healthy
-    profiles: [app, full]
-
-  dashboard:
-    build:
-      context: src/WorkflowEngine.Dashboard
-    container_name: workflow-engine-dashboard
-    restart: unless-stopped
-    networks:
-      - workflow-engine-network
-    ports:
-      - "8090:8080"
-    volumes:
-      - ./src/WorkflowEngine.Dashboard/wwwroot:/app/wwwroot:ro
-    environment:
-      ASPNETCORE_ENVIRONMENT: Docker
-    profiles: [dash, dashboard, full]
-
   postgres:
     image: postgres:18
     container_name: workflow-engine-postgres
@@ -43,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres123
       TZ: Europe/Oslo
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:

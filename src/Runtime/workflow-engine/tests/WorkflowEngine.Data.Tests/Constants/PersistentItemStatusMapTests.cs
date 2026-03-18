@@ -11,23 +11,16 @@ public class PersistentItemStatusMapTests
         PersistentItemStatusMap.Incomplete,
         PersistentItemStatusMap.Successful,
         PersistentItemStatusMap.Failed,
+        PersistentItemStatusMap.Finished,
     ];
 
     [Fact]
     public void AllEnumValues_AreCovered()
     {
-        var covered = _allCollections.SelectMany(c => c).Order();
+        var covered = _allCollections.SelectMany(c => c).Distinct().Order();
         var allValues = Enum.GetValues<PersistentItemStatus>().Order();
 
         Assert.Equal(allValues, covered);
-    }
-
-    [Fact]
-    public void Collections_HaveNoOverlaps()
-    {
-        var allMapped = _allCollections.SelectMany(c => c).ToList();
-
-        Assert.Equal(allMapped.Distinct().Count(), allMapped.Count);
     }
 
     [Fact]

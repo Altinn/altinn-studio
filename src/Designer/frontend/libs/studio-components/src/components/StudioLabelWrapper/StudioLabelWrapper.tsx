@@ -1,4 +1,3 @@
-import React from 'react';
 import type { HTMLAttributes, ReactElement, ReactNode } from 'react';
 import classes from './StudioLabelWrapper.module.css';
 import { StudioTag } from '../StudioTag';

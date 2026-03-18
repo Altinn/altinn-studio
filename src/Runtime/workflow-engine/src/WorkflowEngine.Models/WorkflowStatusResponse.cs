@@ -14,6 +14,13 @@ public sealed record WorkflowStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
+    /// The correlation ID for this workflow, if one was provided.
+    /// </summary>
+    [JsonPropertyName("correlationId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? CorrelationId { get; init; }
+
+    /// <summary>
     /// An identifier for this operation.
     /// </summary>
     [JsonPropertyName("operationId")]
@@ -24,6 +31,12 @@ public sealed record WorkflowStatusResponse
     /// </summary>
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
+
+    /// <summary>
+    /// The namespace this workflow belongs to.
+    /// </summary>
+    [JsonPropertyName("namespace")]
+    public required string Namespace { get; init; }
 
     /// <summary>
     /// The time the workflow was created.
@@ -46,6 +59,13 @@ public sealed record WorkflowStatusResponse
     public DateTimeOffset? StartAt { get; init; }
 
     /// <summary>
+    /// When the workflow will next be eligible for execution.
+    /// </summary>
+    [JsonPropertyName("backoffUntil")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? BackoffUntil { get; init; }
+
+    /// <summary>
     /// Optional metadata associated with the workflow (json).
     /// </summary>
     [JsonPropertyName("metadata")]
@@ -53,10 +73,11 @@ public sealed record WorkflowStatusResponse
     public string? Metadata { get; init; }
 
     /// <summary>
-    /// The actor that initiated the workflow.
+    /// Labels associated with this workflow.
     /// </summary>
-    [JsonPropertyName("actor")]
-    public required Actor Actor { get; init; }
+    [JsonPropertyName("labels")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
     /// The overall status of the workflow for this instance.
@@ -89,13 +110,16 @@ public sealed record WorkflowStatusResponse
         new()
         {
             DatabaseId = workflow.DatabaseId,
+            CorrelationId = workflow.CorrelationId,
             IdempotencyKey = workflow.IdempotencyKey,
+            Namespace = workflow.Namespace,
             OperationId = workflow.OperationId,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
             StartAt = workflow.StartAt,
+            BackoffUntil = workflow.BackoffUntil,
             Metadata = workflow.Metadata,
-            Actor = workflow.Actor,
+            Labels = workflow.Labels,
             OverallStatus = workflow.Status,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),

@@ -17,7 +17,7 @@ public sealed class RetryErrorHandlerTests
     public void RetryableExceptionTypes_ReturnsRetry(Type exceptionType)
     {
         var exception = (Exception)Activator.CreateInstance(exceptionType)!;
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Retry, decision);
     }
 
@@ -25,7 +25,7 @@ public sealed class RetryErrorHandlerTests
     public void ExceptionWithTimeoutInTypeName_ReturnsRetry()
     {
         var exception = new NpgsqlTimeoutFakeException("test");
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Retry, decision);
     }
 
@@ -33,7 +33,7 @@ public sealed class RetryErrorHandlerTests
     public void ExceptionWithConnectionInTypeName_ReturnsRetry()
     {
         var exception = new NpgsqlConnectionFakeException("test");
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Retry, decision);
     }
 
@@ -41,7 +41,7 @@ public sealed class RetryErrorHandlerTests
     public void ExceptionWithTimeoutInMessage_ReturnsRetry()
     {
         var exception = new Exception("The operation has timed out — timeout exceeded");
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Retry, decision);
     }
 
@@ -49,7 +49,7 @@ public sealed class RetryErrorHandlerTests
     public void ExceptionWithConnectionInMessage_ReturnsRetry()
     {
         var exception = new Exception("Could not open connection to server");
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Retry, decision);
     }
 
@@ -57,7 +57,7 @@ public sealed class RetryErrorHandlerTests
     public void ArgumentNullException_ReturnsAbort()
     {
         var exception = new ArgumentNullException("param");
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Abort, decision);
     }
 
@@ -65,7 +65,7 @@ public sealed class RetryErrorHandlerTests
     public void ArgumentException_ReturnsAbort()
     {
         var exception = new ArgumentException("bad arg");
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Abort, decision);
     }
 
@@ -73,7 +73,7 @@ public sealed class RetryErrorHandlerTests
     public void GenericException_ReturnsRetry()
     {
         var exception = new Exception("something unexpected");
-        var decision = EnginePgRepository.RetryErrorHandler(exception);
+        var decision = EngineRepository.RetryErrorHandler(exception);
         Assert.Equal(RetryDecision.Retry, decision);
     }
 

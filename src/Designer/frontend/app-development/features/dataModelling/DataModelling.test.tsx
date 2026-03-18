@@ -1,4 +1,3 @@
-import React from 'react';
 import { DataModelling } from './DataModelling';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

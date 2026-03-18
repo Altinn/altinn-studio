@@ -3,7 +3,6 @@ import type { StudioFieldsetProps } from './StudioFieldset';
 import { StudioFieldset } from './StudioFieldset';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';

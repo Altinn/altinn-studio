@@ -14,14 +14,14 @@ When writing or running tests, follow these guidelines.
 
 ## Test projects
 
-| Project | Type | Fixture | Dependencies |
-|---|---|---|---|
-| `Api.Tests` | Unit | `WorkflowEngineTestFixture.Create()` per test | Moq |
-| `Models.Tests` | Unit | None | — |
-| `Resilience.Tests` | Unit | None | — |
-| `Data.Tests` | Unit | None | — |
-| `Repository.Tests` | Repository (real DB) | `PostgresFixture` via collection | Testcontainers.PostgreSql |
-| `Integration.Tests` | End-to-end | `EngineAppFixture` via collection | Testcontainers, WireMock, WebApplicationFactory, Verify |
+| Project             | Type                 | Fixture                                       | Dependencies                                            |
+| ------------------- | -------------------- | --------------------------------------------- | ------------------------------------------------------- |
+| `Api.Tests`         | Unit                 | `WorkflowEngineTestFixture.Create()` per test | Moq                                                     |
+| `Models.Tests`      | Unit                 | None                                          | —                                                       |
+| `Resilience.Tests`  | Unit                 | None                                          | —                                                       |
+| `Data.Tests`        | Unit                 | None                                          | —                                                       |
+| `Repository.Tests`  | Repository (real DB) | `PostgresFixture` via collection              | Testcontainers.PostgreSql                               |
+| `Integration.Tests` | End-to-end           | `EngineAppFixture` via collection             | Testcontainers, WireMock, WebApplicationFactory, Verify |
 
 ## Conventions
 
@@ -29,6 +29,7 @@ When writing or running tests, follow these guidelines.
 - Prefer `[Theory]` with `[InlineData]` or `[MemberData]` (returning `TheoryData<>`) when inputs vary but logic is the same.
 - Use `[Fact]` only for single meaningful scenarios with no parameterisation.
 - Test naming: `MethodName_Scenario_ExpectedResult`.
+- **Cancellation tokens:** Always pass `TestContext.Current.CancellationToken` to async calls that accept a `CancellationToken`. This includes `Task.Delay`, `HttpClient` methods, EF queries, polling loops, etc. xUnit v3 analyzer rule `xUnit1051` enforces this.
 
 ## Unit test pattern (Api.Tests)
 
@@ -103,6 +104,7 @@ public partial class EngineTests
 ```
 
 The base `EngineTests.cs` class handles fixture injection, `IAsyncLifetime`, and shared helpers:
+
 - `_client` — `EngineApiClient` with API key pre-configured
 - `_testHelpers` — builders for steps, workflows, enqueue requests
 - `_instanceGuid` — fresh GUID per test

@@ -1,0 +1,10 @@
+.linkButton {
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--ds-color-text-subtle) !important;
+  font-weight: var(--ds-font-weight-regular);
+}
+
+.linkButton:hover {
+  color: var(--ds-color-text) !important;
+}

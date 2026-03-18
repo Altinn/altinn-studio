@@ -8,7 +8,7 @@ description: Manage EF Core database migrations. Use when adding, listing, or re
 ```bash
 dotnet ef migrations add <MigrationName> \
   --project src/WorkflowEngine.Data \
-  --startup-project src/WorkflowEngine.Api
+  --startup-project tests/WorkflowEngine.TestApp
 ```
 
 After generating, run `dotnet csharpier format` on the new migration files in `src/WorkflowEngine.Data/Migrations/`.
@@ -18,7 +18,7 @@ After generating, run `dotnet csharpier format` on the new migration files in `s
 ```bash
 dotnet ef migrations list \
   --project src/WorkflowEngine.Data \
-  --startup-project src/WorkflowEngine.Api
+  --startup-project tests/WorkflowEngine.TestApp
 ```
 
 ## Remove the last migration (if not yet applied)
@@ -26,7 +26,7 @@ dotnet ef migrations list \
 ```bash
 dotnet ef migrations remove \
   --project src/WorkflowEngine.Data \
-  --startup-project src/WorkflowEngine.Api
+  --startup-project tests/WorkflowEngine.TestApp
 ```
 
 ## Important notes

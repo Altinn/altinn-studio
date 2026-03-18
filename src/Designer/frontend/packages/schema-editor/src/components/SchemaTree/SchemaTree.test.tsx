@@ -1,4 +1,3 @@
-import React from 'react';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import {
   childOfDefinitionNodeMock,

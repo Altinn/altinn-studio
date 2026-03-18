@@ -21,6 +21,12 @@ public sealed record StepStatusResponse
     public string? IdempotencyKey { get; init; }
 
     /// <summary>
+    /// An identifier for this operation.
+    /// </summary>
+    [JsonPropertyName("operationId")]
+    public required string OperationId { get; init; }
+
+    /// <summary>
     /// The processing order of the step.
     /// </summary>
     [JsonPropertyName("processingOrder")]
@@ -59,13 +65,6 @@ public sealed record StepStatusResponse
     [JsonPropertyName("retryCount")]
     public required int RetryCount { get; init; }
 
-    /// <summary>
-    /// When the step will next be eligible for execution (if backed off).
-    /// </summary>
-    [JsonPropertyName("backoffUntil")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? BackoffUntil { get; init; }
-
     [JsonPropertyName("retryStrategy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RetryStrategy? RetryStrategy { get; init; }
@@ -75,23 +74,13 @@ public sealed record StepStatusResponse
         {
             DatabaseId = step.DatabaseId,
             IdempotencyKey = step.IdempotencyKey,
-            Command = new CommandDetails
-            {
-                Type = step.Command.GetType().Name,
-                OperationId = step.OperationId,
-                Payload = step.Command switch
-                {
-                    Command.AppCommand x => x.Payload,
-                    Command.Webhook x => x.Payload,
-                    _ => "",
-                },
-            },
+            OperationId = step.OperationId,
+            Command = new CommandDetails { Type = step.Command.Type },
             ProcessingOrder = step.ProcessingOrder,
             Status = step.Status,
             UpdatedAt = step.UpdatedAt,
             Metadata = step.Metadata,
             RetryCount = step.RequeueCount,
-            BackoffUntil = step.BackoffUntil,
             RetryStrategy = step.RetryStrategy,
         };
 
@@ -102,18 +91,5 @@ public sealed record StepStatusResponse
         /// </summary>
         [JsonPropertyName("type")]
         public required string Type { get; init; }
-
-        /// <summary>
-        /// An identifier for this operation.
-        /// </summary>
-        [JsonPropertyName("operationId")]
-        public required string OperationId { get; init; }
-
-        /// <summary>
-        /// An optional payload for the command.
-        /// </summary>
-        [JsonPropertyName("payload")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Payload { get; init; }
     }
 }

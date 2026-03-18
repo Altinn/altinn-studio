@@ -1,4 +1,3 @@
-import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';

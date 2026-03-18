@@ -3,6 +3,7 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -11,16 +12,14 @@ namespace WorkflowEngine.Integration.Tests;
 /// are emitted correctly during the full API → Engine → DB pipeline.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
-public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
+public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
-    private const string InstanceLockToken = EngineAppFixture.DefaultInstanceLockToken;
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
-    private readonly Guid _instanceGuid = Guid.NewGuid();
 
     public async ValueTask InitializeAsync()
     {
-        await fixture.ResetAsync();
+        await fixture.Reset();
         await Task.Delay(50);
     }
 
@@ -36,18 +35,17 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        // Allow a brief window for async telemetry to flush
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for async telemetry to flush (histogram is recorded last in the update buffer)
+        await collector.WaitForMeasurement("engine.workflows.time.total");
 
         // Assert counters — request lifecycle
         Assert.True(
@@ -116,32 +114,30 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [
-                _testHelpers.CreateWorkflow(
-                    "a",
-                    [_testHelpers.CreateAppCommandStep("/cmd-1"), _testHelpers.CreateAppCommandStep("/cmd-2")]
-                ),
-            ],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow(
+                "a",
+                [_testHelpers.CreateWebhookStep("/cmd-1"), _testHelpers.CreateWebhookStep("/cmd-2")]
+            ),
+        ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for the last span in the processing pipeline
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCore");
 
         // === Enqueue phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushBatch"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCore"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
 
         // === Processing phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.ProcessWorkflow"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowHandler.Handle"));
 
-        var processStepActivities = collector.GetActivitiesStartingWith("Engine.ProcessStep");
+        var processStepActivities = collector.GetActivitiesStartingWith("WorkflowHandler.ProcessStep");
         Assert.True(
             processStepActivities.Count >= 2,
             $"Expected at least 2 ProcessStep activities, got {processStepActivities.Count}"
@@ -154,10 +150,10 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
             $"Expected at least 2 WorkflowExecutor.Execute activities, got {executorActivities.Count}"
         );
 
-        var appCommandActivities = collector.GetActivities("WorkflowExecutor.AppCommand");
+        var webhookActivities = collector.GetActivities("WebhookCommand.Execute");
         Assert.True(
-            appCommandActivities.Count >= 2,
-            $"Expected at least 2 WorkflowExecutor.AppCommand activities, got {appCommandActivities.Count}"
+            webhookActivities.Count >= 2,
+            $"Expected at least 2 WebhookCommand.Execute activities, got {webhookActivities.Count}"
         );
 
         var httpSlotAcquireActivities = collector.GetActivities("ConcurrencyLimiter.AcquireHttpSlot");
@@ -172,9 +168,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // === Status write phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.SubmitStatusUpdate"));
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushStatusBatch"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.Submit"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCore"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
     [Fact]
@@ -186,17 +182,17 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         fixture.WireMock.Reset();
         fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(500));
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        // Wait for async telemetry to flush
+        await collector.WaitForMeasurement("engine.workflows.time.total");
 
         // Assert failure counters — step retries before permanent failure
         Assert.True(
@@ -240,14 +236,13 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange — enqueue and complete a workflow so the DB has data
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Reset collector so we only capture query-related telemetry
         while (collector.Measurements.TryTake(out _))
@@ -256,10 +251,11 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         }
 
         // Act — call both query endpoints
-        await _client.ListActiveWorkflows(_instanceGuid);
-        await _client.GetWorkflow(_instanceGuid, workflowId);
+        await _client.ListActiveWorkflows();
+        await _client.GetWorkflow(workflowId);
 
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for both query counter increments (list + get)
+        await collector.WaitForCounterTotal("engine.workflows.query.received", 2);
 
         // Assert query counters
         Assert.True(
@@ -268,8 +264,8 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // Assert repository activities for query operations
-        Assert.NotEmpty(collector.GetActivities("EnginePgRepository.GetActiveWorkflowsForInstance"));
-        Assert.NotEmpty(collector.GetActivities("EnginePgRepository.GetWorkflow"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflowsByCorrelationId"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
     }
 
     /// <summary>
@@ -285,18 +281,18 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
     ///
     /// Background — Write buffer (standalone traces):
     ///   Engine.FlushBatch
-    ///     └── EngineNpgsqlRepository.BatchEnqueueWorkflows
+    ///     └── EngineRepository.BatchEnqueueWorkflows
     ///
     /// Trace B — Processing (new root, linked → Trace A):
     ///   Engine.ProcessWorkflow
     ///     ├── Engine.ProcessStep.{operationId}
     ///     │     └── WorkflowExecutor.Execute
-    ///     │           └── WorkflowExecutor.AppCommand
-    ///     └── Engine.SubmitStatusUpdate (×N: per-step + final)
+    ///     │           └── WebhookCommand.Execute
+    ///     └── Engine.SubmitStatusUpdate
     ///
     /// Background — Status write buffer (standalone traces):
     ///   Engine.FlushStatusBatch
-    ///     └── EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps
+    ///     └── EngineRepository.BatchUpdateWorkflowsAndSteps
     /// </code>
     /// </summary>
     [Fact]
@@ -305,23 +301,20 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange — single workflow with one step keeps the hierarchy unambiguous
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        // Wait for the last span in the processing pipeline
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCore");
 
-        // Resolve key span instances — take the latest ProcessWorkflow activity
-        // (other tests in the collection may have left earlier activities in the collector)
-        var processWorkflows = collector.GetActivities("Engine.ProcessWorkflow");
-        Assert.NotEmpty(processWorkflows);
-        var processWorkflow = processWorkflows[^1];
+        // Resolve key span instances
+        var processWorkflow = Single(collector, "WorkflowHandler.Handle");
 
         // ───────────────────────────────────────────────────────────
         // Cross-trace link: ProcessWorkflow is a new root that links
@@ -337,36 +330,28 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
 
         //   Engine.ProcessWorkflow
         //     ├── Engine.ProcessStep.{operationId}
-        var processStep = SingleStartingWith(collector, processWorkflow.TraceId, "Engine.ProcessStep");
+        var processStep = SingleStartingWith(collector, processWorkflow.TraceId, "WorkflowHandler.ProcessStep");
         AssertChildOf(processWorkflow, processStep);
 
         //     │     └── WorkflowExecutor.Execute
         var execute = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.Execute");
         AssertChildOf(processStep, execute);
 
-        //     │           └── WorkflowExecutor.AppCommand
-        var appCommand = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.AppCommand");
-        AssertChildOf(execute, appCommand);
+        //     │           └── WebhookCommand.Execute
+        var webhookCommand = SingleInTrace(collector, processWorkflow.TraceId, "WebhookCommand.Execute");
+        AssertChildOf(execute, webhookCommand);
 
-        //     └── Engine.SubmitStatusUpdate (per-step + final)
-        var submitStatuses = collector
-            .GetActivities("Engine.SubmitStatusUpdate")
-            .Where(a => a.TraceId == processWorkflow.TraceId)
-            .ToList();
-        Assert.True(
-            submitStatuses.Count >= 1,
-            $"Expected at least 1 'Engine.SubmitStatusUpdate', got {submitStatuses.Count}"
-        );
-        foreach (Activity submitStatus in submitStatuses)
-            AssertChildOf(processWorkflow, submitStatus);
+        //     └── Engine.SubmitStatusUpdate
+        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowUpdateBuffer.Submit");
+        AssertChildOf(processWorkflow, submitStatus);
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushBatch"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushStatusBatch"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCore"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCore"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
     // ─── Span hierarchy helpers ────────────────────────────────────

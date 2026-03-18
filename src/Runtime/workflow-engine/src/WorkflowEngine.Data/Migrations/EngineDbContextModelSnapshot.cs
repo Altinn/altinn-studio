@@ -17,6 +17,7 @@ namespace WorkflowEngine.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("engine")
                 .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -34,66 +35,37 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("DependsOnWorkflowId");
 
-                    b.ToTable("WorkflowDependency");
+                    b.ToTable("WorkflowDependency", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.IdempotencyKeyEntity", b =>
                 {
                     b.Property<string>("IdempotencyKey")
-                        .HasColumnType("text")
-                        .HasColumnName("idempotency_key");
+                        .HasColumnType("text");
 
-                    b.Property<string>("InstanceOrg")
-                        .HasColumnType("text")
-                        .HasColumnName("instance_org");
-
-                    b.Property<string>("InstanceApp")
-                        .HasColumnType("text")
-                        .HasColumnName("instance_app");
-
-                    b.Property<int>("InstanceOwnerPartyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("instance_owner_party_id");
-
-                    b.Property<Guid>("InstanceGuid")
-                        .HasColumnType("uuid")
-                        .HasColumnName("instance_guid");
+                    b.Property<string>("Namespace")
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<byte[]>("RequestBodyHash")
                         .IsRequired()
-                        .HasColumnType("bytea")
-                        .HasColumnName("request_body_hash");
+                        .HasColumnType("bytea");
 
                     b.PrimitiveCollection<Guid[]>("WorkflowIds")
                         .IsRequired()
-                        .HasColumnType("uuid[]")
-                        .HasColumnName("workflow_ids");
+                        .HasColumnType("uuid[]");
 
-                    b.HasKey("IdempotencyKey", "InstanceOrg", "InstanceApp", "InstanceOwnerPartyId", "InstanceGuid");
+                    b.HasKey("IdempotencyKey", "Namespace");
 
-                    b.ToTable("idempotency_keys", (string)null);
+                    b.ToTable("IdempotencyKeys", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("ActorLanguage")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<string>("ActorUserIdOrOrgNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTimeOffset?>("BackoffUntil")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CommandJson")
                         .IsRequired()
@@ -102,8 +74,9 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ErrorHistoryJson")
-                        .HasColumnType("jsonb");
+                    b.Property<string>("EngineTraceContext")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
@@ -111,6 +84,9 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.Property<Guid>("JobId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text");
 
                     b.Property<string>("MetadataJson")
                         .HasColumnType("jsonb");
@@ -142,7 +118,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("JobId", "Status");
 
-                    b.ToTable("Steps");
+                    b.ToTable("Steps", "engine");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>
@@ -150,21 +126,28 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ActorLanguage")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                    b.Property<DateTimeOffset?>("BackoffUntil")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ActorUserIdOrOrgNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<string>("ContextJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("EngineTraceId")
+                    b.Property<string>("DistributedTraceContext")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("EngineTraceContext")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("HeartbeatAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
@@ -173,33 +156,24 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("InitialState")
                         .HasColumnType("text");
 
-                    b.Property<string>("InstanceApp")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid>("InstanceGuid")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("InstanceLockKey")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("InstanceOrg")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("InstanceOwnerPartyId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Labels")
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("MetadataJson")
                         .HasColumnType("jsonb");
+
+                    b.Property<string>("Namespace")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("OperationId")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<int>("ReclaimCount")
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset?>("StartAt")
                         .HasColumnType("timestamp with time zone");
@@ -207,29 +181,32 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TraceContext")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CorrelationId");
+
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("HeartbeatAt")
+                        .HasFilter("\"Status\" = 1");
+
+                    b.HasIndex("Labels");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Labels"), "gin");
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("InstanceGuid", "Status");
-
-                    b.HasIndex("StartAt", "CreatedAt")
+                    b.HasIndex("BackoffUntil", "CreatedAt")
                         .HasFilter("\"Status\" IN (0, 2)");
 
-                    NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("StartAt", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
+                    NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 
-                    b.HasIndex("InstanceOrg", "InstanceApp", "InstanceGuid");
+                    b.HasIndex("Namespace", "Status");
 
-                    b.ToTable("Workflows");
+                    b.ToTable("Workflows", "engine");
                 });
 
             modelBuilder.Entity("WorkflowLink", b =>
@@ -244,7 +221,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("LinkedWorkflowId");
 
-                    b.ToTable("WorkflowLink");
+                    b.ToTable("WorkflowLink", "engine");
                 });
 
             modelBuilder.Entity("WorkflowDependency", b =>

@@ -133,7 +133,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
                     serviceResource,
                     envName,
-                    null,
                     policyBytes
                 );
 

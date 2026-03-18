@@ -11,4 +11,6 @@ public static class PersistentItemStatusMap
 
     public static IReadOnlyCollection<PersistentItemStatus> Failed =>
         [PersistentItemStatus.Canceled, PersistentItemStatus.Failed, PersistentItemStatus.DependencyFailed];
+
+    public static IReadOnlyCollection<PersistentItemStatus> Finished => [.. Successful, .. Failed];
 }

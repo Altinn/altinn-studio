@@ -9,15 +9,28 @@ namespace WorkflowEngine.Models;
 public sealed record EngineSettings
 {
     /// <summary>
-    /// The total number of concurrent tasks that can be processed by the engine.
+    /// Maximum number of workflows allowed in a single enqueue request.
     /// </summary>
-    [JsonPropertyName("queueCapacity")]
-    public required int QueueCapacity { get; set; }
+    [JsonPropertyName("maxWorkflowsPerRequest")]
+    public required int MaxWorkflowsPerRequest { get; set; }
 
     /// <summary>
-    /// The maximum number of parallel queue items that can be processed at the same time.
+    /// Maximum number of steps allowed per workflow.
     /// </summary>
-    public required int MaxDegreeOfParallelism { get; set; }
+    [JsonPropertyName("maxStepsPerWorkflow")]
+    public required int MaxStepsPerWorkflow { get; set; }
+
+    /// <summary>
+    /// Maximum number of label entries per request.
+    /// </summary>
+    [JsonPropertyName("maxLabels")]
+    public required int MaxLabels { get; set; }
+
+    /// <summary>
+    /// Interval at which the engine collects metrics.
+    /// </summary>
+    [JsonPropertyName("metricsCollectionInterval")]
+    public required TimeSpan MetricsCollectionInterval { get; set; }
 
     /// <summary>
     /// The default timeout for command execution. Max allowed time to wait for a command to complete.
@@ -44,15 +57,91 @@ public sealed record EngineSettings
     public required RetryStrategy DatabaseRetryStrategy { get; set; }
 
     /// <summary>
+    /// Interval at which the engine sends heartbeats for in-flight workflows.
+    /// Workers update HeartbeatAt at this cadence to prove liveness.
+    /// </summary>
+    [JsonPropertyName("heartbeatInterval")]
+    public required TimeSpan HeartbeatInterval { get; set; }
+
+    /// <summary>
+    /// How long a workflow can remain in Processing without a heartbeat before being
+    /// considered stale and reclaimed by another worker. Must be greater than <see cref="HeartbeatInterval"/>.
+    /// </summary>
+    [JsonPropertyName("staleWorkflowThreshold")]
+    public required TimeSpan StaleWorkflowThreshold { get; set; }
+
+    /// <summary>
+    /// Maximum number of times a workflow can be reclaimed before being marked as Failed.
+    /// Protects against poison workflows that crash workers repeatedly.
+    /// </summary>
+    [JsonPropertyName("maxReclaimCount")]
+    public required int MaxReclaimCount { get; set; }
+
+    /// <summary>
+    /// Concurrency settings.
+    /// </summary>
+    [JsonPropertyName("concurrency")]
+    public ConcurrencySettings Concurrency { get; set; } = new();
+
+    /// <summary>
+    /// Write buffer settings.
+    /// </summary>
+    [JsonPropertyName("writeBuffer")]
+    public BufferSettings WriteBuffer { get; set; } = new();
+
+    /// <summary>
+    /// Update buffer settings.
+    /// </summary>
+    [JsonPropertyName("updateBuffer")]
+    public BufferSettings UpdateBuffer { get; set; } = new();
+}
+
+public sealed record BufferSettings
+{
+    /// <summary>
+    /// Maximum number of status updates per batch flush.
+    /// </summary>
+    [JsonPropertyName("maxBatchSize")]
+    public int MaxBatchSize { get; set; }
+
+    /// <summary>
+    /// Maximum number of pending status updates before backpressure is applied.
+    /// </summary>
+    [JsonPropertyName("maxQueueSize")]
+    public int MaxQueueSize { get; set; }
+
+    /// <summary>
+    /// Number of concurrent flush operations for the update buffer.
+    /// </summary>
+    [JsonPropertyName("flushConcurrency")]
+    public int FlushConcurrency { get; set; }
+}
+
+public sealed record ConcurrencySettings
+{
+    /// <summary>
+    /// Maximum number of concurrent workflow processing workers.
+    /// </summary>
+    [JsonPropertyName("maxWorkers")]
+    public int MaxWorkers { get; set; }
+
+    /// <summary>
     /// Maximum number of concurrent database operations. Should be less than the Npgsql connection pool size
     /// to leave headroom for health checks and non-engine access.
     /// </summary>
-    [JsonPropertyName("maxConcurrentDbOperations")]
-    public required int MaxConcurrentDbOperations { get; set; }
+    [JsonPropertyName("maxDbOperations")]
+    public int MaxDbOperations { get; set; }
 
     /// <summary>
     /// Maximum number of concurrent outbound HTTP calls for step execution.
     /// </summary>
-    [JsonPropertyName("maxConcurrentHttpCalls")]
-    public required int MaxConcurrentHttpCalls { get; set; }
+    [JsonPropertyName("maxHttpCalls")]
+    public int MaxHttpCalls { get; set; }
+
+    /// <summary>
+    /// The maximum number of active workflows allowed in the database before the engine reports backpressure
+    /// and refuses new jobs (http-429).
+    /// </summary>
+    [JsonPropertyName("backpressureThreshold")]
+    public int BackpressureThreshold { get; set; }
 }

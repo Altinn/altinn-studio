@@ -1,6 +1,5 @@
 import { StudioTable } from '../../StudioTable';
 import type { ForwardedRef, ReactElement } from 'react';
-import React from 'react';
 import classes from './Cell.module.css';
 import type { StudioButtonProps } from '../../StudioButton';
 import { StudioButton } from '../../StudioButton';

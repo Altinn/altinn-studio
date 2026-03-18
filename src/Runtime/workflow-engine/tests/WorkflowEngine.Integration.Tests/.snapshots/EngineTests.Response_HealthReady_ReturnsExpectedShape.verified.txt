@@ -1,4 +1,4 @@
-{
+﻿{
   status: Healthy,
   checks: [
     {
@@ -9,15 +9,20 @@
         status: Healthy, Running,
         workers: {
           active: 0,
-          max: 300
+          max: 10
         },
         http_connections: {
           count: 0,
-          limit: 300
+          limit: 400
         },
         db_connections: {
           count: 0,
-          limit: 95
+          limit: 90
+        },
+        queue: {
+          active_workflows: {Scrubbed},
+          scheduled_workflows: {Scrubbed},
+          failed_workflows: {Scrubbed}
         }
       }
     },

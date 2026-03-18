@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading.Channels;
@@ -113,7 +114,10 @@ public sealed record TelemetrySink : IDisposable
         _activities.OrderBy(a => a.OperationName).ThenBy(a => a.StartTimeUtc).ToArray();
 
     public IReadOnlyDictionary<(string Name, string Meter), IReadOnlyList<MetricMeasurement>> CapturedMetrics =>
-        _metricValues.ToDictionary();
+        _metricValues.ToImmutableSortedDictionary(
+            static kvp => kvp.Key,
+            static kvp => (IReadOnlyList<MetricMeasurement>)kvp.Value.Order().ToArray()
+        );
 
     public TelemetrySnapshot GetSnapshot() => new(CapturedActivities, CapturedMetrics);
 
@@ -301,7 +305,61 @@ public sealed record MetricMeasurement(
     string MeterName,
     double Value,
     IReadOnlyDictionary<string, object?> Tags
-);
+) : IComparable<MetricMeasurement>
+{
+    public int CompareTo(MetricMeasurement? other)
+    {
+        if (other is null)
+            return 1;
+
+        var result = StringComparer.Ordinal.Compare(Name, other.Name);
+        if (result != 0)
+            return result;
+
+        result = StringComparer.Ordinal.Compare(MeterName, other.MeterName);
+        if (result != 0)
+            return result;
+
+        using var leftTags = Tags.OrderBy(static tag => tag.Key, StringComparer.Ordinal).GetEnumerator();
+        using var rightTags = other.Tags.OrderBy(static tag => tag.Key, StringComparer.Ordinal).GetEnumerator();
+        while (true)
+        {
+            var hasLeft = leftTags.MoveNext();
+            var hasRight = rightTags.MoveNext();
+            if (!hasLeft || !hasRight)
+                return hasLeft.CompareTo(hasRight);
+
+            result = StringComparer.Ordinal.Compare(leftTags.Current.Key, rightTags.Current.Key);
+            if (result != 0)
+                return result;
+
+            result = CompareTagValues(leftTags.Current.Value, rightTags.Current.Value);
+            if (result != 0)
+                return result;
+        }
+    }
+
+    private static int CompareTagValues(object? left, object? right)
+    {
+        if (ReferenceEquals(left, right))
+            return 0;
+        if (left is null)
+            return -1;
+        if (right is null)
+            return 1;
+
+        var leftType = left.GetType();
+        var rightType = right.GetType();
+        var result = StringComparer.Ordinal.Compare(leftType.FullName, rightType.FullName);
+        if (result != 0)
+            return result;
+
+        if (left is IComparable comparable)
+            return comparable.CompareTo(right);
+
+        return StringComparer.Ordinal.Compare(left.ToString(), right.ToString());
+    }
+}
 
 public class TelemetrySnapshot(
     IEnumerable<Activity>? activities,

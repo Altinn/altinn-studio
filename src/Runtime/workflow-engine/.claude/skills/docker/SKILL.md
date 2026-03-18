@@ -49,7 +49,7 @@ docker compose logs -f <service-name>
 |---|---|---|
 | `workflow-engine` | 8080, 8081 | API |
 | `dashboard` | 8090 | Monitoring UI |
-| `postgres` | 5432 | Database |
+| `postgres` | 5433 | Database |
 | `pgadmin` | 5050 | PostgreSQL admin UI |
 | `lgtm` | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
 | `blackbox-exporter` | — | Prometheus blackbox exporter |
@@ -66,4 +66,4 @@ docker compose exec postgres psql -U postgres -d workflow_engine -c 'TRUNCATE "W
 ## Notes
 
 - Dashboard `wwwroot/` is bind-mounted — frontend file edits are live without rebuild (just browser refresh, or automatic via hot-reload).
-- The engine can also be run on the host with `dotnet run --project src/WorkflowEngine.Api` (requires postgres container).
+- The engine can be run on the host from the `workflow-engine-app` directory with `dotnet run --project src/WorkflowEngine.App` (requires postgres container).

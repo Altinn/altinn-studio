@@ -1,4 +1,3 @@
-import React from 'react';
 import { getLayoutSetIcon } from './getLayoutSetIcon';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import { QuestionmarkIcon } from '@studio/icons';

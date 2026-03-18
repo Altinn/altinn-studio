@@ -2,21 +2,17 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Net.Sockets;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
-using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
-/// Tests that <see cref="EnginePgRepository"/>'s <c>ExecuteWithRetry</c> correctly emits
+/// Tests that <see cref="EngineRepository"/>'s <c>ExecuteWithRetry</c> correctly emits
 /// telemetry counters (<c>engine.db.operations.success</c>, <c>engine.db.operations.requeued</c>,
 /// <c>engine.db.operations.failed</c>) when database operations encounter transient or permanent failures.
 /// Uses a <see cref="FaultInjectionInterceptor"/> to simulate real connection issues at the ADO.NET layer.
@@ -26,7 +22,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
 {
     private readonly FaultInjectionInterceptor _interceptor = new();
 
-    public async ValueTask InitializeAsync() => await postgres.ResetAsync();
+    public async ValueTask InitializeAsync() => await postgres.Reset();
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
@@ -34,8 +30,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
     public async Task TransientFailure_RetriesAndEmitsRequeuedThenSuccess()
     {
         // Arrange — insert a workflow without faults
-        var (context, repository) = CreateRepositoryWithRetry(maxRetries: 3);
-        await using var _ = context;
+        var repository = CreateRepositoryWithRetry(maxRetries: 3);
 
         var workflow = await InsertWorkflow();
 
@@ -64,8 +59,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
     public async Task PermanentFailure_AbortsAndEmitsFailedCounter()
     {
         // Arrange
-        var (context, repository) = CreateRepositoryWithRetry(maxRetries: 3);
-        await using var _ = context;
+        var repository = CreateRepositoryWithRetry(maxRetries: 3);
 
         var workflow = await InsertWorkflow();
 
@@ -91,8 +85,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
     public async Task ExhaustedRetries_EmitsRequeuedForEachAttempt()
     {
         // Arrange — only 2 retries allowed, but every attempt will fail
-        var (context, repository) = CreateRepositoryWithRetry(maxRetries: 2);
-        await using var _ = context;
+        var repository = CreateRepositoryWithRetry(maxRetries: 2);
 
         var workflow = await InsertWorkflow();
 
@@ -117,43 +110,38 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
 
     private async Task<Workflow> InsertWorkflow()
     {
-        var npgsqlRepository = postgres.CreateNpgsqlRepository();
+        var repository = postgres.CreateRepository();
         await using var context = postgres.CreateDbContext();
-        var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        return await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepository, context, request, metadata);
+        var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest();
+        return await WorkflowTestHelper.EnqueueWorkflow(repository, context, request, metadata);
     }
 
-    private (EngineDbContext Context, EnginePgRepository Repository) CreateRepositoryWithRetry(int maxRetries)
+    private EngineRepository CreateRepositoryWithRetry(int maxRetries)
     {
-        var context = CreateDbContextWithInterceptor();
-        var settings = Options.Create(
+        var retrySettings = Options.Create(
             new EngineSettings
             {
-                QueueCapacity = 100,
-                MaxDegreeOfParallelism = 10,
                 DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
                 DefaultStepRetryStrategy = RetryStrategy.None(),
                 DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
                 DatabaseRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(10), maxRetries: maxRetries),
-                MaxConcurrentDbOperations = 50,
-                MaxConcurrentHttpCalls = 50,
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
+                Concurrency = new ConcurrencySettings
+                {
+                    MaxWorkers = 10,
+                    MaxDbOperations = 50,
+                    MaxHttpCalls = 50,
+                },
             }
         );
 
-        var limiter = new ConcurrencyLimiter(50, 50);
-        var repository = new EnginePgRepository(context, settings, NullLogger<EnginePgRepository>.Instance, limiter);
-
-        return (context, repository);
-    }
-
-    private EngineDbContext CreateDbContextWithInterceptor()
-    {
-        var options = new DbContextOptionsBuilder<EngineDbContext>()
-            .UseNpgsql(postgres.ConnectionString)
-            .AddInterceptors(_interceptor)
-            .Options;
-
-        return new EngineDbContext(options);
+        return postgres.CreateRepositoryWithInterceptor(_interceptor, retrySettings);
     }
 
     /// <summary>

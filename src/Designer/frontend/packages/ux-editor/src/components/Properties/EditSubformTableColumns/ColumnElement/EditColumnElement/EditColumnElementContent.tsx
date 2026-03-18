@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioCodeFragment } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { TextResource } from '../../../../TextResource/TextResource';
