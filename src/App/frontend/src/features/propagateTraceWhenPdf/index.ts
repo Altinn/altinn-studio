@@ -1,5 +1,5 @@
-import type { InternalAxiosRequestConfig } from 'axios';
 import axios from 'axios';
+import type { InternalAxiosRequestConfig } from 'axios';
 
 import { axiosInstance } from 'src/core/axiosInstance';
 import { SearchParams } from 'src/core/routing/types';
