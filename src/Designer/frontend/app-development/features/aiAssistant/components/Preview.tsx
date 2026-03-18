@@ -5,7 +5,7 @@ import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/use
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
-import { StudioCenter, StudioSpinner } from '@studio/components';
+import { StudioAlert, StudioCenter, StudioSpinner } from '@studio/components';
 import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
 import classes from './Preview.module.css';
 
@@ -44,8 +44,10 @@ export const Preview = (): ReactElement => {
   ]);
 
   const { layoutSetName, layoutName, taskId } = layoutMetadata;
+
   const previewError =
     layoutMetadataError || (createInstanceError ? 'Error loading preview' : undefined);
+
   const isLoading =
     userPending ||
     layoutMetadataPending ||
@@ -55,14 +57,18 @@ export const Preview = (): ReactElement => {
     createInstancePending ||
     !instance;
 
+  if (previewError) {
+    return (
+      <StudioCenter>
+        <StudioAlert data-color='danger'>{previewError}</StudioAlert>
+      </StudioCenter>
+    );
+  }
+
   if (isLoading) {
     return (
       <StudioCenter>
-        {previewError ? (
-          <div style={{ color: '#f44336' }}>{previewError}</div>
-        ) : (
-          <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
-        )}
+        <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
       </StudioCenter>
     );
   }
