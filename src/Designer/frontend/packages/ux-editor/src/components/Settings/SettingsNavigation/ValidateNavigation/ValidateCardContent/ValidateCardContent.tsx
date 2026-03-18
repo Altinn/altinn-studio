@@ -18,6 +18,7 @@ export const ValidateCardContent = ({
 }: ValidateCardContentProps) => {
   const isPerPage = scope === Scope.SelectedPages;
   const isPerTask = scope === Scope.SelectedTasks;
+  const shouldUseInitialSelectedPages = newConfig?.task?.value === initialConfig?.task?.value;
 
   return (
     <>
@@ -38,7 +39,7 @@ export const ValidateCardContent = ({
           <PagesSelector
             taskName={newConfig.task?.value}
             selectedPages={newConfig.pages}
-            initialSelectedPages={initialConfig?.pages}
+            initialSelectedPages={shouldUseInitialSelectedPages ? initialConfig?.pages : undefined}
             onChange={(value) => onChange({ pages: value })}
           />
         </>
