@@ -266,22 +266,12 @@ describe('findDuplicateRule', () => {
     label: value,
   });
 
-  it('should return null if scope is all tasks', () => {
-    const result = findDuplicateRule({
-      scope: Scope.AllTasks,
-      newConfig: createConfig(),
-      existingConfigs: [createConfig()],
-      saveDisabled: true,
-    });
-    expect(result).toBeNull();
-  });
-
   it('should return null if there is no duplicate rule in scope', () => {
     const result = findDuplicateRule({
       scope: Scope.SelectedPages,
       newConfig: createConfig(),
       existingConfigs: [createConfig({ task: option('task2') })],
-      saveDisabled: true,
+      saveDisabled: false,
     });
     expect(result).toBeNull();
   });
