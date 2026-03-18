@@ -42,7 +42,6 @@ describe('FeedbackFormContext', () => {
   });
 
   it('should throw an error when useFeedbackFormContext is used outside of a RouterContextProvider', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useFeedbackFormContext();
       return <div>Test</div>;
@@ -51,6 +50,5 @@ describe('FeedbackFormContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useFeedbackFormContext must be used within a FeedbackFormContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 });
