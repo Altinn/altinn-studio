@@ -23,7 +23,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
 
     public async ValueTask InitializeAsync()
     {
-        await fixture.ResetAsync();
+        await fixture.Reset();
         await _testHelpers.AssertDbEmpty();
         await Task.Delay(50);
     }

@@ -27,7 +27,7 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
 
     public async ValueTask InitializeAsync()
     {
-        await fixture.ResetAsync();
+        await fixture.Reset();
         await _testHelpers.AssertDbEmpty();
         await Task.Delay(50);
     }

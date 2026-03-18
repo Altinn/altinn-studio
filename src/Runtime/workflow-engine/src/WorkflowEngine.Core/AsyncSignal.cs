@@ -16,7 +16,7 @@ internal sealed class AsyncSignal
     /// <summary>
     /// Waits until the signal is raised or the cancellation token is triggered.
     /// </summary>
-    public async Task WaitAsync(CancellationToken ct)
+    public async Task Wait(CancellationToken ct)
     {
         await _tcs.Task.WaitAsync(ct);
     }

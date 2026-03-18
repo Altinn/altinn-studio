@@ -16,7 +16,7 @@ public sealed class EngineStatusTests(EngineAppFixture<Program> fixture) : IAsyn
 
     public async ValueTask InitializeAsync()
     {
-        await fixture.ResetAsync();
+        await fixture.Reset();
         await _testHelpers.AssertDbEmpty();
         await Task.Delay(50);
     }

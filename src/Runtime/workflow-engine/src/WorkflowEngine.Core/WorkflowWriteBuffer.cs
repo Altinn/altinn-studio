@@ -53,14 +53,14 @@ internal class WorkflowWriteBuffer : BackgroundService
     /// Submit workflows for batched insertion. The returned task completes when the
     /// batch containing this request has been flushed to the database.
     /// </summary>
-    public async Task<WorkflowEnqueueOutcome> EnqueueAsync(
+    public async Task<WorkflowEnqueueOutcome> Enqueue(
         WorkflowEnqueueRequest request,
         WorkflowRequestMetadata metadata,
         byte[] requestBodyHash,
         CancellationToken ct
     )
     {
-        using var activity = Metrics.Source.StartActivity("WorkflowWriteBuffer.EnqueueAsync");
+        using var activity = Metrics.Source.StartActivity("WorkflowWriteBuffer.Enqueue");
 
         var tcs = new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously);
         var item = new BufferedEnqueueRequest(request, metadata, requestBodyHash, tcs);
@@ -103,7 +103,7 @@ internal class WorkflowWriteBuffer : BackgroundService
                 var batchToFlush = batch;
                 batch = new List<BufferedEnqueueRequest>(_settings.WriteBuffer.MaxBatchSize);
 
-                _ = FlushBatchAsync(batchToFlush, flushSemaphore, stoppingToken);
+                _ = FlushBatch(batchToFlush, flushSemaphore, stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -125,21 +125,17 @@ internal class WorkflowWriteBuffer : BackgroundService
 
         if (batch.Count > 0)
         {
-            await FlushBatchCoreAsync(batch, CancellationToken.None);
+            await FlushBatchCore(batch, CancellationToken.None);
         }
 
         _logger.LogInformation("WorkflowWriteBuffer shutdown complete");
     }
 
-    private async Task FlushBatchAsync(
-        List<BufferedEnqueueRequest> batch,
-        SemaphoreSlim semaphore,
-        CancellationToken ct
-    )
+    private async Task FlushBatch(List<BufferedEnqueueRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
     {
         try
         {
-            await FlushBatchCoreAsync(batch, ct);
+            await FlushBatchCore(batch, ct);
         }
         finally
         {
@@ -147,7 +143,7 @@ internal class WorkflowWriteBuffer : BackgroundService
         }
     }
 
-    private async Task FlushBatchCoreAsync(List<BufferedEnqueueRequest> batch, CancellationToken ct)
+    private async Task FlushBatchCore(List<BufferedEnqueueRequest> batch, CancellationToken ct)
     {
         // TODO: Get rid of the `active` alias and just mutate `batch`, since that's what's happening anyway
         // Filter out items whose callers have already cancelled
@@ -164,7 +160,7 @@ internal class WorkflowWriteBuffer : BackgroundService
         }
 
         using var activity = Metrics.Source.StartActivity(
-            "WorkflowWriteBuffer.FlushBatchCoreAsync",
+            "WorkflowWriteBuffer.FlushBatchCore",
             tags: [("batch.size", active.Count)],
             links: active.Select(x => Metrics.ParseTraceContext(x.Metadata.TraceContext)).ToActivityLinks()
         );

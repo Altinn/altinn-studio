@@ -20,12 +20,12 @@ internal interface IWorkflowUpdateBuffer
     /// Submits a workflow and its dirty steps for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    Task SubmitAsync(Workflow workflow, CancellationToken ct);
+    Task Submit(Workflow workflow, CancellationToken ct);
 }
 
 /// <summary>
 /// Batches workflow + step status updates from concurrent workers into single DB writes.
-/// Workers submit dirty workflow state via <see cref="SubmitAsync"/> and await confirmation
+/// Workers submit dirty workflow state via <see cref="Submit"/> and await confirmation
 /// that the update has been persisted. A background loop drains the channel and flushes
 /// updates to the database.
 /// </summary>
@@ -60,12 +60,12 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// Submits a workflow and its dirty steps for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    public async Task SubmitAsync(Workflow workflow, CancellationToken ct)
+    public async Task Submit(Workflow workflow, CancellationToken ct)
     {
         var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
 
         using var activity = Metrics.Source.StartActivity(
-            "WorkflowUpdateBuffer.SubmitAsync",
+            "WorkflowUpdateBuffer.Submit",
             parentContext: workflow.EngineActivity?.Context,
             tags:
             [
@@ -119,7 +119,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                 var batchToFlush = batch;
                 batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
 
-                _ = FlushBatchAsync(batchToFlush, flushSemaphore, stoppingToken);
+                _ = FlushBatch(batchToFlush, flushSemaphore, stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -135,17 +135,17 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
         if (batch.Count > 0)
         {
-            await FlushBatchCoreAsync(batch, CancellationToken.None);
+            await FlushBatchCore(batch, CancellationToken.None);
         }
 
         _logger.LogInformation("WorkflowUpdateBuffer shutdown complete");
     }
 
-    private async Task FlushBatchAsync(List<WorkflowUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
+    private async Task FlushBatch(List<WorkflowUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
     {
         try
         {
-            await FlushBatchCoreAsync(batch, ct);
+            await FlushBatchCore(batch, ct);
         }
         finally
         {
@@ -153,7 +153,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
     }
 
-    private async Task FlushBatchCoreAsync(List<WorkflowUpdateRequest> batch, CancellationToken ct)
+    private async Task FlushBatchCore(List<WorkflowUpdateRequest> batch, CancellationToken ct)
     {
         // Filter out items whose callers have already cancelled
         for (int i = batch.Count - 1; i >= 0; i--)
@@ -170,7 +170,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
 
         using var activity = Metrics.Source.StartActivity(
-            "WorkflowUpdateBuffer.FlushBatchCoreAsync",
+            "WorkflowUpdateBuffer.FlushBatchCore",
             tags: [("batch.size", batch.Count)],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Workflow.EngineTraceContext)).ToActivityLinks()
         );

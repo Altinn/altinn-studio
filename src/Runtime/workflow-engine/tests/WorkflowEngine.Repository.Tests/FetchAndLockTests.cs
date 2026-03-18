@@ -13,7 +13,7 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
     private static readonly TimeSpan StaleThreshold = TimeSpan.FromSeconds(15);
     private const int MaxReclaimCount = 3;
 
-    public async ValueTask InitializeAsync() => await fixture.ResetAsync();
+    public async ValueTask InitializeAsync() => await fixture.Reset();
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 

@@ -19,7 +19,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
     public async ValueTask InitializeAsync()
     {
-        await fixture.ResetAsync();
+        await fixture.Reset();
         await Task.Delay(50);
     }
 
@@ -127,15 +127,15 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Wait for the last span in the processing pipeline
-        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync");
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCore");
 
         // === Enqueue phase ===
-        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCore"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
 
         // === Processing phase ===
-        Assert.NotEmpty(collector.GetActivities("WorkflowHandler.HandleAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowHandler.Handle"));
 
         var processStepActivities = collector.GetActivitiesStartingWith("WorkflowHandler.ProcessStep");
         Assert.True(
@@ -168,8 +168,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         );
 
         // === Status write phase ===
-        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.SubmitAsync"));
-        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.Submit"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCore"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
@@ -311,10 +311,10 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Wait for the last span in the processing pipeline
-        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync");
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCore");
 
         // Resolve key span instances
-        var processWorkflow = Single(collector, "WorkflowHandler.HandleAsync");
+        var processWorkflow = Single(collector, "WorkflowHandler.Handle");
 
         // ───────────────────────────────────────────────────────────
         // Cross-trace link: ProcessWorkflow is a new root that links
@@ -342,15 +342,15 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         AssertChildOf(execute, webhookCommand);
 
         //     └── Engine.SubmitStatusUpdate
-        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowUpdateBuffer.SubmitAsync");
+        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowUpdateBuffer.Submit");
         AssertChildOf(processWorkflow, submitStatus);
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
-        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCore"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
-        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCore"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 

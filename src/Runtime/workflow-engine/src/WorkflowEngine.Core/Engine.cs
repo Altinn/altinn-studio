@@ -174,7 +174,7 @@ internal sealed class Engine(
         try
         {
             var hash = request.ComputeHash();
-            var outcome = await writeBuffer.EnqueueAsync(request, metadata, hash, cancellationToken);
+            var outcome = await writeBuffer.Enqueue(request, metadata, hash, cancellationToken);
             var results = sortedRequests
                 .Zip(
                     outcome.WorkflowIds,

@@ -18,7 +18,7 @@ namespace WorkflowEngine.TestKit;
 /// and the full ASP.NET Core application (via WebApplicationFactory).
 ///
 /// All tests within the same collection share one fixture instance;
-/// each test calls <see cref="ResetAsync"/> to restore a clean state.
+/// each test calls <see cref="Reset"/> to restore a clean state.
 /// </summary>
 public abstract class EngineAppFixture : IAsyncLifetime
 {
@@ -113,7 +113,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
     /// Resets both WireMock (back to the default catch-all 200 stub) and the database
     /// (all workflow and step rows truncated).  Called at the start of every test.
     /// </summary>
-    public async Task ResetAsync()
+    public async Task Reset()
     {
         // Stop and dispose WireMock server. This may or may not fail in-flight pending requests.
         WireMock.Stop();
@@ -153,7 +153,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
 
     /// <summary>
     /// Registers a catch-all stub that returns HTTP 200 for every request.
-    /// Applied automatically in <see cref="ResetAsync"/>; re-apply it after calling
+    /// Applied automatically in <see cref="Reset"/>; re-apply it after calling
     /// <see cref="WireMockServer.Reset"/> inside a specific test.
     /// </summary>
     public void SetupDefaultStub() =>

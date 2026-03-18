@@ -22,7 +22,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
 {
     private readonly FaultInjectionInterceptor _interceptor = new();
 
-    public async ValueTask InitializeAsync() => await postgres.ResetAsync();
+    public async ValueTask InitializeAsync() => await postgres.Reset();
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 

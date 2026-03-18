@@ -82,7 +82,7 @@ internal sealed class WorkflowProcessor(
                     {
                         await limiter.AcquireWorkerSlot(stoppingToken);
                         tracker.TryAdd(workflow.DatabaseId);
-                        _ = ProcessWorkflowAsync(workflow, stoppingToken);
+                        _ = ProcessWorkflow(workflow, stoppingToken);
                     }
 
                     Metrics.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
@@ -120,13 +120,13 @@ internal sealed class WorkflowProcessor(
         logger.ProcessorStopped();
     }
 
-    private async Task ProcessWorkflowAsync(Workflow workflow, CancellationToken ct)
+    private async Task ProcessWorkflow(Workflow workflow, CancellationToken ct)
     {
         try
         {
             using var scope = scopeFactory.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<WorkflowHandler>();
-            await handler.HandleAsync(workflow, ct);
+            await handler.Handle(workflow, ct);
         }
         finally
         {
@@ -139,7 +139,7 @@ internal sealed class WorkflowProcessor(
 
     private static async Task Debounce(AsyncSignal signal, TimeSpan delay, CancellationToken ct)
     {
-        await signal.WaitAsync(ct);
+        await signal.Wait(ct);
         await Task.Delay(delay, ct);
     }
 }

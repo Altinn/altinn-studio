@@ -10,7 +10,7 @@ public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAs
     private static readonly string ProtectedPath =
         $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}";
 
-    public async ValueTask InitializeAsync() => await fixture.ResetAsync();
+    public async ValueTask InitializeAsync() => await fixture.Reset();
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 

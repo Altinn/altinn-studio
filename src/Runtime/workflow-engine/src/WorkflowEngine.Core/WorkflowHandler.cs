@@ -29,7 +29,7 @@ internal sealed class WorkflowHandler(
     /// Processes a workflow through all its steps. On return, the workflow's <see cref="Workflow.Status"/>
     /// reflects the final outcome (Completed, Failed, or Requeued for retry).
     /// </summary>
-    public async Task HandleAsync(Workflow workflow, CancellationToken ct)
+    public async Task Handle(Workflow workflow, CancellationToken ct)
     {
         StartProcessWorkflowActivity(workflow);
 
@@ -55,7 +55,7 @@ internal sealed class WorkflowHandler(
 
             Metrics.WorkflowsFailed.Add(1);
 
-            await statusWriteBuffer.SubmitAsync(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
             return;
         }
@@ -73,7 +73,7 @@ internal sealed class WorkflowHandler(
                 workflow.Status = PersistentItemStatus.Requeued;
             }
 
-            await statusWriteBuffer.SubmitAsync(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
             StopActivity(workflow);
             throw;
@@ -92,7 +92,7 @@ internal sealed class WorkflowHandler(
                 ("operationId", workflow.OperationId)
             );
 
-            await statusWriteBuffer.SubmitAsync(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
             StopActivity(workflow);
             return;
@@ -118,7 +118,7 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(1);
         }
 
-        await statusWriteBuffer.SubmitAsync(workflow, ct);
+        await statusWriteBuffer.Submit(workflow, ct);
 
         StopActivity(workflow);
     }
@@ -176,7 +176,6 @@ internal sealed class WorkflowHandler(
                 continue;
             }
 
-            // TODO: Retry in-memory if short backoff
             if (step.Status == PersistentItemStatus.Requeued)
             {
                 break;
@@ -265,7 +264,7 @@ internal sealed class WorkflowHandler(
         ];
 
         workflow.EngineActivity ??= Metrics.Source.StartLinkedRootActivity(
-            "WorkflowHandler.HandleAsync",
+            "WorkflowHandler.Handle",
             kind: ActivityKind.Consumer,
             links: possibleLinks.Select(Metrics.ParseTraceContext).ToActivityLinks(),
             tags: workflow.GetActivityTags(),

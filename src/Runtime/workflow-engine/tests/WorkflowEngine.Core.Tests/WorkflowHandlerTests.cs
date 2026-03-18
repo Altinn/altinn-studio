@@ -41,9 +41,7 @@ public class WorkflowHandlerTests
         };
 
         var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer
-            .Setup(b => b.SubmitAsync(It.IsAny<Workflow>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        buffer.Setup(b => b.Submit(It.IsAny<Workflow>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         return new WorkflowHandler(
             executor,
@@ -98,7 +96,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_AllStepsSucceed_WorkflowCompleted()
+    public async Task Handle_AllStepsSucceed_WorkflowCompleted()
     {
         var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.Success());
         var handler = CreateHandler(executor.Object);
@@ -107,14 +105,14 @@ public class WorkflowHandlerTests
             CreateStep("step-1", processingOrder: 1)
         );
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
         Assert.All(workflow.Steps, s => Assert.Equal(PersistentItemStatus.Completed, s.Status));
     }
 
     [Fact]
-    public async Task HandleAsync_StepRetryableError_WithRetries_WorkflowRequeued()
+    public async Task Handle_StepRetryableError_WithRetries_WorkflowRequeued()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
         var settings = new EngineSettings
@@ -140,7 +138,7 @@ public class WorkflowHandlerTests
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
         Assert.Equal(PersistentItemStatus.Requeued, workflow.Steps[0].Status);
@@ -149,7 +147,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_StepRetryableError_RetriesExhausted_WorkflowFailed()
+    public async Task Handle_StepRetryableError_RetriesExhausted_WorkflowFailed()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("still failing"));
         var handler = CreateHandler(executor.Object);
@@ -157,7 +155,7 @@ public class WorkflowHandlerTests
         step.RequeueCount = 10; // Already exhausted (default RetryStrategy.None() = 0 max retries)
         var workflow = CreateWorkflow(step);
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Failed, workflow.Steps[0].Status);
@@ -165,13 +163,13 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_StepCriticalError_WorkflowFailed()
+    public async Task Handle_StepCriticalError_WorkflowFailed()
     {
         var executor = MockExecutor(ExecutionResult.CriticalError("fatal"));
         var handler = CreateHandler(executor.Object);
         var workflow = CreateWorkflow(CreateStep());
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Failed, workflow.Steps[0].Status);
@@ -179,20 +177,20 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_StepCanceled_WorkflowFailed()
+    public async Task Handle_StepCanceled_WorkflowFailed()
     {
         var executor = MockExecutor(ExecutionResult.Canceled());
         var handler = CreateHandler(executor.Object);
         var workflow = CreateWorkflow(CreateStep());
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Failed, workflow.Steps[0].Status);
     }
 
     [Fact]
-    public async Task HandleAsync_DependencyFailed_WorkflowMarkedDependencyFailed()
+    public async Task Handle_DependencyFailed_WorkflowMarkedDependencyFailed()
     {
         var executor = MockExecutor();
         var handler = CreateHandler(executor.Object);
@@ -219,7 +217,7 @@ public class WorkflowHandlerTests
             ],
         };
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
@@ -230,7 +228,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_DependencyCanceled_WorkflowMarkedDependencyFailed()
+    public async Task Handle_DependencyCanceled_WorkflowMarkedDependencyFailed()
     {
         var executor = MockExecutor();
         var handler = CreateHandler(executor.Object);
@@ -257,7 +255,7 @@ public class WorkflowHandlerTests
             ],
         };
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
@@ -268,7 +266,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_DependencyDependencyFailed_WorkflowMarkedDependencyFailed()
+    public async Task Handle_DependencyDependencyFailed_WorkflowMarkedDependencyFailed()
     {
         var executor = MockExecutor();
         var handler = CreateHandler(executor.Object);
@@ -295,7 +293,7 @@ public class WorkflowHandlerTests
             ],
         };
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
@@ -306,7 +304,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_DependencyFailed_MultipleStepsAllRemainEnqueued()
+    public async Task Handle_DependencyFailed_MultipleStepsAllRemainEnqueued()
     {
         var executor = MockExecutor();
         var handler = CreateHandler(executor.Object);
@@ -335,7 +333,7 @@ public class WorkflowHandlerTests
             ],
         };
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
         Assert.All(workflow.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
@@ -346,7 +344,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_MixedDependencies_OneFailedOnePassed_WorkflowMarkedDependencyFailed()
+    public async Task Handle_MixedDependencies_OneFailedOnePassed_WorkflowMarkedDependencyFailed()
     {
         var executor = MockExecutor();
         var handler = CreateHandler(executor.Object);
@@ -382,7 +380,7 @@ public class WorkflowHandlerTests
             ],
         };
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
@@ -393,7 +391,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_MultiStep_SecondFails_FirstStaysCompleted()
+    public async Task Handle_MultiStep_SecondFails_FirstStaysCompleted()
     {
         var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.CriticalError("boom"));
         var handler = CreateHandler(executor.Object);
@@ -402,7 +400,7 @@ public class WorkflowHandlerTests
             CreateStep("step-1", processingOrder: 1)
         );
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
         Assert.Equal(PersistentItemStatus.Failed, workflow.Steps[1].Status);
@@ -410,7 +408,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_MultiStep_MiddleFails_RemainingStepsStayEnqueued()
+    public async Task Handle_MultiStep_MiddleFails_RemainingStepsStayEnqueued()
     {
         var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.CriticalError("boom"));
         var handler = CreateHandler(executor.Object);
@@ -420,7 +418,7 @@ public class WorkflowHandlerTests
             CreateStep("step-2", processingOrder: 2)
         );
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
@@ -429,7 +427,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_RequeueResume_SkipsCompletedSteps()
+    public async Task Handle_RequeueResume_SkipsCompletedSteps()
     {
         var executor = MockExecutor(ExecutionResult.Success());
         var handler = CreateHandler(executor.Object);
@@ -438,7 +436,7 @@ public class WorkflowHandlerTests
         var step1 = CreateStep("step-1", processingOrder: 1);
         var workflow = CreateWorkflow(step0, step1);
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
         // Only step-1 should have been executed
@@ -449,7 +447,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_RetryableError_BackoffCalculation_UsesStepRetryStrategy()
+    public async Task Handle_RetryableError_BackoffCalculation_UsesStepRetryStrategy()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
         var handler = CreateHandler(executor.Object);
@@ -457,7 +455,7 @@ public class WorkflowHandlerTests
         var workflow = CreateWorkflow(step);
 
         var before = DateTimeOffset.UtcNow;
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
         var after = DateTimeOffset.UtcNow;
 
         Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
@@ -468,7 +466,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_RetryableError_LastError_IsSet()
+    public async Task Handle_RetryableError_LastError_IsSet()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
         var settings = new EngineSettings
@@ -494,13 +492,13 @@ public class WorkflowHandlerTests
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal("oops", workflow.Steps[0].LastError);
     }
 
     [Fact]
-    public async Task HandleAsync_Success_ClearsLastError()
+    public async Task Handle_Success_ClearsLastError()
     {
         var executor = MockExecutor(ExecutionResult.Success());
         var handler = CreateHandler(executor.Object);
@@ -508,7 +506,7 @@ public class WorkflowHandlerTests
         step.LastError = "previous error";
         var workflow = CreateWorkflow(step);
 
-        await handler.HandleAsync(workflow, CancellationToken.None);
+        await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Null(workflow.Steps[0].LastError);
     }

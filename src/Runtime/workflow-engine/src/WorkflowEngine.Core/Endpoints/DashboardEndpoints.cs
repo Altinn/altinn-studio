@@ -308,7 +308,7 @@ public static class DashboardEndpoints
                         {
                             using var signalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                             signalCts.CancelAfter(500);
-                            await workflowSignal.WaitAsync(signalCts.Token);
+                            await workflowSignal.Wait(signalCts.Token);
                         }
                         catch (OperationCanceledException)
                         {

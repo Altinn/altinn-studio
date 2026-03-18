@@ -11,7 +11,7 @@ namespace WorkflowEngine.Repository.Tests;
 [Collection(PostgresCollection.Name)]
 public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 {
-    public async ValueTask InitializeAsync() => await fixture.ResetAsync();
+    public async ValueTask InitializeAsync() => await fixture.Reset();
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
