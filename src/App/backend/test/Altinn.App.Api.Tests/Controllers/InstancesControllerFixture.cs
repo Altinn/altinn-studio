@@ -12,10 +12,12 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
@@ -131,6 +133,9 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<ITranslationService>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IDataElementAccessChecker>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IProcessReader>(MockBehavior.Loose).Object);
+        services.AddSingleton(new Mock<IAuthorizationService>(MockBehavior.Loose).Object);
+        services.AddTransient<ProcessStateEnricher>();
 
         var httpContextMock = new Mock<HttpContext>(MockBehavior.Strict);
         services.AddTransient(_ => httpContextMock.Object);
