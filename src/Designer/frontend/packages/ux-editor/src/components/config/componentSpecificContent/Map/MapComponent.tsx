@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type JSX } from 'react';
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
@@ -99,7 +99,7 @@ const AddMapLayer = ({
       {component.layers?.map(
         (layer, index): JSX.Element => (
           // Find a way to avoid using index as key
-          <StudioProperty.Fieldset
+          (<StudioProperty.Fieldset
             key={index}
             legend={t('ux_editor.map_layer') + (index + 1)}
             menubar={
@@ -131,7 +131,6 @@ const AddMapLayer = ({
                 )}
               />
             </div>
-
             <div className={classes.formGroup}>
               <FormField
                 id={component.id}
@@ -168,7 +167,7 @@ const AddMapLayer = ({
                 )}
               />
             </div>
-          </StudioProperty.Fieldset>
+          </StudioProperty.Fieldset>)
         ),
       )}
       <StudioProperty.Button
