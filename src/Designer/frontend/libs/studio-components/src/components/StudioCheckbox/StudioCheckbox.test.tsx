@@ -1,11 +1,12 @@
 import type { Ref } from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioCheckbox } from './StudioCheckbox';
 import type { StudioCheckboxProps } from './StudioCheckbox';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const label: string = 'Checkbox';
 
@@ -46,7 +47,7 @@ describe('StudioCheckbox', () => {
 });
 
 function renderCheckbox(props: StudioCheckboxProps, ref?: Ref<HTMLInputElement>): RenderResult {
-  return render(<StudioCheckbox {...props} ref={ref} />);
+  return renderAndRunTimers(<StudioCheckbox {...props} ref={ref} />);
 }
 
 function getCheckbox(): HTMLInputElement {

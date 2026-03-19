@@ -1,9 +1,10 @@
-import { screen, render } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioTextfield } from './StudioTextfield';
 import type { StudioTextfieldProps } from './StudioTextfield';
 import userEvent from '@testing-library/user-event';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const label: string = 'My label';
 
@@ -80,5 +81,5 @@ describe('StudioTextfield', () => {
 });
 
 const renderStudioTextfield = (props: StudioTextfieldProps): RenderResult => {
-  return render(<StudioTextfield {...props} />);
+  return renderAndRunTimers(<StudioTextfield {...props} />);
 };

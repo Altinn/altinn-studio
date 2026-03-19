@@ -1,5 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';
 import { dataLookupOptions } from './test-data/dataLookupOptions';
 import { texts } from './test-data/texts';
@@ -15,6 +15,7 @@ import { GeneralRelationOperator } from './enums/GeneralRelationOperator';
 import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 import { expressionToString } from '../StudioManualExpression/converters';
 import { LogicalTupleOperator } from './enums/LogicalTupleOperator';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const onChange = jest.fn();
 
@@ -49,7 +50,7 @@ describe('StudioExpression', () => {
     'Renders a boolean toggle correctly when the expression is %s',
     (expression) => {
       renderExpression(expression);
-      expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+      expect(screen.getByRole('group')).toBeInTheDocument();
       if (expression) {
         expect(screen.getByRole('radio', { name: texts.true })).toBeChecked();
       } else {
@@ -227,9 +228,11 @@ describe('StudioExpression', () => {
     await user.type(input, 'tru');
     await user.click(screen.getByRole('tab', { name: texts.simplified }));
     expect(onChange).not.toHaveBeenCalled();
-    expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
-      'aria-selected',
-      'true',
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      ),
     );
   });
 
@@ -302,7 +305,7 @@ describe('StudioExpression', () => {
 });
 
 const renderExpression = (expression: Expression): RenderResult => {
-  return render(
+  return renderAndRunTimers(
     <StudioExpression
       expression={expression}
       onChange={onChange}

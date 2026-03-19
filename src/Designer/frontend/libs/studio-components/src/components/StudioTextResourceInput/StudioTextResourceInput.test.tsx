@@ -2,7 +2,7 @@ import type { ForwardedRef } from 'react';
 import type { StudioTextResourceInputProps } from './StudioTextResourceInput';
 import { StudioTextResourceInput } from './StudioTextResourceInput';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
 import type { TextResource } from '../../../../studio-pure-functions/src/types/TextResource';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
@@ -12,6 +12,7 @@ import { TextResourceUtils } from '@studio/pure-functions';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 // Test data:
 const textResources: TextResource[] = textResourcesMock;
@@ -200,7 +201,7 @@ function renderTextResourceInput(
   props: Partial<StudioTextResourceInputProps> = {},
   ref?: ForwardedRef<HTMLInputElement>,
 ): RenderResult {
-  return render(<StudioTextResourceInput {...defaultProps} {...props} ref={ref} />);
+  return renderAndRunTimers(<StudioTextResourceInput {...defaultProps} {...props} ref={ref} />);
 }
 
 function getValueField(): HTMLInputElement {

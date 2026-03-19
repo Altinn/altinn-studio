@@ -3023,6 +3023,7 @@ __metadata:
     "@storybook/react-vite": "npm:10.2.16"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
+    "@studio/ui-test": "workspace:^"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.2"
     "@types/jest": "npm:^30.0.0"
@@ -3150,7 +3151,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test":
+"@studio/ui-test@workspace:^, @studio/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test":
   version: 0.0.0-use.local
   resolution: "@studio/ui-test@workspace:src/Designer/frontend/libs/studio-ui-test"
   dependencies:

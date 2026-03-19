@@ -17,8 +17,7 @@ const defaultProps: StudioBooleanToggleGroupProps = {
 describe('StudioBooleanToggleGroup', () => {
   it('Renders a toggle group with toggles with the given labels', () => {
     renderBooleanToggle();
-    const withinRadioGroup = (): ReturnType<typeof within> =>
-      within(screen.getByRole('radiogroup'));
+    const withinRadioGroup = (): ReturnType<typeof within> => within(screen.getByRole('group'));
     expect(withinRadioGroup().getByRole('radio', { name: trueLabel })).toBeInTheDocument();
     expect(withinRadioGroup().getByRole('radio', { name: falseLabel })).toBeInTheDocument();
   });

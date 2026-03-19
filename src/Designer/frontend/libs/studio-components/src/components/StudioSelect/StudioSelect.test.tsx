@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioSelect } from './';
 import type { StudioSelectProps } from './';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('StudioSelect', () => {
   beforeEach(jest.clearAllMocks);
@@ -60,7 +61,7 @@ const defaultProps: StudioSelectProps = {
 };
 
 const renderStudioSelect = (props: Partial<StudioSelectProps> = {}): RenderResult => {
-  return render(
+  return renderAndRunTimers(
     <StudioSelect {...defaultProps} {...props}>
       <StudioSelect.Option value={mockOption1Value}>{mockOption1Text}</StudioSelect.Option>
       <StudioSelect.Option value={mockOption2Value}>{mockOption2Text}</StudioSelect.Option>

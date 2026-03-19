@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioRadioGroup, useStudioRadioGroup } from './';
+import { renderAndRunTimers } from '@studio/ui-test/src/renderAndRunTimers';
 
 describe('StudioRadioGroup components', () => {
   it('renders heading, description, and tag text', () => {
@@ -72,7 +73,7 @@ function renderRadioGroup({
       </StudioRadioGroup>
     );
   };
-  return render(<Component />);
+  return renderAndRunTimers(<Component />);
 }
 
 const radioGroupName: string = 'test-radio-group';

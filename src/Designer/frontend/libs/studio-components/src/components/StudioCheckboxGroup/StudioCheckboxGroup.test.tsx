@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioCheckboxGroup, useStudioCheckboxGroup } from './';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('StudioCheckboxGroup components', () => {
   it('renders heading, description, and tag text', () => {
@@ -89,7 +90,7 @@ function renderCheckboxGroup({
       </StudioCheckboxGroup>
     );
   };
-  return render(<Component />);
+  return renderAndRunTimers(<Component />);
 }
 
 const checkboxGroupName: string = 'test-checkbox-group';
