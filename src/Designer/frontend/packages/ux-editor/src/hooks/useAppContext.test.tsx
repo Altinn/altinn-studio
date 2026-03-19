@@ -8,7 +8,6 @@ const TestComponent = () => {
 
 describe('useAppContext', () => {
   it('should throw an error when useAppContext is used outside of a AppContextProvider', () => {
-
     expect(() => render(<TestComponent />)).toThrow(
       'useAppContext must be used within a AppContextProvider',
     );

@@ -10,7 +10,7 @@ import { EditAutocomplete } from './editModal/EditAutocomplete';
 import { EditTextResourceBinding } from './editModal/EditTextResourceBinding';
 import type { FormComponent } from '../../types/FormComponent';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 export interface IGenericEditComponent<T extends FormComponent = FormComponent> {
   editFormId?: string;

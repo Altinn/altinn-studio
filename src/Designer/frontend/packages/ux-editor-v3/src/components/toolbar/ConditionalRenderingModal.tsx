@@ -20,7 +20,7 @@ import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext } from '../../hooks/useAppContext';
 import { StudioParagraph } from '@studio/components';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 export function ConditionalRenderingModal() {
   const { org, app } = useStudioEnvironmentParams();

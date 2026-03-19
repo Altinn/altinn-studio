@@ -99,7 +99,7 @@ const AddMapLayer = ({
       {component.layers?.map(
         (layer, index): JSX.Element => (
           // Find a way to avoid using index as key
-          (<StudioProperty.Fieldset
+          <StudioProperty.Fieldset
             key={index}
             legend={t('ux_editor.map_layer') + (index + 1)}
             menubar={
@@ -167,7 +167,7 @@ const AddMapLayer = ({
                 )}
               />
             </div>
-          </StudioProperty.Fieldset>)
+          </StudioProperty.Fieldset>
         ),
       )}
       <StudioProperty.Button

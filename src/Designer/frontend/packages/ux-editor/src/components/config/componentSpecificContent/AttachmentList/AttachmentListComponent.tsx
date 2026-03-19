@@ -14,7 +14,7 @@ import { convertExternalToInternalFormat } from './convertFunctions/convertToInt
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 type AttachmentListComponentProps = IGenericEditComponent<ComponentType.AttachmentList> & {
   className?: string;

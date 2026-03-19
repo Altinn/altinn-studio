@@ -4,7 +4,7 @@ import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 /**
  * @component

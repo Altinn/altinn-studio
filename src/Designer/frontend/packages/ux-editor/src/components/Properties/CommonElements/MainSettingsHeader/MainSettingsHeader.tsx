@@ -2,7 +2,7 @@ import { StudioHeading, StudioTag } from '@studio/components';
 import classes from './MainSettingsHeader.module.css';
 import { useTranslation } from 'react-i18next';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 export const MainSettingsHeader = (): JSX.Element => {
   const { t } = useTranslation();

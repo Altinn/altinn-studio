@@ -2,7 +2,7 @@ import type { AlertProps } from '@digdir/designsystemet-react';
 import { Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 export type UnknownComponentAlertProps = {
   componentName: string;

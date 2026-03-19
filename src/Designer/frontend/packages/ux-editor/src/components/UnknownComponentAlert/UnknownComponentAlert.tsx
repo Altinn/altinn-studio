@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { StudioAlert } from '@studio/components';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 export type UnknownComponentAlertProps = {
   componentName: string;

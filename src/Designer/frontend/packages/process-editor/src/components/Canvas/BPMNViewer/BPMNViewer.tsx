@@ -2,7 +2,7 @@ import classes from './BPMNViewer.module.css';
 import { useBpmnViewer } from '../../../hooks/useBpmnViewer';
 import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 /**
  * @component

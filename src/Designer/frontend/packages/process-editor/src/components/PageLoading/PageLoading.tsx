@@ -2,7 +2,7 @@ import { Spinner, type SpinnerProps } from '@digdir/designsystemet-react';
 
 import classes from './PageLoading.module.css';
 
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
 type PageLoadingProps = {
   title: string;
