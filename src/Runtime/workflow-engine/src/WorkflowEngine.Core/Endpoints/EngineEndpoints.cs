@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using WorkflowEngine.Core.Authentication.ApiKey;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -16,7 +15,7 @@ public static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/workflows").RequireApiKeyAuthorization().WithTags("Workflows");
+        var group = app.MapGroup("/api/v1/workflows").WithTags("Workflows");
 
         group
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)

@@ -15,16 +15,10 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Adds the workflow engine host and required services.
         /// </summary>
-        public IServiceCollection AddWorkflowEngineHost(
-            string engineConfigSection = "EngineSettings",
-            string apiConfigSection = "ApiSettings"
-        )
+        public IServiceCollection AddWorkflowEngineHost(string engineConfigSection = "EngineSettings")
         {
             if (!services.IsConfigured<EngineSettings>())
                 services.ConfigureEngine(engineConfigSection);
-
-            if (!services.IsConfigured<ApiSettings>())
-                services.ConfigureApi(apiConfigSection);
 
             // Command plugin system
             services.AddSingleton<ICommandRegistry>(sp =>
@@ -115,18 +109,6 @@ public static class ServiceCollectionExtensions
                 .Configure(configureOptions)
                 .SetEngineSettingsDefaults()
                 .ValidateEngineSettings();
-            return services;
-        }
-
-        public IServiceCollection ConfigureApi(string configSectionPath)
-        {
-            services.AddOptions<ApiSettings>().BindConfiguration(configSectionPath).ValidateApiSettings();
-            return services;
-        }
-
-        public IServiceCollection ConfigureApi(Action<ApiSettings> configureOptions)
-        {
-            services.AddOptions<ApiSettings>().Configure(configureOptions).ValidateApiSettings();
             return services;
         }
 
@@ -258,26 +240,6 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.Concurrency.BackpressureThreshold >= config.WriteBuffer.MaxQueueSize,
                 $"{ns}.{nameof(EngineSettings.Concurrency)}.{nameof(EngineSettings.Concurrency.BackpressureThreshold)} must be greater than or equal to {ns}.{nameof(EngineSettings.WriteBuffer)}.{nameof(EngineSettings.WriteBuffer.MaxQueueSize)}."
-            );
-
-            return builder;
-        }
-    }
-
-    extension(OptionsBuilder<ApiSettings> builder)
-    {
-        public OptionsBuilder<ApiSettings> ValidateApiSettings()
-        {
-            const string ns = nameof(ApiSettings);
-
-            builder.Validate(
-                config => config.ApiKeys.Any(),
-                $"{ns}.{nameof(ApiSettings.ApiKeys)} value is missing or empty."
-            );
-
-            builder.Validate(
-                config => config.ApiKeys.All(x => x is { Length: > 10 }),
-                $"{ns}.{nameof(ApiSettings.ApiKeys)} contains null value or key with insufficient length."
             );
 
             return builder;

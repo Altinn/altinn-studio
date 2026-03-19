@@ -5,12 +5,9 @@ import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 // --- Configuration ---
 export const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api/v1/workflows';
 export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
-export const API_KEY = __ENV.API_KEY || '0544ba8b-2d8a-4ec9-b93a-47cdbd220293';
-
 export const requestParams = {
     headers: {
         'Content-Type': 'application/json',
-        'X-Api-Key': API_KEY,
     },
 };
 

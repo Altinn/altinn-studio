@@ -31,7 +31,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 
 ## API Endpoints (provided by Core)
 
-- `POST /api/v1/workflows` — enqueue workflows, supports batch with dependency graphs (API key required)
+- `POST /api/v1/workflows` — enqueue workflows, supports batch with dependency graphs
 - `GET /api/v1/workflows?namespace=` — list active workflows (optional namespace, correlationId, label filters)
 - `GET /api/v1/workflows/{workflowId:guid}` — get single workflow with all steps
 - `POST /api/v1/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)

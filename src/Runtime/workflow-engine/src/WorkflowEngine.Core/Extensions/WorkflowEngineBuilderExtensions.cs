@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Commands.Webhook;
-using WorkflowEngine.Core.Authentication.ApiKey;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -23,7 +22,7 @@ public static class WorkflowEngineBuilderExtensions
     {
         /// <summary>
         /// Registers all core workflow engine services on the builder, including hosting
-        /// configuration, authentication, database, health checks, telemetry, OpenAPI,
+        /// configuration, database, health checks, telemetry, OpenAPI,
         /// and the built-in <c>WebhookCommand</c>.
         /// <para>
         /// The <paramref name="connectionString"/> is stored as a singleton and consumed
@@ -47,7 +46,6 @@ public static class WorkflowEngineBuilderExtensions
 
             // Core engine services
             builder.Services.AddWorkflowEngineHost();
-            builder.Services.AddApiKeyAuthentication();
             builder.Services.AddDbRepository(
                 sp => sp.GetRequiredService<EngineConnectionString>().Value,
                 enableSensitiveDataLogging: isDev
@@ -62,7 +60,7 @@ public static class WorkflowEngineBuilderExtensions
             builder.Services.AddTelemetry(emitQueryParameters: isDev);
 
             // OpenAPI
-            builder.Services.AddOpenApi(o => o.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
+            builder.Services.AddOpenApi();
 
             return builder;
         }

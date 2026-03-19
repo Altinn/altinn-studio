@@ -32,7 +32,6 @@ k6 run .k6/stress-test.js -e ITERATIONS=1000 -e VUS=25
 | `VUS`        | `100`                                    | Concurrent virtual users        |
 | `BASE_URL`   | `http://localhost:8080/api/v1/workflows` | Workflow engine enqueue URL     |
 | `HEALTH_URL` | `http://localhost:8080/api/v1/health`    | Health endpoint for queue drain |
-| `API_KEY`    | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`   | API key for authentication      |
 
 ### constant-rate.js
 
@@ -51,7 +50,6 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 | `POLL_INTERVAL` | `2`                                      | Seconds between health polls |
 | `BASE_URL`      | `http://localhost:8080/api/v1/workflows` | Workflow engine URL          |
 | `HEALTH_URL`    | `http://localhost:8080/api/v1/health`    | Health endpoint              |
-| `API_KEY`       | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`   | API key                      |
 
 ## Payload
 

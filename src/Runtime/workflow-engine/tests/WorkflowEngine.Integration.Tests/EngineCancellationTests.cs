@@ -58,7 +58,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         await WaitForStepProcessing(factory, workflowId);
 
         // Cancel via the API
-        using var client = factory.CreateEngineClient();
+        using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
         Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
 
@@ -104,7 +104,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         await WaitForStepProcessing(factory, workflowId, stepIndex: 1);
 
         // Cancel via the API
-        using var client = factory.CreateEngineClient();
+        using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
         Assert.True(cancelResponse.IsSuccessStatusCode);
 
@@ -138,7 +138,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         await WaitForTerminalStatus(workflowId);
 
         // Try to cancel it — should get 409 Conflict
-        using var client = factory.CreateEngineClient();
+        using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
 
         Assert.Equal(HttpStatusCode.Conflict, cancelResponse.StatusCode);
@@ -157,7 +157,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         await WaitForStepProcessing(factory, workflowId);
 
-        using var client = factory.CreateEngineClient();
+        using var client = factory.CreateClient();
 
         // First cancel — should succeed
         using var firstResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
@@ -185,7 +185,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         await using var factory = CreateFactory();
         var fakeId = Guid.NewGuid();
 
-        using var client = factory.CreateEngineClient();
+        using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{fakeId}/cancel", content: null);
 
         Assert.Equal(HttpStatusCode.NotFound, cancelResponse.StatusCode);
@@ -218,7 +218,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         params StepRequest[] steps
     )
     {
-        using var client = factory.CreateEngineClient();
+        using var client = factory.CreateClient();
 
         var request = new WorkflowEnqueueRequest
         {

@@ -105,7 +105,7 @@ public partial class EngineTests
 
 The base `EngineTests.cs` class handles fixture injection, `IAsyncLifetime`, and shared helpers:
 
-- `_client` — `EngineApiClient` with API key pre-configured
+- `_client` — `EngineApiClient` for the test host
 - `_testHelpers` — builders for steps, workflows, enqueue requests
 - `_instanceGuid` — fresh GUID per test
 - `InstanceLockToken` — constant from fixture

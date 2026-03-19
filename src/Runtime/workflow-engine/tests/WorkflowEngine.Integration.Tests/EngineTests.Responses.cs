@@ -83,25 +83,6 @@ public partial class EngineTests
         await VerifyJson(body).ScrubMembers("databaseId");
     }
 
-    [Fact]
-    public async Task Response_Enqueue_WithoutApiKey_Returns401()
-    {
-        using var unauthenticatedClient = fixture.CreateEngineClient();
-        unauthenticatedClient.DefaultRequestHeaders.Remove("X-API-Key");
-
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping")])
-        );
-
-        using var response = await unauthenticatedClient.PostAsJsonAsync(
-            "/api/v1/workflows",
-            request,
-            TestContext.Current.CancellationToken
-        );
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
     // ── GetWorkflow endpoint responses ────────────────────────────────────────
 
     [Fact]
