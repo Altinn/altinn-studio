@@ -301,7 +301,13 @@ function ModeToggle({
 }: InputModeToggleProps): ReactElement {
   const className = cn(givenClass, classes.toggle);
   return (
-    <ToggleGroup onChange={onToggle} value={inputMode} data-size='sm' className={className}>
+    <ToggleGroup
+      data-toggle-group=' '
+      onChange={onToggle}
+      value={inputMode}
+      data-size='sm'
+      className={className}
+    >
       <ToggleGroup.Item
         aria-label={texts.editValue}
         icon
