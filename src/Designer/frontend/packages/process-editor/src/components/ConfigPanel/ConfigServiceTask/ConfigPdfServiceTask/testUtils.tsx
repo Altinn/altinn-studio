@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { renderAndRunTimers } from '@studio/ui-test';
 import { MemoryRouter } from 'react-router-dom';
 import { BpmnContext, type BpmnContextProps } from '../../../../contexts/BpmnContext';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
@@ -65,5 +65,5 @@ const createRenderWrapper = (props: RenderProps = {}) => {
 };
 
 export const renderWithProviders = (component: React.ReactElement, props: RenderProps = {}) => {
-  return render(component, { wrapper: createRenderWrapper(props) });
+  return renderAndRunTimers(component, { wrapper: createRenderWrapper(props) });
 };

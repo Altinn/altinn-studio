@@ -2,7 +2,7 @@ import {
   CreateCustomReceiptForm,
   type CreateCustomReceiptFormProps,
 } from './CreateCustomReceiptForm';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContext, type BpmnContextProps } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -14,6 +14,7 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { queryOptionMock } from '../../../../../../test/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
 const mockOnCloseForm = jest.fn();
@@ -260,7 +261,7 @@ type RenderProps = {
 const renderCreateCustomReceiptForm = (props: Partial<RenderProps> = {}) => {
   const { bpmnApiContextProps, rootContextProps, componentProps } = props;
 
-  return render(
+  return renderAndRunTimers(
     <BpmnApiContext.Provider value={{ ...defaultBpmnApiContextProps, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>

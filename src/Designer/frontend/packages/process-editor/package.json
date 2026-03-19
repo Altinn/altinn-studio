@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "devDependencies": {
+    "@studio/ui-test": "workspace:^",
     "@types/bpmn-moddle": "9.0.0",
     "jest": "29.7.0"
   },

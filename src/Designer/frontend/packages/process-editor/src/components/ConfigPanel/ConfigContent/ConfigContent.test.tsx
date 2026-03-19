@@ -1,5 +1,5 @@
 import { ConfigContent } from './ConfigContent';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
@@ -14,6 +14,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const tasks = [
   {
@@ -154,9 +155,9 @@ describe('ConfigContent', () => {
 
   it('should render the Policy accordion', async () => {
     renderConfigContent();
-    const policyAccordion = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_policy_title'),
-    });
+    const policyAccordion = screen.getByText(
+      textMock('process_editor.configuration_panel_policy_title'),
+    );
     const user = userEvent.setup();
     await user.click(policyAccordion);
     const editPolicyLink = await screen.findByText(
@@ -167,9 +168,9 @@ describe('ConfigContent', () => {
 
   it('should render the Design accordion when a task has a connected layoutset', () => {
     renderConfigContent();
-    const designAccordion = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_design_title'),
-    });
+    const designAccordion = screen.getByText(
+      textMock('process_editor.configuration_panel_design_title'),
+    );
     expect(designAccordion).toBeInTheDocument();
   });
 
@@ -246,7 +247,7 @@ const renderConfigContent = (
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
   rootContextProps: Partial<BpmnContextProps> = {},
 ) => {
-  return render(
+  return renderAndRunTimers(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>

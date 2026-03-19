@@ -120,7 +120,7 @@ describe('ConfigPdfServiceTask', () => {
 
       expect(
         screen.getByRole('group', {
-          name: textMock('process_editor.configuration_panel_pdf_mode'),
+          name: `${textMock('process_editor.configuration_panel_pdf_mode')} ${textMock('process_editor.configuration_panel_pdf_mode_description')}`,
         }),
       ).toBeInTheDocument();
 

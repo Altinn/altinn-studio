@@ -1,12 +1,13 @@
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import { ActionsEditor, type ActionsEditorProps } from './ActionsEditor';
 import { mockBpmnContextValue } from '../../../../../../test/mocks/bpmnContextMock';
 import { BpmnActionModeler, type Action } from '../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../contexts/BpmnConfigPanelContext';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 jest.mock('../../../../../utils/bpmnModeler/BpmnActionModeler');
 
@@ -208,7 +209,7 @@ describe('ActionsEditor', () => {
 });
 
 const renderActionsEditor = (props: Partial<ActionsEditorProps> = {}): RenderResult => {
-  return render(
+  return renderAndRunTimers(
     <BpmnContext.Provider value={mockBpmnContextValue}>
       <BpmnConfigPanelFormContextProvider>
         <ActionsEditor {...defaultActionsEditorProps} {...props} />

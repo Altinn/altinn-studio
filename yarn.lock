@@ -29,6 +29,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/policy-editor@workspace:src/Designer/frontend/packages/policy-editor"
   dependencies:
+    "@studio/ui-test": "workspace:^"
     jest: "npm:29.7.0"
   peerDependencies:
     react: 18.3.1
@@ -41,6 +42,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor"
   dependencies:
+    "@studio/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.0"
     bpmn-js: "npm:18.13.1"
     bpmn-moddle: "npm:9.0.4"
@@ -56,6 +58,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/schema-editor@workspace:src/Designer/frontend/packages/schema-editor"
   dependencies:
+    "@studio/ui-test": "workspace:^"
     jest: "npm:29.7.0"
   peerDependencies:
     axios: 1.13.6
@@ -4579,6 +4582,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
+    "@studio/ui-test": "workspace:^"
     "@types/bpmn-moddle": "npm:9.0.0"
     "@types/react": "npm:18.3.28"
     bpmn-moddle: "npm:9.0.4"
