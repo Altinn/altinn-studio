@@ -9,6 +9,7 @@ import {
     setCardFilterData,
 } from '../shared/cards.js';
 import { scrollPipelineToActive } from '../shared/pipeline.js';
+import { notifyStepChanged } from './modal.js';
 import { notifyWorkflowChanged } from './state-modal.js';
 
 /** Late-bound references */
@@ -87,6 +88,7 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             setCardFilterData(card, wf);
             if (!isCompact) scrollPipelineToActive(card);
             state.workflowFingerprints[wf.databaseId] = fp;
+            notifyStepChanged(wf.databaseId);
             notifyWorkflowChanged(wf.databaseId);
         }
 

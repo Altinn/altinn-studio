@@ -102,9 +102,17 @@ const buildTimestampsHTML = (wf, isStatic) => {
 const buildLabelsHTML = (wf, interactive) => {
     let html = '';
     if (interactive) {
-        html += `<span class="seg ns" onclick="toggleLabelFilter('namespace','${esc(wf.namespace)}')" title="Filter by namespace">${esc(wf.namespace)}</span>`;
+        html += `<span class="seg key" onclick="toggleLabelFilter('namespace','${esc(wf.namespace)}')" title="Filter by namespace">${esc(wf.namespace)}</span>`;
     } else {
-        html += `<span class="seg ns">${esc(wf.namespace)}</span>`;
+        html += `<span class="seg key">${esc(wf.namespace)}</span>`;
+    }
+    if (wf.correlationId) {
+        html += `<span class="seg-sep">/</span>`;
+        if (interactive) {
+            html += `<span class="seg key" onclick="toggleLabelFilter('correlationId','${esc(wf.correlationId)}')" title="Filter by correlationId">${esc(wf.correlationId)}</span>`;
+        } else {
+            html += `<span class="seg key" title="correlationId">${esc(wf.correlationId)}</span>`;
+        }
     }
     if (wf.labels) {
         for (const [key, value] of Object.entries(wf.labels)) {
@@ -281,6 +289,7 @@ export const setCardFilterData = (card, wf) => {
     card.dataset.filter = buildFilterText(wf);
     card.dataset.status = buildStatusTags(wf);
     card.dataset.namespace = wf.namespace.toLowerCase();
+    if (wf.correlationId) card.dataset.correlationid = wf.correlationId.toLowerCase();
     if (wf.labels) {
         card.dataset.labels = Object.entries(wf.labels)
             .map(([k, v]) => `${k}:${v}`)

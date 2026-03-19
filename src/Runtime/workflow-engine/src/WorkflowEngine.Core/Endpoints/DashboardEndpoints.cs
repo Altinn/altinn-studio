@@ -342,6 +342,7 @@ public static class DashboardEndpoints
                     DateTimeOffset? since,
                     bool? retried,
                     string? labels,
+                    string? correlationId,
                     CancellationToken ct
                 ) =>
                 {
@@ -382,6 +383,7 @@ public static class DashboardEndpoints
                         since: since,
                         retriedOnly: retriedOnly,
                         labelFilters: labelFilters,
+                        correlationId: correlationId,
                         cancellationToken: ct
                     );
 
