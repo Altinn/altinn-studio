@@ -1,14 +1,15 @@
-import { useCurrentInstance, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
+import { useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { getUiConfig } from 'src/features/form/ui';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import type { LooseAutocomplete } from 'src/types';
 import type { IActionType, IProcess } from 'src/types/shared';
 
 export function useProcessQuery() {
-  const instance = useCurrentInstance();
-  return { data: instance?.process };
+  const { data } = useInstanceDataQuery({ select: (instance) => instance.process });
+  return { data };
 }
 
 export const useIsAuthorized = () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -23,7 +23,6 @@ import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTask } from 'src/features/process/service/ServiceTask';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys, useIsValidTaskId, useNavigateToTask, useStartUrl } from 'src/hooks/useNavigatePage';
-import { useWaitForQueries } from 'src/hooks/useWaitForQueries';
 import { getComponentDef, implementsSubRouting } from 'src/layout';
 import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { ProcessTaskType } from 'src/types';
@@ -31,6 +30,10 @@ import { getPageTitle } from 'src/utils/getPageTitle';
 
 interface NavigationErrorProps {
   label: string;
+}
+
+function isRunningProcessNext(queryClient: QueryClient) {
+  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
 }
 
 function NavigationError({ label }: NavigationErrorProps) {
@@ -99,17 +102,19 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskId = useNavigationParam('taskId');
+  const { data: process } = useProcessQuery();
   const isWrongTask = useIsWrongTask(taskId);
+
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-  const isRunningProcessNext = useIsRunningProcessNext();
+  const queryClient = useQueryClient();
+  const processNextRunning = isRunningProcessNext(queryClient);
 
-  if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
+  if (processNextRunning || !process) {
     return <Loader reason='process-wrapper' />;
   }
 
   if (taskType === ProcessTaskType.Archived && taskId !== TaskKeys.CustomReceipt) {
-    // Someone else will redirect us to the receipt shortly. If a CustomReceipt is set up, we'll end back here.
     return <Loader reason='redirect-to-receipt' />;
   }
 
@@ -188,56 +193,19 @@ export const ComponentRouting = () => {
   throw new Error(`Component ${componentId} does not have subRouting`);
 };
 
-function isRunningProcessNext(queryClient: QueryClient) {
-  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
-}
-
-function useIsRunningProcessNext() {
-  const queryClient = useQueryClient();
-  const [isMutating, setIsMutating] = useState<boolean | null>(null);
-
-  // Intentionally wrapped in a useEffect() and saved as a state. If this happens, we'll seemingly be locked out
-  // with a <Loader /> forever, but when this happens, we also know we'll be re-rendered soon. This is only meant to
-  // block rendering when we're calling process/next.
-  useEffect(() => {
-    setIsMutating(isRunningProcessNext(queryClient));
-  }, [queryClient]);
-
-  return isMutating;
-}
-
 function useIsWrongTask(taskId: string | undefined) {
-  const isNavigating = useIsNavigating();
   const { data: process } = useProcessQuery();
-  const currentTaskId = process?.currentTask?.elementId;
-  const waitForQueries = useWaitForQueries();
 
-  const [isWrongTask, setIsWrongTask] = useState<boolean | null>(null);
-  const isCurrentTask =
-    currentTaskId === undefined && taskId === TaskKeys.CustomReceipt ? true : currentTaskId === taskId;
+  // Process not loaded yet — don't declare wrong task during transitions
+  if (!process) {
+    return false;
+  }
 
-  // We intentionally delay this state from being set until after queries/mutations finish, so the navigation error
-  // does not show up while we're navigating. Without this, the message will flash over the screen shortly
-  // in-between all the <Loader /> components.
-  useEffect(() => {
-    if (isCurrentTask) {
-      setIsWrongTask(false);
-    } else {
-      let cancelled = false;
-      const delayedCheck = async () => {
-        await waitForQueries();
-        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait a bit longer, for navigation to maybe occur
-        if (!cancelled) {
-          setIsWrongTask(true);
-        }
-      };
-      delayedCheck().then();
+  const currentTaskId = process.currentTask?.elementId;
 
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [isCurrentTask, waitForQueries]);
+  if (currentTaskId === undefined && taskId === TaskKeys.CustomReceipt) {
+    return false;
+  }
 
-  return isWrongTask && !isCurrentTask && !isNavigating;
+  return currentTaskId !== taskId;
 }
