@@ -7,16 +7,6 @@ namespace WorkflowEngine.Core;
 internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrencyLimiter concurrencyLimiter)
     : IHealthCheck
 {
-    /// <summary>
-    /// Unhealthy: the engine is stopped or explicitly unhealthy.
-    /// </summary>
-    private const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
-
-    /// <summary>
-    /// Degraded: the engine is disabled or the queue is full.
-    /// </summary>
-    private const EngineHealthStatus DegradedMask = EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull;
-
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default
@@ -51,16 +41,10 @@ internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrency
             },
         };
 
-        var status = new
+        var result = engineStatus.HealthLevel switch
         {
-            IsUnhealthy = (engineStatus.Status & UnhealthyMask) != 0,
-            IsDegraded = (engineStatus.Status & DegradedMask) != 0,
-        };
-
-        var result = status switch
-        {
-            { IsUnhealthy: true } => HealthCheckResult.Unhealthy("Engine is unhealthy", data: data),
-            { IsDegraded: true } => HealthCheckResult.Degraded("Engine is degraded", data: data),
+            EngineHealthLevel.Unhealthy => HealthCheckResult.Unhealthy("Engine is unhealthy", data: data),
+            EngineHealthLevel.Degraded => HealthCheckResult.Degraded("Engine is degraded", data: data),
             _ => HealthCheckResult.Healthy("Engine is operational", data: data),
         };
 

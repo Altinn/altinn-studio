@@ -46,15 +46,7 @@ internal sealed class MetricsCollector(
 
                 engine.UpdateWorkflowCounts(active, scheduled, failed);
 
-                // Derive numeric health status from engine flags (matches EngineHealthCheck logic)
-                var engineStatus = engine.Status;
-                const EngineHealthStatus unhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
-                const EngineHealthStatus degradedMask = EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull;
-                var healthValue =
-                    (engineStatus & unhealthyMask) != 0 ? 2L
-                    : (engineStatus & degradedMask) != 0 ? 1L
-                    : 0L;
-                Metrics.SetHealthStatus(healthValue);
+                Metrics.SetHealthStatus((long)engine.HealthLevel);
 
                 var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
                 var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;

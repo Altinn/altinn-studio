@@ -35,6 +35,11 @@ internal interface IEngineStatus
     EngineHealthStatus Status { get; }
 
     /// <summary>
+    /// Coarse health level derived from <see cref="Status"/> flags.
+    /// </summary>
+    EngineHealthLevel HealthLevel { get; }
+
+    /// <summary>
     /// Number of workflows currently being processed (active workers).
     /// </summary>
     int ActiveWorkerCount { get; }
@@ -66,6 +71,16 @@ internal interface IEngineStatus
     /// Updates workflow counts for dashboard, health checks, and metrics.
     /// </summary>
     void UpdateWorkflowCounts(int active, int scheduled, int failed);
+
+    /// <summary>
+    /// Signals that the database is unavailable (e.g. connection failures in the processing loop).
+    /// </summary>
+    void SetDatabaseUnavailable();
+
+    /// <summary>
+    /// Clears the database unavailable signal after a successful database operation.
+    /// </summary>
+    void ClearDatabaseUnavailable();
 }
 
 internal sealed class Engine(
@@ -77,9 +92,21 @@ internal sealed class Engine(
 {
     private readonly EngineSettings _settings = engineSettings.Value;
 
+    /// <summary>
+    /// Unhealthy: the engine is stopped or explicitly unhealthy.
+    /// </summary>
+    private const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
+
+    /// <summary>
+    /// Degraded: the engine is disabled, the queue is full, or the database is unavailable.
+    /// </summary>
+    private const EngineHealthStatus DegradedMask =
+        EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull | EngineHealthStatus.DatabaseUnavailable;
+
     private volatile int _activeWorkflowCount;
     private volatile int _scheduledWorkflowCount;
     private volatile int _failedWorkflowCount;
+    private volatile bool _databaseUnavailable;
 
     /// <inheritdoc/>
     public EngineHealthStatus Status
@@ -87,12 +114,34 @@ internal sealed class Engine(
         get
         {
             var status = EngineHealthStatus.Running;
+
             var threshold = _settings.Concurrency.BackpressureThreshold;
             if (threshold > 0 && _activeWorkflowCount >= threshold)
                 status |= EngineHealthStatus.QueueFull;
             else
                 status |= EngineHealthStatus.Healthy;
+
+            if (_databaseUnavailable)
+                status |= EngineHealthStatus.DatabaseUnavailable;
+
             return status;
+        }
+    }
+
+    /// <inheritdoc/>
+    public EngineHealthLevel HealthLevel
+    {
+        get
+        {
+            var status = Status;
+
+            if ((status & UnhealthyMask) != 0)
+                return EngineHealthLevel.Unhealthy;
+
+            if ((status & DegradedMask) != 0)
+                return EngineHealthLevel.Degraded;
+
+            return EngineHealthLevel.Healthy;
         }
     }
 
@@ -118,6 +167,12 @@ internal sealed class Engine(
         _scheduledWorkflowCount = scheduled;
         _failedWorkflowCount = failed;
     }
+
+    /// <inheritdoc/>
+    public void SetDatabaseUnavailable() => _databaseUnavailable = true;
+
+    /// <inheritdoc/>
+    public void ClearDatabaseUnavailable() => _databaseUnavailable = false;
 
     /// <inheritdoc/>
     public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
