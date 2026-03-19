@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type JSX } from 'react';
 import { renderHook } from '@testing-library/react';
 import { useStudioResizableLayoutFunctions } from './useStudioResizableFunctions';
 import { horizontal } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
@@ -9,7 +9,7 @@ type HookReturn = ReturnType<typeof useStudioResizableLayoutFunctions>;
 type ResizableTestElementProps = Omit<StudioResizableLayoutElementProps, 'children'> & {
   children?: StudioResizableLayoutElementProps['children'];
 };
-const ResizableTestElement = (_props: ResizableTestElementProps): React.JSX.Element => null;
+const ResizableTestElement = (_props: ResizableTestElementProps): JSX.Element | null => null;
 
 const makeChild = (
   overrides: Partial<Omit<StudioResizableLayoutElementProps, 'children'>> = {},

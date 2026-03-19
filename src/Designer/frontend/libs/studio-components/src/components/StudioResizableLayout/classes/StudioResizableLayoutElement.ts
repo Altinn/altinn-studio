@@ -32,6 +32,6 @@ export class StudioResizableLayoutArea {
   }
 
   public get collapsed(): boolean {
-    return this.reactElement.props.collapsed;
+    return this.reactElement.props.collapsed || false;
   }
 }
