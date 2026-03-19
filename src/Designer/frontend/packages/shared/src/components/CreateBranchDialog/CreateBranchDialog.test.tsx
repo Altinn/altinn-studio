@@ -6,6 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const onClose = jest.fn();
 const onCreateBranch = jest.fn();
@@ -115,7 +116,7 @@ const defaultProps: CreateBranchDialogProps = {
 };
 
 const renderCreateBranchDialog = (props?: Partial<CreateBranchDialogProps>) => {
-  return render(
+  return renderAndRunTimers(
     <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
       <CreateBranchDialog {...defaultProps} {...props} />
     </ServicesContextProvider>,

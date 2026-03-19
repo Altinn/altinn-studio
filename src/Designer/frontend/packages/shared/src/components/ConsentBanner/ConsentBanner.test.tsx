@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConsentBanner } from './ConsentBanner';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import * as consentHooks from '../../utils/consent';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 jest.mock('../../utils/consent', () => ({
   useConsent: jest.fn(),
@@ -26,7 +27,7 @@ describe('ConsentBanner', () => {
       hasDecision: false,
     });
 
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
@@ -37,7 +38,7 @@ describe('ConsentBanner', () => {
       hasDecision: true,
     });
 
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -47,7 +48,7 @@ describe('ConsentBanner', () => {
       hasDecision: false,
     });
 
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const analyticsSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.analytics.label'),
@@ -60,7 +61,7 @@ describe('ConsentBanner', () => {
       hasDecision: false,
     });
 
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const recordingSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.sessionRecording.label'),
@@ -73,7 +74,7 @@ describe('ConsentBanner', () => {
       hasDecision: false,
     });
 
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const recordingSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.sessionRecording.label'),
@@ -89,7 +90,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const analyticsSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.analytics.label'),
@@ -109,7 +110,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const analyticsSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.analytics.label'),
@@ -135,7 +136,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const analyticsSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.analytics.label'),
@@ -157,7 +158,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const declineButton = screen.getByRole('button', {
       name: textMock('consent.banner.declineAll'),
@@ -173,7 +174,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const analyticsSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.analytics.label'),
@@ -194,7 +195,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const declineButton = screen.getByRole('button', {
       name: textMock('consent.banner.declineAll'),
@@ -211,7 +212,7 @@ describe('ConsentBanner', () => {
       hasDecision: false,
     });
 
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const saveButton = screen.getByRole('button', { name: textMock('consent.banner.save') });
 
@@ -224,7 +225,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const analyticsSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.analytics.label'),
@@ -242,7 +243,7 @@ describe('ConsentBanner', () => {
     });
 
     const user = userEvent.setup();
-    render(<ConsentBanner />);
+    renderAndRunTimers(<ConsentBanner />);
 
     const analyticsSwitch = screen.getByRole('switch', {
       name: textMock('consent.banner.analytics.label'),
