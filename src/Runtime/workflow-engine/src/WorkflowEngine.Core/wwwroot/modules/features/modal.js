@@ -217,6 +217,11 @@ const buildDetailsContent = (data) => {
     if (cmd) {
         html += row('Command Type', cmd.type);
         html += row('Max Execution Time', fmtDuration(/** @type {string} */ (cmd.maxExecutionTime)));
+        if (cmd.type === 'webhook' && cmd.data) {
+            const d = typeof cmd.data === 'string' ? JSON.parse(cmd.data) : cmd.data;
+            html += row('URI', d.uri || d.Uri);
+            html += row('Content-Type', d.contentType || d.ContentType);
+        }
     }
 
     // Error history — fixed-height scrollable section at the bottom

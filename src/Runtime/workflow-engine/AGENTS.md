@@ -77,4 +77,5 @@ For test conventions, scaffolding templates, and infrastructure details, use the
 
 The dashboard UI is embedded directly in `WorkflowEngine.Core`. Static files (`wwwroot/`) are compiled as embedded resources and served by `MapDashboardUI()` alongside the data endpoints from `MapDashboardEndpoints()`. In development, a `PhysicalFileProvider` serves files from disk for live editing without rebuilds.
 
-@src/WorkflowEngine.Core/wwwroot/AGENTS.md
+For module structure and code patterns, see `src/WorkflowEngine.Core/wwwroot/AGENTS.md`.
+For full behavioral spec (sections, endpoints, card anatomy, filtering, modals, URL sync), see `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`.

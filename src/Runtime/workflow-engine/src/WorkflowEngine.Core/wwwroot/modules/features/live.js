@@ -28,6 +28,9 @@ export const bindLiveCallbacks = (fns) => {
 const fingerprint = (wf) =>
     `${wf.status}|${wf.steps.map((s) => `${s.status}:${s.retryCount}:${s.backoffUntil || ''}`).join(',')}`;
 
+/** Index of the currently-processing step (for scroll-on-change). */
+const _processingIdx = /** @type {Record<string, number>} */ ({});
+
 /**
  * @param {import('../core/state.js').Workflow[]} workflows
  * @param {Set<string>|null} [recentKeys] - idempotency keys of workflows now in recent; skip exit animation for these
@@ -66,6 +69,9 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             delete state.previousWorkflows[key];
             delete state.workflowFingerprints[key];
             delete state.workflowTimers[key];
+            delete _processingIdx[key];
+            notifyStepChanged(key);
+            notifyWorkflowChanged(key);
         }
     }
 
@@ -73,6 +79,9 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
     for (const wf of workflows) {
         const elId = `wf-${cssId(wf.databaseId)}`;
         let card = document.getElementById(elId);
+
+        // Skip if workflow already moved to recent (SSE race condition)
+        if (!card && recentKeys?.has(wf.idempotencyKey)) continue;
 
         const fp = fingerprint(wf);
         if (!card) {
@@ -86,7 +95,26 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             const isCompact = card.classList.contains('compact');
             card.innerHTML = isCompact ? buildCompactCardHTML(wf) : buildCardHTML(wf);
             setCardFilterData(card, wf);
-            if (!isCompact) scrollPipelineToActive(card);
+
+            // Sync pulse animations so they don't restart from frame 0 on every innerHTML rebuild
+            const phase = performance.now() % 2000;
+            card.querySelectorAll('.step-circle.Processing, .status-pill.Processing').forEach(
+                (el) => {
+                    /** @type {HTMLElement} */ (el).style.animationDelay = `-${phase}ms`;
+                },
+            );
+
+            // Only scroll the pipeline when the active step actually changes
+            if (!isCompact) {
+                const curIdx = wf.steps.findIndex(
+                    (s) => s.status === 'Processing' || s.status === 'Requeued',
+                );
+                if (curIdx !== _processingIdx[wf.databaseId]) {
+                    _processingIdx[wf.databaseId] = curIdx;
+                    scrollPipelineToActive(card);
+                }
+            }
+
             state.workflowFingerprints[wf.databaseId] = fp;
             notifyStepChanged(wf.databaseId);
             notifyWorkflowChanged(wf.databaseId);
