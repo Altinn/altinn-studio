@@ -58,7 +58,7 @@ function useOptimisticallyUpdateInstance() {
 
   return (updater: (oldData: IInstance) => IInstance) => {
     const cached = queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() });
-    const entry = cached.find(([, data]) => data);
+    const entry = cached.find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object');
     if (entry) {
       const [queryKey, oldData] = entry;
       if (oldData) {
