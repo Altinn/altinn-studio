@@ -130,6 +130,7 @@ public sealed class DbMaintenanceService(
             logger.RetentionDeletedWorkflows(totalDeletedWorkflows);
 
         // Clean up orphaned idempotency keys whose workflows have all been deleted.
+        int deletedKeys;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
         {
             await using var keyCmd = dataSource.CreateCommand(
@@ -144,9 +145,21 @@ public sealed class DbMaintenanceService(
             );
             keyCmd.Parameters.AddWithValue("cutoff", cutoff);
 
-            var deletedKeys = await keyCmd.ExecuteNonQueryAsync(ct);
+            deletedKeys = await keyCmd.ExecuteNonQueryAsync(ct);
             if (deletedKeys > 0)
                 logger.RetentionDeletedKeys(deletedKeys);
+        }
+
+        // Refresh query planner statistics after bulk deletes so index/scan choices stay optimal.
+        if (totalDeletedWorkflows > 0 || deletedKeys > 0)
+        {
+            using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+            {
+                await using var analyzeCmd = dataSource.CreateCommand(
+                    """ANALYZE engine."Workflows", engine."Steps", engine."IdempotencyKeys" """
+                );
+                await analyzeCmd.ExecuteNonQueryAsync(ct);
+            }
         }
     }
 }
