@@ -1,14 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using WorkflowEngine.Data.Abstractions;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Workflows", Schema = Constants.SchemaNames.Engine)]
-internal sealed class WorkflowEntity : IHasCommonMetadata
+[Table("Workflows", Schema = SchemaNames.Engine)]
+internal sealed class WorkflowEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

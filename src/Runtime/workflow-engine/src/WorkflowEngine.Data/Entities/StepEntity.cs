@@ -1,15 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using WorkflowEngine.Data.Abstractions;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Steps", Schema = Constants.SchemaNames.Engine)]
-internal sealed class StepEntity : IHasCommonMetadata
+[Table("Steps", Schema = SchemaNames.Engine)]
+internal sealed class StepEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
