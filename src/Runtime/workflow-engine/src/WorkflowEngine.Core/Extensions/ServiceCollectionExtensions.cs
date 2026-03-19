@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Constants;
 using WorkflowEngine.Data.Extensions;
@@ -19,6 +20,8 @@ public static class ServiceCollectionExtensions
         {
             if (!services.IsConfigured<EngineSettings>())
                 services.ConfigureEngine(engineConfigSection);
+
+            services.TryAddSingleton(TimeProvider.System);
 
             // Command plugin system
             services.AddSingleton<ICommandRegistry>(sp =>
