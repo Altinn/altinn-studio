@@ -302,10 +302,15 @@ function ModeToggle({
   const className = cn(givenClass, classes.toggle);
   return (
     <ToggleGroup onChange={onToggle} value={inputMode} data-size='sm' className={className}>
-      <ToggleGroup.Item icon value={Mode.EditValue} title={texts.editValue}>
+      <ToggleGroup.Item
+        aria-label={texts.editValue}
+        icon
+        title={texts.editValue}
+        value={Mode.EditValue}
+      >
         <PencilIcon />
       </ToggleGroup.Item>
-      <ToggleGroup.Item icon value={Mode.Search} title={texts.search}>
+      <ToggleGroup.Item icon value={Mode.Search} title={texts.search} aria-label={texts.search}>
         <MagnifyingGlassIcon />
       </ToggleGroup.Item>
     </ToggleGroup>
