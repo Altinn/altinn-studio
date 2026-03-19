@@ -507,6 +507,194 @@ namespace Designer.Tests.Services
             Assert.Equal(remoteCommitSha, localRepoAfterPull.Head.Tip.Parents.Single().Sha);
         }
 
+        [Fact]
+        public void PullRemoteChanges_CleanAndDivergedWithConflicts_ReturnsMergeConflictAndAbortsRebase()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            string localCommitSha;
+
+            using (Repository localRepo = new(localRepoPath))
+            {
+                File.WriteAllText(
+                    Path.Join(localRepoPath, "test.txt"),
+                    """
+                    line one
+                    local line two
+                    line three
+                    line four
+                    line five
+                    line six
+                    line seven
+                    line eight
+                    line nine
+                    line ten
+                    line eleven
+                    line twelve
+                    """
+                );
+                Commands.Stage(localRepo, "test.txt");
+                var signature = new LibGit2Sharp.Signature(
+                    fixture.Developer,
+                    $"{fixture.Developer}@test.com",
+                    DateTimeOffset.Now
+                );
+                localCommitSha = localRepo.Commit("local committed update", signature, signature).Sha;
+            }
+
+            fixture.CommitAndPushChange(
+                collaboratorRepoPath,
+                "test.txt",
+                """
+                line one
+                remote line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                line eleven
+                line twelve
+                """,
+                "remote conflicting update"
+            );
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.MergeConflict, status.RepositoryStatus);
+            using Repository localRepoAfterPull = new(localRepoPath);
+            Assert.Equal(localCommitSha, localRepoAfterPull.Head.Tip.Sha);
+            Assert.False(localRepoAfterPull.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.Empty(localRepoAfterPull.Index.Conflicts);
+            string fileContent = File.ReadAllText(Path.Join(localRepoPath, "test.txt"));
+            Assert.Contains("local line two", fileContent);
+            Assert.DoesNotContain("remote line two", fileContent);
+        }
+
+        [Fact]
+        public void PullRemoteChanges_CleanAndDivergedWithLocalStudioCommit_PreservesStudioNoteAndSucceeds()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+
+            string localCommitSha = fixture.CommitStudioChange(
+                localRepoPath,
+                "local-only.txt",
+                "local content",
+                "local studio update"
+            );
+            fixture.CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+            using Repository localRepoAfterPull = new(localRepoPath);
+            Assert.NotEqual(localCommitSha, localRepoAfterPull.Head.Tip.Sha);
+            Assert.Equal("local studio update", localRepoAfterPull.Head.Tip.MessageShort);
+            Assert.Equal(
+                "studio-commit",
+                localRepoAfterPull
+                    .Notes[localRepoAfterPull.Notes.DefaultNamespace, localRepoAfterPull.Head.Tip.Id]
+                    ?.Message
+            );
+        }
+
+        [Fact]
+        public void RebaseOntoRemoteBranch_WithMultipleLocalStudioCommits_PreservesAllLocalNotes()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            fixture.CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+
+            fixture.CommitStudioChange(localRepoPath, "local-one.txt", "local one", "local studio update one");
+            fixture.CommitStudioChange(localRepoPath, "local-two.txt", "local two", "local studio update two");
+
+            RemoteRebaseResult rebaseResult = fixture.Service.RebaseOntoRemoteBranch(
+                authenticatedContext,
+                General.DefaultBranch
+            );
+            Assert.Equal(RebaseStatus.Complete, rebaseResult.Status);
+            Assert.Contains(rebaseResult.ContentStatus, content => content.FilePath == "remote-only.txt");
+
+            using Repository localRepo = new(localRepoPath);
+            Assert.Equal("local studio update two", localRepo.Head.Tip.MessageShort);
+            Assert.Equal("local studio update one", localRepo.Head.Tip.Parents.Single().MessageShort);
+
+            Assert.Equal(
+                "studio-commit",
+                localRepo.Notes[localRepo.Notes.DefaultNamespace, localRepo.Head.Tip.Id]?.Message
+            );
+            Assert.Equal(
+                "studio-commit",
+                localRepo.Notes[localRepo.Notes.DefaultNamespace, localRepo.Head.Tip.Parents.Single().Id]?.Message
+            );
+        }
+
+        [Fact]
+        public void RebaseOntoRemoteBranch_WhenNotedCommitDrops_DoesNotMoveNoteToUnnotedCommit()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+
+            fixture.CommitStudioChange(localRepoPath, "shared.txt", "same content", "noted local update");
+
+            using (Repository localRepo = new(localRepoPath))
+            {
+                File.WriteAllText(Path.Join(localRepoPath, "local-only.txt"), "local only");
+                Commands.Stage(localRepo, "local-only.txt");
+                var signature = new LibGit2Sharp.Signature(
+                    fixture.Developer,
+                    $"{fixture.Developer}@test.com",
+                    DateTimeOffset.Now
+                );
+                localRepo.Commit("plain local update", signature, signature);
+            }
+
+            fixture.CommitAndPushChange(collaboratorRepoPath, "shared.txt", "same content", "remote duplicate update");
+
+            RemoteRebaseResult rebaseResult = fixture.Service.RebaseOntoRemoteBranch(
+                authenticatedContext,
+                General.DefaultBranch
+            );
+
+            Assert.Equal(RebaseStatus.Complete, rebaseResult.Status);
+            using Repository localRepoAfterRebase = new(localRepoPath);
+            Assert.Equal("plain local update", localRepoAfterRebase.Head.Tip.MessageShort);
+            Assert.Null(
+                localRepoAfterRebase.Notes[
+                    localRepoAfterRebase.Notes.DefaultNamespace,
+                    localRepoAfterRebase.Head.Tip.Id
+                ]
+            );
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -781,6 +969,17 @@ namespace Designer.Tests.Services
                 var signature = new LibGit2Sharp.Signature(Developer, $"{Developer}@test.com", DateTimeOffset.Now);
                 LibGit2Sharp.Commit commit = collaboratorRepo.Commit(commitMessage, signature, signature);
                 collaboratorRepo.Network.Push(collaboratorRepo.Head, new PushOptions());
+                return commit.Sha;
+            }
+
+            public string CommitStudioChange(string repoPath, string filePath, string content, string commitMessage)
+            {
+                using var repo = new Repository(repoPath);
+                File.WriteAllText(Path.Join(repoPath, filePath), content);
+                Commands.Stage(repo, filePath);
+                var signature = new LibGit2Sharp.Signature(Developer, $"{Developer}@test.com", DateTimeOffset.Now);
+                LibGit2Sharp.Commit commit = repo.Commit(commitMessage, signature, signature);
+                repo.Notes.Add(commit.Id, "studio-commit", signature, signature, repo.Notes.DefaultNamespace);
                 return commit.Sha;
             }
 

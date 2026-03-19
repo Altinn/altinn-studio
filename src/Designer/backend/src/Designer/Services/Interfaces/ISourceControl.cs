@@ -197,7 +197,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
         /// <param name="branchName">The branch to rebase onto from origin</param>
-        RebaseResult RebaseOntoRemoteBranch(
+        RemoteRebaseResult RebaseOntoRemoteBranch(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
             string branchName
         );

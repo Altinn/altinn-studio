@@ -142,6 +142,62 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Pull_WithDirtyWorktreeAndRemoteChangeOnSameFile_ReturnsCheckoutConflictWithoutCommit(
+            string org
+        )
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            const string MetadataPath = "App/config/applicationmetadata.json";
+            string collaboratorRepoPath = GitRepositoryTestHelper.CloneRepository(
+                TestUrlsProvider.Instance.GiteaUrl,
+                org,
+                targetRepo
+            );
+
+            try
+            {
+                using LibGit2Sharp.Repository localRepoBeforePull = new(CreatedFolderPath);
+                string headShaBeforePull = localRepoBeforePull.Head.Tip.Sha;
+
+                string localMetadata = await File.ReadAllTextAsync($"{CreatedFolderPath}/{MetadataPath}");
+                await File.WriteAllTextAsync(
+                    $"{CreatedFolderPath}/{MetadataPath}",
+                    localMetadata.Replace($"\"id\": \"{org}/{targetRepo}\"", $"\"id\": \"{org}/{targetRepo}-local\"")
+                );
+
+                string collaboratorMetadataPath = Path.Combine(collaboratorRepoPath, MetadataPath);
+                string collaboratorMetadata = await File.ReadAllTextAsync(collaboratorMetadataPath);
+                GitRepositoryTestHelper.CommitAndPushFile(
+                    collaboratorRepoPath,
+                    MetadataPath,
+                    collaboratorMetadata.Replace($"\"nb\": \"{targetRepo}\"", "\"nb\": \"remote-title\""),
+                    "remote update"
+                );
+
+                using HttpResponseMessage pullResponse = await HttpClient.GetAsync(
+                    $"designer/api/repos/repo/{org}/{targetRepo}/pull"
+                );
+                Assert.Equal(HttpStatusCode.OK, pullResponse.StatusCode);
+
+                RepoStatus repoStatus = await pullResponse.Content.ReadAsAsync<RepoStatus>();
+                Assert.Equal(RepositoryStatus.CheckoutConflict, repoStatus.RepositoryStatus);
+
+                using LibGit2Sharp.Repository localRepoAfterPull = new(CreatedFolderPath);
+                Assert.Equal(headShaBeforePull, localRepoAfterPull.Head.Tip.Sha);
+                string metadataAfterPull = await File.ReadAllTextAsync($"{CreatedFolderPath}/{MetadataPath}");
+                Assert.Contains($"{org}/{targetRepo}-local", metadataAfterPull);
+                Assert.DoesNotContain("remote-title", metadataAfterPull);
+            }
+            finally
+            {
+                DeleteDirectoryIfExists(collaboratorRepoPath);
+            }
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task MetadataAndStatus_ShouldBehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");

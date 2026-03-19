@@ -384,7 +384,7 @@ namespace Altinn.Studio.Designer.Controllers
                 string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
                     ? commitInfo.BranchName
                     : _sourceControl.GetCurrentBranch(authenticatedContext).BranchName;
-                LibGit2Sharp.RebaseResult rebaseResult = _sourceControl.RebaseOntoRemoteBranch(
+                RemoteRebaseResult rebaseResult = _sourceControl.RebaseOntoRemoteBranch(
                     authenticatedContext,
                     branchName
                 );
@@ -396,14 +396,20 @@ namespace Altinn.Studio.Designer.Controllers
                 }
 
                 _sourceControl.PublishBranch(authenticatedContext, branchName);
-                RepoStatus repoStatus = _sourceControl.RepositoryStatus(authenticatedContext);
-                foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
-                {
-                    Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
-                    SyncSuccess syncSuccess = new(source);
-                    await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
-                }
+                await NotifyFileSyncSuccesses(developer, rebaseResult.ContentStatus);
             }
+        }
+
+        private Task NotifyFileSyncSuccesses(string developer, IEnumerable<RepositoryContent> contentStatuses)
+        {
+            IEnumerable<Task> notifications = contentStatuses.Select(repoContent =>
+            {
+                Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+                SyncSuccess syncSuccess = new(source);
+                return _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
+            });
+
+            return Task.WhenAll(notifications);
         }
 
         /// <summary>

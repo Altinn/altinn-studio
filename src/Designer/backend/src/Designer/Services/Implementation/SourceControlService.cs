@@ -161,7 +161,7 @@ public class SourceControlService(
                             return status;
                         }
 
-                        RebaseResult rebaseResult = self.RebaseOntoRemoteBranch(
+                        RemoteRebaseResult rebaseResult = self.RebaseOntoRemoteBranch(
                             ctx.authenticatedContext,
                             headBranchBefore
                         );
@@ -175,11 +175,7 @@ public class SourceControlService(
                             return status;
                         }
 
-                        using var rebasedRepo = new LibGit2Sharp.Repository(
-                            self.FindLocalRepoLocation(ctx.authenticatedContext)
-                        );
-                        self.FetchGitNotes(ctx.authenticatedContext);
-                        PopulateContentStatusFromCommitDiff(rebasedRepo, head, rebasedRepo.Head.Tip.Tree, status);
+                        status.ContentStatus.AddRange(rebaseResult.ContentStatus);
                         return status;
                     }
 
@@ -934,7 +930,7 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
-    public RebaseResult RebaseOntoRemoteBranch(
+    public RemoteRebaseResult RebaseOntoRemoteBranch(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     )
@@ -948,7 +944,8 @@ public class SourceControlService(
             {
                 self.FetchRemoteChanges(ctx.authenticatedContext);
                 using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
-                RebaseStatus rebaseStatus = default;
+                self.FetchGitNotes(repo, ctx.authenticatedContext);
+                RemoteRebaseResult result = new() { Status = default };
                 bool conflictsAborted = false;
                 bool stopAborted = false;
                 bool dirtyWorktreeBlocked = false;
@@ -959,6 +956,12 @@ public class SourceControlService(
                 Branch upstream =
                     repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
                     ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
+                Tree headTreeBeforeRebase = repo.Head.Tip.Tree;
+                IReadOnlyList<CommitStudioNoteSnapshot> originalStudioNotes = GetStudioNotesOnLocalCommits(
+                    repo,
+                    repo.Head,
+                    upstream
+                );
 
                 try
                 {
@@ -970,7 +973,18 @@ public class SourceControlService(
                     }
 
                     RebaseResult rebaseResult = repo.Rebase.Start(repo.Head, upstream, null, identity, rebaseOptions);
-                    rebaseStatus = rebaseResult.Status;
+                    result.Status = rebaseResult.Status;
+
+                    if (rebaseResult.Status == RebaseStatus.Complete)
+                    {
+                        RestoreStudioNotesOnRebasedCommits(
+                            repo,
+                            upstream,
+                            originalStudioNotes,
+                            self.GetDeveloperSignature(ctx.authenticatedContext.Developer)
+                        );
+                        PopulateContentStatusFromCommitDiff(repo, headTreeBeforeRebase, repo.Head.Tip.Tree, result);
+                    }
 
                     if (rebaseResult.Status == RebaseStatus.Conflicts)
                     {
@@ -989,11 +1003,11 @@ public class SourceControlService(
                         );
                     }
 
-                    return rebaseResult;
+                    return result;
                 }
                 finally
                 {
-                    ctx.activity?.SetTag("rebase.status", rebaseStatus.ToString());
+                    ctx.activity?.SetTag("rebase.status", result.Status.ToString());
                     ctx.activity?.AddEvent(
                         new ActivityEvent(
                             "rebase_remote.summary",
@@ -1003,6 +1017,7 @@ public class SourceControlService(
                                 { "conflicts_aborted", conflictsAborted },
                                 { "stop_aborted", stopAborted },
                                 { "dirty_worktree_blocked", dirtyWorktreeBlocked },
+                                { "content_status_count", result.ContentStatus.Count },
                             }
                         )
                     );
@@ -1482,8 +1497,21 @@ public class SourceControlService(
             activity,
             authenticatedContext,
             static (self, authenticatedContext) =>
-                self.FetchGitNotesAtPath(self.FindLocalRepoLocation(authenticatedContext), authenticatedContext)
+            {
+                using LibGit2Sharp.Repository repo = new(self.FindLocalRepoLocation(authenticatedContext));
+                self.FetchGitNotes(repo, authenticatedContext);
+            }
         );
+    }
+
+    private void FetchGitNotes(LibGit2Sharp.Repository repo, AltinnAuthenticatedRepoEditingContext authenticatedContext)
+    {
+        FetchOptions options = new()
+        {
+            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+            CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
+        };
+        Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
     }
 
     private void FetchGitNotesAtPath(
@@ -1492,12 +1520,7 @@ public class SourceControlService(
     )
     {
         using LibGit2Sharp.Repository repo = new(localRepositoryPath);
-        FetchOptions options = new()
-        {
-            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
-            CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
-        };
-        Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
+        FetchGitNotes(repo, authenticatedContext);
     }
 
     private void FetchRemoteChanges(
@@ -1545,6 +1568,22 @@ public class SourceControlService(
         LibGit2Sharp.Repository repo,
         Tree oldTree,
         Tree? newTree,
+        RemoteRebaseResult result
+    )
+    {
+        if (newTree is null)
+        {
+            return;
+        }
+
+        TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
+        AddTreeChangesToContentStatus(result.ContentStatus, treeChanges);
+    }
+
+    private static void PopulateContentStatusFromCommitDiff(
+        LibGit2Sharp.Repository repo,
+        Tree oldTree,
+        Tree? newTree,
         RepoStatus status
     )
     {
@@ -1554,12 +1593,145 @@ public class SourceControlService(
         }
 
         TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
+        AddTreeChangesToContentStatus(status.ContentStatus, treeChanges);
+    }
+
+    private static void AddTreeChangesToContentStatus(
+        ICollection<RepositoryContent> contentStatus,
+        TreeChanges treeChanges
+    )
+    {
+        foreach (TreeEntryChanges change in treeChanges.Added)
+        {
+            contentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.NewInWorkdir }
+            );
+        }
+
         foreach (TreeEntryChanges change in treeChanges.Modified)
         {
-            status.ContentStatus.Add(
+            contentStatus.Add(
                 new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.ModifiedInWorkdir }
             );
         }
+
+        foreach (TreeEntryChanges change in treeChanges.Deleted)
+        {
+            contentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.DeletedFromWorkdir }
+            );
+        }
+
+        foreach (TreeEntryChanges change in treeChanges.Renamed)
+        {
+            contentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.RenamedInWorkdir }
+            );
+        }
+    }
+
+    private static IReadOnlyList<CommitStudioNoteSnapshot> GetStudioNotesOnLocalCommits(
+        LibGit2Sharp.Repository repo,
+        Branch branch,
+        Branch upstream
+    )
+    {
+        return GetLocalOnlyCommits(repo, branch, upstream)
+            .Select(commit => new CommitStudioNoteSnapshot(commit, TryGetStudioNoteMessage(repo, commit)))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<LibGit2Sharp.Commit> GetLocalOnlyCommits(
+        LibGit2Sharp.Repository repo,
+        Branch branch,
+        Branch upstream
+    )
+    {
+        return repo
+            .Commits.QueryBy(
+                new CommitFilter
+                {
+                    IncludeReachableFrom = branch,
+                    ExcludeReachableFrom = upstream,
+                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
+                }
+            )
+            .Reverse()
+            .ToArray();
+    }
+
+    private static string? TryGetStudioNoteMessage(LibGit2Sharp.Repository repo, LibGit2Sharp.Commit commit)
+    {
+        Note note = repo.Notes[repo.Notes.DefaultNamespace, commit.Id];
+        return note?.Message;
+    }
+
+    private static void RestoreStudioNotesOnRebasedCommits(
+        LibGit2Sharp.Repository repo,
+        Branch upstream,
+        IReadOnlyList<CommitStudioNoteSnapshot> originalStudioNotes,
+        LibGit2Sharp.Signature signature
+    )
+    {
+        IReadOnlyList<LibGit2Sharp.Commit> rebasedCommits = GetLocalOnlyCommits(repo, repo.Head, upstream);
+        bool[] consumedRebasedCommits = new bool[rebasedCommits.Count];
+
+        foreach (CommitStudioNoteSnapshot originalStudioNote in originalStudioNotes)
+        {
+            if (string.IsNullOrEmpty(originalStudioNote.NoteMessage))
+            {
+                continue;
+            }
+
+            for (int i = 0; i < rebasedCommits.Count; i++)
+            {
+                if (consumedRebasedCommits[i])
+                {
+                    continue;
+                }
+
+                if (!CommitStudioNoteSnapshot.Matches(originalStudioNote, rebasedCommits[i]))
+                {
+                    continue;
+                }
+
+                AddStudioNoteIfMissing(repo, rebasedCommits[i], originalStudioNote.NoteMessage, signature);
+                consumedRebasedCommits[i] = true;
+                break;
+            }
+        }
+    }
+
+    private static void AddStudioNoteIfMissing(
+        LibGit2Sharp.Repository repo,
+        LibGit2Sharp.Commit commit,
+        string noteMessage,
+        LibGit2Sharp.Signature signature
+    )
+    {
+        Note note = repo.Notes[repo.Notes.DefaultNamespace, commit.Id];
+        if (note is null)
+        {
+            repo.Notes.Add(commit.Id, noteMessage, signature, signature, repo.Notes.DefaultNamespace);
+        }
+    }
+
+    private sealed record CommitStudioNoteSnapshot(
+        string Message,
+        string AuthorName,
+        string AuthorEmail,
+        DateTimeOffset AuthorWhen,
+        string? NoteMessage
+    )
+    {
+        public CommitStudioNoteSnapshot(LibGit2Sharp.Commit commit, string? noteMessage)
+            : this(commit.Message, commit.Author.Name, commit.Author.Email, commit.Author.When, noteMessage) { }
+
+        public static bool Matches(CommitStudioNoteSnapshot originalCommit, LibGit2Sharp.Commit rebasedCommit) =>
+            originalCommit.Message == rebasedCommit.Message
+            && originalCommit.AuthorName == rebasedCommit.Author.Name
+            && originalCommit.AuthorEmail == rebasedCommit.Author.Email
+            && originalCommit.AuthorWhen == rebasedCommit.Author.When;
     }
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)

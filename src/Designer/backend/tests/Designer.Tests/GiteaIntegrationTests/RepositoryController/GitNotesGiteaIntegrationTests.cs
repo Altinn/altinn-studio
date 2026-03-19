@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
+using LibGit2Sharp;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
@@ -128,6 +129,100 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Commit_AndPush_WhenRemoteHasAdvanced_RebasesAndKeepsGitNote(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            await File.WriteAllTextAsync($"{CreatedFolderPath}/local-only.txt", "I am a local file");
+
+            using var createFileContent = new StringContent(
+                GenerateCommitJsonPayload("I am a remote file created in gitea", "test gitea commit"),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync(
+                $"repos/{org}/{targetRepo}/contents/remote-only.txt",
+                createFileContent
+            );
+            Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
+
+            using var commitAndPushContent = new StringContent(
+                GetCommitInfoJson("test commit", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+                commitAndPushContent
+            );
+            Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
+
+            Assert.True(File.Exists($"{CreatedFolderPath}/remote-only.txt"));
+            using Repository localRepo = new(CreatedFolderPath);
+            Assert.Equal("test commit", localRepo.Head.Tip.MessageShort);
+            Assert.Single(localRepo.Head.Tip.Parents);
+
+            var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/contents/local-only.txt"
+            );
+            Assert.Equal(HttpStatusCode.OK, giteaFileResponse.StatusCode);
+
+            await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Commit_AndPush_WhenRemoteStudioCommitHasAdvanced_RebasesAndKeepsGitNote(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
+            await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+
+            string collaboratorRepoPath = GitRepositoryTestHelper.CloneRepository(
+                TestUrlsProvider.Instance.GiteaUrl,
+                org,
+                targetRepo
+            );
+            try
+            {
+                string remoteCommitSha = GitRepositoryTestHelper.CommitAndPushFile(
+                    collaboratorRepoPath,
+                    "remote-studio-only.txt",
+                    "I am a remote Studio file",
+                    "remote studio commit",
+                    addStudioNote: true
+                );
+                await VerifyStudioNoteAddedToCommit(org, targetRepo, remoteCommitSha);
+
+                await File.WriteAllTextAsync($"{CreatedFolderPath}/local-only.txt", "I am a local file");
+
+                using var commitAndPushContent = new StringContent(
+                    GetCommitInfoJson("test commit", org, targetRepo),
+                    Encoding.UTF8,
+                    MediaTypeNames.Application.Json
+                );
+                using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+                    $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+                    commitAndPushContent
+                );
+                Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
+
+                Assert.True(File.Exists($"{CreatedFolderPath}/remote-studio-only.txt"));
+                using Repository localRepo = new(CreatedFolderPath);
+                Assert.Equal("test commit", localRepo.Head.Tip.MessageShort);
+                Assert.Single(localRepo.Head.Tip.Parents);
+
+                await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+            }
+            finally
+            {
+                DeleteDirectoryIfExists(collaboratorRepoPath);
+            }
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task LocalAndStudioDevelopment_PullLocalCommitFirst_BehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
@@ -221,10 +316,21 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             using HttpResponseMessage getCommitResponse = await HttpClient.GetAsync(
                 $"designer/api/repos/repo/{org}/{targetRepo}/latest-commit"
             );
-            Commit commit = await getCommitResponse.Content.ReadAsAsync<Commit>();
+            Altinn.Studio.Designer.Models.Commit commit =
+                await getCommitResponse.Content.ReadAsAsync<Altinn.Studio.Designer.Models.Commit>();
 
             var noteResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
                 $"repos/{org}/{targetRepo}/git/notes/{commit.Sha}"
+            );
+
+            var notesNode = JsonNode.Parse(await noteResponse.Content.ReadAsStringAsync());
+            Assert.Equal("studio-commit", notesNode!["message"]!.ToString());
+        }
+
+        private async Task VerifyStudioNoteAddedToCommit(string org, string targetRepo, string commitSha)
+        {
+            var noteResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/git/notes/{commitSha}"
             );
 
             var notesNode = JsonNode.Parse(await noteResponse.Content.ReadAsStringAsync());

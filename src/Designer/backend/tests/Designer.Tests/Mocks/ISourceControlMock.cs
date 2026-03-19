@@ -198,7 +198,7 @@ namespace Designer.Tests.Mocks
         public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) =>
             throw new NotImplementedException();
 
-        public LibGit2Sharp.RebaseResult RebaseOntoRemoteBranch(
+        public RemoteRebaseResult RebaseOntoRemoteBranch(
             AltinnAuthenticatedRepoEditingContext authenticatedContext,
             string branchName
         ) => throw new NotImplementedException();
