@@ -21,7 +21,8 @@ public sealed class TestHelpers(EngineAppFixture fixture)
         string? payload = null,
         string? contentType = null,
         TimeSpan? maxExecutionTime = null,
-        RetryStrategy? retryStrategy = null
+        RetryStrategy? retryStrategy = null,
+        Dictionary<string, string>? labels = null
     ) =>
         new()
         {
@@ -36,6 +37,7 @@ public sealed class TestHelpers(EngineAppFixture fixture)
                 maxExecutionTime
             ),
             RetryStrategy = retryStrategy,
+            Labels = labels,
         };
 
     /// <summary>Builds a <see cref="WorkflowRequest"/> with the supplied steps.</summary>

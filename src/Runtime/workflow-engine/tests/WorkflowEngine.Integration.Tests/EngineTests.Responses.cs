@@ -124,6 +124,33 @@ public partial class EngineTests
     }
 
     [Fact]
+    public async Task Response_GetWorkflow_WithStepLabels_ReturnsLabelsInShape()
+    {
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-1",
+                [
+                    _testHelpers.CreateWebhookStep(
+                        "/ping",
+                        labels: new Dictionary<string, string> { ["env"] = "test", ["tier"] = "frontend" }
+                    ),
+                ]
+            )
+        );
+        var accepted = await _client.Enqueue(request);
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        using var response = await _client.GetWorkflowRaw(workflowId);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
     public async Task Response_GetWorkflow_MultipleSteps_ReturnsAllSteps()
     {
         var request = _testHelpers.CreateEnqueueRequest(
@@ -337,6 +364,22 @@ public partial class EngineTests
         using var response = await _client.EnqueueRaw(request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_StepLabelsExceedMax_Returns400WithDetails()
+    {
+        var stepLabels = Enumerable.Range(1, 51).ToDictionary(i => $"key-{i}", i => $"value-{i}");
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping", labels: stepLabels)])
+        );
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
     }
 
     [Fact]
