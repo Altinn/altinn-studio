@@ -76,8 +76,9 @@ describe('ImageUpload component', () => {
     cy.findByRole('img', { name: /uploadThis2.png/ }).should('be.visible');
   });
 
-  it.only('shows validation error when required and no image is uploaded, removes validation error on upload', () => {
-    cy.interceptLayout('Task_1', (component) => {
+  it('shows validation error when required and no image is uploaded, removes validation error on upload', () => {
+    cy.gotoNavPage('Bildeopplasting');
+    cy.changeLayout((component) => {
       if (component.type === 'ImageUpload' && component.id === 'ImageUploadPage-ImageUpload') {
         component.required = true;
       }
@@ -85,7 +86,6 @@ describe('ImageUpload component', () => {
         component.validateOnNext = { page: 'currentAndPrevious', show: ['All'] };
       }
     });
-    cy.gotoNavPage('Bildeopplasting');
 
     cy.get('[data-componentId="ImageUploadPage-ImageUpload"]').should('be.visible');
     cy.findByRole('button', { name: /next/i }).click();
