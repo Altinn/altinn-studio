@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyActions } from './PolicyActions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -12,6 +12,7 @@ import { PolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { PolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const mockActionOption1: string = textMock(`policy_editor.action_${mockActionId1}`);
 const mockActionOption2: string = textMock(`policy_editor.action_${mockActionId2}`);
@@ -104,7 +105,7 @@ describe('PolicyActions', () => {
 });
 
 const renderPolicyActions = () => {
-  return render(
+  return renderAndRunTimers(
     <PolicyEditorContext.Provider value={mockPolicyEditorContextValue}>
       <PolicyRuleContext.Provider value={mockPolicyRuleContextValue}>
         <PolicyActions />
