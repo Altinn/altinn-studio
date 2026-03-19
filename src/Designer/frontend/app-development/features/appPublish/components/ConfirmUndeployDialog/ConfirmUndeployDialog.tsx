@@ -33,8 +33,8 @@ export const ConfirmUndeployDialog = ({
     setIsAppNameConfirmed(isAppNameConfirmedForDelete(event.currentTarget.value, appName));
   };
 
-  const openDialog = () => dialogRef.current.showModal();
-  const closeDialog = () => dialogRef.current.close();
+  const openDialog = () => dialogRef.current?.showModal();
+  const closeDialog = () => dialogRef.current?.close();
 
   const onUndeployClicked = (): void => {
     mutateUndeploy(
