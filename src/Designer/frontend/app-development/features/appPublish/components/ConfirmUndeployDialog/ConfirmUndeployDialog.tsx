@@ -22,7 +22,7 @@ export const ConfirmUndeployDialog = ({
 }: ConfirmUndeployDialogProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app: appName } = useStudioEnvironmentParams();
-  const dialogRef = useRef<HTMLDialogElement>(undefined);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [isAppNameConfirmed, setIsAppNameConfirmed] = useState<boolean>(false);
   const {
     mutate: mutateUndeploy,

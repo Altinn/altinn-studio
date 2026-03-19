@@ -102,14 +102,16 @@ jest.mock('react-i18next', () => ({
       language: 'nb',
     },
   }),
-  withTranslation: () => (Component: ComponentType<ComponentWithTranslationProps>) => {
-    const WithTranslationMock = (props: ComponentWithTranslationProps) =>
-      createElement(Component, {
-        ...props,
-        t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
-      });
-    return WithTranslationMock;
-  },
+  withTranslation:
+    () =>
+    <P extends object>(Component: ComponentType<P & ComponentWithTranslationProps>) => {
+      const WithTranslationMock = (props: P) =>
+        createElement(Component, {
+          ...props,
+          t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+        });
+      return WithTranslationMock;
+    },
 }));
 
 jest.mock('react-router-dom', () => ({
