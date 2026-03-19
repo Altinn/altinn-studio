@@ -358,7 +358,7 @@ class LLMClient:
                     log.debug("Failed to link langfuse prompt to generation: %s", e)
 
             try:
-                loop = asyncio.get_event_loop()
+                loop = asyncio.get_running_loop()
                 response_text = ""
                 usage_details = {}
 
