@@ -27,6 +27,7 @@ namespace LocalTest.Controllers
     [Route("/Home/[action]")]
     public class HomeController : Controller
     {
+        private static readonly TimeSpan LocalAppViewTimeout = TimeSpan.FromSeconds(5);
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IUserProfiles _userProfileService;
@@ -88,19 +89,22 @@ namespace LocalTest.Controllers
 
             try
             {
-                model.TestApps = await GetAppsList();
-                model.TestUsers = await GetTestUsersAndPartiesSelectList();
+                using var timeoutCancellationTokenSource = new CancellationTokenSource(LocalAppViewTimeout);
+                var cancellationToken = timeoutCancellationTokenSource.Token;
+                model.TestApps = await GetAppsList(cancellationToken);
+                model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
                 var firstAppId =
                     model.AppMode == AppMode.Http && model.TestApps.Count() == 1
                         ? model.TestApps.First().Value
                         : null;
-                var defaultAuthLevel = await GetAppAuthLevel(firstAppId);
+                var defaultAuthLevel = await GetAppAuthLevel(firstAppId, cancellationToken);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
-            catch (HttpRequestException e)
+            catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
             {
-                model.HttpException = e;
+                model.HttpException = e as HttpRequestException
+                    ?? new HttpRequestException($"Request to local app timed out after {LocalAppViewTimeout.TotalSeconds:0} seconds.", e);
             }
 
             // In http mode, apps can register themselves, so empty list is OK
@@ -295,18 +299,36 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Tokens")]
         public async Task<IActionResult> Tokens()
         {
-            var model = new TokensViewModel
+            try
             {
-                AuthenticationLevels = GetAuthenticationLevels(2),
-                TestUsers = await GetUsersSelectList(),
-                TestSystemUsers = await GetSystemUsersSelectList(),
-                DefaultOrg =
-                    _localPlatformSettings.LocalAppMode == "http"
-                        ? (await GetAppsList()).First().Value?.Split("/").FirstOrDefault()
-                        : null,
-            };
+                using var timeoutCancellationTokenSource = new CancellationTokenSource(LocalAppViewTimeout);
+                var cancellationToken = timeoutCancellationTokenSource.Token;
+                var model = new TokensViewModel
+                {
+                    AuthenticationLevels = GetAuthenticationLevels(2),
+                    TestUsers = await GetUsersSelectList(cancellationToken),
+                    TestSystemUsers = await GetSystemUsersSelectList(cancellationToken),
+                    DefaultOrg =
+                        _localPlatformSettings.LocalAppMode == "http"
+                            ? (await GetAppsList(cancellationToken)).First().Value?.Split("/").FirstOrDefault()
+                            : null,
+                };
 
-            return View(model);
+                return View(model);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
+            {
+                _logger.LogWarning(ex, "Timed out while loading tokens view");
+                return View(
+                    new TokensViewModel
+                    {
+                        AuthenticationLevels = GetAuthenticationLevels(2),
+                        TestUsers = [],
+                        TestSystemUsers = [],
+                        DefaultOrg = string.Empty,
+                    }
+                );
+            }
         }
 
         /// <summary>
@@ -405,9 +427,9 @@ namespace LocalTest.Controllers
             return Ok(token);
         }
 
-        private async Task<IEnumerable<SelectListItem>> GetTestUsersAndPartiesSelectList()
+        private async Task<IEnumerable<SelectListItem>> GetTestUsersAndPartiesSelectList(CancellationToken cancellationToken = default)
         {
-            var data = await _testDataService.GetTestData();
+            var data = await _testDataService.GetTestData(cancellationToken);
             var userItems = new List<SelectListItem>();
 
             foreach (UserProfile profile in data.Profile.User.Values)
@@ -454,9 +476,9 @@ namespace LocalTest.Controllers
             return userItems;
         }
 
-        private async Task<List<SelectListItem>> GetUsersSelectList()
+        private async Task<List<SelectListItem>> GetUsersSelectList(CancellationToken cancellationToken = default)
         {
-            var data = await _testDataService.GetTestData();
+            var data = await _testDataService.GetTestData(cancellationToken);
             var testUsers = new List<SelectListItem>();
             foreach (UserProfile profile in data.Profile.User.Values)
             {
@@ -469,9 +491,9 @@ namespace LocalTest.Controllers
             return testUsers;
         }
 
-        private async Task<List<SelectListItem>> GetSystemUsersSelectList()
+        private async Task<List<SelectListItem>> GetSystemUsersSelectList(CancellationToken cancellationToken = default)
         {
-            var data = await _testDataService.GetTestData();
+            var data = await _testDataService.GetTestData(cancellationToken);
             var testUsers = new List<SelectListItem>();
             var orgs = data.Register.Org;
             foreach (var systemUser in data.Authorization.SystemUsers.Values)
@@ -485,7 +507,7 @@ namespace LocalTest.Controllers
             return testUsers;
         }
 
-        private async Task<int> GetAppAuthLevel(string appId)
+        private async Task<int> GetAppAuthLevel(string appId, CancellationToken cancellationToken = default)
         {
             bool isHttp = _localPlatformSettings.LocalAppMode == "http";
             if (!isHttp || string.IsNullOrWhiteSpace(appId))
@@ -494,7 +516,7 @@ namespace LocalTest.Controllers
             }
             try
             {
-                var policyString = await _localApp.GetXACMLPolicy(appId);
+                var policyString = await _localApp.GetXACMLPolicy(appId, cancellationToken);
                 var document = new XmlDocument();
                 document.LoadXml(policyString);
                 var nsMngr = new XmlNamespaceManager(document.NameTable);
@@ -573,9 +595,9 @@ namespace LocalTest.Controllers
             };
         }
 
-        private async Task<List<SelectListItem>> GetAppsList()
+        private async Task<List<SelectListItem>> GetAppsList(CancellationToken cancellationToken = default)
         {
-            var applications = await _localApp.GetApplications();
+            var applications = await _localApp.GetApplications(cancellationToken);
             return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
         }
 

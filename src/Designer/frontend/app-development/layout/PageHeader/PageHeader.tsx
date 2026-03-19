@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useMediaQuery } from '@studio/components-legacy';
 import { StudioAvatar, StudioPageHeader } from '@studio/components';

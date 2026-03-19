@@ -1,6 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioFormGroup } from '.';
 import { StudioTextfield } from '../StudioTextfield';
 import { StudioCheckbox } from '../StudioCheckbox';
@@ -13,9 +12,7 @@ const ComposedComponent = (args): ReactElement => (
   </StudioFormGroup>
 );
 
-type Story = StoryFn<typeof ComposedComponent>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioFormGroup',
   component: ComposedComponent,
   argTypes: {
@@ -24,14 +21,17 @@ const meta: Meta = {
       options: ['sm', 'md', 'lg'],
     },
   },
-};
-export const Preview: Story = (args): ReactElement => <ComposedComponent {...args} />;
-
-Preview.args = {
-  legend: 'My Formgroup',
-  description: 'My description',
-  tagText: 'Obligatorisk',
-  required: true,
-  'data-size': 'sm',
-};
+} satisfies Meta<typeof ComposedComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    legend: 'My Formgroup',
+    description: 'My description',
+    tagText: 'Obligatorisk',
+    required: true,
+    'data-size': 'sm',
+  },
+};

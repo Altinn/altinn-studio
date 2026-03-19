@@ -1,6 +1,13 @@
 name: App Fileanalyzers - CodeQL
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/App/fileanalyzers/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
+      - '.github/workflows/app-fileanalyzers-codeql.yml'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
@@ -10,7 +17,7 @@ on:
       - '.github/workflows/app-fileanalyzers-codeql.yml'
   workflow_dispatch:
   schedule:
-    - cron: '37 20 * * 3'
+    - cron: '25 1 * * 0'
 
 jobs:
   analyze:
@@ -40,7 +47,7 @@ jobs:
         language: ${{ matrix.language }}
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
+      uses: github/codeql-action/init@603b797f8b14b413fe025cd935a91c16c4782713 # v3
       with:
         languages: ${{ matrix.language }}
         build-mode: manual
@@ -51,6 +58,6 @@ jobs:
       run: dotnet build solutions/Src.sln -v m
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
+      uses: github/codeql-action/analyze@603b797f8b14b413fe025cd935a91c16c4782713 # v3
       with:
-        category: "/language:${{matrix.language}}"
+        category: "/codeql/app/fileanalyzers/${{ matrix.language }}"

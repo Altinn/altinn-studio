@@ -180,22 +180,6 @@
       </korrespondanseparttype>
       <korrespondansepartNavn>Recipient Name</korrespondansepartNavn>
     </korrespondansepart>
-    <korrespondansepart>
-      <korrespondansepartID>org-number</korrespondansepartID>
-      <korrespondanseparttype>
-        <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
-        <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
-      </korrespondanseparttype>
-      <korrespondansepartNavn>Org Name</korrespondansepartNavn>
-    </korrespondansepart>
-    <korrespondansepart>
-      <korrespondansepartID>991825827</korrespondansepartID>
-      <korrespondanseparttype>
-        <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">IA</kode>
-        <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Intern avsender</beskrivelse>
-      </korrespondanseparttype>
-      <korrespondansepartNavn>Altinn Studio</korrespondansepartNavn>
-    </korrespondansepart>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>
       <noekkel xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">custom-case-file-id</noekkel>

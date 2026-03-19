@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { ResourceContactPointFieldsProps } from './ResourceContactPointFields';
 import { ResourceContactPointFields } from './ResourceContactPointFields';

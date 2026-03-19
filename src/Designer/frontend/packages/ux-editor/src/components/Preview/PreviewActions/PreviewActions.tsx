@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioLinkButton } from '@studio/components';
 import { ExternalLinkIcon, SidebarRightIcon } from '@studio/icons';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import { renderWithProviders } from '../../../testing/mocks';

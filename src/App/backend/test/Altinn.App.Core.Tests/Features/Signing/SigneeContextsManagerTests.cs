@@ -530,4 +530,49 @@ public sealed class SigneeContextsManagerTests : IDisposable
 
         Assert.Empty(result);
     }
+
+    [Fact]
+    public async Task GenerateSigneeContexts_WithAdditionalActionsToDelegate_ThreadsToSigneeContext()
+    {
+        // Arrange
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeProviderId = "testProvider",
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+        };
+
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+
+        var personSignee = new ProvidedPerson
+        {
+            SocialSecurityNumber = "12345678901",
+            FullName = "Person One",
+            AdditionalActionsToDelegate = ["reject"],
+        };
+
+        var signeesResult = new SigneeProviderResult { Signees = [personSignee] };
+
+        _signeeProvider.Setup(x => x.Id).Returns("testProvider");
+        _signeeProvider.Setup(x => x.GetSignees(It.IsAny<GetSigneesParameters>())).ReturnsAsync(signeesResult);
+
+        // Act
+        var result = await _signeeContextsManager.GenerateSigneeContexts(
+            cachedInstanceMutator.Object,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        var additionalActions = result[0].AdditionalActionsToDelegate;
+        Assert.NotNull(additionalActions);
+        Assert.Equal("reject", Assert.Single(additionalActions));
+    }
 }

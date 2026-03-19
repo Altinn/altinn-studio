@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import classes from './PageAccordion.module.css';
 import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';

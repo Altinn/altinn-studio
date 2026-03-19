@@ -1,7 +1,6 @@
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import React from 'react';
 import TextEditor from './TextEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

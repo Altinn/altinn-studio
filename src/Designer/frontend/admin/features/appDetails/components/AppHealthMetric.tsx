@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppHealthMetric as HealthMetric } from 'admin/types/metrics/AppHealthMetric';
 import { Doughnut } from 'react-chartjs-2';

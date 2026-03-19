@@ -1,20 +1,18 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioActionCloseButton } from './StudioActionCloseButton';
 import { action } from 'storybook/actions';
 
-type Story = StoryFn<typeof StudioActionCloseButton>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioActionCloseButton',
   component: StudioActionCloseButton,
-};
-
-export const Preview: Story = (args): React.ReactElement => <StudioActionCloseButton {...args} />;
-
-Preview.args = {
-  onClick: action('onClick'),
-  variant: 'secondary',
-};
-
+} satisfies Meta<typeof StudioActionCloseButton>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    onClick: action('onClick'),
+    variant: 'secondary',
+  },
+};

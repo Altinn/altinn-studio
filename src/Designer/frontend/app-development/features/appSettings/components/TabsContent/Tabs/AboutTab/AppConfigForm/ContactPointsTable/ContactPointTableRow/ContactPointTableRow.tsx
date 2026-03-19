@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioButton, StudioTable, StudioDeleteButton } from '@studio/components';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
 import { PencilIcon } from '@studio/icons';

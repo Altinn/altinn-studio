@@ -14,6 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/generator"
@@ -23,8 +26,6 @@ import (
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -32,6 +33,9 @@ var (
 	workerIP string
 )
 
+var errNoNonLoopbackIPv4 = errors.New("no non-loopback IPv4 address found")
+
+//nolint:funlen,gocognit,gocyclo,nestif // The worker entrypoint still owns startup, probes, generator wiring, and shutdown.
 func main() {
 	baseLogger := log.NewComponent("worker")
 
@@ -91,43 +95,20 @@ func main() {
 	assert.That(err == nil, "Failed to create PDF generator", "error", err)
 	defer func() {
 		// Closing PDF generator during shutdown
-		if err := gen.Close(); err != nil {
-			logger.Error("Failed to close PDF generator", "error", err)
+		if closeErr := gen.Close(); closeErr != nil {
+			logger.Error("Failed to close PDF generator", "error", closeErr)
 		}
 	}()
 
 	// Start HTTP server for both PDF generation and probes
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
-		if host.IsShuttingDown() || !gen.IsReady() {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		} else {
-			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		}
+		ihttp.WriteProbe(logger, w, !host.IsShuttingDown() && gen.IsReady())
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
-		if host.IsShuttingDown() || !gen.IsReady() {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		} else {
-			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		}
+		ihttp.WriteProbe(logger, w, !host.IsShuttingDown() && gen.IsReady())
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte("OK")); err != nil {
-			logger.Error("Failed to write health check response", "error", err)
-		}
+		ihttp.WriteText(logger, w, http.StatusOK, "OK")
 	})
 
 	// The localtest harness will run on all dev machines
@@ -146,7 +127,8 @@ func main() {
 	}
 
 	httpServer := &http.Server{
-		Addr: ":5031",
+		Addr:              ":5031",
+		ReadHeaderTimeout: 5 * time.Second,
 		BaseContext: func(_ net.Listener) context.Context {
 			return host.ServerContext()
 		},
@@ -154,8 +136,8 @@ func main() {
 
 	go func() {
 		logger.Info("Starting worker HTTP server", "addr", httpServer.Addr)
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error("HTTP server crashed", "error", err)
+		if listenErr := httpServer.ListenAndServe(); listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
+			logger.Error("HTTP server crashed", "error", listenErr)
 			os.Exit(1)
 		}
 	}()
@@ -189,6 +171,7 @@ func main() {
 	logger.Info("Server shut down gracefully")
 }
 
+//nolint:funlen,gocognit // Localtest request normalization and response mapping are still easier to follow in one place.
 func generateLocalPdfHandler(
 	logger *slog.Logger,
 	gen types.PdfGenerator,
@@ -238,7 +221,11 @@ func generateLocalPdfHandler(
 		}
 
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
-		defer func() { _ = r.Body.Close() }()
+		defer func() {
+			if closeErr := r.Body.Close(); closeErr != nil {
+				logger.Warn("Failed to close request body", "error", closeErr)
+			}
+		}()
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -396,10 +383,11 @@ func parseCanonicalLocaltestBaseURL(localtestBaseURL string) (*url.URL, error) {
 
 var errInvalidLocaltestPublicBaseURL = errors.New("invalid localtest public base URL")
 
+//nolint:funlen,gocognit // This handler keeps telemetry bookkeeping and response mapping in one flow.
 func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Worker-Id", workerId)
-		w.Header().Set("X-Worker-IP", workerIP)
+		w.Header().Set("X-Worker-Ip", workerIP)
 
 		data := telemetry.NewRequestEventData()
 		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
@@ -411,10 +399,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			data.SetRejection("method_not_allowed", nil)
 			data.SetErrorMessageIfEmpty("Only POST method is allowed")
 			data.SetResponseStatus(http.StatusMethodNotAllowed)
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			if _, err := w.Write([]byte("Only POST method is allowed")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusMethodNotAllowed, "Only POST method is allowed")
 			return
 		}
 
@@ -423,34 +408,29 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			data.SetRejection("unsupported_media_type", nil)
 			data.SetErrorMessageIfEmpty("Content-Type must be application/json")
 			data.SetResponseStatus(http.StatusUnsupportedMediaType)
-			w.WriteHeader(http.StatusUnsupportedMediaType)
-			if _, err := w.Write([]byte("Content-Type must be application/json")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
 			return
 		}
 		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			data.SetRejection("illegal_test_header", nil)
 			data.SetErrorMessageIfEmpty("Illegal internals test mode header")
 			data.SetResponseStatus(http.StatusBadRequest)
-			w.WriteHeader(http.StatusBadRequest)
-			if _, err := w.Write([]byte("Illegal internals test mode header")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusBadRequest, "Illegal internals test mode header")
 			return
 		}
 
-		defer func() { _ = r.Body.Close() }()
+		defer func() {
+			if closeErr := r.Body.Close(); closeErr != nil {
+				logger.Warn("Failed to close request body", "error", closeErr)
+			}
+		}()
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			data.SetRejection("invalid_json", err)
 			data.SetErrorMessageIfEmpty(fmt.Sprintf("Invalid JSON payload: %v", err))
 			data.SetResponseStatus(http.StatusBadRequest)
-			w.WriteHeader(http.StatusBadRequest)
-			if _, err := fmt.Fprintf(w, "Invalid JSON payload: %v", err); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusBadRequest, fmt.Sprintf("Invalid JSON payload: %v", err))
 			return
 		}
 
@@ -479,10 +459,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 			data.SetPDFError(pdfErr)
 			data.SetResponseStatus(errorCode)
-			w.WriteHeader(errorCode)
-			if _, err := w.Write([]byte(errStr)); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, errorCode, errStr)
 			return
 		}
 
@@ -503,7 +480,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 func discoverLocalIP() (string, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("list interface addresses: %w", err)
 	}
 
 	for _, addr := range addrs {
@@ -514,47 +491,38 @@ func discoverLocalIP() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("no non-loopback IPv4 address found")
+	return "", errNoNonLoopbackIPv4
 }
 
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.That(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+		assert.That(
+			iruntime.IsTestInternalsMode,
+			"Test output handler should only be registered in test internals mode",
+		)
 
 		if r.Method != http.MethodGet {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			if _, err := w.Write([]byte("Only GET method is allowed")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusMethodNotAllowed, "Only GET method is allowed")
 			return
 		}
 
 		// Extract ID from URL path: /testoutput/{id}
 		path := strings.TrimPrefix(r.URL.Path, "/testoutput/")
 		if path == "" || path == r.URL.Path {
-			w.WriteHeader(http.StatusBadRequest)
-			if _, err := w.Write([]byte("Missing test output ID")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusBadRequest, "Missing test output ID")
 			return
 		}
 
 		// Get test output from store
 		output, found := testing.GetTestOutput(path)
 		if !found {
-			w.WriteHeader(http.StatusNotFound)
-			if _, err := w.Write([]byte("Test output not found")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusNotFound, "Test output not found")
 			return
 		}
 
 		// Wait for all snapshots to be collected
 		if !output.WaitForComplete(30 * time.Second) {
-			w.WriteHeader(http.StatusRequestTimeout)
-			if _, err := w.Write([]byte("Timeout waiting for test output to complete")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusRequestTimeout, "Timeout waiting for test output to complete")
 			return
 		}
 
@@ -565,10 +533,7 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 		jsonData, err := json.Marshal(output)
 		if err != nil {
 			logger.Error("Failed to marshal test output", "error", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := w.Write([]byte("Failed to serialize test output")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusInternalServerError, "Failed to serialize test output")
 			return
 		}
 

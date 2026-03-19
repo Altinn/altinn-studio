@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import { Preview } from './Preview';
 import { screen } from '@testing-library/react';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';

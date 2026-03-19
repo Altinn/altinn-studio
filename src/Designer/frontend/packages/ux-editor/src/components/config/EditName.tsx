@@ -1,5 +1,6 @@
 import { StudioFormActions, StudioTextfield, StudioProperty } from '@studio/components';
-import React, { type KeyboardEvent } from 'react';
+import type { KeyboardEvent } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './EditName.module.css';
 import cn from 'classnames';

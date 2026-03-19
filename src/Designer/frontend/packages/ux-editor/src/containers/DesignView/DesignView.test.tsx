@@ -1,4 +1,3 @@
-import React from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';

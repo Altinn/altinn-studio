@@ -17,6 +17,7 @@ using Altinn.Studio.Designer.Telemetry;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Configuration;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -28,10 +29,15 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </remarks>
 /// <param name="repositorySettings">The settings for the service repository.</param>
 /// <param name="giteaClient">The gitea client.</param>
+/// <param name="authHeadersProvider">The git server auth headers provider.</param>
+/// <param name="configuration">Used instead of IFeatureManager to check feature flags synchronously,
+/// since this class is fully synchronous and refactoring to async would require too many changes.</param>
 /// <param name="httpContextAccessor">The HTTP context accessor.</param>
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
+    IGitServerAuthHeadersProvider authHeadersProvider,
+    IConfiguration configuration,
     IHttpContextAccessor? httpContextAccessor = null
 ) : ISourceControl
 {
@@ -52,7 +58,8 @@ public class SourceControlService(
             {
                 string remoteRepo = self.FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
                 CloneOptions cloneOptions = new();
-                cloneOptions.FetchOptions.CredentialsProvider = GetCredentialsHandler(authenticatedContext);
+                cloneOptions.FetchOptions.CredentialsProvider = self.GetCredentialsHandler(authenticatedContext);
+                cloneOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext);
                 string localPath = self.FindLocalRepoLocation(authenticatedContext);
                 string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
@@ -86,7 +93,8 @@ public class SourceControlService(
                     ctx.authenticatedContext.Repo
                 );
                 CloneOptions cloneOptions = new();
-                cloneOptions.FetchOptions.CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext);
+                cloneOptions.FetchOptions.CredentialsProvider = self.GetCredentialsHandler(ctx.authenticatedContext);
+                cloneOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext);
 
                 if (!string.IsNullOrEmpty(ctx.branchName))
                 {
@@ -94,7 +102,7 @@ public class SourceControlService(
                 }
 
                 string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, ctx.destinationPath, cloneOptions);
-                FetchGitNotesAtPath(ctx.destinationPath, ctx.authenticatedContext);
+                self.FetchGitNotesAtPath(ctx.destinationPath, ctx.authenticatedContext);
                 return cloneResult;
             }
         );
@@ -124,7 +132,8 @@ public class SourceControlService(
                     MergeOptions = new MergeOptions() { FastForwardStrategy = FastForwardStrategy.Default },
                     FetchOptions = new FetchOptions(),
                 };
-                pullOptions.FetchOptions.CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext);
+                pullOptions.FetchOptions.CredentialsProvider = self.GetCredentialsHandler(ctx.authenticatedContext);
+                pullOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext);
 
                 try
                 {
@@ -200,7 +209,11 @@ public class SourceControlService(
             {
                 string logMessage = string.Empty;
                 using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(authenticatedContext));
-                FetchOptions fetchOptions = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
+                FetchOptions fetchOptions = new()
+                {
+                    CredentialsProvider = self.GetCredentialsHandler(authenticatedContext),
+                    CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext),
+                };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
@@ -325,7 +338,8 @@ public class SourceControlService(
 
                             SetErrorStatus(ctx.activity, "push_status_error");
                         },
-                        CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext),
+                        CredentialsProvider = self.GetCredentialsHandler(ctx.authenticatedContext),
+                        CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext),
                     };
 
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
@@ -726,7 +740,11 @@ public class SourceControlService(
                 NoteCollection notes = repo.Notes;
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
+                PushOptions options = new()
+                {
+                    CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+                    CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
+                };
 
                 if (branchName == DefaultBranch)
                 {
@@ -797,7 +815,11 @@ public class SourceControlService(
                         updater.UpstreamBranch = $"refs/heads/{ctx.branchName}";
                     }
                 );
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext) };
+                PushOptions options = new()
+                {
+                    CredentialsProvider = self.GetCredentialsHandler(ctx.authenticatedContext),
+                    CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext),
+                };
                 repo.Network.Push(branch, options);
                 repo.Network.Push(remote, "refs/notes/commits", options);
             }
@@ -956,7 +978,11 @@ public class SourceControlService(
                 }
 
                 Remote remote = repo.Network.Remotes["origin"];
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext) };
+                PushOptions options = new()
+                {
+                    CredentialsProvider = self.GetCredentialsHandler(ctx.authenticatedContext),
+                    CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext),
+                };
                 string pushRefSpec = $":refs/heads/{ctx.branchName}";
                 repo.Network.Push(remote, pushRefSpec, options);
                 ctx.activity?.SetTag("branch.deleted", true);
@@ -1335,10 +1361,18 @@ public class SourceControlService(
         return new LibGit2Sharp.Repository(localPath);
     }
 
-    private static LibGit2Sharp.Handlers.CredentialsHandler GetCredentialsHandler(
+    // IConfiguration is used instead of IFeatureManager because this class is fully synchronous
+    // and refactoring to use IFeatureManager's async API would require too many changes.
+    private LibGit2Sharp.Handlers.CredentialsHandler? GetCredentialsHandler(
         AltinnAuthenticatedRepoEditingContext authenticatedContext
     )
     {
+        bool isOidcEnabled = configuration.GetValue<bool>($"FeatureManagement:{StudioFeatureFlags.StudioOidc}");
+        if (isOidcEnabled && !authenticatedContext.MustUseTokenAuth)
+        {
+            return null;
+        }
+
         return (url, user, cred) =>
             new UsernamePasswordCredentials
             {
@@ -1354,18 +1388,33 @@ public class SourceControlService(
             activity,
             authenticatedContext,
             static (self, authenticatedContext) =>
-                FetchGitNotesAtPath(self.FindLocalRepoLocation(authenticatedContext), authenticatedContext)
+                self.FetchGitNotesAtPath(self.FindLocalRepoLocation(authenticatedContext), authenticatedContext)
         );
     }
 
-    private static void FetchGitNotesAtPath(
+    private void FetchGitNotesAtPath(
         string localRepositoryPath,
         AltinnAuthenticatedRepoEditingContext authenticatedContext
     )
     {
         using LibGit2Sharp.Repository repo = new(localRepositoryPath);
-        FetchOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
+        FetchOptions options = new()
+        {
+            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+            CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
+        };
         Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
+    }
+
+    private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
+    {
+        bool isOidcEnabled = configuration.GetValue<bool>($"FeatureManagement:{StudioFeatureFlags.StudioOidc}");
+        if (!isOidcEnabled || authenticatedContext?.MustUseTokenAuth == true)
+        {
+            return [];
+        }
+
+        return authHeadersProvider.GetAuthHeaders().Select(h => $"{h.Key}: {h.Value}").ToArray();
     }
 
     private static Activity? StartActivityCore(string methodName) =>

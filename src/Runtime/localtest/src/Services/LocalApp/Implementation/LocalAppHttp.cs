@@ -64,17 +64,18 @@ namespace LocalTest.Services.LocalApp.Implementation
             client.BaseAddress = new Uri(_defaultAppUrl);
             return client;
         }
-        public async Task<string?> GetXACMLPolicy(string appId)
+
+        public async Task<string?> GetXACMLPolicy(string appId, CancellationToken cancellationToken = default)
         {
             return await _cache.GetOrCreateAsync(XACML_CACHE_KEY + appId, async cacheEntry =>
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
+                return await client.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy", cancellationToken);
             });
         }
-        public async Task<Application?> GetApplicationMetadata(string? appId)
+        public async Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
         {
             // When the AppPathSelection is null, check if there is exactly one app registered. If there are, that's
             // the default one (not the one on port 5005)
@@ -96,20 +97,20 @@ namespace LocalTest.Services.LocalApp.Implementation
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
+                return await client.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false", cancellationToken);
             });
 
             return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
         }
 
-        public async Task<TextResource?> GetTextResource(string org, string app, string language)
+        public async Task<TextResource?> GetTextResource(string org, string app, string language, CancellationToken cancellationToken = default)
         {
             var appId = $"{org}/{app}";
             var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/texts/{language}");
+                return await client.GetStringAsync($"{appId}/api/v1/texts/{language}", cancellationToken);
             });
 
             var textResource = JsonSerializer.Deserialize<TextResource>(content!, JSON_OPTIONS);
@@ -124,7 +125,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return null;
         }
 
-        public async Task<Dictionary<string, Application>> GetApplications()
+        public async Task<Dictionary<string, Application>> GetApplications(CancellationToken cancellationToken = default)
         {
             var ret = new Dictionary<string, Application>();
 
@@ -134,7 +135,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 try
                 {
-                    var app = await GetApplicationMetadata(registration.AppId);
+                    var app = await GetApplicationMetadata(registration.AppId, cancellationToken);
                     if (app != null)
                     {
                         ret.Add(app.Id, app);
@@ -150,7 +151,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             // This allows both registered apps and the default app to coexist
             try
             {
-                var app = await GetApplicationMetadata(null);
+                var app = await GetApplicationMetadata(null, cancellationToken);
                 if (app != null && !ret.ContainsKey(app.Id))
                 {
                     ret.Add(app.Id, app);
@@ -164,7 +165,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return ret;
         }
 
-        public async Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token)
+        public async Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token, CancellationToken cancellationToken = default)
         {
             var requestUri = $"{appId}/instances";
             var serializedInstance = JsonSerializer.Serialize(instance, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault });
@@ -180,8 +181,8 @@ namespace LocalTest.Services.LocalApp.Implementation
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
             message.Headers.Authorization = new ("Bearer", token);
-            var response = await client.SendAsync(message);
-            var stringResponse = await response.Content.ReadAsStringAsync();
+            var response = await client.SendAsync(message, cancellationToken);
+            var stringResponse = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 throw new HttpRequestException(stringResponse);
@@ -192,7 +193,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         private record FetchResult(AppTestDataModel? MergedData, bool AppWasReachable, bool AppHadData);
 
-        public async Task<ILocalApp.TestDataResult> GetTestDataWithMetadata()
+        public async Task<ILocalApp.TestDataResult> GetTestDataWithMetadata(CancellationToken cancellationToken = default)
         {
             var result = await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>
             {
@@ -206,7 +207,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 {
                     try
                     {
-                        var result = await FetchAndMergeTestData(registration.AppId, $"{registration.AppId}/testData.json", merged);
+                        var result = await FetchAndMergeTestData(registration.AppId, $"{registration.AppId}/testData.json", merged, cancellationToken);
                         if (result.AppWasReachable)
                         {
                             reachableApps++;
@@ -227,10 +228,10 @@ namespace LocalTest.Services.LocalApp.Implementation
                 // Also try default app (port 5005) as fallback
                 try
                 {
-                    var defaultAppMetadata = await GetApplicationMetadata("dummyOrg/dummyApp");
+                    var defaultAppMetadata = await GetApplicationMetadata("dummyOrg/dummyApp", cancellationToken);
                     if (defaultAppMetadata != null)
                     {
-                        var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged);
+                        var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged, cancellationToken);
 
                         if (defaultResult.AppWasReachable)
                         {
@@ -263,19 +264,19 @@ namespace LocalTest.Services.LocalApp.Implementation
             return result ?? new ILocalApp.TestDataResult(null, false);
         }
 
-        private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged)
+        private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged, CancellationToken cancellationToken = default)
         {
             try
             {
                 using var client = CreateClient(appId);
-                var response = await client.GetAsync(requestUri);
+                var response = await client.GetAsync(requestUri, cancellationToken);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
                 }
 
                 response.EnsureSuccessStatusCode();
-                var data = await response.Content.ReadAsByteArrayAsync();
+                var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
                 var appData = JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
 
                 if (appData != null)
@@ -296,7 +297,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
                 return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
             }
-            catch (HttpRequestException e)
+            catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
             {
                 _logger.LogWarning(e, "Failed to get test data from app {AppId} - app appears to be offline", appId);
                 return new FetchResult(merged, AppWasReachable: false, AppHadData: false);

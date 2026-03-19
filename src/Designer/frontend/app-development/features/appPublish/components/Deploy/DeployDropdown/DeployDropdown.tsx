@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import classes from './DeployDropdown.module.css';
 import type { StudioSuggestionItem } from '@studio/components';
 import { StudioSuggestion, StudioSpinner, StudioError } from '@studio/components';

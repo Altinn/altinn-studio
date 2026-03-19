@@ -1,4 +1,4 @@
-import React from 'react';
+import { useRef } from 'react';
 import { StudioSpinner, StudioFileUploader, type StudioButtonProps } from '@studio/components';
 import type { FileNameErrorResult } from '@studio/pure-functions';
 import { FileNameUtils } from '@studio/pure-functions';
@@ -40,7 +40,7 @@ export const XSDUpload = ({
   );
   const validationAlert = useValidationAlert();
 
-  const uploadButton = React.useRef(null);
+  const uploadButton = useRef(null);
 
   const handleSubmit = (file: File): void => {
     const occupiedDataModelNames = extractDataTypeNamesFromAppMetadata(appMetadata);

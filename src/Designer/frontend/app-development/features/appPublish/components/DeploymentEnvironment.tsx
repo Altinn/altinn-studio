@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './DeploymentEnvironment.module.css';
 import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { Deploy } from './Deploy';

@@ -1,10 +1,10 @@
-import React from 'react';
+import type { ReactElement } from 'react';
+import { useState, useEffect } from 'react';
 import { previewPage } from 'app-shared/api/paths';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioSpinner } from '@studio/components';
-import type { ReactElement } from 'react';
 import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
 import classes from './Preview.module.css';
 
@@ -12,7 +12,7 @@ export const Preview = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user, isPending: userPending } = useUserQuery();
 
-  const [iframeKey, setIframeKey] = React.useState(0);
+  const [iframeKey, setIframeKey] = useState(0);
   const {
     mutate: createInstance,
     data: instance,
@@ -26,7 +26,7 @@ export const Preview = (): ReactElement => {
     error: layoutMetadataError,
   } = usePreviewLayoutMetadata(org, app);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const { taskId } = layoutMetadata;
     if (!user || !taskId || layoutMetadataPending || createInstancePending || instance) {
       return;
@@ -43,7 +43,7 @@ export const Preview = (): ReactElement => {
   ]);
 
   // Listen for repository reset events to reload the preview
-  React.useEffect(() => {
+  useEffect(() => {
     const handleRepoReset = (): void => {
       setIframeKey((prev) => prev + 1);
     };

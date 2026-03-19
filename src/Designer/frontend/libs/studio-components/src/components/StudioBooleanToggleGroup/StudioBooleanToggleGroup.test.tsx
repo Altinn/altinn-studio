@@ -1,5 +1,4 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
 import type { StudioBooleanToggleGroupProps } from './StudioBooleanToggleGroup';

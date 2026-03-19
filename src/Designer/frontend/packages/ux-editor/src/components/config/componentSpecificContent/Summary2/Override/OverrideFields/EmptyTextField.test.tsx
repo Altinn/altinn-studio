@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { EmptyTextField } from './EmptyTextField';
 import { component1IdMock } from '../../../../../../testing/layoutMock';

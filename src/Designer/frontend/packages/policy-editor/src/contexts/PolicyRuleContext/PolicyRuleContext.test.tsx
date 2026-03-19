@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { PolicyRuleContext, usePolicyRuleContext } from './PolicyRuleContext';
 import { mockPolicyRuleContextValue } from '../../../test/mocks/policyRuleContextMock';

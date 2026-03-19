@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { DialogBlock } from '@digdir/designsystemet-react';
 import type { DialogBlockProps } from '@digdir/designsystemet-react';

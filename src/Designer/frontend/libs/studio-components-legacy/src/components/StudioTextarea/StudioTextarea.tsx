@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { TextareaProps } from '@digdir/designsystemet-react';
 import { Textarea } from '@digdir/designsystemet-react';
 import { useTextInputProps } from '../../hooks/useTextInputProps';

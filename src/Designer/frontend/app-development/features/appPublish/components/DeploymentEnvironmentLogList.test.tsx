@@ -1,4 +1,3 @@
-import React from 'react';
 import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentLogList';
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { screen } from '@testing-library/react';
@@ -426,8 +425,8 @@ describe('DeploymentEnvironmentLogList', () => {
   });
 
   it('falls back to build timestamps for grafana log link when events are absent', () => {
-    const buildStart = '2026-02-09T11:00:00.000Z';
-    const buildFinish = '2026-02-09T11:10:00.000Z';
+    const buildStart = new Date().toISOString();
+    const buildFinish = buildStart;
 
     render({
       pipelineDeploymentList: [
@@ -455,7 +454,7 @@ describe('DeploymentEnvironmentLogList', () => {
   });
 
   it('passes undefined finish time to grafana log link when build finished is missing', () => {
-    const buildStart = '2026-02-09T12:00:00.000Z';
+    const buildStart = new Date().toISOString();
 
     render({
       pipelineDeploymentList: [

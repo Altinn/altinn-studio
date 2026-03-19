@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioButton } from '@studio/components';
 import { CogIcon } from '@studio/icons';
 

@@ -30,18 +30,16 @@ func Meter() otelmetric.Meter {
 	return otel.Meter(scopeName)
 }
 
-// ConfigureOTel bootstraps the OpenTelemetry pipeline.
-// If it does not return an error, make sure to call shutdown for proper cleanup.
 func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {
-		var err error
+		var shutdownErr error
 		for _, fn := range shutdownFuncs {
-			err = errors.Join(err, fn(ctx))
+			shutdownErr = errors.Join(shutdownErr, fn(ctx))
 		}
 		shutdownFuncs = nil
-		return err
+		return shutdownErr
 	}
 
 	handleErr := func(inErr error) {
@@ -95,7 +93,7 @@ func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.Trace
 	// cluster-internal endpoint, no TLS needed
 	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create trace exporter: %w", err)
 	}
 
 	traceProvider := trace.NewTracerProvider(
@@ -109,7 +107,7 @@ func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.Mete
 	// cluster-internal endpoint, no TLS needed
 	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create metric exporter: %w", err)
 	}
 
 	meterProvider := metric.NewMeterProvider(

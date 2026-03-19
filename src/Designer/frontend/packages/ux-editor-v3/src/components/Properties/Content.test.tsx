@@ -1,4 +1,3 @@
-import React from 'react';
 import { Content } from './Content';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioLibraryElement } from './';
 
-const meta: Meta<typeof StudioLibraryElement> = {
+const meta = {
   title: 'Components/StudioLibraryElement',
   component: StudioLibraryElement,
-};
+} satisfies Meta<typeof StudioLibraryElement>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -38,5 +39,3 @@ export const Unnamed: Story = {
     name: null,
   },
 };
-
-export default meta;

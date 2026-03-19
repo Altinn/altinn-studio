@@ -1,7 +1,6 @@
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
-import { expect } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 

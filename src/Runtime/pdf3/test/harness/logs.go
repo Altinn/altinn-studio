@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -13,31 +14,29 @@ import (
 	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
-// LogsCollector streams logs from pdf3 deployments and checks for assertion failures
+// LogsCollector streams logs from pdf3 deployments and checks for assertion failures.
+//
+//nolint:containedctx // These contexts are owned by the collector and cancelled together with the streams.
 type LogsCollector struct {
-	runtime *kind.KindContainerRuntime
-
-	// Log buffers and protection
-	proxyLogs  bytes.Buffer
-	workerLogs bytes.Buffer
-	proxyMu    sync.Mutex
-	workerMu   sync.Mutex
-
-	// Contexts and commands for cleanup
 	proxyCtx     context.Context
 	workerCtx    context.Context
+	runtime      *kind.KindContainerRuntime
 	proxyCancel  context.CancelFunc
 	workerCancel context.CancelFunc
+	proxyLogs    bytes.Buffer
+	workerLogs   bytes.Buffer
+	proxyMu      sync.Mutex
+	workerMu     sync.Mutex
 }
 
-// NewLogsCollector creates a new LogsCollector for the given runtime
+// NewLogsCollector creates a new LogsCollector for the given runtime.
 func NewLogsCollector(runtime *kind.KindContainerRuntime) *LogsCollector {
 	return &LogsCollector{
 		runtime: runtime,
 	}
 }
 
-// Start begins streaming logs from pdf3-proxy and pdf3-worker deployments
+// Start begins streaming logs from pdf3-proxy and pdf3-worker deployments.
 func (lc *LogsCollector) Start() error {
 	// Start streaming proxy logs
 	lc.proxyCtx, lc.proxyCancel = context.WithCancel(context.Background())
@@ -47,7 +46,13 @@ func (lc *LogsCollector) Start() error {
 
 	// Start streaming worker logs
 	lc.workerCtx, lc.workerCancel = context.WithCancel(context.Background())
-	if err := lc.startStreaming(lc.workerCtx, "app=pdf3-worker", "pdf3-worker", &lc.workerLogs, &lc.workerMu); err != nil {
+	if err := lc.startStreaming(
+		lc.workerCtx,
+		"app=pdf3-worker",
+		"pdf3-worker",
+		&lc.workerLogs,
+		&lc.workerMu,
+	); err != nil {
 		lc.proxyCancel() // Clean up proxy streaming
 		return fmt.Errorf("failed to start worker log streaming: %w", err)
 	}
@@ -55,8 +60,13 @@ func (lc *LogsCollector) Start() error {
 	return nil
 }
 
-// startStreaming starts streaming logs to the buffer using the kubernetes client
-func (lc *LogsCollector) startStreaming(ctx context.Context, labelSelector, containerName string, buffer *bytes.Buffer, mu *sync.Mutex) error {
+// startStreaming starts streaming logs to the buffer using the kubernetes client.
+func (lc *LogsCollector) startStreaming(
+	ctx context.Context,
+	labelSelector, containerName string,
+	buffer *bytes.Buffer,
+	mu *sync.Mutex,
+) error {
 	stream, err := lc.runtime.KubernetesClient.StreamLogs(ctx, kubernetes.StreamLogOptions{
 		Namespace:     "runtime-pdf3",
 		LabelSelector: labelSelector,
@@ -68,7 +78,11 @@ func (lc *LogsCollector) startStreaming(ctx context.Context, labelSelector, cont
 
 	go func() {
 		defer func() {
-			_ = stream.Close()
+			if closeErr := stream.Close(); closeErr != nil {
+				mu.Lock()
+				_, _ = fmt.Fprintf(buffer, "[%s stream] close error: %v\n", containerName, closeErr)
+				mu.Unlock()
+			}
 		}()
 		reader := bufio.NewReader(stream)
 		for {
@@ -90,7 +104,7 @@ func (lc *LogsCollector) startStreaming(ctx context.Context, labelSelector, cont
 	return nil
 }
 
-// Stop terminates log streaming
+// Stop terminates log streaming.
 func (lc *LogsCollector) Stop() {
 	if lc.proxyCancel != nil {
 		lc.proxyCancel()
@@ -100,13 +114,15 @@ func (lc *LogsCollector) Stop() {
 	}
 }
 
-// crashPattern defines a pattern to search for in logs
+// crashPattern defines a pattern to search for in logs.
 type crashPattern struct {
 	name    string
 	pattern string
 }
 
-// crashPatterns defines all the crash patterns we check for
+var errCrashDetected = errors.New("detected crashes in pod logs")
+
+// crashPatterns defines all the crash patterns we check for.
 var crashPatterns = []crashPattern{
 	{name: "Assertion failure", pattern: "Assertion failed:"},
 	{name: "Panic", pattern: "panic:"},
@@ -117,9 +133,9 @@ var crashPatterns = []crashPattern{
 }
 
 // CheckForCrashes scans collected logs for various crash patterns
-// Returns an error with details if any crashes are found
+// Returns an error with details if any crashes are found.
 func (lc *LogsCollector) CheckForCrashes() error {
-	var failures []string
+	failures := make([]string, 0, 4)
 
 	// Check proxy logs
 	lc.proxyMu.Lock()
@@ -138,13 +154,13 @@ func (lc *LogsCollector) CheckForCrashes() error {
 	failures = append(failures, workerFailures...)
 
 	if len(failures) > 0 {
-		return fmt.Errorf("detected crashes in pod logs:\n%s", strings.Join(failures, "\n---\n"))
+		return fmt.Errorf("%w:\n%s", errCrashDetected, strings.Join(failures, "\n---\n"))
 	}
 
 	return nil
 }
 
-// findCrashPatterns scans log content for various crash patterns
+// findCrashPatterns scans log content for various crash patterns.
 func findCrashPatterns(logContent, component string) []string {
 	var failures []string
 	lines := strings.Split(logContent, "\n")
@@ -164,10 +180,7 @@ func findCrashPatterns(logContent, component string) []string {
 		if matchedPattern != nil {
 			// Collect the crash line and the next 10 lines for context
 			contextLines := []string{fmt.Sprintf("%s: %s", matchedPattern.name, line)}
-			contextEnd := i + 10
-			if contextEnd > len(lines) {
-				contextEnd = len(lines)
-			}
+			contextEnd := min(i+10, len(lines))
 			for j := i + 1; j < contextEnd; j++ {
 				contextLines = append(contextLines, lines[j])
 			}

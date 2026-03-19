@@ -98,6 +98,9 @@ public class FullTests(ITestOutputHelper output)
                 [JsonPropertyName("deltar")]
                 public bool? Deltar { get; set; }
 
+                [JsonPropertyName("nonNullableInt")]
+                public int NonNullableInt { get; set; }
+
                 [JsonPropertyName("adresse")]
                 public Adresse? Adresse { get; set; }
 
@@ -109,6 +112,19 @@ public class FullTests(ITestOutputHelper output)
 
                 [JsonPropertyName("withCollection")]
                 public ICollection<Adresse>? WithCollection { get; set; }
+
+                #nullable disable
+                // Test that non nullable lists does not cause problems. Old datamodels might have these and they should be supported even if they are not ideal.
+                [JsonPropertyName("withListOfString")]
+                public List<string> WithListOfString { get; set; }
+
+                [JsonPropertyName("withListOfInt")]
+                public List<int> WithListOfInt { get; set; }
+
+                [JsonPropertyName("withListOfNullableInt")]
+                public List<int?> ListNullableInt { get; set; }
+
+                #nullable enable
             }
 
             public class Adresse

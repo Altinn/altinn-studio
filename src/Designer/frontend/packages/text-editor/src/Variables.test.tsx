@@ -1,4 +1,3 @@
-import React from 'react';
 import type { VariablesProps } from './Variables';
 import { Variables } from './Variables';
 import { screen, render as rtlRender } from '@testing-library/react';

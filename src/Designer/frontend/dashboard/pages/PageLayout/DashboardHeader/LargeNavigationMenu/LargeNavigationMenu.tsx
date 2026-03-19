@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 import { StudioPageHeader } from '@studio/components';

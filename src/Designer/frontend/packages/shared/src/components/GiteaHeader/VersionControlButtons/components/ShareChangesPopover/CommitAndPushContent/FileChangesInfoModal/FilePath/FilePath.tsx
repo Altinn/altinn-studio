@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './FilePath.module.css';
 import cn from 'classnames';
 import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
