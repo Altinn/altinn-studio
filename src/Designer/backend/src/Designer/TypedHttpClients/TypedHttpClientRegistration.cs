@@ -1,8 +1,11 @@
 #nullable disable
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using Altinn.ApiClients.Maskinporten.Extensions;
+using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
@@ -74,10 +77,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 IAltinnStorageInstancesClient,
                 AltinnStorageInstancesClient
             >();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-                IAltinnNotificationClient,
-                AltinnNotificationClient
-            >();
+            services.AddAltinnNotificationsClient(config, env);
             services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
@@ -100,6 +100,31 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<ISlackClient, SlackClient>();
             services.AddRuntimeGatewayHttpClient(config, env);
 
+            return services;
+        }
+
+        private static IServiceCollection AddAltinnNotificationsClient(
+            this IServiceCollection services,
+            IConfiguration config,
+            IHostEnvironment env
+        )
+        {
+            var clientBuilder = services.AddAuthenticatedAltinnPlatformTypedHttpClient<
+                IAltinnNotificationClient,
+                AltinnNotificationClient
+            >();
+            if (!env.IsDevelopment())
+            {
+                clientBuilder.AddMaskinportenHttpMessageHandler<SettingsJwkClientDefinition, AltinnNotificationClient>(
+                    def =>
+                    {
+                        var clients = config
+                            .GetSection(nameof(MaskinportenClientForNotifications))
+                            .Get<MaskinportenClientForNotifications>();
+                        def.ClientSettings = clients.FirstOrDefault().Value;
+                    }
+                );
+            }
             return services;
         }
 
