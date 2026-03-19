@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
+using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Extensions;
 
@@ -14,25 +16,23 @@ public static class ServiceCollectionExtensions
     {
         /// <summary>
         /// Adds the database-backed repository for the workflow engine.
+        /// Resolves <see cref="EngineConnectionString"/> and <see cref="EngineSettings"/> from DI
+        /// to configure the Npgsql data source. The connection pool size is set to match
+        /// <see cref="ConcurrencySettings.MaxDbOperations"/>, since all database access is
+        /// gated by the concurrency limiter's DB semaphore.
         /// </summary>
-        /// <param name="connectionStringFactory">
-        /// Factory that resolves the database connection string from the service provider.
-        /// Called once when the <see cref="NpgsqlDataSource"/> singleton is first resolved.
-        /// </param>
         /// <param name="enableSensitiveDataLogging">Enable EF Core sensitive data logging.</param>
-        public IServiceCollection AddDbRepository(
-            Func<IServiceProvider, string> connectionStringFactory,
-            bool enableSensitiveDataLogging = false
-        )
+        public IServiceCollection AddDbRepository(bool enableSensitiveDataLogging = false)
         {
             services.AddSingleton(sp =>
             {
-                var connectionString = connectionStringFactory(sp);
+                var connectionString = sp.GetRequiredService<EngineConnectionString>().Value;
+                var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
                 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
                 {
                     ConnectionStringBuilder =
                     {
-                        MaxPoolSize = 100,
+                        MaxPoolSize = settings.Concurrency.MaxDbOperations,
                         Timeout = 30,
                         KeepAlive = 60,
                     },

@@ -132,8 +132,8 @@ public sealed record ConcurrencySettings
     public int MaxWorkers { get; set; }
 
     /// <summary>
-    /// Maximum number of concurrent database operations. Should be less than the Npgsql connection pool size
-    /// to leave headroom for health checks and non-engine access.
+    /// Maximum number of concurrent database operations.
+    /// Also used to size the Npgsql connection pool (<c>MaxPoolSize</c>).
     /// </summary>
     [JsonPropertyName("maxDbOperations")]
     public int MaxDbOperations { get; set; }

@@ -5,16 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Data.Extensions;
+using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Core.Extensions;
-
-/// <summary>
-/// Holds the database connection string provided by the host at startup.
-/// Registered as a singleton by <see cref="WorkflowEngineBuilderExtensions.AddWorkflowEngine"/>
-/// and consumed by database services at resolution time.
-/// </summary>
-public sealed record EngineConnectionString(string Value);
 
 public static class WorkflowEngineBuilderExtensions
 {
@@ -46,10 +40,7 @@ public static class WorkflowEngineBuilderExtensions
 
             // Core engine services
             builder.Services.AddWorkflowEngineHost();
-            builder.Services.AddDbRepository(
-                sp => sp.GetRequiredService<EngineConnectionString>().Value,
-                enableSensitiveDataLogging: isDev
-            );
+            builder.Services.AddDbRepository(enableSensitiveDataLogging: isDev);
             builder.Services.AddEngineHealthChecks();
             builder.Services.AddHttpContextAccessor();
 
