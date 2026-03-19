@@ -1,9 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using WorkflowEngine.Data;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Repository.Tests;
 

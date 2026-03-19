@@ -2,9 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Models;
-using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
