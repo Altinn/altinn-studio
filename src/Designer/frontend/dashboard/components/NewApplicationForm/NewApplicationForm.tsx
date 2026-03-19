@@ -1,6 +1,5 @@
-import type { FormEvent, ChangeEvent } from 'react';
-import React, { useState } from 'react';
-import { TemplateSelector } from '../TemplateSelector/TemplateSelector';
+import React, { type FormEvent, type ChangeEvent, useState } from 'react';
+import { CreateFromTemplate } from '../CreateFromTemplate/CreateFromTemplate';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import classes from './NewApplicationForm.module.css';
 import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
@@ -16,6 +15,7 @@ import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { Link } from 'react-router-dom';
 import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import type { CreateServiceFormError } from 'dashboard/pages/CreateService/CreateService';
 
 type CancelButton = {
   onClick: () => void;
@@ -35,8 +35,8 @@ export type NewApplicationFormProps = {
   isLoading: boolean;
   shouldUseCustomTemplate?: boolean;
   submitButtonText: string;
-  formError: NewAppForm;
-  setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
+  formError: CreateServiceFormError;
+  setFormError: React.Dispatch<React.SetStateAction<CreateServiceFormError>>;
   actionableElement: ActionableElement;
 };
 
@@ -135,10 +135,12 @@ export const NewApplicationForm = ({
         onChange={validateTextValue}
       />
       {isCustomTemplatesEnabled && shouldUseCustomTemplate && (
-        <TemplateSelector
+        <CreateFromTemplate
           selectedTemplate={selectedTemplate}
           onChange={setSelectedTemplate}
           username={user.login}
+          organizations={organizations}
+          error={formError.template}
         />
       )}
       <div className={classes.actionContainer}>
