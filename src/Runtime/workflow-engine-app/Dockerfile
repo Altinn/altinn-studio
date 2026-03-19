@@ -14,13 +14,9 @@ COPY Runtime/workflow-engine-app/ Runtime/workflow-engine-app/
 
 WORKDIR /build/Runtime/workflow-engine-app/src/WorkflowEngine.App
 RUN dotnet restore "WorkflowEngine.App.csproj"
-RUN dotnet build "WorkflowEngine.App.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "WorkflowEngine.App.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "WorkflowEngine.App.dll"]
