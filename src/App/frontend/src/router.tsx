@@ -27,6 +27,7 @@ export function createRouter(queryClient: QueryClient) {
     [
       {
         Component: AppLayout,
+        // Prevents a console error about missing HydrateFallback when using loaders
         HydrateFallback: () => null,
         children: [
           {

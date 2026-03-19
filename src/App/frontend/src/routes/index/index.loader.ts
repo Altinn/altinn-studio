@@ -5,7 +5,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
-import { doInstantiate, fetchActiveInstances } from 'src/queries/queries';
+import { activeInstancesQueryOptions, doInstantiate } from 'src/queries/queries';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
@@ -31,27 +31,30 @@ export function indexLoader(queryClient: QueryClient) {
 
     const entryType = GlobalData.applicationMetadata.onEntry?.show;
 
+    if (!GlobalData.getSelectedParty()) {
+      return redirect('/party-selection');
+    }
+
     try {
       if (entryType === 'new-instance') {
         return await createInstanceAndRedirect();
       }
 
-      if (entryType === 'select-instance' && GlobalData.selectedParty) {
+      if (entryType === 'select-instance') {
         return await handleSelectInstance(queryClient);
       }
     } catch (error) {
       return toLoaderError(error);
     }
 
-    throw new Error('Unexpected entry type or missing selected party');
+    throw new Error(`Unexpected entry type: ${entryType}`);
   };
 }
 
 async function handleSelectInstance(queryClient: QueryClient): Promise<Response> {
-  const activeInstances = await queryClient.ensureQueryData({
-    queryKey: ['getActiveInstances', GlobalData.selectedParty!.partyId],
-    queryFn: () => fetchActiveInstances(GlobalData.selectedParty!.partyId),
-  });
+  const activeInstances = await queryClient.ensureQueryData(
+    activeInstancesQueryOptions(GlobalData.getSelectedParty()!.partyId),
+  );
 
   if (activeInstances.length === 0) {
     return await createInstanceAndRedirect();
@@ -85,9 +88,5 @@ function toLoaderError(error: unknown): IndexLoaderError {
 }
 
 async function createNewInstance(): Promise<IInstance> {
-  const partyId = GlobalData.selectedParty?.partyId;
-  if (!partyId) {
-    throw new Response('Selected party not available', { status: 401 });
-  }
-  return await doInstantiate(partyId);
+  return await doInstantiate(GlobalData.getSelectedParty()!.partyId);
 }

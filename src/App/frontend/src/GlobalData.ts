@@ -30,8 +30,14 @@ export class GlobalData {
     return window.altinnAppGlobalData.userProfile;
   }
 
-  static get selectedParty(): IParty | undefined {
-    return window.altinnAppGlobalData.selectedParty;
+  private static _selectedPartyOverride: IParty | undefined;
+
+  static getSelectedParty(): IParty | undefined {
+    return this._selectedPartyOverride ?? window.altinnAppGlobalData.selectedParty;
+  }
+
+  static setSelectedParty(party: IParty | undefined) {
+    this._selectedPartyOverride = party;
   }
 
   static get textResources(): ITextResourceResult | undefined {
