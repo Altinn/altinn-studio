@@ -438,23 +438,32 @@ class LLMClient:
                             "total_tokens": usage.get("total_tokens", 0),
                         }
 
-                span.update(
-                    output={"response": response_text},
-                    usage_details=usage_details if usage_details else None,
-                    metadata={
-                        "request_length": len(system_prompt) + len(user_prompt),
-                        "response_length": len(response_text),
-                    },
-                )
+                try:
+                    span.update(
+                        output={"response": response_text},
+                        usage_details=usage_details if usage_details else None,
+                        metadata={
+                            "request_length": len(system_prompt) + len(user_prompt),
+                            "response_length": len(response_text),
+                        },
+                    )
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with response: %s", span_e)
                 return response_text
 
             except asyncio.TimeoutError:
                 log.error(f"LLM call timed out after {timeout} seconds (role={self.role}, model={self.model})")
-                span.update(metadata={"error": "timeout"})
+                try:
+                    span.update(metadata={"error": "timeout"})
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with timeout error: %s", span_e)
                 raise TimeoutError(f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request.")
             except Exception as e:
                 log.error(f"LLM call failed: {e}")
-                span.update(metadata={"error": str(e)})
+                try:
+                    span.update(metadata={"error": str(e)})
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with error: %s", span_e)
                 raise
 
     def get_model_metadata(self) -> dict:
@@ -601,19 +610,25 @@ class LLMClient:
                             "total_tokens": usage.get('total_tokens', 0)
                         }
                 
-                span.update(
-                    output={"response": response_text},
-                    usage_details=usage_details if usage_details else None,
-                    metadata={
-                        "request_length": len(system_message) + len(user_message),
-                        "response_length": len(response_text)
-                    }
-                )
-                
+                try:
+                    span.update(
+                        output={"response_length": len(response_text)},
+                        usage_details=usage_details if usage_details else None,
+                        metadata={
+                            "request_length": len(system_message) + len(user_message),
+                            "response_length": len(response_text)
+                        }
+                    )
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with response: %s", span_e)
+
                 return response_text
-                
+
             except Exception as e:
-                span.update(metadata={"error": str(e)})
+                try:
+                    span.update(metadata={"error": str(e)})
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with error: %s", span_e)
                 raise
 
 
