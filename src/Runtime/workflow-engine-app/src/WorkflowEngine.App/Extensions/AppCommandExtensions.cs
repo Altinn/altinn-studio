@@ -1,11 +1,10 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.App.Constants;
 
 namespace WorkflowEngine.App.Extensions;
 
-public static class ServiceCollectionExtensions
+internal static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
@@ -33,7 +32,7 @@ public static class ServiceCollectionExtensions
     }
 }
 
-public static class AppCommandOptionsBuilderExtensions
+internal static class AppCommandOptionsBuilderExtensions
 {
     extension(OptionsBuilder<AppCommandSettings> builder)
     {

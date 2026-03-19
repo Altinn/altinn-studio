@@ -5,7 +5,7 @@ namespace WorkflowEngine.App.Commands.AppCommand;
 /// <summary>
 /// Configuration settings for Altinn app command integration.
 /// </summary>
-public sealed record AppCommandSettings
+internal sealed record AppCommandSettings
 {
     /// <summary>
     /// The API key used to authenticate requests between the engine and the app.

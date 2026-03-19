@@ -14,4 +14,8 @@
   <ItemGroup>
     <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="WorkflowEngine.App.Tests" />
+  </ItemGroup>
 </Project>

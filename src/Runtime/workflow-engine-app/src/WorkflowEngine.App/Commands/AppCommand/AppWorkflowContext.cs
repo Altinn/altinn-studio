@@ -2,8 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace WorkflowEngine.App.Commands.AppCommand;
 
-/// <summary>Workflow.Context shape for Altinn app commands.</summary>
-public sealed record AppWorkflowContext
+/// <summary>
+/// Workflow.Context shape for Altinn app commands.
+/// </summary>
+internal sealed record AppWorkflowContext
 {
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
