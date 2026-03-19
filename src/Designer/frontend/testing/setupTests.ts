@@ -6,9 +6,9 @@ import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { WithTranslationProps } from 'react-i18next';
 import { configure } from '@testing-library/dom';
 import { TextEncoder, TextDecoder } from 'util';
+import { createElement, type ComponentType } from 'react';
 import { webcrypto } from 'crypto';
 
 failOnConsole({
@@ -19,7 +19,7 @@ failOnConsole({
       return true;
     }
     if (
-      // TOOD: remove when we no longer are using forwardRef from react (it was deprecated in React 19)
+      // TODO: remove when we no longer are using forwardRef from react (it was deprecated in React 19)
       'Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release.' ===
       message
     ) {
@@ -90,6 +90,9 @@ jest.mock('i18next', () => ({
   t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
 }));
 
+type ComponentWithTranslationProps = {
+  t: (key: string, variables?: KeyValuePairs<string>) => string;
+};
 jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }) => textMock(i18nKey),
   useTranslation: () => ({
@@ -99,17 +102,14 @@ jest.mock('react-i18next', () => ({
       language: 'nb',
     },
   }),
-  withTranslation:
-    () =>
-    (
-      Component: React.ComponentType,
-    ): React.ComponentType<React.ComponentProps<any> & WithTranslationProps> => {
-      Component.defaultProps = {
-        ...Component.defaultProps,
-        t: (key: string, variables?) => textMock(key, variables),
-      };
-      return Component;
-    },
+  withTranslation: () => (Component: ComponentType<ComponentWithTranslationProps>) => {
+    const WithTranslationMock = (props: ComponentWithTranslationProps) =>
+      createElement(Component, {
+        ...props,
+        t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+      });
+    return WithTranslationMock;
+  },
 }));
 
 jest.mock('react-router-dom', () => ({
