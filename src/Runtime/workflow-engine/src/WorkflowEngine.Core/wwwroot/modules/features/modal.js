@@ -508,7 +508,7 @@ window.skipBackoff = async (e, workflowId, stepIdempotencyKey) => {
             btn.classList.add('skip-failed');
             setTimeout(() => {
                 btn.disabled = false;
-                btn.textContent = 'skip';
+                btn.textContent = 'retry now';
                 btn.classList.remove('skip-failed');
             }, 3000);
         }
@@ -517,7 +517,7 @@ window.skipBackoff = async (e, workflowId, stepIdempotencyKey) => {
         btn.classList.add('skip-failed');
         setTimeout(() => {
             btn.disabled = false;
-            btn.textContent = 'skip';
+            btn.textContent = 'retry now';
             btn.classList.remove('skip-failed');
         }, 3000);
     }

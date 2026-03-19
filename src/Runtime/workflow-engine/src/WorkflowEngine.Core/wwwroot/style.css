@@ -1168,6 +1168,7 @@ body {
     align-items: center;
     gap: 3px;
     margin-top: 5px;
+    min-height: 72px;
 }
 .step-timing {
     font-size: 12px;
@@ -1209,7 +1210,7 @@ body {
 .error-history-header:hover { background: rgba(var(--red-rgb), 0.1); }
 .error-history-chevron { display: inline-block; transition: transform 0.2s; font-size: 14px; }
 .error-history.expanded .error-history-chevron { transform: rotate(90deg); }
-.error-history-list { display: none; max-height: 200px; overflow-y: auto; }
+.error-history-list { display: none; height: 300px; overflow-y: auto; }
 .error-history.expanded .error-history-list { display: block; }
 .error-entry { padding: 10px 12px; border-top: 1px solid var(--border); font-size: 12px; }
 .error-entry-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
@@ -1807,6 +1808,8 @@ body {
 .detail-value {
     color: var(--text);
     word-break: break-word;
+    flex: 1;
+    min-width: 0;
 }
 .detail-ago {
     color: var(--text-dim);
