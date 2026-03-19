@@ -11,7 +11,7 @@ Here are some of the exported modules:
 
 ## `renderAndRunTimers`
 
-`renderAndRunTimers` is supposed to be used exactly the same way as `render` from React Testing Library,
+`renderAndRunTimers` is used like `render` from React Testing Library,
 but it also makes sure that timers are run when `render` returns.
 This is necessary when rendering components from versions 1.12 and newer of The Design System.
 These components are built on custom elements that use asynchronous functions to update themselves after being loaded.
