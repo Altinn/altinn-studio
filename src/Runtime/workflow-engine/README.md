@@ -28,13 +28,14 @@ dotnet run --project src/WorkflowEngine.App
 
 The database is migrated automatically on startup (EF Core). No manual migration step needed.
 
-To also include the monitoring dashboard via Docker:
+To run the engine as a Docker container alongside infrastructure, use the `app` profile from the `workflow-engine-app` directory:
 
 ```sh
-docker compose --profile dashboard up -d
+# From the workflow-engine-app directory
+docker compose --profile app up -d
 ```
 
-Or use the `full` profile for everything (dashboard and observability stack):
+Or use the `full` profile for everything (engine, observability stack, pgadmin, wiremock):
 
 ```sh
 docker compose --profile full up -d
@@ -62,9 +63,10 @@ All workflow endpoints require an API key via header. The development key is con
 See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The main ones:
 
 ```
-POST /api/v1/workflows          (enqueue workflows, API key required)
-GET  /api/v1/workflows           (list active workflows)
-GET  /api/v1/workflows/{id}      (get single workflow)
+POST /api/v1/workflows              (enqueue workflows, API key required)
+GET  /api/v1/workflows              (list active workflows)
+GET  /api/v1/workflows/{id}         (get single workflow with steps)
+POST /api/v1/workflows/{id}/cancel  (request cancellation)
 ```
 
 ## Migrations
@@ -83,7 +85,7 @@ k6 scripts for stress testing and benchmarking are available in the [`.k6/`](.k6
 
 ## Further reading
 
+- [Technical guide](docs/technical-guide.md)
 - [Architectural overview](docs/architecture.md)
-- [Concurrency rules](docs/concurrency.md)
-- [Performance testing](docs/performance.md)
+- [Batch enqueue & dependency graphs](docs/batch-enqueue.md)
 - [Notes on db connections during dev cycle](docs/db-connections-notes.md)
