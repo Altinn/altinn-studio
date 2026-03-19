@@ -33,12 +33,6 @@ public sealed record WorkflowRequest
     public DateTimeOffset? StartAt { get; init; }
 
     /// <summary>
-    /// Optional metadata for the request. Expects JSON string.
-    /// </summary>
-    [JsonPropertyName("metadata")]
-    public string? Metadata { get; init; }
-
-    /// <summary>
     /// Opaque state passed through from the app. The engine never inspects this.
     /// </summary>
     [JsonPropertyName("state")]

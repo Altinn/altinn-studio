@@ -2828,8 +2828,7 @@
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
-        },
-        "noDataMessage": "No data"
+        }
       },
       "targets": [
         {
@@ -2837,7 +2836,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_errors_total[5m])) or vector(0)",
+          "expr": "sum(rate(engine_errors_total[5m]))",
           "legendFormat": "Errors",
           "refId": "A"
         },
@@ -2846,7 +2845,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_workflows_execution_reclaimed_total[5m])) or vector(0)",
+          "expr": "sum(rate(engine_workflows_execution_reclaimed_total[5m]))",
           "legendFormat": "Reclaimed",
           "refId": "B"
         }

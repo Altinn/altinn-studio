@@ -11,4 +11,5 @@ public enum EngineHealthStatus
     QueueFull = 1 << 4,
     Disabled = 1 << 5,
     Idle = 1 << 6,
+    DatabaseUnavailable = 1 << 7,
 }

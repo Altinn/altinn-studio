@@ -17,13 +17,6 @@ public sealed record Workflow : PersistentItem
     public required string Namespace { get; init; }
 
     /// <summary>
-    /// Indexed key-value pairs for filtering, grouping, and dashboard queries.
-    /// The engine stores and indexes these but never interprets them.
-    /// Example: {"org":"ttd", "app":"test", "partyId":"12345"}
-    /// </summary>
-    public Dictionary<string, string>? Labels { get; init; }
-
-    /// <summary>
     /// Opaque context passed to command handlers at execution time.
     /// The engine stores but never inspects this. Handlers deserialize what they need.
     /// Example: {"lockToken":"...", "actor":{...}, "commandEndpoint":"..."}

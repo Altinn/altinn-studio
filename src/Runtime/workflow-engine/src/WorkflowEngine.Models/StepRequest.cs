@@ -27,8 +27,8 @@ public sealed record StepRequest
     public RetryStrategy? RetryStrategy { get; init; }
 
     /// <summary>
-    /// Optional metadata associated with this request. Expects JSON string.
+    /// Optional key-value labels for this step. Stored and returned but not queryable.
     /// </summary>
-    [JsonPropertyName("metadata")]
-    public string? Metadata { get; init; }
+    [JsonPropertyName("labels")]
+    public Dictionary<string, string>? Labels { get; init; }
 }

@@ -6,6 +6,8 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Resilience.Extensions;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -22,6 +24,7 @@ internal sealed class WorkflowProcessor(
     AsyncSignal workflowSignal,
     IConcurrencyLimiter limiter,
     InFlightTracker tracker,
+    IEngineStatus engineStatus,
     IOptions<EngineSettings> settings,
     ILogger<WorkflowProcessor> logger
 ) : BackgroundService
@@ -31,6 +34,14 @@ internal sealed class WorkflowProcessor(
     /// </summary>
     internal static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
 
+    /// <summary>
+    /// Backoff strategy used when the database is unreachable. Exponential from 1s up to 30s.
+    /// </summary>
+    private static readonly RetryStrategy _databaseBackoff = RetryStrategy.Exponential(
+        baseInterval: TimeSpan.FromSeconds(1),
+        maxDelay: TimeSpan.FromSeconds(30)
+    );
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var activity = Metrics.Source.StartActivity("WorkflowProcessor.ExecuteAsync");
@@ -38,6 +49,7 @@ internal sealed class WorkflowProcessor(
 
         var config = settings.Value;
         var maxWorkers = limiter.WorkerSlotStatus.Total;
+        int consecutiveDbFailures = 0;
 
         logger.ProcessorStarted(maxWorkers);
 
@@ -56,37 +68,63 @@ internal sealed class WorkflowProcessor(
                 {
                     var serviceStart = Stopwatch.GetTimestamp();
 
-                    var result = await repo.FetchAndLockWorkflows(
-                        available,
-                        config.StaleWorkflowThreshold,
-                        config.MaxReclaimCount,
-                        stoppingToken
-                    );
-
-                    if (result.Workflows.Count > 0)
+                    try
                     {
-                        logger.FetchedWorkflows(result.Workflows.Count, available);
-                    }
+                        var result = await repo.FetchAndLockWorkflows(
+                            available,
+                            config.StaleWorkflowThreshold,
+                            config.MaxReclaimCount,
+                            stoppingToken
+                        );
 
-                    if (result.ReclaimedCount > 0)
+                        if (consecutiveDbFailures > 0)
+                        {
+                            logger.DatabaseConnectionRestored(consecutiveDbFailures);
+                            consecutiveDbFailures = 0;
+                            engineStatus.ClearDatabaseUnavailable();
+                        }
+
+                        if (result.Workflows.Count > 0)
+                        {
+                            logger.FetchedWorkflows(result.Workflows.Count, available);
+                        }
+
+                        if (result.ReclaimedCount > 0)
+                        {
+                            Metrics.WorkflowsReclaimed.Add(result.ReclaimedCount);
+                            logger.ReclaimedStaleWorkflows(result.ReclaimedCount);
+                        }
+
+                        if (result.AbandonedCount > 0)
+                        {
+                            Metrics.WorkflowsFailed.Add(result.AbandonedCount);
+                            logger.AbandonedStaleWorkflows(result.AbandonedCount);
+                        }
+
+                        foreach (var workflow in result.Workflows)
+                        {
+                            await limiter.AcquireWorkerSlot(stoppingToken);
+                            _ = ProcessWorkflow(workflow, stoppingToken);
+                        }
+
+                        Metrics.EngineMainLoopServiceTime.Record(Stopwatch.GetElapsedTime(serviceStart).TotalSeconds);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                     {
-                        Metrics.WorkflowsReclaimed.Add(result.ReclaimedCount);
-                        logger.ReclaimedStaleWorkflows(result.ReclaimedCount);
+                        throw;
                     }
-
-                    if (result.AbandonedCount > 0)
+                    catch (Exception ex)
                     {
-                        Metrics.WorkflowsFailed.Add(result.AbandonedCount);
-                        logger.AbandonedStaleWorkflows(result.AbandonedCount);
-                    }
+                        consecutiveDbFailures++;
+                        engineStatus.SetDatabaseUnavailable();
+                        Metrics.Errors.Add(1, ("operation", "fetchAndLock"));
 
-                    foreach (var workflow in result.Workflows)
-                    {
-                        await limiter.AcquireWorkerSlot(stoppingToken);
-                        _ = ProcessWorkflow(workflow, stoppingToken);
-                    }
+                        var delay = _databaseBackoff.CalculateDelay(consecutiveDbFailures);
+                        logger.DatabaseUnavailable(consecutiveDbFailures, delay, ex);
 
-                    Metrics.EngineMainLoopServiceTime.Record(Stopwatch.GetElapsedTime(serviceStart).TotalSeconds);
+                        await Task.Delay(delay, stoppingToken);
+                        continue;
+                    }
                 }
 
                 var queueStart = Stopwatch.GetTimestamp();
@@ -205,4 +243,18 @@ internal static partial class WorkflowProcessorLogs
         "Abandoned {Count} stale workflows that exceeded the reclaim limit — marked as Failed"
     )]
     internal static partial void AbandonedStaleWorkflows(this ILogger<WorkflowProcessor> logger, int count);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Database unavailable (consecutive failures: {FailureCount}), backing off for {Delay}"
+    )]
+    internal static partial void DatabaseUnavailable(
+        this ILogger<WorkflowProcessor> logger,
+        int failureCount,
+        TimeSpan delay,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Information, "Database connection restored after {FailureCount} consecutive failures")]
+    internal static partial void DatabaseConnectionRestored(this ILogger<WorkflowProcessor> logger, int failureCount);
 }

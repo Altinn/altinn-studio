@@ -1,15 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using WorkflowEngine.Data.Abstractions;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Steps", Schema = Constants.SchemaNames.Engine)]
-internal sealed class StepEntity : IHasCommonMetadata
+[Table("Steps", Schema = SchemaNames.Engine)]
+internal sealed class StepEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -40,7 +39,7 @@ internal sealed class StepEntity : IHasCommonMetadata
     public string? RetryStrategyJson { get; set; }
 
     [Column(TypeName = "jsonb")]
-    public string? MetadataJson { get; set; }
+    public Dictionary<string, string>? Labels { get; set; }
 
     public string? LastError { get; set; }
 
@@ -70,7 +69,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
-            MetadataJson = step.Metadata,
+            Labels = step.Labels,
             LastError = step.LastError,
             ErrorHistoryJson =
                 step.ErrorHistory.Count > 0 ? JsonSerializer.Serialize(step.ErrorHistory, JsonOptions.Default) : null,
@@ -101,6 +100,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             RequeueCount = RequeueCount,
             Command = command,
             RetryStrategy = retryStrategy,
+            Labels = Labels,
             LastError = LastError,
             ErrorHistory =
                 ErrorHistoryJson != null

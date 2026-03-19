@@ -1,14 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using WorkflowEngine.Data.Abstractions;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Workflows", Schema = Constants.SchemaNames.Engine)]
-internal sealed class WorkflowEntity : IHasCommonMetadata
+[Table("Workflows", Schema = SchemaNames.Engine)]
+internal sealed class WorkflowEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -50,9 +49,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [Column(TypeName = "jsonb")]
     public string? ContextJson { get; set; }
 
-    [Column(TypeName = "jsonb")]
-    public string? MetadataJson { get; set; }
-
     public DateTimeOffset? CancellationRequestedAt { get; set; }
 
     public string? InitialState { get; set; }
@@ -80,7 +76,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Labels = workflow.Labels,
             ContextJson = workflow.Context?.GetRawText(),
             DistributedTraceContext = workflow.DistributedTraceContext,
-            MetadataJson = workflow.Metadata,
             EngineTraceContext = workflow.EngineTraceContext,
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             InitialState = workflow.InitialState,
@@ -116,7 +111,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Context =
                 ContextJson != null ? JsonSerializer.Deserialize<JsonElement>(ContextJson, JsonOptions.Default) : null,
             DistributedTraceContext = DistributedTraceContext,
-            Metadata = MetadataJson,
             EngineTraceContext = EngineTraceContext,
             CancellationRequestedAt = CancellationRequestedAt,
             InitialState = InitialState,

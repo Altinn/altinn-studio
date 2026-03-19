@@ -1,7 +1,4 @@
-using System.Diagnostics;
-using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Constants;
 using WorkflowEngine.Data.Extensions;
