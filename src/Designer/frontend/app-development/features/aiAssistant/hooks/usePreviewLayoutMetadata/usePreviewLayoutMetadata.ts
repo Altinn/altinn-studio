@@ -1,7 +1,5 @@
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useQuery } from '@tanstack/react-query';
-import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { useFormLayoutSettingsQuery } from 'app-shared/hooks/queries/useFormLayoutSettingsQuery';
 
 export type PreviewLayoutMetadata = {
   layoutSetName?: string;
@@ -24,12 +22,7 @@ export const usePreviewLayoutMetadata = (
   const firstLayoutSet = layoutSetsQuery.data?.sets?.[0];
   const layoutSetName = firstLayoutSet?.id;
 
-  const { getFormLayoutSettings } = useServicesContext();
-  const layoutSettingsQuery = useQuery({
-    queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
-    queryFn: () => getFormLayoutSettings(org, app, layoutSetName),
-    enabled: !!layoutSetName,
-  });
+  const layoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
 
   const layoutOrder = layoutSettingsQuery.data?.pages?.order;
   const firstLayoutName = Array.isArray(layoutOrder) ? layoutOrder[0] : undefined;

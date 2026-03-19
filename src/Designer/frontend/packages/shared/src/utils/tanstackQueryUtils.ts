@@ -11,7 +11,7 @@ export const mergeQueryStatuses = (...queryStatuses: QueryStatus[]): QueryStatus
   return 'success';
 };
 
-export const isAppSpecificQuery = (query: Query, org: string, app: string) => {
+export const isAppSpecificQuery = (query: Query, org: string, app: string): boolean => {
   const key = query.queryKey;
   return key[1] === org && key[2] === app;
 };
