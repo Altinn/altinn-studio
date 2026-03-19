@@ -32,7 +32,6 @@ internal static class WorkflowRequestExtensions
             Labels = enqueueRequest.Labels,
             Context = enqueueRequest.Context,
             DistributedTraceContext = metadata.TraceContext,
-            Metadata = workflowRequest.Metadata,
             InitialState = workflowRequest.State,
             Steps = workflowRequest
                 .Steps.Select(
@@ -47,7 +46,7 @@ internal static class WorkflowRequestExtensions
                             ProcessingOrder = i,
                             Command = s.Command,
                             RetryStrategy = s.RetryStrategy,
-                            Metadata = s.Metadata,
+                            Labels = s.Labels,
                         }
                 )
                 .ToList(),

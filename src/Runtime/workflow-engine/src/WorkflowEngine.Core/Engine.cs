@@ -325,6 +325,15 @@ internal sealed class Engine(
                 return new SizeLimitValidationResult.Invalid(
                     $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
                 );
+
+            for (int j = 0; j < workflow.Steps.Count; j++)
+            {
+                var step = workflow.Steps[j];
+                if (step.Labels is not null && step.Labels.Count > _settings.MaxLabels)
+                    return new SizeLimitValidationResult.Invalid(
+                        $"Step '{step.OperationId}' in workflow '{workflow.Ref ?? $"#{i}"}' contains {step.Labels.Count} labels, maximum is {_settings.MaxLabels}."
+                    );
+            }
         }
 
         return new SizeLimitValidationResult.Valid();

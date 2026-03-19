@@ -282,9 +282,6 @@ public class ValidationUtilsTests
         {
             // Valid cases
             { validWorkflow, ExpectedResult.Valid },
-            { validWorkflow with { Metadata = null }, ExpectedResult.Valid },
-            { validWorkflow with { Metadata = "{}" }, ExpectedResult.Valid },
-            { validWorkflow with { Metadata = """{"key":"value"}""" }, ExpectedResult.Valid },
             {
                 validWorkflow with
                 {
@@ -294,7 +291,7 @@ public class ValidationUtilsTests
                         {
                             OperationId = "noop",
                             Command = validStep.Command,
-                            Metadata = "{}",
+                            Labels = new Dictionary<string, string> { ["key"] = "value" },
                         },
                     ],
                 },
@@ -305,9 +302,6 @@ public class ValidationUtilsTests
             // Invalid: OperationId
             { validWorkflow with { OperationId = "" }, ExpectedResult.Invalid },
             { validWorkflow with { OperationId = "   " }, ExpectedResult.Invalid },
-            // Invalid: Metadata (non-null but not valid JSON)
-            { validWorkflow with { Metadata = "not-json" }, ExpectedResult.Invalid },
-            { validWorkflow with { Metadata = "{bad" }, ExpectedResult.Invalid },
             // Invalid: Steps
             { validWorkflow with { Steps = [] }, ExpectedResult.Invalid },
             // Invalid: a step has an empty OperationId
@@ -339,22 +333,6 @@ public class ValidationUtilsTests
                 },
                 ExpectedResult.Invalid
             },
-            // Invalid: a step has invalid Metadata
-            {
-                validWorkflow with
-                {
-                    Steps =
-                    [
-                        new StepRequest
-                        {
-                            OperationId = "noop",
-                            Command = validStep.Command,
-                            Metadata = "not-json",
-                        },
-                    ],
-                },
-                ExpectedResult.Invalid
-            },
         };
     }
 
@@ -374,7 +352,7 @@ public class ValidationUtilsTests
                 {
                     OperationId = "noop",
                     Command = validCommand,
-                    Metadata = null,
+                    Labels = null,
                 },
                 ExpectedResult.Valid
             },
@@ -383,7 +361,7 @@ public class ValidationUtilsTests
                 {
                     OperationId = "noop",
                     Command = validCommand,
-                    Metadata = "{}",
+                    Labels = new Dictionary<string, string>(),
                 },
                 ExpectedResult.Valid
             },
@@ -392,7 +370,7 @@ public class ValidationUtilsTests
                 {
                     OperationId = "noop",
                     Command = validCommand,
-                    Metadata = """{"key":"value"}""",
+                    Labels = new Dictionary<string, string> { ["key"] = "value" },
                 },
                 ExpectedResult.Valid
             },
@@ -410,25 +388,6 @@ public class ValidationUtilsTests
                 {
                     OperationId = "   ",
                     Command = new CommandDefinition { Type = "app" },
-                },
-                ExpectedResult.Invalid
-            },
-            // Invalid: non-null Metadata that is not valid JSON
-            {
-                new StepRequest
-                {
-                    OperationId = "noop",
-                    Command = validCommand,
-                    Metadata = "not-json",
-                },
-                ExpectedResult.Invalid
-            },
-            {
-                new StepRequest
-                {
-                    OperationId = "noop",
-                    Command = validCommand,
-                    Metadata = "{bad",
                 },
                 ExpectedResult.Invalid
             },

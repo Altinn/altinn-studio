@@ -49,9 +49,6 @@ internal sealed class WorkflowEntity
     [Column(TypeName = "jsonb")]
     public string? ContextJson { get; set; }
 
-    [Column(TypeName = "jsonb")]
-    public string? MetadataJson { get; set; }
-
     public DateTimeOffset? CancellationRequestedAt { get; set; }
 
     public string? InitialState { get; set; }
@@ -79,7 +76,6 @@ internal sealed class WorkflowEntity
             Labels = workflow.Labels,
             ContextJson = workflow.Context?.GetRawText(),
             DistributedTraceContext = workflow.DistributedTraceContext,
-            MetadataJson = workflow.Metadata,
             EngineTraceContext = workflow.EngineTraceContext,
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             InitialState = workflow.InitialState,
@@ -115,7 +111,6 @@ internal sealed class WorkflowEntity
             Context =
                 ContextJson != null ? JsonSerializer.Deserialize<JsonElement>(ContextJson, JsonOptions.Default) : null,
             DistributedTraceContext = DistributedTraceContext,
-            Metadata = MetadataJson,
             EngineTraceContext = EngineTraceContext,
             CancellationRequestedAt = CancellationRequestedAt,
             InitialState = InitialState,

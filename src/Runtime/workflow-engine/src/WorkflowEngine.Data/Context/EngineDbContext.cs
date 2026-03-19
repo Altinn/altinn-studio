@@ -90,6 +90,19 @@ internal sealed class EngineDbContext : DbContext
         modelBuilder.Entity<StepEntity>(entity =>
         {
             entity.HasIndex(e => new { e.JobId, e.Status });
+
+            // Dictionary<string,string> ↔ jsonb: explicit converter needed for SqlBulkInserter COPY BINARY.
+            entity
+                .Property(e => e.Labels)
+                .HasConversion(
+                    new ValueConverter<Dictionary<string, string>?, string>(
+                        v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                        v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, JsonSerializerOptions.Default)!
+                    )
+                );
+
+            // GIN index for future filtering capability
+            entity.HasIndex(e => e.Labels).HasMethod("gin");
         });
 
         // Configure IdempotencyKey entity

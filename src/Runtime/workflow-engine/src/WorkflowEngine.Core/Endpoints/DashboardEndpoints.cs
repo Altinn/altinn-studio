@@ -440,6 +440,7 @@ public static class DashboardEndpoints
                             createdAt = s.CreatedAt,
                             executionStartedAt = s.ExecutionStartedAt,
                             updatedAt = s.UpdatedAt,
+                            labels = s.Labels,
                             command = s.Command,
                             retryStrategy = s.RetryStrategy,
                             traceId = Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()

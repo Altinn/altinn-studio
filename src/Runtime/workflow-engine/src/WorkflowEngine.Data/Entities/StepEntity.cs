@@ -39,7 +39,7 @@ internal sealed class StepEntity
     public string? RetryStrategyJson { get; set; }
 
     [Column(TypeName = "jsonb")]
-    public string? MetadataJson { get; set; }
+    public Dictionary<string, string>? Labels { get; set; }
 
     public string? LastError { get; set; }
 
@@ -66,7 +66,7 @@ internal sealed class StepEntity
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
-            MetadataJson = step.Metadata,
+            Labels = step.Labels,
             LastError = step.LastError,
             StateOut = step.StateOut,
         };
@@ -95,6 +95,7 @@ internal sealed class StepEntity
             RequeueCount = RequeueCount,
             Command = command,
             RetryStrategy = retryStrategy,
+            Labels = Labels,
             LastError = LastError,
             StateOut = StateOut,
         };

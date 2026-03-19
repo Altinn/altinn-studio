@@ -1,4 +1,3 @@
-using System.Text.Json;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 
@@ -118,9 +117,6 @@ internal static class ValidationUtils
         if (string.IsNullOrWhiteSpace(request.OperationId))
             return false;
 
-        if (!IsValidJsonOrNull(request.Metadata))
-            return false;
-
         return request.Steps.Any() && request.Steps.All(IsValidStepRequest);
     }
 
@@ -135,25 +131,6 @@ internal static class ValidationUtils
         if (string.IsNullOrWhiteSpace(request.OperationId))
             return false;
 
-        if (!IsValidJsonOrNull(request.Metadata))
-            return false;
-
         return true;
-    }
-
-    private static bool IsValidJsonOrNull(string? json)
-    {
-        if (json is null)
-            return true;
-
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
     }
 }

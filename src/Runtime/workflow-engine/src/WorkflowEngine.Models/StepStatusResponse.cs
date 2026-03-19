@@ -40,11 +40,11 @@ public sealed record StepStatusResponse
     public DateTimeOffset? UpdatedAt { get; internal set; }
 
     /// <summary>
-    /// Metadata associated with the step (json).
+    /// Labels associated with the step.
     /// </summary>
-    [JsonPropertyName("metadata")]
+    [JsonPropertyName("labels")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Metadata { get; init; }
+    public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
     /// Details about the command.
@@ -79,7 +79,7 @@ public sealed record StepStatusResponse
             ProcessingOrder = step.ProcessingOrder,
             Status = step.Status,
             UpdatedAt = step.UpdatedAt,
-            Metadata = step.Metadata,
+            Labels = step.Labels,
             RetryCount = step.RequeueCount,
             RetryStrategy = step.RetryStrategy,
         };

@@ -662,7 +662,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var request = new WorkflowRequest
         {
             OperationId = "op-domain-model",
-            Metadata = """{"customField":"value"}""",
             Steps =
             [
                 new StepRequest
@@ -670,7 +669,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                     OperationId = "step-one",
                     Command = new CommandDefinition { Type = "app" },
                     RetryStrategy = retryStrategy,
-                    Metadata = """{"stepMeta":"one"}""",
+                    Labels = new Dictionary<string, string> { ["stepMeta"] = "one" },
                 },
                 new StepRequest
                 {
