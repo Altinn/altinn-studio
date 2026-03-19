@@ -43,7 +43,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         _logger.ExecutingStep(step, workflow);
 
         using CancellationTokenSource cts = CreateExecutionTokenSource(step, cancellationToken);
-        var stopwatch = Stopwatch.StartNew();
+        var startTimestamp = Stopwatch.GetTimestamp();
 
         try
         {
@@ -95,9 +95,13 @@ internal class WorkflowExecutor : IWorkflowExecutor
             var result = await descriptor.ExecuteAsync(context, cts.Token);
 
             if (result.IsSuccess())
-                _logger.SuccessfulExecution(step, stopwatch.Elapsed);
+                _logger.SuccessfulExecution(step, Stopwatch.GetElapsedTime(startTimestamp));
             else
-                _logger.FailedExecution(step, stopwatch.Elapsed, result.Message ?? "no details specified");
+                _logger.FailedExecution(
+                    step,
+                    Stopwatch.GetElapsedTime(startTimestamp),
+                    result.Message ?? "no details specified"
+                );
 
             return result;
         }
@@ -108,13 +112,13 @@ internal class WorkflowExecutor : IWorkflowExecutor
         catch (CommandHandlerNotFoundException e)
         {
             activity?.Errored(e);
-            _logger.UnhandledExecutionError(step, stopwatch.Elapsed, e.Message, e);
+            _logger.UnhandledExecutionError(step, Stopwatch.GetElapsedTime(startTimestamp), e.Message, e);
             return ExecutionResult.CriticalError(e.Message, e);
         }
         catch (JsonException e)
         {
             activity?.Errored(e);
-            _logger.UnhandledExecutionError(step, stopwatch.Elapsed, e.Message, e);
+            _logger.UnhandledExecutionError(step, Stopwatch.GetElapsedTime(startTimestamp), e.Message, e);
             return ExecutionResult.CriticalError(
                 $"Failed to deserialize command data or workflow context: {e.Message}",
                 e
@@ -123,18 +127,14 @@ internal class WorkflowExecutor : IWorkflowExecutor
         catch (CommandDataTypeMismatchException e)
         {
             activity?.Errored(e);
-            _logger.UnhandledExecutionError(step, stopwatch.Elapsed, e.Message, e);
+            _logger.UnhandledExecutionError(step, Stopwatch.GetElapsedTime(startTimestamp), e.Message, e);
             return ExecutionResult.CriticalError(e.Message, e);
         }
         catch (Exception e)
         {
             activity?.Errored(e);
-            _logger.UnhandledExecutionError(step, stopwatch.Elapsed, e.Message, e);
+            _logger.UnhandledExecutionError(step, Stopwatch.GetElapsedTime(startTimestamp), e.Message, e);
             return ExecutionResult.RetryableError(e);
-        }
-        finally
-        {
-            stopwatch.Stop();
         }
     }
 
