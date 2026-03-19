@@ -21,7 +21,9 @@ const actionToIconMap: Record<AvailableAction, React.ReactNode> = {
 };
 
 export type InputActionWrapperProps = {
-  children: React.ReactElement;
+  children: React.ReactElement<{
+    onFocus?: React.FocusEventHandler<HTMLElement>;
+  }>;
   mode?: ActionGroup;
   onEditClick: () => void;
   onDeleteClick: () => void;
