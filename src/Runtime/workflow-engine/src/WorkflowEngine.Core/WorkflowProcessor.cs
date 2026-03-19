@@ -46,7 +46,7 @@ internal sealed class WorkflowProcessor(
             while (!stoppingToken.IsCancellationRequested)
             {
                 Metrics.EngineMainLoopIterations.Add(1);
-                var stopwatch = Stopwatch.StartNew();
+                var loopStart = Stopwatch.GetTimestamp();
 
                 workflowSignal.Reset();
 
@@ -54,6 +54,8 @@ internal sealed class WorkflowProcessor(
 
                 if (available > 0)
                 {
+                    var serviceStart = Stopwatch.GetTimestamp();
+
                     var result = await repo.FetchAndLockWorkflows(
                         available,
                         config.StaleWorkflowThreshold,
@@ -84,13 +86,18 @@ internal sealed class WorkflowProcessor(
                         _ = ProcessWorkflow(workflow, stoppingToken);
                     }
 
-                    Metrics.EngineMainLoopTotalTime.Record(stopwatch.Elapsed.TotalSeconds);
+                    Metrics.EngineMainLoopServiceTime.Record(Stopwatch.GetElapsedTime(serviceStart).TotalSeconds);
                 }
+
+                var queueStart = Stopwatch.GetTimestamp();
 
                 await Task.WhenAny(
                     Debounce(workflowSignal, TimeSpan.FromMilliseconds(10), stoppingToken),
                     Task.Delay(TimeSpan.FromMilliseconds(500), stoppingToken)
                 );
+
+                Metrics.EngineMainLoopQueueTime.Record(Stopwatch.GetElapsedTime(queueStart).TotalSeconds);
+                Metrics.EngineMainLoopTotalTime.Record(Stopwatch.GetElapsedTime(loopStart).TotalSeconds);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

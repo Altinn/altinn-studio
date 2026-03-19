@@ -87,10 +87,12 @@ internal sealed class Engine(
     {
         get
         {
-            var status = EngineHealthStatus.Running | EngineHealthStatus.Healthy;
+            var status = EngineHealthStatus.Running;
             var threshold = _settings.Concurrency.BackpressureThreshold;
             if (threshold > 0 && _activeWorkflowCount >= threshold)
                 status |= EngineHealthStatus.QueueFull;
+            else
+                status |= EngineHealthStatus.Healthy;
             return status;
         }
     }

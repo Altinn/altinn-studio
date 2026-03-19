@@ -103,6 +103,13 @@ public static class Metrics
     );
     public static readonly Counter<long> DbOperationsFailed = Meter.CreateCounter<long>("engine.db.operations.failed");
 
+    private static long _healthStatus; // 0=healthy, 1=degraded, 2=unhealthy
+    public static readonly ObservableGauge<long> HealthStatus = Meter.CreateObservableGauge(
+        "engine.health.status",
+        static () => _healthStatus,
+        description: "Engine health: 0=healthy, 1=degraded, 2=unhealthy"
+    );
+
     private static long _activeWorkflowsCount;
     public static readonly ObservableGauge<long> ActiveWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.active",
@@ -180,6 +187,8 @@ public static class Metrics
         "engine.slots.workers.used",
         static () => _usedWorkerSlotsCount
     );
+
+    public static void SetHealthStatus(long status) => _healthStatus = status;
 
     public static void SetActiveWorkflowsCount(long count) => _activeWorkflowsCount = count;
 

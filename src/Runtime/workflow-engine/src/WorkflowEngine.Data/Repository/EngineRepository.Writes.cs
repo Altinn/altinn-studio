@@ -836,14 +836,18 @@ internal sealed partial class EngineRepository
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
                     // 1. Bulk update all workflows
-                    var ids = new Guid[updates.Count];
-                    var statuses = new int[updates.Count];
-                    var backoffUntils = new object[updates.Count];
-                    var engineTraceContexts = new object[updates.Count];
+                    // Sort by ID to ensure consistent row-lock acquisition order across
+                    // concurrent transactions, preventing deadlocks.
+                    var sorted = updates.OrderBy(u => u.Workflow.DatabaseId).ToList();
 
-                    for (int i = 0; i < updates.Count; i++)
+                    var ids = new Guid[sorted.Count];
+                    var statuses = new int[sorted.Count];
+                    var backoffUntils = new object[sorted.Count];
+                    var engineTraceContexts = new object[sorted.Count];
+
+                    for (int i = 0; i < sorted.Count; i++)
                     {
-                        var w = updates[i].Workflow;
+                        var w = sorted[i].Workflow;
                         ids[i] = w.DatabaseId;
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
@@ -857,8 +861,12 @@ internal sealed partial class EngineRepository
                         "BackoffUntil"       = v.backoff_until,
                         "HeartbeatAt"        = CASE WHEN v.status = 1 THEN w."HeartbeatAt" ELSE NULL END,
                         "EngineTraceContext" = v.engine_trace_context
-                    FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
-                        AS v(id, status, backoff_until, engine_trace_context)
+                    FROM (
+                        SELECT *
+                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
+                            AS t(id, status, backoff_until, engine_trace_context)
+                        ORDER BY t.id
+                    ) AS v
                     WHERE w."Id" = v.id
                     """;
 
@@ -883,7 +891,7 @@ internal sealed partial class EngineRepository
                     }
 
                     // 2. Bulk update all dirty steps across all workflows
-                    var allSteps = updates.SelectMany(u => u.DirtySteps).ToList();
+                    var allSteps = sorted.SelectMany(u => u.DirtySteps).OrderBy(s => s.DatabaseId).ToList();
 
                     if (allSteps.Count > 0)
                     {
@@ -919,8 +927,12 @@ internal sealed partial class EngineRepository
                             "StateOut"           = v.state_out,
                             "EngineTraceContext" = v.engine_trace_context,
                             "UpdatedAt"          = @now
-                        FROM unnest(@ids, @statuses, @requeue_counts, @last_errors, @error_histories, @engine_trace_contexts, @state_outs)
-                            AS v(id, status, requeue_count, last_error, error_history, engine_trace_context, state_out)
+                        FROM (
+                            SELECT *
+                            FROM unnest(@ids, @statuses, @requeue_counts, @last_errors, @error_histories, @engine_trace_contexts, @state_outs)
+                                AS t(id, status, requeue_count, last_error, error_history, engine_trace_context, state_out)
+                            ORDER BY t.id
+                        ) AS v
                         WHERE s."Id" = v.id
                         """;
 
