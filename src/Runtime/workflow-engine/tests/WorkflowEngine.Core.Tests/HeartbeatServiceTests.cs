@@ -7,6 +7,7 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
 
+[Collection("BackgroundServiceTests")]
 public class HeartbeatServiceTests
 {
     private static Workflow DummyWorkflow() =>

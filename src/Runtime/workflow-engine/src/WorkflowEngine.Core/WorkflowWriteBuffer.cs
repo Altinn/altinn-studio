@@ -65,10 +65,11 @@ internal class WorkflowWriteBuffer : BackgroundService
         var tcs = new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously);
         var item = new BufferedEnqueueRequest(request, metadata, requestBodyHash, tcs);
 
-        await _channel.Writer.WriteAsync(item, ct);
-
-        // Register cancellation so the caller isn't stuck if the request is canceled
+        // Register cancellation before writing so there's no window where the token fires
+        // after the write but before the registration is in place
         await using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
+
+        await _channel.Writer.WriteAsync(item, ct);
 
         return await tcs.Task;
     }
@@ -117,7 +118,7 @@ internal class WorkflowWriteBuffer : BackgroundService
             await flushSemaphore.WaitAsync(CancellationToken.None);
         }
 
-        batch = [];
+        // batch may still hold items from an interrupted iteration — append remaining channel items
         while (_channel.Reader.TryRead(out var remaining))
         {
             batch.Add(remaining);

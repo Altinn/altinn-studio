@@ -16,6 +16,7 @@
     <InternalsVisibleTo Include="WorkflowEngine.Core" />
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.App" />
+    <InternalsVisibleTo Include="WorkflowEngine.Core.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
   </ItemGroup>
 
