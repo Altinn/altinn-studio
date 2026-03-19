@@ -17,22 +17,25 @@ Reusable class library for async workflow processing. Provides the core engine, 
 ## Architecture
 
 - **Command pattern**: `ICommand` → `Command<TData, TContext>` / `Command<TData>` abstract bases. `CommandDefinition` is the inert data record (type, operationId, data JSON). `CommandRegistry` is a DI-based string-keyed dictionary from `ICommand` singletons.
-- **Class library**: `WorkflowEngine.Core` is a class library (`Microsoft.NET.Sdk`), not an executable. It exposes public extension methods for host composition:
-    - `AddWorkflowEngineHost()` — registers all core services
-    - `AddApiKeyAuthentication()` — API key auth scheme
-    - `MapEngineEndpoints()`, `MapDashboardEndpoints()`, `MapDashboardUI()`, `MapHealthEndpoints()` — endpoint mapping
-    - `ApplyDatabaseMigrations()`, `ResetDatabaseConnectionsInDev()` — host lifecycle
-- **Database-first processing**: `WorkflowProcessor` is a `BackgroundService` that fetches work from PostgreSQL using `FOR UPDATE SKIP LOCKED`. A semaphore limits the number of concurrent workers. No in-memory queue — the database is the single source of truth.
-- **Concurrency**: `IConcurrencyLimiter` manages separate semaphore pools for DB (95) and HTTP (300) operations.
-- **Retry**: Per-step `RetryStrategy` with exponential backoff. Default: 1s base, 5m max delay, 24h total.
-- **Telemetry**: OpenTelemetry via OTLP to Grafana LGTM stack. `Metrics.Source` for activities, counters for workflow/step lifecycle.
-- **Batch writes**: Steps use `HasPendingChanges` flag, flushed via `BatchUpdateWorkflowAndSteps`.
+- **Class library**: `WorkflowEngine.Core` is a class library (`Microsoft.NET.Sdk`), not an executable. Hosts compose it with two extension methods:
+    - `AddWorkflowEngine(connectionString)` on `WebApplicationBuilder` — registers all core services, auth, DB, telemetry, OpenAPI, health checks, and built-in `WebhookCommand`
+    - `UseWorkflowEngine()` on `WebApplication` — configures middleware pipeline, endpoints, dashboard, and applies DB migrations
+    - Host-specific commands are added via `builder.Services.AddCommand<T>()`
+- **Database-first processing**: `WorkflowProcessor` is a `BackgroundService` that fetches work from PostgreSQL using `FOR UPDATE SKIP LOCKED`. No in-memory queue — the database is the single source of truth.
+- **Concurrency**: `IConcurrencyLimiter` manages three independent semaphore pools: Workers, DB connections, and HTTP calls.
+- **Retry**: Per-step `RetryStrategy` with configurable backoff (exponential, linear, constant). Default: 1s base, 5m max delay, 24h total.
+- **Heartbeat & stale recovery**: `HeartbeatService` proves worker liveness. Stale workflows (expired heartbeat) are automatically reclaimed by another worker. Poison workflow protection after configurable max reclaim attempts.
+- **Cancellation**: Cross-pod cancellation propagation via DB polling. `CancellationWatcherService` detects pending cancellations for in-flight workflows.
+- **Write buffer**: `WorkflowWriteBuffer` batches enqueue operations via a channel-based work queue with configurable batch size, queue depth, and flush concurrency.
+- **Telemetry**: OpenTelemetry via OTLP to Grafana LGTM stack. `Metrics.Source` for activities, counters/histograms/gauges for workflow/step lifecycle and resource utilization.
 
 ## API Endpoints (provided by Core)
 
-- `POST /api/v1/workflows` — enqueue workflows (API key required)
-- `GET /api/v1/workflows?namespace=` — list active workflows (optional namespace filter)
-- `GET /api/v1/workflows/{workflowId:guid}?namespace=` — get single workflow (optional namespace filter)
+- `POST /api/v1/workflows` — enqueue workflows, supports batch with dependency graphs (API key required)
+- `GET /api/v1/workflows?namespace=` — list active workflows (optional namespace, correlationId, label filters)
+- `GET /api/v1/workflows/{workflowId:guid}` — get single workflow with all steps
+- `POST /api/v1/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)
+- Health endpoints: `/health`, `/health/ready`, `/health/live`
 - Dashboard SSE/REST endpoints under `/dashboard/*` (see Dashboard docs)
 
 ## Docker Compose

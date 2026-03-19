@@ -711,6 +711,58 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<bool> RequestCancellation(
+        Guid workflowId,
+        DateTimeOffset requestedAt,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.RequestCancellation");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        var now = timeProvider.GetUtcNow();
+
+        try
+        {
+            int rowsAffected = 0;
+            var terminalStatuses = PersistentItemStatusMap.Finished.Select(s => (int)s).ToArray();
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    const string sql = """
+                    UPDATE "engine"."Workflows"
+                    SET "CancellationRequestedAt" = @requestedAt, "UpdatedAt" = @now
+                    WHERE "Id" = @id
+                      AND "Status" != ALL(@terminalStatuses)
+                      AND "CancellationRequestedAt" IS NULL
+                    """;
+
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("requestedAt", requestedAt));
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                    cmd.Parameters.Add(new NpgsqlParameter<int[]>("terminalStatuses", terminalStatuses));
+                    rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
+                },
+                cancellationToken
+            );
+
+            return rowsAffected > 0;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateWorkflow("cancel", workflowId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task BatchUpdateHeartbeats(IReadOnlyList<Guid> workflowIds, CancellationToken cancellationToken)
     {
         if (workflowIds.Count == 0)

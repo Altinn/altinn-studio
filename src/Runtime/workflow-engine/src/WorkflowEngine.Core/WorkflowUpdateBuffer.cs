@@ -127,7 +127,13 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             // Expected on shutdown
         }
 
-        batch = [];
+        // Wait for all in-flight flushes to complete
+        for (int i = 0; i < _settings.UpdateBuffer.FlushConcurrency; i++)
+        {
+            await flushSemaphore.WaitAsync(CancellationToken.None);
+        }
+
+        // batch may still hold items from an interrupted iteration — append remaining channel items
         while (_channel.Reader.TryRead(out var remaining))
         {
             batch.Add(remaining);

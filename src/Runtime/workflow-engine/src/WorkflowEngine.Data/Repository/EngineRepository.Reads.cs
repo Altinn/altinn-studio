@@ -396,6 +396,92 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<WorkflowCancellationInfo?> GetCancellationInfo(
+        Guid workflowId,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetCancellationInfo");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var entity = await context
+                .GetWorkflowById(workflowId, includeSteps: false, includeDependencies: false, includeLinks: false)
+                .Select(w => new { w.Status, w.CancellationRequestedAt })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (entity is null)
+                return null;
+
+            return new WorkflowCancellationInfo(entity.Status, entity.CancellationRequestedAt);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Guid>> GetPendingCancellations(
+        IReadOnlyList<Guid> inFlightIds,
+        CancellationToken cancellationToken
+    )
+    {
+        if (inFlightIds.Count == 0)
+            return [];
+
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetPendingCancellations");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            var ids = inFlightIds as Guid[] ?? [.. inFlightIds];
+            List<Guid> result = [];
+
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    const string sql = """
+                    SELECT "Id" FROM "engine"."Workflows"
+                    WHERE "Id" = ANY(@ids) AND "CancellationRequestedAt" IS NOT NULL
+                    """;
+
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+
+                    await using var reader = await cmd.ExecuteReaderAsync(ct);
+                    while (await reader.ReadAsync(ct))
+                    {
+                        result.Add(reader.GetGuid(0));
+                    }
+                },
+                cancellationToken
+            );
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
         Guid? correlationId = null,
         string? ns = null,

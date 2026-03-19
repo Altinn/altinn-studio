@@ -10,13 +10,12 @@ WORKDIR /build
 
 COPY common/ common/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/
-COPY Runtime/workflow-engine-app/ Runtime/workflow-engine-app/
 
-WORKDIR /build/Runtime/workflow-engine-app/src/WorkflowEngine.App
-RUN dotnet restore "WorkflowEngine.App.csproj"
-RUN dotnet publish "WorkflowEngine.App.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR /build/Runtime/workflow-engine/tests/WorkflowEngine.TestApp
+RUN dotnet restore "WorkflowEngine.TestApp.csproj"
+RUN dotnet publish "WorkflowEngine.TestApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "WorkflowEngine.App.dll"]
+ENTRYPOINT ["dotnet", "WorkflowEngine.TestApp.dll"]

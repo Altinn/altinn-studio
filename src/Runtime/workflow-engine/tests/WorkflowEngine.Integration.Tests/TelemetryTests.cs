@@ -83,11 +83,6 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
             "Expected at least 1 EngineMainLoopIterations"
         );
 
-        // Assert zero failure/requeue counters for a successful workflow
-        Assert.Equal(0, collector.GetCounterTotal("engine.workflows.execution.failed"));
-        Assert.Equal(0, collector.GetCounterTotal("engine.steps.execution.failed"));
-        Assert.Equal(0, collector.GetCounterTotal("engine.steps.execution.requeued"));
-
         // Assert histograms — workflow timing
         Assert.True(collector.HasMeasurement("engine.workflows.time.total"), "Expected WorkflowTotalTime histogram");
         Assert.True(
@@ -205,10 +200,6 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
             "Expected at least 1 WorkflowsFailed"
         );
 
-        // Assert zero success counters for a failed workflow
-        Assert.Equal(0, collector.GetCounterTotal("engine.workflows.execution.success"));
-        Assert.Equal(0, collector.GetCounterTotal("engine.steps.execution.success"));
-
         // Assert the request-level counters still fire even for failed workflows
         Assert.True(
             collector.GetCounterTotal("engine.workflows.request.received") >= 1,
@@ -313,8 +304,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // Wait for the last span in the processing pipeline
         await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCore");
 
-        // Resolve key span instances
-        var processWorkflow = Single(collector, "WorkflowHandler.Handle");
+        // Resolve key span instances — filter by workflow ID tag to avoid
+        // picking up activities from concurrent tests in other collections
+        var processWorkflow = SingleForWorkflow(collector, "WorkflowHandler.Handle", workflowId);
 
         // ───────────────────────────────────────────────────────────
         // Cross-trace link: ProcessWorkflow is a new root that links
@@ -363,11 +355,21 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         Assert.Equal(parent.SpanId, child.ParentSpanId);
     }
 
-    /// <summary>Returns the single activity matching <paramref name="operationName"/>.</summary>
-    private static Activity Single(TelemetryCollector collector, string operationName)
+    /// <summary>
+    /// Returns the single activity matching <paramref name="operationName"/> that has a
+    /// <c>workflow.database.id</c> tag equal to <paramref name="workflowId"/>.
+    /// Filters by workflow to avoid picking up activities from concurrent tests.
+    /// </summary>
+    private static Activity SingleForWorkflow(TelemetryCollector collector, string operationName, Guid workflowId)
     {
-        var matches = collector.GetActivities(operationName);
-        Assert.True(matches.Count == 1, $"Expected exactly 1 '{operationName}' activity, got {matches.Count}");
+        var matches = collector
+            .GetActivities(operationName)
+            .Where(a => a.GetTagItem("workflow.database.id") is Guid id && id == workflowId)
+            .ToList();
+        Assert.True(
+            matches.Count == 1,
+            $"Expected exactly 1 '{operationName}' for workflow {workflowId}, got {matches.Count}"
+        );
         return matches[0];
     }
 

@@ -87,6 +87,28 @@ services:
       - ./.docker/dashboards:/etc/grafana/dashboards:ro
       - ./.docker/prometheus.yaml:/otel-lgtm/prometheus.yaml:ro
 
+  workflow-engine-testapp:
+    build:
+      context: ../../
+      dockerfile: Runtime/workflow-engine/Dockerfile
+    container_name: workflow-engine-testapp
+    restart: unless-stopped
+    networks:
+      - workflow-engine-network
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ConnectionStrings__WorkflowEngine: "Host=postgres;Database=workflow_engine;Username=postgres;Password=postgres123"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317
+    volumes:
+      - ./src/WorkflowEngine.Core/wwwroot:/app/wwwroot:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: [core]
+
   wiremock:
     image: wiremock/wiremock:3.13.2
     container_name: workflow-engine-wiremock

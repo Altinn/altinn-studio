@@ -21,12 +21,12 @@ internal sealed class HeartbeatService(
     /// <summary>
     /// Extra grace period beyond <see cref="WorkflowProcessor.ShutdownTimeout"/> to prevent indefinite hangs.
     /// </summary>
-    private static readonly TimeSpan SafetyMargin = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _safetyMargin = TimeSpan.FromSeconds(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var interval = settings.Value.HeartbeatInterval;
-        var safetyTimeout = WorkflowProcessor.ShutdownTimeout + SafetyMargin;
+        var safetyTimeout = WorkflowProcessor.ShutdownTimeout + _safetyMargin;
 
         logger.HeartbeatServiceStarted(interval);
 
@@ -42,7 +42,7 @@ internal sealed class HeartbeatService(
                 if (stoppingToken.IsCancellationRequested && safetyRegistration is null)
                 {
                     safetyCts.CancelAfter(safetyTimeout);
-                    safetyRegistration = safetyCts.Token.Register(() => logger.HeartbeatServiceSafetyTimeout());
+                    safetyRegistration = safetyCts.Token.Register(logger.HeartbeatServiceSafetyTimeout);
                 }
 
                 var token = stoppingToken.IsCancellationRequested ? safetyCts.Token : stoppingToken;

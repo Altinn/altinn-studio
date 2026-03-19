@@ -78,6 +78,12 @@ public sealed record EngineSettings
     public required int MaxReclaimCount { get; set; }
 
     /// <summary>
+    /// Interval at which the cancellation watcher polls for cross-pod cancellation signals.
+    /// </summary>
+    [JsonPropertyName("cancellationWatcherInterval")]
+    public TimeSpan CancellationWatcherInterval { get; set; }
+
+    /// <summary>
     /// Concurrency settings.
     /// </summary>
     [JsonPropertyName("concurrency")]

@@ -71,6 +71,21 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     }
 
     /// <summary>
+    /// Requests cancellation of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> CancelWorkflowRaw(Guid workflowId) =>
+        _client.PostAsync($"{BasePath}/{workflowId}/cancel", content: null);
+
+    /// <summary>
+    /// Requests cancellation of a workflow and asserts a 2xx response. Throws on failure.
+    /// </summary>
+    public async Task<CancelWorkflowResponse> CancelWorkflow(Guid workflowId)
+    {
+        using var response = await CancelWorkflowRaw(workflowId);
+        return await AssertSuccessAndDeserialize<CancelWorkflowResponse>(response);
+    }
+
+    /// <summary>
     /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)

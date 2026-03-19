@@ -315,7 +315,7 @@ public static class DashboardEndpoints
                         }
                         catch (OperationCanceledException)
                         {
-                            // Expected — either main ct was cancelled or timeout
+                            // Expected — either main ct was canceled or timeout
                         }
                     }
                 }

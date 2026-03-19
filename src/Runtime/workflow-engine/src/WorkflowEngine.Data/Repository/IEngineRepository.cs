@@ -135,6 +135,28 @@ public interface IEngineRepository
     );
 
     /// <summary>
+    /// Sets the <c>CancellationRequestedAt</c> flag on a workflow.
+    /// Only affects workflows that are not already in a terminal state and not already flagged for cancellation.
+    /// Returns true if the workflow was found and updated.
+    /// </summary>
+    Task<bool> RequestCancellation(Guid workflowId, DateTimeOffset requestedAt, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the status and cancellation timestamp for a workflow, or null if the workflow does not exist.
+    /// Used by the cancel endpoint to distinguish "already cancelling" from "already terminal" and "not found".
+    /// </summary>
+    Task<WorkflowCancellationInfo?> GetCancellationInfo(Guid workflowId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the subset of <paramref name="inFlightIds"/> that have a non-null <c>CancellationRequestedAt</c>.
+    /// Used by <see cref="WorkflowEngine.Core.CancellationWatcherService"/> for cross-pod cancellation propagation.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> GetPendingCancellations(
+        IReadOnlyList<Guid> inFlightIds,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Batch-updates HeartbeatAt for all specified workflow IDs in a single statement.
     /// Used by the processor to prove liveness of in-flight workers.
     /// </summary>

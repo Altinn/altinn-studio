@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
@@ -27,7 +28,7 @@ internal sealed class WorkflowHandler(
 
     /// <summary>
     /// Processes a workflow through all its steps. On return, the workflow's <see cref="Workflow.Status"/>
-    /// reflects the final outcome (Completed, Failed, or Requeued for retry).
+    /// reflects the final outcome (Completed, Failed, Canceled, or Requeued for retry).
     /// </summary>
     public async Task Handle(Workflow workflow, CancellationToken ct)
     {
@@ -38,15 +39,23 @@ internal sealed class WorkflowHandler(
 
         RecordWorkflowQueueTime(workflow);
 
-        if (
-            workflow.Dependencies?.Any(x =>
-                x.Status
-                    is PersistentItemStatus.Failed
-                        or PersistentItemStatus.DependencyFailed
-                        or PersistentItemStatus.Canceled
-            )
-            is true
-        )
+        // Early exit: cancellation was requested before processing started
+        if (workflow.CancellationRequestedAt is not null)
+        {
+            workflow.Status = PersistentItemStatus.Canceled;
+            workflow.EngineActivity?.Errored(errorMessage: "Canceled before processing started");
+
+            Metrics.WorkflowsCanceled.Add(1);
+            RecordWorkflowServiceTime(workflow);
+            RecordWorkflowTotalTime(workflow);
+
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+
+            StopActivity(workflow);
+            return;
+        }
+
+        if (workflow.Dependencies?.Any(x => PersistentItemStatusMap.Failed.Contains(x.Status)) is true)
         {
             workflow.Status = PersistentItemStatus.DependencyFailed;
 
@@ -66,11 +75,21 @@ internal sealed class WorkflowHandler(
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            workflow.EngineActivity?.Errored(errorMessage: "Cancelled during processing");
+            workflow.EngineActivity?.Errored(errorMessage: "Canceled during processing");
 
             if (workflow.Status == PersistentItemStatus.Processing)
             {
-                workflow.Status = PersistentItemStatus.Requeued;
+                if (workflow.CancellationRequestedAt is not null)
+                {
+                    workflow.Status = PersistentItemStatus.Canceled;
+                    Metrics.WorkflowsCanceled.Add(1);
+                    RecordWorkflowServiceTime(workflow);
+                    RecordWorkflowTotalTime(workflow);
+                }
+                else
+                {
+                    workflow.Status = PersistentItemStatus.Requeued;
+                }
             }
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
@@ -156,7 +175,15 @@ internal sealed class WorkflowHandler(
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                step.Status = PersistentItemStatus.Requeued;
+                if (workflow.CancellationRequestedAt is not null)
+                {
+                    step.Status = PersistentItemStatus.Canceled;
+                }
+                else
+                {
+                    step.Status = PersistentItemStatus.Requeued;
+                }
+
                 step.HasPendingChanges = true;
                 StopActivity(step);
                 throw;
