@@ -30,6 +30,7 @@ export const useCheckoutBranchMutation = (
   });
 };
 
+// `invalidateQueries` is set for AiAssistant only. Other pages need full reload due to stale data issues.
 const handleUiRefresh = (queryClient: QueryClient, org: string, app: string) => {
   if (!isAiAssistantPath()) {
     window.location.reload();
