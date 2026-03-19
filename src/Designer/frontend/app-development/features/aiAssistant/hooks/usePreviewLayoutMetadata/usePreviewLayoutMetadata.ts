@@ -13,6 +13,8 @@ export type UsePreviewLayoutMetadataResult = {
   error?: string;
 };
 
+const DEFAULT_TASK_ID = 'Task_1';
+
 export const usePreviewLayoutMetadata = (
   org: string,
   app: string,
@@ -37,7 +39,7 @@ export const usePreviewLayoutMetadata = (
       ? {
           layoutSetName,
           layoutName: firstLayoutName,
-          taskId: taskId ?? 'Task_1',
+          taskId: taskId ?? DEFAULT_TASK_ID,
         }
       : {};
 
