@@ -12,6 +12,8 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./.docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-tuning.sql:ro
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
     networks:
       - workflow-engine-network
     healthcheck:

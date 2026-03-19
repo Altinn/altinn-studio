@@ -70,6 +70,11 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(50, settings.UpdateBuffer.MaxBatchSize);
         Assert.Equal(5_000, settings.UpdateBuffer.MaxQueueSize);
         Assert.Equal(8, settings.UpdateBuffer.FlushConcurrency);
+
+        // Retention
+        Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
+        Assert.Equal(1000, settings.Retention.BatchSize);
+        Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
     }
 
     [Fact]
@@ -247,6 +252,155 @@ public class EngineSettingsConfigurationTests
 
         // FlushConcurrency is the same default for both
         Assert.Equal(settings.WriteBuffer.FlushConcurrency, settings.UpdateBuffer.FlushConcurrency);
+    }
+
+    [Fact]
+    public void EmptyConfig_RetentionDefaultsApplied()
+    {
+        var settings = Resolve("""{ "EngineSettings": {} }""");
+
+        Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
+        Assert.Equal(1000, settings.Retention.BatchSize);
+        Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
+    }
+
+    [Fact]
+    public void RetentionConfig_ProvidedValuesHonored()
+    {
+        var settings = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "Retention": {
+                  "RetentionPeriod": "7.00:00:00",
+                  "BatchSize": 500,
+                  "Interval": "00:30:00"
+                }
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(7), settings.Retention.RetentionPeriod);
+        Assert.Equal(500, settings.Retention.BatchSize);
+        Assert.Equal(TimeSpan.FromMinutes(30), settings.Retention.Interval);
+    }
+
+    [Fact]
+    public void RetentionZeroValues_GetDefaulted()
+    {
+        var settings = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "Retention": {
+                  "RetentionPeriod": "00:00:00",
+                  "BatchSize": 0,
+                  "Interval": "00:00:00"
+                }
+              }
+            }
+            """
+        );
+
+        Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
+        Assert.Equal(1000, settings.Retention.BatchSize);
+        Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
+    }
+
+    [Fact]
+    public void Validation_RejectsNegativeRetentionPeriod_WhenDefaultsBypassed()
+    {
+        var services = new ServiceCollection();
+        services
+            .AddOptions<EngineSettings>()
+            .Configure(opts =>
+            {
+                opts.DefaultStepCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
+                opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
+                opts.Retention.RetentionPeriod = TimeSpan.FromSeconds(-1);
+                opts.Retention.BatchSize = 100;
+                opts.Retention.Interval = TimeSpan.FromMinutes(1);
+            })
+            .ValidateEngineSettings();
+
+        using var sp = services.BuildServiceProvider();
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            sp.GetRequiredService<IOptions<EngineSettings>>().Value
+        );
+
+        Assert.Contains("RetentionPeriod", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsZeroRetentionBatchSize_WhenDefaultsBypassed()
+    {
+        var services = new ServiceCollection();
+        services
+            .AddOptions<EngineSettings>()
+            .Configure(opts =>
+            {
+                opts.DefaultStepCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
+                opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
+                opts.Retention.RetentionPeriod = TimeSpan.FromDays(7);
+                opts.Retention.BatchSize = 0;
+                opts.Retention.Interval = TimeSpan.FromMinutes(1);
+            })
+            .ValidateEngineSettings();
+
+        using var sp = services.BuildServiceProvider();
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            sp.GetRequiredService<IOptions<EngineSettings>>().Value
+        );
+
+        Assert.Contains("BatchSize", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validation_RejectsNegativeRetentionInterval_WhenDefaultsBypassed()
+    {
+        var services = new ServiceCollection();
+        services
+            .AddOptions<EngineSettings>()
+            .Configure(opts =>
+            {
+                opts.DefaultStepCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.DatabaseCommandTimeout = TimeSpan.FromSeconds(10);
+                opts.HeartbeatInterval = TimeSpan.FromSeconds(5);
+                opts.StaleWorkflowThreshold = TimeSpan.FromSeconds(10);
+                opts.Retention.RetentionPeriod = TimeSpan.FromDays(7);
+                opts.Retention.BatchSize = 100;
+                opts.Retention.Interval = TimeSpan.FromSeconds(-1);
+            })
+            .ValidateEngineSettings();
+
+        using var sp = services.BuildServiceProvider();
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            sp.GetRequiredService<IOptions<EngineSettings>>().Value
+        );
+
+        Assert.Contains("Interval", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RetentionEnvironmentOverride_TakesPrecedence()
+    {
+        var settings = Resolve(
+            """
+            {
+              "EngineSettings": {
+                "Retention": { "BatchSize": 500 }
+              }
+            }
+            """,
+            envOverrides: new() { ["EngineSettings:Retention:BatchSize"] = "200" }
+        );
+
+        Assert.Equal(200, settings.Retention.BatchSize);
     }
 }
 

@@ -48,5 +48,11 @@ internal static class Defaults
             MaxBatchSize = 50,
             MaxQueueSize = 5_000,
         },
+        Retention = new RetentionSettings
+        {
+            RetentionPeriod = TimeSpan.FromDays(60),
+            BatchSize = 1000,
+            Interval = TimeSpan.FromHours(2),
+        },
     };
 }

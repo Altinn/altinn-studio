@@ -100,6 +100,12 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("updateBuffer")]
     public BufferSettings UpdateBuffer { get; set; } = new();
+
+    /// <summary>
+    /// Data retention settings.
+    /// </summary>
+    [JsonPropertyName("retention")]
+    public RetentionSettings Retention { get; set; } = new();
 }
 
 public sealed record BufferSettings
@@ -121,6 +127,27 @@ public sealed record BufferSettings
     /// </summary>
     [JsonPropertyName("flushConcurrency")]
     public int FlushConcurrency { get; set; }
+}
+
+public sealed record RetentionSettings
+{
+    /// <summary>
+    /// How long terminal workflows are kept before being deleted.
+    /// </summary>
+    [JsonPropertyName("retentionPeriod")]
+    public TimeSpan RetentionPeriod { get; set; }
+
+    /// <summary>
+    /// Maximum number of workflows to delete per retention cycle.
+    /// </summary>
+    [JsonPropertyName("batchSize")]
+    public int BatchSize { get; set; }
+
+    /// <summary>
+    /// How often the retention cleanup runs.
+    /// </summary>
+    [JsonPropertyName("interval")]
+    public TimeSpan Interval { get; set; }
 }
 
 public sealed record ConcurrencySettings

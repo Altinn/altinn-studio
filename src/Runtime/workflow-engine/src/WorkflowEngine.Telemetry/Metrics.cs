@@ -103,6 +103,13 @@ public static class Metrics
     );
     public static readonly Counter<long> DbOperationsFailed = Meter.CreateCounter<long>("engine.db.operations.failed");
 
+    private static long _maintenanceConsecutiveFailures;
+    public static readonly ObservableGauge<long> MaintenanceConsecutiveFailures = Meter.CreateObservableGauge(
+        "engine.maintenance.consecutive_failures",
+        static () => _maintenanceConsecutiveFailures,
+        description: "Number of consecutive database maintenance failures (0 = healthy)"
+    );
+
     private static long _healthStatus; // 0=healthy, 1=degraded, 2=unhealthy
     public static readonly ObservableGauge<long> HealthStatus = Meter.CreateObservableGauge(
         "engine.health.status",
@@ -187,6 +194,8 @@ public static class Metrics
         "engine.slots.workers.used",
         static () => _usedWorkerSlotsCount
     );
+
+    public static void SetMaintenanceConsecutiveFailures(int count) => _maintenanceConsecutiveFailures = count;
 
     public static void SetHealthStatus(long status) => _healthStatus = status;
 

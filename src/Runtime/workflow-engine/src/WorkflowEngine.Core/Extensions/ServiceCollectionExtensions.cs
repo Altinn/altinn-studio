@@ -202,6 +202,15 @@ public static class OptionsBuilderExtensions
                 ApplyBufferDefaults(config.WriteBuffer, Defaults.EngineSettings.WriteBuffer);
                 ApplyBufferDefaults(config.UpdateBuffer, Defaults.EngineSettings.UpdateBuffer);
 
+                if (config.Retention.RetentionPeriod <= TimeSpan.Zero)
+                    config.Retention.RetentionPeriod = Defaults.EngineSettings.Retention.RetentionPeriod;
+
+                if (config.Retention.BatchSize <= 0)
+                    config.Retention.BatchSize = Defaults.EngineSettings.Retention.BatchSize;
+
+                if (config.Retention.Interval <= TimeSpan.Zero)
+                    config.Retention.Interval = Defaults.EngineSettings.Retention.Interval;
+
                 static void ApplyBufferDefaults(BufferSettings target, BufferSettings defaults)
                 {
                     if (target.MaxBatchSize <= 0)
@@ -243,6 +252,21 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.Concurrency.BackpressureThreshold >= config.WriteBuffer.MaxQueueSize,
                 $"{ns}.{nameof(EngineSettings.Concurrency)}.{nameof(EngineSettings.Concurrency.BackpressureThreshold)} must be greater than or equal to {ns}.{nameof(EngineSettings.WriteBuffer)}.{nameof(EngineSettings.WriteBuffer.MaxQueueSize)}."
+            );
+
+            builder.Validate(
+                config => config.Retention.RetentionPeriod > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.RetentionPeriod)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Retention.BatchSize > 0,
+                $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.BatchSize)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Retention.Interval > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.Interval)} must be greater than zero."
             );
 
             return builder;
