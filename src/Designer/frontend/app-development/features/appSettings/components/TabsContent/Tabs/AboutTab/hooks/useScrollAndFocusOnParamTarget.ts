@@ -23,7 +23,6 @@ export function useScrollAndFocusOnParamTarget({
 }: Options): void {
   useLayoutEffect(() => {
     if (!isTarget || !sectionRef.current) return;
-
     const section = sectionRef.current;
 
     const scrollAndFocus = () => {
