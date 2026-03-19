@@ -1,5 +1,4 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { StudioTableProps } from './';
 import { StudioTable } from './';

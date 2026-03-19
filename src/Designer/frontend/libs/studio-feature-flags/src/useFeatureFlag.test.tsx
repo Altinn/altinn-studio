@@ -3,7 +3,6 @@ import { renderHook } from '@testing-library/react';
 import { FeatureFlag } from './FeatureFlag';
 import { FeatureFlagsContextProvider } from './FeatureFlagsContext';
 import type { FeatureFlagsContextValue } from './FeatureFlagsContext';
-import React from 'react';
 import { useFeatureFlag } from './useFeatureFlag';
 
 // Test data:

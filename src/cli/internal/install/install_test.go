@@ -322,6 +322,47 @@ func TestValidateTarballPath(t *testing.T) {
 	}
 }
 
+func TestNormalizeVersionForURL(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		version string
+		want    string
+	}{
+		{
+			name:    "plain version gets v prefix",
+			version: "1.2.3",
+			want:    "studioctl/v1.2.3",
+		},
+		{
+			name:    "v-prefixed version preserved",
+			version: "v1.2.3",
+			want:    "studioctl/v1.2.3",
+		},
+		{
+			name:    "studioctl-prefixed version preserved",
+			version: "studioctl/v1.2.3",
+			want:    "studioctl/v1.2.3",
+		},
+		{
+			name:    "whitespace trimmed",
+			version: "  1.2.3-preview.1  ",
+			want:    "studioctl/v1.2.3-preview.1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := normalizeVersionForURL(tt.version); got != tt.want {
+				t.Fatalf("normalizeVersionForURL(%q) = %q, want %q", tt.version, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestExtractTarGz(t *testing.T) {
 	tests := []struct {
 		wantErrType error

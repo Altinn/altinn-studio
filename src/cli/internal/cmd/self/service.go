@@ -6,23 +6,20 @@ import (
 	"errors"
 	"fmt"
 
-	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/install"
 )
 
 // Service contains self command logic.
 type Service struct {
 	dataDir string
-	home    string
 	version string
 }
 
 // NewService creates a new self command service.
-func NewService(cfg *config.Config) *Service {
+func NewService(dataDir, version string) *Service {
 	return &Service{
-		dataDir: cfg.DataDir,
-		home:    cfg.Home,
-		version: cfg.Version,
+		dataDir: dataDir,
+		version: version,
 	}
 }
 
@@ -34,9 +31,7 @@ type InstallBinaryResult struct {
 
 // InstallResourcesResult contains resources install outcome.
 type InstallResourcesResult struct {
-	ConfigError      error
 	AlreadyInstalled bool
-	ConfigCreated    bool
 }
 
 // DetectCandidates discovers install directories.
@@ -82,9 +77,7 @@ func (s *Service) PathInstructions(dir string) string {
 func (s *Service) InstallResources(ctx context.Context) (InstallResourcesResult, error) {
 	if s.ResourcesInstalled() {
 		return InstallResourcesResult{
-			ConfigError:      nil,
 			AlreadyInstalled: true,
-			ConfigCreated:    false,
 		}, nil
 	}
 
@@ -97,18 +90,8 @@ func (s *Service) InstallResources(ctx context.Context) (InstallResourcesResult,
 		return InstallResourcesResult{}, fmt.Errorf("install resources: %w", err)
 	}
 
-	configCreated := false
-	var configErr error
-	if err := config.Install(s.home, false); err == nil {
-		configCreated = true
-	} else {
-		configErr = err
-	}
-
 	return InstallResourcesResult{
-		ConfigError:      configErr,
 		AlreadyInstalled: false,
-		ConfigCreated:    configCreated,
 	}, nil
 }
 

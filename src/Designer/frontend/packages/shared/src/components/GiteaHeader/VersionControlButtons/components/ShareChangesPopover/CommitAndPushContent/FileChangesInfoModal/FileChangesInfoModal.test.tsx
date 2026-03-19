@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

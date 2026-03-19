@@ -278,17 +278,13 @@ function isValidOrScalar<EV extends ExprVal>(
   type: EV,
   errorText?: string,
 ): obj is ExprValToActualOrExpr<EV>;
-// eslint-disable-next-line no-redeclare
 function isValidOrScalar(obj: unknown, type?: undefined, errorText?: string): obj is ExprValToActualOrExpr<ExprVal.Any>;
-// eslint-disable-next-line no-redeclare
 function isValidOrScalar(obj: unknown, type?: ExprVal, errorText?: string): boolean {
   return isScalar(obj, type) || isValidExpr(obj, errorText);
 }
 
 function throwIfInvalid<EV extends ExprVal>(obj: unknown, type: EV, errorText?: string): void;
-// eslint-disable-next-line no-redeclare
 function throwIfInvalid(obj: unknown, type?: undefined, errorText?: string): void;
-// eslint-disable-next-line no-redeclare
 function throwIfInvalid(obj: unknown, type?: ExprVal, errorText?: string): void {
   if (Array.isArray(obj) && !isScalar(obj, type)) {
     const ctx: ValidationContext = { errors: {} };

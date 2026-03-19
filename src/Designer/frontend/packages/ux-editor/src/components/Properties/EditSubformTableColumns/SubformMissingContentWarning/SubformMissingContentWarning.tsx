@@ -1,7 +1,6 @@
 import { PencilIcon } from '@studio/icons';
 import { StudioButton, StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 import type { ReactElement } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SubformMissingContentWarning.module.css';
 import { useNavigate } from 'react-router-dom';

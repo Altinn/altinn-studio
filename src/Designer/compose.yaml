@@ -9,6 +9,18 @@ volumes:
   redisdata:
 
 services:
+  fake_ansattporten:
+    container_name: fake-ansattporten
+    image: fake-ansattporten:${COMMIT:-latest}
+    build:
+      context: ./development/fake-ansattporten
+    ports:
+      - '8443:8443'
+    environment:
+      - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
+      - ISSUER=http://fake-ansattporten:8443
+      - BROWSER_BASE_URL=http://localhost:8443
+
   studio_azure_mock:
     image: studio-azure-mock:${COMMIT:-latest}
     container_name: studio-azure-mock
@@ -20,11 +32,29 @@ services:
       - DESIGNER_HOST=studio-loadbalancer
 
   studio_loadbalancer:
-    image: nginx:alpine
     container_name: studio-loadbalancer
+    image: studio-loadbalancer:${COMMIT:-latest}
     restart: always
+    build:
+      context: ./../load-balancer
     ports:
       - '80:80'
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        # Remove k8s-specific config baked into the image
+        rm -f /etc/nginx/extra-upstreams/* /etc/nginx/extra-locations/* /etc/nginx/extra-servers/* /etc/nginx/ssl/* /etc/nginx/logging/*
+        [ "$$DEVELOP_BACKEND" = "1" ] && export DESIGNER_HOST="host.docker.internal:5000"
+        # Override SPA hosts and disable rewrite for vite dev servers
+        disable_rewrite() { sed -i "s/$$1   *1/$$1   0/" /etc/nginx/nginx.conf.template; }
+        [ "$$DEVELOP_DASHBOARD" = "1" ] && export DASHBOARD_HOST="host.docker.internal:2003" && disable_rewrite dashboard
+        [ "$$DEVELOP_APP_DEVELOPMENT" = "1" ] && export EDITOR_HOST="host.docker.internal:2004" && disable_rewrite editor
+        [ "$$DEVELOP_PREVIEW" = "1" ] && export PREVIEW_HOST="host.docker.internal:2005" && disable_rewrite preview
+        [ "$$DEVELOP_ADMIN" = "1" ] && export ADMIN_HOST="host.docker.internal:2006" && disable_rewrite admin
+        [ "$$DEVELOP_RESOURCE_ADMIN" = "1" ] && export RESOURCEADM_HOST="host.docker.internal:2023" && disable_rewrite resourceadm
+        [ "$$DEVELOP_USER_SETTINGS" = "1" ] && export USER_SETTINGS_HOST="host.docker.internal:2007" && disable_rewrite settings
+        exec /entrypoint.sh
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_RESOURCE_ADMIN=${DEVELOP_RESOURCE_ADMIN:-0}
@@ -33,10 +63,24 @@ services:
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
       - DEVELOP_STUDIO_ROOT=${DEVELOP_STUDIO_ROOT:-0}
-      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
-      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
-      - NGINX_HOST=localhost
-      - NGINX_PORT=80
+      - DEVELOP_USER_SETTINGS=${DEVELOP_USER_SETTINGS:-0}
+      - DESIGNER_HOST=studio-designer:6000
+      - DASHBOARD_HOST=studio-designer:6000
+      - EDITOR_HOST=studio-designer:6000
+      - PREVIEW_HOST=studio-designer:6000
+      - ADMIN_HOST=studio-designer:6000
+      - RESOURCEADM_HOST=studio-designer:6000
+      - USER_SETTINGS_HOST=studio-designer:6000
+      - INFO_HOST=studio-designer:6000
+      - REPOS_HOST=gitea-proxy:80
+      - SERVER_NAME=studio.localhost
+      - LISTEN_DIRECTIVE=80
+      - OTEL_ENDPOINT=localhost:4317
+      - OTEL_SERVICE_NAME=studio-loadbalancer
+      - OTEL_TRACE=off
+    volumes:
+      - ./../load-balancer/local/www:/www:ro
+      - ./../load-balancer/local/error-pages:/etc/nginx/error-pages:ro
     depends_on:
       studio_repositories:
         condition: service_healthy
@@ -44,9 +88,6 @@ services:
         condition: service_healthy
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    volumes:
-      - ./development/load-balancer/templates:/etc/nginx/templates:ro
-      - ./development/load-balancer/www:/www:ro
 
   studio_designer:
     container_name: studio-designer
@@ -73,10 +114,10 @@ services:
       - PostgreSQLSettings:DesignerDbAdminPwd=${POSTGRES_PASSWORD}
       - PostgreSQLSettings:DesignerDbPwd=designer
       - PostgreSQLSettings:EnableDBConnection=true
-      - ServiceRepositorySettings:ApiEndPoint=http://studio-repositories:3000/api/v1/
-      - ServiceRepositorySettings:ApiEndPointHost=studio-repositories
+      - ServiceRepositorySettings:ApiEndPoint=http://gitea-proxy:81/api/v1/
+      - ServiceRepositorySettings:ApiEndPointHost=gitea-proxy
       - ServiceRepositorySettings:GiteaLoginUrl=http://studio.localhost/repos/user/login
-      - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repositories:3000
+      - ServiceRepositorySettings:RepositoryBaseURL=http://gitea-proxy:81
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
       - Integrations:AzureDevOpsSettings:BaseUri=http://studio-azure-mock:6161/_apis/
@@ -86,8 +127,14 @@ services:
       - OidcLoginSettings:RequireHttpsMetadata=false
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
       - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
+      - StudioOidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
+      - StudioOidcLoginSettings:ClientId=${STUDIO_OIDC_CLIENT_ID:-fake-client}
+      - StudioOidcLoginSettings:ClientSecret=${STUDIO_OIDC_CLIENT_SECRET:-fake-secret}
+      - StudioOidcLoginSettings:Authority=${STUDIO_OIDC_AUTHORITY:-http://fake-ansattporten:8443}
+      - StudioOidcLoginSettings:RequireHttpsMetadata=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
+      - FeatureManagement:StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true
@@ -96,11 +143,15 @@ services:
       - SchedulingSettings:UsePersistentScheduling=true
       - SchedulingSettings:AddHostedService=true
       - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
+      - GiteaDbSettings:ConnectionString=Host=studio_db;Port=5432;Username=gitea;Password=gitea;Database=giteadb
+      - DeveloperMappingSettings:PidHashSalt=${PID_HASH_SALT:-local-dev-salt}
     ports:
       - '6000:6000'
     depends_on:
       studio_db:
         condition: service_healthy
+      fake_ansattporten:
+        condition: service_started
     build:
       context: ./../..
       dockerfile: src/Designer/Dockerfile
@@ -112,6 +163,39 @@ services:
       interval: 5s
       timeout: 10s
       retries: 5
+
+  gitea_proxy:
+    container_name: gitea-proxy
+    image: gitea-proxy:${COMMIT:-latest}
+    restart: always
+    build:
+      context: ./../../src/gitea-proxy
+    ports:
+      - '3001:81'
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        if [ "$$DEVELOP_BACKEND" = "1" ]; then
+          export DESIGNER_HOST="host.docker.internal:5000"
+        else
+          export DESIGNER_HOST="studio-designer:6000"
+        fi
+        exec /entrypoint.sh
+    environment:
+      - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
+      - GITEA_HOST=studio-repositories:3000
+      - STUDIO_OIDC_ENABLED=${FEATUREFLAGS_STUDIOOIDC:-true}
+      - OTEL_ENDPOINT=localhost:4317
+      - OTEL_SERVICE_NAME=gitea-proxy
+      - OTEL_TRACE=off
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      studio_repositories:
+        condition: service_healthy
+      studio_designer:
+        condition: service_healthy
 
   studio_repositories:
     container_name: studio-repositories
@@ -140,7 +224,14 @@ services:
       - GITEA__server__ROOT_URL=http://studio.localhost/repos
       - GITEA__server__SSH_DOMAIN=studio.localhost
       - GITEA__service__ENABLE_CAPTCHA=false
+      - GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION=true
+      - GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION_API=true
+      - GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION=true
+      - GITEA__service__ENABLE_REVERSE_PROXY_FULL_NAME=true
+      - GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER=X-WEBAUTH-USER
       - GITEA__session__COOKIE_SECURE=false
+      - GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES=*
+      - GITEA__service__USER_DISABLED_FEATURES=change_username
       - USER_GID=1000
       - USER_UID=1000
     ports:

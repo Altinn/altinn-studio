@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { StudioCheckboxGroupProps } from './';
 import { StudioCheckbox } from './';
@@ -14,9 +13,7 @@ function CheckboxGroupPreview(props: StudioCheckboxGroupProps): ReactElement {
   );
 }
 
-type Story = StoryObj<typeof CheckboxGroupPreview>;
-
-const meta: Meta<typeof CheckboxGroupPreview> = {
+const meta = {
   title: 'Components/StudioCheckbox/Group',
   component: CheckboxGroupPreview,
   argTypes: {
@@ -43,8 +40,10 @@ const meta: Meta<typeof CheckboxGroupPreview> = {
       control: 'boolean',
     },
   },
-};
+} satisfies Meta<typeof CheckboxGroupPreview>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {

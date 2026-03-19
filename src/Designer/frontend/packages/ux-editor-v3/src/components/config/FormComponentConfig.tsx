@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
 import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
@@ -231,7 +231,7 @@ export const FormComponentConfig = ({
         }
         if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
-            <React.Fragment key={propertyKey}>
+            <Fragment key={propertyKey}>
               <Heading level={3} size='xxsmall'>
                 {getComponentPropertyLabel(propertyKey, t)}
               </Heading>
@@ -251,7 +251,7 @@ export const FormComponentConfig = ({
                 editFormId={editFormId}
                 hideUnsupported
               />
-            </React.Fragment>
+            </Fragment>
           );
         }
         return null;

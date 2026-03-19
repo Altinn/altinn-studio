@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useState, useRef } from 'react';
 import { getAvailableChildComponentsForContainer } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout, IToolbarElement } from '../../../types/global';
 import { StudioDialog, StudioHeading } from '@studio/components';
@@ -17,7 +17,7 @@ export type AddItemModalProps = {
 };
 
 export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemModalProps) => {
-  const [selectedItem, setSelectedItem] = React.useState<AddedItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<AddedItem | null>(null);
   const handleCloseModal = () => {
     setSelectedItem(null);
   };

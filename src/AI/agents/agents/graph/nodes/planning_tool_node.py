@@ -75,7 +75,7 @@ async def handle(state: AgentState) -> AgentState:
     log.info("📋 Planning tool node executing")
     
     langfuse = get_client()
-    with langfuse.start_as_current_span(
+    with langfuse.start_as_current_observation(
         name="planning_tool_node",
         metadata={"span_type": "AGENT"},
         input={
@@ -99,7 +99,7 @@ async def handle(state: AgentState) -> AgentState:
             client = get_mcp_client()
             await client.connect()
             
-            with langfuse.start_as_current_span(
+            with langfuse.start_as_current_observation(
                 name="planning_tool_mcp_call",
                 metadata={
                     "span_type": "TOOL",

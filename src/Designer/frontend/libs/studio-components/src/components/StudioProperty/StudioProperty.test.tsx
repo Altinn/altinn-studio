@@ -1,9 +1,8 @@
 import type { RenderResult } from '@testing-library/react';
 import { act, render, screen } from '@testing-library/react';
 import { ComposedComponent } from './test-data/ComposedComponent';
-import React from 'react';
 import { buttons } from './test-data/buttons';
-import { userEvent } from 'storybook/test';
+import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 
 describe('StudioProperty composition', () => {

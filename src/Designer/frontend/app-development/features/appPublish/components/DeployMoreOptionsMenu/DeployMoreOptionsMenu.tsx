@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioPopover, StudioLink, StudioList } from '@studio/components';
 import { ExternalLinkIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';

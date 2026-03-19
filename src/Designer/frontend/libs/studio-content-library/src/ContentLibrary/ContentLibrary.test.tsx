@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ContentLibraryProps } from './ContentLibrary';
 import { ContentLibrary } from './ContentLibrary';
 import { screen } from '@testing-library/react';

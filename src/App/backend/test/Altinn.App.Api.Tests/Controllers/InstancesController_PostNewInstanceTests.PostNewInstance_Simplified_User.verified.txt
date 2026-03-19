@@ -296,13 +296,13 @@
         {
           Tags: [
             {
-              http.request.method: POST
+              http.request.method: GET
             },
             {
-              http.response.status_code: 201
+              http.response.status_code: 200
             },
             {
-              http.route: {org}/{app}/instances/create
+              http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}
             },
             {
               network.protocol.version: 1.1
@@ -327,13 +327,13 @@
         {
           Tags: [
             {
-              http.request.method: GET
+              http.request.method: POST
             },
             {
-              http.response.status_code: 200
+              http.response.status_code: 201
             },
             {
-              http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}
+              http.route: {org}/{app}/instances/create
             },
             {
               network.protocol.version: 1.1

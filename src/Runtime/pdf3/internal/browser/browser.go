@@ -1,12 +1,14 @@
 package browser
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -17,7 +19,7 @@ import (
 
 const browserPath string = "/headless-shell/headless-shell"
 
-// Process represents a running browser process with its connection details
+// Process represents a running browser process with its connection details.
 type Process struct {
 	Cmd          *exec.Cmd
 	DebugPort    string
@@ -44,7 +46,7 @@ func Start(id int) (*Process, error) {
 		if strings.HasPrefix(arg, "--user-data-dir=") {
 			if id >= 0 {
 				dataDir = fmt.Sprintf("/tmp/browser-%d", id)
-				args[i] = fmt.Sprintf("--user-data-dir=%s", dataDir)
+				args[i] = "--user-data-dir=" + dataDir
 			} else {
 				dataDir = "/tmp/browser-init"
 				args[i] = "--user-data-dir=/tmp/browser-init"
@@ -64,9 +66,10 @@ func Start(id int) (*Process, error) {
 		logArgs(logger, id, args)
 	}
 
-	cmd := exec.Command(browserPath, args...)
+	//nolint:gosec // browserPath is a fixed local binary path and args are locally constructed.
+	cmd := exec.CommandContext(context.Background(), browserPath, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	debugPortStr := fmt.Sprintf("%d", debugPort)
+	debugPortStr := strconv.Itoa(debugPort)
 	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
 	cmdLogger := &cmdToLogger{logger: logger}
 	cmd.Stdout = cmdLogger
@@ -94,7 +97,9 @@ func (l *cmdToLogger) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// Close terminates the browser process and removes its data directory
+// Close terminates the browser process and removes its data directory.
+//
+//nolint:gocognit,nestif // Process shutdown needs to keep the signal and wait flow together.
 func (p *Process) Close() error {
 	logger := log.NewComponent("browser").With("dataDir", p.DataDir)
 	logger.Info("Closing browser process")
@@ -109,9 +114,13 @@ func (p *Process) Close() error {
 		}
 
 		if pgid > 0 {
-			_ = syscall.Kill(-pgid, syscall.SIGTERM)
+			if killErr := syscall.Kill(-pgid, syscall.SIGTERM); killErr != nil {
+				logger.Info("Failed to send SIGTERM to browser process group", "error", killErr)
+			}
 		} else {
-			_ = p.Cmd.Process.Signal(syscall.SIGTERM)
+			if signalErr := p.Cmd.Process.Signal(syscall.SIGTERM); signalErr != nil {
+				logger.Info("Failed to send SIGTERM to browser process", "error", signalErr)
+			}
 		}
 
 		done := make(chan error, 1)
@@ -127,9 +136,13 @@ func (p *Process) Close() error {
 		case <-time.After(100 * time.Millisecond):
 			logger.Info("Browser did not exit after SIGTERM, sending SIGKILL")
 			if pgid > 0 {
-				_ = syscall.Kill(-pgid, syscall.SIGKILL)
+				if killErr := syscall.Kill(-pgid, syscall.SIGKILL); killErr != nil {
+					logger.Info("Failed to send SIGKILL to browser process group", "error", killErr)
+				}
 			} else {
-				_ = p.Cmd.Process.Kill()
+				if killErr := p.Cmd.Process.Kill(); killErr != nil {
+					logger.Info("Failed to SIGKILL browser process", "error", killErr)
+				}
 			}
 			select {
 			case <-done:
@@ -146,7 +159,7 @@ func (p *Process) Close() error {
 }
 
 // removeDataDirWithRetry attempts to remove the data directory with retries
-// to handle race conditions where child processes may still hold file handles
+// to handle race conditions where child processes may still hold file handles.
 func removeDataDirWithRetry(dataDir string, logger *slog.Logger) error {
 	const maxRetries = 5
 	const retryDelay = 10 * time.Millisecond
@@ -162,10 +175,10 @@ func removeDataDirWithRetry(dataDir string, logger *slog.Logger) error {
 		}
 		time.Sleep(retryDelay)
 	}
-	return lastErr
+	return fmt.Errorf("remove browser data directory: %w", lastErr)
 }
 
-// createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation
+// createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation.
 func createBrowserArgs() []string {
 	return []string{
 		"--disable-background-networking",
@@ -205,7 +218,7 @@ func createBrowserArgs() []string {
 	}
 }
 
-// logArgs logs browser arguments in a sorted, JSON format
+// logArgs logs browser arguments in a sorted, JSON format.
 func logArgs(logger *slog.Logger, id int, args []string) {
 	sortedArgs := make([]string, len(args))
 	copy(sortedArgs, args)

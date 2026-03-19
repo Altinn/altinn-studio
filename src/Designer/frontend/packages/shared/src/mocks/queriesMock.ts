@@ -41,9 +41,11 @@ import type {
   IFrontEndSettings,
   ILayoutSettings,
   IValidationOnNavigationLayoutSettings,
+  IValidationOnNavigationPageSettings,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
@@ -132,6 +134,9 @@ export const queriesMock: ServicesContextProps = {
   getValidationOnNavigationLayoutSettings: jest
     .fn()
     .mockImplementation(() => Promise.resolve<IValidationOnNavigationLayoutSettings[]>([])),
+  getValidationOnNavigationPageSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<IValidationOnNavigationPageSettings[]>([])),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
@@ -240,9 +245,6 @@ export const queriesMock: ServicesContextProps = {
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getIsLoggedInWithAnsattporten: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<{ isLoggedIn: false }>({ isLoggedIn: false })),
   getMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
@@ -260,6 +262,9 @@ export const queriesMock: ServicesContextProps = {
   fetchBelongsToGiteaOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
+
+  // Queries - User settings
+  getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -292,6 +297,7 @@ export const queriesMock: ServicesContextProps = {
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
   discardChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
   importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
@@ -306,6 +312,8 @@ export const queriesMock: ServicesContextProps = {
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationPageSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
@@ -316,6 +324,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -359,4 +368,8 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - User settings
+  addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 };

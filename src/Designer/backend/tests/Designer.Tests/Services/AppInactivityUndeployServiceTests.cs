@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppSettings;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -19,6 +20,7 @@ public class AppInactivityUndeployServiceTests
     private readonly Mock<IEnvironmentsService> _environmentsService = new();
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClient = new();
     private readonly Mock<IAppSettingsService> _appSettingsService = new();
+    private readonly Mock<IDeploymentRepository> _deploymentRepository = new();
 
     [Fact]
     public async Task GetAppsForDecommissioningAsync_WhenStatusIsUnavailable_ShouldReturnNoCandidates()
@@ -136,6 +138,44 @@ public class AppInactivityUndeployServiceTests
     }
 
     [Fact]
+    public async Task GetAppsForDecommissioningAsync_WhenAppIsRecentlyDeployed_ShouldReturnNoCandidates()
+    {
+        var service = CreateService();
+        _appSettingsService
+            .Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new AppSettingsEntity
+                {
+                    Org = "ttd",
+                    App = "app1",
+                    UndeployOnInactivity = true,
+                },
+            ]);
+
+        _runtimeGatewayClient
+            .Setup(c => c.GetAppDeployments("ttd", It.IsAny<AltinnEnvironment>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new AppDeployment("ttd", "at23", "app1", "dev", "1", "v1")]);
+
+        _runtimeGatewayClient
+            .Setup(c =>
+                c.GetAppActivityMetricsAsync("ttd", It.IsAny<AltinnEnvironment>(), 7, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new AppActivityMetricsResponse("ok", new Dictionary<string, double>(), 7, DateTimeOffset.UtcNow)
+            );
+
+        _deploymentRepository
+            .Setup(r => r.GetAppsWithRecentDeployments("ttd", "at23", It.IsAny<DateTimeOffset>()))
+            .ReturnsAsync(["app1"]);
+
+        var result = await service.GetAppsForDecommissioningAsync(
+            new InactivityUndeployEvaluationOptions { Org = "ttd", Environment = "at23" }
+        );
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
     public async Task GetAppsForDecommissioningAsync_WhenOrgHasNoOptedInApps_ShouldSkipExternalCalls()
     {
         var service = CreateService();
@@ -171,6 +211,10 @@ public class AppInactivityUndeployServiceTests
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()
                 ),
+            Times.Never
+        );
+        _deploymentRepository.Verify(
+            r => r.GetAppsWithRecentDeployments(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
             Times.Never
         );
     }
@@ -218,11 +262,17 @@ public class AppInactivityUndeployServiceTests
         _environmentsService
             .Setup(e => e.GetOrganizationEnvironments(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([new EnvironmentModel { Name = "at23", PlatformUrl = "https://platform.at23.altinn.cloud" }]);
+        _deploymentRepository
+            .Setup(r =>
+                r.GetAppsWithRecentDeployments(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>())
+            )
+            .ReturnsAsync([]);
 
         return new AppInactivityUndeployService(
             _environmentsService.Object,
             _runtimeGatewayClient.Object,
-            _appSettingsService.Object
+            _appSettingsService.Object,
+            _deploymentRepository.Object
         );
     }
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Preview } from './Preview';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';

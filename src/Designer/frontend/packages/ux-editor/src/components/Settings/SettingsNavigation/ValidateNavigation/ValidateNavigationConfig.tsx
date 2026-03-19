@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { StudioAlert, StudioConfigCard, StudioProperty } from '@studio/components';
+import { useState } from 'react';
+import {
+  StudioAlert,
+  StudioLabel,
+  StudioProperty,
+  StudioDialog,
+  StudioPageHeader,
+  StudioFormActions,
+  StudioDeleteButton,
+} from '@studio/components';
 import {
   type Scope,
   isRuleDuplicateInScope,
@@ -12,9 +20,9 @@ import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
 import { ValidateCardContent } from './ValidateCardContent/ValidateCardContent';
 import type { InternalConfigState } from './utils/ValidateNavigationTypes';
+import cn from 'classnames';
 
 export type ValidateNavigationConfigProps = {
-  propertyLabel: string;
   scope: Scope;
   config?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
@@ -23,63 +31,74 @@ export type ValidateNavigationConfigProps = {
 };
 
 export const ValidateNavigationConfig = ({
-  propertyLabel,
   scope,
   config,
   existingConfigs,
   onSave,
   onDelete,
 }: ValidateNavigationConfigProps) => {
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { t } = useTranslation();
 
-  if (!isEditMode) {
-    return (
-      <StudioProperty.Button
-        onClick={() => setIsEditMode(true)}
-        property={propertyLabel}
-        value={config && <DisplayValues {...config} />}
-        className={classes.configWrapper}
-      />
-    );
-  }
+  const getButtonLabel = (currentConfig: InternalConfigState) => {
+    return !currentConfig && t('ux_editor.settings.navigation_validation_button_rule_undefined');
+  };
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
 
   return (
-    <ValidateCard
-      scope={scope}
-      config={config}
-      existingConfigs={existingConfigs}
-      setIsEditMode={setIsEditMode}
-      onSave={onSave}
-      onDelete={onDelete}
-    />
+    <>
+      <StudioProperty.Button
+        onClick={handleOpenModal}
+        property={getButtonLabel(config)}
+        title={config && t('ux_editor.settings.navigation_validation_button_rule_defined')}
+        value={config && <DisplayValues {...config} />}
+        className={cn(classes.configWrapper, { [classes.configDefined]: config })}
+      />
+      {isModalOpen && (
+        <ConfigModal
+          scope={scope}
+          initialConfig={config}
+          existingConfigs={existingConfigs}
+          onClose={() => setIsModalOpen(false)}
+          onSave={onSave}
+          onDelete={onDelete}
+        />
+      )}
+    </>
   );
 };
 
 type ValidateCardProps = {
   scope: Scope;
-  config?: InternalConfigState;
+  initialConfig?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
-  setIsEditMode: (isEditMode: boolean) => void;
+  onClose: () => void;
   onSave: (config: InternalConfigState) => void;
   onDelete?: () => void;
 };
 
-const ValidateCard = ({
+const ConfigModal = ({
   scope,
-  config,
+  initialConfig,
   existingConfigs,
-  setIsEditMode,
+  onClose,
   onSave,
   onDelete,
 }: ValidateCardProps) => {
   const { t } = useTranslation();
+
   const [newConfig, setNewConfig] = useState<InternalConfigState>(
-    config || getDefaultConfig(scope),
+    initialConfig || getDefaultConfig(scope),
   );
-  const isFormValid = validateForm({ scope, config, newConfig });
+  const isFormValid = validateForm({ scope, config: initialConfig, newConfig });
+
   const isRuleDuplicate = isRuleDuplicateInScope({
     scope,
     newConfig,
+    initialConfig,
     existingConfigs,
     isFormValid,
   });
@@ -90,52 +109,66 @@ const ValidateCard = ({
 
   const handleDelete = () => {
     onDelete?.();
-    setIsEditMode(false);
+    onClose();
   };
 
   const handleSaveAndClose = () => {
     onSave(newConfig);
-    setIsEditMode(false);
-  };
-
-  const handleCancel = () => {
-    setIsEditMode(false);
+    onClose();
   };
 
   return (
-    <StudioConfigCard className={classes.configWrapper}>
-      <StudioConfigCard.Header
-        cardLabel={t(getCardLabel(scope))}
-        deleteAriaLabel={t('general.delete')}
-        onDelete={handleDelete}
-        isDeleteDisabled={!config}
-      />
-      <StudioConfigCard.Body>
-        <ValidateCardContent scope={scope} newConfig={newConfig} onChange={update} />
+    <StudioDialog open={true} onClose={onClose}>
+      <StudioDialog.Block>
+        <StudioPageHeader>{t(getCardLabel(scope))}</StudioPageHeader>
+      </StudioDialog.Block>
+      <StudioDialog.Block className={classes.modalFields}>
+        <ValidateCardContent
+          scope={scope}
+          initialConfig={initialConfig}
+          newConfig={newConfig}
+          onChange={update}
+        />
         {isRuleDuplicate && (
           <StudioAlert data-color='info'>
             {t('ux_editor.settings.navigation_validation_alert_message')}
           </StudioAlert>
         )}
-      </StudioConfigCard.Body>
-      <StudioConfigCard.Footer
-        saveLabel={t('general.save')}
-        cancelLabel={t('general.cancel')}
-        onSave={handleSaveAndClose}
-        onCancel={handleCancel}
-        isDisabled={!isFormValid}
-      />
-    </StudioConfigCard>
+      </StudioDialog.Block>
+      <StudioDialog.Block className={classes.modalActions}>
+        <StudioFormActions
+          primary={{
+            label: t('general.save'),
+            onClick: handleSaveAndClose,
+            disabled: !isFormValid,
+          }}
+          secondary={{
+            label: t('general.cancel'),
+            onClick: onClose,
+          }}
+          isLoading={false}
+        />
+        <StudioDeleteButton onDelete={handleDelete} disabled={!initialConfig} variant='tertiary'>
+          {t('general.delete')}
+        </StudioDeleteButton>
+      </StudioDialog.Block>
+    </StudioDialog>
   );
 };
 
 const DisplayValues = (config: InternalConfigState) => {
   const valueToDisplay = getValuesToDisplay(config);
+  const { t } = useTranslation();
+  const translateKeyToDisplay = (key: string) => {
+    return t(`ux_editor.settings.navigation_validation_view_mode_label_${key}`);
+  };
 
   return (
     <div>
       {Object.entries(valueToDisplay).map(([key, value]) => (
-        <div key={key}> {value}</div>
+        <div key={key}>
+          <StudioLabel>{translateKeyToDisplay(key)}:</StudioLabel> {value}
+        </div>
       ))}
     </div>
   );

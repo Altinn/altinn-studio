@@ -1,6 +1,5 @@
 import type { JsonSchema } from '../../types/JSONSchema';
 
-import React from 'react';
 import {
   StudioToggleableTextfieldSchema,
   type StudioToggleableTextfieldSchemaProps,

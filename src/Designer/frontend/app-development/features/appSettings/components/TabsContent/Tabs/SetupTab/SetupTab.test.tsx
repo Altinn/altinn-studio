@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SetupTab } from './SetupTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';

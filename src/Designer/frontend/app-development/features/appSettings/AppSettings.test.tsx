@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import AppSettings from './AppSettings';
 import { renderWithProviders } from 'app-development/test/mocks';

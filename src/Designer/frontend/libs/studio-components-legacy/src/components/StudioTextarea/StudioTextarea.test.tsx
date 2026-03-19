@@ -3,7 +3,6 @@ import { StudioTextarea } from './StudioTextarea';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 

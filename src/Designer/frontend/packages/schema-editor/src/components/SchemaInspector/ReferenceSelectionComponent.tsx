@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Keyword } from '@altinn/schema-model';

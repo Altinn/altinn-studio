@@ -12,7 +12,7 @@ internal static class EmbeddedResource
     /// </summary>
     /// <param name="resourceName"></param>
     /// <returns></returns>
-    public async static Task<string> LoadDataAsString(string resourceName)
+    public static async Task<string> LoadDataAsString(string resourceName)
     {
         var resourceStream = LoadDataAsStream(resourceName);
 

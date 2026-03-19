@@ -1,3 +1,4 @@
+//nolint:mnd // Manifest literals intentionally use concrete service ports.
 package manifests
 
 import (
@@ -71,6 +72,7 @@ func buildTestserverService() *corev1.Service {
 	}
 }
 
+//nolint:funlen // The deployment manifest is easier to review as one block.
 func buildTestserverDeployment() *appsv1.Deployment {
 	replicas := int32(1)
 	return &appsv1.Deployment{
@@ -304,21 +306,21 @@ func mustParseQuantity(s string) resource.Quantity {
 
 func buildJumpboxIngressRoute() *unstructured.Unstructured {
 	return &unstructured.Unstructured{
-		Object: map[string]interface{}{
+		Object: map[string]any{
 			"apiVersion": "traefik.io/v1alpha1",
 			"kind":       "IngressRoute",
-			"metadata": map[string]interface{}{
+			"metadata": map[string]any{
 				"name":      "jumpbox",
 				"namespace": "default",
 			},
-			"spec": map[string]interface{}{
-				"entryPoints": []interface{}{"traefik"},
-				"routes": []interface{}{
-					map[string]interface{}{
+			"spec": map[string]any{
+				"entryPoints": []any{"traefik"},
+				"routes": []any{
+					map[string]any{
 						"match": "PathPrefix(`/`)",
 						"kind":  "Rule",
-						"services": []interface{}{
-							map[string]interface{}{
+						"services": []any{
+							map[string]any{
 								"name":   "jumpbox",
 								"port":   80,
 								"scheme": "http",

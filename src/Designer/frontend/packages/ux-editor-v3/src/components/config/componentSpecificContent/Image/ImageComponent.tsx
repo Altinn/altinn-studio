@@ -1,4 +1,3 @@
-import React from 'react';
 import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';

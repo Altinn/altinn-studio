@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { usePdf } from '../../../../hooks/usePdf/usePdf';
 import { ConvertChoicesModal } from './ConvertPageToPdfWhenExistingModal/ConvertChoicesModal';
 import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';

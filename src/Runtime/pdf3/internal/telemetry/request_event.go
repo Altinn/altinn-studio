@@ -6,17 +6,18 @@ import (
 	"strings"
 	"sync"
 
-	"altinn.studio/pdf3/internal/types"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/pdf3/internal/types"
 )
 
 type requestEventKey struct{}
 
 type RequestEventData struct {
-	mu    sync.Mutex
-	attrs []attribute.KeyValue
 	index map[attribute.Key]int
+	attrs []attribute.KeyValue
+	mu    sync.Mutex
 }
 
 func NewRequestEventData() *RequestEventData {
@@ -135,6 +136,26 @@ func (d *RequestEventData) SetBrowserErrors(count int) {
 	defer d.mu.Unlock()
 
 	d.setKVLocked(attribute.Int("pdf.process.browser_errors", count))
+}
+
+func (d *RequestEventData) SetJSExceptions(count int) {
+	if d == nil {
+		return
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.setKVLocked(attribute.Int("pdf.process.js_exceptions", count))
+}
+
+func (d *RequestEventData) SetCDPEventsDropped(count int) {
+	if d == nil {
+		return
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.setKVLocked(attribute.Int("pdf.process.cdp_events_dropped", count))
 }
 
 func (d *RequestEventData) SetCleanup(attempts int, succeeded bool, skipped bool) {

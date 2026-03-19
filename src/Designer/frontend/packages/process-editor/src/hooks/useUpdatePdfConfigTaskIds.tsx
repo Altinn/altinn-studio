@@ -9,12 +9,12 @@ export const useUpdatePdfConfigTaskIds = () => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
   const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
-  const modelerInstance = modelerRef.current!;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-
-  return (updatedTaskIds: string[]) =>
+  return (updatedTaskIds: string[]) => {
+    const modelerInstance = modelerRef.current!;
+    const modeling: Modeling = modelerInstance.get('modeling');
+    const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
     debounce(() => updatePdfConfigTaskIds(bpmnFactory, modeling, bpmnDetails, updatedTaskIds));
+  };
 };
 
 const updatePdfConfigTaskIds = (

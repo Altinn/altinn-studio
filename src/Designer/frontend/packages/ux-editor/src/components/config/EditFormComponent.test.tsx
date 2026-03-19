@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
 import { screen } from '@testing-library/react';

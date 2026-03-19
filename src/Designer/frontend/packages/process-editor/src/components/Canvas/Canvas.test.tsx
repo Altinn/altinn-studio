@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Canvas } from './Canvas';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import type { LocalImageProps } from './LocalImage';
 import { LocalImage } from './LocalImage';

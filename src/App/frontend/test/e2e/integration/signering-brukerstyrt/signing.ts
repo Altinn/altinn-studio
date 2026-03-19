@@ -53,6 +53,9 @@ describe('Signing', () => {
       cy.findByRole('textbox', { name: /navn/i }).type(tenorUsers.humanAndrefiolin.name.split(' ')[1]);
       cy.findByRole('button', { name: /hent opplysninger/i }).click();
 
+      cy.waitUntilSaved();
+      cy.findByRole('textbox', { name: /navn/i }).should('have.value', tenorUsers.humanAndrefiolin.name.toUpperCase());
+
       cy.findByRole('textbox', { name: /adresse/i }).type('Testveien 1');
       cy.findByRole('textbox', { name: /postnr/i }).type('0244');
       cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'OSLO');
@@ -65,6 +68,12 @@ describe('Signing', () => {
       cy.findByRole('textbox', { name: /fødselsnummer/i }).type(tenorUsers.standhaftigBjornunge.ssn);
       cy.findByRole('textbox', { name: /navn/i }).type(tenorUsers.standhaftigBjornunge.name.split(' ')[1]);
       cy.findByRole('button', { name: /hent opplysninger/i }).click();
+
+      cy.waitUntilSaved();
+      cy.findByRole('textbox', { name: /navn/i }).should(
+        'have.value',
+        tenorUsers.standhaftigBjornunge.name.toUpperCase(),
+      );
 
       cy.findByRole('textbox', { name: /adresse/i }).type('Testveien 2');
       cy.findByRole('textbox', { name: /postnr/i }).type('0244');
@@ -123,9 +132,7 @@ describe('Signing', () => {
       });
 
       cy.findByRole('table', { name: /dokumenter som skal signeres/i }).within(() => {
-        cy.findByRole('row', {
-          name: /stiftelse av aksjeselskap.pdf Skjema/i,
-        });
+        cy.findByRole('row', { name: /stiftelse av aksjeselskap\s*\.pdf\s*Skjema/i });
       });
 
       cy.findByRole('radio', {

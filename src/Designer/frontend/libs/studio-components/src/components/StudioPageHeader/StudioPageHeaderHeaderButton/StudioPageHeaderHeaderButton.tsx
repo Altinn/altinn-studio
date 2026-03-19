@@ -1,4 +1,5 @@
-import React, { type ElementType, forwardRef, type ReactElement } from 'react';
+import type { ElementType, ReactElement } from 'react';
+import { forwardRef } from 'react';
 import { StudioButton, type StudioButtonProps } from '../../StudioButton';
 import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 import type { OverridableComponent } from '../../../types/OverridableComponent';

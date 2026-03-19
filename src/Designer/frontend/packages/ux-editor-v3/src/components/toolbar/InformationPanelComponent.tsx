@@ -1,4 +1,3 @@
-import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
 import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';

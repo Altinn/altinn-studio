@@ -6,19 +6,28 @@ const packagesToTransform = [
   '@react-dnd',
   'bail',
   'bpmn-js',
+  'bpmn-moddle',
   'decode-.*',
   'diagram-js',
+  'didi',
   'dnd-core',
+  'domify',
   'htm',
+  'ids',
   'is-plain-obj',
   'mdast.*',
   'micromark',
   'micromark-.*',
+  'min-dash',
+  'min-dom',
+  'moddle',
   'path-intersection',
   'react-dnd',
   'react-dnd-html5-backend',
   'react-error-boundary',
   'remark-parse',
+  'saxen',
+  'tiny-svg',
   'trough',
   'unified',
   'unist-util-stringify-position',
@@ -35,7 +44,18 @@ const resolveNodeModulesPath = (subPath) => {
 /** @type {import('jest').Config} */
 const config = {
   transform: {
-    '\\.(ts|tsx|js)': '@swc/jest',
+    '\\.(ts|tsx|js)': [
+      '@swc/jest',
+      {
+        jsc: {
+          transform: {
+            react: {
+              runtime: 'automatic',
+            },
+          },
+        },
+      },
+    ],
     [`node_modules(\\\\|/)(${packagesToTransform})(\\\\|/).+\\.(j|t)sx?$`]: '@swc/jest',
   },
   transformIgnorePatterns: [
@@ -70,6 +90,7 @@ const config = {
     '^@studio/hooks/(.*)': path.join(__dirname, 'libs/studio-hooks/$1'),
     '^@studio/pure-functions/(.*)': path.join(__dirname, 'libs/studio-pure-functions/$1'),
     '^@studio/testing/(.*)': path.join(__dirname, 'testing/$1'),
+    '^@studio/ui-test/(.*)': path.join(__dirname, 'libs/studio-ui-test/$1'),
   },
   testRegex: '(\\.(test))\\.(ts|tsx)$',
   moduleFileExtensions: ['ts', 'tsx', 'js'],

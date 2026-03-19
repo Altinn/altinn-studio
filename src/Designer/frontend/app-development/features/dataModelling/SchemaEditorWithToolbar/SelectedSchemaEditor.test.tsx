@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../test/mocks';
 import type { SelectedSchemaEditorProps } from './SelectedSchemaEditor';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';

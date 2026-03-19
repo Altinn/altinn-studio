@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './Calculations.module.css';
 import { RuleModal } from '../toolbar/RuleModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';

@@ -5,7 +5,7 @@
   <ItemGroup>
     <PackageReference Include="MinVer" PrivateAssets="All" />
     <None Include="../../README.md" Link="README.md" Pack="true" PackagePath="/" />
-    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)../../../../LICENSE" Link="LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -13,6 +13,7 @@
     <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!='' AND '$(BuildNumber)' != ''">

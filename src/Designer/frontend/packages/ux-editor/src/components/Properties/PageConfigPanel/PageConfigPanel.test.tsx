@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';

@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import { StudioInputTable } from '../index';
 import * as testData from './testTableData';
 import type { StudioInputTableProps } from '../StudioInputTable';

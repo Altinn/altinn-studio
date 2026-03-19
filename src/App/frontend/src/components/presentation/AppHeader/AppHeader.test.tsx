@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
 import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 

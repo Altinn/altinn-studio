@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './AppPreviewSubMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@studio/components-legacy';
