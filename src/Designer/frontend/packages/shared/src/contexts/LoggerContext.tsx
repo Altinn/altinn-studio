@@ -1,4 +1,4 @@
-import { type ReactNode, useRef } from 'react';
+import { type ReactNode, useState } from 'react';
 import { createContext, useEffect, useMemo } from 'react';
 import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
@@ -19,17 +19,15 @@ export const LoggerContextProvider = ({
 }: LoggerContextProviderProps): JSX.Element => {
   const reactPlugin = useMemo(() => new ReactPlugin(), []);
   const { environment } = useEnvironmentConfig();
-  const insightsRef = useRef<ApplicationInsights | null>(null);
+  const [applicationInsights, setApplicationInsights] = useState<ApplicationInsights | null>(null);
 
   useEffect(() => {
-    insightsRef.current = initializeApplicationInsights(
-      environment?.aiConnectionString,
-      config,
-      reactPlugin,
+    setApplicationInsights(
+      initializeApplicationInsights(environment?.aiConnectionString, config, reactPlugin),
     );
   }, [environment?.aiConnectionString, config, reactPlugin]);
 
-  return <LoggerContext.Provider value={insightsRef.current}>{children}</LoggerContext.Provider>;
+  return <LoggerContext.Provider value={applicationInsights}>{children}</LoggerContext.Provider>;
 };
 
 function initializeApplicationInsights(
