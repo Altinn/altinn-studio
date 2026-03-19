@@ -7,7 +7,13 @@ import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
-import { hasCheckoutConflict, hasRepoMergeConflict } from '../../utils/repoStatus';
+import {
+  hasCheckoutConflict,
+  hasRepoMergeConflict,
+  toMergeConflictRepoStatus,
+} from '../../utils/repoStatus';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export type VersionControlButtonsContextProps = {
   isLoading: boolean;
@@ -38,6 +44,7 @@ export const VersionControlButtonsContextProvider = ({
 }: Partial<VersionControlButtonsContextProviderProps>) => {
   const { t } = useTranslation();
   const { owner, repoName } = useGiteaHeaderContext();
+  const queryClient = useQueryClient();
 
   const hasPushRights: boolean = currentRepo?.permissions?.push;
   const { hasMergeConflict, setHasMergeConflict } = useHasMergeConflict(repoStatus);
@@ -46,6 +53,15 @@ export const VersionControlButtonsContextProvider = ({
   const { mutateAsync: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(owner, repoName);
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const setMergeConflictState = (status?: Partial<RepoStatus>) => {
+    queryClient.setQueryData(
+      [QueryKey.RepoStatus, owner, repoName],
+      toMergeConflictRepoStatus(status),
+    );
+    setIsLoading(false);
+    setHasMergeConflict(true);
+  };
 
   const commitAndPushChanges = async (commitMessage: string) => {
     setIsLoading(true);
@@ -56,10 +72,7 @@ export const VersionControlButtonsContextProvider = ({
       console.error(error);
       const { data: result } = await fetchPullData();
       if (hasRepoMergeConflict(result)) {
-        // if pull resulted in a merge conflict, show merge conflict message
-        forceRepoStatusCheck();
-        setIsLoading(false);
-        setHasMergeConflict(true);
+        setMergeConflictState(result);
       } else if (hasCheckoutConflict(result)) {
         toast.error(t('sync_header.checkout_conflict_blocked_action'));
         setIsLoading(false);
@@ -100,5 +113,3 @@ export const useVersionControlButtonsContext = (): Partial<VersionControlButtons
   }
   return context;
 };
-
-const forceRepoStatusCheck = () => window.postMessage('forceRepoStatusCheck', window.location.href);

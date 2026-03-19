@@ -11,6 +11,10 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { app, org } from '@studio/testing/testids';
 
 const contextTestId: string = 'context';
 const isLoadingTestId: string = 'isLoading';
@@ -243,22 +247,80 @@ describe('VersionControlButtonsContext', () => {
     expect(screen.getByTestId(isLoadingTestId)).toHaveTextContent('false');
     expect(screen.getByTestId(hasMergeConflictTestId)).toHaveTextContent('false');
   });
+
+  it('should enter merge conflict mode immediately when commit and push fails and follow-up pull reports merge conflict', async () => {
+    const user = userEvent.setup();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const queryClient = createQueryClientMock();
+    const rebaseConflictError = createApiErrorMock(409, 'GT_01');
+
+    const TestComponent = () => {
+      const { commitAndPushChanges, isLoading, hasMergeConflict } =
+        useVersionControlButtonsContext();
+
+      return (
+        <div>
+          <button
+            onClick={() => commitAndPushChanges('test message')}
+            data-testid={commitAndPushButtonTestId}
+          >
+            Commit and Push
+          </button>
+          <div data-testid={isLoadingTestId}>{isLoading.toString()}</div>
+          <div data-testid={hasMergeConflictTestId}>{hasMergeConflict.toString()}</div>
+        </div>
+      );
+    };
+
+    renderVersionControlButtonsContextProvider({
+      contextProviderProps: {
+        children: <TestComponent />,
+      },
+      queries: {
+        getRepoPull: jest.fn().mockResolvedValue({ repositoryStatus: 'MergeConflict' }),
+        commitAndPushChanges: jest.fn().mockRejectedValue(rebaseConflictError),
+      },
+      queryClient,
+    });
+
+    const commitButton = screen.getByTestId(commitAndPushButtonTestId);
+    await user.click(commitButton);
+
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith(rebaseConflictError);
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId(hasMergeConflictTestId)).toHaveTextContent('true');
+    });
+    expect(screen.getByTestId(isLoadingTestId)).toHaveTextContent('false');
+    expect(queryClient.getQueryData([QueryKey.RepoStatus, org, app])).toEqual({
+      aheadBy: 0,
+      behindBy: 0,
+      contentStatus: [],
+      hasMergeConflict: true,
+      repositoryStatus: 'MergeConflict',
+    });
+  });
 });
 
 type Props = {
   queries: Partial<ServicesContextProps>;
   contextProviderProps: Partial<VersionControlButtonsContextProviderProps>;
+  queryClient: ReturnType<typeof createQueryClientMock>;
 };
 
 const renderVersionControlButtonsContextProvider = (props: Partial<Props> = {}) => {
-  const { contextProviderProps, queries } = props;
+  const { contextProviderProps, queries, queryClient } = props;
   const {
     currentRepo = { ...repository, permissions: { ...repository.permissions, push: true } },
     repoStatus = mockRepoStatus,
     children,
   } = contextProviderProps;
 
-  return renderWithProviders({ ...queriesMock, ...queries })(
+  return renderWithProviders(
+    { ...queriesMock, ...queries },
+    queryClient,
+  )(
     <VersionControlButtonsContextProvider currentRepo={currentRepo} repoStatus={repoStatus}>
       {children}
     </VersionControlButtonsContextProvider>,
