@@ -124,7 +124,30 @@ describe('fetchChanges', () => {
     expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
   });
 
-  it('should mark merge conflict and close popover when there is a merge conflict or checkout conflict', async () => {
+  it('should mark merge conflict and close popover when there is a merge conflict', async () => {
+    const user = userEvent.setup();
+
+    const getRepoPull = mockGetRepoPull.mockImplementation(() =>
+      Promise.resolve({ repositoryStatus: 'MergeConflict' }),
+    );
+
+    renderFetchChangesPopover({
+      queries: { getRepoPull },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        hasPushRights: true,
+      },
+    });
+
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+
+    await waitFor(() => {
+      expect(mockVersionControlButtonsContextValue.setHasMergeConflict).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('should show warning toast and keep merge conflict mode disabled when there is a checkout conflict', async () => {
     const user = userEvent.setup();
 
     const getRepoPull = mockGetRepoPull.mockImplementation(() =>
@@ -143,8 +166,11 @@ describe('fetchChanges', () => {
     await user.click(fetchButton);
 
     await waitFor(() => {
-      expect(mockVersionControlButtonsContextValue.setHasMergeConflict).toHaveBeenCalledWith(true);
+      expect(
+        screen.getByText(textMock('sync_header.checkout_conflict_blocked_action')),
+      ).toBeInTheDocument();
     });
+    expect(mockVersionControlButtonsContextValue.setHasMergeConflict).not.toHaveBeenCalled();
   });
 
   it('should render the button with text on a large screen', () => {

@@ -7,6 +7,7 @@ import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
+import { hasCheckoutConflict, hasRepoMergeConflict } from '../../utils/repoStatus';
 
 export type VersionControlButtonsContextProps = {
   isLoading: boolean;
@@ -54,11 +55,14 @@ export const VersionControlButtonsContextProvider = ({
     } catch (error) {
       console.error(error);
       const { data: result } = await fetchPullData();
-      if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
+      if (hasRepoMergeConflict(result)) {
         // if pull resulted in a merge conflict, show merge conflict message
         forceRepoStatusCheck();
         setIsLoading(false);
         setHasMergeConflict(true);
+      } else if (hasCheckoutConflict(result)) {
+        toast.error(t('sync_header.checkout_conflict_blocked_action'));
+        setIsLoading(false);
       }
       return;
     }

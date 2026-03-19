@@ -175,7 +175,7 @@ describe('VersionControlButtonsContext', () => {
       queries: {
         getRepoPull: jest.fn().mockImplementation(() => ({
           hasMergeConflict: true,
-          repositoryStatus: 'CheckoutConflict',
+          repositoryStatus: 'MergeConflict',
         })),
         commitAndPushChanges: jest.fn().mockRejectedValue(new Error('Test error')),
       },
@@ -193,6 +193,55 @@ describe('VersionControlButtonsContext', () => {
     await waitFor(() => {
       expect(screen.getByTestId(hasMergeConflictTestId)).toHaveTextContent('true');
     });
+  });
+
+  it('should show warning toast and keep merge conflict mode disabled on checkout conflict after commit and push error', async () => {
+    const user = userEvent.setup();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const TestComponent = () => {
+      const { commitAndPushChanges, isLoading, hasMergeConflict } =
+        useVersionControlButtonsContext();
+
+      return (
+        <div>
+          <button
+            onClick={() => commitAndPushChanges('test message')}
+            data-testid={commitAndPushButtonTestId}
+          >
+            Commit and Push
+          </button>
+          <div data-testid={isLoadingTestId}>{isLoading.toString()}</div>
+          <div data-testid={hasMergeConflictTestId}>{hasMergeConflict.toString()}</div>
+        </div>
+      );
+    };
+
+    renderVersionControlButtonsContextProvider({
+      contextProviderProps: {
+        children: <TestComponent />,
+      },
+      queries: {
+        getRepoPull: jest.fn().mockImplementation(() => ({
+          repositoryStatus: 'CheckoutConflict',
+        })),
+        commitAndPushChanges: jest.fn().mockRejectedValue(new Error('Test error')),
+      },
+    });
+
+    const commitButton = screen.getByTestId(commitAndPushButtonTestId);
+    await user.click(commitButton);
+
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith(new Error('Test error'));
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('sync_header.checkout_conflict_blocked_action')),
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByTestId(isLoadingTestId)).toHaveTextContent('false');
+    expect(screen.getByTestId(hasMergeConflictTestId)).toHaveTextContent('false');
   });
 });
 
