@@ -81,9 +81,41 @@ public static class ServiceCollectionExtensions
                 })
                 .WithMetrics(builder =>
                 {
+                    // Bucket boundaries (in seconds) for workflow/step/mainloop timing histograms.
+                    // The default OTel boundaries (0, 5, 10, 25, ...) have no resolution below 5s,
+                    // causing histogram_quantile to report ~4.8s for sub-second workflows.
+                    double[] durationBuckets =
+                    [
+                        0.005,
+                        0.01,
+                        0.025,
+                        0.05,
+                        0.1,
+                        0.25,
+                        0.5,
+                        1,
+                        2.5,
+                        5,
+                        10,
+                        30,
+                        60,
+                        120,
+                        300,
+                    ];
+                    var durationView = new ExplicitBucketHistogramConfiguration { Boundaries = durationBuckets };
+
                     builder
                         .AddMeter(Metrics.ServiceName)
                         .AddMeter("Microsoft.EntityFrameworkCore")
+                        .AddView("engine.workflows.time.queue", durationView)
+                        .AddView("engine.workflows.time.service", durationView)
+                        .AddView("engine.workflows.time.total", durationView)
+                        .AddView("engine.steps.time.queue", durationView)
+                        .AddView("engine.steps.time.service", durationView)
+                        .AddView("engine.steps.time.total", durationView)
+                        .AddView("engine.mainloop.time.queue", durationView)
+                        .AddView("engine.mainloop.time.service", durationView)
+                        .AddView("engine.mainloop.time.total", durationView)
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
