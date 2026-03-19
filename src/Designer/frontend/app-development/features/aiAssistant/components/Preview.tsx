@@ -11,7 +11,7 @@ import classes from './Preview.module.css';
 
 export const Preview = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: user, isPending: userPending } = useUserQuery();
+  const { data: user } = useUserQuery();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
 
   const {
@@ -48,27 +48,18 @@ export const Preview = (): ReactElement => {
   const previewError =
     layoutMetadataError || (createInstanceError ? 'Error loading preview' : undefined);
 
-  const isLoading =
-    userPending ||
-    layoutMetadataPending ||
-    !layoutSetName ||
-    !layoutName ||
-    !taskId ||
-    createInstancePending ||
-    !instance;
+  if (!instance && !previewError) {
+    return (
+      <StudioCenter>
+        <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
+      </StudioCenter>
+    );
+  }
 
   if (previewError) {
     return (
       <StudioCenter>
         <StudioAlert data-color='danger'>{previewError}</StudioAlert>
-      </StudioCenter>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <StudioCenter>
-        <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
       </StudioCenter>
     );
   }
