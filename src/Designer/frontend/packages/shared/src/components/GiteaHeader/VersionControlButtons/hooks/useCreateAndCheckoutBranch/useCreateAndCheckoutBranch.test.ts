@@ -22,7 +22,7 @@ describe('useCreateAndCheckoutBranch', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
       writable: true,
-      value: { reload: jest.fn(), pathname: '/' },
+      value: { reload: jest.fn() },
     });
   });
 

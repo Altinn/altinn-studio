@@ -28,6 +28,7 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
 
   const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
     onUncommittedChanges: setUncommittedChangesError,
+    onSuccess: () => window.location.reload(),
   });
 
   const discardChangesMutation = useDiscardChangesMutation(org, app);
