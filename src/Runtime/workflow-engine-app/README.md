@@ -20,8 +20,8 @@ docker compose --profile app up -d
 Or run the engine from source against Dockerized infrastructure:
 
 ```sh
-# Start infrastructure only (from the workflow-engine directory)
-cd ../workflow-engine && docker compose up -d && cd -
+# Start infrastructure only 
+docker compose up -d
 
 # Run the app
 dotnet run --project src/WorkflowEngine.App
