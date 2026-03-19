@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import type {
   UserMessage,
   AssistantMessage,
@@ -13,7 +12,8 @@ import type {
 import { MessageAuthor } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
+import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import {
@@ -41,8 +41,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     onAgentMessage,
   } = useAltinityWebSocket();
   const { org, app } = useStudioEnvironmentParams();
-  const queryClient = useQueryClient();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
+  const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
+  const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
   const currentBranchRef = useRef<string>('main');
 
@@ -82,29 +83,17 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const resetRepoForSession = useCallback(
     (sessionId: string) => {
       const branch = buildSessionBranch(sessionId);
-      const resetUrl = `/designer/api/repos/repo/${org}/${app}/reset${branch !== 'main' ? `?branch=${encodeURIComponent(branch)}` : ''}`;
-      fetch(resetUrl, {
-        method: 'GET',
-        credentials: 'same-origin',
-      })
-        .then(() => {
-          console.log('Repository reset completed, triggering preview reload');
-          currentBranchRef.current = branch;
-          queryClient.invalidateQueries({
-            queryKey: [QueryKey.CurrentBranch, org, app],
+      resetRepository(undefined, {
+        onSuccess: () => {
+          checkoutBranch(branch, {
+            onSuccess: () => {
+              currentBranchRef.current = branch;
+            },
           });
-          queryClient.invalidateQueries({
-            queryKey: [QueryKey.LayoutSets, org, app],
-          });
-          queryClient.invalidateQueries({
-            queryKey: [QueryKey.FormLayoutSettings, org, app],
-          });
-        })
-        .catch((error) => {
-          console.warn('Failed to reset repository:', error);
-        });
+        },
+      });
     },
-    [app, org, queryClient],
+    [resetRepository, checkoutBranch],
   );
 
   const handleAssistantMessage = useCallback(

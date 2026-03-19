@@ -78,7 +78,7 @@ export const Preview = (): ReactElement => {
   return (
     <div className={classes.previewContainer}>
       <iframe
-        key={currentBranchInfo?.branchName}
+        key={currentBranchInfo?.commitSha}
         className={classes.previewIframe}
         title='App Preview'
         src={previewURL}
