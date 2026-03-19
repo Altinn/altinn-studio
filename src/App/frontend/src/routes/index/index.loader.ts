@@ -11,8 +11,9 @@ import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
 export type IndexLoaderError =
-  | { error: 'instantiation-failed'; cause: Error }
-  | { error: 'forbidden-validation'; validationResult: InstantiationValidationResult };
+  | { error: 'forbidden' }
+  | { error: 'forbidden-validation'; validationResult: InstantiationValidationResult }
+  | { error: 'instantiation-failed'; cause: Error };
 
 export type IndexLoaderResult = null | IndexLoaderError;
 
@@ -78,6 +79,7 @@ function toLoaderError(error: unknown): IndexLoaderError {
     if (isInstantiationValidationResult(data)) {
       return { error: 'forbidden-validation', validationResult: data };
     }
+    return { error: 'forbidden' };
   }
 
   return { error: 'instantiation-failed', cause: error instanceof Error ? error : new Error(String(error)) };
