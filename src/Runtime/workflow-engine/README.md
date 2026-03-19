@@ -13,42 +13,35 @@ Built on .NET 10, PostgreSQL, and OpenTelemetry.
 
 ### Running locally
 
-Start the infrastructure (Postgres, PgAdmin, Grafana/LGTM, exporters):
+Start the infrastructure (Postgres, PgAdmin, Grafana/LGTM, exporters, WireMock):
 
 ```sh
 docker compose up -d
 ```
 
-Then run the host application:
+Then run the test host application:
 
 ```sh
-# From the workflow-engine-app directory
-dotnet run --project src/WorkflowEngine.App
+dotnet run --project tests/WorkflowEngine.TestApp
 ```
 
 The database is migrated automatically on startup (EF Core). No manual migration step needed.
 
-To run the engine as a Docker container alongside infrastructure, use the `app` profile from the `workflow-engine-app` directory:
+The [TestApp](tests/WorkflowEngine.TestApp) is a minimal host that composes the core engine with the built-in WebhookCommand — ideal for local development and testing against the engine itself.
+
+Alternatively, run the TestApp as a Docker container using the `core` profile:
 
 ```sh
-# From the workflow-engine-app directory
-docker compose --profile app up -d
+docker compose --profile core up -d
 ```
 
-Or use the `full` profile for everything (engine, observability stack, pgadmin, wiremock):
-
-```sh
-docker compose --profile full up -d
-```
-
-The dashboard's `wwwroot/` directory is bind-mounted into the container, so frontend file edits are reflected immediately without rebuilding — just refresh the browser (or let hot-reload do it automatically).
+The dashboard's `wwwroot/` directory is bind-mounted into the container, so frontend file edits are reflected immediately without rebuilding.
 
 ### Ports & URLs
 
 | Service    | URL                                                             | Notes                                                   |
 |------------|-----------------------------------------------------------------|---------------------------------------------------------|
 | Engine API | [http://localhost:8080](http://localhost:8080)                  | Swagger UI at [/swagger](http://localhost:8080/swagger) |
-| Dashboard  | [http://localhost:8090](http://localhost:8090)                  | Real-time monitoring UI                                 |
 | Grafana    | [http://localhost:7070](http://localhost:7070)                  | Dashboards, logs, traces, metrics                       |
 | WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
 | PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |

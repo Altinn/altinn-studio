@@ -17,11 +17,7 @@
     <ProjectReference Include="../WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Sql\Functions\*.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
+<ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.Repository.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.TestKit" />

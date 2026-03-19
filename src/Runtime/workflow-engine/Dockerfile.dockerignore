@@ -15,6 +15,7 @@
 **/README.*
 **/docs/
 **/tests/
+!**/tests/WorkflowEngine.TestApp/
 *.sln.DotSettings*
 *.slnx
 **/.DS_Store
@@ -22,5 +23,5 @@
 
 Directory.*.props
 **/Directory.*.props
-!Directory.Pacakges.props
+!Directory.Packages.props
 !**/Directory.Packages.props
