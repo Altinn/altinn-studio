@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
 import { createContext, useEffect, useMemo } from 'react';
 import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
@@ -19,26 +19,20 @@ export const LoggerContextProvider = ({
 }: LoggerContextProviderProps): JSX.Element => {
   const reactPlugin = useMemo(() => new ReactPlugin(), []);
   const { environment } = useEnvironmentConfig();
-
-  const applicationInsights = useMemo(
-    () => createApplicationInsights(environment?.aiConnectionString, config, reactPlugin),
-    [config, reactPlugin, environment],
-  );
+  const insightsRef = useRef<ApplicationInsights | null>(null);
 
   useEffect(() => {
-    if (!applicationInsights) return;
+    insightsRef.current = initializeApplicationInsights(
+      environment?.aiConnectionString,
+      config,
+      reactPlugin,
+    );
+  }, [environment?.aiConnectionString, config, reactPlugin]);
 
-    const handleWindowError = (event: ErrorEvent) =>
-      trackException(applicationInsights, event.error);
-
-    window.addEventListener('error', handleWindowError);
-    return () => window.removeEventListener('error', handleWindowError);
-  }, [applicationInsights]);
-
-  return <LoggerContext.Provider value={applicationInsights}>{children}</LoggerContext.Provider>;
+  return <LoggerContext.Provider value={insightsRef.current}>{children}</LoggerContext.Provider>;
 };
 
-function createApplicationInsights(
+function initializeApplicationInsights(
   connectionString: string | undefined,
   config: LoggerConfig,
   reactPlugin: ReactPlugin,
@@ -59,13 +53,5 @@ function createApplicationInsights(
   } catch (error) {
     console.error('Failed to initialize Application Insights:', error);
     return null;
-  }
-}
-
-function trackException(applicationInsights: ApplicationInsights, error: Error): void {
-  try {
-    applicationInsights.trackException({ error });
-  } catch (trackingError) {
-    console.error('Failed to track exception in Application Insights:', trackingError);
   }
 }

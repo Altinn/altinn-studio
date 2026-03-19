@@ -1,5 +1,5 @@
 import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
 jest.mock('@microsoft/applicationinsights-web', () => ({
@@ -38,36 +38,38 @@ describe('LoggerContextProvider', () => {
   });
 
   test('does not initialize ApplicationInsights when environment has no aiConnectionString', () => {
-    mockEnvironmentConfig();
+    mockEnvironmentConfig({ aiConnectionString: undefined });
 
     renderLoggerContext();
     expect(ApplicationInsights).not.toHaveBeenCalled();
   });
 
-  test('does initialize ApplicationInsights when connectionString is provided', () => {
+  test('does initialize ApplicationInsights when connectionString is provided', async () => {
     mockEnvironmentConfig({ aiConnectionString: mockConnectionString });
 
     const customConfig = { disableTelemetry: true };
     renderLoggerContext({ config: customConfig });
 
-    expect(ApplicationInsights).toHaveBeenCalledWith(
-      expect.objectContaining({
-        config: expect.objectContaining({
-          connectionString: mockConnectionString,
-          disableTelemetry: true,
+    await waitFor(() => {
+      expect(ApplicationInsights).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({
+            connectionString: mockConnectionString,
+            disableTelemetry: true,
+          }),
         }),
-      }),
-    );
+      );
+    });
   });
 
-  test('does not crash when ApplicationInsights constructor throws', () => {
-    expectGracefulFailureWhenSdkThrows(() => {
+  test('does not crash when ApplicationInsights constructor throws', async () => {
+    await expectGracefulFailureWhenSdkThrows(() => {
       throw new Error('SDK initialization failed');
     });
   });
 
-  test('does not crash when loadAppInsights throws', () => {
-    expectGracefulFailureWhenSdkThrows(() => ({
+  test('does not crash when loadAppInsights throws', async () => {
+    await expectGracefulFailureWhenSdkThrows(() => ({
       loadAppInsights: () => {
         throw new Error('loadAppInsights failed');
       },
@@ -76,7 +78,9 @@ describe('LoggerContextProvider', () => {
   });
 });
 
-function expectGracefulFailureWhenSdkThrows(mockImplementation: () => unknown): void {
+async function expectGracefulFailureWhenSdkThrows(
+  mockImplementation: () => unknown,
+): Promise<void> {
   const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
   mockEnvironmentConfig({ aiConnectionString: mockConnectionString });
 
@@ -84,10 +88,13 @@ function expectGracefulFailureWhenSdkThrows(mockImplementation: () => unknown): 
 
   const { container } = renderLoggerContext();
   expect(container.textContent).toBe('child');
-  expect(consoleErrorSpy).toHaveBeenCalledWith(
-    'Failed to initialize Application Insights:',
-    expect.any(Error),
-  );
+
+  await waitFor(() => {
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to initialize Application Insights:',
+      expect.any(Error),
+    );
+  });
 
   consoleErrorSpy.mockRestore();
 }
