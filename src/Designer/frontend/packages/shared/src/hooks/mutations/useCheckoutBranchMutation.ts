@@ -5,7 +5,7 @@ import type { RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { AxiosError } from 'axios';
 import { HttpResponseUtils } from '../../utils/httpResponseUtils';
 import { isAppSpecificQuery } from 'app-shared/utils/tanstackQueryUtils';
-import { RoutePaths } from 'app-shared/enums/RoutePaths';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export const useCheckoutBranchMutation = (
   org: string,
