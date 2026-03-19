@@ -11,8 +11,6 @@ export type StudioResizableOrientation = (typeof ORIENTATIONS)[number];
 export const horizontal: StudioResizableOrientation = 'horizontal';
 export const vertical: StudioResizableOrientation = 'vertical';
 
-type StudioResizableLayoutContainerPropsWithRef = StudioResizableLayoutContainerProps &
-  React.RefAttributes<HTMLDivElement>;
 type StudioResizableLayoutElementPropsWithRef = StudioResizableLayoutElementProps &
   React.RefAttributes<HTMLDivElement>;
 
@@ -20,8 +18,7 @@ export type StudioResizableLayoutContainerProps = {
   localStorageContext?: string;
   orientation: StudioResizableOrientation;
   style?: CSSProperties;
-
-  children: ReactElement<StudioResizableLayoutContainerPropsWithRef>[];
+  children: ReactElement<StudioResizableLayoutElementPropsWithRef>[];
 };
 
 const StudioResizableLayoutContainer = ({
