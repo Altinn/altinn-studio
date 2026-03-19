@@ -162,13 +162,12 @@ describe('Expression validation', () => {
 
   it('should work with hiddenRow', () => {
     // Ability to save group row with errors
-    cy.interceptLayout('Task_1', (c) => {
+    cy.gotoNavPage('Skjul felter');
+    cy.changeLayout((c) => {
       if (c.type === 'RepeatingGroup') {
         c.validateOnSaveRow = undefined;
       }
     });
-
-    cy.gotoNavPage('Skjul felter');
 
     cy.findByRole('checkbox', { name: /fornavn/i }).dsCheck();
     cy.findByRole('checkbox', { name: /etternavn/i }).dsCheck();

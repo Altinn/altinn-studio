@@ -197,9 +197,11 @@ export const fetchLogo = async (): Promise<string> =>
 export const fetchActiveInstances = (partyId: number): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));
 
+export const activeInstancesQueryKey = (partyId: number) => ['getActiveInstances', partyId] as const;
+
 export const activeInstancesQueryOptions = (partyId: number) =>
   queryOptions({
-    queryKey: ['getActiveInstances', partyId] as const,
+    queryKey: activeInstancesQueryKey(partyId),
     queryFn: () => fetchActiveInstances(partyId),
   });
 

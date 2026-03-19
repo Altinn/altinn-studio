@@ -3,16 +3,21 @@ import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { activeInstancesQueryOptions } from 'src/queries/queries';
+import { activeInstancesQueryKey } from 'src/queries/queries';
 
 const useActiveInstancesQuery = () => {
+  const { fetchActiveInstances } = useAppQueries();
   const selectedParty = useSelectedParty();
 
-  const utils = useQuery(activeInstancesQueryOptions(selectedParty?.partyId ?? -1));
+  const utils = useQuery({
+    queryKey: activeInstancesQueryKey(selectedParty?.partyId ?? -1),
+    queryFn: () => fetchActiveInstances(selectedParty?.partyId ?? -1),
+  });
 
   useEffect(() => {
     utils.error && window.logError('Fetching active instances failed:\n', utils.error);

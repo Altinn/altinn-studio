@@ -9,12 +9,10 @@ import { activeInstancesQueryOptions, doInstantiate } from 'src/queries/queries'
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
-import type { IInstance } from 'src/types/shared';
 
 export type IndexLoaderError =
-  | { error: 'forbidden' }
-  | { error: 'forbidden-validation'; validationResult: InstantiationValidationResult }
-  | { error: 'unknown' };
+  | { error: 'instantiation-failed'; cause: Error }
+  | { error: 'forbidden-validation'; validationResult: InstantiationValidationResult };
 
 export type IndexLoaderResult = null | IndexLoaderError;
 
@@ -69,24 +67,18 @@ async function handleSelectInstance(queryClient: QueryClient): Promise<Response>
 }
 
 async function createInstanceAndRedirect(): Promise<Response> {
-  const instance = await createNewInstance();
+  const instance = await doInstantiate(GlobalData.getSelectedParty()!.partyId);
   const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
   return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
 }
 
 function toLoaderError(error: unknown): IndexLoaderError {
-  if (!isAxiosError(error) || error.response?.status !== 403) {
-    return { error: 'unknown' };
+  if (isAxiosError(error) && error.response?.status === 403) {
+    const data = error.response?.data;
+    if (isInstantiationValidationResult(data)) {
+      return { error: 'forbidden-validation', validationResult: data };
+    }
   }
 
-  const data = error.response?.data;
-  if (isInstantiationValidationResult(data)) {
-    return { error: 'forbidden-validation', validationResult: data };
-  }
-
-  return { error: 'forbidden' };
-}
-
-async function createNewInstance(): Promise<IInstance> {
-  return await doInstantiate(GlobalData.getSelectedParty()!.partyId);
+  return { error: 'instantiation-failed', cause: error instanceof Error ? error : new Error(String(error)) };
 }
