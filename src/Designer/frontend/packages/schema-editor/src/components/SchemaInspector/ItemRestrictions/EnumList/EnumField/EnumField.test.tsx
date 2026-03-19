@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { EnumFieldProps } from './EnumField';
 import { EnumField } from './EnumField';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const mockValue: string = 'test';
 const mockIndex: number = 0;
@@ -26,7 +27,7 @@ describe('EnumField', () => {
 
   it('calls onChange when input value changes', async () => {
     const user = userEvent.setup();
-    render(<EnumField {...defaultProps} />);
+    renderAndRunTimers(<EnumField {...defaultProps} />);
 
     const textField = screen.getByRole('textbox', {
       name: textMock('schema_editor.enum_value', { index: mockIndex }),
@@ -51,7 +52,7 @@ describe('EnumField', () => {
 
   it('calls onDelete when delete button is clicked', async () => {
     const user = userEvent.setup();
-    render(<EnumField {...defaultProps} onDelete={mockOnDelete} />);
+    renderAndRunTimers(<EnumField {...defaultProps} onDelete={mockOnDelete} />);
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('schema_editor.delete_field'),
@@ -65,7 +66,7 @@ describe('EnumField', () => {
 
   it('calls onEnterKeyPress when "Enter" key is pressed', async () => {
     const user = userEvent.setup();
-    render(<EnumField {...defaultProps} />);
+    renderAndRunTimers(<EnumField {...defaultProps} />);
 
     const textField = screen.getByRole('textbox', {
       name: textMock('schema_editor.enum_value', { index: mockIndex }),

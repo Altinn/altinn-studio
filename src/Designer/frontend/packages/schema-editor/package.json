@@ -3,6 +3,7 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "devDependencies": {
+    "@studio/ui-test": "workspace:^",
     "jest": "29.7.0"
   },
   "peerDependencies": {
