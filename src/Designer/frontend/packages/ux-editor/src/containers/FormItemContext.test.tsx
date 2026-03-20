@@ -64,9 +64,9 @@ describe('FormItemContext', () => {
 
     await clickButton();
 
-    expect(await screen.findByTestId('formItem.id')).toHaveTextContent(component1Mock.id);
-    expect(await screen.findByTestId('formItem.itemType')).toHaveTextContent(
-      component1Mock.itemType,
+    await waitFor(() => expect(screen.getByTestId('formItem.id')).toHaveTextContent(component1Mock.id));
+    await waitFor(() =>
+      expect(screen.getByTestId('formItem.itemType')).toHaveTextContent(component1Mock.itemType),
     );
   });
 
