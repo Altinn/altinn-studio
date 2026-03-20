@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -216,14 +216,12 @@ describe('shareChanges', () => {
       screen.getByRole('button', { name: textMock('sync_header.changes_to_share') }),
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole('heading', {
-          level: 3,
-          name: textMock('sync_header.describe_and_validate'),
-        }),
-      ).toBeInTheDocument(),
-    );
+    expect(
+      await screen.findByRole('heading', {
+        level: 3,
+        name: textMock('sync_header.describe_and_validate'),
+      }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Set conflict' }));
 
