@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { createRef, forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
@@ -48,7 +48,7 @@ export class Custom extends CustomDef {
           summaryMode={true}
           formData={formData}
           baseComponentId={props.targetBaseComponentId}
-          containerDivRef={React.createRef()}
+          containerDivRef={createRef()}
         />
       </SummaryFlex>
     );

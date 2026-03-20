@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 import { Label, Radio, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';

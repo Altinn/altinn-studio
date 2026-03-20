@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Flex } from 'src/app-components/Flex/Flex';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';

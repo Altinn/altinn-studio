@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { CodeIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 

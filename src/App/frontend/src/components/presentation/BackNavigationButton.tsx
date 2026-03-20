@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 

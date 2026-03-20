@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { translationKey } from 'src/AppComponentsBridge';

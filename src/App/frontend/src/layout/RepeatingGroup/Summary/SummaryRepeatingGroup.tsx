@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { TileLayer, WMSTileLayer } from 'react-leaflet';
 
 import { DefaultMapLayers } from 'src/layout/Map/utils';

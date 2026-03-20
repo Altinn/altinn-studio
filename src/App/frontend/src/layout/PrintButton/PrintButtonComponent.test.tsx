@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 
 import { PrintButtonComponent } from 'src/layout/PrintButton/PrintButtonComponent';

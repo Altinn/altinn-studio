@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 

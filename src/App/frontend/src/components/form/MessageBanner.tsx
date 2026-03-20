@@ -1,5 +1,3 @@
-import React from 'react';
-
 import classNames from 'classnames';
 
 import classes from 'src/components/form/MessageBanner.module.css';

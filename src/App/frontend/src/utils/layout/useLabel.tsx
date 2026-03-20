@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Description } from 'src/components/form/Description';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';

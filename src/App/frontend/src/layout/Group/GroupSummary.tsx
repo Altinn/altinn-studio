@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';

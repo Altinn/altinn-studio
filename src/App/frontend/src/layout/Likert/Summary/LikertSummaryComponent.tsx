@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
