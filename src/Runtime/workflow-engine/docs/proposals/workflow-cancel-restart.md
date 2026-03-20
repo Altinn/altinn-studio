@@ -30,9 +30,9 @@ Cancellation is a request to terminate a workflow that is currently active (Enqu
 ### Edge cases
 
 - Cancelling a workflow that is a dependency of other workflows: dependent workflows remain in `Enqueued` state, waiting for a dependency that will never complete. Options:
-  - **Cascade** — automatically cancel dependents (could be surprising).
-  - **Leave** — dependents stay enqueued; they'll need manual cancellation too (explicit but tedious).
-  - **Configurable** — `cascade` query parameter, default false.
+    - **Cascade** — automatically cancel dependents (could be surprising).
+    - **Leave** — dependents stay enqueued; they'll need manual cancellation too (explicit but tedious).
+    - **Configurable** — `cascade` query parameter, default false.
 - Cancelling a workflow that has already completed or failed: no-op, return the current status.
 
 ### API
@@ -66,25 +66,25 @@ The processor's next polling cycle picks up the workflow naturally via `FOR UPDA
 
 ### What changes
 
-| Field | Change |
-|---|---|
-| Workflow status | `Failed`/`Cancelled` → `Enqueued` |
-| Workflow `BackoffUntil` | Cleared |
-| Workflow `UpdatedAt` | Set to now |
-| Failed/cancelled step status | → `Enqueued` |
-| Failed/cancelled step retry counters | Reset to 0 |
-| Failed/cancelled step `BackoffUntil` | Cleared |
+| Field                                | Change                            |
+| ------------------------------------ | --------------------------------- |
+| Workflow status                      | `Failed`/`Cancelled` → `Enqueued` |
+| Workflow `BackoffUntil`              | Cleared                           |
+| Workflow `UpdatedAt`                 | Set to now                        |
+| Failed/cancelled step status         | → `Enqueued`                      |
+| Failed/cancelled step retry counters | Reset to 0                        |
+| Failed/cancelled step `BackoffUntil` | Cleared                           |
 
 ### What stays the same
 
-| Field | Reason |
-|---|---|
-| Workflow ID | Same workflow, not a clone |
-| Idempotency key | Same workflow |
-| Completed steps | Already done, not re-executed |
-| Completed steps' `stateOut` | Feeds into retried steps as `stateIn` |
-| Context, namespace, labels | Unchanged |
-| Step processing order | Unchanged — retried steps execute in their original order |
+| Field                       | Reason                                                    |
+| --------------------------- | --------------------------------------------------------- |
+| Workflow ID                 | Same workflow, not a clone                                |
+| Idempotency key             | Same workflow                                             |
+| Completed steps             | Already done, not re-executed                             |
+| Completed steps' `stateOut` | Feeds into retried steps as `stateIn`                     |
+| Context, namespace, labels  | Unchanged                                                 |
+| Step processing order       | Unchanged — retried steps execute in their original order |
 
 ### API
 
@@ -117,6 +117,7 @@ For **retry**, there is no interaction with the processing loop — the workflow
 ### Audit trail
 
 Both cancel and retry are operator-initiated actions. Worth logging:
+
 - Who triggered the action (API key or future user identity).
 - Timestamp.
 - The number of times a workflow has been retried (a `requeueCount` on the workflow entity, or a note in metadata).
