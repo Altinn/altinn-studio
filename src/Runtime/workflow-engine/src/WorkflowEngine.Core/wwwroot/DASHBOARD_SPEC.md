@@ -24,11 +24,11 @@ On-demand paginated search against the database. Not SSE-driven — user clicks 
 
 **Controls:**
 - Status checkboxes: Enqueued, Processing, Requeued, Completed, Failed, Canceled
-- Time range dropdown: 5m, 15m, 1h, 6h, 24h, 7d, custom (datetime pickers)
+- Time range dropdown: All time (default), 5m, 15m, 30m, 1h, 6h, 24h, 7d, custom (datetime pickers)
 - "Has retries" checkbox
 - Text search (triggers on Enter)
 - Auto-refresh interval: Off, 5s, 10s, 30s, 1m, 5m
-- Pagination: 100 per page, cursor-based (uses `updatedAt` as cursor)
+- Pagination: 100 per page, cursor-based (uses `updatedAt` as cursor). Page boundary cursors are stored in an array (`queryPageCursors[pageIndex]`) so prev/next can navigate without re-querying all pages.
 
 **Smart GUID fallback:** If searching for a GUID with status filters returns empty, automatically retries without filters and updates the status checkboxes to match the found workflow's actual status.
 
@@ -42,6 +42,10 @@ Always visible. Shows:
 ---
 
 ## SSE Streams
+
+### Reconnection
+
+Both SSE streams use the same reconnection strategy: on error/close, the `EventSource` is destroyed and a new one is created after a fixed 2-second delay. There is no max retry limit — reconnection attempts continue indefinitely. Visual indicators: SSE dot toggles between `connected`/`disconnected` classes, and the engine status icon changes to `stopped` while disconnected.
 
 ### `/dashboard/stream` — Engine Metrics
 
@@ -97,6 +101,8 @@ Paginated workflow search.
 | `correlationId` | string   | Correlation ID filter                                 |
 
 Response: `{ totalCount: int, workflows: Workflow[] }`
+
+**Default statuses** (when `status` param is omitted): `Completed`, `Failed`, `Requeued`.
 
 ### `GET /dashboard/step`
 
@@ -174,7 +180,7 @@ Body: `{ "workflowId": "<guid>" }`
 
 Clear backoff wait on a requeued workflow, making it immediately eligible for processing.
 
-Body: `{ "workflowId": "<guid>", "stepIdempotencyKey": "<string>" }`
+Body: `{ "workflowId": "<guid>" }`
 
 ---
 
@@ -218,6 +224,8 @@ Horizontal row of step circles connected by SVG lines.
 - Animated: processing in progress
 - Gray/empty: not yet reached
 
+**Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing or Requeued step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found.
+
 **BPMN grouping:** Steps are grouped by task phase using `stepPhase()` which maps command detail names to `start`/`end`/`process-end` phases. Groups show bracket lines and task labels from `parseTransition()`. The transition is parsed from `operationId` (format: `"Process next: TaskA → TaskB"`).
 
 ### Compact Mode
@@ -228,7 +236,9 @@ Each section can toggle between full cards and compact cards. Compact cards show
 - Inline dot pipeline (colored dots instead of full step circles)
 - Status pill + timestamps
 
-Compact preference is stored in localStorage per section.
+Compact preference is stored in localStorage per section. Each compact dot is clickable (opens step modal).
+
+**Individual card expansion:** Clicking a compact card (outside interactive elements) toggles it to full view within the compact section. This is tracked per-card, not per-section. The `pendingExpand` set (`state.pendingExpand`) can force specific cards to render expanded — used by URL restore (`exp` param) and when navigating to a card from a modal.
 
 ### Card Data Attributes
 
@@ -249,32 +259,75 @@ data-labels="{key:value,key:value lowercase}"
 
 Opened by clicking a step circle. Fetches `/dashboard/step?wf=<id>&step=<key>`.
 
+### DOM Structure
+
+The modal has four distinct DOM zones:
+1. **Title bar** (`dom.modalTitle`) — Step name (e.g. "StartTask"). For `ExecuteServiceTask` steps, enriched with the `serviceTaskType` from command data (e.g. "ExecuteServiceTask: SigningServiceTask").
+2. **Tab bar** (`dom.modalTabs`) — Sticky top-level tab buttons. Hidden when only Details tab exists.
+3. **Sub-tab bar** (`dom.modalSubtabs`) — Sticky state sub-tab buttons. Only visible when the State tab is active AND both stateIn and stateOut exist.
+4. **Body** (`dom.modalBody`) — Scrollable panel area containing the active tab's content.
+
+### Open Flow
+
+1. Set modal title, clear tabs/body, show "Loading..." placeholder
+2. Fetch `/dashboard/step?wf=<id>&step=<key>`
+3. **Stale guard**: Before and after fetch, check that `_openWfId` and `_openStepKey` still match — discard the response if the modal was closed or switched to a different step during the request
+4. Render tabs and panels via `renderStepDetail(data)`
+5. If an `initialTab` was requested (e.g. "state"), click that tab programmatically
+6. On fetch error, show error message in body
+
 ### Tabs
 
-1. **Details** (default) — Status pill with inline action buttons, timing rows, error info, Grafana link
-2. **State** (if step has stateIn or stateOut) — Sub-tabs: Diff, In, Out. Diff shows syntax-highlighted unified diff.
-3. **Data** (if command has data) — Pretty-printed JSON of the command payload
+1. **Details** (default) — Rows top to bottom:
+   - **Status row**: Status pill + backoff countdown (if Requeued) or elapsed time (if Processing) + retry count badge (if > 0) + action button (Retry for Failed, Retry now for Requeued with >5s backoff remaining). All elements flex-aligned in a single row.
+   - Idempotency Key
+   - Created (formatted time + relative age)
+   - Execution Started (if set)
+   - Last Updated (if set)
+   - Backoff Until (if set)
+   - Retry strategy block: Backoff Type, Base Interval (formatted duration), Max Retries, Max Delay (formatted duration), Max Duration (formatted duration)
+   - Command Type
+   - Max Execution Time (formatted duration, if set)
+   - Webhook-specific: URI, Content-Type (extracted from `command.data`, supports both camelCase and PascalCase keys)
+   - Error History (collapsible section, see below)
+   - Grafana trace link (if traceId exists)
 
-### Action Buttons (inline with status)
+2. **State** (conditional) — Only shown if step has stateIn or stateOut.
+   - **Both stateIn and stateOut exist**: Shows sub-tabs (Diff, State In, State Out). Diff tab is default.
+     - **Diff view**: Side-by-side two-column layout with "State In" / "State Out" column headers, line numbers, per-line syntax highlighting. Uses LCS-based `lineDiff()` algorithm. Paired removes/adds are aligned on the same row. Shows "No changes" message if stateIn === stateOut.
+     - **State In / State Out views**: Full syntax-highlighted JSON with copy button.
+   - **Only one exists**: Shows a single syntax-highlighted JSON view (no sub-tabs, no diff).
+   - All JSON values are pre-processed with `expandJsonStrings()` which recursively parses nested JSON-encoded strings before display.
 
-- **Retry** — Shown for Failed steps. Calls `POST /dashboard/retry`. Reloads query after success.
-- **Retry now** (skip backoff) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/skip-backoff`. Reloads query after success.
+3. **Data** (conditional) — Only shown if `command.data` is non-null. Pretty-printed syntax-highlighted JSON of the command payload with copy button.
+
+### Action Buttons
+
+- **Retry** — Shown for Failed steps in the status row. Calls `POST /dashboard/retry`.
+- **Retry now** (skip backoff) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/skip-backoff`.
+
+**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped" with success CSS class (stays disabled). On failure, text changes to "Failed" with error CSS class, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
 
 ### SSE-Driven Refresh
 
-While the modal is open, if the workflow's fingerprint changes (from live SSE updates), the modal auto-refreshes after a 300ms debounce. This means the modal stays current for actively processing workflows.
+While the modal is open, if the workflow's fingerprint changes (from live SSE updates), the modal auto-refreshes via `notifyStepChanged()` after a 300ms debounce. **Tab preservation**: the currently active tab and state sub-tab are remembered and restored after re-render. **Error history expand state** (`_errorExpanded`) persists across re-renders within the same modal session (starts expanded).
 
 ### Grafana Link
 
-Opens Grafana Tempo trace view using the workflow's `traceId`. Link text: "Open Grafana". Opens in new tab.
+Opens Grafana Tempo trace view using the workflow's `traceId`. The URL targets `localhost:7070/explore` with a Tempo datasource query. Link text: "Open Grafana". Opens in new tab.
 
 ### Error History
 
-Collapsible section showing all recorded errors for the step. Each entry shows:
-- Timestamp + relative age
-- HTTP status code badge (if applicable)
-- Retryable/fatal indicator
+Collapsible section (expanded by default) within the Details tab. Entries are shown in **reverse chronological order** (newest first). Each entry shows:
+- Badge with retryable/non-retryable label + HTTP status code (if applicable)
+- Timestamp (formatted + relative age)
 - Error message text
+
+Expand/collapse state is tracked in `_errorExpanded` and persisted across SSE-driven re-renders.
+
+### Keyboard
+
+Escape key closes the modal (document-level `keydown` listener).
 
 ---
 
@@ -282,7 +335,15 @@ Collapsible section showing all recorded errors for the step. Each entry shows:
 
 Opened by clicking the `{ }` button on a card. Fetches `/dashboard/state?wf=<id>`.
 
-Shows the initial workflow state followed by each step's state output in processing order. Each state is syntax-highlighted JSON. Auto-refreshes via SSE with 1s debounce.
+Title: "State Trail". Shows "Loading..." placeholder while fetching. Has the same stale-guard pattern as the step modal (checks `_openWfId` before/after fetch).
+
+**Content:** Renders a vertical list of state blocks:
+1. **Initial State** — Always shown (displays "No state" if null)
+2. **Step N: {operationId}** — One block per step that has non-null `stateOut`, in processing order
+
+Each block shows syntax-highlighted JSON (pre-processed with `expandJsonStrings()`) with a copy button. If no initial state and no steps have stateOut, shows "No state data available".
+
+**Auto-refresh:** SSE-driven via `notifyWorkflowChanged()` with 1s debounce (longer than the step modal's 300ms to reduce noise). **Keyboard:** Escape closes the modal. The `copyPre()` handler (shared with the step modal) copies the pre block text and briefly shows a "copied" indicator (1.2s).
 
 ---
 
@@ -291,6 +352,8 @@ Shows the initial workflow state followed by each step's state output in process
 ### Label Filters
 
 `Map<string, Set<string>>` — multiple keys, each with one or more selected values.
+
+**Label discovery:** On SSE connect, the frontend fetches distinct values for hardcoded common label keys: `org`, `app`, `partyId`, `env` (via `GET /dashboard/labels?key=<key>`). Results are stored in `state.labelValues` for potential dropdown use.
 
 **Sources:**
 - Clicking a label segment on any card calls `toggleLabelFilter(key, value)`
@@ -306,9 +369,13 @@ Shows the initial workflow state followed by each step's state output in process
 
 ### Status Filters
 
-Per-section chip bars. Each section has an "All" chip plus status-specific chips. Only one status active per section at a time.
+Per-section chip bars. Only one status active per section at a time. Chips show dynamic counts: `"Failed (3)"` updates as cards are added/removed.
 
-Chips show dynamic counts: `"Failed (3)"` updates as cards are added/removed.
+**Chip labels per section:**
+- **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
+- **Inbox**: All, Processing, Retrying
+- **Recent**: All, Completed, Failed
+- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Completed, Failed, Canceled
 
 ### Text Filter
 
@@ -337,7 +404,7 @@ All dashboard state is encoded in the URL query string via `syncUrl()` / `restor
 | `qtf`  | Custom time range "from" (ISO)                       |
 | `qtt`  | Custom time range "to" (ISO)                         |
 | `qr`   | "Has retries" checkbox (1/0)                         |
-| `lf`   | Label filters (base64-encoded key:value pairs)       |
+| `lf`   | Label filters (comma-separated key:value pairs)      |
 | `c`    | Collapsed sections (comma-separated: sched,inbox,recent) |
 | `e`    | Expanded sections (inverse of collapsed)             |
 | `cpt`  | Compact sections (comma-separated)                   |
@@ -395,14 +462,19 @@ interface Workflow {
 
 ### Fingerprinting
 
-Workflows are fingerprinted (status + step statuses + retry counts hashed to a string). Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
+Workflows are fingerprinted to avoid unnecessary DOM updates. Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
+
+Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...`
+Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z"`
 
 ### Animations
 
 - **Enter**: New inbox cards slide in from top
-- **Exit**: Removed cards fade out (unless moving to Recent — instant removal)
+- **Exit**: Removed cards fade out with `complete-exit` animation (0.5s)
 - **Exit-fail**: Failed workflows use a red-tinted exit animation
-- **Recent-enter**: New recent cards slide in with a brief glow highlight
+- **Recent-enter**: New recent cards slide in with a brief glow highlight (`recent-glow` / `recent-glow-fail`)
+- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by matching idempotency keys in the SSE `recentKeys` set), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations.
+- **Pulse sync**: When a card is re-rendered, the CSS processing pulse animation phase is synchronized to `performance.now() % 2000` to avoid flicker.
 
 ### Timers
 
@@ -443,3 +515,14 @@ Maps step command names to phases:
 - **`null`**: Everything else (service tasks, webhooks)
 
 Phases drive the bracket lines and task name labels shown on the pipeline. The `pipeline.js` renderer groups consecutive steps with the same phase and renders labels at the center of each group.
+
+---
+
+## Backend Mapping (DashboardMapper)
+
+The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappings:
+
+- **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
+- **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
+- **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
+- **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.
