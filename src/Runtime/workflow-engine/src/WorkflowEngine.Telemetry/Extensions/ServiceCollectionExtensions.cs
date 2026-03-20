@@ -107,6 +107,7 @@ public static class ServiceCollectionExtensions
                     builder
                         .AddMeter(Metrics.ServiceName)
                         .AddMeter("Microsoft.EntityFrameworkCore")
+                        .AddMeter("Npgsql")
                         .AddView("engine.workflows.time.queue", durationView)
                         .AddView("engine.workflows.time.service", durationView)
                         .AddView("engine.workflows.time.total", durationView)
