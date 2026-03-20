@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WorkflowEngine.Core.Extensions;
+using WorkflowEngine.Models;
 
 namespace WorkflowEngine.TestKit;
 
@@ -13,7 +13,7 @@ namespace WorkflowEngine.TestKit;
 /// <typeparamref name="TProgram"/> must be a class from the target application assembly
 /// (e.g. the implicit <c>Program</c> from top-level statements with <c>public partial class Program;</c>).
 /// The factory uses <see cref="ConfigureWebHost"/> to inject test-specific settings
-/// (connection strings, API keys, engine settings) without modifying the real application composition.
+/// (connection strings, engine settings) without modifying the real application composition.
 /// </para>
 /// </summary>
 public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram>
@@ -35,7 +35,7 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
         builder.ConfigureAppConfiguration(
             (_, config) =>
                 config.AddJsonStream(
-                    $$"""
+                    """
                     {
                       "EngineSettings": {
                         "Concurrency": {
@@ -51,11 +51,6 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
                           "BaseInterval": "00:00:00.100",
                           "MaxRetries": 1
                         }
-                      },
-                      "ApiSettings": {
-                        "ApiKeys": [
-                          "{{EngineAppFixture.TestApiKey}}"
-                        ]
                       }
                     }
                     """.ToJsonStream()
@@ -75,12 +70,5 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
         });
 
         _configureWebHost?.Invoke(builder);
-    }
-
-    public HttpClient CreateEngineClient()
-    {
-        var client = CreateClient();
-        client.DefaultRequestHeaders.Add("X-API-Key", EngineAppFixture.TestApiKey);
-        return client;
     }
 }

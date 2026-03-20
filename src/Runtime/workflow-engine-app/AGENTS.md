@@ -18,7 +18,7 @@ For core engine documentation, see the [workflow-engine README](../workflow-engi
 | `WorkflowEngine.App.Tests`   | Unit + integration tests for AppCommand, config, enqueue flows |
 
 Dependencies (from `workflow-engine/`):
-- `WorkflowEngine.Core` — engine services, endpoints, auth, built-in WebhookCommand
+- `WorkflowEngine.Core` — engine services, endpoints, built-in WebhookCommand
 - `WorkflowEngine.TestKit` — reusable test infrastructure (used by `App.Tests`)
 
 ## AppCommand

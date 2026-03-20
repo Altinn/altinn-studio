@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Context;
@@ -11,9 +12,11 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    partial class EngineDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319204617_AddRetentionIndex")]
+    partial class AddRetentionIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,8 +62,6 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasKey("IdempotencyKey", "Namespace");
 
-                    b.HasIndex("CreatedAt");
-
                     b.ToTable("IdempotencyKeys", "engine");
                 });
 
@@ -79,9 +80,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("EngineTraceContext")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<string>("ErrorHistoryJson")
-                        .HasColumnType("jsonb");
 
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()

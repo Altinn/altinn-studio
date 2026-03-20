@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Constants;
 using WorkflowEngine.Data.Extensions;
@@ -15,16 +16,12 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Adds the workflow engine host and required services.
         /// </summary>
-        public IServiceCollection AddWorkflowEngineHost(
-            string engineConfigSection = "EngineSettings",
-            string apiConfigSection = "ApiSettings"
-        )
+        public IServiceCollection AddWorkflowEngineHost(string engineConfigSection = "EngineSettings")
         {
             if (!services.IsConfigured<EngineSettings>())
                 services.ConfigureEngine(engineConfigSection);
 
-            if (!services.IsConfigured<ApiSettings>())
-                services.ConfigureApi(apiConfigSection);
+            services.TryAddSingleton(TimeProvider.System);
 
             // Command plugin system
             services.AddSingleton<ICommandRegistry>(sp =>
@@ -120,18 +117,6 @@ public static class ServiceCollectionExtensions
             return services;
         }
 
-        public IServiceCollection ConfigureApi(string configSectionPath)
-        {
-            services.AddOptions<ApiSettings>().BindConfiguration(configSectionPath).ValidateApiSettings();
-            return services;
-        }
-
-        public IServiceCollection ConfigureApi(Action<ApiSettings> configureOptions)
-        {
-            services.AddOptions<ApiSettings>().Configure(configureOptions).ValidateApiSettings();
-            return services;
-        }
-
         /// <summary>
         /// Adds health checks.
         /// </summary>
@@ -219,6 +204,15 @@ public static class OptionsBuilderExtensions
                 ApplyBufferDefaults(config.WriteBuffer, Defaults.EngineSettings.WriteBuffer);
                 ApplyBufferDefaults(config.UpdateBuffer, Defaults.EngineSettings.UpdateBuffer);
 
+                if (config.Retention.RetentionPeriod <= TimeSpan.Zero)
+                    config.Retention.RetentionPeriod = Defaults.EngineSettings.Retention.RetentionPeriod;
+
+                if (config.Retention.BatchSize <= 0)
+                    config.Retention.BatchSize = Defaults.EngineSettings.Retention.BatchSize;
+
+                if (config.Retention.Interval <= TimeSpan.Zero)
+                    config.Retention.Interval = Defaults.EngineSettings.Retention.Interval;
+
                 static void ApplyBufferDefaults(BufferSettings target, BufferSettings defaults)
                 {
                     if (target.MaxBatchSize <= 0)
@@ -262,24 +256,19 @@ public static class OptionsBuilderExtensions
                 $"{ns}.{nameof(EngineSettings.Concurrency)}.{nameof(EngineSettings.Concurrency.BackpressureThreshold)} must be greater than or equal to {ns}.{nameof(EngineSettings.WriteBuffer)}.{nameof(EngineSettings.WriteBuffer.MaxQueueSize)}."
             );
 
-            return builder;
-        }
-    }
-
-    extension(OptionsBuilder<ApiSettings> builder)
-    {
-        public OptionsBuilder<ApiSettings> ValidateApiSettings()
-        {
-            const string ns = nameof(ApiSettings);
-
             builder.Validate(
-                config => config.ApiKeys.Any(),
-                $"{ns}.{nameof(ApiSettings.ApiKeys)} value is missing or empty."
+                config => config.Retention.RetentionPeriod > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.RetentionPeriod)} must be greater than zero."
             );
 
             builder.Validate(
-                config => config.ApiKeys.All(x => x is { Length: > 10 }),
-                $"{ns}.{nameof(ApiSettings.ApiKeys)} contains null value or key with insufficient length."
+                config => config.Retention.BatchSize > 0,
+                $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.BatchSize)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Retention.Interval > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.Interval)} must be greater than zero."
             );
 
             return builder;

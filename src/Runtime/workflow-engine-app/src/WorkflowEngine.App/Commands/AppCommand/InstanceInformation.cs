@@ -5,7 +5,7 @@ namespace WorkflowEngine.App.Commands.AppCommand;
 /// <summary>
 /// Convenience record for extracting Altinn instance information from workflow labels and namespace ID.
 /// </summary>
-public sealed record InstanceInformation
+internal sealed record InstanceInformation
 {
     [JsonPropertyName("org")]
     public required string Org { get; init; }

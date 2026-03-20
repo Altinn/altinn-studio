@@ -22,7 +22,6 @@ namespace WorkflowEngine.TestKit;
 /// </summary>
 public abstract class EngineAppFixture : IAsyncLifetime
 {
-    public const string TestApiKey = "e2e-test-api-key-00000001";
     public const string DefaultOrg = "ttd";
     public const string DefaultApp = "e2e-tests";
     public const string DefaultPartyId = "50001";
@@ -35,7 +34,6 @@ public abstract class EngineAppFixture : IAsyncLifetime
     // Stored as IAsyncDisposable so we don't need the generic type parameter here
     private IAsyncDisposable _factory = null!;
     private Func<HttpClient> _createEngineClient = null!;
-    private Func<HttpClient> _createRawClient = null!;
     private IServiceProvider _services = null!;
 
     /// <summary>
@@ -53,14 +51,9 @@ public abstract class EngineAppFixture : IAsyncLifetime
     public WireMockServer WireMock { get; private set; } = null!;
 
     /// <summary>
-    /// Creates an <see cref="HttpClient"/> pre-populated with the test API key and pointing to the locally running engine.
+    /// Creates an <see cref="HttpClient"/> pointing to the locally running engine.
     /// </summary>
     public HttpClient CreateEngineClient() => _createEngineClient();
-
-    /// <summary>
-    /// Creates an <see cref="HttpClient"/> without any pre-populated headers (no API key).
-    /// </summary>
-    public HttpClient CreateRawClient() => _createRawClient();
 
     /// <summary>
     /// Provides access to the engine's service provider.
@@ -74,7 +67,6 @@ public abstract class EngineAppFixture : IAsyncLifetime
     protected abstract (
         IAsyncDisposable Factory,
         Func<HttpClient> CreateEngineClient,
-        Func<HttpClient> CreateRawClient,
         IServiceProvider Services
     ) CreateFactory(string connectionString);
 
@@ -91,10 +83,9 @@ public abstract class EngineAppFixture : IAsyncLifetime
         _wireMockPort = WireMock.Port;
         SetupDefaultStub();
 
-        var (factory, createEngineClient, createRawClient, services) = CreateFactory(_postgres.GetConnectionString());
+        var (factory, createEngineClient, services) = CreateFactory(_postgres.GetConnectionString());
         _factory = factory;
         _createEngineClient = createEngineClient;
-        _createRawClient = createRawClient;
         _services = services;
     }
 
@@ -166,7 +157,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
 /// <para>
 /// Runs the real <c>Program.cs</c> entry point from <typeparamref name="TProgram"/>'s assembly
 /// and layers test-specific configuration on top via <see cref="ConfigureWebHost"/>.
-/// Connection strings, API keys, and engine settings are injected automatically by the factory.
+/// Connection strings and engine settings are injected automatically by the factory.
 /// </para>
 /// </summary>
 public class EngineAppFixture<TProgram> : EngineAppFixture
@@ -174,8 +165,8 @@ public class EngineAppFixture<TProgram> : EngineAppFixture
 {
     /// <summary>
     /// Called during factory creation to layer test-specific configuration on top of
-    /// the real application (e.g. WireMock endpoints). Connection strings, API keys,
-    /// and engine settings are already injected by the factory.
+    /// the real application (e.g. WireMock endpoints). Connection strings and engine
+    /// settings are already injected by the factory.
     /// WireMock is already started at this point.
     /// </summary>
     protected virtual void ConfigureWebHost(IWebHostBuilder builder) { }
@@ -183,7 +174,6 @@ public class EngineAppFixture<TProgram> : EngineAppFixture
     protected override (
         IAsyncDisposable Factory,
         Func<HttpClient> CreateEngineClient,
-        Func<HttpClient> CreateRawClient,
         IServiceProvider Services
     ) CreateFactory(string connectionString)
     {
@@ -192,6 +182,6 @@ public class EngineAppFixture<TProgram> : EngineAppFixture
         // Accessing Server triggers ConfigureWebHost -> app startup.
         _ = factory.Server;
 
-        return (factory, factory.CreateEngineClient, factory.CreateClient, factory.Services);
+        return (factory, factory.CreateClient, factory.Services);
     }
 }

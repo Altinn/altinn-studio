@@ -100,7 +100,7 @@ await app.UseWorkflowEngine();                      // middleware, endpoints, mi
 await app.RunAsync();
 ```
 
-`AddWorkflowEngine()` registers core services, API key auth, health checks, OpenTelemetry, OpenAPI, HttpClientFactory, and the built-in WebhookCommand.
+`AddWorkflowEngine()` registers core services, health checks, OpenTelemetry, OpenAPI, HttpClientFactory, and the built-in WebhookCommand.
 
 `UseWorkflowEngine()` configures the middleware pipeline, maps API and dashboard endpoints, and applies EF Core migrations.
 
@@ -320,8 +320,6 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 - Paginated query interface with namespace/status/label filters
 
 ## API Reference
-
-All workflow endpoints require API key authentication via header.
 
 ### Enqueue Workflows
 

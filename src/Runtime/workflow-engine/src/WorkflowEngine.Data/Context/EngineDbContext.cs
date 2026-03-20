@@ -41,6 +41,12 @@ internal sealed class EngineDbContext : DbContext
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
             entity.HasIndex(e => e.HeartbeatAt).HasFilter($"\"Status\" = {(int)PersistentItemStatus.Processing}");
+
+            entity
+                .HasIndex(e => e.UpdatedAt)
+                .HasFilter(
+                    $"\"Status\" IN ({(int)PersistentItemStatus.Completed}, {(int)PersistentItemStatus.Failed}, {(int)PersistentItemStatus.Canceled}, {(int)PersistentItemStatus.DependencyFailed})"
+                );
             entity.HasIndex(e => e.Labels).HasMethod("gin");
             entity.Property(e => e.Labels).HasConversion(LabelsJsonb.Converter, LabelsJsonb.Comparer);
 
@@ -87,6 +93,7 @@ internal sealed class EngineDbContext : DbContext
         modelBuilder.Entity<IdempotencyKeyEntity>(entity =>
         {
             entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
+            entity.HasIndex(e => e.CreatedAt);
         });
     }
 

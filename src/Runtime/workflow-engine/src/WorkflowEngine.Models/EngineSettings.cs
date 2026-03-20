@@ -100,6 +100,12 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("updateBuffer")]
     public BufferSettings UpdateBuffer { get; set; } = new();
+
+    /// <summary>
+    /// Data retention settings.
+    /// </summary>
+    [JsonPropertyName("retention")]
+    public RetentionSettings Retention { get; set; } = new();
 }
 
 public sealed record BufferSettings
@@ -123,6 +129,27 @@ public sealed record BufferSettings
     public int FlushConcurrency { get; set; }
 }
 
+public sealed record RetentionSettings
+{
+    /// <summary>
+    /// How long terminal workflows are kept before being deleted.
+    /// </summary>
+    [JsonPropertyName("retentionPeriod")]
+    public TimeSpan RetentionPeriod { get; set; }
+
+    /// <summary>
+    /// Maximum number of workflows to delete per retention cycle.
+    /// </summary>
+    [JsonPropertyName("batchSize")]
+    public int BatchSize { get; set; }
+
+    /// <summary>
+    /// How often the retention cleanup runs.
+    /// </summary>
+    [JsonPropertyName("interval")]
+    public TimeSpan Interval { get; set; }
+}
+
 public sealed record ConcurrencySettings
 {
     /// <summary>
@@ -132,8 +159,8 @@ public sealed record ConcurrencySettings
     public int MaxWorkers { get; set; }
 
     /// <summary>
-    /// Maximum number of concurrent database operations. Should be less than the Npgsql connection pool size
-    /// to leave headroom for health checks and non-engine access.
+    /// Maximum number of concurrent database operations.
+    /// Also used to size the Npgsql connection pool (<c>MaxPoolSize</c>).
     /// </summary>
     [JsonPropertyName("maxDbOperations")]
     public int MaxDbOperations { get; set; }

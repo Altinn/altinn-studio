@@ -5,7 +5,7 @@ namespace WorkflowEngine.App.Commands.AppCommand;
 /// <summary>
 /// Payload sent to the Altinn application when an AppCommand is executed.
 /// </summary>
-public sealed record AppCallbackPayload
+internal sealed record AppCallbackPayload
 {
     [JsonPropertyName("commandKey")]
     public required string CommandKey { get; init; }

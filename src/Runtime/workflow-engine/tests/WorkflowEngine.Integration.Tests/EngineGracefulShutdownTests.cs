@@ -144,7 +144,7 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
         params StepRequest[] steps
     )
     {
-        using var client = factory.CreateEngineClient();
+        using var client = factory.CreateClient();
 
         var request = new WorkflowEnqueueRequest
         {

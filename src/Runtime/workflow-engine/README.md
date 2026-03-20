@@ -47,16 +47,12 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 | PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |
 | PostgreSQL | `localhost:5433`                                                |                                                         |
 
-### Authentication
-
-All workflow endpoints require an API key via header. The development key is configured in `appsettings.json` under `ApiSettings:ApiKeys`.
-
 ### API endpoints
 
 See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The main ones:
 
 ```
-POST /api/v1/workflows              (enqueue workflows, API key required)
+POST /api/v1/workflows              (enqueue workflows)
 GET  /api/v1/workflows              (list active workflows)
 GET  /api/v1/workflows/{id}         (get single workflow with steps)
 POST /api/v1/workflows/{id}/cancel  (request cancellation)

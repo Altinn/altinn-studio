@@ -1,11 +1,8 @@
 using System.Diagnostics;
-using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Commands.Extensions;
 using WorkflowEngine.Models;
-using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -20,7 +17,7 @@ namespace WorkflowEngine.App.Commands.AppCommand;
 /// Extracts actor, lockToken, and instance information from the typed workflow context
 /// and command-specific data from the typed command data.
 /// </summary>
-public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
+internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 {
     private readonly AppCommandSettings _settings;
     private readonly IHttpClientFactory _httpClientFactory;
