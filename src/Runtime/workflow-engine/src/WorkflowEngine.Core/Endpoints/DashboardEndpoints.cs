@@ -516,8 +516,16 @@ public static class DashboardEndpoints
 
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    await repo.ResetWorkflowForRetry(workflowId, ct);
-                    return Results.Ok();
+
+                    bool updated = await repo.ResetWorkflowForRetry(workflowId, ct);
+                    if (updated)
+                        return Results.Ok();
+
+                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
+                    if (status is null)
+                        return Results.NotFound();
+
+                    return Results.Conflict($"Workflow is in {status} state");
                 }
             )
             .ExcludeFromDescription();
@@ -537,8 +545,16 @@ public static class DashboardEndpoints
 
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    await repo.SkipBackoff(workflowId, ct);
-                    return Results.Ok();
+
+                    bool updated = await repo.SkipBackoff(workflowId, ct);
+                    if (updated)
+                        return Results.Ok();
+
+                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
+                    if (status is null)
+                        return Results.NotFound();
+
+                    return Results.Conflict($"Workflow is in {status} state");
                 }
             )
             .ExcludeFromDescription();

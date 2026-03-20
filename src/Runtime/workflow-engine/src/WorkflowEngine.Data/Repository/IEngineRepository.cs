@@ -171,13 +171,15 @@ public interface IEngineRepository
     );
 
     /// <summary>
-    /// Resets a failed/completed workflow and its steps back to Enqueued for re-processing.
+    /// Resets a failed/requeued workflow and its steps back to Enqueued for re-processing.
     /// Clears BackoffUntil so the workflow is immediately eligible for pickup.
+    /// Returns true if the workflow was found and in a retryable state (Failed or Requeued).
     /// </summary>
-    Task ResetWorkflowForRetry(Guid workflowId, CancellationToken cancellationToken = default);
+    Task<bool> ResetWorkflowForRetry(Guid workflowId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Clears BackoffUntil on a workflow so a requeued step resumes retrying immediately.
+    /// Clears BackoffUntil on a requeued workflow so it resumes retrying immediately.
+    /// Returns true if the workflow was found, is Requeued, and had a non-null BackoffUntil.
     /// </summary>
-    Task SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default);
+    Task<bool> SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default);
 }
