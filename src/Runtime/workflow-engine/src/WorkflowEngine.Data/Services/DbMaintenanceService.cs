@@ -93,31 +93,7 @@ public sealed class DbMaintenanceService(
         {
             using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
             {
-                await using var workflowCmd = dataSource.CreateCommand(
-                    """
-                    DELETE FROM engine."Workflows"
-                    WHERE "Id" IN (
-                        SELECT w."Id"
-                        FROM engine."Workflows" w
-                        WHERE w."Status" IN (3, 4, 5, 6)
-                          AND w."UpdatedAt" < @cutoff
-                          AND NOT EXISTS (
-                              SELECT 1 FROM engine."WorkflowDependency" dep
-                              JOIN engine."Workflows" d ON dep."WorkflowId" = d."Id"
-                              WHERE dep."DependsOnWorkflowId" = w."Id"
-                                AND (d."Status" IN (0, 1, 2) OR d."UpdatedAt" >= @cutoff)
-                          )
-                          AND NOT EXISTS (
-                              SELECT 1 FROM engine."WorkflowLink" lnk
-                              JOIN engine."Workflows" l ON lnk."WorkflowId" = l."Id"
-                              WHERE lnk."LinkedWorkflowId" = w."Id"
-                                AND (l."Status" IN (0, 1, 2) OR l."UpdatedAt" >= @cutoff)
-                          )
-                        LIMIT @batchSize
-                        FOR UPDATE SKIP LOCKED
-                    )
-                    """
-                );
+                await using var workflowCmd = dataSource.CreateCommand(Sql.PurgeExpiredWorkflows);
                 workflowCmd.Parameters.AddWithValue("cutoff", cutoff);
                 workflowCmd.Parameters.AddWithValue("batchSize", settings.BatchSize);
 
@@ -133,16 +109,7 @@ public sealed class DbMaintenanceService(
         int deletedKeys;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
         {
-            await using var keyCmd = dataSource.CreateCommand(
-                """
-                DELETE FROM engine."IdempotencyKeys"
-                WHERE "CreatedAt" < @cutoff
-                  AND NOT EXISTS (
-                      SELECT 1 FROM engine."Workflows" w
-                      WHERE w."Id" = ANY("WorkflowIds")
-                  )
-                """
-            );
+            await using var keyCmd = dataSource.CreateCommand(Sql.DeleteOrphanedIdempotencyKeys);
             keyCmd.Parameters.AddWithValue("cutoff", cutoff);
 
             deletedKeys = await keyCmd.ExecuteNonQueryAsync(ct);
@@ -161,6 +128,42 @@ public sealed class DbMaintenanceService(
                 await analyzeCmd.ExecuteNonQueryAsync(ct);
             }
         }
+    }
+
+    internal static class Sql
+    {
+        internal const string PurgeExpiredWorkflows = """
+            DELETE FROM engine."Workflows"
+            WHERE "Id" IN (
+                SELECT w."Id"
+                FROM engine."Workflows" w
+                WHERE w."Status" IN (3, 4, 5, 6)
+                  AND w."UpdatedAt" < @cutoff
+                  AND NOT EXISTS (
+                      SELECT 1 FROM engine."WorkflowDependency" dep
+                      JOIN engine."Workflows" d ON dep."WorkflowId" = d."Id"
+                      WHERE dep."DependsOnWorkflowId" = w."Id"
+                        AND (d."Status" IN (0, 1, 2) OR d."UpdatedAt" >= @cutoff)
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1 FROM engine."WorkflowLink" lnk
+                      JOIN engine."Workflows" l ON lnk."WorkflowId" = l."Id"
+                      WHERE lnk."LinkedWorkflowId" = w."Id"
+                        AND (l."Status" IN (0, 1, 2) OR l."UpdatedAt" >= @cutoff)
+                  )
+                LIMIT @batchSize
+                FOR UPDATE SKIP LOCKED
+            )
+            """;
+
+        internal const string DeleteOrphanedIdempotencyKeys = """
+            DELETE FROM engine."IdempotencyKeys"
+            WHERE "CreatedAt" < @cutoff
+              AND NOT EXISTS (
+                  SELECT 1 FROM engine."Workflows" w
+                  WHERE w."Id" = ANY("WorkflowIds")
+              )
+            """;
     }
 }
 

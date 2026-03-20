@@ -93,6 +93,7 @@ internal sealed class EngineDbContext : DbContext
         modelBuilder.Entity<IdempotencyKeyEntity>(entity =>
         {
             entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
+            entity.HasIndex(e => e.CreatedAt);
         });
     }
 
