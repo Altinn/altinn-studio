@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { useLocalStorage } from './useLocalStorage';
 import { typedLocalStorage } from '@studio/pure-functions';
+import { act } from 'react';
 
 describe('useLocalStorage', () => {
   it('Gives access to the stored value', () => {
@@ -25,8 +26,9 @@ describe('useLocalStorage', () => {
     const value = 'value';
     const { result } = renderHook(() => useLocalStorage(key));
 
+    act(() => result.current[1](value));
+
     await waitFor(() => {
-      result.current[1](value);
       expect(result.current[0]).toBe(value);
     });
 
@@ -39,8 +41,9 @@ describe('useLocalStorage', () => {
     typedLocalStorage.setItem(key, value);
     const { result } = renderHook(() => useLocalStorage(key));
 
+    act(() => result.current[2]());
+
     await waitFor(() => {
-      result.current[2]();
       expect(result.current[0]).toBeUndefined();
     });
 
