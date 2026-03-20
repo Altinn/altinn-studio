@@ -83,13 +83,12 @@ export const getAvailableTasks = (
 export const getAvailablePages = (
   formLayouts?: IFormLayouts,
   externalConfig?: ExternalConfigState[],
-  selectedPages?: string[],
+  initialSelectedPages?: string[],
 ): string[] => {
   const allPages = formLayouts ? Object.keys(formLayouts) : [];
   const pagesWithRules = externalConfig?.flatMap((config) => config.pages || []) || [];
-
   return allPages.filter((page) => {
-    return !pagesWithRules.includes(page) || selectedPages?.includes(page);
+    return !pagesWithRules.includes(page) || initialSelectedPages?.includes(page);
   });
 };
 
