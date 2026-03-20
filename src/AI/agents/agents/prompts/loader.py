@@ -108,7 +108,11 @@ def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
     """
     lf_prompt = get_raw_langfuse_prompt(prompt_name)
     if lf_prompt is not None:
-        return lf_prompt.compile(), lf_prompt
+        try:
+            return lf_prompt.compile(), lf_prompt
+        except Exception as e:
+            log.warning(f"Failed to compile Langfuse prompt '{prompt_name}': {e}")
+            # Fall through to local prompt
     return load_prompt(prompt_name)["content"], None
 
 
