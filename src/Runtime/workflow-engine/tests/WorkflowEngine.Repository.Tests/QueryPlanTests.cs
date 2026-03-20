@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 using Npgsql;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Repository.Tests.Fixtures;
@@ -9,6 +10,7 @@ namespace WorkflowEngine.Repository.Tests;
 public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 {
     private static readonly DateTimeOffset _now = new(2026, 3, 19, 12, 0, 0, TimeSpan.Zero);
+    private readonly FakeTimeProvider _timeProvider = new(_now);
 
     public async ValueTask InitializeAsync()
     {
@@ -30,7 +32,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var interceptor = new SqlCapturingInterceptor();
-        var repo = fixture.CreateRepositoryWithInterceptor(interceptor);
+        var repo = fixture.CreateRepositoryWithInterceptor(interceptor, timeProvider: _timeProvider);
 
         await repo.FetchAndLockWorkflows(count: 5, staleThreshold: TimeSpan.FromSeconds(15), maxReclaimCount: 3, ct);
 
@@ -42,6 +44,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, fetchQuery, ct);
 
         QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
     }
 
     [Fact]
@@ -49,7 +52,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var interceptor = new SqlCapturingInterceptor();
-        var repo = fixture.CreateRepositoryWithInterceptor(interceptor);
+        var repo = fixture.CreateRepositoryWithInterceptor(interceptor, timeProvider: _timeProvider);
 
         await repo.GetActiveWorkflows(cancellationToken: ct);
 
@@ -63,6 +66,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, query, ct);
 
         QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
     }
 
     [Fact]
@@ -70,7 +74,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var interceptor = new SqlCapturingInterceptor();
-        var repo = fixture.CreateRepositoryWithInterceptor(interceptor);
+        var repo = fixture.CreateRepositoryWithInterceptor(interceptor, timeProvider: _timeProvider);
 
         await repo.GetScheduledWorkflows(ct);
 
@@ -83,6 +87,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, query, ct);
 
         QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
     }
 
     [Fact]
@@ -90,7 +95,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var interceptor = new SqlCapturingInterceptor();
-        var repo = fixture.CreateRepositoryWithInterceptor(interceptor);
+        var repo = fixture.CreateRepositoryWithInterceptor(interceptor, timeProvider: _timeProvider);
 
         await repo.GetFinishedWorkflows(cancellationToken: ct);
 
@@ -103,6 +108,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         var plan = await QueryPlanHelper.ExplainAsync(dataSource, query, ct);
 
         QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
     }
 
     // --- Raw SQL queries (via static strings) ---
@@ -125,6 +131,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         // The retention query should use the UpdatedAt filtered index on terminal statuses
         QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
     }
 
     [Fact]
@@ -142,6 +149,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         QueryPlanHelper.AssertNoSeqScan(plan, "IdempotencyKeys");
         QueryPlanHelper.AssertNoSeqScan(plan, "Workflows");
+        await VerifyJson(plan.GetRawText());
     }
 
     // --- Seed data ---

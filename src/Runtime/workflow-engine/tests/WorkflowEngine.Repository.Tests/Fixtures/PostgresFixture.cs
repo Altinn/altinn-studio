@@ -101,7 +101,8 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     internal EngineRepository CreateRepositoryWithInterceptor(
         Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor interceptor,
-        IOptions<EngineSettings>? settings = null
+        IOptions<EngineSettings>? settings = null,
+        TimeProvider? timeProvider = null
     )
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
@@ -117,7 +118,7 @@ public sealed class PostgresFixture : IAsyncLifetime
             settings ?? _settings,
             _limiter,
             sqlBulkInserter,
-            TimeProvider.System,
+            timeProvider ?? TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
     }
