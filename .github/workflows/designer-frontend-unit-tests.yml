@@ -21,31 +21,6 @@ env:
   CYPRESS_INSTALL_BINARY: 0
 
 jobs:
-  codeql:
-    name: 'CodeQL'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 0
-
-      - name: 'Initialize CodeQL'
-        uses: github/codeql-action/init@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
-        with:
-          languages: javascript
-          queries: +security-and-quality
-          config-file: .github/codeql/codeql-config.yml
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
-        with:
-          category: '/language:javascript'
-
   typecheck:
     name: 'Typechecking and linting'
     runs-on: ubuntu-latest
@@ -96,7 +71,7 @@ jobs:
           yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:

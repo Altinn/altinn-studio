@@ -55,6 +55,7 @@ namespace Designer.Tests.Services
         private readonly FakeTimeProvider _fakeTimeProvider;
         private readonly Mock<ISlackClient> _slackClient;
         private readonly AlertsSettings _alertsSettings;
+        private readonly Mock<IApiKeyService> _apiKeyService;
 
         public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
@@ -89,6 +90,7 @@ namespace Designer.Tests.Services
             _fakeTimeProvider = new FakeTimeProvider();
             _slackClient = new Mock<ISlackClient>();
             _alertsSettings = new AlertsSettings();
+            _apiKeyService = new Mock<IApiKeyService>();
         }
 
         [Theory]
@@ -146,7 +148,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -259,7 +262,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -306,7 +310,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             // Act
@@ -414,7 +419,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -555,7 +561,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -674,7 +681,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -852,7 +860,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -954,7 +963,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1058,7 +1068,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1167,7 +1178,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1313,7 +1325,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1439,7 +1452,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1596,7 +1610,8 @@ namespace Designer.Tests.Services
                 _featureManager.Object,
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
-                _alertsSettings
+                _alertsSettings,
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1658,6 +1673,193 @@ namespace Designer.Tests.Services
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
+            );
+        }
+
+        [Theory]
+        [InlineData("ttd", "apps-test-tba")]
+        public async Task CreateAsync_WithStudioOidcEnabled_UsesApiKeyAndAuthHeader(string org, string app)
+        {
+            // Arrange
+            DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+            _releaseRepository
+                .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(GetReleases("updatedRelease.json").First());
+
+            _applicationInformationService
+                .Setup(ais =>
+                    ais.UpdateApplicationInformationAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Returns(Task.CompletedTask);
+
+            _azureDevOpsBuildClient
+                .Setup(b =>
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(GetBuild());
+
+            _deploymentRepository
+                .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            _featureManager.Setup(f => f.IsEnabledAsync(StudioFeatureFlags.StudioOidc)).ReturnsAsync(true);
+
+            string expectedApiKey = "generated-api-key";
+            _apiKeyService
+                .Setup(s =>
+                    s.CreateAsync(
+                        It.IsAny<string>(),
+                        It.Is<string>(n => n.StartsWith("deploy-")),
+                        Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync((expectedApiKey, new Altinn.Studio.Designer.Models.ApiKey.ApiKey()));
+
+            DeploymentService deploymentService = new(
+                GetAzureDevOpsSettings(),
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings,
+                _apiKeyService.Object
+            );
+
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
+            // Act
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+            // Assert
+            _azureDevOpsBuildClient.Verify(
+                b =>
+                    b.QueueAsync(
+                        It.Is<QueueBuildParameters>(p =>
+                            p.AppDeployToken == expectedApiKey && p.AppAuthHeaderName == "X-Api-Key"
+                        ),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+
+            _apiKeyService.Verify(
+                s =>
+                    s.CreateAsync(
+                        It.IsAny<string>(),
+                        It.Is<string>(n => n.StartsWith("deploy-")),
+                        Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+        }
+
+        [Theory]
+        [InlineData("ttd", "apps-test-tba")]
+        public async Task CreateAsync_WithStudioOidcDisabled_UsesOAuthTokenWithoutAuthHeader(string org, string app)
+        {
+            // Arrange
+            DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+            _releaseRepository
+                .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(GetReleases("updatedRelease.json").First());
+
+            _applicationInformationService
+                .Setup(ais =>
+                    ais.UpdateApplicationInformationAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Returns(Task.CompletedTask);
+
+            _azureDevOpsBuildClient
+                .Setup(b =>
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(GetBuild());
+
+            _deploymentRepository
+                .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+                .ReturnsAsync(GetDeployments("createdDeployment.json").First());
+
+            _featureManager.Setup(f => f.IsEnabledAsync(StudioFeatureFlags.StudioOidc)).ReturnsAsync(false);
+
+            DeploymentService deploymentService = new(
+                GetAzureDevOpsSettings(),
+                _azureDevOpsBuildClient.Object,
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings,
+                _apiKeyService.Object
+            );
+
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
+            // Act
+            await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+            // Assert
+            _azureDevOpsBuildClient.Verify(
+                b =>
+                    b.QueueAsync(
+                        It.Is<QueueBuildParameters>(p => p.AppAuthHeaderName == null),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+
+            _apiKeyService.Verify(
+                s =>
+                    s.CreateAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<Altinn.Studio.Designer.Models.ApiKey.ApiKeyType>(),
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
             );
         }
 

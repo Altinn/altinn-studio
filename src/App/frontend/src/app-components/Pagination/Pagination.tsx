@@ -7,6 +7,7 @@ import {
   Select,
   usePagination,
 } from '@digdir/designsystemet-react';
+import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { useIsMini, useIsMobile, useIsTablet } from 'src/app-components/hooks/useDeviceWidths';
@@ -28,8 +29,8 @@ type PaginationProps = {
   rowsPerPageOptions?: number[];
   onPageSizeChange: (value: number) => void;
   setCurrentPage: (pageNumber: number) => void;
-  onChange?: Parameters<typeof DesignSystemPagination>[0]['onChange'];
-} & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'>;
+} & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> &
+  Pick<UsePaginationProps, 'onChange'>;
 
 export const Pagination = ({
   id,

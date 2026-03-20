@@ -3,7 +3,6 @@ import type { FormAttachmentListComponent } from '../../../../types/FormComponen
 import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

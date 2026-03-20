@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode, ReactElement } from 'react';
 import { DialogTrigger } from '@digdir/designsystemet-react';
 import type { DialogTriggerProps } from '@digdir/designsystemet-react';

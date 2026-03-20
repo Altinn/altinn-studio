@@ -1,4 +1,3 @@
-import React from 'react';
 import { FetchChangesPopover } from './FetchChangesPopover';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -125,7 +124,7 @@ describe('fetchChanges', () => {
     expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
   });
 
-  it('should call commitAndPushChanges and close popover when there is a merge conflict or checkout conflict', async () => {
+  it('should mark merge conflict and close popover when there is a merge conflict or checkout conflict', async () => {
     const user = userEvent.setup();
 
     const getRepoPull = mockGetRepoPull.mockImplementation(() =>
@@ -144,7 +143,7 @@ describe('fetchChanges', () => {
     await user.click(fetchButton);
 
     await waitFor(() => {
-      expect(mockVersionControlButtonsContextValue.commitAndPushChanges).toHaveBeenCalledWith('');
+      expect(mockVersionControlButtonsContextValue.setHasMergeConflict).toHaveBeenCalledWith(true);
     });
   });
 

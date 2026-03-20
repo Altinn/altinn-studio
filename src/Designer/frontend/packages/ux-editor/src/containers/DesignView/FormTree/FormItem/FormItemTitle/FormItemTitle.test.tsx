@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
@@ -90,7 +89,7 @@ describe('FormItemTitle', () => {
     render(component, label);
 
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
-    expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_deletion_text'));
+    expect(mockedConfirm).toHaveBeenCalledWith(textMock('ux_editor.component_deletion_text'));
   });
 
   it('should prompt the user for confirmation before deleting the container component and its children', async () => {
@@ -104,7 +103,7 @@ describe('FormItemTitle', () => {
     render(groupComponent, label);
 
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
-    expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_group_deletion_text'));
+    expect(mockedConfirm).toHaveBeenCalledWith(textMock('ux_editor.component_group_deletion_text'));
   });
 });
 

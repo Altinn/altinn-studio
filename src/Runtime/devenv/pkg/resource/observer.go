@@ -9,18 +9,28 @@ import (
 type EventType int
 
 const (
+	// EventApplyStart signals that apply has started for a resource.
 	EventApplyStart EventType = iota
+	// EventApplyDone signals that apply completed successfully.
 	EventApplyDone
+	// EventApplyFailed signals that apply failed.
 	EventApplyFailed
+	// EventDestroyStart signals that destroy has started for a resource.
 	EventDestroyStart
+	// EventDestroyDone signals that destroy completed successfully.
 	EventDestroyDone
+	// EventDestroyFailed signals that destroy failed.
 	EventDestroyFailed
+	// EventApplyProgress signals that apply emitted best-effort progress for a resource.
+	EventApplyProgress
 )
 
 func (e EventType) String() string {
 	switch e {
 	case EventApplyStart:
 		return "apply_start"
+	case EventApplyProgress:
+		return "apply_progress"
 	case EventApplyDone:
 		return "apply_done"
 	case EventApplyFailed:
@@ -36,22 +46,32 @@ func (e EventType) String() string {
 	}
 }
 
+// Progress describes best-effort progress data for a resource event.
+type Progress struct {
+	Message       string
+	Current       int64
+	Total         int64
+	Indeterminate bool
+}
+
 // Event represents a resource lifecycle event.
 type Event struct {
-	Type     EventType
-	Resource ResourceID
 	Error    error
+	Progress *Progress
+	Resource ResourceID
+	Type     EventType
 }
 
 // Observer receives resource lifecycle events.
 // Implementations must be safe for concurrent use.
 type Observer interface {
-	OnEvent(Event)
+	OnEvent(event Event)
 }
 
 // ObserverFunc is a function adapter for Observer.
 type ObserverFunc func(Event)
 
+// OnEvent forwards the event to the wrapped function.
 func (f ObserverFunc) OnEvent(e Event) {
 	f(e)
 }
@@ -59,6 +79,7 @@ func (f ObserverFunc) OnEvent(e Event) {
 // MultiObserver broadcasts events to multiple observers.
 type MultiObserver []Observer
 
+// OnEvent forwards the event to all registered observers.
 func (m MultiObserver) OnEvent(e Event) {
 	var panicValue any
 

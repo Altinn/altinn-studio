@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './DesignViewNavigation.module.css';
 import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
@@ -35,12 +35,7 @@ export const DesignViewNavigation = () => {
         }}
         menu={
           <div className={classes.menu}>
-            <DropdownMenu
-              open={dropdownOpen}
-              onClose={() => setDropdownOpen(false)}
-              portal
-              size='small'
-            >
+            <DropdownMenu open={dropdownOpen} onClose={() => setDropdownOpen(false)} portal>
               <DropdownMenu.Trigger asChild>
                 <StudioButton
                   icon={<MenuElipsisVerticalIcon />}

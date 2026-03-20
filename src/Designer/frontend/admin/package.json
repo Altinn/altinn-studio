@@ -2,7 +2,7 @@
   "name": "admin",
   "version": "0.0.0",
   "author": "Altinn",
-  "license": "3-Clause BSD",
+  "license": "MIT",
   "private": true,
   "browserslist": [
     ">0.2%",
@@ -19,20 +19,20 @@
     "typecheck:watch": "tsc --noEmit -w"
   },
   "dependencies": {
-    "@posthog/react": "1.7.1",
+    "@posthog/react": "1.8.2",
     "@studio/content-library": "workspace:^",
     "@studio/feedback-form": "workspace:^",
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
-    "axios": "1.13.5",
+    "axios": "1.13.6",
     "classnames": "2.5.1",
-    "i18next": "25.7.4",
-    "posthog-js": "1.333.0",
+    "i18next": "25.8.14",
+    "posthog-js": "1.359.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-i18next": "16.5.4",
-    "react-router-dom": "7.12.0"
+    "react-i18next": "16.5.6",
+    "react-router-dom": "7.13.1"
   },
   "devDependencies": {
     "jest": "29.7.0",

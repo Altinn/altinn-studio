@@ -50,8 +50,13 @@ internal sealed class BootstrapGlobalService(
         var textResourcesTask = GetTextResources(org, app, language);
         var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
 
-        var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
-        layoutSets.UiSettings ??= new GlobalPageSettings();
+        var ui = _appResources.GetUiConfiguration();
+        if (ui is null)
+        {
+            throw new Exception("No UI configuration found, cannot bootstrap global state for frontend");
+        }
+
+        ui.Settings ??= new GlobalPageSettings();
 
         var validatedUrl = _returnUrlService.Validate(redirectUrl);
         var userProfileTask = GetUserProfileOrNull();
@@ -76,7 +81,7 @@ internal sealed class BootstrapGlobalService(
             TextResources = await textResourcesTask,
             ApplicationMetadata = await appMetadataTask,
             Footer = await footerTask,
-            LayoutSets = layoutSets,
+            Ui = ui,
             FrontEndSettings = _frontEndSettings.Value,
             ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl.DecodedUrl : null,
             UserProfile = await userProfileTask,

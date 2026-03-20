@@ -2,7 +2,6 @@ import classes from './HeadingRow.module.css';
 import { Heading } from '@digdir/designsystemet-react';
 import { NodeIcon } from '../../NodeIcon';
 import type { ReactNode } from 'react';
-import React from 'react';
 import { useSchemaEditorAppContext } from '../../../hooks/useSchemaEditorAppContext';
 import {
   extractNameFromPointer,

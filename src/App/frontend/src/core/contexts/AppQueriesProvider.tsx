@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 
 import { createContext } from 'src/core/contexts/context';
+import { queryClient as defaultQueryClient } from 'src/queryClient';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 export interface AppQueriesProps extends AppQueriesContext {
@@ -15,20 +17,6 @@ interface ContextData {
 }
 
 const { Provider, useCtx } = createContext<ContextData>({ name: 'AppQueriesContext', required: true });
-
-/**
- * This query client should not be used in unit tests, as multiple tests will end up re-using
- * the same query cache. Provide your own when running code in tests.
- */
-const defaultQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 export const AppQueriesProvider = ({
   children,

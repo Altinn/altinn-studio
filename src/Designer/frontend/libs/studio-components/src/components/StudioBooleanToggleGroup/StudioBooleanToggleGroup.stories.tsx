@@ -1,21 +1,18 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioBooleanToggleGroup } from './StudioBooleanToggleGroup';
 
-type Story = StoryFn<typeof StudioBooleanToggleGroup>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioBooleanToggleGroup',
   component: StudioBooleanToggleGroup,
-};
-
+} satisfies Meta<typeof StudioBooleanToggleGroup>;
 export default meta;
-export const Preview: Story = (args) => (
-  <StudioBooleanToggleGroup {...args}></StudioBooleanToggleGroup>
-);
 
-Preview.args = {
-  value: false,
-  trueLabel: 'Yes',
-  falseLabel: 'No',
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    value: false,
+    trueLabel: 'Yes',
+    falseLabel: 'No',
+  },
 };

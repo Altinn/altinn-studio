@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { HTMLAttributes, ReactElement, Ref } from 'react';
 import cn from 'classnames';
 import classes from './StudioCodeFragment.module.css';

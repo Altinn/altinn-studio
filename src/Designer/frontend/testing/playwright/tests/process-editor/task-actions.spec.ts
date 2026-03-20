@@ -101,8 +101,8 @@ const goToProcessFileInGitea = async (page: Page, testAppName: string) => {
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
+  const newTab = await header.clickOnGoToGiteaRepository();
+  await giteaPage.useNewTab(newTab);
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnConfigFilesButton();

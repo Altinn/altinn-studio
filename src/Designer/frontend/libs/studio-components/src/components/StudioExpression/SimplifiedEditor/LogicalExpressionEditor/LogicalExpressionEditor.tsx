@@ -13,7 +13,8 @@ import {
 import type { SimpleSubexpression } from '../../types/SimpleSubexpression';
 import classes from './LogicalExpressionEditor.module.css';
 import { StudioButton } from '../../../StudioButton';
-import React, { Fragment, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React, { Fragment } from 'react';
 import { PlusIcon } from '@studio/icons';
 import { Subexpression } from './SubExpression';
 import { useStudioExpressionContext } from '../../StudioExpressionContext';

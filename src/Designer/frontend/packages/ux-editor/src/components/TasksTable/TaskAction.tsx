@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import {
   MenuElipsisVerticalIcon,
   EyeIcon,
@@ -38,7 +38,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
   const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const addTaskToNavigationGroup = () => {
     const updatedNavigationTasks = [...taskNavigationGroups, task];

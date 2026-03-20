@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
+import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
@@ -103,8 +104,8 @@ type PaginationComponentProps = {
   totalPages: number;
   pagesWithErrors: number[];
   setCurrentPage: (pageNumber: number) => void;
-  onChange: Parameters<typeof Pagination>[0]['onChange'];
-} & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'>;
+} & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> &
+  Pick<UsePaginationProps, 'onChange'>;
 
 function PaginationComponent({
   nextTextKey,

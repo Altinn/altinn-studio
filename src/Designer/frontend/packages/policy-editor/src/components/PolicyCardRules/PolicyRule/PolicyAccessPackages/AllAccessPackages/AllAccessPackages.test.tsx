@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { AllAccessPackages, type AllAccessPackagesProps } from './AllAccessPackages';
 import type {

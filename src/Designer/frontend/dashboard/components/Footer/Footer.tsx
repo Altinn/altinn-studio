@@ -1,4 +1,3 @@
-import React from 'react';
 import { Resources } from '../Resources';
 import classes from './Footer.module.css';
 

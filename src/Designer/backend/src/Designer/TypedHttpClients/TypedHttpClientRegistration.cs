@@ -6,13 +6,13 @@ using System.Net.Mime;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
-using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
@@ -77,7 +77,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
-            services.AddTransient<GiteaTokenDelegatingHandler>();
+            bool studioOidcEnabled =
+                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
+
+            if (studioOidcEnabled)
+            {
+                services.AddTransient<GiteaWebAuthDelegatingHandler>();
+            }
+            else
+            {
+                services.AddTransient<GiteaTokenDelegatingHandler>();
+            }
+
             services.AddTransient<GitOpsBotTokenDelegatingHandler>();
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
@@ -118,8 +129,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         private static IHttpClientBuilder AddGiteaTypedHttpClient(
             this IServiceCollection services,
             IConfiguration config
-        ) =>
-            services
+        )
+        {
+            bool studioOidcEnabled =
+                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
+
+            var builder = services
                 .AddHttpClient<IGiteaClient, GiteaClient>(
                     (_, httpClient) =>
                     {
@@ -137,8 +152,19 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
                         return new Custom401Handler(handler);
                     }
-                )
-                .AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
+                );
+
+            if (studioOidcEnabled)
+            {
+                builder.AddHttpMessageHandler<GiteaWebAuthDelegatingHandler>();
+            }
+            else
+            {
+                builder.AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
+            }
+
+            return builder;
+        }
 
         private static IHttpClientBuilder AddGiteaBotTypedHttpClient(
             this IServiceCollection services,
@@ -227,7 +253,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IServiceCollection AddMaskinportenHttpClient(this IServiceCollection services)
         {
-            services.AddTransient<AnsattPortenTokenDelegatingHandler>();
+            services.AddTransient<OidcTokenDelegatingHandler>();
             services
                 .AddHttpClient(
                     MaskinPortenHttpClient.HttpClientName,
@@ -239,7 +265,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                         httpClient.BaseAddress = new Uri(options.BaseUrl);
                     }
                 )
-                .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
+                .AddHttpMessageHandler<OidcTokenDelegatingHandler>();
             services.AddHttpClient(
                 MaskinPortenHttpClient.PublicHttpClientName,
                 (serviceProvider, httpClient) =>

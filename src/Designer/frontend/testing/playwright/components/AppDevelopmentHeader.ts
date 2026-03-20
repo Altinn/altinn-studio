@@ -45,8 +45,14 @@ export class AppDevelopmentHeader extends BasePage {
     await this.page.getByRole('button', { name: this.textMock('sync_header.gitea_menu') }).click();
   }
 
-  public async clickOnGoToGiteaRepository(): Promise<void> {
-    await this.page.getByRole('button', { name: this.textMock('sync_header.repository') }).click();
+  public async clickOnGoToGiteaRepository(): Promise<Page> {
+    const [newPage] = await Promise.all([
+      this.page.context().waitForEvent('page'),
+      this.page.getByRole('link', { name: this.textMock('sync_header.repository') }).click(),
+    ]);
+
+    await newPage.waitForLoadState();
+    return newPage;
   }
 
   public async clickOnUploadLocalChangesButton(): Promise<void> {

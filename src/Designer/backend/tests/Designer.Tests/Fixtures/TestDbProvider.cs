@@ -31,7 +31,7 @@ public class TestDbProvider
         string networkAlias = "db"
     )
     {
-        var containerBuilder = new PostgreSqlBuilder();
+        var containerBuilder = new PostgreSqlBuilder("postgres:16");
         if (network != null)
         {
             containerBuilder = containerBuilder.WithNetwork(network).WithNetworkAliases(networkAlias);

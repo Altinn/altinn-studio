@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -128,5 +129,49 @@ public class AltinnPartyClient : IAltinnPartyClient
         );
 
         throw await PlatformHttpException.CreateAsync(response);
+    }
+
+    /// <inheritdoc/>
+    public async Task<int?> GetPartyIdByUrn(string urn)
+    {
+        using var activity = _telemetry?.StartLookupPartyActivity();
+        string endpointUrl = "apps/parties/query?fields=id,user.id";
+        var query = new { data = new string[] { urn } };
+        using var content = new StringContent(JsonSerializer.Serialize(query));
+        content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+
+        string token = _userTokenProvider.GetUserToken();
+
+        using HttpResponseMessage response = await _client.PostAsync(
+            token,
+            endpointUrl,
+            content,
+            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+        );
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            _logger.LogError(
+                "// Getting partyId by URN {Urn} failed with statuscode {StatusCode} - {Reason}",
+                urn,
+                response.StatusCode,
+                await response.Content.ReadAsStringAsync()
+            );
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+
+        using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
+        var listResponse = responseDocument.RootElement.GetProperty("data");
+        if (listResponse.GetArrayLength() == 0)
+        {
+            return null;
+        }
+        if (listResponse.GetArrayLength() > 1)
+        {
+            throw new InvalidOperationException($"Multiple parties found for URN {urn}");
+        }
+
+        var partyId = listResponse[0].GetProperty("partyId").GetInt32();
+        return partyId;
     }
 }

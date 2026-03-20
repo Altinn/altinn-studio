@@ -42,6 +42,7 @@ async def handle(state: AgentState) -> AgentState:
                 user_goal=state.user_goal,
                 repo_facts=state.repo_facts or {},
                 planner_step=state.implementation_plan or (state.step_plan[0] if state.step_plan else None),
+                designer_api_key=state.designer_api_key,
             )
             patch_data = result["patch"]
 
@@ -168,6 +169,7 @@ async def handle(state: AgentState) -> AgentState:
                             repo_path=state.repo_path,
                             mcp_client=mcp_client,
                             check_only=False,
+                            designer_api_key=state.designer_api_key
                         )
                         all_sync_results.append(sync_result)
                         status = sync_result.get("status", "unknown")

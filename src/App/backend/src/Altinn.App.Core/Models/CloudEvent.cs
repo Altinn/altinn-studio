@@ -51,9 +51,9 @@ public class CloudEvent
     /// Gets or sets the alternative subject of the event.
     /// </summary>
     [JsonPropertyName("alternativesubject")]
-#nullable disable
-    public string AlternativeSubject { get; set; }
+    public string? AlternativeSubject { get; set; }
 
+#nullable disable
     /// <summary>
     /// Gets or sets the cloudEvent data content. The event payload.
     /// The payload depends on the type and the dataschema.

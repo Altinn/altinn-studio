@@ -1,8 +1,6 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
-
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 

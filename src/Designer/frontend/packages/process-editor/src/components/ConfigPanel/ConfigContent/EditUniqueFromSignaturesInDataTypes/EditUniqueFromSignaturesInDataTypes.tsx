@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';

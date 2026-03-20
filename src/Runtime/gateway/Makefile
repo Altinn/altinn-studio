@@ -1,11 +1,11 @@
-.PHONY: help start start-minimal start-standard stop test test-e2e build restore lint lint-fix fmt clean tidy
+.PHONY: help start start-minimal start-standard stop test test-e2e build restore lint lint-fix lint-config fmt clean tidy
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
 LOCALBIN := bin
 
 # Tools
-GOLANGCI_LINT_VERSION ?= v2.8.0
+GOLANGCI_LINT_VERSION ?= v2.11.2
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint
 
 help: ## Show this help message
@@ -51,11 +51,14 @@ lint: golangci-lint ## Run linters (Roslyn + golangci-lint)
 	@echo "Linting .NET (Roslyn analyzers)..."
 	@DOTNET_TREATWARNINGSASERRORS=true dotnet build Altinn.Studio.Gateway.slnx
 	@echo "Linting Go..."
-	@"$(abspath $(GOLANGCI_LINT))" run
+	@"$(abspath $(GOLANGCI_LINT))" run ./...
 	@echo "✓ Lint passed"
 
 lint-fix: golangci-lint ## Run linters with auto-fix (Go only)
-	@"$(abspath $(GOLANGCI_LINT))" run --fix
+	@"$(abspath $(GOLANGCI_LINT))" run --fix ./...
+
+lint-config: golangci-lint ## Verify linter configuration
+	@"$(abspath $(GOLANGCI_LINT))" config verify
 
 fmt: golangci-lint ## Format code (CSharpier + golangci-lint)
 	@echo "Formatting .NET (CSharpier)..."

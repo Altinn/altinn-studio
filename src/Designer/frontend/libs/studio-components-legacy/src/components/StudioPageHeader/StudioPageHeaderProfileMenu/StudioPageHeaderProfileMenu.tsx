@@ -1,4 +1,5 @@
-import React, { type ReactNode, type ReactElement, useState } from 'react';
+import type { ReactNode, ReactElement } from 'react';
+import { useState } from 'react';
 import classes from './StudioPageHeaderProfileMenu.module.css';
 import { DropdownMenu, type DropdownMenuItemProps } from '@digdir/designsystemet-react';
 import { StudioPageHeaderHeaderButton } from '../StudioPageHeaderHeaderButton';

@@ -317,5 +317,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             AltinnRepoEditingContext context,
             CancellationToken cancellationToken
         );
+
+        public Task SaveValidationOnNavigationLayoutSets(
+            AltinnRepoEditingContext context,
+            ValidationOnNavigation validationOnNavigation,
+            CancellationToken cancellationToken
+        );
     }
 }

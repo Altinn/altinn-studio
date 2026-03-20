@@ -1,4 +1,3 @@
-import React from 'react';
 import { Tabs } from '@digdir/designsystemet-react';
 import { ROOT_POINTER, type UiSchemaNode } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';

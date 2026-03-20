@@ -6,7 +6,7 @@ import type { StorageState } from '../../types/StorageState';
 import type { SettingsPageTab } from '../../types/SettingsPageTab';
 import { SettingsPage } from '../../pages/SettingsPage';
 import { PolicyEditor } from '../../components/PolicyEditor';
-import { Gitea } from 'testing/playwright/helpers/Gitea';
+import { Gitea } from '../../helpers/Gitea';
 
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app

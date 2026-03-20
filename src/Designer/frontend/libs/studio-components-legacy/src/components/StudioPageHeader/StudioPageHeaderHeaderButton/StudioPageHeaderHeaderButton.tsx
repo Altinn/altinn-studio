@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ComponentProps, ComponentPropsWithoutRef, ElementType, ReactElement } from 'react';
 import classes from '../common.module.css';
 import { StudioButton, type StudioButtonProps } from '../../StudioButton';

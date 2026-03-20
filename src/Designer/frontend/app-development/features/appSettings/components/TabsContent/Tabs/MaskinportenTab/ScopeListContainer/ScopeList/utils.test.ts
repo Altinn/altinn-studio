@@ -8,13 +8,16 @@ import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 const scope1: string = 'scope1';
 const scope2: string = 'scope2';
 const scope3: string = 'scope3';
+const scopeA: string = 'scopeA';
 const description1: string = 'Scope 1';
 const description2: string = 'Scope 2';
 const description3: string = 'Scope 3';
+const descriptionA: string = 'Scope A';
 
 const maskinportenScope1: MaskinportenScope = { scope: scope1, description: description1 };
 const maskinportenScope2: MaskinportenScope = { scope: scope2, description: description2 };
 const maskinportenScope3: MaskinportenScope = { scope: scope3, description: description3 };
+const maskinportenScopeA: MaskinportenScope = { scope: scopeA, description: descriptionA };
 
 const allScopesMock: MaskinportenScope[] = [
   maskinportenScope1,
@@ -90,16 +93,17 @@ describe('ScopeList utils functions', () => {
       expect(result).toEqual([maskinportenScope1, maskinportenScope2]);
     });
 
-    it('handles non-overlapping scopes correctly', () => {
-      const selectedScopes: MaskinportenScope[] = [maskinportenScope1];
-      const maskinportenScopes: MaskinportenScope[] = [maskinportenScope2, maskinportenScope3];
+    it('sorts selected scopes first and sorts both groups alphabetically', () => {
+      const selectedScopes: MaskinportenScope[] = [maskinportenScope3, maskinportenScope1];
+      const maskinportenScopes: MaskinportenScope[] = [maskinportenScopeA, maskinportenScope2];
 
       const result = combineSelectedAndMaskinportenScopes(selectedScopes, maskinportenScopes);
-      expect(result).toEqual(
-        expect.arrayContaining([maskinportenScope1, maskinportenScope2, maskinportenScope3]),
-      );
-
-      expect(result).toHaveLength(3);
+      expect(result).toEqual([
+        maskinportenScope1,
+        maskinportenScope3,
+        maskinportenScope2,
+        maskinportenScopeA,
+      ]);
     });
   });
 });

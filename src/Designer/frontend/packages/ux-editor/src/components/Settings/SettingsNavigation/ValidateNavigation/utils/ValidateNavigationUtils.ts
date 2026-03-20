@@ -1,11 +1,8 @@
-import type {
-  ExternalConfigState,
-  ExternalConfigWithId,
-  InternalConfigState,
-} from './ValidateNavigationTypes';
+import type { ExternalConfigState, InternalConfigState } from './ValidateNavigationTypes';
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -68,51 +65,30 @@ export const getValuesToDisplay = (config: InternalConfigState) => {
   return Object.fromEntries(Object.entries(values).filter(([, v]) => v != null));
 };
 
-export const withUniqueIds = (configs: ExternalConfigState[]): ExternalConfigWithId[] =>
-  configs.map((config) => ({ ...config, id: crypto.randomUUID() }));
-
-// Temporary dummy data before integration with backend, to be replaced with actual data fetching and saving logic where it is used in upcoming PRs
-export const dummyDataTasks: ExternalConfigState[] = [
-  {
-    show: ['Schema', 'Component'],
-    page: 'current',
-    tasks: ['form2'],
-  },
-];
-
-export const dummyDataPages: ExternalConfigState[] = [
-  {
-    show: ['Schema', 'Component'],
-    page: 'current',
-    task: 'form',
-    pages: ['Side2'],
-  },
-];
-// end of temporary dummy data
-
 export const getAvailableTasks = (
   tasks: LayoutSet[],
   tasksWithRules?: string[],
-  selectedTasks?: string[],
+  initialSelectedTasks?: string[],
 ): string[] => {
   const taskIds = tasks.flatMap((set) => set.id);
 
-  return taskIds.filter((task) => {
+  const filteredTasks = taskIds.filter((task) => {
     if (!tasksWithRules) return true;
-    return !tasksWithRules.includes(task) || selectedTasks?.includes(task);
+    return !tasksWithRules.includes(task) || initialSelectedTasks?.includes(task);
   });
+
+  return filteredTasks;
 };
 
 export const getAvailablePages = (
   formLayouts?: IFormLayouts,
   externalConfig?: ExternalConfigState[],
-  selectedPages?: string[],
+  initialSelectedPages?: string[],
 ): string[] => {
   const allPages = formLayouts ? Object.keys(formLayouts) : [];
   const pagesWithRules = externalConfig?.flatMap((config) => config.pages || []) || [];
-
   return allPages.filter((page) => {
-    return !pagesWithRules.includes(page) || selectedPages?.includes(page);
+    return !pagesWithRules.includes(page) || initialSelectedPages?.includes(page);
   });
 };
 
@@ -123,7 +99,7 @@ type ValidateFormProps = {
 };
 
 export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): boolean => {
-  const noChangesMade = !newConfig || JSON.stringify(config) === JSON.stringify(newConfig);
+  const noChangesMade = !newConfig || ObjectUtils.areObjectsEqual(config, newConfig);
   if (noChangesMade) {
     return false;
   }
@@ -150,6 +126,7 @@ export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): b
 type IsRuleDuplicateInScope = {
   scope: Scope;
   newConfig: InternalConfigState;
+  initialConfig?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
   isFormValid?: boolean;
 };
@@ -157,18 +134,23 @@ type IsRuleDuplicateInScope = {
 export const isRuleDuplicateInScope = ({
   scope,
   newConfig,
+  initialConfig,
   existingConfigs,
   isFormValid,
 }: IsRuleDuplicateInScope): boolean => {
   if (!existingConfigs || !isFormValid) return false;
 
+  const filteredConfigs = initialConfig
+    ? existingConfigs.filter((config) => JSON.stringify(config) !== JSON.stringify(initialConfig))
+    : existingConfigs;
+
   const newConfigTypeValues = newConfig.types.map((type) => type.value);
   const newPageScopeValue = newConfig.pageScope.value;
   const newTaskValue = newConfig.task?.value;
 
-  return existingConfigs.some((existingConfig) => {
-    const existingTypeValues = existingConfig.types.map((type) => type.value);
-    const existingPageScopeValue = existingConfig.pageScope.value;
+  return filteredConfigs.some((existingConfig) => {
+    const existingTypeValues = existingConfig.types?.map((type) => type.value);
+    const existingPageScopeValue = existingConfig.pageScope?.value;
     const existingTaskValue = existingConfig.task?.value;
 
     if (scope === Scope.SelectedPages && existingTaskValue !== newTaskValue) {
@@ -182,8 +164,8 @@ export const isRuleDuplicateInScope = ({
   });
 };
 
-const arraysEqualUnordered = (existingTypes: string[], newTypes: string[]) => {
-  if (existingTypes.length !== newTypes.length) return false;
+const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: string[]) => {
+  if (!existingTypes || existingTypes.length !== newTypes.length) return false;
   const setA = new Set(existingTypes);
   return newTypes.every((value) => setA.has(value));
 };

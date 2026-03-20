@@ -1,7 +1,6 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioConfigCard } from './';
-import { action } from 'storybook/internal/actions';
+import { action } from 'storybook/actions';
 
 type StoryArgs = {
   cardLabel: string;
@@ -10,11 +9,10 @@ type StoryArgs = {
   cancelLabel: string;
 };
 
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioConfigCard',
   component: StudioConfigCard,
-};
-
+} satisfies Meta<typeof StudioConfigCard>;
 export default meta;
 
 type Story = StoryObj<StoryArgs>;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { usePageHeaderTitle } from './usePageHeaderTitle';
 import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
 import { useSelectedContext } from '../../hooks/useSelectedContext';

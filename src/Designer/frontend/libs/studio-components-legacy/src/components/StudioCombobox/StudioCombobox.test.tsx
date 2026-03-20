@@ -1,5 +1,5 @@
 import type { ForwardedRef, PropsWithChildren } from 'react';
-import React from 'react';
+import { createRef } from 'react';
 import type { RenderOptions, RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { StudioCombobox, type StudioComboboxProps } from './index';
@@ -177,7 +177,7 @@ describe('StudioCombobox', () => {
   });
 
   it('Sets the ref to null when unmounted', () => {
-    const ref = React.createRef<HTMLInputElement>();
+    const ref = createRef<HTMLInputElement>();
     const { unmount } = renderTestCombobox({}, undefined, ref);
     unmount();
     expect(ref.current).toBeNull();

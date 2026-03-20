@@ -4,7 +4,6 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses } from 'test/e2e/pageobjects/party-mocks';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
 const appFrontend = new AppFrontend();
@@ -67,13 +66,6 @@ describe('Instantiation', () => {
     cy.allowFailureOnEnd();
     // Mock active instances to prevent instance-selection redirect from accumulated test data
     cy.intercept('**/active', []).as('activeInstances');
-
-    cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        const body = res.body as ApplicationMetadata;
-        body.onEntry = { show: 'new-instance' };
-      });
-    });
 
     interceptAltinnAppGlobalData((globalData) => {
       globalData.applicationMetadata.onEntry = { show: 'new-instance' };

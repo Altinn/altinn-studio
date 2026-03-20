@@ -1,7 +1,6 @@
 import { renderWithProviders } from '../../../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
-import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -65,7 +64,7 @@ describe('ConfirmUndeployDialog', () => {
     await user.type(confirmTextField, app);
     await user.click(getUndeployButton());
 
-    expect(undeployMock).toBeCalledTimes(1);
+    expect(undeployMock).toHaveBeenCalledTimes(1);
     expect(undeployMock).toHaveBeenCalledWith('testOrg', 'testApp', 'unit-test-env');
   });
 
@@ -85,7 +84,7 @@ describe('ConfirmUndeployDialog', () => {
     const undeployButton = getUndeployButton();
     await user.click(undeployButton);
 
-    expect(undeployMock).toBeCalledTimes(1);
+    expect(undeployMock).toHaveBeenCalledTimes(1);
     expect(undeployMock).toHaveBeenCalledWith('testOrg', 'testApp', 'unit-test-env');
 
     const alertMessage = screen.getByText(textMock(errorMessageKey));

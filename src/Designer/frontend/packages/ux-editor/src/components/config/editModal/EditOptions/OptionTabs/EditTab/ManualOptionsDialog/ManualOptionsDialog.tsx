@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback } from 'react';
+import { forwardRef, useCallback } from 'react';
 import classes from './ManualOptionsDialog.module.css';
 import {
   handleOptionsChange,

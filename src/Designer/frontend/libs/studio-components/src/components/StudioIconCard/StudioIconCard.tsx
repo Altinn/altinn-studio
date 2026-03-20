@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, ReactNode, Ref } from 'react';
 import { StudioPopoverTrigger } from '../StudioPopover/StudioPopover';
 import { MenuElipsisVerticalIcon } from '@studio/icons';

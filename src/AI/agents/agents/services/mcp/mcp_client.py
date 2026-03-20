@@ -14,6 +14,7 @@ from agents.services.mcp.patch_generator import PatchGenerator
 from fastmcp.client.transports import StreamableHttpTransport
 from agents.services.patching import PatchValidator, normalize_patch_structure
 from agents.services.repo import discover_repository_context
+from shared.utils.langfuse_utils import score_validation
 
 log = get_logger(__name__)
 
@@ -25,15 +26,29 @@ class MCPClient:
         self.server_url = server_url
         self._client = None
         self._available_tools = []
-    
-    async def _get_client(self):
-        """Get or create FastMCP client"""
+        self._current_designer_api_key = None  # Store key separately from tool arguments
+
+    async def _get_client(self, designer_api_key: str = None):
+        """Get or create FastMCP client with Authorization header (MCP spec compliant)"""
+        # Always recreate client if key changes (for security)
+        if designer_api_key and designer_api_key != self._current_designer_api_key:
+            self._client = None
+            self._current_designer_api_key = designer_api_key
+
         if self._client is None:
             try:
                 from fastmcp import Client
                 # Server URL should already include /sse if needed
                 log.info(f"Connecting to FastMCP server at: {self.server_url}")
-                self._client = Client(StreamableHttpTransport(url=self.server_url))
+
+                # Set X-Api-Key header for Gitea proxy authentication
+                headers = {}
+                if designer_api_key:
+                    headers["X-Api-Key"] = designer_api_key
+                    log.info("[AUTH] Using X-Api-Key authentication")
+
+                # Create transport with headers
+                self._client = Client(StreamableHttpTransport(url=self.server_url, headers=headers))
             except ImportError:
                 log.error("FastMCP library not available, install with: pip install fastmcp")
                 raise Exception("FastMCP library not installed")
@@ -79,15 +94,17 @@ class MCPClient:
             return {
                 "running": True,
             }
-            
+
         except Exception as e:
             log.error(f"MCP server check failed: {e}")
             raise Exception(f"MCP server check failed: {str(e)}")
-    
-    async def call_tool(self, tool_name: str, arguments: dict):
+
+    async def call_tool(self, tool_name: str, arguments: dict, designer_api_key: str = None):
         """Call an MCP tool and return the result."""
         try:
-            client = await self._get_client()
+            # Get client with Authorization header set
+            client = await self._get_client(designer_api_key)
+
             async with client:
                 result = await client.call_tool(tool_name, arguments)
                 
@@ -103,7 +120,7 @@ class MCPClient:
     async def create_patch_async(self, task_context: str, repository_path: str, attachments: list = None, form_spec_summary: str = None) -> dict:
         """
         Main workflow: Create a patch using MCP tools and LLM.
-        
+
         Args:
             task_context: The user goal and high-level plan
             repository_path: Path to the repository
@@ -113,7 +130,7 @@ class MCPClient:
         Returns:
             Patch data with files and changes arrays
         """
-        
+
         start_time = time.time()
         
         # This will be nested under the main workflow trace
@@ -126,7 +143,7 @@ class MCPClient:
                     "repository_path": repository_path,
                     "tool": "repository_scanner"
                 })
-                
+
                 repo_context = discover_repository_context(repository_path)
                 # Convert PlanContext to dict format for compatibility
                 repo_facts = {
@@ -137,13 +154,13 @@ class MCPClient:
                     'available_locales': repo_context.available_locales,
                     'source_of_truth': repo_context.source_of_truth
                 }
-                
+
                 # Get layout context for the first layout if available
                 layout_context = None
                 if repo_facts.get('layouts'):
                     first_layout = repo_facts['layouts'][0]
                     layout_path = Path(repository_path) / first_layout
-                    
+
                     try:
                         if layout_path.exists():
                             with open(layout_path, 'r') as f:
@@ -153,12 +170,12 @@ class MCPClient:
                                     layout_context['data']['layout'] = layout_context['data']['layout'][:3]
                     except Exception as e:
                         log.warning(f"Could not load layout context: {e}")
-                
+
                 scan_span.update(output={"repo_facts": repo_facts})
-            
+
             # Step 2: Connect to MCP server
             await self.connect()
-            
+
             # Step 3: Extract planning guidance from task_context
             # Planning guidance MUST be present - it should come from planning_tool_node
             planning_guidance = None
@@ -216,19 +233,19 @@ class MCPClient:
                     attachments=attachments,
                     form_spec_summary=form_spec_summary,
                 )
-                
+
                 if not patch_data:
                     log.error("❌ generator.generate_patch() returned None!")
                     raise Exception("Patch generator returned None - check actor pipeline logs for errors")
-                
+
                 log.info(f"✅ Patch generated with {len(patch_data.get('changes', []))} changes")
-                
+
                 if generator.last_output:
                     patch_data.setdefault("workflow", generator.last_output)
             except Exception as gen_error:
                 log.error(f"❌ Patch generation failed: {gen_error}", exc_info=True)
                 raise
-            
+
             # Step 5: Normalize patch structure
             with trace_span("patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
                 patch_data = normalize_patch_structure(patch_data)
@@ -236,29 +253,39 @@ class MCPClient:
                     "files_count": len(patch_data.get('files', [])),
                     "changes_count": len(patch_data.get('changes', []))
                 })
-            
+
             log.info(f"Generated patch: {patch_data.get('summary', 'No summary')}")
-            
+
             # Step 6: Validate patch
             validator = PatchValidator(self, repository_path)
-            
+
             log.info(f"Starting validation for {len(patch_data.get('changes', []))} changes")
             
             with trace_span("patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
                 is_valid, errors, warnings = await validator.validate_patch(patch_data)
-                
+
                 validation_span.update(output={
                     "is_valid": is_valid,
                     "errors": errors,
                     "warnings": warnings
                 })
-                
+                from shared.config.base_config import get_config as _get_config
+                _cfg = _get_config()
+                score_validation(
+                    name="patch_validation",
+                    passed=is_valid,
+                    trace_id=validation_span.trace_id,
+                    observation_id=validation_span.id,
+                    config_id=_cfg.LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION or None,
+                    comment="; ".join(errors) if errors else "Passed",
+                )
+
                 if errors:
                     log.error(f"Validation errors remain after auto-fix: {errors}")
-                
+
                 if warnings:
                     log.info(f"Validation warnings: {warnings}")
-                
+
             # Step 7: Return patch
             duration = time.time() - start_time
             if patch_data:
@@ -267,7 +294,7 @@ class MCPClient:
             else:
                 log.error("Patch generation failed: patch_data is None")
                 raise Exception("Patch generation failed: no patch data was generated")
-            
+
         except Exception as e:
             log.error(f"Agentic patch generation failed: {e}")
             raise Exception(f"Patch generation failed: {str(e)}")
@@ -279,40 +306,39 @@ _mcp_client_instance: MCPClient | None = None
 def get_mcp_client(server_url: str = None) -> MCPClient:
     """Get or create the singleton MCP client instance."""
     from shared.config import get_config
-    
+
     global _mcp_client_instance
-    
+
     if server_url is None:
         config = get_config()
         server_url = config.MCP_SERVER_URL
-    
+
     if _mcp_client_instance is None:
         _mcp_client_instance = MCPClient(server_url)
-    
+
     return _mcp_client_instance
 
 
 async def check_mcp_server_startup(server_url: str = None, expected_version: str = None):
     """
     Check MCP server status and version at startup.
-    
+
     Args:
         server_url: MCP server URL. If None, uses config default.
         expected_version: Expected version string. If None, uses config default.
-        
+
     Exits the application with code 1 if MCP server check fails.
     """
-    import os
     from shared.config import get_config
-    
+
     config = get_config()
     if server_url is None:
         server_url = config.MCP_SERVER_URL
     if expected_version is None:
         expected_version = config.MCP_SERVER_EXPECTED_VERSION
-    
+
     print(f"🔍 Checking MCP server at startup: {server_url}")
-    
+
     try:
         # Create client and check status
         client = MCPClient(server_url)

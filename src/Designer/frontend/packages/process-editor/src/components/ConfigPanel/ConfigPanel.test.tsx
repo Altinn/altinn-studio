@@ -1,4 +1,3 @@
-import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

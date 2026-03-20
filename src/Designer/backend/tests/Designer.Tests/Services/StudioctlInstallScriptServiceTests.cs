@@ -57,7 +57,45 @@ public class StudioctlInstallScriptServiceTests
     }
 
     [Fact]
-    public async Task GetInstallScriptAsync_NoCache_NotFound()
+    public async Task GetInstallScriptAsync_NoCache_UsesLatestPreviewWhenNoStableReleaseExists()
+    {
+        byte[] payload = Encoding.UTF8.GetBytes("echo preview");
+        var handler = new TestHttpMessageHandler(request =>
+        {
+            if (IsReleaseLookupRequest(request))
+            {
+                return CreateReleaseLookupResponse(
+                    """
+                    [
+                      { "tag_name": "v2026.1", "draft": false, "prerelease": false },
+                      { "tag_name": "studioctl/v1.2.4-preview.8", "draft": false, "prerelease": true },
+                      { "tag_name": "studioctl/v1.2.4-preview.10", "draft": false, "prerelease": true },
+                      { "tag_name": "studioctl/v1.3.0-preview.1", "draft": false, "prerelease": true }
+                    ]
+                    """
+                );
+            }
+
+            Assert.Equal(
+                "/Altinn/altinn-studio/releases/download/studioctl/v1.3.0-preview.1/install.sh",
+                request.RequestUri?.AbsolutePath
+            );
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(payload) };
+        });
+
+        var service = CreateService(handler);
+
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
+
+        Assert.Equal(StudioctlInstallScriptStatus.Ok, result.Status);
+        Assert.Equal(payload, result.Content);
+    }
+
+    [Fact]
+    public async Task GetInstallScriptAsync_NoCache_NotFound_WhenNoStableOrPreviewReleaseExists()
     {
         var handler = new TestHttpMessageHandler(request =>
         {
@@ -67,14 +105,14 @@ public class StudioctlInstallScriptServiceTests
                     """
                     [
                       { "tag_name": "v2026.1", "draft": false, "prerelease": false },
-                      { "tag_name": "studioctl/v1.2.3-preview.1", "draft": false, "prerelease": true }
+                      { "tag_name": "studioctl/v1.2.3-rc.1", "draft": false, "prerelease": true }
                     ]
                     """
                 );
             }
 
             throw new InvalidOperationException(
-                "Asset download should not be attempted when no stable studioctl release exists."
+                "Asset download should not be attempted when no stable or preview studioctl release exists."
             );
         });
 
@@ -239,6 +277,9 @@ public class StudioctlInstallScriptServiceTests
                     """
                     [
                       { "tag_name": "studioctl/v2.0.0-preview.1", "draft": false, "prerelease": true },
+                      { "tag_name": "studioctl/v9.9.9", "draft": false, "prerelease": true },
+                      { "tag_name": "studioctl/v1.9.9", "draft": false, "prerelease": false },
+                      { "tag_name": "studioctl/v1.10.2", "draft": false, "prerelease": false },
                       { "tag_name": "v2026.4", "draft": false, "prerelease": false },
                       { "tag_name": "studioctl/v1.5.0", "draft": false, "prerelease": false }
                     ]
@@ -247,7 +288,7 @@ public class StudioctlInstallScriptServiceTests
             }
 
             Assert.Equal(
-                "/Altinn/altinn-studio/releases/download/studioctl/v1.5.0/install.sh",
+                "/Altinn/altinn-studio/releases/download/studioctl/v1.10.2/install.sh",
                 request.RequestUri?.AbsolutePath
             );
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(payload) };

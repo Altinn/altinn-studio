@@ -75,7 +75,6 @@ export function FileTableRow({
       key={uniqueId}
       className={rowStyle}
       id={`altinn-file-list-row-${uniqueId}`}
-      tabIndex={0}
       style={hasOverriddenTaskId ? { padding: '8px 0' } : {}}
     >
       <NameCell

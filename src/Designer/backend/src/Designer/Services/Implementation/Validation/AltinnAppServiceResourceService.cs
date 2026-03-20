@@ -165,6 +165,7 @@ public static class ApplicationMetadataMapper
             ContactPoints = applicationmetadata?.ContactPoints?.ToServiceContactPoints(),
             RightDescription = applicationmetadata?.Access?.RightDescription?.ToDictionary(),
             Delegable = applicationmetadata?.Access?.Delegable ?? false,
+            Visible = applicationmetadata?.Access?.Visible ?? false,
             AvailableForType = applicationmetadata?.Access?.AvailableForType,
         };
     }

@@ -10,6 +10,7 @@ from agents.services.mcp.mcp_client import get_mcp_client
 from agents.services.llm import LLMClient
 from agents.schemas.plan_schema import PlanStep
 from shared.utils.logging_utils import get_logger
+from shared.utils.langfuse_utils import score_validation
 
 log = get_logger(__name__)
 
@@ -22,30 +23,30 @@ class MCPVerificationResult:
         self.warnings: List[str] = []
         self.checks: Dict[str, bool] = {}
         self.tool_results: List[Dict] = []
-    
+
     def add_error(self, check_name: str, message: str):
         self.passed = False
         self.errors.append(f"{check_name}: {message}")
         self.checks[check_name] = False
-    
+
     def add_warning(self, check_name: str, message: str):
         self.warnings.append(f"{check_name}: {message}")
-    
+
     def add_success(self, check_name: str):
         self.checks[check_name] = True
 
 
 class MCPVerifier:
     """MCP-based verifier that calls validation tools"""
-    
+
     def __init__(self, repo_path: str):
         self.repo_path = repo_path
-    
+
     async def verify_with_tools(self, patch: Dict, plan_step: PlanStep) -> MCPVerificationResult:
         """
         Run verification using MCP validation tools.
         This will show up in Langfuse traces as tool calls.
-        
+
         Args:
             patch: The patch data with changes
             plan_step: The plan step being verified
@@ -57,14 +58,14 @@ class MCPVerifier:
                 "changed_files_count": len([f.get('file', '') for f in patch.get('changes', [])]),
                 "plan_step_id": plan_step.id if hasattr(plan_step, "id") else "unknown"
             })
-        
+
             try:
                 mcp_client = get_mcp_client()
-                
+
                 # Only call validation tools for files that actually changed
                 changed_files = [f.get('file', '') for f in patch.get('changes', [])]
                 log.info(f"Running selective verification for {len(changed_files)} changed files: {changed_files}")
-                
+
                 # 1. Layout validation (only if layout files changed)
                 layout_files = [f for f in patch.get('changes', []) if 'layout' in f.get('file', '')]
                 if layout_files:
@@ -72,7 +73,7 @@ class MCPVerifier:
                     await self._verify_layout(mcp_client, layout_files, plan_step, result)
                 else:
                     result.add_success("layout_validation_skipped")
-                
+
                 # 2. Resource validation (only if resource files changed)
                 resource_files = [f for f in patch.get('changes', []) if 'resource.' in f.get('file', '')]
                 if resource_files:
@@ -97,10 +98,10 @@ class MCPVerifier:
                 else:
                     log.info("Skipping policy validation - no policy files changed")
                     result.add_success("policy_validation_skipped")
-                
+
                 icon = "✅" if result.passed else "⚠️"
                 log.info(f"{icon} MCP verification complete: {len(result.errors)} errors, {len(result.warnings)} warnings")
-                
+
                 # Add final verification summary
                 main_span.update(output={
                     "verification_summary": {
@@ -112,7 +113,7 @@ class MCPVerifier:
                         "warnings": result.warnings
                     }
                 })
-                
+
             except Exception as e:
                 log.error(f"MCP verification failed: {e}")
                 result.add_error("mcp_verification", f"Tool execution failed: {e}")
@@ -123,9 +124,9 @@ class MCPVerifier:
                         "error": str(e)
                     }
                 })
-        
+
         return result
-    
+
     async def _verify_layout(self, mcp_client, layout_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call altinn_layout_validate for each changed layout file"""
         for layout_entry in layout_files:
@@ -281,7 +282,7 @@ class MCPVerifier:
                     "changed_files": [f['file'] for f in patch.get('changes', [])],
                     "repository_path": self.repo_path
                 }
-                
+
                 # Add plan constraints
                 if plan_step and getattr(plan_step, "constraints", None):
                     tool_input["constraints"] = {
@@ -298,7 +299,7 @@ class MCPVerifier:
                     policy_data = policy_result.structured_content
                 else:
                     policy_data = policy_result
-                
+
                 span.update(output={"result": policy_data})
                 result.tool_results.append({"tool": "altinn_policy_validate", "result": policy_data})
                 
@@ -307,7 +308,7 @@ class MCPVerifier:
                 else:
                     for error in policy_data.get("errors", []):
                         result.add_error("policy_validation", error)
-                        
+
             except Exception as e:
                 result.add_error("policy_validation", f"Tool call failed: {e}")
 

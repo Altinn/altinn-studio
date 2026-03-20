@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ApiKeyType = Altinn.Studio.Designer.Models.ApiKey.ApiKeyType;
 
 namespace Altinn.Studio.Designer.Hubs.Altinity;
 
@@ -34,6 +35,13 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
     private readonly IAltinityWebSocketService _webSocketService;
     private readonly AltinityAttachmentBuffer _attachmentStore;
+    private readonly IApiKeyService _apiKeyService;
+
+    private static readonly ConcurrentDictionary<string, string> s_sessionIdToDeveloper = new();
+
+    private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToWebSocket = new();
+
+    private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToSessionId = new();
 
     public AltinityProxyHub(
         IHttpClientFactory httpClientFactory,
@@ -42,6 +50,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
         IAltinityWebSocketService webSocketService,
         AltinityAttachmentBuffer attachmentStore
+        IApiKeyService apiKeyService
     )
     {
         _httpClientFactory = httpClientFactory;
@@ -50,6 +59,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         _serviceRepositorySettings = serviceRepositorySettings.Value;
         _webSocketService = webSocketService;
         _attachmentStore = attachmentStore;
+        _apiKeyService = apiKeyService;
     }
 
     public override async Task OnConnectedAsync()
@@ -113,20 +123,20 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     }
 
     /// <summary>
-    /// Starts an agent workflow. Forwards the request to the agents HTTP API and
-    /// returns immediately — events stream back over the shared WebSocket.
+    /// Proxies the start workflow request to Altinity agent with a short-lived Designer API key
     /// </summary>
     public async Task<object> StartWorkflow(JsonElement request)
     {
-        var developer = GetDeveloper();
-        var token = GetToken();
-        var sessionId = ExtractSessionId(request);
-        ValidateSessionId(sessionId);
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string sessionId = ExtractSessionIdFromRequest(request);
+        ValidateSessionOwnership(sessionId, developer);
 
         _logger.LogInformation("StartWorkflow: developer={Developer}, sessionId={SessionId}", developer, sessionId);
 
         await _webSocketService.EnsureConnectedAsync(developer);
         await _webSocketService.RegisterSessionAsync(developer, sessionId);
+
+        string apiKey = await CreateAltinityApiKeyAsync(developer, sessionId);
 
         _logger.LogInformation(
             "Re-registered session {SessionId} on agents WS before starting workflow for developer {Developer}",
@@ -145,6 +155,52 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         {
             _attachmentStore.RemoveAll(attachmentIds);
         }
+
+        string? sessionId = sessionIdElement.GetString();
+        if (string.IsNullOrWhiteSpace(sessionId))
+        {
+            throw new HubException("session_id cannot be empty");
+        }
+
+        return sessionId;
+    }
+
+    private void ValidateSessionOwnership(string sessionId, string developer)
+    {
+        if (!s_sessionIdToDeveloper.TryGetValue(sessionId, out string? sessionOwner))
+        {
+            _logger.LogWarning(
+                "User {Developer} attempted to use non-existent session {SessionId}",
+                developer,
+                sessionId
+            );
+            throw new HubException("Invalid session: Session does not exist");
+        }
+
+        if (sessionOwner != developer)
+        {
+            _logger.LogWarning(
+                "User {Developer} attempted to access session {SessionId} owned by {SessionOwner}",
+                developer,
+                sessionId,
+                sessionOwner
+            );
+            throw new HubException("Access denied: You don't own this session");
+        }
+    }
+
+    private async Task<JsonElement> ForwardRequestToAltinityAgentAsync(
+        JsonElement request,
+        string developer,
+        string apiKey,
+        string sessionId
+    )
+    {
+        var enrichedRequest = EnrichRequestWithRepoUrl(request);
+        var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, apiKey, sessionId);
+        var response = await SendRequestToAltinityAsync(httpRequest);
+
+        return response;
     }
 
     /// <summary>
@@ -276,7 +332,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private HttpRequestMessage BuildAgentHttpRequest(
         JsonElement request,
         string developer,
-        string token,
+        string apiKey,
         string sessionId
     )
     {
@@ -285,14 +341,24 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             Content = JsonContent.Create(request),
         };
 
-        httpRequest.Headers.Add("X-User-Token", token);
-        httpRequest.Headers.Add("X-Developer", developer);
-        httpRequest.Headers.Add("X-Session-Id", sessionId);
+        AddUserCredentialsToRequest(httpRequest, developer, apiKey, sessionId);
 
         return httpRequest;
     }
 
-    private async Task<JsonElement> SendToAgentAsync(HttpRequestMessage httpRequest)
+    private static void AddUserCredentialsToRequest(
+        HttpRequestMessage httpRequest,
+        string developer,
+        string apiKey,
+        string sessionId
+    )
+    {
+        httpRequest.Headers.Add("X-Api-Key", apiKey);
+        httpRequest.Headers.Add("X-Developer", developer);
+        httpRequest.Headers.Add("X-Session-Id", sessionId);
+    }
+
+    private async Task<JsonElement> SendRequestToAltinityAsync(HttpRequestMessage httpRequest)
     {
         var httpClient = _httpClientFactory.CreateClient();
         var response = await httpClient.SendAsync(httpRequest);

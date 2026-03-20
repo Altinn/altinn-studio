@@ -5632,7 +5632,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The layoutset id",
+            "description": "The name of the subfolder in ui to get layouts from (a taskId, stateless name, subform, etc)",
             "required": true,
             "schema": {
               "type": "string"
@@ -5739,7 +5739,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/{org}/{app}/api/v1/footer": {
@@ -8580,7 +8581,7 @@
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "externalIdentifier": {
             "type": "string",
             "nullable": true
           }
@@ -8615,6 +8616,11 @@
           "username": {
             "type": "string",
             "description": "The username of the party. Null if the party is not self identified.",
+            "nullable": true
+          },
+          "externalIdentifier": {
+            "type": "string",
+            "description": "The external identifier of a self identified party. Null if the party is not self identified.",
             "nullable": true
           },
           "party": {

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioTable } from '../../StudioTable';
 import type { StudioCheckboxTableRowProps } from '../StudioCheckboxTableRow';

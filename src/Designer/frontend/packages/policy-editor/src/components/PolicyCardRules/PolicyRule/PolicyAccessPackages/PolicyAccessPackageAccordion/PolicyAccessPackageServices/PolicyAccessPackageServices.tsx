@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import classes from './PolicyAccessPackageServices.module.css';
 import type {
   AccessPackageResource,

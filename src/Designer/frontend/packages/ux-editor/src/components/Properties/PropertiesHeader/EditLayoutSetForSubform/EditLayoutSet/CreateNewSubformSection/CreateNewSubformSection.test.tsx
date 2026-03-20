@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { CreateNewSubformSection } from './CreateNewSubformSection';
 import { textMock } from '@studio/testing/mocks/i18nMock';

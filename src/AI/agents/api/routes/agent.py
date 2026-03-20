@@ -8,6 +8,7 @@ from agents.graph.nodes import assistant
 from agents.services.events import sink, AgentEvent
 from agents.services.llm import parse_intent_async, ParsedIntent, IntentParsingError, suggest_goal_correction
 from agents.services.git.repo_manager import get_repo_manager
+from api.dependencies import get_designer_api_key
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
 from pathlib import Path
@@ -41,7 +42,11 @@ class StartReq(BaseModel):
         return v
 
 @router.post("/api/agent/start")
-async def start_agent(req: StartReq, request: Request):
+async def start_agent(
+    req: StartReq,
+    designer_api_key: str = Depends(get_designer_api_key),
+    x_session_id: str = Header(..., alias="X-Session-Id")
+):
     """Start an agent workflow for a single atomic change"""
     try:
         # Extract headers passed by Designer backend
@@ -63,7 +68,7 @@ async def start_agent(req: StartReq, request: Request):
         
         # Clone the repository for this session
         repo_manager = get_repo_manager()
-        repo_path = repo_manager.clone_repo_for_session(repo_url, req.session_id, req.branch, gitea_token)
+        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, designer_api_key)
 
         branch_info = f" on branch {req.branch}" if req.branch else ""
         log.info(f"Cloned repository {req.repo_url} to {repo_path} for session {req.session_id}{branch_info}")
@@ -254,6 +259,7 @@ async def start_agent(req: StartReq, request: Request):
                 user_goal=req.goal,
                 repo_path=str(repo_path),  # Use cloned repo path
                 attachments=saved_attachments,
+                designer_api_key=designer_api_key,
                 conversation_history=conversation_history
             )
             

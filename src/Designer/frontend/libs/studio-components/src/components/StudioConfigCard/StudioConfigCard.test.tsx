@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import { StudioConfigCard, type StudioConfigCardProps } from './StudioConfigCard';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';

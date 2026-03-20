@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { StudioAlert, StudioParagraph, StudioTextfield, StudioSpinner } from '@studio/components';

@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import type { AssistantTexts } from '@studio/assistant';
 import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';

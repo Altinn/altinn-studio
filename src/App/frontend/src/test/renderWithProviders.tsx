@@ -31,7 +31,7 @@ import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
-import type { IPagesSettingsWithOrder, IRawOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
@@ -131,7 +131,6 @@ const defaultQueryMocks: AppQueries = {
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchLayoutSettings: async () => ({ pages: { order: [] } as unknown as IPagesSettingsWithOrder }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
   fetchLayoutsForInstance: () => Promise.reject(new Error('fetchLayoutsForInstance not mocked')),
   fetchBackendValidations: async () => [],
@@ -558,6 +557,15 @@ export const renderWithInstanceAndLayout = async ({
     throw new Error('Cannot use custom router with renderWithInstanceAndLayout');
   }
 
+  const realTaskId = taskId ?? 'Task_1';
+  if (
+    window.altinnAppGlobalData.ui.folders[realTaskId]?.pages &&
+    'order' in window.altinnAppGlobalData.ui.folders[realTaskId].pages &&
+    !window.altinnAppGlobalData.ui.folders[realTaskId].pages.order.includes(initialPage)
+  ) {
+    window.altinnAppGlobalData.ui.folders[realTaskId].pages.order = [initialPage];
+  }
+
   const routerRef: RouterRef = { current: undefined };
   return {
     formDataMethods,
@@ -600,11 +608,6 @@ export const renderWithInstanceAndLayout = async ({
               ],
             },
           },
-        }),
-        fetchLayoutSettings: async () => ({
-          pages: {
-            order: [initialPage],
-          } as unknown as IPagesSettingsWithOrder,
         }),
         ...renderOptions.queries,
       },
@@ -666,11 +669,6 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
             layout: [realComponentDef],
           },
         },
-      }),
-      fetchLayoutSettings: async () => ({
-        pages: {
-          order: [initialPage],
-        } as unknown as IPagesSettingsWithOrder,
       }),
       ...rest.queries,
     },

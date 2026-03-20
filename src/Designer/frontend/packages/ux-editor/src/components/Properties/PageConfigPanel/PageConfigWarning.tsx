@@ -1,4 +1,3 @@
-import React from 'react';
 import { List, Link, Heading } from '@digdir/designsystemet-react';
 import { repositoryLayoutPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

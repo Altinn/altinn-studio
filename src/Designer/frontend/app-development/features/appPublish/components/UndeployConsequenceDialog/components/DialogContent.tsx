@@ -1,4 +1,3 @@
-import React from 'react';
 import { consequencesDialogData } from '../consequences.data';
 import { Section } from './Section';
 import { ListItemWithLink } from './ListItemWithLink';

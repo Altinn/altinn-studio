@@ -2,7 +2,10 @@ import type { FormItem } from '../../../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
 import React, { useCallback } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { extractValuesFromPublishedCodeListReferenceString } from '../../../utils/published-code-list-reference-utils';
+import {
+  extractValuesFromPublishedCodeListReferenceString,
+  latestVersionString,
+} from '../../../utils/published-code-list-reference-utils';
 import { PublishedOptionListSelector } from '../../PublishedOptionListSelector';
 import { Guard } from '@studio/guard';
 import { StudioCodeFragment, StudioDeleteButton, StudioParagraph } from '@studio/components';
@@ -29,16 +32,10 @@ export function PublishedCodeListEditor({
     handleComponentChange(updatedComponent);
   }, [component, handleComponentChange]);
 
-  const { codeListName, version } = extractReferenceValues(component);
-
   return (
     <div className={classes.root}>
       <StudioParagraph className={classes.info}>
-        <Trans
-          components={{ code: <StudioCodeFragment /> }}
-          i18nKey='ux_editor.options.published_code_list_in_use'
-          values={{ codeListName, version }}
-        />
+        <CodeListInUseText referenceValues={extractReferenceValues(component)} />
       </StudioParagraph>
       <PublishedOptionListSelector
         component={component}
@@ -55,6 +52,31 @@ export function PublishedCodeListEditor({
       </StudioDeleteButton>
     </div>
   );
+}
+
+type CodeListInUseTextProps = {
+  readonly referenceValues: PublishedCodeListReferenceValues;
+};
+
+function CodeListInUseText({
+  referenceValues: { codeListName, version },
+}: CodeListInUseTextProps): React.ReactElement {
+  if (version === latestVersionString)
+    return (
+      <Trans
+        components={{ code: <StudioCodeFragment /> }}
+        i18nKey='ux_editor.options.published_code_list_in_use_latest'
+        values={{ codeListName }}
+      />
+    );
+  else
+    return (
+      <Trans
+        components={{ code: <StudioCodeFragment /> }}
+        i18nKey='ux_editor.options.published_code_list_in_use_fixed'
+        values={{ codeListName, version }}
+      />
+    );
 }
 
 function extractReferenceValues(

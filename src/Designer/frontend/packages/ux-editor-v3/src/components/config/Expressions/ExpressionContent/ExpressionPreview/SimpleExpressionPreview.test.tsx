@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { internalExpressionWithMultipleSubExpressions } from '../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
