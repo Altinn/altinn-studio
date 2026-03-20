@@ -39,7 +39,7 @@ const buildStepTimingHTML = (step, isStatic) => {
         const label = dur < 1 ? `${(dur * 1000).toFixed(0)}ms` : `${dur.toFixed(1)}s`;
         return `<span class="step-timing">${label}</span>`;
     }
-    if (step.status === 'Processing' && !isStatic) {
+    if (step.status === 'Processing' && !isStatic && !step.retryCount) {
         return `<span class="step-timing">&hellip;</span>`;
     }
     return '';
@@ -90,8 +90,13 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     if (step.retryCount > 0) {
         html += `<div class="step-retry">&#8635;${step.retryCount}</div>`;
     }
-    if (step.status === 'Requeued' && step.backoffUntil && !isStatic) {
-        html += `<span class="step-backoff" data-backoff="${step.backoffUntil}"></span>`;
+    const backoff = step.backoffUntil || (step.status === 'Requeued' ? wf.backoffUntil : null);
+    if (step.status === 'Requeued' && backoff) {
+        html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
+        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}')" title="Retry now (skip backoff timer)">retry now</button>`;
+    }
+    if (step.status === 'Failed') {
+        html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}')" title="Retry this workflow">&#8635; Retry</button>`;
     }
     html += buildStepTimingHTML(step, isStatic);
     html += `</div></div>`;
@@ -124,7 +129,7 @@ const buildConnectorHTML = (prev, cur, isStatic) => {
     return (
         `<div class="step-connector"><svg viewBox="0 0 56 6">` +
         `<line x1="0" y1="3" x2="56" y2="3" class="${lineClass}"` +
-        (staticLine ? ' style="animation:none;stroke-dasharray:12,6.67"' : '') +
+        (staticLine ? ' style="animation:none"' : '') +
         `/></svg></div>`
     );
 };

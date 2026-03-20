@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Context;
@@ -11,9 +12,11 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    partial class EngineDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260318154420_AddErrorHistoryToSteps")]
+    partial class AddErrorHistoryToSteps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,8 +62,6 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasKey("IdempotencyKey", "Namespace");
 
-                    b.HasIndex("CreatedAt");
-
                     b.ToTable("IdempotencyKeys", "engine");
                 });
 
@@ -80,7 +81,7 @@ namespace WorkflowEngine.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("ErrorHistory")
+                    b.Property<string>("ErrorHistoryJson")
                         .HasColumnType("jsonb");
 
                     b.Property<string>("IdempotencyKey")
@@ -90,7 +91,10 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<Guid>("JobId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Labels")
+                    b.Property<string>("LastError")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MetadataJson")
                         .HasColumnType("jsonb");
 
                     b.Property<string>("OperationId")
@@ -118,10 +122,6 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Labels");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Labels"), "gin");
-
                     b.HasIndex("JobId", "Status");
 
                     b.ToTable("Steps", "engine");
@@ -133,9 +133,6 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("BackoffUntil")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("CancellationRequestedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ContextJson")
@@ -166,6 +163,9 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Labels")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("MetadataJson")
                         .HasColumnType("jsonb");
 
                     b.Property<string>("Namespace")
@@ -204,9 +204,6 @@ namespace WorkflowEngine.Data.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Labels"), "gin");
 
                     b.HasIndex("Status");
-
-                    b.HasIndex("UpdatedAt")
-                        .HasFilter("\"Status\" IN (3, 4, 5, 6)");
 
                     b.HasIndex("BackoffUntil", "CreatedAt")
                         .HasFilter("\"Status\" IN (0, 2)");

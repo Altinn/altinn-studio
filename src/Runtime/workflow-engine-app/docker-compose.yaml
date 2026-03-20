@@ -13,6 +13,8 @@ services:
     ports:
       - "8080:8080"
       - "8081:8081"
+    volumes:
+      - ../workflow-engine/src/WorkflowEngine.Core/wwwroot:/app/wwwroot
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317

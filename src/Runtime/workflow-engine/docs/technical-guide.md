@@ -224,7 +224,7 @@ Per-step, configurable:
 
 When a workflow fails:
 
-1. Step marked `Failed` with `LastError` message
+1. Step marked `Failed` with error details recorded in `ErrorHistory`
 2. Workflow marked `Failed`
 3. Dependent workflows marked `DependencyFailed`
 4. All visible via API, dashboard, and telemetry
