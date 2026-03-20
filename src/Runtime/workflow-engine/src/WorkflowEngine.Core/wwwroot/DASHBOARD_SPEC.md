@@ -121,7 +121,6 @@ Response:
   "status": "Completed",
   "processingOrder": 3,
   "retryCount": 0,
-  "lastError": "string | null",
   "errorHistory": [
     { "timestamp": "ISO", "message": "string", "httpStatusCode": 500, "wasRetryable": true }
   ],

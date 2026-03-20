@@ -194,7 +194,7 @@ const buildDetailsContent = (data) => {
     if (status === 'Failed') {
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfId)}')">&#8635; Retry</a>`;
     } else if (showSkipBackoff) {
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}','${esc(/** @type {string} */ (data.idempotencyKey))}')">&#9654; Retry now</a>`;
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}')">&#9654; Retry now</a>`;
     }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);
@@ -455,7 +455,8 @@ window.closeModal = () => {
 window.retryWorkflow = async (e, workflowId) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
-    btn.disabled = true;
+    if (btn.hasAttribute('disabled')) return;
+    btn.setAttribute('disabled', '');
     btn.textContent = '...';
     try {
         const res = await fetch('/dashboard/retry', {
@@ -489,16 +490,17 @@ window.retryWorkflow = async (e, workflowId) => {
 };
 
 /** Skip backoff timer — called from status row skip button */
-window.skipBackoff = async (e, workflowId, stepIdempotencyKey) => {
+window.skipBackoff = async (e, workflowId) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
-    btn.disabled = true;
+    if (btn.hasAttribute('disabled')) return;
+    btn.setAttribute('disabled', '');
     btn.textContent = '...';
     try {
         const res = await fetch('/dashboard/skip-backoff', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workflowId, stepIdempotencyKey }),
+            body: JSON.stringify({ workflowId }),
         });
         if (res.ok) {
             btn.textContent = 'Skipped';

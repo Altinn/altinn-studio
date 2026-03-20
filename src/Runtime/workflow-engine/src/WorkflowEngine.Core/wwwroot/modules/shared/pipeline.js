@@ -93,7 +93,7 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     const backoff = step.backoffUntil || (step.status === 'Requeued' ? wf.backoffUntil : null);
     if (step.status === 'Requeued' && backoff) {
         html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
-        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}','${esc(step.idempotencyKey)}')" title="Retry now (skip backoff timer)">retry now</button>`;
+        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}')" title="Retry now (skip backoff timer)">retry now</button>`;
     }
     if (step.status === 'Failed') {
         html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}')" title="Retry this workflow">&#8635; Retry</button>`;
