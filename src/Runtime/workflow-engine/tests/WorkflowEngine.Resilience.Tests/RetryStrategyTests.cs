@@ -139,6 +139,8 @@ public class RetryStrategyTests
         Assert.Contains(401, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
         Assert.Contains(403, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
         Assert.Contains(404, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
+        Assert.Contains(405, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
+        Assert.Contains(409, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
         Assert.Contains(422, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
         Assert.DoesNotContain(500, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
     }

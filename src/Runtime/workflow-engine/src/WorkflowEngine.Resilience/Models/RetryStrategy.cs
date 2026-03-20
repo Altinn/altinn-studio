@@ -47,7 +47,7 @@ public sealed record RetryStrategy
     /// <summary>
     /// Default HTTP status codes that are considered non-retryable (client errors that won't succeed on retry).
     /// </summary>
-    public static readonly IReadOnlyList<int> DefaultNonRetryableHttpStatusCodes = [400, 401, 403, 404, 422];
+    public static readonly IReadOnlyList<int> DefaultNonRetryableHttpStatusCodes = [400, 401, 403, 404, 405, 409, 422];
 
     /// <summary>
     /// Creates an exponential backoff retry strategy.
