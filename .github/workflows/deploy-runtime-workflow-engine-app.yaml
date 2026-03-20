@@ -1,0 +1,130 @@
+name: Runtime - deploy workflow-engine-app
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/common/**
+      - src/Runtime/workflow-engine/src/**
+      - src/Runtime/workflow-engine/Directory.Packages.props
+      - src/Runtime/workflow-engine-app/src/**
+      - src/Runtime/workflow-engine-app/Directory.Packages.props
+      - src/Runtime/workflow-engine-app/Dockerfile
+      - src/Runtime/workflow-engine-app/Dockerfile.dockerignore
+      - src/Runtime/workflow-engine-app/infra/**
+      - infra/runtime/syncroot/base/workflow-engine-app.yaml
+      - infra/runtime/flux-config/**
+      - .github/workflows/deploy-runtime-workflow-engine-app.yaml
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
+        required: false
+        default: "at_ring1"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-rings-array:
+    uses: ./.github/workflows/template-runtime-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
+
+  push-workflow-engine-app-artifact:
+    name: Push workflow-engine-app as OCI artifact
+    needs: get-short-sha
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinncr
+      IMAGE_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app:${{ needs.get-short-sha.outputs.short-sha }}
+      CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    outputs:
+      config-repo: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    defaults:
+      run:
+        working-directory: src/Runtime/workflow-engine-app
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: docker build
+        working-directory: src
+        run: docker build -t ${{ env.IMAGE_REPO }} -f Runtime/workflow-engine-app/Dockerfile .
+
+      - name: scan image
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          image-ref: '${{ env.IMAGE_REPO }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: push image
+        run: docker push ${{ env.IMAGE_REPO }}
+
+      - name: patch base with image tag
+        working-directory: src/Runtime/workflow-engine-app/infra/kustomize/base
+        run: |
+          export IMAGE="${{ env.IMAGE_REPO }}"
+          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
+
+      - name: push artifact
+        working-directory: src/Runtime/workflow-engine-app/infra/kustomize
+        run: |
+          flux push artifact oci://${{ env.CONFIG_REPO }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag-workflow-engine-app:
+    name: Tag workflow-engine-app
+    needs: [push-workflow-engine-app-artifact, construct-rings-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-workflow-engine-app-artifact.outputs.config-repo }} \
+            --tag ${{ matrix.ring }}
