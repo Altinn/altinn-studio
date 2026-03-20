@@ -79,6 +79,11 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         if (string.IsNullOrWhiteSpace(workflowContext.LockToken))
             return new CommandValidationResult.Invalid("AppCommand requires a 'lockToken' in workflow context");
 
+        if (string.IsNullOrWhiteSpace(workflowContext.CallbackUrl))
+            return new CommandValidationResult.Invalid(
+                "AppCommand requires a 'callbackUrl' in workflow context"
+            );
+
         return new CommandValidationResult.Valid();
     }
 
@@ -158,10 +163,10 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
     private HttpClient CreateAuthorizedClient(AppWorkflowContext workflowContext)
     {
-        var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext);
+        var callbackUrl = workflowContext.CallbackUrl.TrimEnd('/') + "/";
         var client = _httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Add(_settings.ApiKeyHeaderName, _settings.ApiKey);
-        client.BaseAddress = new Uri(baseUrl);
+        client.BaseAddress = new Uri(callbackUrl);
 
         return client;
     }
