@@ -1017,11 +1017,11 @@ internal sealed partial class EngineRepository
 
                     if (rowsAffected > 0)
                     {
-                        // Reset failed/requeued steps to Enqueued
+                        // Reset non-completed steps to Enqueued
                         const string resetStepsSql = """
                         UPDATE engine."Steps"
                         SET "Status" = @status, "UpdatedAt" = @now
-                        WHERE "JobId" = @id AND "Status" IN (@failed, @requeued)
+                        WHERE "JobId" = @id AND "Status" IN (@failed, @requeued, @canceled, @depFailed)
                         """;
                         await using (var cmd = new NpgsqlCommand(resetStepsSql, conn, tx))
                         {
@@ -1030,6 +1030,12 @@ internal sealed partial class EngineRepository
                             cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
                             cmd.Parameters.Add(
                                 new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued)
+                            );
+                            cmd.Parameters.Add(
+                                new NpgsqlParameter<int>("canceled", (int)PersistentItemStatus.Canceled)
+                            );
+                            cmd.Parameters.Add(
+                                new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
                             );
                             cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
                             await cmd.ExecuteNonQueryAsync(ct);
