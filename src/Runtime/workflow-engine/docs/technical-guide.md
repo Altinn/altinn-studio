@@ -709,10 +709,9 @@ AppCommand reads `{ "state": "..." }` from the response body and stores it as `s
 ```json
 {
   "AppCommandSettings": {
-    "ApiKey": "your-api-key",
-    "CommandEndpoint": "http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks"
+    "ApiKey": "your-api-key"
   }
 }
 ```
 
-Placeholders are expanded from `AppWorkflowContext` at execution time.
+The callback URL is provided per-request in `AppWorkflowContext.CallbackUrl`.

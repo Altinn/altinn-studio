@@ -19,7 +19,7 @@ public sealed record Workflow : PersistentItem
     /// <summary>
     /// Opaque context passed to command handlers at execution time.
     /// The engine stores but never inspects this. Handlers deserialize what they need.
-    /// Example: {"lockToken":"...", "actor":{...}, "commandEndpoint":"..."}
+    /// Example: {"lockToken":"...", "actor":{...}, "callbackUrl":"..."}
     /// </summary>
     public JsonElement? Context { get; init; }
 
