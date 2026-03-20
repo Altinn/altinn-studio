@@ -25,6 +25,8 @@ public class AppCommandValidationTests
             App = "test-app",
             InstanceOwnerPartyId = 12345,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            CallbackUrl =
+                "https://app.example.com/ttd/test-app/instances/12345/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/workflow-engine-callbacks",
         };
 
     private static AppCommandData ValidData => new() { CommandKey = "do-something" };
@@ -148,6 +150,20 @@ public class AppCommandValidationTests
         Assert.Contains("lockToken", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_MissingCallbackUrl_Rejects(string? callbackUrl)
+    {
+        var context = ValidContext with { CallbackUrl = callbackUrl! };
+
+        var result = Command.Validate(ValidData, context);
+
+        var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
+        Assert.Contains("callbackUrl", invalid.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public void Validate_WithOptionalPayload_Accepts()
     {
@@ -160,13 +176,7 @@ public class AppCommandValidationTests
 
     private static App.Commands.AppCommand.AppCommand CreateCommand()
     {
-        var settings = Options.Create(
-            new AppCommandSettings
-            {
-                ApiKey = "test-key",
-                CommandEndpoint = "https://example.com/{Org}/{App}/callbacks",
-            }
-        );
+        var settings = Options.Create(new AppCommandSettings { ApiKey = "test-key" });
         var httpFactory = new Mock<IHttpClientFactory>();
         var limiter = new Mock<IConcurrencyLimiter>();
         var logger = NullLogger<App.Commands.AppCommand.AppCommand>.Instance;

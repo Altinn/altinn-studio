@@ -80,9 +80,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             return new CommandValidationResult.Invalid("AppCommand requires a 'lockToken' in workflow context");
 
         if (string.IsNullOrWhiteSpace(workflowContext.CallbackUrl))
-            return new CommandValidationResult.Invalid(
-                "AppCommand requires a 'callbackUrl' in workflow context"
-            );
+            return new CommandValidationResult.Invalid("AppCommand requires a 'callbackUrl' in workflow context");
 
         return new CommandValidationResult.Valid();
     }

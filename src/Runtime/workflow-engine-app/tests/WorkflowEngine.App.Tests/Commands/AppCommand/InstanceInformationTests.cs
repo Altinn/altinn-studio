@@ -16,6 +16,8 @@ public class InstanceInformationTests
             App = "my-app",
             InstanceOwnerPartyId = 50001,
             InstanceGuid = instanceGuid,
+            CallbackUrl =
+                $"https://app.example.com/ttd/my-app/instances/50001/{instanceGuid}/workflow-engine-callbacks",
         };
 
         var info = InstanceInformation.FromContext(context);

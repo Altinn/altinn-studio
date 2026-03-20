@@ -53,7 +53,9 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                            [wf-join-all]
          */
 
-        const string request = $$"""
+        var callbackUrl =
+            $"http://localhost:{fixture.WireMock.Port}/{EngineAppFixture.DefaultOrg}/{EngineAppFixture.DefaultApp}/instances/{EngineAppFixture.DefaultPartyId}/{EngineAppFixture.DefaultInstanceGuid}/workflow-engine-callbacks";
+        var request = $$"""
             {
                 "namespace": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
                 "idempotencyKey": "complex-dag-raw-json",
@@ -64,7 +66,8 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackUrl": "{{callbackUrl}}"
                 },
                 "workflows": [
                     {
@@ -218,7 +221,9 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task RawJson_ProcessNextPayload_MultipleSteps_AllComplete()
     {
-        const string request = $$"""
+        var callbackUrl2 =
+            $"http://localhost:{fixture.WireMock.Port}/{EngineAppFixture.DefaultOrg}/{EngineAppFixture.DefaultApp}/instances/{EngineAppFixture.DefaultPartyId}/{EngineAppFixture.DefaultInstanceGuid}/workflow-engine-callbacks";
+        var request = $$"""
             {
                 "namespace": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
                 "idempotencyKey": "process-next-payload-test",
@@ -229,7 +234,8 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackUrl": "{{callbackUrl2}}"
                 },
                 "workflows": [
                     {

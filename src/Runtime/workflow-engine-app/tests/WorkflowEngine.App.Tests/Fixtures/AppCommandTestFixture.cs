@@ -59,11 +59,7 @@ internal sealed record AppCommandTestFixture(
             },
         };
 
-        appCommandSettings ??= new AppCommandSettings
-        {
-            ApiKey = "test-api-key",
-            CommandEndpoint = "https://app.example.com/{Org}/{App}/commands/",
-        };
+        appCommandSettings ??= new AppCommandSettings { ApiKey = "test-api-key" };
 
         var services = new ServiceCollection();
         services.AddSingleton(httpClientFactoryMock.Object);
@@ -104,6 +100,7 @@ internal sealed record AppCommandTestFixture(
                 App = "test-app",
                 InstanceOwnerPartyId = 12345,
                 InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                CallbackUrl = "https://app.example.com/ttd/test-app/instances/12345/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/workflow-engine-callbacks",
             }
         );
 

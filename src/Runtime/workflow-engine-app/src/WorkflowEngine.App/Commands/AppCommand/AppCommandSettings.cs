@@ -14,13 +14,6 @@ internal sealed record AppCommandSettings
     public required string ApiKey { get; set; }
 
     /// <summary>
-    /// The full endpoint URL for application callbacks. String template supports
-    /// Org, App, InstanceOwnerPartyId, InstanceGuid placeholders.
-    /// </summary>
-    [JsonPropertyName("commandEndpoint")]
-    public required string CommandEndpoint { get; set; }
-
-    /// <summary>
     /// The header name used for API key authentication between the engine and the app.
     /// </summary>
     [JsonPropertyName("apiKeyHeaderName")]

@@ -88,7 +88,7 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
 
     public Task AssertDbStepCount(int expectedCount) => _base.AssertDbStepCount(expectedCount);
 
-    private static JsonElement CreateAppContext(string? lockToken = null) =>
+    private JsonElement CreateAppContext(string? lockToken = null) =>
         JsonSerializer.SerializeToElement(
             new
             {
@@ -98,6 +98,7 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
                 App = EngineAppFixture.DefaultApp,
                 InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId, NumberFormatInfo.InvariantInfo),
                 InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
+                CallbackUrl = $"http://localhost:{fixture.WireMock.Port}/{EngineAppFixture.DefaultOrg}/{EngineAppFixture.DefaultApp}/instances/{EngineAppFixture.DefaultPartyId}/{EngineAppFixture.DefaultInstanceGuid}/workflow-engine-callbacks",
             }
         );
 }

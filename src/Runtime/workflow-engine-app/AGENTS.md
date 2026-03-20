@@ -27,15 +27,15 @@ The Altinn-specific command that calls back into Altinn apps via HTTP POST.
 
 - **Type string**: `"app"`
 - **Data**: `AppCommandData` — `{ commandKey, payload? }`
-- **Context**: `AppWorkflowContext` — `{ actor, lockToken, org, app, instanceOwnerPartyId, instanceGuid }`
-- **Endpoint**: Templated URL expanded from context, e.g. `http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks`
+- **Context**: `AppWorkflowContext` — `{ actor, lockToken, org, app, instanceOwnerPartyId, instanceGuid, callbackUrl }`
+- **Callback URL**: Provided per-request in `AppWorkflowContext.CallbackUrl` — the app sends the full URL when enqueuing the workflow
 - **State passing**: Reads `{ "state": "..." }` from response body, passes forward to next step
 - **Validation**: All context fields validated at enqueue time — invalid requests never enter the queue
 - **Error classification**: 4xx (except 408/418/429) → critical, 5xx/408/418/429 → retryable
 
 Configuration via `appsettings.json` under `AppCommandSettings`:
 - `ApiKey` — API key sent to the app
-- `CommandEndpoint` — URL template with `{Org}`, `{App}`, `{InstanceOwnerPartyId}`, `{InstanceGuid}` placeholders
+- `ApiKeyHeaderName` — HTTP header name for the API key (default: `X-Api-Key`)
 
 ## Tests
 
