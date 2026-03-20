@@ -94,7 +94,6 @@ public class WorkflowUpdateBufferTests
                     ProcessingOrder = 0,
                     Command = CommandDefinition.Create("webhook"),
                     Status = PersistentItemStatus.Completed,
-                    HasPendingChanges = true,
                 }
             );
         }
@@ -109,7 +108,6 @@ public class WorkflowUpdateBufferTests
                     ProcessingOrder = 1,
                     Command = CommandDefinition.Create("webhook"),
                     Status = PersistentItemStatus.Enqueued,
-                    HasPendingChanges = false,
                 }
             );
         }
@@ -155,7 +153,8 @@ public class WorkflowUpdateBufferTests
         try
         {
             var workflow = CreateTestWorkflow();
-            await buffer.Submit(workflow, TestContext.Current.CancellationToken);
+            var step = workflow.Steps[0];
+            await buffer.Submit(workflow, step, TestContext.Current.CancellationToken);
 
             repo.Verify(
                 r =>
@@ -193,16 +192,17 @@ public class WorkflowUpdateBufferTests
 
         try
         {
-            // Workflow has 1 dirty step and 1 clean step
+            // Workflow has 1 dirty step and 1 clean step — only the dirty step is submitted
             var workflow = CreateTestWorkflow(withDirtyStep: true, withCleanStep: true);
             Assert.Equal(2, workflow.Steps.Count);
 
-            await buffer.Submit(workflow, TestContext.Current.CancellationToken);
+            var dirtyStep = workflow.Steps[0]; // the "dirty" step we want to persist
+            await buffer.Submit(workflow, dirtyStep, TestContext.Current.CancellationToken);
 
             Assert.NotNull(capturedUpdates);
             var update = Assert.Single(capturedUpdates);
-            var dirtyStep = Assert.Single(update.DirtySteps);
-            Assert.True(dirtyStep.HasPendingChanges);
+            Assert.NotNull(update.Step);
+            Assert.Same(dirtyStep, update.Step);
         }
         finally
         {
@@ -242,7 +242,11 @@ public class WorkflowUpdateBufferTests
         {
             var tasks = Enumerable
                 .Range(1, 5)
-                .Select(i => buffer.Submit(CreateTestWorkflow($"op-{i}"), TestContext.Current.CancellationToken))
+                .Select(i =>
+                {
+                    var wf = CreateTestWorkflow($"op-{i}");
+                    return buffer.Submit(wf, wf.Steps[0], TestContext.Current.CancellationToken);
+                })
                 .ToList();
 
             // Release the gate — all items process
@@ -284,7 +288,7 @@ public class WorkflowUpdateBufferTests
             var workflow = CreateTestWorkflow();
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                buffer.Submit(workflow, TestContext.Current.CancellationToken)
+                buffer.Submit(workflow, workflow.Steps[0], TestContext.Current.CancellationToken)
             );
             Assert.Same(expectedException, ex);
         }
@@ -309,11 +313,13 @@ public class WorkflowUpdateBufferTests
             await cts.CancelAsync();
 
             var workflow = CreateTestWorkflow("canceled-op");
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => buffer.Submit(workflow, cts.Token));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                buffer.Submit(workflow, workflow.Steps[0], cts.Token)
+            );
 
             // Non-canceled request should still work
             var workflow2 = CreateTestWorkflow("kept-op");
-            await buffer.Submit(workflow2, TestContext.Current.CancellationToken);
+            await buffer.Submit(workflow2, workflow2.Steps[0], TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -337,7 +343,7 @@ public class WorkflowUpdateBufferTests
         {
             using var cts = new CancellationTokenSource();
             var workflow = CreateTestWorkflow("canceled-op");
-            var canceledTask = buffer.Submit(workflow, cts.Token);
+            var canceledTask = buffer.Submit(workflow, workflow.Steps[0], cts.Token);
 
             // Cancel while the flush is blocked on the gate
             await cts.CancelAsync();
@@ -349,7 +355,7 @@ public class WorkflowUpdateBufferTests
 
             // Non-canceled request should still work
             var workflow2 = CreateTestWorkflow("kept-op");
-            await buffer.Submit(workflow2, TestContext.Current.CancellationToken);
+            await buffer.Submit(workflow2, workflow2.Steps[0], TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -379,7 +385,11 @@ public class WorkflowUpdateBufferTests
 
         var tasks = Enumerable
             .Range(1, 5)
-            .Select(i => buffer.Submit(CreateTestWorkflow($"drain-{i}"), TestContext.Current.CancellationToken))
+            .Select(i =>
+            {
+                var wf = CreateTestWorkflow($"drain-{i}");
+                return buffer.Submit(wf, wf.Steps[0], TestContext.Current.CancellationToken);
+            })
             .ToList();
 
         // Stop should drain all pending items

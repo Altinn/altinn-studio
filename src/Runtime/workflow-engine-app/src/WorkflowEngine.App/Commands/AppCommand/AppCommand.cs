@@ -109,6 +109,8 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
             State = context.StateIn,
+            ReplyId = context.Step.ReplyId,
+            Reply = context.Step.ReceivedReply?.Payload,
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);

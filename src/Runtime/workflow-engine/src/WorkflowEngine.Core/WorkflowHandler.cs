@@ -49,7 +49,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, null, CancellationToken.None);
 
             StopActivity(workflow);
             return;
@@ -64,7 +64,7 @@ internal sealed class WorkflowHandler(
 
             Metrics.WorkflowsFailed.Add(1);
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, null, CancellationToken.None);
 
             return;
         }
@@ -92,7 +92,7 @@ internal sealed class WorkflowHandler(
                 }
             }
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, null, CancellationToken.None);
 
             StopActivity(workflow);
             throw;
@@ -111,7 +111,7 @@ internal sealed class WorkflowHandler(
                 ("operationId", workflow.OperationId)
             );
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, null, CancellationToken.None);
 
             StopActivity(workflow);
             return;
@@ -137,8 +137,6 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(1);
         }
 
-        await statusWriteBuffer.Submit(workflow, ct);
-
         StopActivity(workflow);
     }
 
@@ -156,15 +154,24 @@ internal sealed class WorkflowHandler(
                 continue;
             }
 
+            // Step is suspended waiting for an external reply — flush and stop processing here.
+            // The specific step is passed so the SQL guard can check whether a concurrent reply
+            // has already transitioned it from Suspended to Enqueued.
+            if (step.Status == PersistentItemStatus.Suspended)
+            {
+                workflow.Status = workflow.OverallStatus();
+                await statusWriteBuffer.Submit(workflow, step, ct);
+                break;
+            }
+
             StartProcessStepActivity(workflow, step);
 
             RecordStepQueueTime(workflow, step);
 
             step.Status = PersistentItemStatus.Processing;
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
-            step.HasPendingChanges = true;
 
-            await statusWriteBuffer.Submit(workflow, ct);
+            await statusWriteBuffer.Submit(workflow, step, ct);
 
             ExecutionResult result;
             try
@@ -175,14 +182,16 @@ internal sealed class WorkflowHandler(
             {
                 if (workflow.CancellationRequestedAt is not null)
                 {
+                    workflow.Status = PersistentItemStatus.Canceled;
                     step.Status = PersistentItemStatus.Canceled;
                 }
                 else
                 {
+                    workflow.Status = PersistentItemStatus.Requeued;
                     step.Status = PersistentItemStatus.Requeued;
                 }
 
-                step.HasPendingChanges = true;
+                await statusWriteBuffer.Submit(workflow, step, CancellationToken.None);
                 StopActivity(step);
                 throw;
             }
@@ -194,9 +203,9 @@ internal sealed class WorkflowHandler(
             UpdateStepStatusAndRetryDecision(workflow, step, previous, result);
 
             step.UpdatedAt = timeProvider.GetUtcNow();
-            step.HasPendingChanges = true;
 
-            await statusWriteBuffer.Submit(workflow, ct);
+            workflow.Status = workflow.OverallStatus();
+            await statusWriteBuffer.Submit(workflow, step, ct);
 
             RecordStepServiceTime(step);
             RecordStepTotalTime(step, previous);

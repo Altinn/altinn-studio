@@ -5,6 +5,7 @@ using Moq;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Endpoints;
 using WorkflowEngine.Core.Tests.Fixtures;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -573,5 +574,106 @@ public class EngineEndpointTests
         Assert.Equal(workflowId, accepted.Value.WorkflowId);
         Assert.Equal(originalTimestamp, accepted.Value.CancellationRequestedAt);
         Assert.False(accepted.Value.CanceledImmediately);
+    }
+
+    // === SubmitReply Handler Tests ===
+
+    [Fact]
+    public async Task SubmitReply_Accepted_Returns200()
+    {
+        // Arrange
+        var replyId = Guid.NewGuid();
+        var replyBufferMock = new Mock<IReplyWriteBuffer>();
+        replyBufferMock
+            .Setup(r => r.Submit(replyId, "test-payload", "key-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SubmitReplyResult.Accepted);
+
+        var request = new SubmitReplyRequest { Payload = "test-payload" };
+
+        // Act
+        var result = await EngineRequestHandlers.SubmitReply(
+            replyId,
+            request,
+            "key-1",
+            replyBufferMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<Ok>(result.Result);
+    }
+
+    [Fact]
+    public async Task SubmitReply_Duplicate_Returns200()
+    {
+        // Arrange
+        var replyId = Guid.NewGuid();
+        var replyBufferMock = new Mock<IReplyWriteBuffer>();
+        replyBufferMock
+            .Setup(r => r.Submit(replyId, "test-payload", "key-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SubmitReplyResult.Duplicate);
+
+        var request = new SubmitReplyRequest { Payload = "test-payload" };
+
+        // Act
+        var result = await EngineRequestHandlers.SubmitReply(
+            replyId,
+            request,
+            "key-1",
+            replyBufferMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<Ok>(result.Result);
+    }
+
+    [Fact]
+    public async Task SubmitReply_Conflict_Returns409()
+    {
+        // Arrange
+        var replyId = Guid.NewGuid();
+        var replyBufferMock = new Mock<IReplyWriteBuffer>();
+        replyBufferMock
+            .Setup(r => r.Submit(replyId, "different-payload", "key-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SubmitReplyResult.Conflict);
+
+        var request = new SubmitReplyRequest { Payload = "different-payload" };
+
+        // Act
+        var result = await EngineRequestHandlers.SubmitReply(
+            replyId,
+            request,
+            "key-1",
+            replyBufferMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
+        Assert.Equal(409, problem.StatusCode);
+    }
+
+    [Fact]
+    public async Task SubmitReply_NotFound_Returns404()
+    {
+        // Arrange
+        var replyId = Guid.NewGuid();
+        var replyBufferMock = new Mock<IReplyWriteBuffer>();
+        replyBufferMock
+            .Setup(r => r.Submit(replyId, null, "key-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SubmitReplyResult.NotFound);
+
+        // Act
+        var result = await EngineRequestHandlers.SubmitReply(
+            replyId,
+            null,
+            "key-1",
+            replyBufferMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<NotFound>(result.Result);
     }
 }

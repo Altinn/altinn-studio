@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
@@ -568,10 +569,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var step2a = workflow2.Steps[0];
         step2a.Status = PersistentItemStatus.Failed;
         step2a.RequeueCount = 1;
+
+        // With per-step flushing, each update carries a single step.
+        // Multiple updates for the same workflow (one per step) are batched together.
         var updates = new List<BatchWorkflowStatusUpdate>
         {
-            new(workflow1, [step1a, step1b]),
-            new(workflow2, [step2a]),
+            new(workflow1, step1a),
+            new(workflow1, step1b),
+            new(workflow2, step2a),
         };
 
         await repo.BatchUpdateWorkflowsAndSteps(updates, TestContext.Current.CancellationToken);
@@ -880,5 +885,337 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         );
         Assert.Equal(1, searchCount);
         Assert.Single(bySearch);
+    }
+
+    [Fact]
+    public async Task BatchUpdateWorkflowsAndSteps_WritesEnqueuedInsteadOfSuspended_WhenConcurrentReplyTransitionedStep()
+    {
+        // This test simulates the race condition where a concurrent reply submission
+        // transitions a step from Suspended to Enqueued while the processor still holds
+        // a stale in-memory snapshot showing the step as Suspended. Without the fix,
+        // the processor would write Suspended, permanently stranding the workflow.
+
+        // Arrange: create a workflow with producer + consumer steps
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+
+        var request = new WorkflowRequest
+        {
+            OperationId = "race-condition-test",
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "producer",
+                    Ref = "producer",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "consumer",
+                    WaitForReplyFrom = "producer",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+
+        // Verify initial state: workflow is Enqueued, producer step is Enqueued, consumer step is Suspended
+        Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
+        var producerStep = workflow.Steps.Single(s => s.OperationId == "producer");
+        var consumerStep = workflow.Steps.Single(s => s.OperationId == "consumer");
+        Assert.Equal(PersistentItemStatus.Enqueued, producerStep.Status);
+        Assert.Equal(PersistentItemStatus.Suspended, consumerStep.Status);
+
+        // Simulate: processor completes the producer step in memory
+        producerStep.Status = PersistentItemStatus.Completed;
+
+        // Simulate: the processor's in-memory view still sees consumer as Suspended
+        // (the stale snapshot), so OverallStatus() returns Suspended
+        workflow.Status = PersistentItemStatus.Suspended;
+
+        // Simulate: concurrent reply has transitioned the consumer step from Suspended
+        // to Enqueued in the database (this is what BulkTransitionSteps does)
+        await context.Database.ExecuteSqlAsync(
+            $"""UPDATE "engine"."Steps" SET "Status" = {(int)PersistentItemStatus.Enqueued} WHERE "Id" = {consumerStep.DatabaseId}""",
+            TestContext.Current.CancellationToken
+        );
+
+        // Act: processor writes back its stale state via batch update.
+        // First flush: producer step completed (would have happened during processing).
+        var producerUpdate = new List<BatchWorkflowStatusUpdate> { new(workflow, producerStep) };
+        await repo.BatchUpdateWorkflowsAndSteps(producerUpdate, TestContext.Current.CancellationToken);
+
+        // Second flush: processor broke on consumer step (Suspended), passing it as the
+        // step the SQL guard should check. The consumer step's in-memory status is still
+        // Suspended (stale), but the DB has it as Enqueued from the concurrent reply.
+        var suspendedUpdate = new List<BatchWorkflowStatusUpdate> { new(workflow, consumerStep) };
+        await repo.BatchUpdateWorkflowsAndSteps(suspendedUpdate, TestContext.Current.CancellationToken);
+
+        // Assert: workflow should be Enqueued (not Suspended), because the SQL detected
+        // that no steps are actually Suspended in the DB anymore
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
+
+        // The consumer step should still be Enqueued (from the simulated reply transition)
+        var dbConsumerStep = await fixture.GetStep(consumerStep.DatabaseId);
+        Assert.NotNull(dbConsumerStep);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbConsumerStep.Status);
+
+        // The producer step should be Completed (written by the batch update)
+        var dbProducerStep = await fixture.GetStep(producerStep.DatabaseId);
+        Assert.NotNull(dbProducerStep);
+        Assert.Equal(PersistentItemStatus.Completed, dbProducerStep.Status);
+    }
+
+    [Fact]
+    public async Task BatchUpdateWorkflowsAndSteps_WritesSuspended_WhenStepIsStillSuspended()
+    {
+        // Complementary test: when no concurrent reply arrived, the processor should
+        // correctly write Suspended status (the normal non-race case).
+
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+
+        var request = new WorkflowRequest
+        {
+            OperationId = "no-race-test",
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "producer",
+                    Ref = "producer",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "consumer",
+                    WaitForReplyFrom = "producer",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+
+        // Simulate: processor completes the producer step, consumer is still Suspended
+        var producerStep = workflow.Steps.Single(s => s.OperationId == "producer");
+        producerStep.Status = PersistentItemStatus.Completed;
+        workflow.Status = PersistentItemStatus.Suspended;
+
+        // No concurrent reply -- consumer step is still Suspended in the DB
+
+        // Act: two-phase flush, same as in the race condition test.
+        // First flush: producer step completed.
+        var producerUpdate = new List<BatchWorkflowStatusUpdate> { new(workflow, producerStep) };
+        await repo.BatchUpdateWorkflowsAndSteps(producerUpdate, TestContext.Current.CancellationToken);
+
+        // Second flush: processor broke on consumer step (Suspended), passing it as
+        // the step the SQL guard should check. Consumer is still Suspended in the DB.
+        var consumerStep = workflow.Steps.Single(s => s.OperationId == "consumer");
+        var suspendedUpdate = new List<BatchWorkflowStatusUpdate> { new(workflow, consumerStep) };
+        await repo.BatchUpdateWorkflowsAndSteps(suspendedUpdate, TestContext.Current.CancellationToken);
+
+        // Assert: workflow should remain Suspended (normal case — step is still Suspended in DB)
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Suspended, dbWorkflow.Status);
+    }
+
+    [Fact]
+    public async Task BatchUpdateWorkflowsAndSteps_WritesEnqueued_WhenBrokenOnStepWasReplied_ButOtherStepStillSuspended()
+    {
+        // Multi-suspended-step scenario: two consumers both start Suspended.
+        // A concurrent reply transitions consumer A from Suspended → Enqueued in the DB.
+        // Consumer B is still Suspended in the DB.
+        // The processor broke on consumer A (the one that was replied to).
+        // The SQL guard checks consumer A's DB status (Enqueued ≠ Suspended) → override
+        // workflow to Enqueued so it gets picked up again.
+
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+
+        var request = new WorkflowRequest
+        {
+            OperationId = "multi-suspended-replied-test",
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "producerA",
+                    Ref = "producerA",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "producerB",
+                    Ref = "producerB",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "consumerA",
+                    WaitForReplyFrom = "producerA",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "consumerB",
+                    WaitForReplyFrom = "producerB",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+
+        var producerA = workflow.Steps.Single(s => s.OperationId == "producerA");
+        var producerB = workflow.Steps.Single(s => s.OperationId == "producerB");
+        var consumerA = workflow.Steps.Single(s => s.OperationId == "consumerA");
+        var consumerB = workflow.Steps.Single(s => s.OperationId == "consumerB");
+
+        Assert.Equal(PersistentItemStatus.Enqueued, producerA.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, producerB.Status);
+        Assert.Equal(PersistentItemStatus.Suspended, consumerA.Status);
+        Assert.Equal(PersistentItemStatus.Suspended, consumerB.Status);
+
+        // Simulate: processor completes both producers
+        producerA.Status = PersistentItemStatus.Completed;
+        producerB.Status = PersistentItemStatus.Completed;
+        workflow.Status = PersistentItemStatus.Suspended;
+
+        // Simulate: concurrent reply transitions consumer A from Suspended → Enqueued in DB
+        await context.Database.ExecuteSqlAsync(
+            $"""UPDATE "engine"."Steps" SET "Status" = {(int)PersistentItemStatus.Enqueued} WHERE "Id" = {consumerA.DatabaseId}""",
+            TestContext.Current.CancellationToken
+        );
+
+        // Act: first flush — producerA step completed
+        var update1 = new List<BatchWorkflowStatusUpdate> { new(workflow, producerA) };
+        await repo.BatchUpdateWorkflowsAndSteps(update1, TestContext.Current.CancellationToken);
+
+        // Second flush — producerB step completed
+        var update2 = new List<BatchWorkflowStatusUpdate> { new(workflow, producerB) };
+        await repo.BatchUpdateWorkflowsAndSteps(update2, TestContext.Current.CancellationToken);
+
+        // Third flush: processor broke on consumer A (the first Suspended step it hit).
+        // Guard checks consumer A in DB → it's Enqueued → override workflow to Enqueued.
+        var suspendedUpdate = new List<BatchWorkflowStatusUpdate> { new(workflow, consumerA) };
+        await repo.BatchUpdateWorkflowsAndSteps(suspendedUpdate, TestContext.Current.CancellationToken);
+
+        // Assert: workflow should be Enqueued (guard detected consumer A is no longer Suspended)
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
+
+        // Consumer A should be Enqueued (from concurrent reply, NOT overwritten by step update)
+        var dbConsumerA = await fixture.GetStep(consumerA.DatabaseId);
+        Assert.NotNull(dbConsumerA);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbConsumerA.Status);
+
+        // Consumer B should still be Suspended (no reply arrived for it)
+        var dbConsumerB = await fixture.GetStep(consumerB.DatabaseId);
+        Assert.NotNull(dbConsumerB);
+        Assert.Equal(PersistentItemStatus.Suspended, dbConsumerB.Status);
+    }
+
+    [Fact]
+    public async Task BatchUpdateWorkflowsAndSteps_WritesSuspended_WhenBrokenOnStepIsStillSuspended_ButOtherStepWasReplied()
+    {
+        // Multi-suspended-step scenario: two consumers both start Suspended.
+        // A concurrent reply transitions consumer B from Suspended → Enqueued in the DB.
+        // The processor broke on consumer A (which is still Suspended in the DB).
+        // The SQL guard checks consumer A's DB status (Suspended = Suspended) → no override,
+        // workflow stays Suspended. The next fetch cycle won't pick it up, but the reply
+        // handler will separately re-enqueue once it can transition the workflow.
+
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+
+        var request = new WorkflowRequest
+        {
+            OperationId = "multi-suspended-not-replied-test",
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "producerA",
+                    Ref = "producerA",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "producerB",
+                    Ref = "producerB",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "consumerA",
+                    WaitForReplyFrom = "producerA",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "consumerB",
+                    WaitForReplyFrom = "producerB",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+
+        var producerA = workflow.Steps.Single(s => s.OperationId == "producerA");
+        var producerB = workflow.Steps.Single(s => s.OperationId == "producerB");
+        var consumerA = workflow.Steps.Single(s => s.OperationId == "consumerA");
+        var consumerB = workflow.Steps.Single(s => s.OperationId == "consumerB");
+
+        Assert.Equal(PersistentItemStatus.Enqueued, producerA.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, producerB.Status);
+        Assert.Equal(PersistentItemStatus.Suspended, consumerA.Status);
+        Assert.Equal(PersistentItemStatus.Suspended, consumerB.Status);
+
+        // Simulate: processor completes both producers
+        producerA.Status = PersistentItemStatus.Completed;
+        producerB.Status = PersistentItemStatus.Completed;
+        workflow.Status = PersistentItemStatus.Suspended;
+
+        // Simulate: concurrent reply transitions consumer B (NOT A) from Suspended → Enqueued in DB
+        await context.Database.ExecuteSqlAsync(
+            $"""UPDATE "engine"."Steps" SET "Status" = {(int)PersistentItemStatus.Enqueued} WHERE "Id" = {consumerB.DatabaseId}""",
+            TestContext.Current.CancellationToken
+        );
+
+        // Act: first flush — producerA step completed
+        var update1 = new List<BatchWorkflowStatusUpdate> { new(workflow, producerA) };
+        await repo.BatchUpdateWorkflowsAndSteps(update1, TestContext.Current.CancellationToken);
+
+        // Second flush — producerB step completed
+        var update2 = new List<BatchWorkflowStatusUpdate> { new(workflow, producerB) };
+        await repo.BatchUpdateWorkflowsAndSteps(update2, TestContext.Current.CancellationToken);
+
+        // Third flush: processor broke on consumer A (still Suspended in DB).
+        // Guard checks consumer A in DB → it's still Suspended → no override.
+        var suspendedUpdate = new List<BatchWorkflowStatusUpdate> { new(workflow, consumerA) };
+        await repo.BatchUpdateWorkflowsAndSteps(suspendedUpdate, TestContext.Current.CancellationToken);
+
+        // Assert: workflow should remain Suspended (guard saw consumer A is still Suspended)
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Suspended, dbWorkflow.Status);
+
+        // Consumer A should still be Suspended (no reply for it)
+        var dbConsumerA = await fixture.GetStep(consumerA.DatabaseId);
+        Assert.NotNull(dbConsumerA);
+        Assert.Equal(PersistentItemStatus.Suspended, dbConsumerA.Status);
+
+        // Consumer B should be Enqueued (from concurrent reply)
+        var dbConsumerB = await fixture.GetStep(consumerB.DatabaseId);
+        Assert.NotNull(dbConsumerB);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbConsumerB.Status);
     }
 }

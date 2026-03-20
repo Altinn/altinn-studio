@@ -106,6 +106,12 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("retention")]
     public RetentionSettings Retention { get; set; } = new();
+
+    /// <summary>
+    /// Reply buffer settings.
+    /// </summary>
+    [JsonPropertyName("replyBuffer")]
+    public BufferSettings ReplyBuffer { get; set; } = new();
 }
 
 public sealed record BufferSettings
