@@ -164,8 +164,6 @@ internal sealed class WorkflowHandler(
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
 
-            // Flush "Processing" status so dashboard sees step transitions in real-time
-            // and crashed instances don't lose progress (~1-5ms amortized)
             await statusWriteBuffer.Submit(workflow, ct);
 
             ExecutionResult result;
@@ -198,7 +196,6 @@ internal sealed class WorkflowHandler(
             step.UpdatedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
 
-            // Flush result status immediately for real-time dashboard visibility
             await statusWriteBuffer.Submit(workflow, ct);
 
             RecordStepServiceTime(step);
