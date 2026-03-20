@@ -44,7 +44,7 @@ internal static class DashboardMapper
             step.OperationId,
             step.Command.Type,
             step.OperationId,
-            step.LastError,
+            step.ErrorHistory.Count > 0 ? step.ErrorHistory[^1].Message : null,
             step.Status.ToString(),
             step.ProcessingOrder,
             step.RequeueCount,

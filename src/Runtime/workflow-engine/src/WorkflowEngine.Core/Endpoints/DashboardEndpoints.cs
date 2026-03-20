@@ -441,7 +441,7 @@ public static class DashboardEndpoints
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,
                             retryCount = s.RequeueCount,
-                            lastError = s.LastError,
+                            lastError = s.ErrorHistory.Count > 0 ? s.ErrorHistory[^1].Message : null,
                             errorHistory = s.ErrorHistory.Select(e => new
                             {
                                 timestamp = e.Timestamp,

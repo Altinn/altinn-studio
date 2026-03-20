@@ -898,7 +898,6 @@ internal sealed partial class EngineRepository
                         var stepIds = new Guid[allSteps.Count];
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
-                        var stepLastErrors = new object[allSteps.Count];
                         var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
@@ -909,7 +908,6 @@ internal sealed partial class EngineRepository
                             stepIds[i] = s.DatabaseId;
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
-                            stepLastErrors[i] = (object?)s.LastError ?? DBNull.Value;
                             stepErrorHistories[i] =
                                 s.ErrorHistory.Count > 0
                                     ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
@@ -922,15 +920,14 @@ internal sealed partial class EngineRepository
                         UPDATE "engine"."Steps" AS s
                         SET "Status"             = v.status,
                             "RequeueCount"       = v.requeue_count,
-                            "LastError"          = v.last_error,
-                            "ErrorHistoryJson"   = v.error_history,
+                            "ErrorHistory"       = v.error_history,
                             "StateOut"           = v.state_out,
                             "EngineTraceContext" = v.engine_trace_context,
                             "UpdatedAt"          = @now
                         FROM (
                             SELECT *
-                            FROM unnest(@ids, @statuses, @requeue_counts, @last_errors, @error_histories, @engine_trace_contexts, @state_outs)
-                                AS t(id, status, requeue_count, last_error, error_history, engine_trace_context, state_out)
+                            FROM unnest(@ids, @statuses, @requeue_counts, @error_histories, @engine_trace_contexts, @state_outs)
+                                AS t(id, status, requeue_count, error_history, engine_trace_context, state_out)
                             ORDER BY t.id
                         ) AS v
                         WHERE s."Id" = v.id
@@ -940,12 +937,6 @@ internal sealed partial class EngineRepository
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
-                        cmd.Parameters.Add(
-                            new NpgsqlParameter("last_errors", NpgsqlDbType.Array | NpgsqlDbType.Text)
-                            {
-                                Value = stepLastErrors,
-                            }
-                        );
                         cmd.Parameters.Add(
                             new NpgsqlParameter("error_histories", NpgsqlDbType.Array | NpgsqlDbType.Jsonb)
                             {

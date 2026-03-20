@@ -236,7 +236,6 @@ internal sealed class WorkflowHandler(
         if (result.IsSuccess())
         {
             currentStep.Status = PersistentItemStatus.Completed;
-            currentStep.LastError = null;
 
             Metrics.StepsSucceeded.Add(1);
             logger.StepCompletedSuccessfully(currentStep);
@@ -247,7 +246,6 @@ internal sealed class WorkflowHandler(
         if (result.IsCriticalError())
         {
             currentStep.Status = PersistentItemStatus.Failed;
-            currentStep.LastError = result.Message;
             currentStep.ErrorHistory.Add(
                 new ErrorEntry(
                     timeProvider.GetUtcNow(),
@@ -272,7 +270,6 @@ internal sealed class WorkflowHandler(
         {
             currentStep.RequeueCount++;
             currentStep.Status = PersistentItemStatus.Requeued;
-            currentStep.LastError = result.Message;
             currentStep.ErrorHistory.Add(
                 new ErrorEntry(
                     timeProvider.GetUtcNow(),
@@ -291,7 +288,6 @@ internal sealed class WorkflowHandler(
 
         // No more retries
         currentStep.Status = PersistentItemStatus.Failed;
-        currentStep.LastError = result.Message;
         currentStep.ErrorHistory.Add(
             new ErrorEntry(
                 timeProvider.GetUtcNow(),

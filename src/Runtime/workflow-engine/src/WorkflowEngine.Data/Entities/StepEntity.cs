@@ -41,10 +41,8 @@ internal sealed class StepEntity
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string>? Labels { get; set; }
 
-    public string? LastError { get; set; }
-
     [Column(TypeName = "jsonb")]
-    public string? ErrorHistoryJson { get; set; }
+    public List<ErrorEntry>? ErrorHistory { get; set; }
 
     public string? StateOut { get; set; }
 
@@ -70,9 +68,7 @@ internal sealed class StepEntity
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
             Labels = step.Labels,
-            LastError = step.LastError,
-            ErrorHistoryJson =
-                step.ErrorHistory.Count > 0 ? JsonSerializer.Serialize(step.ErrorHistory, JsonOptions.Default) : null,
+            ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,
             StateOut = step.StateOut,
         };
     }
@@ -101,11 +97,7 @@ internal sealed class StepEntity
             Command = command,
             RetryStrategy = retryStrategy,
             Labels = Labels,
-            LastError = LastError,
-            ErrorHistory =
-                ErrorHistoryJson != null
-                    ? JsonSerializer.Deserialize<List<ErrorEntry>>(ErrorHistoryJson, JsonOptions.Default) ?? []
-                    : [],
+            ErrorHistory = ErrorHistory ?? [],
             StateOut = StateOut,
         };
     }
