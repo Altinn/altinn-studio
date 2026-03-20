@@ -115,6 +115,17 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     "changed_files": len(final_state.get("changed_files", [])),
                     "next_action": str(final_state.get("next_action", ""))
                 })
+
+                # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
+                try:
+                    from agents.services.evaluation.intent_judge import run_intent_judge
+                    await run_intent_judge(
+                        user_goal=state.user_goal,
+                        general_plan=final_state.get("general_plan"),
+                        trace_id=root_span.trace_id,
+                    )
+                except Exception as e:
+                    log.warning("Evaluation pipeline error: %s", e)
                     
             except Exception as e:
                 root_span.update(metadata={"error": str(e)})
