@@ -293,6 +293,7 @@ describe('VersionControlButtonsContext', () => {
       expect(screen.getByTestId(hasMergeConflictTestId)).toHaveTextContent('true');
     });
     expect(screen.getByTestId(isLoadingTestId)).toHaveTextContent('false');
+    expect(screen.queryByText(textMock('api_errors.GT_01'))).not.toBeInTheDocument();
     expect(queryClient.getQueryData([QueryKey.RepoStatus, org, app])).toEqual({
       aheadBy: 0,
       behindBy: 0,
