@@ -7,5 +7,7 @@
   lockToken: e2e-lock-token-abc123,
   payload: test-payload,
   workflowId: {Scrubbed},
-  state: null
+  state: null,
+  replyId: null,
+  reply: null
 }

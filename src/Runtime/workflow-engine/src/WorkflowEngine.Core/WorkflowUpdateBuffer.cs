@@ -17,10 +17,10 @@ namespace WorkflowEngine.Core;
 internal interface IWorkflowUpdateBuffer
 {
     /// <summary>
-    /// Submits a workflow and its dirty steps for batched persistence.
+    /// Submits a workflow and an optional step for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    Task Submit(Workflow workflow, CancellationToken ct);
+    Task Submit(Workflow workflow, Step? step, CancellationToken ct);
 }
 
 /// <summary>
@@ -57,13 +57,11 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     }
 
     /// <summary>
-    /// Submits a workflow and its dirty steps for batched persistence.
+    /// Submits a workflow and an optional step for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    public async Task Submit(Workflow workflow, CancellationToken ct)
+    public async Task Submit(Workflow workflow, Step? step, CancellationToken ct)
     {
-        var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
-
         using var activity = Metrics.Source.StartActivity(
             "WorkflowUpdateBuffer.Submit",
             parentContext: workflow.EngineActivity?.Context,
@@ -72,7 +70,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                 ("workflow.database.id", workflow.DatabaseId),
                 ("workflow.operation.id", workflow.OperationId),
                 ("workflow.status", workflow.Status.ToString()),
-                ("dirty.steps.count", dirtySteps.Count),
+                ("step.database.id", step?.DatabaseId.ToString() ?? "none"),
             ]
         );
 
@@ -82,7 +80,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         // after the write but before the registration is in place
         await using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
-        var request = new WorkflowUpdateRequest(workflow, dirtySteps, tcs);
+        var request = new WorkflowUpdateRequest(workflow, step, tcs);
 
         await _channel.Writer.WriteAsync(request, ct);
 
@@ -186,7 +184,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-            var updates = batch.Select(r => new BatchWorkflowStatusUpdate(r.Workflow, r.DirtySteps)).ToList();
+            var updates = batch.Select(r => new BatchWorkflowStatusUpdate(r.Workflow, r.Step)).ToList();
 
             await repo.BatchUpdateWorkflowsAndSteps(updates, ct);
 
@@ -212,8 +210,4 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 /// <summary>
 /// A single status update request waiting in the buffer.
 /// </summary>
-internal sealed record WorkflowUpdateRequest(
-    Workflow Workflow,
-    IReadOnlyList<Step> DirtySteps,
-    TaskCompletionSource Completion
-);
+internal sealed record WorkflowUpdateRequest(Workflow Workflow, Step? Step, TaskCompletionSource Completion);

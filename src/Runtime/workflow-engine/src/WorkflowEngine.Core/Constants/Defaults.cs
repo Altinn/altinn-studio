@@ -54,5 +54,11 @@ internal static class Defaults
             BatchSize = 1000,
             Interval = TimeSpan.FromHours(2),
         },
+        ReplyBuffer = new BufferSettings
+        {
+            FlushConcurrency = 4,
+            MaxBatchSize = 50,
+            MaxQueueSize = 5_000,
+        },
     };
 }

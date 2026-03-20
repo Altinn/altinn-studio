@@ -66,6 +66,10 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IWorkflowUpdateBuffer>(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
             services.AddHostedService(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
 
+            services.AddSingleton<ReplyWriteBuffer>();
+            services.AddSingleton<IReplyWriteBuffer>(sp => sp.GetRequiredService<ReplyWriteBuffer>());
+            services.AddHostedService(sp => sp.GetRequiredService<ReplyWriteBuffer>());
+
             // HeartbeatService must be registered BEFORE the processor so it is stopped
             // AFTER it (hosted services are stopped in reverse registration order).
             // The heartbeat loop continues while the tracker is non-empty, which requires
@@ -203,6 +207,7 @@ public static class OptionsBuilderExtensions
 
                 ApplyBufferDefaults(config.WriteBuffer, Defaults.EngineSettings.WriteBuffer);
                 ApplyBufferDefaults(config.UpdateBuffer, Defaults.EngineSettings.UpdateBuffer);
+                ApplyBufferDefaults(config.ReplyBuffer, Defaults.EngineSettings.ReplyBuffer);
 
                 if (config.Retention.RetentionPeriod <= TimeSpan.Zero)
                     config.Retention.RetentionPeriod = Defaults.EngineSettings.Retention.RetentionPeriod;

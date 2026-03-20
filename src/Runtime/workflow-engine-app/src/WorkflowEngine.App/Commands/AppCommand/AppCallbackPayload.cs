@@ -24,4 +24,10 @@ internal sealed record AppCallbackPayload
 
     [JsonPropertyName("state")]
     public string? State { get; init; }
+
+    [JsonPropertyName("replyId")]
+    public Guid? ReplyId { get; init; }
+
+    [JsonPropertyName("reply")]
+    public string? Reply { get; init; }
 }

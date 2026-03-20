@@ -182,4 +182,15 @@ public interface IEngineRepository
     /// Returns true if the workflow was found, is Requeued, and had a non-null BackoffUntil.
     /// </summary>
     Task<bool> SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Batch-submits multiple external replies in a single transaction. Each reply is processed
+    /// independently (update reply row, transition step, transition workflow) but shares a single
+    /// database connection and transaction for efficiency.
+    /// Returns a result per request, aligned with the input list.
+    /// </summary>
+    Task<IReadOnlyList<SubmitReplyResult>> BatchSubmitReplies(
+        IReadOnlyList<BufferedReplyRequest> requests,
+        CancellationToken cancellationToken
+    );
 }

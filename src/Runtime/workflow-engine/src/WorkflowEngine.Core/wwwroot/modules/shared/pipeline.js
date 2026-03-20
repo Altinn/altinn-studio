@@ -19,6 +19,8 @@ const stepIcon = (status) => {
             return '&#8635;';
         case 'Canceled':
             return '&#8212;';
+        case 'Suspended':
+            return '&#9208;';
         default:
             return '&#9675;';
     }
@@ -112,7 +114,8 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
  */
 const buildConnectorHTML = (prev, cur, isStatic) => {
     const prevDone = prev.status === 'Completed';
-    const curActive = cur.status === 'Processing' || cur.status === 'Requeued';
+    const curActive =
+        cur.status === 'Processing' || cur.status === 'Requeued' || cur.status === 'Suspended';
     const isLeadingEdge = prevDone && curActive;
 
     const lineClass = isStatic
@@ -213,7 +216,9 @@ export const scrollPipelineToActive = (card) => {
     const p = card.querySelector('.pipeline');
     if (!p) return;
     const active =
-        p.querySelector('.step-circle.Processing') || p.querySelector('.step-circle.Requeued');
+        p.querySelector('.step-circle.Processing') ||
+        p.querySelector('.step-circle.Requeued') ||
+        p.querySelector('.step-circle.Suspended');
     if (active) {
         const node = /** @type {HTMLElement | null} */ (active.closest('.step-node'));
         if (node) {
