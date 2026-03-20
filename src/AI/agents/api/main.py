@@ -41,9 +41,11 @@ class SuppressLangfuseTimeouts(logging.Filter):
         return True
 
 
-# Attach filter to OpenTelemetry loggers so Langfuse remains fully enabled
-otel_logger = logging.getLogger("opentelemetry")
-otel_logger.addFilter(SuppressLangfuseTimeouts())
+# Attach filter to root logger handlers so child loggers (e.g.
+# opentelemetry.exporter.otlp) cannot bypass it.
+_langfuse_filter = SuppressLangfuseTimeouts()
+for _handler in logging.root.handlers:
+    _handler.addFilter(_langfuse_filter)
 
 logger = logging.getLogger(__name__)
 

@@ -138,8 +138,9 @@ def layout_props(
         return {
             "status": "success",
             "component_type": component_type,
-            "properties": result.get("properties", {}),
-            "required": result.get("required", []),
+            "properties": result.get("allowed_properties", []),
+            "required": result.get("required_properties", []),
+            "property_details": result.get("property_details", {}),
             "next_steps": [
                 {
                     "tool": "altinn_layout_validate",
@@ -206,14 +207,21 @@ def layout_validate(
             return {
                 "status": "success",
                 "valid": True,
-                "message": "Layout JSON is valid",
+                "message": result.get("message", "Layout JSON is valid"),
+            }
+        elif result.get("status") == "validation_failed":
+            return {
+                "status": "validation_failed",
+                "valid": False,
+                "errors": result.get("validation_errors", []),
+                "error_summary": result.get("message", ""),
             }
         else:
             return {
-                "status": "success",
+                "status": "error",
                 "valid": False,
-                "errors": result.get("errors", []),
-                "error_summary": result.get("error_summary", ""),
+                "errors": [],
+                "error_summary": result.get("message", "Unexpected validation error"),
             }
             
     except ImportError as e:

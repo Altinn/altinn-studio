@@ -24,7 +24,7 @@ from server.config import (
 DEFAULT_ORG = "unknown"
 
 # Context variable to store MCP request metadata (set by middleware/handler)
-_mcp_request_meta: ContextVar[Dict[str, Any]] = ContextVar('mcp_request_meta', default={})
+_mcp_request_meta: ContextVar[Optional[Dict[str, Any]]] = ContextVar('mcp_request_meta', default=None)
 
 def set_mcp_request_meta(meta: Dict[str, Any]) -> None:
     """Set MCP request metadata for the current context.
@@ -36,7 +36,8 @@ def set_mcp_request_meta(meta: Dict[str, Any]) -> None:
 
 def get_mcp_request_meta() -> Dict[str, Any]:
     """Get MCP request metadata for the current context."""
-    return _mcp_request_meta.get()
+    value = _mcp_request_meta.get()
+    return value if value is not None else {}
 
 # Initialize Langfuse client
 _langfuse_client: Optional[Langfuse] = None

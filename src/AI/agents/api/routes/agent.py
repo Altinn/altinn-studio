@@ -1,6 +1,7 @@
 """Agent workflow API routes"""
+import re
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
 from agents.graph.nodes import assistant
@@ -18,6 +19,11 @@ router = APIRouter()
 log = get_logger(__name__)
 config = get_config()
 
+_active_tasks: set = set()
+
+
+_SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
+
 
 class StartReq(BaseModel):
     session_id: str
@@ -26,6 +32,13 @@ class StartReq(BaseModel):
     branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
     allow_app_changes: bool = True  # If False, run in chat-only mode (no modifications)
     attachments: List[AttachmentUpload] = Field(default_factory=list)
+
+    @field_validator("session_id")
+    @classmethod
+    def _validate_session_id(cls, v: str) -> str:
+        if not _SESSION_ID_PATTERN.match(v):
+            raise ValueError("session_id must be 1-128 alphanumeric, hyphen, or underscore characters")
+        return v
 
 @router.post("/api/agent/start")
 async def start_agent(req: StartReq, request: Request):
@@ -195,7 +208,9 @@ async def start_agent(req: StartReq, request: Request):
             # Mark session as started and create background task - API returns immediately
             import asyncio
             sink.mark_session_started(req.session_id)
-            asyncio.create_task(_run_chat())
+            task = asyncio.create_task(_run_chat())
+            _active_tasks.add(task)
+            task.add_done_callback(_active_tasks.discard)
         else:
             # Normal workflow mode - make changes
             log.info(f"🔧 Workflow mode enabled for session {req.session_id}")
@@ -296,10 +311,12 @@ async def cancel_session(session_id: str):
     """Cancel a running session. Sends a terminal event so the frontend stops loading."""
     status = sink.get_session_status(session_id)
 
-    if status is not None:
-        current_status = status.get("status")
-        if current_status in ("done", "cancelled", "error"):
-            return {"session_id": session_id, "status": current_status, "message": "Session already finished"}
+    if status is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    current_status = status.get("status")
+    if current_status in ("done", "cancelled", "error"):
+        return {"session_id": session_id, "status": current_status, "message": "Session already finished"}
 
     sink.cancel_session(session_id)
     log.info(f"🛑 Session {session_id} cancelled via API")

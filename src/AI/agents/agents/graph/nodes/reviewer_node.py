@@ -61,7 +61,36 @@ async def generate_final_summary(
             if len(soft_notes) > 5:
                 verification_notes += f"\n• ... and {len(soft_notes) - 5} more"
 
-    prompt = f"""
+    if decision == "revert":
+        prompt = f"""
+You are the Altinity assistant. The user asked you to make changes, but the changes had to be reverted due to validation errors.
+
+ORIGINAL REQUEST: {user_goal}
+
+WHAT WAS ATTEMPTED: {plan_context}
+
+FILES THAT WERE CHANGED (now reverted): {files_summary}
+
+VALIDATION ERRORS THAT CAUSED THE REVERT:
+{verification_notes}
+
+REASONING: {reasoning}
+
+Write a short, helpful response (under 150 words). Structure it as:
+1. One sentence: what you tried to do.
+2. The specific validation error(s) that blocked it — be concrete, quote the error.
+3. A brief suggestion for how the user could rephrase their request or what to check.
+
+CRITICAL RULES:
+- Be direct and specific about the error. Do NOT restate the plan as a checklist.
+- Do NOT list "changes made" when they were all reverted — that is misleading.
+- Do NOT promise future action — you are a one-shot agent.
+- Do NOT use headings like "Summary" or "Outcome" or "Changes made".
+- Keep it conversational and concise.
+- Respond in the same language as the user's goal.
+"""
+    else:
+        prompt = f"""
 You are the Altinity assistant summarizing the completed work for the user.
 
 ORIGINAL REQUEST: {user_goal}
@@ -76,28 +105,23 @@ VERIFICATION NOTES: {verification_notes}
 FINAL DECISION: {status}
 REASONING: {reasoning}
 
-Write a short, natural update for the user (under 200 words).
+Write a short, natural update for the user (under 150 words).
 Be professional but conversational — like giving a teammate a quick status update.
 
 Focus on:
-1. What was actually changed
-2. Whether it worked (success/failure)
-3. Any important details or caveats
-
-Keep it concise. Avoid titles like "Summary" or "Outcome."
-Use short sentences, bullet points, or light markdown if it helps clarity.
-Respond in the same language as the user's goal unless explicitly instructed otherwise.
+1. What was actually changed (be specific about file names and what was added/modified)
+2. Whether verification passed
+3. Any soft warnings worth noting
 
 CRITICAL RULES:
-- NEVER promise future action like "we'll fix this" or "we'll let you know" — you are a one-shot agent.
-- NEVER say the work "failed" if the decision was "commit" — the changes were successfully committed.
+- NEVER promise future action — you are a one-shot agent.
+- NEVER say the work "failed" if the decision was "commit" — the changes were committed.
 - If there are soft warnings, mention them briefly but make clear they did NOT block the commit.
+- If decision is "no_changes", explain why no changes were needed.
 - Be honest about what was done and what the result is.
+- Respond in the same language as the user's goal.
 
-Style guidance:
-- Speak directly: e.g. "The field X was added after Y" instead of generic placeholders.
-- Use bullets or short paragraphs for clarity.
-- End with the verification result in a simple, friendly tone.
+Style: direct, short sentences or bullets. No headings like "Summary".
 """
 
     try:

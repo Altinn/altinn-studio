@@ -13,7 +13,6 @@ from agents.prompts import get_prompt_content, render_template
 from agents.workflows.shared.utils import (
     cleanup_feature_branch,
     cleanup_generated_artifacts,
-    scan_repository_directly,
 )
 from shared.utils.logging_utils import get_logger
 
@@ -29,39 +28,60 @@ def _extract_validation_errors(verification_result: MCPVerificationResult) -> Li
     return errors
 
 
+def _read_changed_file_contents(
+    repo_path: str, changed_files: List[str]
+) -> Dict[str, str]:
+    """Read the actual contents of changed files so the LLM can see what to fix."""
+    contents: Dict[str, str] = {}
+    for rel_path in changed_files:
+        full_path = os.path.join(repo_path, rel_path)
+        try:
+            with open(full_path, "r", encoding="utf-8") as f:
+                contents[rel_path] = f.read()
+        except Exception as e:
+            log.warning("Could not read %s: %s", rel_path, e)
+    return contents
+
+
 def _generate_llm_fix_prompt(
-    error_messages: List[str], 
-    repo_context: Dict[str, Any],
-    changed_files: List[str]
+    error_messages: List[str],
+    file_contents: Dict[str, str],
+    changed_files: List[str],
 ) -> str:
     """Generate prompt for LLM to fix validation errors."""
+    files_section = ""
+    for rel_path in changed_files:
+        content = file_contents.get(rel_path)
+        if content is not None:
+            files_section += f"\n--- {rel_path} ---\n{content}\n"
+        else:
+            files_section += f"\n--- {rel_path} --- (could not read)\n"
+
     return f"""
-    FIX VALIDATION ERRORS:
-    
-    ERRORS:
-    {chr(10).join(error_messages)}
-    
-    REPOSITORY CONTEXT:
-    {json.dumps(repo_context, indent=2)}
-    
-    CHANGED FILES:
-    {chr(10).join(changed_files)}
-    
-    INSTRUCTIONS:
-    1. Analyze the validation errors
-    2. Propose specific fixes for each error
-    3. Return a JSON object with 'fixes' array containing file paths and corrected content
-    
-    RESPONSE FORMAT:
-    {{
-        "fixes": [
-            {{
-                "file": "path/to/file",
-                "content": "fixed file content"
-            }}
-        ]
-    }}
-    """.strip()
+FIX VALIDATION ERRORS:
+
+ERRORS:
+{chr(10).join(error_messages)}
+
+CHANGED FILES WITH CURRENT CONTENTS:
+{files_section}
+
+INSTRUCTIONS:
+1. Read the file contents above carefully.
+2. Identify the exact cause of each validation error.
+3. Return a JSON object with a 'fixes' array. Each entry must contain the full corrected file content.
+4. Only include files that actually need changes.
+
+RESPONSE FORMAT (respond with ONLY this JSON, no extra text):
+{{
+    "fixes": [
+        {{
+            "file": "path/to/file",
+            "content": "full corrected file content"
+        }}
+    ]
+}}
+""".strip()
 
 
 async def attempt_validation_fixes(
@@ -102,11 +122,11 @@ async def attempt_validation_fixes(
                 "notes": ["All validation errors resolved"],
             }
             
-        # Get repository context
-        repo_context = scan_repository_directly(repo_path)
+        # Read actual file contents so the LLM can see what to fix
+        file_contents = _read_changed_file_contents(repo_path, changed_files)
         
         # Generate fix prompt
-        prompt = _generate_llm_fix_prompt(errors, repo_context, changed_files)
+        prompt = _generate_llm_fix_prompt(errors, file_contents, changed_files)
         
         # Call LLM for fixes
         llm = LLMClient(role="reviewer")
@@ -226,8 +246,8 @@ def reviewer_decision(
         decision = decision_data.get("decision", "commit" if effective_passed else "revert")
 
         # Capture commit message and reasoning from LLM response
-        commit_message = decision_data.get("commit_message", "").strip()
-        reasoning = decision_data.get("reasoning", "LLM decision")
+        commit_message = (decision_data.get("commit_message") or "").strip()
+        reasoning = decision_data.get("reasoning") or "LLM decision"
 
         # If the reviewer omitted a commit message entirely, fall back to the user goal
         if not commit_message:

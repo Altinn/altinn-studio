@@ -17,11 +17,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAltinityWebSocket } from '../useAltinityWebSocket/useAltinityWebSocket';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import {
-  formatErrorMessage,
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
-  parseBackendErrorContent,
   shouldSkipBranchOps,
 } from '../../utils/messageUtils';
 
@@ -50,6 +48,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
   const currentBranch = currentBranchInfo?.branchName;
   const currentBranchRef = useRef<string>('main');
+  const backendSessionIdRef = useRef<string | null>(backendSessionId);
 
   const {
     currentSessionId,
@@ -62,6 +61,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     upsertAssistantMessage,
     updateWorkflowStatusMessage,
   } = threads;
+
+  useEffect(() => {
+    backendSessionIdRef.current = backendSessionId;
+  }, [backendSessionId]);
 
   useEffect(() => {
     if (currentBranch) {
@@ -112,19 +115,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
     },
     [app, org, queryClient],
-  );
-
-  const addErrorMessage = useCallback(
-    (sessionId: string, content: string) => {
-      const errorMessage: AssistantMessage = {
-        author: MessageAuthor.Assistant,
-        content,
-        timestamp: new Date(),
-        filesChanged: [],
-      };
-      addMessageToThread(sessionId, errorMessage);
-    },
-    [addMessageToThread],
   );
 
   const handleAssistantMessage = useCallback(
@@ -207,103 +197,102 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   useEffect(() => {
     onAgentMessage((event: WorkflowEvent) => {
-      const currentSession = currentSessionIdRef.current;
+      const activeBackendSession = backendSessionIdRef.current;
 
-      if (event.session_id && event.session_id !== currentSession) {
+      if (event.session_id && activeBackendSession && event.session_id !== activeBackendSession) {
         return;
       }
 
       handleWorkflowEvent(event);
     });
-  }, [onAgentMessage, handleWorkflowEvent, currentSessionIdRef]);
-
-  const addRejectionMessage = useCallback(
-    (sessionId: string, result: AgentResponse) => {
-      const rejectionMessage: AssistantMessage = {
-        author: MessageAuthor.Assistant,
-        content: formatRejectionMessage(result),
-        timestamp: new Date(),
-        filesChanged: [],
-      };
-      addMessageToThread(sessionId, rejectionMessage);
-    },
-    [addMessageToThread],
-  );
-
-  const handleWorkflowResult = useCallback(
-    (sessionId: string, result: AgentResponse) => {
-      if (!result.accepted) {
-        addRejectionMessage(sessionId, result);
-      }
-    },
-    [addRejectionMessage],
-  );
+  }, [onAgentMessage, handleWorkflowEvent]);
 
   const startAgentWorkflow = useCallback(
     async (
-      sessionId: string,
+      threadId: string,
       goal: string,
       allowAppChanges: boolean,
       attachments?: UserAttachment[],
     ): Promise<AgentResponse> => {
-      const branchToUse = currentBranch ?? currentBranchRef.current ?? 'main';
-
-      const result = await startWorkflow({
-        session_id: sessionId,
-        goal: goal,
-        org: org,
-        app: app,
-        branch: branchToUse,
-        allow_app_changes: allowAppChanges,
-        attachments,
-      });
-
-      if (result.accepted) {
-        const initialAgentMessage: AssistantMessage = {
-          author: MessageAuthor.Assistant,
-          content: `\n\nVent litt...`,
-          timestamp: new Date(),
-          filesChanged: [],
-          isLoading: true,
-        };
-        addMessageToThread(sessionId, initialAgentMessage);
-
-        setWorkflowStatus({
-          isActive: true,
-          sessionId: sessionId,
-          currentStep: 'Initializing',
-          message: 'Starter AI agent workflow...',
-        });
+      const activeSession = backendSessionIdRef.current;
+      if (!activeSession) {
+        throw new Error('No active backend session — connection not established');
       }
 
-      return result;
+      const initialAgentMessage: AssistantMessage = {
+        author: MessageAuthor.Assistant,
+        content: `\n\nVent litt...`,
+        timestamp: new Date(),
+        filesChanged: [],
+        isLoading: true,
+      };
+      addMessageToThread(threadId, initialAgentMessage);
+      setWorkflowStatus({
+        isActive: true,
+        sessionId: activeSession,
+        currentStep: 'Initializing',
+        message: 'Jobber med saken...',
+      });
+
+      const branchToUse = currentBranch ?? currentBranchRef.current ?? 'main';
+
+      try {
+        const result = await startWorkflow({
+          session_id: activeSession,
+          goal: goal,
+          org: org,
+          app: app,
+          branch: branchToUse,
+          allow_app_changes: allowAppChanges,
+          attachments,
+        });
+
+        if (!result.accepted) {
+          setWorkflowStatus({ isActive: false });
+        }
+
+        return result;
+      } catch (error) {
+        setWorkflowStatus({ isActive: false });
+        throw error;
+      }
     },
     [addMessageToThread, app, currentBranch, org, startWorkflow],
   );
 
   const runWorkflowForSession = useCallback(
-    async (
-      sessionId: string,
-      userMessage: UserMessage,
-      onError: (error: unknown) => void,
-      errorContext: string,
-    ): Promise<void> => {
-      addMessageToThread(sessionId, userMessage);
+    async (threadId: string, userMessage: UserMessage): Promise<void> => {
+      addMessageToThread(threadId, userMessage);
 
       try {
         const result = await startAgentWorkflow(
-          sessionId,
+          threadId,
           userMessage.content,
           userMessage.allowAppChanges ?? false,
           userMessage.attachments,
         );
-        handleWorkflowResult(sessionId, result);
+        if (!result.accepted) {
+          const rejectionMessage: AssistantMessage = {
+            author: MessageAuthor.Assistant,
+            content: formatRejectionMessage(result),
+            timestamp: new Date(),
+            filesChanged: [],
+          };
+          replaceLoadingWithMessage(threadId, rejectionMessage);
+        }
       } catch (error) {
-        console.error(errorContext, error);
-        onError(error);
+        console.error('Workflow request failed:', error);
+        const errorMessage: AssistantMessage = {
+          author: MessageAuthor.Assistant,
+          content:
+            'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+          timestamp: new Date(),
+          filesChanged: [],
+        };
+        replaceLoadingWithMessage(threadId, errorMessage);
       }
     },
-    [addMessageToThread, handleWorkflowResult, startAgentWorkflow],
+    [addMessageToThread, replaceLoadingWithMessage, startAgentWorkflow],
   );
 
   const onSubmitMessage = useCallback(
@@ -317,16 +306,8 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         timestamp: new Date(),
       };
 
-      let sessionId: string;
-
       if (currentSessionId) {
-        sessionId = currentSessionId;
-        await runWorkflowForSession(
-          sessionId,
-          userMessage,
-          (error) => addErrorMessage(sessionId, formatErrorMessage(error)),
-          'Failed to continue workflow:',
-        );
+        await runWorkflowForSession(currentSessionId, userMessage);
         return;
       }
 
@@ -335,33 +316,24 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         return;
       }
 
-      sessionId = backendSessionId;
-      setCurrentSession(sessionId);
-
-      await runWorkflowForSession(
-        sessionId,
-        userMessage,
-        (error) => {
-          if (error instanceof Error) {
-            addErrorMessage(sessionId, parseBackendErrorContent(error));
-          }
-        },
-        'Failed to start workflow:',
-      );
+      setCurrentSession(backendSessionId);
+      await runWorkflowForSession(backendSessionId, userMessage);
     },
-    [addErrorMessage, backendSessionId, currentSessionId, runWorkflowForSession, setCurrentSession],
+    [backendSessionId, currentSessionId, runWorkflowForSession, setCurrentSession],
   );
 
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
-    const sessionId = currentSessionIdRef.current;
-    if (!sessionId) return;
+    const threadId = currentSessionIdRef.current;
+    if (!threadId) return;
     setWorkflowStatus({ isActive: false });
-    const restoredContent = removeCancelledMessages(sessionId);
+    const restoredContent = removeCancelledMessages(threadId);
     if (restoredContent) {
       setCancelledMessageContent(restoredContent);
     }
+    const activeSession = backendSessionIdRef.current;
+    if (!activeSession) return;
     try {
-      await cancelWorkflow(sessionId);
+      await cancelWorkflow(activeSession);
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
