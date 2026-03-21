@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller for creating, getting and updating releases
     /// </summary>
     [ApiController]
+    [AllowApiKey]
     [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/releases")]
     [AutoValidateAntiforgeryToken]
     public class ReleasesController : ControllerBase

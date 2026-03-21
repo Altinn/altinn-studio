@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -15,6 +16,7 @@ namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
 [Authorize]
+[AllowApiKey]
 [AutoValidateAntiforgeryToken]
 [FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("/designer/api/v1/user/api-keys")]
