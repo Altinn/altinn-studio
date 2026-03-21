@@ -30,3 +30,7 @@
   gap: var(--ds-size-6);
   align-items: flex-start;
 }
+
+.result button {
+  font-weight: 600;
+}

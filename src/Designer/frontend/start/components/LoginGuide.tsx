@@ -109,7 +109,7 @@ export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElem
                   value='skip'
                   label={t('login_guide.skip_checkbox')}
                 />
-                <StudioButton onClick={handleGoToLogin}>
+                <StudioButton data-color='success' onClick={handleGoToLogin}>
                   {t('login_guide.direct_login_button')}
                 </StudioButton>
               </>
