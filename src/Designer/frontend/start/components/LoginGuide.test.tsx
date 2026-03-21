@@ -17,7 +17,10 @@ describe('LoginGuide', () => {
 
   afterEach(() => {
     localStorage.clear();
-    window.location = originalLocation;
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: originalLocation,
+    });
   });
 
   it('should show first question initially', () => {
