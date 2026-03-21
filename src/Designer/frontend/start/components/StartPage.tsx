@@ -10,7 +10,7 @@ import { LoginGuide, shouldSkipLoginGuide } from './LoginGuide';
 
 export const StartPage = (): React.ReactElement => {
   const { environment } = useEnvironmentConfig();
-  const studioOidc = environment?.featureFlags?.studioOidc ?? false;
+  const studioOidc = environment?.featureFlags?.studioOidc ?? true;
   const [showGuide, setShowGuide] = useState(false);
 
   const handleLogin = () => {

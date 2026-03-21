@@ -111,7 +111,10 @@ export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElem
             )}
 
             {showNewAccount && (
-              <button className='login-guide-button' onClick={handleGoToLogin}>
+              <button
+                className='login-guide-button login-guide-button--success'
+                onClick={handleGoToLogin}
+              >
                 {t('login_guide.new_account_button')}
               </button>
             )}
