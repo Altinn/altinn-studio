@@ -314,7 +314,7 @@ const script = async () => {
   }
 
   startingDockerCompose();
-  await waitFor('http://studio.localhost', 120);
+  await waitFor('http://studio.localhost/health', 120);
 
   process.exit(0);
 };
