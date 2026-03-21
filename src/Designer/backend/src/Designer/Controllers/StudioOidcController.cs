@@ -104,7 +104,8 @@ public class StudioOidcController(
         return new UserInfoResponse(
             User.Identity?.Name,
             User.FindFirst("given_name")?.Value,
-            User.FindFirst("family_name")?.Value
+            User.FindFirst("family_name")?.Value,
+            User.Identity?.AuthenticationType
         );
     }
 }
