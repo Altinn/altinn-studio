@@ -45,7 +45,7 @@ jest.mock('axios', () => ({
   ...jest.requireActual('axios'),
   get: jest.fn(),
 }));
-jest.mock('admin/hooks/useQueryParamState');
+jest.mock('admin/features/apps/hooks/useQueryParamState');
 
 const defaultProps: AppMetricsProps = {
   range,
