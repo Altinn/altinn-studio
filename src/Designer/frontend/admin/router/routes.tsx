@@ -1,8 +1,7 @@
 import { RoutePaths } from 'admin/enums/RoutePaths';
-import { AppsDetails } from 'admin/features/appDetails/AppDetails';
-import { Apps } from 'admin/features/apps/Apps';
-import { InstanceDetails } from 'admin/features/instanceDetails/InstanceDetails';
-import { ContactPoints } from 'admin/settings/pages/contactPoints/ContactPoints';
+import { AppsDetails } from '../features/apps/pages/appDetails/AppDetails';
+import { Apps } from '../features/apps/pages/apps/Apps';
+import { InstanceDetails } from '../features/apps/pages/instanceDetails/InstanceDetails';
 import type { ComponentType } from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -27,13 +26,5 @@ export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.Instance,
     page: InstanceDetails,
-  },
-  {
-    path: RoutePaths.Settings,
-    page: () => <Navigate to={RoutePaths.ContactPoints} replace />,
-  },
-  {
-    path: RoutePaths.ContactPoints,
-    page: ContactPoints,
   },
 ];

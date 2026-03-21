@@ -5,5 +5,5 @@ export enum RoutePaths {
   Instances = 'apps/:environment/:app/instances',
   Instance = 'apps/:environment/:app/instances/:instanceId',
   Settings = 'settings',
-  ContactPoints = 'settings/contact-points',
+  ContactPoints = 'contact-points',
 }
