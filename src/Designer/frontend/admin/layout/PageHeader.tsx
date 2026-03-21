@@ -20,18 +20,20 @@ export const PageHeader = (): ReactElement => {
   const { i18n } = useTranslation();
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left
-          showTitle={shouldDisplayDesktopMenu}
-          title={org.name[i18n.language]}
-        />
-        {shouldDisplayDesktopMenu && <CenterContent />}
-        <StudioPageHeader.Right>
-          <ProfileMenu org={org} user={user} />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left
+            showTitle={shouldDisplayDesktopMenu}
+            title={org.name[i18n.language]}
+          />
+          {shouldDisplayDesktopMenu && <CenterContent />}
+          <StudioPageHeader.Right>
+            <ProfileMenu org={org} user={user} />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+      </StudioPageHeader>
+    </div>
   );
 };
 
@@ -42,8 +44,6 @@ const CenterContent = (): ReactElement => {
   return (
     <StudioPageHeader.Center>
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         renderLink={(props) => (
           <a href={`/dashboard/app-dashboard/${org}`} {...props}>
             <span>{t('dashboard.header_item_dashboard')}</span>
@@ -51,17 +51,13 @@ const CenterContent = (): ReactElement => {
         )}
       />
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         renderLink={(props) => (
-          <NavLink to={`/${org}/apps`} {...props}>
+          <NavLink data-color='dark' to={`/${org}/apps`} {...props}>
             <span className={classes.active}>{t('admin.apps.title')}</span>
           </NavLink>
         )}
       />
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         isBeta={true}
         renderLink={(props) => (
           <a href={`/dashboard/org-library/${org}`} {...props}>
@@ -118,7 +114,6 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
     <StudioPageHeader.ProfileMenu
       profileMenuGroups={profileMenuGroups}
       triggerButtonText={userNameAndOrg}
-      ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
           src={user?.avatar_url}
@@ -126,8 +121,6 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
           title={t('shared.header_profile_icon_text')}
         />
       }
-      color='dark'
-      variant={'regular'}
     />
   );
 };
