@@ -14,8 +14,7 @@ public class ApiKeyScopeFilter : IAuthorizationFilter
             return;
         }
 
-        bool isAllowed = context.ActionDescriptor.EndpointMetadata
-            .Any(m => m is AllowApiKeyAttribute);
+        bool isAllowed = context.ActionDescriptor.EndpointMetadata.Any(m => m is AllowApiKeyAttribute);
 
         if (!isAllowed)
         {

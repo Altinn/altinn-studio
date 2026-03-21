@@ -2,11 +2,11 @@
 using Altinn.Studio.Designer.Converters;
 using Altinn.Studio.Designer.Filters.ApiKey;
 using Altinn.Studio.Designer.Filters.AppDevelopment;
-using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Filters.Git;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Filters.Options;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
