@@ -8,8 +8,10 @@ import {
   StudioParagraph,
   StudioFormActions,
 } from '@studio/components';
-import type { OrgAlertSlackChannelPayload } from 'app-shared/types/OrgAlertContactPoint';
-import { AlertSeverity } from 'app-shared/types/OrgAlertContactPoint';
+import type {
+  OrgAlertSlackChannelPayload,
+  AlertSeverity,
+} from 'app-shared/types/OrgAlertContactPoint';
 import { SeverityRadioGroup } from '../../SeverityRadioGroup/SeverityRadioGroup';
 import { ServicesMultiSelect } from '../../ServicesMultiSelect/ServicesMultiSelect';
 import classes from './SlackChannelDialog.module.css';

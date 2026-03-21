@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Menu } from './Menu';
-import { renderWithProviders } from '../../testing/mocks';
+import { renderWithProviders } from '../../../../org-settings/testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockNavigate = jest.fn();

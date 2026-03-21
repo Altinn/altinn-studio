@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './PageLayout.module.css';
 import { matchPath, Outlet, useLocation } from 'react-router-dom';
 import './PageLayout.css';
-import { Menu } from '../../components/Menu/Menu';
+import { Menu } from '../../../components/Menu/Menu';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import {
@@ -11,7 +11,7 @@ import {
   StudioPageError,
   StudioPageSpinner,
 } from '@studio/components';
-import { NotFound } from '../NotFound/NotFound';
+import { NotFound } from '../../NotFound/NotFound';
 import { useTranslation } from 'react-i18next';
 
 export const PageLayout = () => {

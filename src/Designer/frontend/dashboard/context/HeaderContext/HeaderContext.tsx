@@ -14,7 +14,7 @@ import { type NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { USER_SETTINGS_BASENAME, ORG_SETTINGS_BASENAME } from 'app-shared/constants';
+import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -82,18 +82,6 @@ export const HeaderContextProvider = ({
     itemName: t('user.settings'),
   };
 
-  var isOrgContext =
-    selectedContext !== SelectedContextType.Self && selectedContext !== SelectedContextType.All;
-
-  const orgSettingsMenuItem: NavigationMenuItem = {
-    action: {
-      type: 'link',
-      href: `${ORG_SETTINGS_BASENAME}/${selectedContext}`,
-      openInNewTab: false,
-    },
-    itemName: t('org.settings'),
-  };
-
   const logOutMenuItem: NavigationMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
@@ -109,7 +97,6 @@ export const HeaderContextProvider = ({
   const otherMenuItems: NavigationMenuItem[] = [
     giteaMenuItem,
     ...(studioOidc ? [userSettingsMenuItem] : []),
-    ...(isOrgContext ? [orgSettingsMenuItem] : []),
   ];
   const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];
 

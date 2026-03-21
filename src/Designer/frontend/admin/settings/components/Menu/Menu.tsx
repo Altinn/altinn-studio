@@ -4,7 +4,7 @@ import { StudioContentMenu } from '@studio/components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ShieldLockIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { RoutePaths } from '../../routes/RoutePaths';
+import { RoutePaths } from '../../../enums/RoutePaths';
 
 export function Menu(): ReactElement {
   const { t } = useTranslation();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
-import { renderWithProviders } from '../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('../../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));

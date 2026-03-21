@@ -9,27 +9,26 @@ import {
   StudioParagraph,
   StudioDeleteButton,
 } from '@studio/components';
-import type {
-  OrgAlertSlackChannel,
-  OrgAlertSlackChannelPayload,
-} from 'app-shared/types/OrgAlertContactPoint';
+import type { OrgAlertPerson, OrgAlertPersonPayload } from 'app-shared/types/OrgAlertContactPoint';
 import { AlertSeverity } from 'app-shared/types/OrgAlertContactPoint';
-import { SlackChannelDialog } from './SlackChannelDialog/SlackChannelDialog';
-import { useAddOrgAlertSlackChannelMutation } from '../../../../hooks/useAddOrgAlertSlackChannelMutation';
-import { useUpdateOrgAlertSlackChannelMutation } from '../../../../hooks/useUpdateOrgAlertSlackChannelMutation';
-import { useDeleteOrgAlertSlackChannelMutation } from '../../../../hooks/useDeleteOrgAlertSlackChannelMutation';
+import { PersonDialog } from './PersonDialog/PersonDialog';
+import { useAddOrgAlertPersonMutation } from '../../../../hooks/useAddOrgAlertPersonMutation';
+import { useUpdateOrgAlertPersonMutation } from '../../../../hooks/useUpdateOrgAlertPersonMutation';
+import { useDeleteOrgAlertPersonMutation } from '../../../../hooks/useDeleteOrgAlertPersonMutation';
 import { useGetOrgReposQuery } from '../../../../hooks/useGetOrgReposQuery';
 import { StudioEditIcon } from '@studio/icons';
 
-type SlackChannelsSectionProps = {
+type PersonsSectionProps = {
   org: string;
-  channels: OrgAlertSlackChannel[];
+  persons: OrgAlertPerson[];
 };
 
-const emptyChannel = (): OrgAlertSlackChannelPayload => ({
-  channelName: '',
-  slackId: '',
-  severity: AlertSeverity.All,
+const emptyPerson = (): OrgAlertPersonPayload => ({
+  name: '',
+  email: '',
+  emailSeverity: AlertSeverity.All,
+  phone: '',
+  smsSeverity: AlertSeverity.Critical,
   isActive: true,
   services: null,
 });
@@ -41,39 +40,37 @@ const severityLabel: Record<AlertSeverity, string> = {
   [AlertSeverity.None]: 'severity_none',
 };
 
-export const SlackChannelsSection = ({
-  org,
-  channels,
-}: SlackChannelsSectionProps): ReactElement => {
+export const PersonsSection = ({ org, persons }: PersonsSectionProps): ReactElement => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [draft, setDraft] = useState<OrgAlertSlackChannelPayload>(emptyChannel());
+  const [draft, setDraft] = useState<OrgAlertPersonPayload>(emptyPerson());
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { mutate: addChannel, isPending: isAdding } = useAddOrgAlertSlackChannelMutation(org);
-  const { mutate: updateChannel, isPending: isUpdating } =
-    useUpdateOrgAlertSlackChannelMutation(org);
-  const { mutate: deleteChannel } = useDeleteOrgAlertSlackChannelMutation(org);
-  const { data: repos = [] } = useGetOrgReposQuery(org);
-  const repoNames = repos.map((r) => r.name);
+  const { mutate: addPerson, isPending: isAdding } = useAddOrgAlertPersonMutation(org);
+  const { mutate: updatePerson, isPending: isUpdating } = useUpdateOrgAlertPersonMutation(org);
+  const { mutate: deletePerson } = useDeleteOrgAlertPersonMutation(org);
+  const { data: repos } = useGetOrgReposQuery(org);
+  const repoNames = repos?.map((r) => r.name) ?? [];
 
   const isSaving = isAdding || isUpdating;
 
   const openAddDialog = () => {
-    setDraft(emptyChannel());
+    setDraft(emptyPerson());
     setEditingId(null);
     dialogRef.current?.showModal();
   };
 
-  const openEditDialog = (channel: OrgAlertSlackChannel) => {
+  const openEditDialog = (person: OrgAlertPerson) => {
     setDraft({
-      channelName: channel.channelName,
-      slackId: channel.slackId,
-      severity: channel.severity,
-      isActive: channel.isActive,
-      services: channel.services,
+      name: person.name,
+      email: person.email,
+      emailSeverity: person.emailSeverity,
+      phone: person.phone,
+      smsSeverity: person.smsSeverity,
+      isActive: person.isActive,
+      services: person.services,
     });
-    setEditingId(channel.id);
+    setEditingId(person.id);
     dialogRef.current?.showModal();
   };
 
@@ -82,7 +79,7 @@ export const SlackChannelsSection = ({
   };
 
   const handleFieldChange = (
-    field: keyof OrgAlertSlackChannelPayload,
+    field: keyof OrgAlertPersonPayload,
     value: string | boolean | AlertSeverity,
   ) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
@@ -94,21 +91,23 @@ export const SlackChannelsSection = ({
 
   const handleSave = () => {
     if (editingId) {
-      updateChannel({ id: editingId, payload: draft }, { onSuccess: closeDialog });
+      updatePerson({ id: editingId, payload: draft }, { onSuccess: closeDialog });
     } else {
-      addChannel(draft, { onSuccess: closeDialog });
+      addPerson(draft, { onSuccess: closeDialog });
     }
   };
 
-  const handleToggleActive = (channel: OrgAlertSlackChannel) => {
-    updateChannel({
-      id: channel.id,
+  const handleToggleActive = (person: OrgAlertPerson) => {
+    updatePerson({
+      id: person.id,
       payload: {
-        channelName: channel.channelName,
-        slackId: channel.slackId,
-        severity: channel.severity,
-        isActive: !channel.isActive,
-        services: channel.services,
+        name: person.name,
+        email: person.email,
+        emailSeverity: person.emailSeverity,
+        phone: person.phone,
+        smsSeverity: person.smsSeverity,
+        isActive: !person.isActive,
+        services: person.services,
       },
     });
   };
@@ -122,10 +121,10 @@ export const SlackChannelsSection = ({
   return (
     <section>
       <StudioHeading level={3} data-size='sm'>
-        {t('org.settings.contact_points.slack_heading')}
+        {t('org.settings.contact_points.persons_heading')}
       </StudioHeading>
       <StudioParagraph data-size='sm'>
-        {t('org.settings.contact_points.slack_description')}
+        {t('org.settings.contact_points.persons_description')}
       </StudioParagraph>
       <StudioTable>
         <StudioTable.Head>
@@ -134,10 +133,13 @@ export const SlackChannelsSection = ({
               {t('org.settings.contact_points.col_active')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('org.settings.contact_points.col_channel_name')}
+              {t('org.settings.contact_points.col_name')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('org.settings.contact_points.col_slack_id')}
+              {t('org.settings.contact_points.col_email')}
+            </StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>
+              {t('org.settings.contact_points.col_sms')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
               {t('org.settings.contact_points.col_services')}
@@ -146,35 +148,48 @@ export const SlackChannelsSection = ({
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {channels.map((channel) => (
-            <StudioTable.Row key={channel.id}>
+          {persons.map((person) => (
+            <StudioTable.Row key={person.id}>
               <StudioTable.Cell>
                 <StudioSwitch
-                  checked={channel.isActive}
-                  onChange={() => handleToggleActive(channel)}
-                  aria-label={channel.channelName}
+                  checked={person.isActive}
+                  onChange={() => handleToggleActive(person)}
+                  aria-label={person.name}
                 />
               </StudioTable.Cell>
-              <StudioTable.Cell>{channel.channelName}</StudioTable.Cell>
+              <StudioTable.Cell>{person.name}</StudioTable.Cell>
               <StudioTable.Cell>
-                {channel.slackId}
-                {channel.severity !== undefined && (
+                {person.email}
+                {person.emailSeverity !== undefined && (
                   <span>
                     {' '}
-                    — {t(`org.settings.contact_points.${severityLabel[channel.severity]}`)}
+                    — {t(`org.settings.contact_points.${severityLabel[person.emailSeverity]}`)}
                   </span>
                 )}
               </StudioTable.Cell>
-              <StudioTable.Cell>{servicesLabel(channel.services)}</StudioTable.Cell>
+              <StudioTable.Cell>
+                {person.phone && (
+                  <>
+                    {person.phone}
+                    {person.smsSeverity !== undefined && (
+                      <span>
+                        {' '}
+                        — {t(`org.settings.contact_points.${severityLabel[person.smsSeverity]}`)}
+                      </span>
+                    )}
+                  </>
+                )}
+              </StudioTable.Cell>
+              <StudioTable.Cell>{servicesLabel(person.services)}</StudioTable.Cell>
               <StudioTable.Cell>
                 <StudioButton
                   variant='tertiary'
                   icon={<StudioEditIcon />}
-                  onClick={() => openEditDialog(channel)}
-                  aria-label={t('org.settings.contact_points.dialog_edit_slack_title')}
+                  onClick={() => openEditDialog(person)}
+                  aria-label={t('org.settings.contact_points.dialog_edit_person_title')}
                 />
                 <StudioDeleteButton
-                  onDelete={() => deleteChannel(channel.id)}
+                  onDelete={() => deletePerson(person.id)}
                   confirmMessage={t('org.settings.contact_points.delete_confirm')}
                 />
               </StudioTable.Cell>
@@ -185,9 +200,9 @@ export const SlackChannelsSection = ({
       <StudioButton variant='secondary' onClick={openAddDialog}>
         + {t('org.settings.contact_points.add_contact')}
       </StudioButton>
-      <SlackChannelDialog
+      <PersonDialog
         dialogRef={dialogRef}
-        channel={draft}
+        person={draft}
         repoNames={repoNames}
         onFieldChange={handleFieldChange}
         onServicesChange={handleServicesChange}
