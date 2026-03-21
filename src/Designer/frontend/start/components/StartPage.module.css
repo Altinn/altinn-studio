@@ -38,7 +38,7 @@
 }
 
 .heroHeading {
-  max-width: 36rem;
+  max-width: 50rem;
   font-family: 'DIN-bold', sans-serif;
   font-weight: 400;
   font-size: 1.75rem;
@@ -51,10 +51,31 @@
   display: flex;
   align-items: center;
   gap: var(--ds-size-6);
+  margin-top: var(--ds-size-8);
+}
+
+.heroActions button {
+  color: #022f51;
+  border: 3px solid #022f51;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 4px 20px;
+  font-size: 20px;
+  line-height: 26px;
+  min-height: unset;
+}
+
+.heroActions button:hover {
+  color: #022f51;
+  background-color: transparent;
+  border-color: #022f51;
 }
 
 .signupLink {
-  color: var(--fds-semantic-text-action-first-default);
+  color: #022f51;
+  border-bottom: 1px solid #0062ba;
+  text-decoration: none;
+  font-size: 16px;
 }
 
 .content {

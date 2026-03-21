@@ -12,7 +12,7 @@ import classes from './StartPage.module.css';
 
 export const StartPage = (): React.ReactElement => {
   const { environment } = useEnvironmentConfig();
-  const studioOidc = environment?.featureFlags?.studioOidc ?? true;
+  const studioOidc = environment?.featureFlags?.studioOidc ?? false;
   const [showGuide, setShowGuide] = useState(false);
 
   const handleLogin = () => {
