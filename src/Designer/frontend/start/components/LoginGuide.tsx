@@ -1,7 +1,15 @@
 import { useState } from 'react';
-import type { ChangeEvent } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import './LoginGuide.css';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioCheckbox,
+  StudioParagraph,
+  StudioRadio,
+  StudioRadioGroup,
+  useStudioRadioGroup,
+} from '@studio/components';
+import classes from './LoginGuide.module.css';
 
 const SKIP_GUIDE_KEY = 'altinn-studio-skip-login-guide';
 
@@ -11,9 +19,24 @@ type LoginGuideProps = {
 
 export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElement => {
   const { t } = useTranslation();
-  const [hasAccount, setHasAccount] = useState<boolean | null>(null);
-  const [hasUsedBankId, setHasUsedBankId] = useState<boolean | null>(null);
+  const [hasAccount, setHasAccount] = useState<string | null>(null);
+  const [hasUsedBankId, setHasUsedBankId] = useState<string | null>(null);
   const [skipNextTime, setSkipNextTime] = useState(false);
+
+  const { getRadioProps: getAccountRadioProps } = useStudioRadioGroup({
+    value: hasAccount,
+    onChange: (value: string) => {
+      setHasAccount(value);
+      if (value === 'no') {
+        setHasUsedBankId(null);
+      }
+    },
+  });
+
+  const { getRadioProps: getBankIdRadioProps } = useStudioRadioGroup({
+    value: hasUsedBankId,
+    onChange: (value: string) => setHasUsedBankId(value),
+  });
 
   const handleGoToLogin = () => {
     if (skipNextTime) {
@@ -28,95 +51,93 @@ export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElem
     }
   };
 
-  const handleHasAccountChange = (value: boolean) => {
-    setHasAccount(value);
-    if (!value) {
-      setHasUsedBankId(null);
-    }
-  };
-
-  const showResult = hasAccount !== null && (hasAccount === false || hasUsedBankId !== null);
-  const showDirectLogin = hasAccount === true && hasUsedBankId === true;
-  const showAccountLink = hasAccount === true && hasUsedBankId === false;
-  const showNewAccount = hasAccount === false;
+  const showResult = hasAccount !== null && (hasAccount === 'no' || hasUsedBankId !== null);
+  const showDirectLogin = hasAccount === 'yes' && hasUsedBankId === 'yes';
+  const showAccountLink = hasAccount === 'yes' && hasUsedBankId === 'no';
+  const showNewAccount = hasAccount === 'no';
 
   return (
-    <div className='login-guide'>
-      <div className='login-guide-warning'>
-        <strong>⚠ {t('login_guide.warning_title')}</strong>
-        <p>{t('login_guide.warning_text')}</p>
-      </div>
+    <div className={classes.loginGuide}>
+      <StudioAlert data-color='warning' className={classes.warning}>
+        <StudioParagraph data-size='sm'>
+          <strong>{t('login_guide.warning_title')}</strong>
+        </StudioParagraph>
+        <StudioParagraph data-size='sm'>{t('login_guide.warning_text')}</StudioParagraph>
+      </StudioAlert>
 
-      <div className='login-guide-questions'>
-        <fieldset className='login-guide-fieldset'>
-          <legend className='login-guide-legend'>
-            <strong>{t('login_guide.q1_title')}</strong>
-            <span className='login-guide-hint'>{t('login_guide.q1_hint')}</span>
-          </legend>
-          <RadioGroup name='hasAccount' value={hasAccount} onChange={handleHasAccountChange} />
-        </fieldset>
+      <div className={classes.questions}>
+        <StudioRadioGroup legend={t('login_guide.q1_title')} description={t('login_guide.q1_hint')}>
+          <StudioRadio
+            label={t('login_guide.radio_yes')}
+            {...getAccountRadioProps({ value: 'yes' })}
+          />
+          <StudioRadio
+            label={t('login_guide.radio_no')}
+            {...getAccountRadioProps({ value: 'no' })}
+          />
+        </StudioRadioGroup>
 
-        {hasAccount && (
-          <fieldset className='login-guide-fieldset'>
-            <legend className='login-guide-legend'>
-              <strong>{t('login_guide.q2_title')}</strong>
-              <span className='login-guide-hint'>{t('login_guide.q2_hint')}</span>
-            </legend>
-            <RadioGroup name='hasUsedBankId' value={hasUsedBankId} onChange={setHasUsedBankId} />
-          </fieldset>
+        {hasAccount === 'yes' && (
+          <StudioRadioGroup
+            legend={t('login_guide.q2_title')}
+            description={t('login_guide.q2_hint')}
+          >
+            <StudioRadio
+              label={t('login_guide.radio_yes')}
+              {...getBankIdRadioProps({ value: 'yes' })}
+            />
+            <StudioRadio
+              label={t('login_guide.radio_no')}
+              {...getBankIdRadioProps({ value: 'no' })}
+            />
+          </StudioRadioGroup>
         )}
 
         {showResult && (
-          <div className='login-guide-result'>
+          <div className={classes.result}>
             {showDirectLogin && (
               <>
-                <div className='login-guide-alert login-guide-alert--success'>
-                  <strong>✅ {t('login_guide.direct_login_success_title')}</strong>{' '}
-                  {t('login_guide.direct_login_success_text')}
-                </div>
-                <label className='login-guide-checkbox'>
-                  <input
-                    type='checkbox'
-                    checked={skipNextTime}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setSkipNextTime(e.target.checked)
-                    }
-                  />
-                  {t('login_guide.skip_checkbox')}
-                </label>
-                <button className='login-guide-button' onClick={handleGoToLogin}>
+                <StudioAlert data-color='success'>
+                  <StudioParagraph data-size='sm'>
+                    <strong>{t('login_guide.direct_login_success_title')}</strong>{' '}
+                    {t('login_guide.direct_login_success_text')}
+                  </StudioParagraph>
+                </StudioAlert>
+                <StudioCheckbox
+                  checked={skipNextTime}
+                  onChange={(e) => setSkipNextTime(e.target.checked)}
+                  value='skip'
+                  label={t('login_guide.skip_checkbox')}
+                />
+                <StudioButton onClick={handleGoToLogin}>
                   {t('login_guide.direct_login_button')}
-                </button>
+                </StudioButton>
               </>
             )}
 
             {showAccountLink && (
               <>
-                <div className='login-guide-alert login-guide-alert--danger'>
-                  <strong>🚫 {t('login_guide.account_link_danger_title')}</strong>
-                  <p>
+                <StudioAlert data-color='danger'>
+                  <StudioParagraph data-size='sm'>
+                    <strong>{t('login_guide.account_link_danger_title')}</strong>
+                  </StudioParagraph>
+                  <StudioParagraph data-size='sm'>
                     <Trans
                       i18nKey='login_guide.account_link_danger_text'
                       components={{ strong: <strong /> }}
                     />
-                  </p>
-                </div>
-                <button
-                  className='login-guide-button login-guide-button--outline'
-                  onClick={handleAccountLinkClick}
-                >
+                  </StudioParagraph>
+                </StudioAlert>
+                <StudioButton variant='secondary' onClick={handleAccountLinkClick}>
                   {t('login_guide.account_link_button')}
-                </button>
+                </StudioButton>
               </>
             )}
 
             {showNewAccount && (
-              <button
-                className='login-guide-button login-guide-button--success'
-                onClick={handleGoToLogin}
-              >
+              <StudioButton data-color='success' onClick={handleGoToLogin}>
                 {t('login_guide.new_account_button')}
-              </button>
+              </StudioButton>
             )}
           </div>
         )}
@@ -127,32 +148,4 @@ export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElem
 
 export const shouldSkipLoginGuide = (): boolean => {
   return localStorage.getItem(SKIP_GUIDE_KEY) === 'true';
-};
-
-type RadioGroupProps = {
-  name: string;
-  value: boolean | null;
-  onChange: (value: boolean) => void;
-};
-
-const RadioGroup = ({ name, value, onChange }: RadioGroupProps): React.ReactElement => {
-  const { t } = useTranslation();
-
-  return (
-    <div className='login-guide-radio-group'>
-      <label className='login-guide-radio'>
-        <input type='radio' name={name} checked={value === true} onChange={() => onChange(true)} />
-        {t('login_guide.radio_yes')}
-      </label>
-      <label className='login-guide-radio'>
-        <input
-          type='radio'
-          name={name}
-          checked={value === false}
-          onChange={() => onChange(false)}
-        />
-        {t('login_guide.radio_no')}
-      </label>
-    </div>
-  );
 };

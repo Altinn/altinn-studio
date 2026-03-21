@@ -34,7 +34,7 @@ describe('StartPage', () => {
 
     renderStartPage();
 
-    expect(screen.getByDisplayValue('Logg inn')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Logg inn' })).toBeInTheDocument();
   });
 });
 

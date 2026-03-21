@@ -1,3 +1,12 @@
+@font-face {
+  font-family: 'DIN-bold';
+  src: url('https://altinncdn.no/fonts/d-din/D-DIN-Bold.woff') format('woff');
+}
+
+:global(body) {
+  margin: 0;
+}
+
 .page {
   display: flex;
   flex-direction: column;
@@ -5,69 +14,144 @@
 }
 
 .header {
-  padding: 1rem 2rem;
+  width: 100%;
+  padding: var(--ds-size-6) var(--ds-size-8);
+  text-align: left;
 }
 
-.header img {
-  height: 2.5rem;
+.logo {
+  height: 1.75rem;
 }
 
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  padding: 4rem 2rem;
+  gap: var(--ds-size-8);
+  padding: 0 var(--ds-size-8) var(--ds-size-14);
   text-align: center;
-  background-image: url('../assets/Altinn-studio-stor.svg');
+  background-color: #e9ecef;
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-size: contain;
+  background-size: cover;
+  min-height: 650px;
 }
 
 .heroHeading {
-  max-width: 40rem;
+  max-width: 36rem;
+  font-family: 'DIN-bold', sans-serif;
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.4;
+  margin-top: var(--ds-size-10);
+  color: #022f51;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-6);
+}
+
+.signupLink {
+  color: var(--fds-semantic-text-action-first-default);
 }
 
 .content {
   max-width: 60rem;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--ds-size-8);
 }
 
 .infoSection {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
-  margin-bottom: 3rem;
+  gap: 72px;
 }
 
 .infoBlock {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: var(--ds-size-8);
 }
 
-.infoBlock:nth-child(even) {
-  flex-direction: row-reverse;
+.infoBlock h2 {
+  font-family: 'DIN-bold', sans-serif;
+  font-weight: 400;
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+}
+
+.infoBlock p {
+  font-size: 1.25rem;
+  line-height: 1.5;
 }
 
 .infoImage {
-  max-width: 20rem;
+  width: 42%;
   flex-shrink: 0;
 }
 
 .benefitsSection {
-  margin-bottom: 3rem;
+  margin-top: 72px;
+}
+
+.benefitsSection h3 {
+  font-family: 'DIN-bold', sans-serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  color: #022f51;
+  margin-bottom: 12px;
+}
+
+.benefitsList {
+  margin-top: 12px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.benefitsList li {
+  position: relative;
+  padding-left: 24px;
+  margin-bottom: 12px;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: #022f51;
+}
+
+.benefitsList li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #1eaef7;
+  font-size: 1.875rem;
+  line-height: 1;
+  top: -2px;
 }
 
 .faqSection {
-  margin-bottom: 3rem;
+  margin-top: 72px;
+  margin-bottom: 72px;
+}
+
+.faqSection h3 {
+  font-family: 'DIN-bold', sans-serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  color: #022f51;
+  margin-bottom: 12px;
+}
+
+.faqSection p {
+  margin-bottom: 18px;
+}
+
+.faqSection p:last-child {
+  margin-bottom: 0;
 }
 
 @media (max-width: 768px) {
-  .infoBlock,
-  .infoBlock:nth-child(even) {
+  .infoBlock {
     flex-direction: column;
   }
 
@@ -76,6 +160,7 @@
   }
 
   .hero {
-    padding: 2rem 1rem;
+    padding: var(--ds-size-8) var(--ds-size-4);
+    min-height: auto;
   }
 }

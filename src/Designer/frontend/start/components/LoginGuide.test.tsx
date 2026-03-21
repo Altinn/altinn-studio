@@ -30,8 +30,7 @@ describe('LoginGuide', () => {
     const user = userEvent.setup();
     renderLoginGuide();
 
-    const jaRadios = screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') });
-    await user.click(jaRadios[0]);
+    await user.click(getFirstJaRadio());
 
     expect(screen.getByText(textMock('login_guide.q2_title'))).toBeInTheDocument();
   });
@@ -40,8 +39,7 @@ describe('LoginGuide', () => {
     const user = userEvent.setup();
     renderLoginGuide();
 
-    const neiRadios = screen.getAllByRole('radio', { name: textMock('login_guide.radio_no') });
-    await user.click(neiRadios[0]);
+    await user.click(getFirstNeiRadio());
 
     expect(screen.queryByText(textMock('login_guide.q2_title'))).not.toBeInTheDocument();
   });
@@ -50,8 +48,7 @@ describe('LoginGuide', () => {
     const user = userEvent.setup();
     renderLoginGuide();
 
-    const neiRadios = screen.getAllByRole('radio', { name: textMock('login_guide.radio_no') });
-    await user.click(neiRadios[0]);
+    await user.click(getFirstNeiRadio());
 
     expect(
       screen.getByRole('button', { name: textMock('login_guide.new_account_button') }),
@@ -62,8 +59,8 @@ describe('LoginGuide', () => {
     const user = userEvent.setup();
     renderLoginGuide();
 
-    await user.click(screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[0]);
-    await user.click(screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[1]);
+    await user.click(getFirstJaRadio());
+    await user.click(getSecondJaRadio());
 
     expect(
       screen.getByText(textMock('login_guide.direct_login_success_title'), { exact: false }),
@@ -77,10 +74,8 @@ describe('LoginGuide', () => {
     const user = userEvent.setup();
     renderLoginGuide({ accountLinkUrl: 'https://example.com/link' });
 
-    await user.click(screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[0]);
-
-    const neiRadios = screen.getAllByRole('radio', { name: textMock('login_guide.radio_no') });
-    await user.click(neiRadios[1]);
+    await user.click(getFirstJaRadio());
+    await user.click(getSecondNeiRadio());
 
     expect(
       screen.getByText(textMock('login_guide.account_link_danger_title'), { exact: false }),
@@ -94,19 +89,28 @@ describe('LoginGuide', () => {
     const user = userEvent.setup();
     renderLoginGuide();
 
-    await user.click(screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[0]);
-    await user.click(screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[1]);
+    await user.click(getFirstJaRadio());
+    await user.click(getSecondJaRadio());
 
-    const checkbox = screen.getByRole('checkbox', {
-      name: textMock('login_guide.skip_checkbox'),
-    });
-    await user.click(checkbox);
+    await user.click(screen.getByRole('checkbox', { name: textMock('login_guide.skip_checkbox') }));
     await user.click(
       screen.getByRole('button', { name: textMock('login_guide.direct_login_button') }),
     );
 
     expect(localStorage.getItem('altinn-studio-skip-login-guide')).toBe('true');
   });
+
+  const getFirstJaRadio = () =>
+    screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[0];
+
+  const getFirstNeiRadio = () =>
+    screen.getAllByRole('radio', { name: textMock('login_guide.radio_no') })[0];
+
+  const getSecondJaRadio = () =>
+    screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[1];
+
+  const getSecondNeiRadio = () =>
+    screen.getAllByRole('radio', { name: textMock('login_guide.radio_no') })[1];
 
   const renderLoginGuide = (
     props: Partial<typeof defaultProps & { accountLinkUrl: string }> = {},
