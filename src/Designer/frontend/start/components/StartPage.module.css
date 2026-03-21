@@ -59,9 +59,9 @@
   border: 3px solid #022f51;
   background-color: transparent;
   border-radius: 0;
-  padding: 4px 20px;
-  font-size: 20px;
-  line-height: 26px;
+  padding: var(--ds-size-1) var(--ds-size-5);
+  font-size: 1.25rem;
+  line-height: 1.6;
   min-height: unset;
 }
 
@@ -75,7 +75,7 @@
   color: #022f51;
   border-bottom: 1px solid #0062ba;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .content {
@@ -87,7 +87,7 @@
 .infoSection {
   display: flex;
   flex-direction: column;
-  gap: 72px;
+  gap: var(--ds-size-14);
 }
 
 .infoBlock {
@@ -100,7 +100,7 @@
   font-family: 'DIN-bold', sans-serif;
   font-weight: 400;
   font-size: 1.5rem;
-  margin-bottom: 12px;
+  margin-bottom: var(--ds-size-3);
 }
 
 .infoBlock p {
@@ -114,7 +114,7 @@
 }
 
 .benefitsSection {
-  margin-top: 72px;
+  margin-top: var(--ds-size-14);
 }
 
 .benefitsSection h3 {
@@ -122,19 +122,19 @@
   font-weight: 400;
   font-size: 1.25rem;
   color: #022f51;
-  margin-bottom: 12px;
+  margin-bottom: var(--ds-size-3);
 }
 
 .benefitsList {
-  margin-top: 12px;
+  margin-top: var(--ds-size-3);
   padding-left: 0;
   list-style: none;
 }
 
 .benefitsList li {
   position: relative;
-  padding-left: 24px;
-  margin-bottom: 12px;
+  padding-left: var(--ds-size-6);
+  margin-bottom: var(--ds-size-3);
   font-size: 1.125rem;
   line-height: 1.5;
   color: #022f51;
@@ -151,8 +151,8 @@
 }
 
 .faqSection {
-  margin-top: 72px;
-  margin-bottom: 72px;
+  margin-top: var(--ds-size-14);
+  margin-bottom: var(--ds-size-14);
 }
 
 .faqSection h3 {
@@ -160,11 +160,11 @@
   font-weight: 400;
   font-size: 1.25rem;
   color: #022f51;
-  margin-bottom: 12px;
+  margin-bottom: var(--ds-size-3);
 }
 
 .faqSection p {
-  margin-bottom: 18px;
+  margin-bottom: var(--ds-size-4);
 }
 
 .faqSection p:last-child {
