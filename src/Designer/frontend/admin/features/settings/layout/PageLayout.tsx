@@ -1,6 +1,5 @@
 import classes from './PageLayout.module.css';
 import { matchPath, Outlet, useLocation } from 'react-router-dom';
-import './PageLayout.css';
 import { Menu } from '../components/Menu/Menu';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';

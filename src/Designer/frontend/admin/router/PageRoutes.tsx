@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import { App } from 'admin/layout/App';
 import { PageLayout } from 'admin/layout/PageLayout';
+import { PageLayout as AppsLayout } from 'admin/features/apps/layout/PageLayout';
 import { PageLayout as SettingsLayout } from 'admin/features/settings/layout/PageLayout';
 import { ContactPoints } from 'admin/features/settings/pages/contactPoints/ContactPoints';
 import { RoutePaths } from 'admin/enums/RoutePaths';
@@ -26,14 +27,16 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<App />} errorElement={<AppRouteErrorBoundary />}>
       <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
-        {routerRoutes.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={<route.page />}
-            errorElement={<RouteErrorBoundary />}
-          />
-        ))}
+        <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
+          {routerRoutes.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={<route.page />}
+              errorElement={<RouteErrorBoundary />}
+            />
+          ))}
+        </Route>
         <Route
           path={RoutePaths.Settings}
           element={<SettingsLayout />}
@@ -48,7 +51,7 @@ const router = createBrowserRouter(
         </Route>
         <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
-      <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
+      <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />,
     </Route>,
   ),
   {
