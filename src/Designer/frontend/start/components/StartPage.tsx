@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import '../assets/startpage.css';
 import altinnLogo from '../assets/AltinnD-logo.svg';
@@ -5,14 +6,24 @@ import heroBackground from '../assets/Altinn-studio-stor.svg';
 import illustrationDigitalization from '../assets/Altinn-studio-2.svg';
 import illustrationTool from '../assets/Altinn-studio-3.svg';
 import illustrationSharing from '../assets/Altinn-studio-1.svg';
+import { LoginGuide, shouldSkipLoginGuide } from './LoginGuide';
 
 export const StartPage = (): React.ReactElement => {
   const { environment } = useEnvironmentConfig();
   const studioOidc = environment?.featureFlags?.studioOidc ?? false;
+  const [showGuide, setShowGuide] = useState(false);
 
   const handleLogin = () => {
+    if (studioOidc && !shouldSkipLoginGuide()) {
+      setShowGuide(true);
+      return;
+    }
     window.location.href = '/login';
   };
+
+  if (showGuide) {
+    return <LoginGuide accountLinkUrl={environment?.accountLinkUrl} />;
+  }
 
   return (
     <>
