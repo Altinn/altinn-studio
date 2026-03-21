@@ -63,7 +63,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/")]
         [Route("/[controller]")]
         [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
-        public async Task<ActionResult> StartPage()
+        public ActionResult StartPage()
         {
             bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
 
