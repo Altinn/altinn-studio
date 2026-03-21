@@ -53,6 +53,7 @@ services:
         [ "$$DEVELOP_PREVIEW" = "1" ] && export PREVIEW_HOST="host.docker.internal:2005" && disable_rewrite preview
         [ "$$DEVELOP_ADMIN" = "1" ] && export ADMIN_HOST="host.docker.internal:2006" && disable_rewrite admin
         [ "$$DEVELOP_RESOURCE_ADMIN" = "1" ] && export RESOURCEADM_HOST="host.docker.internal:2023" && disable_rewrite resourceadm
+        [ "$$DEVELOP_START" = "1" ] && export START_HOST="host.docker.internal:2008" && disable_rewrite start
         [ "$$DEVELOP_USER_SETTINGS" = "1" ] && export USER_SETTINGS_HOST="host.docker.internal:2007" && disable_rewrite settings
         exec /entrypoint.sh
     environment:
@@ -63,6 +64,7 @@ services:
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
       - DEVELOP_STUDIO_ROOT=${DEVELOP_STUDIO_ROOT:-0}
+      - DEVELOP_START=${DEVELOP_START:-0}
       - DEVELOP_USER_SETTINGS=${DEVELOP_USER_SETTINGS:-0}
       - DESIGNER_HOST=studio-designer:6000
       - DASHBOARD_HOST=studio-designer:6000
@@ -70,6 +72,7 @@ services:
       - PREVIEW_HOST=studio-designer:6000
       - ADMIN_HOST=studio-designer:6000
       - RESOURCEADM_HOST=studio-designer:6000
+      - START_HOST=studio-designer:6000
       - USER_SETTINGS_HOST=studio-designer:6000
       - INFO_HOST=studio-designer:6000
       - REPOS_HOST=gitea-proxy:80
