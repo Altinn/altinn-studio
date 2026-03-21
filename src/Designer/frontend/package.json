@@ -87,6 +87,7 @@
     "start-app-preview": "yarn workspace app-preview start",
     "start-dashboard": "yarn workspace dashboard start",
     "start-resourceadm": "yarn workspace resourceadm start",
+    "start-start": "yarn workspace start start",
     "start-studio-root": "yarn workspace studio-root start",
     "start-admin": "yarn workspace admin start",
     "start-user-settings": "yarn workspace user-settings start",

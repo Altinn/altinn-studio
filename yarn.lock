@@ -12682,6 +12682,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"start@workspace:src/Designer/frontend/start":
+  version: 0.0.0-use.local
+  resolution: "start@workspace:src/Designer/frontend/start"
+  dependencies:
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
+
 "statuses@npm:~2.0.1, statuses@npm:~2.0.2":
   version: 2.0.2
   resolution: "statuses@npm:2.0.2"

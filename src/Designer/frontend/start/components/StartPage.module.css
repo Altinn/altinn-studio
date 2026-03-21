@@ -1,0 +1,81 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  padding: 1rem 2rem;
+}
+
+.header img {
+  height: 2.5rem;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  background-image: url('../assets/Altinn-studio-stor.svg');
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+}
+
+.heroHeading {
+  max-width: 40rem;
+}
+
+.content {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.infoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.infoBlock {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.infoBlock:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.infoImage {
+  max-width: 20rem;
+  flex-shrink: 0;
+}
+
+.benefitsSection {
+  margin-bottom: 3rem;
+}
+
+.faqSection {
+  margin-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+  .infoBlock,
+  .infoBlock:nth-child(even) {
+    flex-direction: column;
+  }
+
+  .infoImage {
+    max-width: 100%;
+  }
+
+  .hero {
+    padding: 2rem 1rem;
+  }
+}

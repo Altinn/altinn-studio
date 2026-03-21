@@ -1,0 +1,16 @@
+{
+  "name": "start",
+  "version": "0.1.0",
+  "author": "Altinn",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "vite": "^6.3.2"
+  },
+  "scripts": {
+    "build": "vite build",
+    "start": "vite serve --host 0.0.0.0",
+    "preview": "vite preview --host 0.0.0.0",
+    "typecheck": "npx tsc --noEmit"
+  }
+}
