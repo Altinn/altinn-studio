@@ -98,7 +98,7 @@ public class ApiKeyService(
             return null;
         }
 
-        if (model.Revoked || model.ExpiresAt <= timeProvider.GetUtcNow())
+        if (model.Revoked || model.ExpiresAt <= timeProvider.GetUtcNow() || model.UserAccount.Deactivated)
         {
             return null;
         }

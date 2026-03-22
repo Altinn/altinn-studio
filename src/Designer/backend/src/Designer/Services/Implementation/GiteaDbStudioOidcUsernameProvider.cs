@@ -37,6 +37,11 @@ public class GiteaDbStudioOidcUsernameProvider(
 
         if (mapping != null)
         {
+            if (mapping.Deactivated)
+            {
+                throw new UnauthorizedAccessException($"User account '{mapping.Username}' has been deactivated.");
+            }
+
             return mapping.Username;
         }
 
