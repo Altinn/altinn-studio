@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
@@ -22,7 +21,7 @@ namespace Altinn.Studio.Designer.Controllers;
 public class StudioOidcController(
     IStudioOidcUsernameProvider usernameProvider,
     DeveloperMappingSettings mappingSettings,
-    IGiteaClient giteaClient
+    IUserProvisioningService userProvisioningService
 ) : ControllerBase
 {
     [Authorize]
@@ -90,10 +89,12 @@ public class StudioOidcController(
             return Forbid();
         }
 
-        // Ensures user generation in Gitea via reverse proxy auto-registration.
-        // DeveloperContextMiddleware has set the context at this point, so the Gitea API call
-        // includes X-WEBAUTH-USER header which triggers Gitea to create the user if it doesn't exist.
-        await giteaClient.GetCurrentUser();
+        string username = User.Identity?.Name ?? string.Empty;
+        string? givenName = User.FindFirst("given_name")?.Value;
+        string? familyName = User.FindFirst("family_name")?.Value;
+        string? fullName = $"{givenName} {familyName}".Trim();
+
+        await userProvisioningService.EnsureUserExistsAsync(username, string.IsNullOrEmpty(fullName) ? null : fullName);
 
         return LocalRedirect(redirectTo);
     }
