@@ -566,7 +566,6 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var entity = await context
                 .Workflows.Include(w => w.Steps)
-                    .ThenInclude(s => s.ReceivedReply)
                 .FirstOrDefaultAsync(
                     w => w.IdempotencyKey == idempotencyKey && w.CreatedAt == createdAt,
                     cancellationToken

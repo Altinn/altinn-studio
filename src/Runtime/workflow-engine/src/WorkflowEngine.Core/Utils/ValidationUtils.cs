@@ -101,38 +101,7 @@ internal static class ValidationUtils
             );
         }
 
-        if (!ValidateStepReferences(sorted))
-        {
-            throw new ArgumentException("Invalid step references.");
-        }
-
         return sorted;
-    }
-
-    private static bool ValidateStepReferences(List<WorkflowRequest> sortedRequests)
-    {
-        var stepReferences = new HashSet<string>();
-        foreach (var workflowRequest in sortedRequests)
-        {
-            foreach (var stepRequest in workflowRequest.Steps)
-            {
-                if (stepRequest.Ref is { } stepRef)
-                {
-                    if (stepReferences.Contains(stepRef))
-                    {
-                        return false;
-                    }
-                    stepReferences.Add(stepRef);
-                }
-
-                if (stepRequest.WaitForReplyFrom is { } waitForReplyFrom && !stepReferences.Contains(waitForReplyFrom))
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     /// <summary>

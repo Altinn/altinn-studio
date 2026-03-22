@@ -12,7 +12,6 @@ public class PersistentItemStatusMapTests
         PersistentItemStatusMap.Successful,
         PersistentItemStatusMap.Failed,
         PersistentItemStatusMap.Finished,
-        PersistentItemStatusMap.Active,
     ];
 
     [Fact]

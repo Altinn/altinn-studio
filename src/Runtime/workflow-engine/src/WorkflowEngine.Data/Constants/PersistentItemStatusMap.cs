@@ -7,14 +7,6 @@ public static class PersistentItemStatusMap
     public static IReadOnlyCollection<PersistentItemStatus> Incomplete =>
         [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
 
-    public static IReadOnlyCollection<PersistentItemStatus> Active =>
-        [
-            PersistentItemStatus.Enqueued,
-            PersistentItemStatus.Processing,
-            PersistentItemStatus.Requeued,
-            PersistentItemStatus.Suspended,
-        ];
-
     public static IReadOnlyCollection<PersistentItemStatus> Successful => [PersistentItemStatus.Completed];
 
     public static IReadOnlyCollection<PersistentItemStatus> Failed =>

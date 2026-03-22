@@ -64,38 +64,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.ToTable("IdempotencyKeys", "engine");
                 });
 
-            modelBuilder.Entity("WorkflowEngine.Data.Entities.ReplyEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("IdempotencyKey")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Payload")
-                        .HasColumnType("text");
-
-                    b.Property<byte[]>("PayloadHash")
-                        .HasColumnType("bytea");
-
-                    b.Property<DateTimeOffset?>("ReceivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("StepId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdempotencyKey")
-                        .IsUnique()
-                        .HasFilter("\"IdempotencyKey\" IS NOT NULL");
-
-                    b.HasIndex("StepId")
-                        .IsUnique();
-
-                    b.ToTable("Replies", "engine");
-                });
-
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -132,9 +100,6 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.Property<int>("ProcessingOrder")
                         .HasColumnType("integer");
-
-                    b.Property<Guid?>("ReplyId")
-                        .HasColumnType("uuid");
 
                     b.Property<int>("RequeueCount")
                         .HasColumnType("integer");
@@ -283,15 +248,6 @@ namespace WorkflowEngine.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("WorkflowEngine.Data.Entities.ReplyEntity", b =>
-                {
-                    b.HasOne("WorkflowEngine.Data.Entities.StepEntity", null)
-                        .WithOne("ReceivedReply")
-                        .HasForeignKey("WorkflowEngine.Data.Entities.ReplyEntity", "StepId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
                     b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", "Job")
@@ -316,11 +272,6 @@ namespace WorkflowEngine.Data.Migrations
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
-                {
-                    b.Navigation("ReceivedReply");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>

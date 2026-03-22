@@ -101,40 +101,6 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     }
 
     /// <summary>
-    /// Submits a reply with an idempotency key and returns the raw <see cref="HttpResponseMessage"/>.
-    /// </summary>
-    public Task<HttpResponseMessage> SubmitReplyRaw(
-        Guid replyId,
-        string idempotencyKey,
-        SubmitReplyRequest? request = null
-    )
-    {
-        var message = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/replies/{replyId}")
-        {
-            Content = JsonContent.Create(request ?? new SubmitReplyRequest()),
-        };
-        message.Headers.Add("Idempotency-Key", idempotencyKey);
-        return _client.SendAsync(message);
-    }
-
-    /// <summary>
-    /// Submits a reply with an idempotency key and asserts a 2xx response.
-    /// </summary>
-    public async Task SubmitReply(Guid replyId, string idempotencyKey, SubmitReplyRequest? request = null)
-    {
-        using var response = await SubmitReplyRaw(replyId, idempotencyKey, request);
-        if (!response.IsSuccessStatusCode)
-        {
-            var body = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException(
-                $"SubmitReply returned {(int)response.StatusCode} {response.StatusCode}: {body}",
-                inner: null,
-                statusCode: response.StatusCode
-            );
-        }
-    }
-
-    /// <summary>
     /// Polls <see cref="GetWorkflow(Guid, string?)"/> every 100 ms until the workflow reaches
     /// <paramref name="expectedStatus"/> or the <paramref name="timeout"/> expires.
     /// </summary>

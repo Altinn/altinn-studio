@@ -40,9 +40,4 @@ public enum PersistentItemStatus
     /// The item was abandoned because a workflow it depends on failed.
     /// </summary>
     DependencyFailed = 6,
-
-    /// <summary>
-    /// The item is suspended, waiting for an external reply before it can continue.
-    /// </summary>
-    Suspended = 7,
 }

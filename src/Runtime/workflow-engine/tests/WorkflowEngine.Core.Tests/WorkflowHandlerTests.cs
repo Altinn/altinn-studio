@@ -39,9 +39,7 @@ public class WorkflowHandlerTests
         };
 
         var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer
-            .Setup(b => b.Submit(It.IsAny<Workflow>(), It.IsAny<Step?>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        buffer.Setup(b => b.Submit(It.IsAny<Workflow>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         return new WorkflowHandler(
             executor,

@@ -108,14 +108,6 @@ internal sealed class EngineDbContext : DbContext
             entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
             entity.HasIndex(e => e.CreatedAt);
         });
-
-        modelBuilder.Entity<ReplyEntity>(entity =>
-        {
-            entity.HasOne<StepEntity>().WithOne(e => e.ReceivedReply).HasForeignKey<ReplyEntity>(e => e.StepId);
-
-            // Partial unique index: only enforced for submitted replies (non-null IdempotencyKey).
-            entity.HasIndex(e => e.IdempotencyKey).IsUnique().HasFilter("\"IdempotencyKey\" IS NOT NULL");
-        });
     }
 
     /// <summary>

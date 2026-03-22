@@ -8,9 +8,6 @@ namespace WorkflowEngine.Models;
 /// </summary>
 public sealed record StepRequest
 {
-    [JsonPropertyName("ref")]
-    public string? Ref { get; init; }
-
     /// <summary>
     /// A human-readable identifier for this operation (used in logs, telemetry, and idempotency keys).
     /// </summary>
@@ -28,9 +25,6 @@ public sealed record StepRequest
     /// </summary>
     [JsonPropertyName("retryStrategy")]
     public RetryStrategy? RetryStrategy { get; init; }
-
-    [JsonPropertyName("waitForReplyFrom")]
-    public string? WaitForReplyFrom { get; init; }
 
     /// <summary>
     /// Optional key-value labels for this step. Stored and returned but not queryable.
