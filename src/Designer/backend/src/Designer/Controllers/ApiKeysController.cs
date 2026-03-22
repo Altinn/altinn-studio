@@ -16,7 +16,6 @@ namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
 [Authorize]
-[AllowApiKey]
 [AutoValidateAntiforgeryToken]
 [FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("/designer/api/v1/user/api-keys")]
@@ -46,6 +45,7 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
         return Created(string.Empty, new CreateApiKeyResponse(apiKey.Id, rawKey, apiKey.Name, apiKey.ExpiresAt));
     }
 
+    [AllowApiKey]
     [HttpGet]
     public async Task<ActionResult<List<ApiKeyResponse>>> List(CancellationToken cancellationToken)
     {
