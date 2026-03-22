@@ -35,10 +35,6 @@ internal sealed class StepEntity
     [Column(TypeName = "jsonb")]
     public string CommandJson { get; set; } = "{}";
 
-    public Guid? ReplyId { get; set; }
-
-    public ReplyEntity? ReceivedReply { get; set; }
-
     [Column(TypeName = "jsonb")]
     public string? RetryStrategyJson { get; set; }
 
@@ -69,8 +65,6 @@ internal sealed class StepEntity
             ProcessingOrder = step.ProcessingOrder,
             RequeueCount = step.RequeueCount,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
-            ReplyId = step.ReplyId,
-            ReceivedReply = step.ReceivedReply is { } reply ? ReplyEntity.FromDomainModel(reply) : null,
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
             Labels = step.Labels,
@@ -101,8 +95,6 @@ internal sealed class StepEntity
             UpdatedAt = UpdatedAt,
             RequeueCount = RequeueCount,
             Command = command,
-            ReplyId = ReplyId,
-            ReceivedReply = ReceivedReply?.ToDomainModel(),
             RetryStrategy = retryStrategy,
             Labels = Labels,
             ErrorHistory = ErrorHistory ?? [],

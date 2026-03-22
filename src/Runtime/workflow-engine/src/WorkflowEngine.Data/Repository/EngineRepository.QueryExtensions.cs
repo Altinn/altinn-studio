@@ -27,9 +27,9 @@ internal static class EngineRepositoryQueryExtensions
                 .MaybeFilterByCorrelationId(correlationIdFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
-                .Where(wf => PersistentItemStatusMap.Active.Contains(wf.Status))
+                .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
-                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Active.Contains(step.Status)));
+                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
@@ -42,12 +42,12 @@ internal static class EngineRepositoryQueryExtensions
                 .MaybeFilterByCorrelationId(correlationIdFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
-                .Where(wf => PersistentItemStatusMap.Active.Contains(wf.Status))
+                .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf =>
                     wf.StartAt > DateTime.UtcNow
-                    || wf.Dependencies.Any(dep => PersistentItemStatusMap.Active.Contains(dep.Status))
+                    || wf.Dependencies.Any(dep => PersistentItemStatusMap.Incomplete.Contains(dep.Status))
                 )
-                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Active.Contains(step.Status)));
+                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows(
             bool includeSteps = true,
@@ -101,7 +101,6 @@ internal static class EngineRepositoryQueryExtensions
         {
             var query = dbContext
                 .Workflows.Include(j => j.Steps)
-                    .ThenInclude(s => s.ReceivedReply)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
                 .MaybeFilterByCorrelationId(correlationIdFilter)
@@ -160,7 +159,7 @@ internal static class EngineRepositoryQueryExtensions
         )
         {
             if (steps)
-                entityQuery = entityQuery.Include(wf => wf.Steps).ThenInclude(s => s.ReceivedReply);
+                entityQuery = entityQuery.Include(wf => wf.Steps);
 
             if (dependencies)
                 entityQuery = entityQuery.Include(wf => wf.Dependencies);

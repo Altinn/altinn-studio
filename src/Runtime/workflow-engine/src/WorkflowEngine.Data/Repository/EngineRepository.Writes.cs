@@ -25,9 +25,6 @@ internal sealed partial class EngineRepository
     private readonly Func<NpgsqlConnection, IEnumerable<StepEntity>, CancellationToken, Task> _insertSteps =
         sqlBulkInserter.Create<StepEntity>();
 
-    private readonly Func<NpgsqlConnection, IEnumerable<ReplyEntity>, CancellationToken, Task> _insertReplies =
-        sqlBulkInserter.Create<ReplyEntity>();
-
     private static readonly Func<
         NpgsqlConnection,
         IEnumerable<(Guid, Guid)>,
@@ -146,11 +143,10 @@ internal sealed partial class EngineRepository
         for (int i = 0; i < requests.Count; i++)
         {
             var request = requests[i];
-            var replyIdsByStepRef = CreateReplyIds(request);
             perRequestWorkflows[i] =
             [
                 .. request.Request.Workflows.Select(workflowRequest =>
-                    workflowRequest.ToWorkflow(request.Metadata, request.Request, replyIdsByStepRef)
+                    workflowRequest.ToWorkflow(request.Metadata, request.Request)
                 ),
             ];
         }
@@ -216,15 +212,6 @@ internal sealed partial class EngineRepository
         }
 
         return results;
-    }
-
-    private static Dictionary<string, Guid> CreateReplyIds(BufferedEnqueueRequest request)
-    {
-        return request
-            .Request.Workflows.SelectMany(x => x.Steps)
-            .Select(x => x.WaitForReplyFrom)
-            .OfType<string>()
-            .ToDictionary(name => name, _ => Guid.CreateVersion7());
     }
 
     /// <summary>
@@ -604,17 +591,6 @@ internal sealed partial class EngineRepository
         await _insertWorkflows(conn, allEntities, cancellationToken);
         await _insertSteps(conn, allEntities.SelectMany(w => w.Steps), cancellationToken);
 
-        var allReplies = allEntities
-            .SelectMany(w => w.Steps)
-            .Select(s => s.ReceivedReply)
-            .OfType<ReplyEntity>()
-            .ToList();
-
-        if (allReplies.Count > 0)
-        {
-            await _insertReplies(conn, allReplies, cancellationToken);
-        }
-
         if (allDepEdges.Count > 0)
         {
             await _insertDependencies(conn, allDepEdges, cancellationToken);
@@ -723,7 +699,6 @@ internal sealed partial class EngineRepository
             .Workflows.AsNoTracking()
             .AsSplitQuery()
             .Include(w => w.Steps.OrderBy(s => s.ProcessingOrder))
-                .ThenInclude(s => s.ReceivedReply)
             .Include(w => w.Dependencies)
             .Where(w => ids.Contains(w.Id))
             .ToListAsync(cancellationToken);
@@ -869,7 +844,6 @@ internal sealed partial class EngineRepository
                     var statuses = new int[sorted.Count];
                     var backoffUntils = new object[sorted.Count];
                     var engineTraceContexts = new object[sorted.Count];
-                    var stepIds = new object[sorted.Count];
 
                     for (int i = 0; i < sorted.Count; i++)
                     {
@@ -878,38 +852,19 @@ internal sealed partial class EngineRepository
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
-                        stepIds[i] = sorted[i].Step is { } s ? s.DatabaseId : DBNull.Value;
                     }
 
-                    // When the processor wants to write Suspended but a concurrent reply
-                    // has already transitioned the specific suspended step to Enqueued,
-                    // override the workflow status to Enqueued so it gets picked up on the
-                    // next fetch cycle instead of being permanently stuck in Suspended.
-                    //
-                    // The sub-SELECT uses FOR NO KEY UPDATE so that if a concurrent reply
-                    // transaction is in the middle of transitioning the step (holding a
-                    // row-level lock), this statement blocks until that transaction commits
-                    // and then re-reads the committed status under Read Committed semantics.
-                    // Without the lock, the sub-SELECT could read a stale snapshot and
-                    // incorrectly write Suspended even though the reply already set the
-                    // step to Enqueued.
                     const string updateWorkflowsSql = """
                     UPDATE "engine"."Workflows" AS w
-                    SET "Status"             = CASE
-                                                   WHEN v.status = @suspendedStatus
-                                                    AND v.step_id IS NOT NULL
-                                                    AND (SELECT s."Status" FROM "engine"."Steps" s WHERE s."Id" = v.step_id FOR NO KEY UPDATE) != @suspendedStatus
-                                                   THEN @enqueuedStatus
-                                                   ELSE v.status
-                                               END,
+                    SET "Status"             = v.status,
                         "UpdatedAt"          = @now,
                         "BackoffUntil"       = v.backoff_until,
                         "HeartbeatAt"        = CASE WHEN v.status = 1 THEN w."HeartbeatAt" ELSE NULL END,
                         "EngineTraceContext" = v.engine_trace_context
                     FROM (
                         SELECT *
-                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts, @step_ids)
-                            AS t(id, status, backoff_until, engine_trace_context, step_id)
+                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
+                            AS t(id, status, backoff_until, engine_trace_context)
                         ORDER BY t.id
                     ) AS v
                     WHERE w."Id" = v.id
@@ -932,31 +887,15 @@ internal sealed partial class EngineRepository
                             }
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                        cmd.Parameters.Add(
-                            new NpgsqlParameter<int>("suspendedStatus", (int)PersistentItemStatus.Suspended)
-                        );
-                        cmd.Parameters.Add(
-                            new NpgsqlParameter<int>("enqueuedStatus", (int)PersistentItemStatus.Enqueued)
-                        );
-                        cmd.Parameters.Add(
-                            new NpgsqlParameter("step_ids", NpgsqlDbType.Array | NpgsqlDbType.Uuid) { Value = stepIds }
-                        );
                         await cmd.ExecuteNonQueryAsync(ct);
                     }
 
-                    // 2. Bulk update all steps across all workflows.
-                    // Suspended steps are excluded: they are only passed for the SQL guard
-                    // check above and were not modified by the processor.
-                    var allSteps = updates
-                        .Select(u => u.Step)
-                        .OfType<Step>()
-                        .Where(s => s.Status != PersistentItemStatus.Suspended)
-                        .OrderBy(s => s.DatabaseId)
-                        .ToList();
+                    // 2. Bulk update all dirty steps across all workflows
+                    var allSteps = sorted.SelectMany(u => u.DirtySteps).OrderBy(s => s.DatabaseId).ToList();
 
                     if (allSteps.Count > 0)
                     {
-                        var updateStepIds = new Guid[allSteps.Count];
+                        var stepIds = new Guid[allSteps.Count];
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
                         var stepErrorHistories = new object[allSteps.Count];
@@ -966,7 +905,7 @@ internal sealed partial class EngineRepository
                         for (int i = 0; i < allSteps.Count; i++)
                         {
                             var s = allSteps[i];
-                            updateStepIds[i] = s.DatabaseId;
+                            stepIds[i] = s.DatabaseId;
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
                             stepErrorHistories[i] =
@@ -995,7 +934,7 @@ internal sealed partial class EngineRepository
                         """;
 
                         await using var cmd = new NpgsqlCommand(updateStepsSql, conn, tx);
-                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", updateStepIds));
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
                         cmd.Parameters.Add(
@@ -1018,6 +957,10 @@ internal sealed partial class EngineRepository
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                         await cmd.ExecuteNonQueryAsync(ct);
+
+                        // Clear pending changes flags
+                        foreach (var step in allSteps)
+                            step.HasPendingChanges = false;
                     }
 
                     await tx.CommitAsync(ct);
@@ -1189,335 +1132,6 @@ internal sealed partial class EngineRepository
             if (r.IsId)
             {
                 target.Add((r.Id, ns));
-            }
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task<IReadOnlyList<SubmitReplyResult>> BatchSubmitReplies(
-        IReadOnlyList<BufferedReplyRequest> requests,
-        CancellationToken cancellationToken
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchSubmitReplies");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        var now = timeProvider.GetUtcNow();
-
-        try
-        {
-            return await ExecuteWithRetry(
-                async ct =>
-                {
-                    await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    await using var tx = await conn.BeginTransactionAsync(ct);
-
-                    var results = new SubmitReplyResult[requests.Count];
-
-                    // Step 1: Bulk-update all reply rows in one round-trip.
-                    var (updatedReplies, failedIndices) = await BulkUpdateReplies(conn, tx, requests, now, ct);
-
-                    if (updatedReplies.Count > 0)
-                    {
-                        // Step 2: Bulk-transition steps Suspended → Enqueued.
-                        var (transitionedSteps, staleStepIndices) = await BulkTransitionSteps(
-                            conn,
-                            tx,
-                            updatedReplies,
-                            now,
-                            ct
-                        );
-
-                        foreach (var reqIdx in staleStepIndices)
-                        {
-                            results[reqIdx] = SubmitReplyResult.NotFound;
-                        }
-
-                        if (transitionedSteps.Count > 0)
-                        {
-                            // Step 3: Bulk-transition workflows Suspended → Enqueued.
-                            await BulkTransitionWorkflows(conn, tx, transitionedSteps, now, ct);
-                        }
-
-                        foreach (var (reqIdx, _) in transitionedSteps)
-                        {
-                            results[reqIdx] = SubmitReplyResult.Accepted;
-                        }
-                    }
-
-                    // Step 4: Classify replies that were not updated (already received or not found).
-                    if (failedIndices.Count > 0)
-                    {
-                        await BulkClassifyExistingReplies(conn, tx, requests, failedIndices, results, ct);
-                    }
-
-                    await tx.CommitAsync(ct);
-                    return (IReadOnlyList<SubmitReplyResult>)results;
-                },
-                cancellationToken
-            );
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToBatchSubmitReplies(requests.Count, ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Step 1: Bulk-updates reply rows via <c>unnest()</c>, setting payload, receivedAt, idempotency key,
-    /// and payload hash. Only updates rows where <c>ReceivedAt IS NULL</c>.
-    /// Returns the list of (requestIndex, stepId) for successfully updated replies,
-    /// and the list of request indices that were not updated (need classification).
-    /// </summary>
-    private static async Task<(
-        List<(int RequestIndex, Guid StepId)> Updated,
-        List<int> FailedIndices
-    )> BulkUpdateReplies(
-        NpgsqlConnection conn,
-        NpgsqlTransaction tx,
-        IReadOnlyList<BufferedReplyRequest> requests,
-        DateTimeOffset now,
-        CancellationToken ct
-    )
-    {
-        var replyIds = new Guid[requests.Count];
-        var payloads = new string?[requests.Count];
-        var idempotencyKeys = new string[requests.Count];
-        var payloadHashes = new byte[requests.Count][];
-
-        for (int i = 0; i < requests.Count; i++)
-        {
-            replyIds[i] = requests[i].ReplyId;
-            payloads[i] = requests[i].Payload;
-            idempotencyKeys[i] = requests[i].IdempotencyKey;
-            payloadHashes[i] = requests[i].PayloadHash;
-        }
-
-        const string sql = """
-            WITH input AS (
-                SELECT * FROM unnest(@replyIds, @payloads, @idempotencyKeys, @payloadHashes)
-                    WITH ORDINALITY
-                    AS t("ReplyId", "Payload", "IdempotencyKey", "PayloadHash", idx)
-            ),
-            updated AS (
-                UPDATE "engine"."Replies" r
-                SET "Payload" = i."Payload",
-                    "ReceivedAt" = @now,
-                    "IdempotencyKey" = i."IdempotencyKey",
-                    "PayloadHash" = i."PayloadHash"
-                FROM input i
-                WHERE r."Id" = i."ReplyId" AND r."ReceivedAt" IS NULL
-                RETURNING r."StepId", i.idx
-            )
-            SELECT "StepId", (idx - 1)::int AS "Index"
-            FROM updated
-            """;
-
-        await using var cmd = new NpgsqlCommand(sql, conn, tx);
-        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("replyIds", replyIds));
-        cmd.Parameters.Add(
-            new NpgsqlParameter("payloads", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = payloads }
-        );
-        cmd.Parameters.Add(new NpgsqlParameter<string[]>("idempotencyKeys", idempotencyKeys));
-        cmd.Parameters.Add(new NpgsqlParameter<byte[][]>("payloadHashes", payloadHashes));
-        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-
-        var updatedSet = new HashSet<int>(requests.Count);
-        var updated = new List<(int RequestIndex, Guid StepId)>(requests.Count);
-
-        await using (var reader = await cmd.ExecuteReaderAsync(ct))
-        {
-            while (await reader.ReadAsync(ct))
-            {
-                var stepId = reader.GetGuid(0);
-                var reqIdx = reader.GetInt32(1);
-                updated.Add((reqIdx, stepId));
-                updatedSet.Add(reqIdx);
-            }
-        }
-
-        var failedIndices = new List<int>();
-        for (int i = 0; i < requests.Count; i++)
-        {
-            if (!updatedSet.Contains(i))
-                failedIndices.Add(i);
-        }
-
-        return (updated, failedIndices);
-    }
-
-    /// <summary>
-    /// Step 2: Bulk-transitions steps from Suspended to Enqueued via <c>unnest()</c>.
-    /// Returns the list of (requestIndex, workflowId) for steps that were transitioned,
-    /// and the list of request indices whose steps were not in Suspended state.
-    /// </summary>
-    private static async Task<(
-        List<(int RequestIndex, Guid WorkflowId)> Transitioned,
-        List<int> StaleStepIndices
-    )> BulkTransitionSteps(
-        NpgsqlConnection conn,
-        NpgsqlTransaction tx,
-        List<(int RequestIndex, Guid StepId)> updatedReplies,
-        DateTimeOffset now,
-        CancellationToken ct
-    )
-    {
-        var stepIds = new Guid[updatedReplies.Count];
-        var requestIndices = new int[updatedReplies.Count];
-        for (int i = 0; i < updatedReplies.Count; i++)
-        {
-            stepIds[i] = updatedReplies[i].StepId;
-            requestIndices[i] = updatedReplies[i].RequestIndex;
-        }
-
-        const string sql = """
-            WITH input AS (
-                SELECT * FROM unnest(@stepIds, @requestIndices)
-                    WITH ORDINALITY
-                    AS t("StepId", "RequestIndex", idx)
-            )
-            UPDATE "engine"."Steps" s
-            SET "Status" = @newStatus, "UpdatedAt" = @now
-            FROM input i
-            WHERE s."Id" = i."StepId" AND s."Status" = @oldStatus
-            RETURNING i."RequestIndex", s."JobId"
-            """;
-
-        await using var cmd = new NpgsqlCommand(sql, conn, tx);
-        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("stepIds", stepIds));
-        cmd.Parameters.Add(new NpgsqlParameter<int[]>("requestIndices", requestIndices));
-        cmd.Parameters.Add(new NpgsqlParameter<int>("newStatus", (int)PersistentItemStatus.Enqueued));
-        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-        cmd.Parameters.Add(new NpgsqlParameter<int>("oldStatus", (int)PersistentItemStatus.Suspended));
-
-        var transitionedSet = new HashSet<int>(updatedReplies.Count);
-        var transitioned = new List<(int RequestIndex, Guid WorkflowId)>(updatedReplies.Count);
-
-        await using (var reader = await cmd.ExecuteReaderAsync(ct))
-        {
-            while (await reader.ReadAsync(ct))
-            {
-                var reqIdx = reader.GetInt32(0);
-                var workflowId = reader.GetGuid(1);
-                transitioned.Add((reqIdx, workflowId));
-                transitionedSet.Add(reqIdx);
-            }
-        }
-
-        var staleStepIndices = new List<int>();
-        for (int i = 0; i < updatedReplies.Count; i++)
-        {
-            if (!transitionedSet.Contains(updatedReplies[i].RequestIndex))
-                staleStepIndices.Add(updatedReplies[i].RequestIndex);
-        }
-
-        return (transitioned, staleStepIndices);
-    }
-
-    /// <summary>
-    /// Step 3: Bulk-transitions distinct workflows from Suspended to Enqueued via <c>unnest()</c>.
-    /// Multiple replies may target the same workflow, so we deduplicate before updating.
-    /// </summary>
-    private static async Task BulkTransitionWorkflows(
-        NpgsqlConnection conn,
-        NpgsqlTransaction tx,
-        List<(int RequestIndex, Guid WorkflowId)> transitionedSteps,
-        DateTimeOffset now,
-        CancellationToken ct
-    )
-    {
-        var distinctWorkflowIds = transitionedSteps.Select(x => x.WorkflowId).Distinct().ToArray();
-
-        const string sql = """
-            UPDATE "engine"."Workflows" w
-            SET "Status" = @newStatus, "UpdatedAt" = @now
-            FROM unnest(@workflowIds) AS t("WorkflowId")
-            WHERE w."Id" = t."WorkflowId" AND w."Status" = @oldStatus
-            """;
-
-        await using var cmd = new NpgsqlCommand(sql, conn, tx);
-        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("workflowIds", distinctWorkflowIds));
-        cmd.Parameters.Add(new NpgsqlParameter<int>("newStatus", (int)PersistentItemStatus.Enqueued));
-        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-        cmd.Parameters.Add(new NpgsqlParameter<int>("oldStatus", (int)PersistentItemStatus.Suspended));
-
-        await cmd.ExecuteNonQueryAsync(ct);
-    }
-
-    /// <summary>
-    /// Step 4: For replies that were not updated in step 1, fetches the existing reply rows
-    /// in a single round-trip via <c>unnest()</c> and classifies each as NotFound, Duplicate, or Conflict.
-    /// </summary>
-    private static async Task BulkClassifyExistingReplies(
-        NpgsqlConnection conn,
-        NpgsqlTransaction tx,
-        IReadOnlyList<BufferedReplyRequest> requests,
-        List<int> failedIndices,
-        SubmitReplyResult[] results,
-        CancellationToken ct
-    )
-    {
-        var failedReplyIds = new Guid[failedIndices.Count];
-        for (int i = 0; i < failedIndices.Count; i++)
-        {
-            failedReplyIds[i] = requests[failedIndices[i]].ReplyId;
-        }
-
-        const string sql = """
-            SELECT t."ReplyId", r."IdempotencyKey", r."PayloadHash"
-            FROM unnest(@replyIds) AS t("ReplyId")
-            LEFT JOIN "engine"."Replies" r ON r."Id" = t."ReplyId"
-            """;
-
-        await using var cmd = new NpgsqlCommand(sql, conn, tx);
-        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("replyIds", failedReplyIds));
-
-        // Build a lookup: replyId -> (idempotencyKey, payloadHash)
-        var existingReplies = new Dictionary<Guid, (string? IdempotencyKey, byte[]? PayloadHash)>(failedIndices.Count);
-
-        await using (var reader = await cmd.ExecuteReaderAsync(ct))
-        {
-            while (await reader.ReadAsync(ct))
-            {
-                var replyId = reader.GetGuid(0);
-                if (reader.IsDBNull(1))
-                {
-                    // LEFT JOIN produced no match — reply ID does not exist
-                    continue;
-                }
-
-                var existingKey = reader.IsDBNull(1) ? null : reader.GetString(1);
-                var existingHash = reader.IsDBNull(2) ? null : (byte[])reader[2];
-                existingReplies[replyId] = (existingKey, existingHash);
-            }
-        }
-
-        foreach (var reqIdx in failedIndices)
-        {
-            var req = requests[reqIdx];
-            if (!existingReplies.TryGetValue(req.ReplyId, out var existing))
-            {
-                results[reqIdx] = SubmitReplyResult.NotFound;
-                continue;
-            }
-
-            if (
-                existing.IdempotencyKey == req.IdempotencyKey
-                && existing.PayloadHash is not null
-                && existing.PayloadHash.AsSpan().SequenceEqual(req.PayloadHash)
-            )
-            {
-                results[reqIdx] = SubmitReplyResult.Duplicate;
-            }
-            else
-            {
-                results[reqIdx] = SubmitReplyResult.Conflict;
             }
         }
     }

@@ -109,20 +109,4 @@ internal static partial class EngineRepositoryLogs
         string message,
         Exception ex
     );
-
-    [LoggerMessage(LogLevel.Error, "Failed to submit reply {replyId}: {message}")]
-    internal static partial void FailedToSubmitReply(
-        this ILogger<EngineRepository> logger,
-        Guid replyId,
-        string message,
-        Exception ex
-    );
-
-    [LoggerMessage(LogLevel.Error, "Failed to batch submit {replyCount} replies: {message}")]
-    internal static partial void FailedToBatchSubmitReplies(
-        this ILogger<EngineRepository> logger,
-        int replyCount,
-        string message,
-        Exception ex
-    );
 }

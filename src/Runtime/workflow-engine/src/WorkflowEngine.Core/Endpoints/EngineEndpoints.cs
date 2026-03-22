@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -37,11 +36,6 @@ public static class EngineEndpoints
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
             .WithName("CancelWorkflow")
             .WithDescription("Requests cancellation of a workflow");
-
-        app.MapPost("/api/v1/replies/{replyId:guid}", EngineRequestHandlers.SubmitReply)
-            .WithTags("Replies")
-            .WithName("SubmitReply")
-            .WithDescription("Submits an external reply payload for a suspended workflow step");
 
         return app;
     }
@@ -221,33 +215,5 @@ internal static class EngineRequestHandlers
         }
 
         return result;
-    }
-
-    public static async Task<Results<Ok, NotFound, ProblemHttpResult>> SubmitReply(
-        [FromRoute] Guid replyId,
-        [FromBody] SubmitReplyRequest? request,
-        [FromHeader(Name = "Idempotency-Key")] string idempotencyKey,
-        [FromServices] IReplyWriteBuffer replyBuffer,
-        CancellationToken cancellationToken
-    )
-    {
-        Metrics.WorkflowRequestsReceived.Add(1, ("endpoint", "submitReply"));
-
-        Activity.Current?.SetTag("reply.id", replyId);
-        Activity.Current?.SetTag("reply.idempotency.key", idempotencyKey);
-
-        var result = await replyBuffer.Submit(replyId, request?.Payload, idempotencyKey, cancellationToken);
-
-        return result switch
-        {
-            SubmitReplyResult.Accepted => TypedResults.Ok(),
-            SubmitReplyResult.Duplicate => TypedResults.Ok(),
-            SubmitReplyResult.Conflict => TypedResults.Problem(
-                detail: $"Idempotency conflict: the key '{idempotencyKey}' was already used with a different payload.",
-                statusCode: StatusCodes.Status409Conflict
-            ),
-            SubmitReplyResult.NotFound => TypedResults.NotFound(),
-            _ => throw new UnreachableException(),
-        };
     }
 }

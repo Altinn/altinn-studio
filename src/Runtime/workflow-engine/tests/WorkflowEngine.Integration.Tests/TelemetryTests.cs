@@ -279,8 +279,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
     ///     ├── Engine.ProcessStep.{operationId}
     ///     │     └── WorkflowExecutor.Execute
     ///     │           └── WebhookCommand.Execute
-    ///     ├── Engine.SubmitStatusUpdate (workflow=Processing)
-    ///     └── Engine.SubmitStatusUpdate (workflow=Completed)
+    ///     └── Engine.SubmitStatusUpdate
     ///
     /// Background — Status write buffer (standalone traces):
     ///   Engine.FlushStatusBatch
@@ -334,26 +333,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var webhookCommand = SingleInTrace(collector, processWorkflow.TraceId, "WebhookCommand.Execute");
         AssertChildOf(execute, webhookCommand);
 
-        //     ├── Engine.SubmitStatusUpdate (workflow=Processing)
-        //     └── Engine.SubmitStatusUpdate (workflow=Completed)
-        var submitStatuses = collector
-            .GetActivities("WorkflowUpdateBuffer.Submit")
-            .Where(a => a.TraceId == processWorkflow.TraceId)
-            .ToList();
-        Assert.Equal(2, submitStatuses.Count);
-        Assert.Contains(
-            submitStatuses,
-            a => a.GetTagItem("workflow.status")?.ToString() == PersistentItemStatus.Processing.ToString()
-        );
-        Assert.Contains(
-            submitStatuses,
-            a => a.GetTagItem("workflow.status")?.ToString() == PersistentItemStatus.Completed.ToString()
-        );
-
-        foreach (var submitStatus in submitStatuses)
-        {
-            AssertChildOf(processWorkflow, submitStatus);
-        }
+        //     └── Engine.SubmitStatusUpdate
+        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowUpdateBuffer.Submit");
+        AssertChildOf(processWorkflow, submitStatus);
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)

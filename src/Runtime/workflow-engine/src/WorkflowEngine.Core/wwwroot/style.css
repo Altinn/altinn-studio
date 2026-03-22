@@ -20,14 +20,12 @@
     --orange: #ff6600;
     --red: #ff3366;
     --gray: #666;
-    --purple: #b388ff;
     --cyan-rgb: 0, 212, 255;
     --amber-rgb: 255, 170, 0;
     --green-rgb: 0, 255, 136;
     --orange-rgb: 255, 102, 0;
     --red-rgb: 255, 51, 102;
     --gray-rgb: 102, 102, 102;
-    --purple-rgb: 179, 136, 255;
     --font: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
     --font-ui: var(--font);
     --header-bg: var(--bg2);
@@ -1017,11 +1015,6 @@ body {
     border: 1px solid var(--gray);
     background: rgba(var(--gray-rgb), 0.08);
 }
-.status-pill.Suspended {
-    color: var(--purple);
-    border: 1px solid var(--purple);
-    background: rgba(var(--purple-rgb), 0.08);
-}
 .status-pill.scheduled {
     color: var(--amber);
     border: 1px solid var(--amber);
@@ -1090,12 +1083,6 @@ body {
     border-color: var(--gray);
     color: var(--gray);
     opacity: 0.5;
-}
-.step-circle.Suspended {
-    border-color: var(--purple);
-    color: var(--purple);
-    animation: pulse-glow 3s ease-in-out infinite;
-    box-shadow: 0 0 8px rgba(var(--purple-rgb), 0.3);
 }
 .step-circle[onclick]:hover {
     transform: scale(1.15);
@@ -2293,11 +2280,6 @@ pre.diff-remove {
     border-color: var(--cyan);
     opacity: 0.4;
 }
-.compact-dot.Suspended {
-    border-color: var(--purple);
-    background: rgba(var(--purple-rgb), 0.4);
-    box-shadow: 0 0 4px rgba(var(--purple-rgb), 0.3);
-}
 .compact-pill {
     animation: none;
 }
@@ -2438,9 +2420,6 @@ pre.diff-remove {
 /* Glows/animations: reduced intensity */
 [data-theme='altinn'] .step-circle.Processing {
     box-shadow: 0 0 8px rgba(var(--amber-rgb), 0.25);
-}
-[data-theme='altinn'] .step-circle.Suspended {
-    box-shadow: 0 0 6px rgba(var(--purple-rgb), 0.2);
 }
 [data-theme='altinn'] .engine-icon.running {
     filter: drop-shadow(0 0 4px rgba(var(--cyan-rgb), 0.3));
