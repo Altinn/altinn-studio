@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -97,6 +98,7 @@ public class StudioOidcController(
         return LocalRedirect(redirectTo);
     }
 
+    [AllowApiKey]
     [Authorize]
     [HttpGet("userinfo")]
     public UserInfoResponse UserInfo()
