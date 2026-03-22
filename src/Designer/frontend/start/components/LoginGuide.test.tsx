@@ -103,6 +103,45 @@ describe('LoginGuide', () => {
     expect(localStorage.getItem('altinn-studio-skip-login-guide')).toBe('true');
   });
 
+  it('should redirect to /login when new account button is clicked', async () => {
+    const user = userEvent.setup();
+    renderLoginGuide();
+
+    await user.click(getFirstNeiRadio());
+    await user.click(
+      screen.getByRole('button', { name: textMock('login_guide.new_account_button') }),
+    );
+
+    expect(window.location.href).toBe('/login');
+  });
+
+  it('should redirect to /login without storing skip when checkbox is not checked', async () => {
+    const user = userEvent.setup();
+    renderLoginGuide();
+
+    await user.click(getFirstJaRadio());
+    await user.click(getSecondJaRadio());
+    await user.click(
+      screen.getByRole('button', { name: textMock('login_guide.direct_login_button') }),
+    );
+
+    expect(window.location.href).toBe('/login');
+    expect(localStorage.getItem('altinn-studio-skip-login-guide')).toBeNull();
+  });
+
+  it('should redirect to accountLinkUrl when account link button is clicked', async () => {
+    const user = userEvent.setup();
+    renderLoginGuide({ accountLinkUrl: 'https://example.com/link' });
+
+    await user.click(getFirstJaRadio());
+    await user.click(getSecondNeiRadio());
+    await user.click(
+      screen.getByRole('button', { name: textMock('login_guide.account_link_button') }),
+    );
+
+    expect(window.location.href).toBe('https://example.com/link');
+  });
+
   const getFirstJaRadio = () =>
     screen.getAllByRole('radio', { name: textMock('login_guide.radio_yes') })[0];
 
