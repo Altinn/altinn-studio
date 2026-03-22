@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -44,7 +45,16 @@ public class StudioOidcController(
         string? givenName = User.FindFirst("given_name")?.Value;
         string? familyName = User.FindFirst("family_name")?.Value;
         PidHash pidHash = PidHash.FromPid(pid, mappingSettings);
-        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pidHash, givenName, familyName);
+
+        string computedUsername;
+        try
+        {
+            computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pidHash, givenName, familyName);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
 
         AuthenticateResult authenticateResult = await HttpContext.AuthenticateAsync();
         AuthenticationProperties? properties = authenticateResult.Properties;
