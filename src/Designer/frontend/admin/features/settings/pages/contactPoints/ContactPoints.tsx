@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioHeading, StudioSpinner } from '@studio/components';
+import { StudioError, StudioHeading, StudioSpinner } from '@studio/components';
 import { useGetOrgAlertContactPointsQuery } from '../../hooks/useGetOrgAlertContactPointsQuery';
 import { PersonsList } from './components/PersonsList/PersonsList';
 import { SlackChannelsList } from './components/SlackChannelsList/SlackChannelsList';
@@ -15,10 +15,14 @@ export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();
   const { org } = useParams<{ org: string }>();
 
-  const { data: contactPoints, isPending } = useGetOrgAlertContactPointsQuery(org!);
+  const { data: contactPoints, isPending, isError } = useGetOrgAlertContactPointsQuery(org!);
 
   if (isPending) {
-    return <StudioSpinner spinnerTitle='' aria-hidden='true' />;
+    return <StudioSpinner aria-hidden spinnerTitle={t('org.settings.contact_points.loading')} />;
+  }
+
+  if (isError) {
+    return <StudioError>{t('org.settings.contact_points.error')}</StudioError>;
   }
 
   const persons = (contactPoints ?? []).filter((cp) => !isSlackChannel(cp));

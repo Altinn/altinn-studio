@@ -1,7 +1,7 @@
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--ds-spacing-2);
+  gap: var(--ds-size-3);
 }
 
 .addButtonWrapper {
