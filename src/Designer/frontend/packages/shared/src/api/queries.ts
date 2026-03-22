@@ -81,8 +81,7 @@ import {
   publishedResourcesPath,
   customTemplatesPath,
   userApiKeysPath,
-  orgAlertPersonsPath,
-  orgAlertSlackChannelsPath,
+  orgAlertContactPointsPath,
   reposListPath,
 } from './paths';
 
@@ -135,7 +134,7 @@ import type { AppValidationResult } from 'app-development/hooks/queries/useAppVa
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
-import type { OrgAlertPerson, OrgAlertSlackChannel } from 'app-shared/types/OrgAlertContactPoint';
+import type { OrgAlertContactPoint } from 'app-shared/types/OrgAlertContactPoint';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -222,8 +221,7 @@ export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<DelegationCountOverview>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
 export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(consentTemplatesPath(org));
-export const getOrgAlertPersons = (org: string) => get<OrgAlertPerson[]>(orgAlertPersonsPath(org));
-export const getOrgAlertSlackChannels = (org: string) => get<OrgAlertSlackChannel[]>(orgAlertSlackChannelsPath(org));
+export const getOrgAlertContactPoints = (org: string) => get<OrgAlertContactPoint[]>(orgAlertContactPointsPath(org));
 export const getOrgRepos = (org: string) => get<Repository[]>(reposListPath(org));
 
 // ProcessEditor

@@ -19,8 +19,8 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<ChatMessageDbModel> ChatMessages { get; set; }
     public virtual DbSet<UserAccountDbModel> UserAccounts { get; set; }
     public virtual DbSet<ApiKeyDbModel> ApiKeys { get; set; }
-    public virtual DbSet<OrgAlertPersonDbModel> OrgAlertPersons { get; set; }
-    public virtual DbSet<OrgAlertSlackChannelDbModel> OrgAlertSlackChannels { get; set; }
+    public virtual DbSet<ContactPointDbModel> ContactPoints { get; set; }
+    public virtual DbSet<ContactMethodDbModel> ContactMethods { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,8 +35,8 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
         modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
         modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
-        modelBuilder.ApplyConfiguration(new OrgAlertPersonConfiguration());
-        modelBuilder.ApplyConfiguration(new OrgAlertSlackChannelConfiguration());
+        modelBuilder.ApplyConfiguration(new ContactPointConfiguration());
+        modelBuilder.ApplyConfiguration(new ContactMethodConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -2,28 +2,37 @@ import type { ReactElement } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioHeading, StudioSpinner } from '@studio/components';
-import { useGetOrgAlertPersonsQuery } from '../../hooks/useGetOrgAlertPersonsQuery';
-import { useGetOrgAlertSlackChannelsQuery } from '../../hooks/useGetOrgAlertSlackChannelsQuery';
-import { PersonsSection } from './components/PersonsSection/PersonsSection';
-import { SlackChannelsSection } from './components/SlackChannelsSection/SlackChannelsSection';
+import { useGetOrgAlertContactPointsQuery } from '../../hooks/useGetOrgAlertContactPointsQuery';
+import { PersonsList } from './components/PersonsList/PersonsList';
+import { SlackChannelsList } from './components/SlackChannelsList/SlackChannelsList';
 import classes from './ContactPoints.module.css';
+import type { OrgAlertContactPoint } from 'app-shared/types/OrgAlertContactPoint';
+
+const isSlackChannel = (cp: OrgAlertContactPoint): boolean =>
+  cp.methods.some((m) => m.methodType === 'slack_webhook');
 
 export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();
   const { org } = useParams<{ org: string }>();
 
-  const { data: persons, isPending: isPersonsPending } = useGetOrgAlertPersonsQuery(org!);
-  const { data: channels, isPending: isChannelsPending } = useGetOrgAlertSlackChannelsQuery(org!);
+  const { data: contactPoints, isPending } = useGetOrgAlertContactPointsQuery(org!);
 
-  if (isPersonsPending || isChannelsPending) {
+  if (isPending) {
     return <StudioSpinner spinnerTitle='' aria-hidden='true' />;
   }
+
+  const persons = (contactPoints ?? []).filter((cp) => !isSlackChannel(cp));
+  const channels = (contactPoints ?? []).filter(isSlackChannel);
 
   return (
     <div className={classes.container}>
       <StudioHeading level={2}>{t('org.settings.contact_points.contact_points')}</StudioHeading>
-      <PersonsSection org={org!} persons={persons ?? []} />
-      <SlackChannelsSection org={org!} channels={channels ?? []} />
+      <section className={classes.section}>
+        <PersonsList org={org!} persons={persons} />
+      </section>
+      <section className={classes.section}>
+        <SlackChannelsList org={org!} channels={channels} />
+      </section>
     </div>
   );
 };

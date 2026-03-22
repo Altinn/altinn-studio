@@ -138,7 +138,7 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
         />
         <StudioButton
           type='submit'
-          data-color='success'
+          variant='secondary'
           icon={<PlusIcon />}
           onClick={handleAdd}
           disabled={isPending}

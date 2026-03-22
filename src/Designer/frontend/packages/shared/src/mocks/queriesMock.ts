@@ -257,8 +257,7 @@ export const queriesMock: ServicesContextProps = {
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getOrgAlertPersons: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getOrgAlertSlackChannels: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getOrgAlertContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
   getOrgRepos: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
@@ -377,10 +376,7 @@ export const queriesMock: ServicesContextProps = {
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings
-  addOrgAlertPerson: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOrgAlertPerson: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteOrgAlertPerson: jest.fn().mockImplementation(() => Promise.resolve()),
-  addOrgAlertSlackChannel: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOrgAlertSlackChannel: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteOrgAlertSlackChannel: jest.fn().mockImplementation(() => Promise.resolve()),
+  addOrgAlertContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgAlertContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteOrgAlertContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
 };

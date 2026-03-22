@@ -1,29 +1,18 @@
-export enum AlertSeverity {
-  None = 0,
-  Critical = 1,
-  WarningAndCritical = 2,
-  All = 3,
-}
+export type ContactMethodType = 'email' | 'sms' | 'slack_webhook';
 
-export type OrgAlertPerson = {
+export type ContactMethod = {
+  id: string;
+  methodType: ContactMethodType;
+  value: string;
+};
+
+export type OrgAlertContactPoint = {
   id: string;
   name: string;
-  email?: string;
-  emailSeverity: AlertSeverity;
-  phone?: string;
-  smsSeverity: AlertSeverity;
   isActive: boolean;
-  services: string[] | null;
+  methods: ContactMethod[];
 };
 
-export type OrgAlertSlackChannel = {
-  id: string;
-  channelName: string;
-  slackId: string;
-  severity: AlertSeverity;
-  isActive: boolean;
-  services: string[] | null;
+export type OrgAlertContactPointPayload = Omit<OrgAlertContactPoint, 'id' | 'methods'> & {
+  methods: Omit<ContactMethod, 'id'>[];
 };
-
-export type OrgAlertPersonPayload = Omit<OrgAlertPerson, 'id'>;
-export type OrgAlertSlackChannelPayload = Omit<OrgAlertSlackChannel, 'id'>;

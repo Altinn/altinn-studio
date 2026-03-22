@@ -228,7 +228,5 @@ export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; /
 export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
 
 // Org settings
-export const orgAlertPersonsPath = (org) => `${apiBasePath}/${org}/alert-contact-points/persons`; // Get, Post
-export const orgAlertPersonPath = (org, id) => `${apiBasePath}/${org}/alert-contact-points/persons/${id}`; // Put, Delete
-export const orgAlertSlackChannelsPath = (org) => `${apiBasePath}/${org}/alert-contact-points/slack-channels`; // Get, Post
-export const orgAlertSlackChannelPath = (org, id) => `${apiBasePath}/${org}/alert-contact-points/slack-channels/${id}`; // Put, Delete
+export const orgAlertContactPointsPath = (org) => `${apiBasePath}/${org}/alert-contact-points`; // Get, Post
+export const orgAlertContactPointPath = (org, id) => `${apiBasePath}/${org}/alert-contact-points/${id}`; // Put, Delete

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    partial class DesignerdbContextModelSnapshot : ModelSnapshot
+    [Migration("20260315112132_ContactPoints")]
+    partial class ContactPoints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -234,87 +237,6 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("builds", "designer");
                 });
 
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ChatMessageDbModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<int?>("ActionMode")
-                        .HasColumnType("integer")
-                        .HasColumnName("action_mode");
-
-                    b.PrimitiveCollection<List<string>>("AttachmentFileNames")
-                        .HasColumnType("text[]")
-                        .HasColumnName("attachment_file_names");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at");
-
-                    b.PrimitiveCollection<List<string>>("FilesChanged")
-                        .HasColumnType("text[]")
-                        .HasColumnName("files_changed");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("integer")
-                        .HasColumnName("role");
-
-                    b.Property<Guid>("ThreadId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("thread_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex(new[] { "ThreadId" }, "idx_chat_messages_thread_id");
-
-                    b.ToTable("chat_messages", "designer");
-                });
-
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ChatThreadDbModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("App")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("app");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("created_by");
-
-                    b.Property<string>("Org")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("org");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex(new[] { "Org", "App", "CreatedBy" }, "idx_chat_threads_org_app_created_by");
-
-                    b.ToTable("chat_threads", "designer");
-                });
-
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeployEventDbModel", b =>
                 {
                     b.Property<long>("Id")
@@ -421,6 +343,87 @@ namespace Altinn.Studio.Designer.Migrations
                     b.HasIndex(new[] { "Org", "App" }, "idx_deployments_org_app");
 
                     b.ToTable("deployments", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ChatMessageDbModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("ActionMode")
+                        .HasColumnType("integer")
+                        .HasColumnName("action_mode");
+
+                    b.PrimitiveCollection<List<string>>("AttachmentFileNames")
+                        .HasColumnType("text[]")
+                        .HasColumnName("attachment_file_names");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.PrimitiveCollection<List<string>>("FilesChanged")
+                        .HasColumnType("text[]")
+                        .HasColumnName("files_changed");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.Property<Guid>("ThreadId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("thread_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "ThreadId" }, "idx_chat_messages_thread_id");
+
+                    b.ToTable("chat_messages", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ChatThreadDbModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Org", "App", "CreatedBy" }, "idx_chat_threads_org_app_created_by");
+
+                    b.ToTable("chat_threads", "designer");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactPointDbModel", b =>

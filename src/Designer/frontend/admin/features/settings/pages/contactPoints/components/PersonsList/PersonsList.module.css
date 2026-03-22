@@ -1,0 +1,15 @@
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-spacing-2);
+}
+
+.addButtonWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.addButton {
+  max-width: 400px;
+  flex: 1;
+}

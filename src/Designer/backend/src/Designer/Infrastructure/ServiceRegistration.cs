@@ -74,8 +74,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
             services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
-            services.AddScoped<IOrgAlertPersonRepository, OrgAlertPersonRepository>();
-            services.AddScoped<IOrgAlertSlackChannelRepository, OrgAlertSlackChannelRepository>();
+            services.AddScoped<IContactPointRepository, ContactPointRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
             services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
@@ -85,7 +84,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IAppSettingsService, AppSettingsService>();
-            services.AddTransient<IOrgAlertContactPointsService, OrgAlertContactPointsService>();
+            services.AddTransient<IOrgContactPointsService, OrgContactPointsService>();
             services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IAppResourcesService, AppResourcesService>();
