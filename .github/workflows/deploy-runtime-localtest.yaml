@@ -54,15 +54,5 @@ jobs:
       - name: Build image
         run: docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.image }} .
 
-      - name: Scan image
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
-        with:
-          image-ref: '${{ steps.vars.outputs.image }}'
-          format: 'table'
-          exit-code: '0'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
-
       - name: Push image
         run: docker push ${{ steps.vars.outputs.image }}
