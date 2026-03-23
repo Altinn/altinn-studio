@@ -105,7 +105,7 @@ services:
       - 'keys:/mnt/keys'
     environment:
       - FeatureManagement__StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
-      - StudioOidcLoginSettings__AccountLinkUrl=http://studio.localhost/repos/user/oauth2/ansattporten
+      - StudioOidcLoginSettings__AccountLinkUrl=http://studio.localhost/repos/user/oauth2/fake-ansattporten
       - OTEL_SERVICE_NAME=studio-designer
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000

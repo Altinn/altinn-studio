@@ -1,24 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 import { LoginGuide, shouldSkipLoginGuide } from './LoginGuide';
 
 export const GuidePage = (): ReactElement => {
   const { environment } = useEnvironmentConfig();
-  const { data: user } = useUserQuery();
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      window.location.href = '/';
-      return;
-    }
     if (shouldSkipLoginGuide()) {
       window.location.href = '/login';
+      return;
     }
-  }, [user]);
 
-  if (user || shouldSkipLoginGuide()) {
+    // Using plain fetch instead of useUserQuery to avoid ServicesContextProvider's
+    // global 401 error handler, which would trigger a logout toast on this unauthenticated page.
+    fetch('/designer/api/user/current')
+      .then((res) => {
+        if (res.ok) {
+          window.location.href = '/';
+        } else {
+          setChecked(true);
+        }
+      })
+      .catch(() => setChecked(true));
+  }, []);
+
+  if (!checked) {
     return null;
   }
 
