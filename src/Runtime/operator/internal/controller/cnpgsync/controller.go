@@ -1933,27 +1933,11 @@ func (r *CnpgSyncReconciler) syncWorkflowEngineAppSecret(ctx context.Context) er
 	key := client.ObjectKey{Name: workflowEngineSecretName, Namespace: workflowEngineSecretNamespace}
 	err := r.k8sClient.Get(ctx, key, secret)
 	if apierrors.IsNotFound(err) {
-		secret = &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      workflowEngineSecretName,
-				Namespace: workflowEngineSecretNamespace,
-				Labels: map[string]string{
-					managedByLabelKey:      managedByLabelValue,
-					workflowEngineLabelKey: workflowEngineLabelValue,
-				},
-			},
-			Type: corev1.SecretTypeOpaque,
-			Data: map[string][]byte{},
-		}
-		if err := r.k8sClient.Create(ctx, secret); err != nil {
-			if apierrors.IsNotFound(err) {
-				r.logger.Info("workflow engine secret namespace not found, skipping secret sync",
-					"namespace", workflowEngineSecretNamespace,
-				)
-				return nil
-			}
-			return fmt.Errorf("create workflow engine secret: %w", err)
-		}
+		r.logger.Info("workflow engine secret not found, skipping secret sync",
+			"secretName", workflowEngineSecretName,
+			"namespace", workflowEngineSecretNamespace,
+		)
+		return nil
 	} else if err != nil {
 		return fmt.Errorf("get workflow engine secret: %w", err)
 	}
@@ -1975,40 +1959,17 @@ func (r *CnpgSyncReconciler) updateAppSecretWithRetry(
 	appSecret *corev1.Secret,
 	postgresJson []byte,
 ) error {
-	for attempt := range maxUpdateRetries {
-		updatedSecret := appSecret.DeepCopy()
-		if updatedSecret.Data == nil {
-			updatedSecret.Data = make(map[string][]byte)
-		}
-		updatedSecret.Data[postgresqlJsonKey] = postgresJson
-
-		err := r.k8sClient.Update(ctx, updatedSecret)
-		if err == nil {
-			r.logger.Info("updated app secret with postgresql connection",
-				"secretName", appSecret.Name,
-				"namespace", appSecret.Namespace,
-			)
-			return nil
-		}
-
-		if !apierrors.IsConflict(err) {
-			return fmt.Errorf("update app secret: %w", err)
-		}
-
-		r.logger.Info("conflict updating app secret, retrying",
-			"attempt", attempt+1,
-			"secretName", appSecret.Name,
-		)
-
-		if err := r.k8sClient.Get(
-			ctx,
-			client.ObjectKey{Name: appSecret.Name, Namespace: appSecret.Namespace},
-			appSecret,
-		); err != nil {
-			return fmt.Errorf("refresh app secret: %w", err)
-		}
-	}
-	return fmt.Errorf("%w: %d attempts", errAppSecretUpdateRetryExhausted, maxUpdateRetries)
+	return r.updateSecretDataWithRetry(
+		ctx,
+		appSecret,
+		postgresqlJsonKey,
+		postgresJson,
+		"updated app secret with postgresql connection",
+		"conflict updating app secret, retrying",
+		"update app secret",
+		"refresh app secret",
+		errAppSecretUpdateRetryExhausted,
+	)
 }
 
 func (r *CnpgSyncReconciler) updateWorkflowEngineSecretWithRetry(
@@ -2016,42 +1977,61 @@ func (r *CnpgSyncReconciler) updateWorkflowEngineSecretWithRetry(
 	secret *corev1.Secret,
 	secretsJSON []byte,
 ) error {
+	return r.updateSecretDataWithRetry(
+		ctx,
+		secret,
+		secretsJSONKey,
+		secretsJSON,
+		"updated workflow engine secret",
+		"conflict updating workflow engine secret, retrying",
+		"update workflow engine secret",
+		"refresh workflow engine secret",
+		errWorkflowEngineSecretUpdateRetryExhausted,
+	)
+}
+
+func (r *CnpgSyncReconciler) updateSecretDataWithRetry(
+	ctx context.Context,
+	secret *corev1.Secret,
+	dataKey string,
+	dataValue []byte,
+	successLogMsg, conflictLogMsg, updateErrMsg, refreshErrMsg string,
+	exhaustedErr error,
+) error {
 	for attempt := range maxUpdateRetries {
 		updatedSecret := secret.DeepCopy()
 		if updatedSecret.Data == nil {
 			updatedSecret.Data = make(map[string][]byte)
 		}
-		if updatedSecret.Labels == nil {
-			updatedSecret.Labels = make(map[string]string)
-		}
-		updatedSecret.Data[secretsJSONKey] = secretsJSON
-		updatedSecret.Labels[managedByLabelKey] = managedByLabelValue
-		updatedSecret.Labels[workflowEngineLabelKey] = workflowEngineLabelValue
+		updatedSecret.Data[dataKey] = dataValue
 
 		err := r.k8sClient.Update(ctx, updatedSecret)
 		if err == nil {
-			r.logger.Info("updated workflow engine secret",
+			r.logger.Info(successLogMsg,
 				"secretName", secret.Name,
 				"namespace", secret.Namespace,
 			)
 			return nil
 		}
+
 		if !apierrors.IsConflict(err) {
-			return fmt.Errorf("update workflow engine secret: %w", err)
+			return fmt.Errorf("%s: %w", updateErrMsg, err)
 		}
-		r.logger.Info("conflict updating workflow engine secret, retrying",
+
+		r.logger.Info(conflictLogMsg,
 			"attempt", attempt+1,
 			"secretName", secret.Name,
 		)
+
 		if err := r.k8sClient.Get(
 			ctx,
 			client.ObjectKey{Name: secret.Name, Namespace: secret.Namespace},
 			secret,
 		); err != nil {
-			return fmt.Errorf("refresh workflow engine secret: %w", err)
+			return fmt.Errorf("%s: %w", refreshErrMsg, err)
 		}
 	}
-	return fmt.Errorf("%w: %d attempts", errWorkflowEngineSecretUpdateRetryExhausted, maxUpdateRetries)
+	return fmt.Errorf("%w: %d attempts", exhaustedErr, maxUpdateRetries)
 }
 
 func mergeWorkflowEngineSecretsJSON(existing []byte, connectionString string) ([]byte, error) {
