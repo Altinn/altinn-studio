@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: workflow-engine-app-netpol
+spec:
+  podSelector:
+    matchLabels:
+      app: workflow-engine-app
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow traffic from app pods in the default namespace
+    # Linkerd proxy port 4143 required when source pod has linkerd sidecar
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 4143
+    # Allow traffic from kube-system (Azure Monitor Agent for metrics)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 8081
