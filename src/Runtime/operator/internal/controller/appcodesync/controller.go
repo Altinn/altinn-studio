@@ -219,21 +219,25 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 	defer span.End()
 
 	now := r.runtime.GetClock().Now().UTC()
-	currentFile := parseAppCodesFile(secret)
+	currentFile, err := parseAppCodesFile(secret)
+	if err != nil {
+		span.RecordError(err)
+		return 0, err
+	}
 	desiredFile := appCodesFile{AppCodes: appCodesSection{}}
 
 	var nextRequeue time.Duration
 	for _, spec := range codeTypeSpecs {
-		current, err := parseCodesForSpec(currentFile, spec, now)
-		if err != nil {
-			span.RecordError(err)
-			return 0, fmt.Errorf("parse current codes for %s: %w", spec.PropertyName, err)
+		current, parseErr := parseCodesForSpec(currentFile, spec, now)
+		if parseErr != nil {
+			span.RecordError(parseErr)
+			return 0, fmt.Errorf("parse current codes for %s: %w", spec.PropertyName, parseErr)
 		}
 
-		desired, err := buildDesiredCodes(spec, current, now)
-		if err != nil {
-			span.RecordError(err)
-			return 0, fmt.Errorf("build desired codes for %s: %w", spec.PropertyName, err)
+		desired, buildErr := buildDesiredCodes(spec, current, now)
+		if buildErr != nil {
+			span.RecordError(buildErr)
+			return 0, fmt.Errorf("build desired codes for %s: %w", spec.PropertyName, buildErr)
 		}
 
 		setCodeEntries(&desiredFile.AppCodes, spec.PropertyName, marshalCodeEntries(desired))
@@ -261,22 +265,22 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 	return nextRequeue, nil
 }
 
-func parseAppCodesFile(secret *corev1.Secret) appCodesFile {
+func parseAppCodesFile(secret *corev1.Secret) (appCodesFile, error) {
 	if secret.Data == nil {
-		return appCodesFile{}
+		return appCodesFile{}, nil
 	}
 
 	content, ok := secret.Data[appCodesFileName]
 	if !ok || len(content) == 0 {
-		return appCodesFile{}
+		return appCodesFile{}, nil
 	}
 
 	var parsed appCodesFile
 	if err := json.Unmarshal(content, &parsed); err != nil {
-		return appCodesFile{}
+		return appCodesFile{}, fmt.Errorf("unmarshal app codes file: %w", err)
 	}
 
-	return parsed
+	return parsed, nil
 }
 
 func parseCodesForSpec(file appCodesFile, spec codeTypeSpec, now time.Time) ([]appCode, error) {

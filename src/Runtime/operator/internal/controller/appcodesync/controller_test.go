@@ -94,6 +94,11 @@ func (h *testHarness) reconcile(t *testing.T, key client.ObjectKey) ctrl.Result 
 	return result
 }
 
+func (h *testHarness) reconcileErr(key client.ObjectKey) error {
+	_, err := h.reconciler.Reconcile(h.ctx(), ctrl.Request{NamespacedName: key})
+	return err
+}
+
 func TestReconciler_CreatesCodesForAllTypes(t *testing.T) {
 	g := NewWithT(t)
 
@@ -174,6 +179,32 @@ func TestReconciler_PreservesUnrelatedAnnotationsAndRemovesObsoleteAppCodeAnnota
 	g.Expect(updated.Annotations).To(HaveKeyWithValue("other-annotation", "preserved"))
 	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-monthly-issued-at"))
 	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-notificationcallback-issued-at"))
+}
+
+func TestReconciler_ReturnsErrorAndPreservesSecretWhenAppCodesFileIsMalformed(t *testing.T) {
+	g := NewWithT(t)
+
+	const malformedFile = `{"AppCodes":{"NotificationCallback":[{"Id":"abcdefghijklmnopqrstuv","Code":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","IssuedAt":123}]}}`
+	target := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ttd-testapp-deployment-secrets",
+			Namespace: "default",
+		},
+		Data: map[string][]byte{
+			appCodesFileName: []byte(malformedFile),
+			"existing-key":   []byte("value"),
+		},
+	}
+
+	h := newTestHarness(t, target)
+	err := h.reconcileErr(client.ObjectKeyFromObject(target))
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("unmarshal app codes file"))
+
+	updated := &corev1.Secret{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
+	g.Expect(string(updated.Data[appCodesFileName])).To(Equal(malformedFile))
+	g.Expect(updated.Data).To(HaveKeyWithValue("existing-key", []byte("value")))
 }
 
 func TestReconciler_IgnoresMatchingSecretOutsideDefaultNamespace(t *testing.T) {
