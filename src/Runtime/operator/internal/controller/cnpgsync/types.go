@@ -1,10 +1,11 @@
 package cnpgsync
 
 type CnpgTarget struct {
-	Backup         *PgDumpBackupConfig
-	ServiceOwnerId string
-	Environment    string
-	Apps           []string
+	ServiceOwnerId    string
+	Environment       string
+	Backup            *PgDumpBackupConfig
+	Apps              []string
+	WorkflowEngineApp bool
 }
 
 type PgDumpBackupConfig struct {
@@ -28,7 +29,13 @@ func DefaultTargets() []CnpgTarget {
 
 	return []CnpgTarget{
 		{ServiceOwnerId: "ttd", Environment: "localtest", Apps: []string{"localtestapp"}},
-		{ServiceOwnerId: "ttd", Environment: "tt02", Apps: []string{"martinotest"}, Backup: backup},
+		{
+			ServiceOwnerId:    "ttd",
+			Environment:       "tt02",
+			WorkflowEngineApp: true,
+			Apps:              []string{"martinotest"},
+			Backup:            backup,
+		},
 		{ServiceOwnerId: "nhn", Environment: "tt02", Apps: []string{"mottak-adapter"}, Backup: backup},
 		{ServiceOwnerId: "nhn", Environment: "prod", Apps: []string{"mottak-adapter"}, Backup: backup},
 	}
