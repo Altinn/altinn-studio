@@ -31,7 +31,7 @@ export const PreviewImageSummary = ({
       <StudioDeleteButton
         title={t('ux_editor.properties_panel.images.delete_image_reference_title')}
         variant='tertiary'
-        data-color='default'
+        data-color='accent'
         onDelete={openDeleteOptionsDialog}
       />
       <DeleteOptionsModal
