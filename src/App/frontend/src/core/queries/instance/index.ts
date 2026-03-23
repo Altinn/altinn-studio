@@ -23,7 +23,9 @@ function useActiveInstances(partyId: string): UseActiveInstancesResult {
 
 function useCurrentInstance(): IInstance | undefined {
   const queryClient = useQueryClient();
-  return queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() }).find(([, data]) => data)?.[1];
+  return queryClient
+    .getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() })
+    .find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object')?.[1];
 }
 
 function useCreateInstance(language: string) {
