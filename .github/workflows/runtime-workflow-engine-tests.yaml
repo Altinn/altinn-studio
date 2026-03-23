@@ -1,0 +1,43 @@
+name: Runtime Workflow Engine - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/common/**'
+      - 'src/Runtime/workflow-engine/src/**'
+      - 'src/Runtime/workflow-engine/tests/**'
+      - 'src/Runtime/workflow-engine/Directory.Build.props'
+      - 'src/Runtime/workflow-engine/Directory.Packages.props'
+      - '.github/workflows/runtime-workflow-engine-tests.yaml'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Runtime/workflow-engine/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+        with:
+          dotnet-version: |
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+        env:
+          CI: true
+
+      - name: Test
+        run: dotnet test --no-build

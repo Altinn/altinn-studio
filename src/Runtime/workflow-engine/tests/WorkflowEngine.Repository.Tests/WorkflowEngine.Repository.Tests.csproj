@@ -13,7 +13,9 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk"/>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Verify.XunitV3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
@@ -27,6 +29,9 @@
 
   <ItemGroup>
     <Using Include="Xunit"/>
+    <Using Include="VerifyTests" />
+    <Using Include="VerifyXunit" />
+    <Using Include="VerifyXunit.Verifier" Static="true" />
   </ItemGroup>
 
 </Project>
