@@ -3,7 +3,7 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 import { InstanceApi } from 'src/core/api-client/instance.api';
 import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'src/core/queries/instance/utils';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
-import type { Instantiation } from 'src/features/instantiate/useInstantiation';
+import type { Instantiation } from 'src/core/api-client/instance.api';
 
 type InstantiationArgs = number | Instantiation;
 
@@ -37,7 +37,7 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid }: Instan
 export function activeInstancesQuery(partyId: string) {
   return queryOptions({
     queryKey: instanceQueryKeys.active(partyId),
-    queryFn: () => InstanceApi.getActiveInstances(partyId),
+    queryFn: () => InstanceApi.getActiveInstances({ partyId }),
   });
 }
 
@@ -47,7 +47,9 @@ export function useCreateInstance(language: string) {
   return useMutation({
     mutationKey: ['instantiate'],
     mutationFn: (args: InstantiationArgs) =>
-      typeof args === 'number' ? InstanceApi.create(args, language) : InstanceApi.createWithPrefill(args, language),
+      typeof args === 'number'
+        ? InstanceApi.create({ instanceOwnerPartyId: args, language })
+        : InstanceApi.createWithPrefill({ data: args, language }),
     onError: (error) => {
       window.logError('Instantiation failed:\n', error);
     },

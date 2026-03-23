@@ -2,20 +2,8 @@ import { useMutationState } from '@tanstack/react-query';
 
 import { useCreateInstance } from 'src/core/queries/instance';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import type { Instantiation } from 'src/core/api-client/instance.api';
 import type { IInstance } from 'src/types/shared';
-
-export interface Prefill {
-  [key: string]: unknown;
-}
-
-export interface InstanceOwner {
-  partyId: string | undefined;
-}
-
-export interface Instantiation {
-  instanceOwner: InstanceOwner;
-  prefill: Prefill;
-}
 
 export function useInstantiation() {
   const currentLanguage = useCurrentLanguage();

@@ -67,7 +67,7 @@ async function handleSelectInstance(queryClient: QueryClient): Promise<Response>
 }
 
 async function createInstanceAndRedirect(): Promise<Response> {
-  const instance = await InstanceApi.create(GlobalData.getSelectedParty()!.partyId);
+  const instance = await InstanceApi.create({ instanceOwnerPartyId: GlobalData.getSelectedParty()!.partyId });
   const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
   return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
 }
