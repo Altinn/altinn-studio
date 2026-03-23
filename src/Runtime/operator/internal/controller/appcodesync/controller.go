@@ -47,10 +47,6 @@ type appCodesFile struct {
 	AppCodes appCodesSection `json:"AppCodes"`
 }
 
-type rawAppCodesFile struct {
-	AppCodes map[string]json.RawMessage `json:"AppCodes"`
-}
-
 type appCodeEntry struct {
 	Code      string `json:"Code"`
 	ExpiresAt string `json:"ExpiresAt"`
@@ -119,7 +115,6 @@ var codeTypeSpecs = []codeTypeSpec{
 
 var errSecretUpdateRetryExhausted = errors.New("failed to update secret after conflict retries")
 var errGeneratedInvalidCodeIDLength = errors.New("generated invalid code ID length")
-var errUnmarshalAppCodeEntries = errors.New("unmarshal app-code entries")
 
 func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *AppCodesSyncReconciler {
 	return &AppCodesSyncReconciler{
@@ -263,29 +258,26 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 	return nextRequeue, nil
 }
 
-func parseAppCodesFile(secret *corev1.Secret) (rawAppCodesFile, error) {
+func parseAppCodesFile(secret *corev1.Secret) (appCodesFile, error) {
 	if secret.Data == nil {
-		return rawAppCodesFile{}, nil
+		return appCodesFile{}, nil
 	}
 
 	content, ok := secret.Data[appCodesFileName]
 	if !ok || len(content) == 0 {
-		return rawAppCodesFile{}, nil
+		return appCodesFile{}, nil
 	}
 
-	var parsed rawAppCodesFile
+	var parsed appCodesFile
 	if err := json.Unmarshal(content, &parsed); err != nil {
-		return rawAppCodesFile{}, fmt.Errorf("unmarshal app codes file: %w", err)
+		return appCodesFile{}, fmt.Errorf("unmarshal app codes file: %w", err)
 	}
 
 	return parsed, nil
 }
 
-func parseCodesForSpec(file rawAppCodesFile, spec codeTypeSpec, now time.Time) ([]appCode, error) {
-	entries, err := parseCodeEntriesForSpec(file, spec)
-	if err != nil {
-		return nil, err
-	}
+func parseCodesForSpec(file appCodesFile, spec codeTypeSpec, now time.Time) ([]appCode, error) {
+	entries := getCodeEntries(file.AppCodes, spec.PropertyName)
 	if len(entries) == 0 {
 		return nil, nil
 	}
@@ -342,35 +334,17 @@ func parseCodesForSpec(file rawAppCodesFile, spec codeTypeSpec, now time.Time) (
 	return result, nil
 }
 
-func parseCodeEntriesForSpec(file rawAppCodesFile, spec codeTypeSpec) ([]appCodeEntry, error) {
-	if len(file.AppCodes) == 0 {
-		return nil, nil
+func getCodeEntries(section appCodesSection, propertyName string) []appCodeEntry {
+	switch propertyName {
+	case "NotificationCallback":
+		return section.NotificationCallback
+	case "PaymentsCallback":
+		return section.PaymentsCallback
+	case "WorkflowEngineCallback":
+		return section.WorkflowEngineCallback
+	default:
+		return nil
 	}
-
-	raw, ok := file.AppCodes[spec.PropertyName]
-	if !ok || len(raw) == 0 {
-		return nil, nil
-	}
-
-	var entries []appCodeEntry
-	if err := json.Unmarshal(raw, &entries); err == nil {
-		return entries, nil
-	}
-
-	var legacyCodes []string
-	if err := json.Unmarshal(raw, &legacyCodes); err == nil {
-		return legacyStringEntries(legacyCodes), nil
-	}
-
-	return nil, fmt.Errorf("%w for %s", errUnmarshalAppCodeEntries, spec.PropertyName)
-}
-
-func legacyStringEntries(values []string) []appCodeEntry {
-	entries := make([]appCodeEntry, 0, len(values))
-	for _, value := range values {
-		entries = append(entries, appCodeEntry{Code: value})
-	}
-	return entries
 }
 
 func setCodeEntries(section *appCodesSection, propertyName string, values []appCodeEntry) {

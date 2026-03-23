@@ -194,7 +194,7 @@ func TestReconciler_ReturnsErrorAndPreservesSecretWhenAppCodesFileIsMalformed(t 
 	h := newTestHarness(t, target)
 	err := h.reconcileErr(client.ObjectKeyFromObject(target))
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(err.Error()).To(ContainSubstring("unmarshal app-code entries for NotificationCallback"))
+	g.Expect(err.Error()).To(ContainSubstring("unmarshal app codes file"))
 
 	updated := &corev1.Secret{}
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
@@ -202,7 +202,7 @@ func TestReconciler_ReturnsErrorAndPreservesSecretWhenAppCodesFileIsMalformed(t 
 	g.Expect(updated.Data).To(HaveKeyWithValue("existing-key", []byte("value")))
 }
 
-func TestReconciler_PreservesLegacyStringCodesAsNewEntries(t *testing.T) {
+func TestReconciler_ReturnsErrorAndPreservesSecretWhenAppCodesFileUsesLegacyStringShape(t *testing.T) {
 	g := NewWithT(t)
 
 	const oldCode = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
@@ -217,20 +217,14 @@ func TestReconciler_PreservesLegacyStringCodesAsNewEntries(t *testing.T) {
 	}
 
 	h := newTestHarness(t, target)
-	result := h.reconcile(t, client.ObjectKeyFromObject(target))
+	err := h.reconcileErr(client.ObjectKeyFromObject(target))
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("unmarshal app codes file"))
 
 	updated := &corev1.Secret{}
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
-	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
-	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(1))
-	g.Expect(parsed.AppCodes.NotificationCallback[0].Code).To(Equal(oldCode))
-	g.Expect(isValidURLSafeToken(parsed.AppCodes.NotificationCallback[0].ID, codeIDLength)).To(BeTrue())
-	g.Expect(parsed.AppCodes.NotificationCallback[0].IssuedAt).To(Equal(h.clock.Now().UTC().Format(time.RFC3339)))
-	g.Expect(parsed.AppCodes.NotificationCallback[0].ExpiresAt).
-		To(Equal(h.clock.Now().UTC().Add(baseAcceptLifetime).Format(time.RFC3339)))
-	g.Expect(parsed.AppCodes.PaymentsCallback).To(HaveLen(1))
-	g.Expect(parsed.AppCodes.WorkflowEngineCallback).To(HaveLen(1))
-	g.Expect(result.RequeueAfter).To(Equal(baseIssueLifetime - baseRotationLeadTime))
+	g.Expect(string(updated.Data[appCodesFileName])).
+		To(Equal(`{"AppCodes":{"NotificationCallback":["` + oldCode + `"]}}`))
 }
 
 func TestReconciler_IgnoresMatchingSecretOutsideDefaultNamespace(t *testing.T) {
