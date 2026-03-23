@@ -125,18 +125,13 @@ public class EnvironmentsService : IEnvironmentsService
                     throw new InvalidOperationException("Failed to deserialize response content or content was empty.");
                 }
 
-                /*
-                TEMPORARILY COMMENTED OUT THIS BLOCK TO ALLOW TO TEST DEPLOY TO PRODUCTION FROM DEV ENV.
-                DO NOT MERGE WITH THIS COMMENTED OUT!!
-                ENSURE TO UNCOMMENT BEFORE MERGING!!
-                */
-                // // Pretend that production environment does not exist in dev/staging, there is very limited access anyway
-                // if (_generalSettings.HostName.StartsWith("dev.") || _generalSettings.HostName.StartsWith("staging."))
-                // {
-                //     return environmentsModel
-                //         .Environments.Where(env => !env.Name.Contains("prod", StringComparison.OrdinalIgnoreCase))
-                //         .ToList();
-                // }
+                // Pretend that production environment does not exist in dev/staging, there is very limited access anyway
+                if (_generalSettings.HostName.StartsWith("dev.") || _generalSettings.HostName.StartsWith("staging."))
+                {
+                    return environmentsModel
+                        .Environments.Where(env => !env.Name.Contains("prod", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
 
                 return environmentsModel.Environments;
             }
