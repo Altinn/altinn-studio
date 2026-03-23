@@ -26,6 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [ApiController]
     [Authorize]
+    [AllowApiKey]
     [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
     [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments")]
     public class DeploymentsController : ControllerBase
