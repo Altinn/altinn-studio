@@ -257,7 +257,7 @@ export const queriesMock: ServicesContextProps = {
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getOrgAlertContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
   getOrgRepos: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
@@ -376,7 +376,7 @@ export const queriesMock: ServicesContextProps = {
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings
-  addOrgAlertContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOrgAlertContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteOrgAlertContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
 };

@@ -9,14 +9,11 @@ import {
   StudioParagraph,
   StudioDeleteButton,
 } from '@studio/components';
-import type {
-  OrgAlertContactPoint,
-  OrgAlertContactPointPayload,
-} from 'app-shared/types/OrgAlertContactPoint';
+import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import { SlackChannelDialog } from './SlackChannelDialog/SlackChannelDialog';
-import { useAddOrgAlertContactPointMutation } from 'admin/features/settings/hooks/useAddOrgAlertContactPointMutation';
-import { useUpdateOrgAlertContactPointMutation } from 'admin/features/settings/hooks/useUpdateOrgAlertContactPointMutation';
-import { useDeleteOrgAlertContactPointMutation } from 'admin/features/settings/hooks/useDeleteOrgAlertContactPointMutation';
+import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
+import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
+import { useDeleteContactPointMutation } from 'admin/features/settings/hooks/useDeleteContactPointMutation';
 import { PlusIcon, StudioEditIcon } from '@studio/icons';
 import classes from './SlackChannelsList.module.css';
 
@@ -28,18 +25,18 @@ type SlackChannelDraft = {
 
 type SlackChannelsListProps = {
   org: string;
-  channels: OrgAlertContactPoint[];
+  channels: ContactPoint[];
 };
 
 const emptyDraft = (): SlackChannelDraft => ({ channelName: '', webhookUrl: '', isActive: true });
 
-const draftToPayload = (draft: SlackChannelDraft): OrgAlertContactPointPayload => ({
+const draftToPayload = (draft: SlackChannelDraft): ContactPointPayload => ({
   name: draft.channelName,
   isActive: draft.isActive,
   methods: [{ methodType: 'slack_webhook', value: draft.webhookUrl }],
 });
 
-const contactPointToDraft = (cp: OrgAlertContactPoint): SlackChannelDraft => ({
+const contactPointToDraft = (cp: ContactPoint): SlackChannelDraft => ({
   channelName: cp.name,
   isActive: cp.isActive,
   webhookUrl: cp.methods.find((m) => m.methodType === 'slack_webhook')?.value ?? '',
@@ -51,10 +48,9 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
   const [draft, setDraft] = useState<SlackChannelDraft>(emptyDraft());
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { mutate: addChannel, isPending: isAdding } = useAddOrgAlertContactPointMutation(org);
-  const { mutate: updateChannel, isPending: isUpdating } =
-    useUpdateOrgAlertContactPointMutation(org);
-  const { mutate: deleteChannel } = useDeleteOrgAlertContactPointMutation(org);
+  const { mutate: addChannel, isPending: isAdding } = useAddContactPointMutation(org);
+  const { mutate: updateChannel, isPending: isUpdating } = useUpdateContactPointMutation(org);
+  const { mutate: deleteChannel } = useDeleteContactPointMutation(org);
 
   const isSaving = isAdding || isUpdating;
 
@@ -64,7 +60,7 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
     dialogRef.current?.showModal();
   };
 
-  const openEditDialog = (channel: OrgAlertContactPoint) => {
+  const openEditDialog = (channel: ContactPoint) => {
     setDraft(contactPointToDraft(channel));
     setEditingId(channel.id);
     dialogRef.current?.showModal();
@@ -87,7 +83,7 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
     }
   };
 
-  const handleToggleActive = (channel: OrgAlertContactPoint) => {
+  const handleToggleActive = (channel: ContactPoint) => {
     updateChannel({
       id: channel.id,
       payload: {

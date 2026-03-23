@@ -69,8 +69,8 @@ import {
   userApiKeyPath,
   userApiKeysPath,
   validateNavigationLayoutSettingsPath,
-  orgAlertContactPointsPath,
-  orgAlertContactPointPath,
+  contactPointsPath,
+  contactPointPath,
   validateNavigationPageSettingsPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -110,7 +110,7 @@ import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeLis
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
-import type { OrgAlertContactPoint, OrgAlertContactPointPayload } from 'app-shared/types/OrgAlertContactPoint';
+import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 
 const headers = {
   Accept: 'application/json',
@@ -243,6 +243,6 @@ export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiK
 export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));
 
 // Org settings
-export const addOrgAlertContactPoint = async (org: string, payload: OrgAlertContactPointPayload): Promise<OrgAlertContactPoint> => post(orgAlertContactPointsPath(org), payload);
-export const updateOrgAlertContactPoint = async (org: string, id: string, payload: OrgAlertContactPointPayload): Promise<OrgAlertContactPoint> => put(orgAlertContactPointPath(org, id), payload);
-export const deleteOrgAlertContactPoint = async (org: string, id: string): Promise<void> => del(orgAlertContactPointPath(org, id));
+export const addContactPoint = async (org: string, payload: ContactPointPayload): Promise<ContactPoint> => post(contactPointsPath(org), payload);
+export const updateContactPoint = async (org: string, id: string, payload: ContactPointPayload): Promise<ContactPoint> => put(contactPointPath(org, id), payload);
+export const deleteContactPoint = async (org: string, id: string): Promise<void> => del(contactPointPath(org, id));

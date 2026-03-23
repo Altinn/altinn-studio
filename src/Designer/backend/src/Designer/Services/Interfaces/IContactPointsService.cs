@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
-public interface IOrgContactPointsService
+public interface IContactPointsService
 {
     Task<IReadOnlyList<ContactPointEntity>> GetContactPointsAsync(
         string org,

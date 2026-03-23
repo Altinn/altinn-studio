@@ -81,7 +81,7 @@ import {
   publishedResourcesPath,
   customTemplatesPath,
   userApiKeysPath,
-  orgAlertContactPointsPath,
+  contactPointsPath,
   reposListPath,
 } from './paths';
 
@@ -134,7 +134,7 @@ import type { AppValidationResult } from 'app-development/hooks/queries/useAppVa
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
-import type { OrgAlertContactPoint } from 'app-shared/types/OrgAlertContactPoint';
+import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -221,7 +221,7 @@ export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<DelegationCountOverview>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
 export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(consentTemplatesPath(org));
-export const getOrgAlertContactPoints = (org: string) => get<OrgAlertContactPoint[]>(orgAlertContactPointsPath(org));
+export const getContactPoints = (org: string) => get<ContactPoint[]>(contactPointsPath(org));
 export const getOrgRepos = (org: string) => get<Repository[]>(reposListPath(org));
 
 // ProcessEditor

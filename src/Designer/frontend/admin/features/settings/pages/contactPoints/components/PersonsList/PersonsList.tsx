@@ -9,14 +9,11 @@ import {
   StudioParagraph,
   StudioDeleteButton,
 } from '@studio/components';
-import type {
-  OrgAlertContactPoint,
-  OrgAlertContactPointPayload,
-} from 'app-shared/types/OrgAlertContactPoint';
+import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import { PersonDialog } from './PersonDialog/PersonDialog';
-import { useAddOrgAlertContactPointMutation } from 'admin/features/settings/hooks/useAddOrgAlertContactPointMutation';
-import { useUpdateOrgAlertContactPointMutation } from 'admin/features/settings/hooks/useUpdateOrgAlertContactPointMutation';
-import { useDeleteOrgAlertContactPointMutation } from 'admin/features/settings/hooks/useDeleteOrgAlertContactPointMutation';
+import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
+import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
+import { useDeleteContactPointMutation } from 'admin/features/settings/hooks/useDeleteContactPointMutation';
 import { PlusIcon, StudioEditIcon } from '@studio/icons';
 import classes from './PersonsList.module.css';
 
@@ -29,12 +26,12 @@ type PersonDraft = {
 
 type PersonsListProps = {
   org: string;
-  persons: OrgAlertContactPoint[];
+  persons: ContactPoint[];
 };
 
 const emptyDraft = (): PersonDraft => ({ name: '', email: '', phone: '', isActive: true });
 
-const draftToPayload = (draft: PersonDraft): OrgAlertContactPointPayload => ({
+const draftToPayload = (draft: PersonDraft): ContactPointPayload => ({
   name: draft.name,
   isActive: draft.isActive,
   methods: [
@@ -43,7 +40,7 @@ const draftToPayload = (draft: PersonDraft): OrgAlertContactPointPayload => ({
   ],
 });
 
-const contactPointToDraft = (cp: OrgAlertContactPoint): PersonDraft => ({
+const contactPointToDraft = (cp: ContactPoint): PersonDraft => ({
   name: cp.name,
   isActive: cp.isActive,
   email: cp.methods.find((m) => m.methodType === 'email')?.value ?? '',
@@ -56,10 +53,9 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   const [draft, setDraft] = useState<PersonDraft>(emptyDraft());
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { mutate: addPerson, isPending: isAdding } = useAddOrgAlertContactPointMutation(org);
-  const { mutate: updatePerson, isPending: isUpdating } =
-    useUpdateOrgAlertContactPointMutation(org);
-  const { mutate: deletePerson } = useDeleteOrgAlertContactPointMutation(org);
+  const { mutate: addPerson, isPending: isAdding } = useAddContactPointMutation(org);
+  const { mutate: updatePerson, isPending: isUpdating } = useUpdateContactPointMutation(org);
+  const { mutate: deletePerson } = useDeleteContactPointMutation(org);
 
   const isSaving = isAdding || isUpdating;
 
@@ -69,7 +65,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
     dialogRef.current?.showModal();
   };
 
-  const openEditDialog = (person: OrgAlertContactPoint) => {
+  const openEditDialog = (person: ContactPoint) => {
     setDraft(contactPointToDraft(person));
     setEditingId(person.id);
     dialogRef.current?.showModal();
@@ -92,7 +88,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
     }
   };
 
-  const handleToggleActive = (person: OrgAlertContactPoint) => {
+  const handleToggleActive = (person: ContactPoint) => {
     updatePerson({
       id: person.id,
       payload: {

@@ -228,5 +228,5 @@ export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; /
 export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
 
 // Org settings
-export const orgAlertContactPointsPath = (org) => `${apiBasePath}/${org}/alert-contact-points`; // Get, Post
-export const orgAlertContactPointPath = (org, id) => `${apiBasePath}/${org}/alert-contact-points/${id}`; // Put, Delete
+export const contactPointsPath = (org) => `${apiBasePath}/v1/admin/contact-points/${org}`; // Get, Post
+export const contactPointPath = (org, id) => `${apiBasePath}/v1/admin/contact-points/${org}/${id}`; // Put, Delete

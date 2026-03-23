@@ -84,7 +84,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IAppSettingsService, AppSettingsService>();
-            services.AddTransient<IOrgContactPointsService, OrgContactPointsService>();
+            services.AddTransient<IContactPointsService, ContactPointsService>();
             services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IAppResourcesService, AppResourcesService>();

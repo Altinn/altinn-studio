@@ -2,20 +2,20 @@ import type { ReactElement } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioError, StudioHeading, StudioSpinner } from '@studio/components';
-import { useGetOrgAlertContactPointsQuery } from '../../hooks/useGetOrgAlertContactPointsQuery';
+import { useGetContactPointsQuery } from '../../hooks/useGetContactPointsQuery';
 import { PersonsList } from './components/PersonsList/PersonsList';
 import { SlackChannelsList } from './components/SlackChannelsList/SlackChannelsList';
 import classes from './ContactPoints.module.css';
-import type { OrgAlertContactPoint } from 'app-shared/types/OrgAlertContactPoint';
+import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
-const isSlackChannel = (cp: OrgAlertContactPoint): boolean =>
+const isSlackChannel = (cp: ContactPoint): boolean =>
   cp.methods.some((m) => m.methodType === 'slack_webhook');
 
 export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();
   const { org } = useParams<{ org: string }>();
 
-  const { data: contactPoints, isPending, isError } = useGetOrgAlertContactPointsQuery(org!);
+  const { data: contactPoints, isPending, isError } = useGetContactPointsQuery(org!);
 
   if (isPending) {
     return <StudioSpinner aria-hidden spinnerTitle={t('org.settings.contact_points.loading')} />;

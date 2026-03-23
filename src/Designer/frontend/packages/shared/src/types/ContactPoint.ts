@@ -6,13 +6,13 @@ export type ContactMethod = {
   value: string;
 };
 
-export type OrgAlertContactPoint = {
+export type ContactPoint = {
   id: string;
   name: string;
   isActive: boolean;
   methods: ContactMethod[];
 };
 
-export type OrgAlertContactPointPayload = Omit<OrgAlertContactPoint, 'id' | 'methods'> & {
+export type ContactPointPayload = Omit<ContactPoint, 'id' | 'methods'> & {
   methods: Omit<ContactMethod, 'id'>[];
 };

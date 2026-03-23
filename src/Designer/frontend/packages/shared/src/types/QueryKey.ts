@@ -110,6 +110,6 @@ export enum QueryKey {
   UserApiKeys = 'UserApiKeys',
 
   // Org settings
-  OrgAlertContactPoints = 'OrgAlertContactPoints',
+  ContactPoints = 'ContactPoints',
   OrgRepos = 'OrgRepos',
 }

@@ -8,8 +8,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class OrgContactPointsService(IContactPointRepository repository, TimeProvider timeProvider)
-    : IOrgContactPointsService
+public class ContactPointsService(IContactPointRepository repository, TimeProvider timeProvider) : IContactPointsService
 {
     public Task<IReadOnlyList<ContactPointEntity>> GetContactPointsAsync(
         string org,

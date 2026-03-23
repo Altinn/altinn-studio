@@ -10,12 +10,12 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.Studio.Designer.Controllers.Organisation;
+namespace Altinn.Studio.Designer.Controllers.Admin;
 
 [ApiController]
 [Authorize]
-[Route("designer/api/{org}/alert-contact-points")]
-public class OrgContactPointsController(IOrgContactPointsService service) : ControllerBase
+[Route("designer/api/v1/admin/contact-points/{org}")]
+public class ContactPointsController(IContactPointsService service) : ControllerBase
 {
     [HttpGet]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
