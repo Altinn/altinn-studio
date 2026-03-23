@@ -26,18 +26,15 @@ import (
 )
 
 const (
-	appSecretNamespace           = "default"
-	appSecretNameSuffix          = "-deployment-secrets"
-	appCodesFileName             = "app-codes.json"
-	monthlyIssuedAtAnnotationKey = "altinn.studio/app-codes-monthly-issued-at"
-	monthlyCodeLength            = 32
-	// Codes are issued on a monthly cadence, but may be returned for verification
-	// up to one additional month later.
-	maxMonthlyCodes             = 3
-	monthlyCodeIssueLifetime    = 31 * 24 * time.Hour
-	monthlyCodeAcceptLifetime   = 62 * 24 * time.Hour
-	monthlyCodeRotationLeadTime = 7 * 24 * time.Hour
-	monthlyCodeRotationInterval = monthlyCodeIssueLifetime - monthlyCodeRotationLeadTime
+	appSecretNamespace   = "default"
+	appSecretNameSuffix  = "-deployment-secrets"
+	appCodesFileName     = "app-codes.json"
+	defaultCodeLength    = 32
+	codeIDByteLength     = 16
+	codeIDLength         = 22
+	baseIssueLifetime    = 31 * 24 * time.Hour
+	baseAcceptLifetime   = 62 * 24 * time.Hour
+	baseRotationLeadTime = 7 * 24 * time.Hour
 )
 
 type AppCodesSyncReconciler struct {
@@ -50,18 +47,81 @@ type appCodesFile struct {
 	AppCodes appCodesSection `json:"AppCodes"`
 }
 
-type appCodesSection struct {
-	Monthly []string `json:"Monthly"`
+type appCodeEntry struct {
+	Code      string `json:"Code"`
+	ExpiresAt string `json:"ExpiresAt"`
+	ID        string `json:"Id"`
+	IssuedAt  string `json:"IssuedAt"`
 }
 
-type monthlyCode struct {
-	IssuedAt time.Time
-	Value    string
+type appCodesSection struct {
+	NotificationCallback   []appCodeEntry `json:"NotificationCallback,omitempty"`
+	PaymentsCallback       []appCodeEntry `json:"PaymentsCallback,omitempty"`
+	WorkflowEngineCallback []appCodeEntry `json:"WorkflowEngineCallback,omitempty"`
+}
+
+type appCode struct {
+	IssuedAt  time.Time
+	ExpiresAt time.Time
+	Code      string
+	ID        string
+}
+
+type codeTypeSpec struct {
+	PropertyName     string
+	CodeLength       int
+	IssueLifetime    time.Duration
+	AcceptLifetime   time.Duration
+	RotationLeadTime time.Duration
+}
+
+func (s codeTypeSpec) rotationInterval() time.Duration {
+	return s.IssueLifetime - s.RotationLeadTime
+}
+
+func (s codeTypeSpec) maxRetainedCodes() int {
+	interval := s.rotationInterval()
+	if interval <= 0 {
+		return 1
+	}
+	return int((s.AcceptLifetime + interval - 1) / interval)
+}
+
+var codeTypeSpecs = []codeTypeSpec{
+	{
+		PropertyName:     "NotificationCallback",
+		CodeLength:       defaultCodeLength,
+		IssueLifetime:    baseIssueLifetime,
+		AcceptLifetime:   baseAcceptLifetime,
+		RotationLeadTime: baseRotationLeadTime,
+	},
+	{
+		PropertyName:     "PaymentsCallback",
+		CodeLength:       defaultCodeLength,
+		IssueLifetime:    baseIssueLifetime,
+		AcceptLifetime:   baseAcceptLifetime,
+		RotationLeadTime: baseRotationLeadTime,
+	},
+	{
+		PropertyName:     "WorkflowEngineCallback",
+		CodeLength:       defaultCodeLength,
+		IssueLifetime:    baseIssueLifetime * 3,
+		AcceptLifetime:   baseAcceptLifetime * 3,
+		RotationLeadTime: baseRotationLeadTime * 3,
+	},
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;update
 
 var errSecretUpdateRetryExhausted = errors.New("failed to update secret after conflict retries")
+var errGeneratedInvalidCodeIDLength = errors.New("generated invalid code ID length")
+
+var obsoleteAppCodesAnnotationKeys = map[string]struct{}{
+	"altinn.studio/app-codes-monthly-issued-at":                {},
+	"altinn.studio/app-codes-notificationcallback-issued-at":   {},
+	"altinn.studio/app-codes-paymentscallback-issued-at":       {},
+	"altinn.studio/app-codes-workflowenginecallback-issued-at": {},
+}
 
 func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *AppCodesSyncReconciler {
 	return &AppCodesSyncReconciler{
@@ -159,153 +219,206 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 	defer span.End()
 
 	now := r.runtime.GetClock().Now().UTC()
-	current := parseMonthlyCodes(secret, now)
-	desired, err := buildDesiredMonthlyCodes(current, now)
+	currentFile, err := parseAppCodesFile(secret)
 	if err != nil {
 		span.RecordError(err)
-		return 0, fmt.Errorf("build desired monthly codes: %w", err)
-	}
-
-	desiredFile, desiredIssuedAt, err := marshalMonthlyCodes(desired)
-	if err != nil {
-		span.RecordError(err)
-		return 0, fmt.Errorf("marshal desired monthly codes: %w", err)
-	}
-
-	currentFile := []byte(nil)
-	if secret.Data != nil {
-		currentFile = secret.Data[appCodesFileName]
-	}
-	currentIssuedAt := ""
-	if secret.Annotations != nil {
-		currentIssuedAt = secret.Annotations[monthlyIssuedAtAnnotationKey]
-	}
-
-	if slices.Equal(currentFile, desiredFile) && currentIssuedAt == desiredIssuedAt {
-		return nextRequeueAfter(desired, now), nil
-	}
-
-	if err := r.updateSecretWithRetry(ctx, secret, desiredFile, desiredIssuedAt); err != nil {
 		return 0, err
 	}
-	return nextRequeueAfter(desired, now), nil
+	desiredFile := appCodesFile{AppCodes: appCodesSection{}}
+
+	var nextRequeue time.Duration
+	for _, spec := range codeTypeSpecs {
+		current, parseErr := parseCodesForSpec(currentFile, spec, now)
+		if parseErr != nil {
+			span.RecordError(parseErr)
+			return 0, fmt.Errorf("parse current codes for %s: %w", spec.PropertyName, parseErr)
+		}
+
+		desired, buildErr := buildDesiredCodes(spec, current, now)
+		if buildErr != nil {
+			span.RecordError(buildErr)
+			return 0, fmt.Errorf("build desired codes for %s: %w", spec.PropertyName, buildErr)
+		}
+
+		setCodeEntries(&desiredFile.AppCodes, spec.PropertyName, marshalCodeEntries(desired))
+		nextRequeue = minPositiveDuration(nextRequeue, nextRequeueAfter(spec, desired, now))
+	}
+
+	desiredFileBytes, err := json.Marshal(desiredFile)
+	if err != nil {
+		span.RecordError(err)
+		return 0, fmt.Errorf("marshal app codes file: %w", err)
+	}
+
+	currentFileBytes := []byte(nil)
+	if secret.Data != nil {
+		currentFileBytes = secret.Data[appCodesFileName]
+	}
+
+	if slices.Equal(currentFileBytes, desiredFileBytes) && !hasObsoleteAppCodesAnnotations(secret.Annotations) {
+		return nextRequeue, nil
+	}
+
+	if err := r.updateSecretWithRetry(ctx, secret, desiredFileBytes); err != nil {
+		return 0, err
+	}
+	return nextRequeue, nil
 }
 
-func parseMonthlyCodes(secret *corev1.Secret, now time.Time) []monthlyCode {
-	monthlyValues := parseMonthlyCodeValues(secret)
-	if len(monthlyValues) == 0 {
-		return nil
-	}
-
-	issuedAt, ok := parseMonthlyIssuedAt(secret, now, len(monthlyValues))
-	if !ok {
-		return nil
-	}
-
-	result := make([]monthlyCode, 0, min(len(monthlyValues), maxMonthlyCodes))
-	seen := make(map[string]struct{}, len(monthlyValues))
-	for i, code := range monthlyValues {
-		if !isValidMonthlyCode(code) {
-			continue
-		}
-		if _, exists := seen[code]; exists {
-			continue
-		}
-		seen[code] = struct{}{}
-		result = append(result, monthlyCode{
-			Value:    code,
-			IssuedAt: issuedAt[i],
-		})
-		if len(result) == maxMonthlyCodes {
-			break
-		}
-	}
-
-	return result
-}
-
-func parseMonthlyCodeValues(secret *corev1.Secret) []string {
+func parseAppCodesFile(secret *corev1.Secret) (appCodesFile, error) {
 	if secret.Data == nil {
-		return nil
+		return appCodesFile{}, nil
 	}
 
 	content, ok := secret.Data[appCodesFileName]
 	if !ok || len(content) == 0 {
-		return nil
+		return appCodesFile{}, nil
 	}
 
 	var parsed appCodesFile
 	if err := json.Unmarshal(content, &parsed); err != nil {
+		return appCodesFile{}, fmt.Errorf("unmarshal app codes file: %w", err)
+	}
+
+	return parsed, nil
+}
+
+func parseCodesForSpec(file appCodesFile, spec codeTypeSpec, now time.Time) ([]appCode, error) {
+	entries := getCodeEntries(file.AppCodes, spec.PropertyName)
+	if len(entries) == 0 {
+		return nil, nil
+	}
+
+	result := make([]appCode, 0, len(entries))
+	seenCodes := make(map[string]struct{}, len(entries))
+	seenIDs := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		if !isValidURLSafeToken(entry.Code, spec.CodeLength) {
+			continue
+		}
+		if _, exists := seenCodes[entry.Code]; exists {
+			continue
+		}
+		seenCodes[entry.Code] = struct{}{}
+
+		id := entry.ID
+		if !isValidURLSafeToken(id, codeIDLength) {
+			var err error
+			id, err = newCodeID()
+			if err != nil {
+				return nil, fmt.Errorf("generate code ID for %s: %w", spec.PropertyName, err)
+			}
+		}
+		if _, exists := seenIDs[id]; exists {
+			var err error
+			id, err = newCodeID()
+			if err != nil {
+				return nil, fmt.Errorf("regenerate duplicate code ID for %s: %w", spec.PropertyName, err)
+			}
+		}
+		seenIDs[id] = struct{}{}
+
+		issuedAt, ok := parseCodeTime(entry.IssuedAt, now)
+		if !ok {
+			issuedAt = now
+		}
+
+		// Expiry is derived from issuance and controller policy so the file can
+		// heal stale or corrupt timestamps without changing acceptance semantics.
+		result = append(result, appCode{
+			Code:      entry.Code,
+			ID:        id,
+			IssuedAt:  issuedAt,
+			ExpiresAt: issuedAt.Add(spec.AcceptLifetime),
+		})
+	}
+
+	normalizeCodeOrder(result)
+	if len(result) > spec.maxRetainedCodes() {
+		result = result[:spec.maxRetainedCodes()]
+	}
+
+	return result, nil
+}
+
+func getCodeEntries(section appCodesSection, propertyName string) []appCodeEntry {
+	switch propertyName {
+	case "NotificationCallback":
+		return section.NotificationCallback
+	case "PaymentsCallback":
+		return section.PaymentsCallback
+	case "WorkflowEngineCallback":
+		return section.WorkflowEngineCallback
+	default:
 		return nil
 	}
-
-	return parsed.AppCodes.Monthly
 }
 
-func parseMonthlyIssuedAt(secret *corev1.Secret, now time.Time, codeCount int) ([]time.Time, bool) {
-	if secret.Annotations == nil {
-		return nil, false
+func setCodeEntries(section *appCodesSection, propertyName string, values []appCodeEntry) {
+	switch propertyName {
+	case "NotificationCallback":
+		section.NotificationCallback = values
+	case "PaymentsCallback":
+		section.PaymentsCallback = values
+	case "WorkflowEngineCallback":
+		section.WorkflowEngineCallback = values
 	}
+}
 
-	raw := secret.Annotations[monthlyIssuedAtAnnotationKey]
+func parseCodeTime(raw string, now time.Time) (time.Time, bool) {
 	if raw == "" {
-		return nil, false
+		return time.Time{}, false
 	}
 
-	var encoded []string
-	if err := json.Unmarshal([]byte(raw), &encoded); err != nil {
-		return nil, false
-	}
-	if len(encoded) != codeCount {
-		return nil, false
+	parsed, err := time.Parse(time.RFC3339, raw)
+	if err != nil || parsed.After(now) {
+		return time.Time{}, false
 	}
 
-	result := make([]time.Time, 0, codeCount)
-	for i := range encoded {
-		ts, err := time.Parse(time.RFC3339, encoded[i])
-		if err != nil || ts.After(now) {
-			return nil, false
-		}
-		result = append(result, ts.UTC())
-	}
-
-	return result, true
+	return parsed.UTC(), true
 }
 
-func buildDesiredMonthlyCodes(current []monthlyCode, now time.Time) ([]monthlyCode, error) {
-	active := make([]monthlyCode, 0, len(current))
+func buildDesiredCodes(spec codeTypeSpec, current []appCode, now time.Time) ([]appCode, error) {
+	active := make([]appCode, 0, len(current))
 	for _, code := range current {
-		if now.Before(code.IssuedAt.Add(monthlyCodeAcceptLifetime)) {
+		if now.Before(code.ExpiresAt) {
 			active = append(active, code)
 		}
 	}
 
 	if len(active) == 0 {
-		code, err := newMonthlyCode(now)
+		code, err := newCode(spec, now)
 		if err != nil {
 			return nil, err
 		}
-		return []monthlyCode{code}, nil
+		return []appCode{code}, nil
 	}
 
-	rotationDueAt := active[0].IssuedAt.Add(monthlyCodeRotationInterval)
-	if len(active) < maxMonthlyCodes && !now.Before(rotationDueAt) {
-		code, err := newMonthlyCode(now)
+	rotationDueAt := active[0].IssuedAt.Add(spec.rotationInterval())
+	if len(active) < spec.maxRetainedCodes() && !now.Before(rotationDueAt) {
+		code, err := newCode(spec, now)
 		if err != nil {
 			return nil, err
 		}
-		active = append([]monthlyCode{code}, active...)
+		active = append([]appCode{code}, active...)
 	}
 
-	if len(active) > maxMonthlyCodes {
-		active = active[:maxMonthlyCodes]
+	normalizeCodeOrder(active)
+	if len(active) > spec.maxRetainedCodes() {
+		active = active[:spec.maxRetainedCodes()]
 	}
 
 	return active, nil
 }
 
-func nextRequeueAfter(monthlyCodes []monthlyCode, now time.Time) time.Duration {
-	if len(monthlyCodes) == 0 {
+func normalizeCodeOrder(codes []appCode) {
+	slices.SortFunc(codes, func(a, b appCode) int {
+		return b.IssuedAt.Compare(a.IssuedAt)
+	})
+}
+
+func nextRequeueAfter(spec codeTypeSpec, codes []appCode, now time.Time) time.Duration {
+	if len(codes) == 0 {
 		return 0
 	}
 
@@ -319,11 +432,11 @@ func nextRequeueAfter(monthlyCodes []monthlyCode, now time.Time) time.Duration {
 		}
 	}
 
-	for _, code := range monthlyCodes {
-		recordCandidate(code.IssuedAt.Add(monthlyCodeAcceptLifetime))
+	for _, code := range codes {
+		recordCandidate(code.ExpiresAt)
 	}
-	if len(monthlyCodes) < maxMonthlyCodes {
-		recordCandidate(monthlyCodes[0].IssuedAt.Add(monthlyCodeRotationInterval))
+	if len(codes) < spec.maxRetainedCodes() {
+		recordCandidate(codes[0].IssuedAt.Add(spec.rotationInterval()))
 	}
 
 	if next.IsZero() {
@@ -332,49 +445,82 @@ func nextRequeueAfter(monthlyCodes []monthlyCode, now time.Time) time.Duration {
 	return next.Sub(now)
 }
 
-func newMonthlyCode(now time.Time) (monthlyCode, error) {
-	value, err := randomutil.GenerateURLSafeString(monthlyCodeLength)
+func minPositiveDuration(current, next time.Duration) time.Duration {
+	if next <= 0 {
+		return current
+	}
+	if current <= 0 || next < current {
+		return next
+	}
+	return current
+}
+
+func newCode(spec codeTypeSpec, now time.Time) (appCode, error) {
+	id, err := newCodeID()
 	if err != nil {
-		return monthlyCode{}, fmt.Errorf("generate monthly code: %w", err)
+		return appCode{}, fmt.Errorf("generate %s code ID: %w", spec.PropertyName, err)
 	}
 
-	return monthlyCode{
-		Value:    value,
-		IssuedAt: now.UTC(),
+	code, err := randomutil.GenerateURLSafeString(spec.CodeLength)
+	if err != nil {
+		return appCode{}, fmt.Errorf("generate %s code: %w", spec.PropertyName, err)
+	}
+
+	return appCode{
+		Code:      code,
+		ID:        id,
+		IssuedAt:  now.UTC(),
+		ExpiresAt: now.UTC().Add(spec.AcceptLifetime),
 	}, nil
 }
 
-func marshalMonthlyCodes(monthlyCodes []monthlyCode) ([]byte, string, error) {
-	monthly := make([]string, 0, len(monthlyCodes))
-	issuedAt := make([]string, 0, len(monthlyCodes))
-	for _, code := range monthlyCodes {
-		monthly = append(monthly, code.Value)
-		issuedAt = append(issuedAt, code.IssuedAt.UTC().Format(time.RFC3339))
-	}
-
-	fileData, err := json.Marshal(appCodesFile{
-		AppCodes: appCodesSection{
-			Monthly: monthly,
-		},
-	})
+func newCodeID() (string, error) {
+	id, err := randomutil.GenerateURLSafeStringFromBytes(codeIDByteLength)
 	if err != nil {
-		return nil, "", fmt.Errorf("marshal app codes file: %w", err)
+		return "", fmt.Errorf("generate code ID: %w", err)
 	}
-
-	issuedAtData, err := json.Marshal(issuedAt)
-	if err != nil {
-		return nil, "", fmt.Errorf("marshal issued-at annotation: %w", err)
+	if !isValidURLSafeToken(id, codeIDLength) {
+		return "", fmt.Errorf("%w: %d", errGeneratedInvalidCodeIDLength, len(id))
 	}
-
-	return fileData, string(issuedAtData), nil
+	return id, nil
 }
 
-func isValidMonthlyCode(code string) bool {
-	if len(code) != monthlyCodeLength {
+func marshalCodeEntries(codes []appCode) []appCodeEntry {
+	values := make([]appCodeEntry, 0, len(codes))
+	for _, code := range codes {
+		values = append(values, appCodeEntry{
+			Code:      code.Code,
+			ExpiresAt: code.ExpiresAt.UTC().Format(time.RFC3339),
+			ID:        code.ID,
+			IssuedAt:  code.IssuedAt.UTC().Format(time.RFC3339),
+		})
+	}
+	return values
+}
+
+func hasObsoleteAppCodesAnnotations(annotations map[string]string) bool {
+	for key := range annotations {
+		if _, ok := obsoleteAppCodesAnnotationKeys[key]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func removeObsoleteAppCodesAnnotations(annotations map[string]string) {
+	for key := range annotations {
+		if _, ok := obsoleteAppCodesAnnotationKeys[key]; ok {
+			delete(annotations, key)
+		}
+	}
+}
+
+func isValidURLSafeToken(value string, expectedLength int) bool {
+	if len(value) != expectedLength {
 		return false
 	}
 
-	for _, ch := range code {
+	for _, ch := range value {
 		if ch >= 'a' && ch <= 'z' {
 			continue
 		}
@@ -397,7 +543,6 @@ func (r *AppCodesSyncReconciler) updateSecretWithRetry(
 	ctx context.Context,
 	secret *corev1.Secret,
 	appCodesFile []byte,
-	issuedAt string,
 ) error {
 	const maxUpdateRetries = 3
 
@@ -409,8 +554,9 @@ func (r *AppCodesSyncReconciler) updateSecretWithRetry(
 		if updatedSecret.Annotations == nil {
 			updatedSecret.Annotations = make(map[string]string)
 		}
+
 		updatedSecret.Data[appCodesFileName] = appCodesFile
-		updatedSecret.Annotations[monthlyIssuedAtAnnotationKey] = issuedAt
+		removeObsoleteAppCodesAnnotations(updatedSecret.Annotations)
 
 		err := r.k8sClient.Update(ctx, updatedSecret)
 		if err == nil {

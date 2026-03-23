@@ -214,7 +214,6 @@ func marshalJSONNoEscape(v any) ([]byte, error) {
 const sanitizedTimestamp = "2024-01-01T00:00:00Z"
 const sanitizedUID = "<sanitized-uid>"
 const sanitizedResourceVersion = "<sanitized-resource-version>"
-const appCodesIssuedAtAnnotationKey = "altinn.studio/app-codes-monthly-issued-at"
 
 // SanitizeMetadata removes/replaces non-deterministic metadata fields.
 func SanitizeMetadata(meta map[string]any) {
@@ -223,8 +222,10 @@ func SanitizeMetadata(meta map[string]any) {
 	meta["creationTimestamp"] = sanitizedTimestamp
 	delete(meta, "managedFields")
 	if annotations, ok := meta["annotations"].(map[string]any); ok {
-		if _, exists := annotations[appCodesIssuedAtAnnotationKey]; exists {
-			annotations[appCodesIssuedAtAnnotationKey] = fmt.Sprintf(`["%s"]`, sanitizedTimestamp)
+		for key := range annotations {
+			if strings.HasPrefix(key, "altinn.studio/app-codes-") && strings.HasSuffix(key, "-issued-at") {
+				delete(annotations, key)
+			}
 		}
 	}
 
@@ -498,10 +499,15 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 func sanitizeSecretSnapshotData(obj map[string]any) {
 	dataField := ensureSecretSnapshotDataField(obj)
 	for key := range dataField {
-		if key != "maskinporten-settings.json" {
+		if key != "maskinporten-settings.json" && key != "app-codes.json" {
 			delete(dataField, key)
 		}
 	}
+	sanitizeMaskinportenSettingsSnapshot(dataField)
+	sanitizeAppCodesSnapshot(dataField)
+}
+
+func sanitizeMaskinportenSettingsSnapshot(dataField map[string]any) {
 	settingsB64, ok := dataField["maskinporten-settings.json"].(string)
 	if !ok {
 		return
@@ -519,6 +525,54 @@ func sanitizeSecretSnapshotData(obj map[string]any) {
 
 	SanitizeSecretContent(settings)
 	dataField["maskinporten-settings.json"] = settings
+}
+
+func sanitizeAppCodesSnapshot(dataField map[string]any) {
+	appCodesB64, ok := dataField["app-codes.json"].(string)
+	if !ok {
+		return
+	}
+
+	appCodesBytes, err := base64.StdEncoding.DecodeString(appCodesB64)
+	if err != nil {
+		return
+	}
+
+	var appCodes map[string]any
+	if json.Unmarshal(appCodesBytes, &appCodes) != nil {
+		return
+	}
+
+	sanitizeAppCodesSecretContent(appCodes)
+	dataField["app-codes.json"] = appCodes
+}
+
+func sanitizeAppCodesSecretContent(appCodes map[string]any) {
+	section, ok := appCodes["AppCodes"].(map[string]any)
+	if !ok {
+		return
+	}
+
+	for _, property := range []string{
+		"NotificationCallback",
+		"PaymentsCallback",
+		"WorkflowEngineCallback",
+	} {
+		entries, ok := section[property].([]any)
+		if !ok {
+			continue
+		}
+		for i, entry := range entries {
+			entryMap, ok := entry.(map[string]any)
+			if !ok {
+				continue
+			}
+			entryMap["Id"] = fmt.Sprintf("<app-code-id>.%d", i)
+			entryMap["Code"] = "<app-code-secret>"
+			entryMap["IssuedAt"] = sanitizedTimestamp
+			entryMap["ExpiresAt"] = sanitizedTimestamp
+		}
+	}
 }
 
 func ensureSecretSnapshotDataField(obj map[string]any) map[string]any {
