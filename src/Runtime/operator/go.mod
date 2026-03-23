@@ -9,7 +9,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.4.0
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/cloudnative-pg/cloudnative-pg v1.28.1
-	github.com/fluxcd/helm-controller/api v1.5.2
+	github.com/fluxcd/helm-controller/api v1.5.3
 	github.com/fluxcd/pkg/apis/meta v1.25.1
 	github.com/fluxcd/source-controller/api v1.8.1
 	github.com/gkampitakis/go-snaps v0.5.21
@@ -21,7 +21,7 @@ require (
 	github.com/grafana/grafana-operator/v5 v5.21.4
 	github.com/knadh/koanf/parsers/dotenv v1.1.1
 	github.com/knadh/koanf/providers/file v1.2.1
-	github.com/knadh/koanf/v2 v2.3.3
+	github.com/knadh/koanf/v2 v2.3.4
 	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.65.0
@@ -32,10 +32,11 @@ require (
 	go.opentelemetry.io/otel/sdk v1.40.0
 	go.opentelemetry.io/otel/sdk/metric v1.40.0
 	go.opentelemetry.io/otel/trace v1.40.0
-	k8s.io/api v0.35.2
-	k8s.io/apiextensions-apiserver v0.35.2
-	k8s.io/apimachinery v0.35.2
-	k8s.io/client-go v0.35.2
+	k8s.io/api v0.35.3
+	k8s.io/apiextensions-apiserver v0.35.3
+	k8s.io/apimachinery v0.35.3
+	k8s.io/client-go v0.35.3
+	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2
 	sigs.k8s.io/controller-runtime v0.23.3
 )
 
@@ -217,7 +218,6 @@ require (
 	helm.sh/helm/v3 v3.20.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e // indirect
-	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
 	oras.land/oras-go/v2 v2.6.0 // indirect
 	sigs.k8s.io/gateway-api v1.3.0 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
