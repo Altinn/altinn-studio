@@ -21,11 +21,17 @@ on:
       environments:
         description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
         required: false
-        default: "at_ring1"
+        default: "tt_ring1"
+      tag-latest:
+        description: 'Tag the GHCR image as "latest"'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
 
@@ -36,6 +42,7 @@ jobs:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-runtime-environments: tt_ring1
 
   push-workflow-engine-app-artifact:
     name: Push workflow-engine-app as OCI artifact
@@ -46,6 +53,7 @@ jobs:
       REGISTRY_NAME: altinncr
       IMAGE_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app:${{ needs.get-short-sha.outputs.short-sha }}
       CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
+      GHCR_IMAGE: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:${{ needs.get-short-sha.outputs.short-sha }}
     outputs:
       config-repo: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
     defaults:
@@ -53,6 +61,19 @@ jobs:
         working-directory: src/Runtime/workflow-engine-app
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -67,12 +88,27 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: docker build
         working-directory: src
-        run: docker build -t ${{ env.IMAGE_REPO }} -f Runtime/workflow-engine-app/Dockerfile .
+        run: |
+          TAGS="-t ${{ env.IMAGE_REPO }} -t ${{ env.GHCR_IMAGE }}"
+          if [ "${{ inputs.tag-latest }}" = "true" ]; then
+            TAGS="$TAGS -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest"
+          fi
+          docker build --platform linux/amd64,linux/arm64 $TAGS -f Runtime/workflow-engine-app/Dockerfile .
 
       - name: push image
         run: docker push ${{ env.IMAGE_REPO }}
+
+      - name: push GHCR image
+        run: |
+          docker push ${{ env.GHCR_IMAGE }}
+          if [ "${{ inputs.tag-latest }}" = "true" ]; then
+            docker push ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest
+          fi
 
       - name: patch base with image tag
         working-directory: src/Runtime/workflow-engine-app/infra/kustomize/base
