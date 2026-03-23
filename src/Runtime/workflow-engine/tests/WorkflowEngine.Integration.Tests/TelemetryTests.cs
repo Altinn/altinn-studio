@@ -279,7 +279,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
     ///     ├── Engine.ProcessStep.{operationId}
     ///     │     └── WorkflowExecutor.Execute
     ///     │           └── WebhookCommand.Execute
-    ///     └── Engine.SubmitStatusUpdate
+    ///     ├── Engine.SubmitStatusUpdate  (step → Processing)
+    ///     ├── Engine.SubmitStatusUpdate  (step done)
+    ///     └── Engine.SubmitStatusUpdate  (workflow done)
     ///
     /// Background — Status write buffer (standalone traces):
     ///   Engine.FlushStatusBatch
@@ -333,9 +335,13 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var webhookCommand = SingleInTrace(collector, processWorkflow.TraceId, "WebhookCommand.Execute");
         AssertChildOf(execute, webhookCommand);
 
-        //     └── Engine.SubmitStatusUpdate
-        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowUpdateBuffer.Submit");
-        AssertChildOf(processWorkflow, submitStatus);
+        //     └── Engine.SubmitStatusUpdate (×3: step→Processing, step done, workflow done)
+        var submitStatuses = collector
+            .GetActivities("WorkflowUpdateBuffer.Submit")
+            .Where(a => a.TraceId == processWorkflow.TraceId)
+            .ToList();
+        Assert.Equal(3, submitStatuses.Count);
+        Assert.All(submitStatuses, s => AssertChildOf(processWorkflow, s));
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)
