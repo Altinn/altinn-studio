@@ -10,12 +10,10 @@ import { translationKey } from 'src/AppComponentsBridge';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useActiveInstances } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import {
-  ActiveInstancesProvider,
-  useActiveInstances,
-} from 'src/features/instantiate/selection/ActiveInstancesProvider';
+import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
@@ -42,16 +40,22 @@ function getDateDisplayString(timeStamp: string) {
   });
 }
 
-export const InstanceSelectionWrapper = () => (
-  <ActiveInstancesProvider>
+export const InstanceSelectionWrapper = () => {
+  const { instances, isLoading } = useActiveInstances(String(useSelectedParty()?.partyId ?? -1));
+  if (isLoading) {
+    return null;
+  }
+  if (!instances || instances.length === 0) {
+    return <InstantiateContainer />;
+  }
+  return (
     <PresentationComponent showNavigation={false}>
-      <InstanceSelection />
+      <InstanceSelection instances={instances} />
     </PresentationComponent>
-  </ActiveInstancesProvider>
-);
+  );
+};
 
-function InstanceSelection() {
-  const _instances = useActiveInstances();
+function InstanceSelection({ instances: _instances }: { instances: ISimpleInstance[] }) {
   const applicationMetadata = getApplicationMetadata();
   const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
@@ -76,10 +80,8 @@ function InstanceSelection() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);
 
-  const sortedInstances = [..._instances].sort(
-    (a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime(),
-  );
-  const instances = instanceSelectionOptions?.sortDirection === 'desc' ? sortedInstances.reverse() : sortedInstances;
+  const sorted = [..._instances].sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());
+  const instances = instanceSelectionOptions?.sortDirection === 'desc' ? sorted.reverse() : sorted;
   const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   function handleRowsPerPageChanged(newRowsPerPage: number) {

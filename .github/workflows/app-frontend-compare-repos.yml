@@ -1,0 +1,54 @@
+name: App Frontend - Compare Repos
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'src/App/frontend/**'
+      - '.github/workflows/app-frontend-compare-repos.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  verify-monorepo-changed-paths:
+    runs-on: ubuntu-latest
+    name: Verify monorepo changed paths
+    defaults:
+      run:
+        working-directory: altinn-studio/src/App/frontend/
+    steps:
+      - name: checkout altinn-studio
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          path: altinn-studio
+
+      - name: checkout app-frontend-react
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          repository: Altinn/app-frontend-react
+          path: app-frontend-react
+
+      - name: install node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: '22'
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('altinn-studio/src/App/frontend/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: install dependencies
+        run: yarn --immutable
+
+      - name: Verify monorepo changed paths
+        run: yarn tsx scripts/compare-frontend-repos.ts verify

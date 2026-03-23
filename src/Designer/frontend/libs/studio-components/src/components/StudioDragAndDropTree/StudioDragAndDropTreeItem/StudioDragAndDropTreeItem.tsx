@@ -54,7 +54,12 @@ export const StudioDragAndDropTreeItem = ({
             icon={icon}
             label={label}
             labelWrapper={(node) => (
-              <div ref={dragHandleRef} className={labelButtonWrapperClass}>
+              <div
+                ref={(element) => {
+                  dragHandleRef(element);
+                }}
+                className={labelButtonWrapperClass}
+              >
                 {renderLabel(node)}
               </div>
             )}

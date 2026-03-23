@@ -23,10 +23,11 @@ export interface SubExpressionContentProps {
   onRemoveSubExpression: (subExpression: SubExpression) => void;
 }
 
-export const SubExpressionContent = (
-  { subExpression, onUpdateSubExpression, onRemoveSubExpression }: SubExpressionContentProps,
-  index,
-) => {
+export const SubExpressionContent = ({
+  subExpression,
+  onUpdateSubExpression,
+  onRemoveSubExpression,
+}: SubExpressionContentProps) => {
   const t = useText();
 
   const allowToSpecifyExpression = Object.values(ExpressionFunction).includes(
