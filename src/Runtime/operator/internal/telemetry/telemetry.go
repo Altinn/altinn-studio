@@ -30,6 +30,12 @@ func Meter() otelmetric.Meter {
 	return otel.Meter(scopeName)
 }
 
+// WithoutSpan keeps cancellation and context values while dropping active span parentage.
+// Use this when handing a request-scoped context to long-lived background loops.
+func WithoutSpan(ctx context.Context) context.Context {
+	return oteltrace.ContextWithSpanContext(ctx, oteltrace.SpanContext{})
+}
+
 func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 

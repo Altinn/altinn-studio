@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -128,6 +129,12 @@ func main() {
 	restConfig := ctrl.GetConfigOrDie()
 	telemetry.WrapTransport(restConfig)
 	syncPeriod := time.Hour * 5
+	const (
+		leaderElectionLeaseDuration = 30 * time.Second
+		leaderElectionRenewDeadline = 20 * time.Second
+		leaderElectionRetryPeriod   = 5 * time.Second
+	)
+	managerCtx := telemetry.WithoutSpan(ctx)
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
@@ -139,6 +146,14 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ec156e4c.altinn.studio",
+		// Stretch the lease timings to reduce steady-state renewal chatter while
+		// keeping multiple renewal attempts before leadership is lost.
+		LeaseDuration: ptr.To(leaderElectionLeaseDuration),
+		RenewDeadline: ptr.To(leaderElectionRenewDeadline),
+		RetryPeriod:   ptr.To(leaderElectionRetryPeriod),
+		BaseContext: func() context.Context {
+			return managerCtx
+		},
 		Cache: cache.Options{
 			// SyncPeriod will force additional reconciliations periodically
 			SyncPeriod: &syncPeriod,
@@ -232,7 +247,7 @@ func main() {
 
 	setupLog.Info("starting manager")
 	span.End()
-	if err = mgr.Start(ctx); err != nil {
+	if err = mgr.Start(managerCtx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
