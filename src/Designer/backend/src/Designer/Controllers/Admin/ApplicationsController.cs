@@ -25,7 +25,7 @@ namespace Altinn.Studio.Admin.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("designer/api/admin/[controller]")]
+[Route("designer/api/v1/admin/[controller]/{org}")]
 public class ApplicationsController : ControllerBase
 {
     private readonly IEnvironmentsService _environmentsService;
@@ -55,7 +55,7 @@ public class ApplicationsController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{org}")]
+    [HttpGet]
     public async Task<ActionResult<Dictionary<string, List<PublishedApplication>>>> GetApplications(
         string org,
         CancellationToken ct
@@ -102,12 +102,12 @@ public class ApplicationsController : ControllerBase
                 g => g.Item1.Name,
                 g =>
                     g.Item2.Select(deployment => new PublishedApplication()
-                        {
-                            Org = deployment.Org,
-                            App = deployment.App,
-                            Env = g.Item1.Name, // deployment.Env uses prod (not production)
-                            Version = deployment.ImageTag,
-                        })
+                    {
+                        Org = deployment.Org,
+                        App = deployment.App,
+                        Env = g.Item1.Name, // deployment.Env uses prod (not production)
+                        Version = deployment.ImageTag,
+                    })
                         .ToList()
             );
 
@@ -132,7 +132,7 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}")]
+    [HttpGet("{env}/{app}")]
     public async Task<ActionResult<PublishedApplicationDetails>> GetApplicationDetails(
         string org,
         string env,
@@ -245,7 +245,7 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/application-metadata")]
+    [HttpGet("{env}/{app}/application-metadata")]
     public async Task<ActionResult<ApplicationMetadata>> GetApplicationMetadata(
         string org,
         string env,
@@ -271,7 +271,7 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/process-metadata")]
+    [HttpGet("{env}/{app}/process-metadata")]
     public async Task<ActionResult<IEnumerable<ProcessTaskMetadata>>> GetProcessMetadata(
         string org,
         string env,
