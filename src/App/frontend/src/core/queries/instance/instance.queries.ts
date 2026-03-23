@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { InstanceApi } from 'src/core/api-client/instance.api';
-import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'src/core/queries/instance/utils';
+import { parseInstanceId } from 'src/core/queries/instance/utils';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import type { Instantiation } from 'src/core/api-client/instance.api';
 
@@ -55,7 +55,7 @@ export function useCreateInstance(language: string) {
       window.logError('Instantiation failed:\n', error);
     },
     onSuccess: (data) => {
-      const { instanceOwnerPartyId, instanceGuid } = extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId(data.id);
+      const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
       const cleaned = removeProcessFromInstance(data);
       queryClient.setQueryData(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }), cleaned);
       queryClient.setQueryData(instanceQueryKeys.current(), cleaned);

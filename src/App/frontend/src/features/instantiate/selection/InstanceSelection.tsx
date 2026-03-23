@@ -10,7 +10,7 @@ import { translationKey } from 'src/AppComponentsBridge';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useActiveInstances } from 'src/core/queries/instance';
+import { parseInstanceId, useActiveInstances } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
@@ -23,6 +23,7 @@ import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
+import { buildInstanceUrl } from 'src/routesBuilder';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -268,12 +269,14 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                   if (selectedParty) {
                     const data = await instantiation.instantiate(selectedParty.partyId, { force: true });
                     if (data) {
+                      const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
+                      const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
                       setNavigationEffect({
-                        targetLocation: `/instance/${data.id}`,
+                        targetLocation: url,
                         matchStart: true,
                         callback: focusMainContent,
                       });
-                      navigate(`/instance/${data.id}`);
+                      navigate(url);
                     }
                   }
                 })
@@ -330,10 +333,12 @@ const openInstance = (
     return;
   }
 
+  const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instanceId);
+  const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
   setNavigationEffect({
-    targetLocation: `/instance/${instanceId}`,
+    targetLocation: url,
     matchStart: true,
     callback: focusMainContent,
   });
-  navigate(`/instance/${instanceId}`);
+  navigate(url);
 };

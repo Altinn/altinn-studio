@@ -1,4 +1,4 @@
-export function extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId(instanceId: string): {
+export function parseInstanceId(instanceId: string): {
   instanceGuid: string;
   instanceOwnerPartyId: string;
 } {

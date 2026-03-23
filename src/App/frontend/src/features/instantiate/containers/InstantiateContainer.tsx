@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Loader } from 'src/core/loading/Loader';
+import { parseInstanceId } from 'src/core/queries/instance';
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { buildInstanceUrl } from 'src/routesBuilder';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -25,10 +27,10 @@ export const InstantiateContainer = () => {
         return;
       }
       const data = await instantiation.instantiate(party.partyId);
-      if (data) {
-        navigate(`/instance/${data.id}`);
-      } else if (instantiation.lastResult) {
-        navigate(`/instance/${instantiation.lastResult.id}`);
+      const instanceId = data?.id ?? instantiation.lastResult?.id;
+      if (instanceId) {
+        const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instanceId);
+        navigate(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
       }
     };
     createInstance();

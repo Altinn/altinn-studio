@@ -7,7 +7,7 @@ import {
   instanceQueryKeys,
   useCreateInstance as useCreateInstanceInternal,
 } from 'src/core/queries/instance/instance.queries';
-import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'src/core/queries/instance/utils';
+import { parseInstanceId } from 'src/core/queries/instance/utils';
 import type { BaseQueryResult } from 'src/core/queries/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance } from 'src/types/shared';
@@ -62,7 +62,7 @@ function invalidateInstanceData(queryClient: QueryClient) {
 }
 
 export {
-  extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId,
+  parseInstanceId,
   invalidateInstanceData,
   prefetchActiveInstances,
   prefetchInstanceData,

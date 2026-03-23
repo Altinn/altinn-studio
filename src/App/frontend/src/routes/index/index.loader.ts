@@ -4,7 +4,7 @@ import type { LoaderFunctionArgs } from 'react-router';
 import type { QueryClient } from '@tanstack/react-query';
 
 import { InstanceApi } from 'src/core/api-client/instance.api';
-import { prefetchActiveInstances } from 'src/core/queries/instance';
+import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
 import { buildInstanceUrl } from 'src/routesBuilder';
@@ -59,7 +59,7 @@ async function handleSelectInstance(queryClient: QueryClient): Promise<Response>
   }
 
   if (activeInstances.length === 1) {
-    const [instanceOwnerPartyId, instanceGuid] = activeInstances[0].id.split('/');
+    const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(activeInstances[0].id);
     return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
   }
 
@@ -68,7 +68,7 @@ async function handleSelectInstance(queryClient: QueryClient): Promise<Response>
 
 async function createInstanceAndRedirect(): Promise<Response> {
   const instance = await InstanceApi.create({ instanceOwnerPartyId: GlobalData.getSelectedParty()!.partyId });
-  const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
+  const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instance.id);
   return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
 }
 
