@@ -17,6 +17,7 @@ import (
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
@@ -27,8 +28,10 @@ type Custom struct {
 	tracer           trace.Tracer
 	logger           *slog.Logger
 	activeSession    atomic.Pointer[browserSession]
+	pdfaConverter    *pdfa.Converter
 	browserVersion   types.BrowserVersion
 	sessionIDCounter atomic.Int32
+	convertToPDFA    bool
 }
 
 // getBrowserVersion starts a temporary browser and retrieves its version information.
@@ -68,10 +71,20 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 func New() (*Custom, error) {
 	logger := log.NewComponent("generator")
 	logger.Info("Starting PDF generator")
+	cfg := config.ReadConfig()
 
 	generator := &Custom{
-		logger: logger,
-		tracer: telemetry.Tracer(),
+		logger:        logger,
+		tracer:        telemetry.Tracer(),
+		convertToPDFA: cfg.ShouldConvertToPDFA(),
+	}
+	if generator.convertToPDFA {
+		generator.pdfaConverter = pdfa.NewConverter()
+		logger.Info(
+			"PDF/A conversion enabled",
+			"environment", cfg.Environment,
+			"service_owner", cfg.ServiceOwner,
+		)
 	}
 
 	go func() {
@@ -139,6 +152,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
 	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
 
+	requestSpan := trace.SpanFromContext(ctx)
 	ctx, span := g.tracer.Start(ctx, "pdf.generate", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
@@ -171,8 +185,27 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			recordPDFError(span, response.Error)
 			return nil, response.Error
 		}
+		pdfData := response.Data
+		if !g.convertToPDFA {
+			g.addPDFAEvent(requestSpan, span, "skipped", false, len(response.Data), 0)
+		} else {
+			if ctx.Err() != nil {
+				g.addPDFAEvent(requestSpan, span, "canceled", false, len(response.Data), 0)
+				pdfErr := types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
+				recordPDFError(span, pdfErr)
+				return nil, pdfErr
+			}
+			var pdfErr *types.PDFError
+			pdfData, pdfErr = g.postProcessPDF(ctx, response.Data)
+			if pdfErr != nil {
+				g.addPDFAEvent(requestSpan, span, "failed", false, len(response.Data), 0)
+				recordPDFError(span, pdfErr)
+				return nil, pdfErr
+			}
+			g.addPDFAEvent(requestSpan, span, "success", true, len(response.Data), len(pdfData))
+		}
 		return &types.PdfResult{
-			Data:    response.Data,
+			Data:    pdfData,
 			Browser: g.browserVersion,
 		}, nil
 	case <-ctx.Done():
@@ -185,6 +218,52 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
 	}
+}
+
+func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *types.PDFError) {
+	assert.That(g.convertToPDFA, "convertToPDFA config must be true for this method")
+	assert.That(g.pdfaConverter != nil, "PDF/A converter must be configured when conversion is enabled")
+	_, span := g.tracer.Start(ctx, "pdf.convert_to_pdfa", trace.WithSpanKind(trace.SpanKindInternal))
+	defer span.End()
+
+	converted, err := g.pdfaConverter.Convert(data)
+	if err != nil {
+		if span.IsRecording() {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "pdfa_conversion_failed")
+		}
+		return nil, types.NewPDFError(types.ErrGenerationFail, "PDF/A conversion failed", err)
+	}
+	return converted, nil
+}
+
+func (g *Custom) addPDFAEvent(
+	requestSpan trace.Span,
+	fallbackSpan trace.Span,
+	status string,
+	applied bool,
+	inputSize int,
+	outputSize int,
+) {
+	targetSpan := requestSpan
+	if !targetSpan.IsRecording() {
+		targetSpan = fallbackSpan
+	}
+	if !targetSpan.IsRecording() {
+		return
+	}
+
+	attrs := []attribute.KeyValue{
+		attribute.Bool("pdf.convert_to_pdfa.enabled", g.convertToPDFA),
+		attribute.Bool("pdf.convert_to_pdfa.applied", applied),
+		attribute.String("pdf.convert_to_pdfa.status", status),
+		attribute.Int("pdf.convert_to_pdfa.input_size_bytes", inputSize),
+	}
+	if outputSize > 0 {
+		attrs = append(attrs, attribute.Int("pdf.convert_to_pdfa.output_size_bytes", outputSize))
+	}
+
+	targetSpan.AddEvent("pdf.convert_to_pdfa", trace.WithAttributes(attrs...))
 }
 
 func (g *Custom) Close() error {

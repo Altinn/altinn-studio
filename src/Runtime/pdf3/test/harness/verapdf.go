@@ -32,6 +32,30 @@ var (
 	veraPDFDuration = regexp.MustCompile(`(<duration[^>]*>)[^<]*(</duration>)`)
 )
 
+func withContainerClient(t *testing.T, run func(container.ContainerClient)) {
+	t.Helper()
+
+	if Runtime != nil {
+		run(Runtime.ContainerClient)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	client, err := container.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Failed to detect container runtime: %v", err)
+	}
+	defer func() {
+		if closeErr := client.Close(); closeErr != nil {
+			t.Logf("Failed to close container client: %v", closeErr)
+		}
+	}()
+
+	run(client)
+}
+
 func EnsureVeraPDFImage(t *testing.T) string {
 	t.Helper()
 
@@ -44,9 +68,11 @@ func EnsureVeraPDFImage(t *testing.T) string {
 	}
 
 	dockerfilePath := filepath.Join(projectRoot, "Dockerfile.verapdf")
-	if err := Runtime.ContainerClient.Build(ctx, projectRoot, dockerfilePath, veraPDFImageTag); err != nil {
-		t.Fatalf("Failed to build veraPDF image: %v", err)
-	}
+	withContainerClient(t, func(client container.ContainerClient) {
+		if buildErr := client.Build(ctx, projectRoot, dockerfilePath, veraPDFImageTag); buildErr != nil {
+			t.Fatalf("Failed to build veraPDF image: %v", buildErr)
+		}
+	})
 
 	return veraPDFImageTag
 }
@@ -65,55 +91,60 @@ func ValidatePDFWithVeraPDF(t *testing.T, pdf []byte) *VeraPDFResult {
 	waitCtx, waitCancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer waitCancel()
 
-	containerID, err := Runtime.ContainerClient.CreateContainer(waitCtx, container.ContainerConfig{
-		Name:   containerName,
-		Image:  image,
-		Detach: true,
-		User:   fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
-		Volumes: []container.VolumeMount{
-			{
-				HostPath:      tempDir,
-				ContainerPath: veraPDFWorkDir,
-				ReadOnly:      true,
+	var result *VeraPDFResult
+	withContainerClient(t, func(client container.ContainerClient) {
+		containerID, err := client.CreateContainer(waitCtx, container.ContainerConfig{
+			Name:   containerName,
+			Image:  image,
+			Detach: true,
+			User:   fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
+			Volumes: []container.VolumeMount{
+				{
+					HostPath:      tempDir,
+					ContainerPath: veraPDFWorkDir,
+					ReadOnly:      true,
+				},
 			},
-		},
-		Command: []string{
-			"--format", "xml",
-			"--defaultflavour", "2b",
-			filepath.Join(veraPDFWorkDir, filepath.Base(inputPath)),
-		},
-	})
-	if err != nil {
-		t.Fatalf("Failed to start veraPDF container: %v", err)
-	}
-	defer func() {
-		if removeErr := Runtime.ContainerClient.ContainerRemove(
-			context.Background(),
-			containerID,
-			true,
-		); removeErr != nil {
-			t.Logf("Failed to remove veraPDF container %s: %v", containerID, removeErr)
+			Command: []string{
+				"--format", "xml",
+				"--defaultflavour", "2b",
+				filepath.Join(veraPDFWorkDir, filepath.Base(inputPath)),
+			},
+		})
+		if err != nil {
+			t.Fatalf("Failed to start veraPDF container: %v", err)
 		}
-	}()
+		defer func() {
+			if removeErr := client.ContainerRemove(
+				context.Background(),
+				containerID,
+				true,
+			); removeErr != nil {
+				t.Logf("Failed to remove veraPDF container %s: %v", containerID, removeErr)
+			}
+		}()
 
-	exitCode, err := Runtime.ContainerClient.ContainerWait(waitCtx, containerID)
-	if err != nil {
-		t.Fatalf("Failed waiting for veraPDF container: %v", err)
-	}
+		exitCode, err := client.ContainerWait(waitCtx, containerID)
+		if err != nil {
+			t.Fatalf("Failed waiting for veraPDF container: %v", err)
+		}
 
-	logsCtx, logsCancel := context.WithTimeout(context.Background(), time.Minute)
-	defer logsCancel()
+		logsCtx, logsCancel := context.WithTimeout(context.Background(), time.Minute)
+		defer logsCancel()
 
-	stdout, stderr, err := readContainerOutput(logsCtx, Runtime.ContainerClient, containerID)
-	if err != nil {
-		t.Fatalf("Failed reading veraPDF container output: %v", err)
-	}
+		stdout, stderr, err := readContainerOutput(logsCtx, client, containerID)
+		if err != nil {
+			t.Fatalf("Failed reading veraPDF container output: %v", err)
+		}
 
-	return &VeraPDFResult{
-		ExitCode: exitCode,
-		Stdout:   stdout,
-		Stderr:   stderr,
-	}
+		result = &VeraPDFResult{
+			ExitCode: exitCode,
+			Stdout:   stdout,
+			Stderr:   stderr,
+		}
+	})
+
+	return result
 }
 
 func readContainerOutput(
