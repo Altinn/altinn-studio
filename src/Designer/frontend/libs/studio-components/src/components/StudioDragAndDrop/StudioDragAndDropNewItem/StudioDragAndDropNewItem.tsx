@@ -27,7 +27,12 @@ export function StudioDragAndDropNewItem<T>({
     canDrag: () => !notDraggable,
   });
   return (
-    <div ref={drag} data-testid={draggableToolbarItemId}>
+    <div
+      ref={(element) => {
+        drag(element);
+      }}
+      data-testid={draggableToolbarItemId}
+    >
       {children}
     </div>
   );

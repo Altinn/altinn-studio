@@ -95,8 +95,8 @@ __metadata:
     "@studio/icons": "workspace:^"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-redux: "npm:9.2.0"
     redux: "npm:5.0.1"
     redux-mock-store: "npm:1.5.5"
@@ -112,8 +112,8 @@ __metadata:
     "@studio/icons": "workspace:^"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     typescript: "npm:5.9.3"
     uuid: "npm:13.0.0"
   languageName: unknown
@@ -2985,10 +2985,10 @@ __metadata:
     eslint-plugin-storybook: "npm:^10.2.11"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:^18.2.0"
+    react: "npm:19.2.4"
     react-dnd: "npm:16.0.1"
     react-dnd-html5-backend: "npm:16.0.1"
-    react-dom: "npm:^18.2.0"
+    react-dom: "npm:19.2.4"
     storybook: "npm:^10.2.11"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.3"
@@ -3097,8 +3097,8 @@ __metadata:
     eslint: "npm:8.57.1"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.3"
     uuid: "npm:13.0.0"
@@ -3117,8 +3117,8 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:5.9.3"
   languageName: unknown
@@ -3812,29 +3812,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*":
-  version: 15.7.15
-  resolution: "@types/prop-types@npm:15.7.15"
-  checksum: 10/31aa2f59b28f24da6fb4f1d70807dae2aedfce090ec63eaf9ea01727a9533ef6eaf017de5bff99fbccad7d1c9e644f52c6c2ba30869465dd22b1a7221c29f356
-  languageName: node
-  linkType: hard
-
-"@types/react-dom@npm:18.3.7":
-  version: 18.3.7
-  resolution: "@types/react-dom@npm:18.3.7"
+"@types/react-dom@npm:19.2.3":
+  version: 19.2.3
+  resolution: "@types/react-dom@npm:19.2.3"
   peerDependencies:
-    "@types/react": ^18.0.0
-  checksum: 10/317569219366d487a3103ba1e5e47154e95a002915fdcf73a44162c48fe49c3a57fcf7f57fc6979e70d447112681e6b13c6c3c1df289db8b544df4aab2d318f3
+    "@types/react": ^19.2.0
+  checksum: 10/616c4a8aee250ea05fb1e7b98e7e00475dd3a6c1c30d7be18b4b93caba832f4203106b3a496a6b147e5acc2da14575eca47bce234c633bca1f8430ef8ffb234a
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.3.28":
-  version: 18.3.28
-  resolution: "@types/react@npm:18.3.28"
+"@types/react@npm:19.2.14":
+  version: 19.2.14
+  resolution: "@types/react@npm:19.2.14"
   dependencies:
-    "@types/prop-types": "npm:*"
     csstype: "npm:^3.2.2"
-  checksum: 10/6db7bb7f19957ee9f530baa7d143527f8befedad1585b064eb80777be0d84621157de75aba4f499ff429b10c5ef0c7d13e89be6bca3296ef71c80472894ff0eb
+  checksum: 10/fbff239089ee64b6bd9b00543594db498278b06de527ef1b0f71bb0eb09cc4445a71b5dd3c0d3d0257255c4eed94406be40a74ad4a987ade8a8d5dd65c82bc5f
   languageName: node
   linkType: hard
 
@@ -4305,8 +4297,8 @@ __metadata:
     i18next: "npm:25.8.14"
     jest: "npm:29.7.0"
     posthog-js: "npm:1.359.1"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-i18next: "npm:16.5.6"
     react-router-dom: "npm:7.13.1"
     typescript: "npm:5.9.3"
@@ -4525,8 +4517,8 @@ __metadata:
     i18next: "npm:25.8.14"
     jest: "npm:29.7.0"
     posthog-js: "npm:1.359.1"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-i18next: "npm:16.5.6"
     react-router-dom: "npm:6.30.3"
     typescript: "npm:5.9.3"
@@ -4539,8 +4531,8 @@ __metadata:
   resolution: "app-preview@workspace:src/Designer/frontend/app-preview"
   dependencies:
     jest: "npm:29.7.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-router-dom: "npm:6.30.3"
     typescript: "npm:5.9.3"
     vite: "npm:^6.3.2"
@@ -4552,13 +4544,13 @@ __metadata:
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
     "@types/bpmn-moddle": "npm:9.0.0"
-    "@types/react": "npm:18.3.28"
+    "@types/react": "npm:19.2.14"
     bpmn-moddle: "npm:9.0.4"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
     qs: "npm:6.15.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-router-dom: "npm:6.30.3"
     typescript: "npm:5.9.3"
   languageName: unknown
@@ -5879,8 +5871,8 @@ __metadata:
   resolution: "dashboard@workspace:src/Designer/frontend/dashboard"
   dependencies:
     jest: "npm:29.7.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-router-dom: "npm:6.30.3"
     typescript: "npm:5.9.3"
     vite: "npm:^6.3.2"
@@ -9988,7 +9980,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -11583,15 +11575,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.3.1, react-dom@npm:^18.2.0":
-  version: 18.3.1
-  resolution: "react-dom@npm:18.3.1"
+"react-dom@npm:19.2.4":
+  version: 19.2.4
+  resolution: "react-dom@npm:19.2.4"
   dependencies:
-    loose-envify: "npm:^1.1.0"
-    scheduler: "npm:^0.23.2"
+    scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^18.3.1
-  checksum: 10/3f4b73a3aa083091173b29812b10394dd06f4ac06aff410b74702cfb3aa29d7b0ced208aab92d5272919b612e5cda21aeb1d54191848cf6e46e9e354f3541f81
+    react: ^19.2.4
+  checksum: 10/ec17721a8cb131bc33480a9f738bc5bbfe4bd11b11cf69f3f473605346578a329ad26ceef6ef0761ea67a4b455803407dd7ed4ba3d8a5abd2cee8c32d221e498
   languageName: node
   linkType: hard
 
@@ -11755,12 +11746,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.3.1, react@npm:^18.2.0":
-  version: 18.3.1
-  resolution: "react@npm:18.3.1"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-  checksum: 10/261137d3f3993eaa2368a83110466fc0e558bc2c7f7ae7ca52d94f03aac945f45146bd85e5f481044db1758a1dbb57879e2fcdd33924e2dde1bdc550ce73f7bf
+"react@npm:19.2.4":
+  version: 19.2.4
+  resolution: "react@npm:19.2.4"
+  checksum: 10/18179fe217f67eb2d0bc61cd04e7ad3c282ea09a1dface7eacd71816f62609f4bbf566c447c704335284deb8397b00bca084e0cd60e6f437279a7498e2d0bfe0
   languageName: node
   linkType: hard
 
@@ -12010,8 +11999,8 @@ __metadata:
     html-react-parser: "npm:^5.2.5"
     jest: "npm:29.7.0"
     markdown-to-jsx: "npm:7.7.17"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     typescript: "npm:5.9.3"
     vite: "npm:^6.3.2"
   languageName: unknown
@@ -12281,15 +12270,6 @@ __metadata:
   dependencies:
     xmlchars: "npm:^2.2.0"
   checksum: 10/97b50daf6ca3a153e89842efa18a862e446248296622b7473c169c84c823ee8a16e4a43bac2f73f11fc8cb9168c73fbb0d73340f26552bac17970e9052367aa9
-  languageName: node
-  linkType: hard
-
-"scheduler@npm:^0.23.2":
-  version: 0.23.2
-  resolution: "scheduler@npm:0.23.2"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-  checksum: 10/e8d68b89d18d5b028223edf090092846868a765a591944760942b77ea1f69b17235f7e956696efbb62c8130ab90af7e0949bfb8eba7896335507317236966bc9
   languageName: node
   linkType: hard
 
@@ -12949,8 +12929,8 @@ __metadata:
     "@testing-library/user-event": "npm:14.6.1"
     "@types/css-modules": "npm:1.0.5"
     "@types/jest": "npm:30.0.0"
-    "@types/react": "npm:18.3.28"
-    "@types/react-dom": "npm:18.3.7"
+    "@types/react": "npm:19.2.14"
+    "@types/react-dom": "npm:19.2.3"
     "@typescript-eslint/eslint-plugin": "npm:7.18.0"
     "@typescript-eslint/parser": "npm:7.18.0"
     "@vitejs/plugin-react": "npm:^5.0.0"
@@ -12977,9 +12957,9 @@ __metadata:
     lint-staged: "npm:16.3.2"
     mini-css-extract-plugin: "npm:2.10.0"
     prettier: "npm:3.8.1"
-    react: "npm:18.3.1"
+    react: "npm:19.2.4"
     react-chartjs-2: "npm:5.3.1"
-    react-dom: "npm:18.3.1"
+    react-dom: "npm:19.2.4"
     react-error-boundary: "npm:6.1.1"
     react-i18next: "npm:16.5.6"
     react-router-dom: "npm:6.30.3"

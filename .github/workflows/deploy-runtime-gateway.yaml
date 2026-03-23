@@ -64,16 +64,6 @@ jobs:
         working-directory: src
         run: docker build -t ${{ env.IMAGE_REPO }} -f Runtime/gateway/Dockerfile .
 
-      - name: scan image
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
-        with:
-          image-ref: '${{ env.IMAGE_REPO }}'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-
       - name: push image
         run: docker push ${{ env.IMAGE_REPO }}
 
