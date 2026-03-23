@@ -14,6 +14,7 @@ interface InstanceQueryParams {
 
 export const instanceQueryKeys = {
   all: () => ['instanceData'] as const,
+  current: () => [...instanceQueryKeys.all(), 'current'] as const,
   instance: ({ instanceOwnerPartyId, instanceGuid }: InstanceQueryParams) =>
     [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
   active: (partyId: string) => [...instanceQueryKeys.all(), 'active', partyId] as const,
@@ -55,8 +56,9 @@ export function useCreateInstance(language: string) {
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId(data.id);
-      const queryKey = instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid });
-      queryClient.setQueryData(queryKey, removeProcessFromInstance(data));
+      const cleaned = removeProcessFromInstance(data);
+      queryClient.setQueryData(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }), cleaned);
+      queryClient.setQueryData(instanceQueryKeys.current(), cleaned);
     },
   });
 }

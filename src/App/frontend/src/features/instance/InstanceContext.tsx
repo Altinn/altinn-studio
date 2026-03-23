@@ -27,7 +27,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
-
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
