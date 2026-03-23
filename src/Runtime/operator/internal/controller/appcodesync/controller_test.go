@@ -120,19 +120,30 @@ func TestReconciler_CreatesCodesForAllTypes(t *testing.T) {
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	g.Expect(updated.Data).To(HaveKey("existing-key"))
 	g.Expect(updated.Data).To(HaveKey(appCodesFileName))
+	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-notificationcallback-issued-at"))
 
 	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
 	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(1))
 	g.Expect(parsed.AppCodes.PaymentsCallback).To(HaveLen(1))
 	g.Expect(parsed.AppCodes.WorkflowEngineCallback).To(HaveLen(1))
-	g.Expect(isValidCode(parsed.AppCodes.NotificationCallback[0], defaultCodeLength)).To(BeTrue())
-	g.Expect(isValidCode(parsed.AppCodes.PaymentsCallback[0], defaultCodeLength)).To(BeTrue())
-	g.Expect(isValidCode(parsed.AppCodes.WorkflowEngineCallback[0], defaultCodeLength)).To(BeTrue())
-	g.Expect(parseIssuedAtAnnotationForTest(t, updated.Annotations[notificationCallbackIssuedAtAnnotationKey])).
-		To(HaveLen(1))
-	g.Expect(parseIssuedAtAnnotationForTest(t, updated.Annotations[paymentsCallbackIssuedAtAnnotationKey])).
-		To(HaveLen(1))
-	g.Expect(parseIssuedAtAnnotationForTest(t, updated.Annotations[workflowIssuedAtAnnotationKey])).To(HaveLen(1))
+	assertGeneratedEntry(
+		g,
+		parsed.AppCodes.NotificationCallback[0],
+		h.clock.Now().UTC(),
+		specByPropertyName("NotificationCallback"),
+	)
+	assertGeneratedEntry(
+		g,
+		parsed.AppCodes.PaymentsCallback[0],
+		h.clock.Now().UTC(),
+		specByPropertyName("PaymentsCallback"),
+	)
+	assertGeneratedEntry(
+		g,
+		parsed.AppCodes.WorkflowEngineCallback[0],
+		h.clock.Now().UTC(),
+		specByPropertyName("WorkflowEngineCallback"),
+	)
 	g.Expect(result.RequeueAfter).To(Equal(baseIssueLifetime - baseRotationLeadTime))
 
 	untouched := &corev1.Secret{}
@@ -140,7 +151,7 @@ func TestReconciler_CreatesCodesForAllTypes(t *testing.T) {
 	g.Expect(untouched.Data).NotTo(HaveKey(appCodesFileName))
 }
 
-func TestReconciler_PreservesUnrelatedAnnotations(t *testing.T) {
+func TestReconciler_PreservesUnrelatedAnnotationsAndRemovesObsoleteAppCodeAnnotations(t *testing.T) {
 	g := NewWithT(t)
 
 	target := &corev1.Secret{
@@ -148,7 +159,9 @@ func TestReconciler_PreservesUnrelatedAnnotations(t *testing.T) {
 			Name:      "ttd-testapp-deployment-secrets",
 			Namespace: "default",
 			Annotations: map[string]string{
-				"other-annotation": "preserved",
+				"other-annotation":                                       "preserved",
+				"altinn.studio/app-codes-monthly-issued-at":              `["2026-03-01T12:00:00Z"]`,
+				"altinn.studio/app-codes-notificationcallback-issued-at": `["2026-03-01T12:00:00Z"]`,
 			},
 		},
 	}
@@ -159,7 +172,8 @@ func TestReconciler_PreservesUnrelatedAnnotations(t *testing.T) {
 	updated := &corev1.Secret{}
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	g.Expect(updated.Annotations).To(HaveKeyWithValue("other-annotation", "preserved"))
-	g.Expect(updated.Annotations).To(HaveKey(notificationCallbackIssuedAtAnnotationKey))
+	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-monthly-issued-at"))
+	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-notificationcallback-issued-at"))
 }
 
 func TestReconciler_IgnoresMatchingSecretOutsideDefaultNamespace(t *testing.T) {
@@ -178,7 +192,6 @@ func TestReconciler_IgnoresMatchingSecretOutsideDefaultNamespace(t *testing.T) {
 	updated := &corev1.Secret{}
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	g.Expect(updated.Data).NotTo(HaveKey(appCodesFileName))
-	g.Expect(updated.Annotations).NotTo(HaveKey(notificationCallbackIssuedAtAnnotationKey))
 	g.Expect(result.RequeueAfter).To(BeZero())
 }
 
@@ -186,18 +199,30 @@ func TestReconciler_RotatesNotificationAndPaymentsBeforeWorkflow(t *testing.T) {
 	g := NewWithT(t)
 
 	now := time.Date(2026, 3, 23, 12, 0, 0, 0, time.UTC)
-	notificationCodes := []issuedCode{{
-		Value:    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-		IssuedAt: now.Add(-baseIssueLifetime + baseRotationLeadTime),
-	}}
-	paymentsCodes := []issuedCode{{
-		Value:    "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-		IssuedAt: now.Add(-baseIssueLifetime + baseRotationLeadTime),
-	}}
-	workflowCodes := []issuedCode{{
-		Value:    "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
-		IssuedAt: now.Add(-10 * 24 * time.Hour),
-	}}
+	notificationCodes := []appCode{
+		testCode(
+			"NotificationCallback",
+			"bbbbbbbbbbbbbbbbbbbbbb",
+			"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+			now.Add(-baseIssueLifetime+baseRotationLeadTime),
+		),
+	}
+	paymentsCodes := []appCode{
+		testCode(
+			"PaymentsCallback",
+			"cccccccccccccccccccccc",
+			"CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+			now.Add(-baseIssueLifetime+baseRotationLeadTime),
+		),
+	}
+	workflowCodes := []appCode{
+		testCode(
+			"WorkflowEngineCallback",
+			"dddddddddddddddddddddd",
+			"DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+			now.Add(-10*24*time.Hour),
+		),
+	}
 
 	target := buildSecretWithCodes(t, notificationCodes, paymentsCodes, workflowCodes)
 	h := newTestHarness(t, target)
@@ -207,10 +232,13 @@ func TestReconciler_RotatesNotificationAndPaymentsBeforeWorkflow(t *testing.T) {
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
 	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(2))
-	g.Expect(parsed.AppCodes.NotificationCallback[1]).To(Equal(notificationCodes[0].Value))
+	g.Expect(parsed.AppCodes.NotificationCallback[1].Code).To(Equal(notificationCodes[0].Code))
+	g.Expect(parsed.AppCodes.NotificationCallback[1].ID).To(Equal(notificationCodes[0].ID))
 	g.Expect(parsed.AppCodes.PaymentsCallback).To(HaveLen(2))
-	g.Expect(parsed.AppCodes.PaymentsCallback[1]).To(Equal(paymentsCodes[0].Value))
-	g.Expect(parsed.AppCodes.WorkflowEngineCallback).To(Equal([]string{workflowCodes[0].Value}))
+	g.Expect(parsed.AppCodes.PaymentsCallback[1].Code).To(Equal(paymentsCodes[0].Code))
+	g.Expect(parsed.AppCodes.PaymentsCallback[1].ID).To(Equal(paymentsCodes[0].ID))
+	g.Expect(parsed.AppCodes.WorkflowEngineCallback).To(HaveLen(1))
+	g.Expect(parsed.AppCodes.WorkflowEngineCallback[0].Code).To(Equal(workflowCodes[0].Code))
 }
 
 func TestReconciler_WorkflowUsesLongerTimings(t *testing.T) {
@@ -218,10 +246,14 @@ func TestReconciler_WorkflowUsesLongerTimings(t *testing.T) {
 
 	now := time.Date(2026, 3, 23, 12, 0, 0, 0, time.UTC)
 	workflowSpec := specByPropertyName("WorkflowEngineCallback")
-	workflowCodes := []issuedCode{{
-		Value:    "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
-		IssuedAt: now.Add(-workflowSpec.rotationInterval()),
-	}}
+	workflowCodes := []appCode{
+		testCode(
+			"WorkflowEngineCallback",
+			"eeeeeeeeeeeeeeeeeeeeee",
+			"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+			now.Add(-workflowSpec.rotationInterval()),
+		),
+	}
 
 	target := buildSecretWithCodes(t, nil, nil, workflowCodes)
 	h := newTestHarness(t, target)
@@ -233,7 +265,8 @@ func TestReconciler_WorkflowUsesLongerTimings(t *testing.T) {
 	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(1))
 	g.Expect(parsed.AppCodes.PaymentsCallback).To(HaveLen(1))
 	g.Expect(parsed.AppCodes.WorkflowEngineCallback).To(HaveLen(2))
-	g.Expect(parsed.AppCodes.WorkflowEngineCallback[1]).To(Equal(workflowCodes[0].Value))
+	g.Expect(parsed.AppCodes.WorkflowEngineCallback[1].Code).To(Equal(workflowCodes[0].Code))
+	g.Expect(parsed.AppCodes.WorkflowEngineCallback[1].ID).To(Equal(workflowCodes[0].ID))
 	g.Expect(result.RequeueAfter).To(Equal(baseIssueLifetime - baseRotationLeadTime))
 }
 
@@ -241,18 +274,30 @@ func TestReconciler_RequeuesForEarliestTypeEvent(t *testing.T) {
 	g := NewWithT(t)
 
 	now := time.Date(2026, 3, 23, 12, 0, 0, 0, time.UTC)
-	notificationCodes := []issuedCode{{
-		Value:    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
-		IssuedAt: now,
-	}}
-	paymentsCodes := []issuedCode{{
-		Value:    "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
-		IssuedAt: now.Add(-2 * 24 * time.Hour),
-	}}
-	workflowCodes := []issuedCode{{
-		Value:    "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
-		IssuedAt: now,
-	}}
+	notificationCodes := []appCode{
+		testCode(
+			"NotificationCallback",
+			"ffffffffffffffffffffff",
+			"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+			now,
+		),
+	}
+	paymentsCodes := []appCode{
+		testCode(
+			"PaymentsCallback",
+			"gggggggggggggggggggggg",
+			"GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+			now.Add(-2*24*time.Hour),
+		),
+	}
+	workflowCodes := []appCode{
+		testCode(
+			"WorkflowEngineCallback",
+			"hhhhhhhhhhhhhhhhhhhhhh",
+			"HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
+			now,
+		),
+	}
 
 	target := buildSecretWithCodes(t, notificationCodes, paymentsCodes, workflowCodes)
 	h := newTestHarness(t, target)
@@ -264,19 +309,25 @@ func TestReconciler_KeepsThreeNotificationCodesAndRequeuesForOldestExpiry(t *tes
 	g := NewWithT(t)
 
 	now := time.Date(2026, 3, 23, 12, 0, 0, 0, time.UTC)
-	notificationCodes := []issuedCode{
-		{
-			Value:    "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
-			IssuedAt: now.Add(-2 * 24 * time.Hour),
-		},
-		{
-			Value:    "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
-			IssuedAt: now.Add(-26 * 24 * time.Hour),
-		},
-		{
-			Value:    "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
-			IssuedAt: now.Add(-50 * 24 * time.Hour),
-		},
+	notificationCodes := []appCode{
+		testCode(
+			"NotificationCallback",
+			"iiiiiiiiiiiiiiiiiiiiii",
+			"IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII",
+			now.Add(-2*24*time.Hour),
+		),
+		testCode(
+			"NotificationCallback",
+			"jjjjjjjjjjjjjjjjjjjjjj",
+			"JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+			now.Add(-26*24*time.Hour),
+		),
+		testCode(
+			"NotificationCallback",
+			"kkkkkkkkkkkkkkkkkkkkkk",
+			"KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+			now.Add(-50*24*time.Hour),
+		),
 	}
 
 	target := buildSecretWithCodes(t, notificationCodes, nil, nil)
@@ -286,10 +337,10 @@ func TestReconciler_KeepsThreeNotificationCodesAndRequeuesForOldestExpiry(t *tes
 	updated := &corev1.Secret{}
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
-	g.Expect(parsed.AppCodes.NotificationCallback).To(Equal([]string{
-		notificationCodes[0].Value,
-		notificationCodes[1].Value,
-		notificationCodes[2].Value,
+	g.Expect(entryCodes(parsed.AppCodes.NotificationCallback)).To(Equal([]string{
+		notificationCodes[0].Code,
+		notificationCodes[1].Code,
+		notificationCodes[2].Code,
 	}))
 	g.Expect(result.RequeueAfter).To(Equal(12 * 24 * time.Hour))
 }
@@ -298,15 +349,19 @@ func TestReconciler_RemovesExpiredNotificationCode(t *testing.T) {
 	g := NewWithT(t)
 
 	now := time.Date(2026, 3, 23, 12, 0, 0, 0, time.UTC)
-	notificationCodes := []issuedCode{
-		{
-			Value:    "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
-			IssuedAt: now.Add(-5 * 24 * time.Hour),
-		},
-		{
-			Value:    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-			IssuedAt: now.Add(-(baseAcceptLifetime + 24*time.Hour)),
-		},
+	notificationCodes := []appCode{
+		testCode(
+			"NotificationCallback",
+			"llllllllllllllllllllll",
+			"LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+			now.Add(-5*24*time.Hour),
+		),
+		testCode(
+			"NotificationCallback",
+			"mmmmmmmmmmmmmmmmmmmmmm",
+			"MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+			now.Add(-(baseAcceptLifetime + 24*time.Hour)),
+		),
 	}
 
 	target := buildSecretWithCodes(t, notificationCodes, nil, nil)
@@ -316,62 +371,25 @@ func TestReconciler_RemovesExpiredNotificationCode(t *testing.T) {
 	updated := &corev1.Secret{}
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
-	g.Expect(parsed.AppCodes.NotificationCallback).To(Equal([]string{notificationCodes[0].Value}))
+	g.Expect(entryCodes(parsed.AppCodes.NotificationCallback)).To(Equal([]string{notificationCodes[0].Code}))
 }
 
-func TestReconciler_PreservesNotificationCodesWhenIssuedAtMetadataMissing(t *testing.T) {
-	g := NewWithT(t)
-
-	const oldCode = "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
-	target := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ttd-testapp-deployment-secrets",
-			Namespace: "default",
-		},
-		Data: map[string][]byte{
-			appCodesFileName: []byte(`{"AppCodes":{"NotificationCallback":["` + oldCode + `"]}}`),
-		},
-	}
-
-	h := newTestHarness(t, target)
-	h.reconcile(t, client.ObjectKeyFromObject(target))
-
-	updated := &corev1.Secret{}
-	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
-	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
-	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(1))
-	g.Expect(parsed.AppCodes.NotificationCallback[0]).To(Equal(oldCode))
-	g.Expect(parseIssuedAtAnnotationForTest(t, updated.Annotations[notificationCallbackIssuedAtAnnotationKey])).
-		To(Equal([]string{h.clock.Now().UTC().Format(time.RFC3339)}))
+func TestReconciler_PreservesNotificationCodesWhenIssuedAtMissing(t *testing.T) {
+	assertNotificationCodeIssuedAtFallback(
+		t,
+		"nnnnnnnnnnnnnnnnnnnnnn",
+		"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+		"",
+	)
 }
 
-func TestReconciler_PreservesNotificationCodesWhenIssuedAtMetadataIsInvalid(t *testing.T) {
-	g := NewWithT(t)
-
-	const oldCode = "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
-	target := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ttd-testapp-deployment-secrets",
-			Namespace: "default",
-			Annotations: map[string]string{
-				notificationCallbackIssuedAtAnnotationKey: `["not-a-timestamp"]`,
-			},
-		},
-		Data: map[string][]byte{
-			appCodesFileName: []byte(`{"AppCodes":{"NotificationCallback":["` + oldCode + `"]}}`),
-		},
-	}
-
-	h := newTestHarness(t, target)
-	h.reconcile(t, client.ObjectKeyFromObject(target))
-
-	updated := &corev1.Secret{}
-	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
-	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
-	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(1))
-	g.Expect(parsed.AppCodes.NotificationCallback[0]).To(Equal(oldCode))
-	g.Expect(parseIssuedAtAnnotationForTest(t, updated.Annotations[notificationCallbackIssuedAtAnnotationKey])).
-		To(Equal([]string{h.clock.Now().UTC().Format(time.RFC3339)}))
+func TestReconciler_PreservesNotificationCodesWhenIssuedAtIsInvalid(t *testing.T) {
+	assertNotificationCodeIssuedAtFallback(
+		t,
+		"oooooooooooooooooooooo",
+		"OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+		`,"IssuedAt":"not-a-timestamp"`,
+	)
 }
 
 func TestReconciler_RetriesOnConflictAndPreservesConcurrentChanges(t *testing.T) {
@@ -383,6 +401,7 @@ func TestReconciler_RetriesOnConflictAndPreservesConcurrentChanges(t *testing.T)
 			Namespace: "default",
 			Annotations: map[string]string{
 				"existing-annotation": "before",
+				"altinn.studio/app-codes-notificationcallback-issued-at": `["2026-03-01T12:00:00Z"]`,
 			},
 		},
 		Data: map[string][]byte{
@@ -420,45 +439,28 @@ func TestReconciler_RetriesOnConflictAndPreservesConcurrentChanges(t *testing.T)
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	g.Expect(conflictInjected).To(BeTrue())
 	g.Expect(updated.Annotations).To(HaveKeyWithValue("existing-annotation", "after-conflict"))
+	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-notificationcallback-issued-at"))
 	g.Expect(updated.Data).To(HaveKeyWithValue("existing-key", []byte("after-conflict")))
 	g.Expect(updated.Data).To(HaveKey(appCodesFileName))
-	g.Expect(updated.Annotations).To(HaveKey(notificationCallbackIssuedAtAnnotationKey))
 }
 
 func buildSecretWithCodes(
 	t *testing.T,
-	notificationCodes []issuedCode,
-	paymentsCodes []issuedCode,
-	workflowCodes []issuedCode,
+	notificationCodes []appCode,
+	paymentsCodes []appCode,
+	workflowCodes []appCode,
 ) *corev1.Secret {
 	t.Helper()
 
 	appCodes := appCodesFile{AppCodes: appCodesSection{}}
-	annotations := make(map[string]string)
-
 	if len(notificationCodes) > 0 {
-		appCodes.AppCodes.NotificationCallback = codeValues(notificationCodes)
-		issuedAt, err := marshalIssuedAtAnnotation(notificationCodes)
-		if err != nil {
-			t.Fatalf("marshal notification issued-at: %v", err)
-		}
-		annotations[notificationCallbackIssuedAtAnnotationKey] = issuedAt
+		appCodes.AppCodes.NotificationCallback = marshalCodeEntries(notificationCodes)
 	}
 	if len(paymentsCodes) > 0 {
-		appCodes.AppCodes.PaymentsCallback = codeValues(paymentsCodes)
-		issuedAt, err := marshalIssuedAtAnnotation(paymentsCodes)
-		if err != nil {
-			t.Fatalf("marshal payments issued-at: %v", err)
-		}
-		annotations[paymentsCallbackIssuedAtAnnotationKey] = issuedAt
+		appCodes.AppCodes.PaymentsCallback = marshalCodeEntries(paymentsCodes)
 	}
 	if len(workflowCodes) > 0 {
-		appCodes.AppCodes.WorkflowEngineCallback = codeValues(workflowCodes)
-		issuedAt, err := marshalIssuedAtAnnotation(workflowCodes)
-		if err != nil {
-			t.Fatalf("marshal workflow issued-at: %v", err)
-		}
-		annotations[workflowIssuedAtAnnotationKey] = issuedAt
+		appCodes.AppCodes.WorkflowEngineCallback = marshalCodeEntries(workflowCodes)
 	}
 
 	data, err := json.Marshal(appCodes)
@@ -468,9 +470,8 @@ func buildSecretWithCodes(
 
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "ttd-testapp-deployment-secrets",
-			Namespace:   "default",
-			Annotations: annotations,
+			Name:      "ttd-testapp-deployment-secrets",
+			Namespace: "default",
 		},
 		Data: map[string][]byte{
 			appCodesFileName: data,
@@ -488,14 +489,63 @@ func parseAppCodesFileForTest(t *testing.T, data []byte) appCodesFile {
 	return parsed
 }
 
-func parseIssuedAtAnnotationForTest(t *testing.T, data string) []string {
+func assertGeneratedEntry(g *WithT, entry appCodeEntry, now time.Time, spec codeTypeSpec) {
+	g.Expect(isValidURLSafeToken(entry.Code, spec.CodeLength)).To(BeTrue())
+	g.Expect(isValidURLSafeToken(entry.ID, codeIDLength)).To(BeTrue())
+	g.Expect(entry.IssuedAt).To(Equal(now.Format(time.RFC3339)))
+	g.Expect(entry.ExpiresAt).To(Equal(now.Add(spec.AcceptLifetime).Format(time.RFC3339)))
+}
+
+func assertNotificationCodeIssuedAtFallback(t *testing.T, oldID, oldCode, extraFields string) {
 	t.Helper()
 
-	var parsed []string
-	if err := json.Unmarshal([]byte(data), &parsed); err != nil {
-		t.Fatalf("failed to parse issued-at annotation: %v", err)
+	g := NewWithT(t)
+	rawFile := fmt.Sprintf(
+		`{"AppCodes":{"NotificationCallback":[{"Id":"%s","Code":"%s"%s}]}}`,
+		oldID,
+		oldCode,
+		extraFields,
+	)
+	target := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ttd-testapp-deployment-secrets",
+			Namespace: "default",
+		},
+		Data: map[string][]byte{
+			appCodesFileName: []byte(rawFile),
+		},
 	}
-	return parsed
+
+	h := newTestHarness(t, target)
+	h.reconcile(t, client.ObjectKeyFromObject(target))
+
+	updated := &corev1.Secret{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
+	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
+	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(1))
+	g.Expect(parsed.AppCodes.NotificationCallback[0].Code).To(Equal(oldCode))
+	g.Expect(parsed.AppCodes.NotificationCallback[0].ID).To(Equal(oldID))
+	g.Expect(parsed.AppCodes.NotificationCallback[0].IssuedAt).To(Equal(h.clock.Now().UTC().Format(time.RFC3339)))
+	g.Expect(parsed.AppCodes.NotificationCallback[0].ExpiresAt).
+		To(Equal(h.clock.Now().UTC().Add(baseAcceptLifetime).Format(time.RFC3339)))
+}
+
+func entryCodes(entries []appCodeEntry) []string {
+	values := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		values = append(values, entry.Code)
+	}
+	return values
+}
+
+func testCode(propertyName, id, code string, issuedAt time.Time) appCode {
+	spec := specByPropertyName(propertyName)
+	return appCode{
+		Code:      code,
+		ID:        id,
+		IssuedAt:  issuedAt.UTC(),
+		ExpiresAt: issuedAt.UTC().Add(spec.AcceptLifetime),
+	}
 }
 
 func applyConcurrentSecretMutation(ctx context.Context, c client.WithWatch, target client.ObjectKey) error {

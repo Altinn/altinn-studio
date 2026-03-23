@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -31,13 +30,11 @@ const (
 	appSecretNameSuffix  = "-deployment-secrets"
 	appCodesFileName     = "app-codes.json"
 	defaultCodeLength    = 32
+	codeIDByteLength     = 16
+	codeIDLength         = 22
 	baseIssueLifetime    = 31 * 24 * time.Hour
 	baseAcceptLifetime   = 62 * 24 * time.Hour
 	baseRotationLeadTime = 7 * 24 * time.Hour
-
-	notificationCallbackIssuedAtAnnotationKey = "altinn.studio/app-codes-notificationcallback-issued-at"
-	paymentsCallbackIssuedAtAnnotationKey     = "altinn.studio/app-codes-paymentscallback-issued-at"
-	workflowIssuedAtAnnotationKey             = "altinn.studio/app-codes-workflowenginecallback-issued-at"
 )
 
 type AppCodesSyncReconciler struct {
@@ -50,20 +47,28 @@ type appCodesFile struct {
 	AppCodes appCodesSection `json:"AppCodes"`
 }
 
-type appCodesSection struct {
-	NotificationCallback   []string `json:"NotificationCallback,omitempty"`
-	PaymentsCallback       []string `json:"PaymentsCallback,omitempty"`
-	WorkflowEngineCallback []string `json:"WorkflowEngineCallback,omitempty"`
+type appCodeEntry struct {
+	Code      string `json:"Code"`
+	ExpiresAt string `json:"ExpiresAt"`
+	ID        string `json:"Id"`
+	IssuedAt  string `json:"IssuedAt"`
 }
 
-type issuedCode struct {
-	IssuedAt time.Time
-	Value    string
+type appCodesSection struct {
+	NotificationCallback   []appCodeEntry `json:"NotificationCallback,omitempty"`
+	PaymentsCallback       []appCodeEntry `json:"PaymentsCallback,omitempty"`
+	WorkflowEngineCallback []appCodeEntry `json:"WorkflowEngineCallback,omitempty"`
+}
+
+type appCode struct {
+	IssuedAt  time.Time
+	ExpiresAt time.Time
+	Code      string
+	ID        string
 }
 
 type codeTypeSpec struct {
 	PropertyName     string
-	AnnotationKey    string
 	CodeLength       int
 	IssueLifetime    time.Duration
 	AcceptLifetime   time.Duration
@@ -85,7 +90,6 @@ func (s codeTypeSpec) maxRetainedCodes() int {
 var codeTypeSpecs = []codeTypeSpec{
 	{
 		PropertyName:     "NotificationCallback",
-		AnnotationKey:    notificationCallbackIssuedAtAnnotationKey,
 		CodeLength:       defaultCodeLength,
 		IssueLifetime:    baseIssueLifetime,
 		AcceptLifetime:   baseAcceptLifetime,
@@ -93,7 +97,6 @@ var codeTypeSpecs = []codeTypeSpec{
 	},
 	{
 		PropertyName:     "PaymentsCallback",
-		AnnotationKey:    paymentsCallbackIssuedAtAnnotationKey,
 		CodeLength:       defaultCodeLength,
 		IssueLifetime:    baseIssueLifetime,
 		AcceptLifetime:   baseAcceptLifetime,
@@ -101,7 +104,6 @@ var codeTypeSpecs = []codeTypeSpec{
 	},
 	{
 		PropertyName:     "WorkflowEngineCallback",
-		AnnotationKey:    workflowIssuedAtAnnotationKey,
 		CodeLength:       defaultCodeLength,
 		IssueLifetime:    baseIssueLifetime * 3,
 		AcceptLifetime:   baseAcceptLifetime * 3,
@@ -112,6 +114,14 @@ var codeTypeSpecs = []codeTypeSpec{
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;update
 
 var errSecretUpdateRetryExhausted = errors.New("failed to update secret after conflict retries")
+var errGeneratedInvalidCodeIDLength = errors.New("generated invalid code ID length")
+
+var obsoleteAppCodesAnnotationKeys = map[string]struct{}{
+	"altinn.studio/app-codes-monthly-issued-at":                {},
+	"altinn.studio/app-codes-notificationcallback-issued-at":   {},
+	"altinn.studio/app-codes-paymentscallback-issued-at":       {},
+	"altinn.studio/app-codes-workflowenginecallback-issued-at": {},
+}
 
 func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *AppCodesSyncReconciler {
 	return &AppCodesSyncReconciler{
@@ -211,26 +221,22 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 	now := r.runtime.GetClock().Now().UTC()
 	currentFile := parseAppCodesFile(secret)
 	desiredFile := appCodesFile{AppCodes: appCodesSection{}}
-	desiredAnnotations := make(map[string]string, len(codeTypeSpecs))
 
 	var nextRequeue time.Duration
 	for _, spec := range codeTypeSpecs {
-		current := parseCodesForSpec(secret, currentFile, spec, now)
+		current, err := parseCodesForSpec(currentFile, spec, now)
+		if err != nil {
+			span.RecordError(err)
+			return 0, fmt.Errorf("parse current codes for %s: %w", spec.PropertyName, err)
+		}
+
 		desired, err := buildDesiredCodes(spec, current, now)
 		if err != nil {
 			span.RecordError(err)
 			return 0, fmt.Errorf("build desired codes for %s: %w", spec.PropertyName, err)
 		}
 
-		setCodeValues(&desiredFile.AppCodes, spec.PropertyName, codeValues(desired))
-
-		issuedAt, err := marshalIssuedAtAnnotation(desired)
-		if err != nil {
-			span.RecordError(err)
-			return 0, fmt.Errorf("marshal issued-at for %s: %w", spec.PropertyName, err)
-		}
-		desiredAnnotations[spec.AnnotationKey] = issuedAt
-
+		setCodeEntries(&desiredFile.AppCodes, spec.PropertyName, marshalCodeEntries(desired))
 		nextRequeue = minPositiveDuration(nextRequeue, nextRequeueAfter(spec, desired, now))
 	}
 
@@ -245,12 +251,11 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 		currentFileBytes = secret.Data[appCodesFileName]
 	}
 
-	if slices.Equal(currentFileBytes, desiredFileBytes) &&
-		managedAnnotationsEqual(secret.Annotations, desiredAnnotations) {
+	if slices.Equal(currentFileBytes, desiredFileBytes) && !hasObsoleteAppCodesAnnotations(secret.Annotations) {
 		return nextRequeue, nil
 	}
 
-	if err := r.updateSecretWithRetry(ctx, secret, desiredFileBytes, desiredAnnotations); err != nil {
+	if err := r.updateSecretWithRetry(ctx, secret, desiredFileBytes); err != nil {
 		return 0, err
 	}
 	return nextRequeue, nil
@@ -274,43 +279,63 @@ func parseAppCodesFile(secret *corev1.Secret) appCodesFile {
 	return parsed
 }
 
-func parseCodesForSpec(secret *corev1.Secret, file appCodesFile, spec codeTypeSpec, now time.Time) []issuedCode {
-	values := getCodeValues(file.AppCodes, spec.PropertyName)
-	if len(values) == 0 {
-		return nil
+func parseCodesForSpec(file appCodesFile, spec codeTypeSpec, now time.Time) ([]appCode, error) {
+	entries := getCodeEntries(file.AppCodes, spec.PropertyName)
+	if len(entries) == 0 {
+		return nil, nil
 	}
 
-	issuedAt, ok := parseIssuedAtAnnotation(secret.Annotations, spec.AnnotationKey, len(values), now)
-	result := make([]issuedCode, 0, min(len(values), spec.maxRetainedCodes()))
-	seen := make(map[string]struct{}, len(values))
-	for i, value := range values {
-		if !isValidCode(value, spec.CodeLength) {
+	result := make([]appCode, 0, min(len(entries), spec.maxRetainedCodes()))
+	seenCodes := make(map[string]struct{}, len(entries))
+	seenIDs := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		if !isValidURLSafeToken(entry.Code, spec.CodeLength) {
 			continue
 		}
-		if _, exists := seen[value]; exists {
+		if _, exists := seenCodes[entry.Code]; exists {
 			continue
 		}
-		seen[value] = struct{}{}
+		seenCodes[entry.Code] = struct{}{}
 
-		codeIssuedAt := now.UTC()
-		if ok {
-			codeIssuedAt = issuedAt[i]
+		id := entry.ID
+		if !isValidURLSafeToken(id, codeIDLength) {
+			var err error
+			id, err = newCodeID()
+			if err != nil {
+				return nil, fmt.Errorf("generate code ID for %s: %w", spec.PropertyName, err)
+			}
 		}
-		// If the metadata is lost or corrupted, keep existing valid codes and
-		// treat them as newly issued rather than invalidating active consumers.
-		result = append(result, issuedCode{
-			Value:    value,
-			IssuedAt: codeIssuedAt,
+		if _, exists := seenIDs[id]; exists {
+			var err error
+			id, err = newCodeID()
+			if err != nil {
+				return nil, fmt.Errorf("regenerate duplicate code ID for %s: %w", spec.PropertyName, err)
+			}
+		}
+		seenIDs[id] = struct{}{}
+
+		issuedAt, ok := parseCodeTime(entry.IssuedAt, now)
+		if !ok {
+			issuedAt = now
+		}
+
+		// Expiry is derived from issuance and controller policy so the file can
+		// heal stale or corrupt timestamps without changing acceptance semantics.
+		result = append(result, appCode{
+			Code:      entry.Code,
+			ID:        id,
+			IssuedAt:  issuedAt,
+			ExpiresAt: issuedAt.Add(spec.AcceptLifetime),
 		})
 		if len(result) == spec.maxRetainedCodes() {
 			break
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-func getCodeValues(section appCodesSection, propertyName string) []string {
+func getCodeEntries(section appCodesSection, propertyName string) []appCodeEntry {
 	switch propertyName {
 	case "NotificationCallback":
 		return section.NotificationCallback
@@ -323,7 +348,7 @@ func getCodeValues(section appCodesSection, propertyName string) []string {
 	}
 }
 
-func setCodeValues(section *appCodesSection, propertyName string, values []string) {
+func setCodeEntries(section *appCodesSection, propertyName string, values []appCodeEntry) {
 	switch propertyName {
 	case "NotificationCallback":
 		section.NotificationCallback = values
@@ -334,45 +359,23 @@ func setCodeValues(section *appCodesSection, propertyName string, values []strin
 	}
 }
 
-func parseIssuedAtAnnotation(
-	annotations map[string]string,
-	annotationKey string,
-	codeCount int,
-	now time.Time,
-) ([]time.Time, bool) {
-	if annotations == nil {
-		return nil, false
-	}
-
-	raw := annotations[annotationKey]
+func parseCodeTime(raw string, now time.Time) (time.Time, bool) {
 	if raw == "" {
-		return nil, false
+		return time.Time{}, false
 	}
 
-	var encoded []string
-	if err := json.Unmarshal([]byte(raw), &encoded); err != nil {
-		return nil, false
-	}
-	if len(encoded) != codeCount {
-		return nil, false
+	parsed, err := time.Parse(time.RFC3339, raw)
+	if err != nil || parsed.After(now) {
+		return time.Time{}, false
 	}
 
-	result := make([]time.Time, 0, codeCount)
-	for i := range encoded {
-		ts, err := time.Parse(time.RFC3339, encoded[i])
-		if err != nil || ts.After(now) {
-			return nil, false
-		}
-		result = append(result, ts.UTC())
-	}
-
-	return result, true
+	return parsed.UTC(), true
 }
 
-func buildDesiredCodes(spec codeTypeSpec, current []issuedCode, now time.Time) ([]issuedCode, error) {
-	active := make([]issuedCode, 0, len(current))
+func buildDesiredCodes(spec codeTypeSpec, current []appCode, now time.Time) ([]appCode, error) {
+	active := make([]appCode, 0, len(current))
 	for _, code := range current {
-		if now.Before(code.IssuedAt.Add(spec.AcceptLifetime)) {
+		if now.Before(code.ExpiresAt) {
 			active = append(active, code)
 		}
 	}
@@ -382,7 +385,7 @@ func buildDesiredCodes(spec codeTypeSpec, current []issuedCode, now time.Time) (
 		if err != nil {
 			return nil, err
 		}
-		return []issuedCode{code}, nil
+		return []appCode{code}, nil
 	}
 
 	rotationDueAt := active[0].IssuedAt.Add(spec.rotationInterval())
@@ -391,7 +394,7 @@ func buildDesiredCodes(spec codeTypeSpec, current []issuedCode, now time.Time) (
 		if err != nil {
 			return nil, err
 		}
-		active = append([]issuedCode{code}, active...)
+		active = append([]appCode{code}, active...)
 	}
 
 	if len(active) > spec.maxRetainedCodes() {
@@ -401,7 +404,7 @@ func buildDesiredCodes(spec codeTypeSpec, current []issuedCode, now time.Time) (
 	return active, nil
 }
 
-func nextRequeueAfter(spec codeTypeSpec, codes []issuedCode, now time.Time) time.Duration {
+func nextRequeueAfter(spec codeTypeSpec, codes []appCode, now time.Time) time.Duration {
 	if len(codes) == 0 {
 		return 0
 	}
@@ -417,7 +420,7 @@ func nextRequeueAfter(spec codeTypeSpec, codes []issuedCode, now time.Time) time
 	}
 
 	for _, code := range codes {
-		recordCandidate(code.IssuedAt.Add(spec.AcceptLifetime))
+		recordCandidate(code.ExpiresAt)
 	}
 	if len(codes) < spec.maxRetainedCodes() {
 		recordCandidate(codes[0].IssuedAt.Add(spec.rotationInterval()))
@@ -439,70 +442,72 @@ func minPositiveDuration(current, next time.Duration) time.Duration {
 	return current
 }
 
-func newCode(spec codeTypeSpec, now time.Time) (issuedCode, error) {
-	value, err := randomutil.GenerateURLSafeString(spec.CodeLength)
+func newCode(spec codeTypeSpec, now time.Time) (appCode, error) {
+	id, err := newCodeID()
 	if err != nil {
-		return issuedCode{}, fmt.Errorf("generate %s code: %w", spec.PropertyName, err)
+		return appCode{}, fmt.Errorf("generate %s code ID: %w", spec.PropertyName, err)
 	}
 
-	return issuedCode{
-		Value:    value,
-		IssuedAt: now.UTC(),
+	code, err := randomutil.GenerateURLSafeString(spec.CodeLength)
+	if err != nil {
+		return appCode{}, fmt.Errorf("generate %s code: %w", spec.PropertyName, err)
+	}
+
+	return appCode{
+		Code:      code,
+		ID:        id,
+		IssuedAt:  now.UTC(),
+		ExpiresAt: now.UTC().Add(spec.AcceptLifetime),
 	}, nil
 }
 
-func codeValues(codes []issuedCode) []string {
-	values := make([]string, 0, len(codes))
+func newCodeID() (string, error) {
+	id, err := randomutil.GenerateURLSafeStringFromBytes(codeIDByteLength)
+	if err != nil {
+		return "", fmt.Errorf("generate code ID: %w", err)
+	}
+	if !isValidURLSafeToken(id, codeIDLength) {
+		return "", fmt.Errorf("%w: %d", errGeneratedInvalidCodeIDLength, len(id))
+	}
+	return id, nil
+}
+
+func marshalCodeEntries(codes []appCode) []appCodeEntry {
+	values := make([]appCodeEntry, 0, len(codes))
 	for _, code := range codes {
-		values = append(values, code.Value)
+		values = append(values, appCodeEntry{
+			Code:      code.Code,
+			ExpiresAt: code.ExpiresAt.UTC().Format(time.RFC3339),
+			ID:        code.ID,
+			IssuedAt:  code.IssuedAt.UTC().Format(time.RFC3339),
+		})
 	}
 	return values
 }
 
-func marshalIssuedAtAnnotation(codes []issuedCode) (string, error) {
-	issuedAt := make([]string, 0, len(codes))
-	for _, code := range codes {
-		issuedAt = append(issuedAt, code.IssuedAt.UTC().Format(time.RFC3339))
-	}
-
-	data, err := json.Marshal(issuedAt)
-	if err != nil {
-		return "", fmt.Errorf("marshal issued-at annotation: %w", err)
-	}
-	return string(data), nil
-}
-
-func managedAnnotationsEqual(current, desired map[string]string) bool {
-	for key, value := range desired {
-		if current == nil || current[key] != value {
-			return false
-		}
-	}
-
-	for key := range current {
-		if isAppCodesAnnotationKey(key) && desired[key] == "" {
-			return false
-		}
-	}
-
-	return true
-}
-
-func isAppCodesAnnotationKey(key string) bool {
-	for _, spec := range codeTypeSpecs {
-		if key == spec.AnnotationKey {
+func hasObsoleteAppCodesAnnotations(annotations map[string]string) bool {
+	for key := range annotations {
+		if _, ok := obsoleteAppCodesAnnotationKeys[key]; ok {
 			return true
 		}
 	}
 	return false
 }
 
-func isValidCode(code string, codeLength int) bool {
-	if len(code) != codeLength {
+func removeObsoleteAppCodesAnnotations(annotations map[string]string) {
+	for key := range annotations {
+		if _, ok := obsoleteAppCodesAnnotationKeys[key]; ok {
+			delete(annotations, key)
+		}
+	}
+}
+
+func isValidURLSafeToken(value string, expectedLength int) bool {
+	if len(value) != expectedLength {
 		return false
 	}
 
-	for _, ch := range code {
+	for _, ch := range value {
 		if ch >= 'a' && ch <= 'z' {
 			continue
 		}
@@ -525,7 +530,6 @@ func (r *AppCodesSyncReconciler) updateSecretWithRetry(
 	ctx context.Context,
 	secret *corev1.Secret,
 	appCodesFile []byte,
-	issuedAtAnnotations map[string]string,
 ) error {
 	const maxUpdateRetries = 3
 
@@ -539,12 +543,7 @@ func (r *AppCodesSyncReconciler) updateSecretWithRetry(
 		}
 
 		updatedSecret.Data[appCodesFileName] = appCodesFile
-		for key := range updatedSecret.Annotations {
-			if isAppCodesAnnotationKey(key) {
-				delete(updatedSecret.Annotations, key)
-			}
-		}
-		maps.Copy(updatedSecret.Annotations, issuedAtAnnotations)
+		removeObsoleteAppCodesAnnotations(updatedSecret.Annotations)
 
 		err := r.k8sClient.Update(ctx, updatedSecret)
 		if err == nil {
