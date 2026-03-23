@@ -98,6 +98,7 @@ type kubernetesAPITransport struct {
 	base http.RoundTripper
 }
 
+//nolint:wrapcheck // Preserve the exact transport error so callers can keep type-based handling.
 func (t *kubernetesAPITransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if t.base == nil {
 		t.base = http.DefaultTransport
@@ -105,10 +106,7 @@ func (t *kubernetesAPITransport) RoundTrip(req *http.Request) (*http.Response, e
 
 	res, err := t.base.RoundTrip(req)
 	if err != nil || res == nil || res.StatusCode != http.StatusNotFound || !isExpectedNotFoundKubernetesRequest(req) {
-		if err != nil {
-			return res, fmt.Errorf("round trip kubernetes API request: %w", err)
-		}
-		return res, nil
+		return res, err
 	}
 
 	const azureMonitorExpected404Attribute = "azuremonitor.expected_404"
