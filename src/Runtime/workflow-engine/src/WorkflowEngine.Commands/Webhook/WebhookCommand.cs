@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using WorkflowEngine.Commands.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -84,11 +85,19 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
         var statusCode = (int)response.StatusCode;
         var errorBody = await response.GetContentOrDefault("<no body content>", cancellationToken);
 
-        // 4xx client errors (except 408/429) are not worth retrying
-        if (statusCode is >= 400 and < 500 and not 408 and not 429)
-            return ExecutionResult.CriticalError($"Webhook failed with client error {statusCode}: {errorBody}");
+        IReadOnlyList<int> nonRetryable =
+            context.Step.RetryStrategy?.NonRetryableHttpStatusCodes ?? RetryStrategy.DefaultNonRetryableHttpStatusCodes;
 
-        return ExecutionResult.RetryableError($"Webhook execution failed with status {statusCode}: {errorBody}");
+        if (nonRetryable.Contains(statusCode))
+            return ExecutionResult.CriticalError(
+                $"Webhook failed with non-retryable status {statusCode}: {errorBody}",
+                httpStatusCode: statusCode
+            );
+
+        return ExecutionResult.RetryableError(
+            $"Webhook execution failed with status {statusCode}: {errorBody}",
+            httpStatusCode: statusCode
+        );
     }
 
     private async Task<HttpResponseMessage> Post(

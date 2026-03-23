@@ -1,6 +1,6 @@
 /* Card rendering — shared by live, recent, and query views */
 
-import { parseTransition, stepSubLabel, state, workflowData } from '../core/state.js';
+import { stepSubLabel, state, workflowData } from '../core/state.js';
 import { esc, formatElapsed, fmtTime } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
@@ -102,9 +102,17 @@ const buildTimestampsHTML = (wf, isStatic) => {
 const buildLabelsHTML = (wf, interactive) => {
     let html = '';
     if (interactive) {
-        html += `<span class="seg ns" onclick="toggleLabelFilter('namespace','${esc(wf.namespace)}')" title="Filter by namespace">${esc(wf.namespace)}</span>`;
+        html += `<span class="seg key" onclick="toggleLabelFilter('namespace','${esc(wf.namespace)}')" title="Filter by namespace">${esc(wf.namespace)}</span>`;
     } else {
-        html += `<span class="seg ns">${esc(wf.namespace)}</span>`;
+        html += `<span class="seg key">${esc(wf.namespace)}</span>`;
+    }
+    if (wf.correlationId) {
+        html += `<span class="seg-sep">/</span>`;
+        if (interactive) {
+            html += `<span class="seg key" onclick="toggleLabelFilter('correlationId','${esc(wf.correlationId)}')" title="Filter by correlationId">${esc(wf.correlationId)}</span>`;
+        } else {
+            html += `<span class="seg key" title="correlationId">${esc(wf.correlationId)}</span>`;
+        }
     }
     if (wf.labels) {
         for (const [key, value] of Object.entries(wf.labels)) {
@@ -126,14 +134,9 @@ const buildLabelsHTML = (wf, interactive) => {
  */
 export const buildCardHTML = (wf, isStatic) => {
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
-    const tx = parseTransition(wf);
-    const wfLabel = tx
-        ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}`
-        : wf.operationId;
-
     let html = `<div class="card-header">`;
     html += buildLabelsHTML(wf, true);
-    html += `<span class="wf-name">${esc(wfLabel)}</span>`;
+    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
     html += `<span class="header-spacer"></span>`;
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
@@ -155,14 +158,9 @@ export const buildCardHTML = (wf, isStatic) => {
  */
 export const buildCompactCardHTML = (wf, isStatic) => {
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
-    const tx = parseTransition(wf);
-    const wfLabel = tx
-        ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}`
-        : wf.operationId;
-
     let html = `<div class="compact-row">`;
     html += buildLabelsHTML(wf, true);
-    html += `<span class="compact-name">${esc(wfLabel)}</span>`;
+    html += `<span class="compact-name">${esc(wf.operationId)}</span>`;
 
     html += `<div class="compact-pipeline">`;
     for (const step of wf.steps) {
@@ -191,11 +189,9 @@ export const buildCompactCardHTML = (wf, isStatic) => {
  * @returns {string}
  */
 export const buildScheduledCardHTML = (wf) => {
-    const tx = parseTransition(wf);
-    const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
     let html = `<div class="card-header">`;
     html += buildLabelsHTML(wf, false);
-    html += `<span class="wf-name">${esc(wfLabel)}</span>`;
+    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
     html += `<span class="header-spacer"></span>`;
     if (wf.startAt) {
         html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
@@ -213,11 +209,9 @@ export const buildScheduledCardHTML = (wf) => {
  * @returns {string}
  */
 export const buildCompactScheduledCardHTML = (wf) => {
-    const tx = parseTransition(wf);
-    const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
     let html = `<div class="compact-row">`;
     html += buildLabelsHTML(wf, false);
-    html += `<span class="compact-name">${esc(wfLabel)}</span>`;
+    html += `<span class="compact-name">${esc(wf.operationId)}</span>`;
     html += `<div class="compact-pipeline">`;
     for (const step of wf.steps) {
         html += `<span class="compact-dot ${step.status}" title="${esc(step.commandDetail)} (${step.status})"></span>`;
@@ -281,6 +275,7 @@ export const setCardFilterData = (card, wf) => {
     card.dataset.filter = buildFilterText(wf);
     card.dataset.status = buildStatusTags(wf);
     card.dataset.namespace = wf.namespace.toLowerCase();
+    if (wf.correlationId) card.dataset.correlationid = wf.correlationId.toLowerCase();
     if (wf.labels) {
         card.dataset.labels = Object.entries(wf.labels)
             .map(([k, v]) => `${k}:${v}`)

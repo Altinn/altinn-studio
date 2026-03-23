@@ -48,7 +48,12 @@ internal sealed class EngineDbContext : DbContext
                     $"\"Status\" IN ({(int)PersistentItemStatus.Completed}, {(int)PersistentItemStatus.Failed}, {(int)PersistentItemStatus.Canceled}, {(int)PersistentItemStatus.DependencyFailed})"
                 );
             entity.HasIndex(e => e.Labels).HasMethod("gin");
-            entity.Property(e => e.Labels).HasConversion(LabelsJsonb.Converter, LabelsJsonb.Comparer);
+            entity
+                .Property(e => e.Labels)
+                .HasConversion(
+                    JsonbConverter<Dictionary<string, string>>.Converter,
+                    JsonbConverter<Dictionary<string, string>>.Comparer
+                );
 
             // Self-referencing many-to-many: a workflow can depend on many other workflows
             entity
@@ -86,7 +91,15 @@ internal sealed class EngineDbContext : DbContext
         {
             entity.HasIndex(e => new { e.JobId, e.Status });
             entity.HasIndex(e => e.Labels).HasMethod("gin");
-            entity.Property(e => e.Labels).HasConversion(LabelsJsonb.Converter, LabelsJsonb.Comparer);
+            entity
+                .Property(e => e.Labels)
+                .HasConversion(
+                    JsonbConverter<Dictionary<string, string>>.Converter,
+                    JsonbConverter<Dictionary<string, string>>.Comparer
+                );
+            entity
+                .Property(e => e.ErrorHistory)
+                .HasConversion(JsonbConverter<List<ErrorEntry>>.Converter, JsonbConverter<List<ErrorEntry>>.Comparer);
         });
 
         // Configure IdempotencyKey entity
@@ -98,49 +111,26 @@ internal sealed class EngineDbContext : DbContext
     }
 
     /// <summary>
-    /// EF Core value converter + comparer for <c>Dictionary&lt;string,string&gt;? ↔ jsonb</c>.
+    /// Generic EF Core value converter + comparer for <c>T? ↔ jsonb</c>.
     /// The converter is needed because our <see cref="SqlBulkInserter"/> uses COPY BINARY
     /// (Npgsql handles jsonb natively for normal EF queries). The comparer enables correct
     /// change tracking and silences EF warning 10620.
     /// </summary>
-    private static class LabelsJsonb
+    private static class JsonbConverter<T>
+        where T : class
     {
-        public static readonly ValueConverter<Dictionary<string, string>?, string> Converter = new(
+        public static readonly ValueConverter<T?, string> Converter = new(
             v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
-            v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, JsonSerializerOptions.Default)
+            v => JsonSerializer.Deserialize<T>(v, JsonSerializerOptions.Default)!
         );
 
-        public static readonly ValueComparer<Dictionary<string, string>?> Comparer = new(
-            equalsExpression: (a, b) => AreEqual(a, b),
-            hashCodeExpression: v => GetHashCode(v),
-            snapshotExpression: v => Snapshot(v)
+        public static readonly ValueComparer<T?> Comparer = new(
+            equalsExpression: (a, b) => Serialize(a) == Serialize(b),
+            hashCodeExpression: v => Serialize(v).GetHashCode(),
+            snapshotExpression: v =>
+                v == null ? null : JsonSerializer.Deserialize<T>(Serialize(v), JsonSerializerOptions.Default)
         );
 
-        private static bool AreEqual(Dictionary<string, string>? a, Dictionary<string, string>? b)
-        {
-            if (a is null)
-                return b is null;
-            if (b is null || a.Count != b.Count)
-                return false;
-            foreach (var (key, value) in a)
-            {
-                if (!b.TryGetValue(key, out var other) || value != other)
-                    return false;
-            }
-            return true;
-        }
-
-        private static int GetHashCode(Dictionary<string, string>? labels)
-        {
-            if (labels is null)
-                return 0;
-
-            return labels.Aggregate(0, (hash, kv) => HashCode.Combine(hash, kv.Key, kv.Value));
-        }
-
-        private static Dictionary<string, string>? Snapshot(Dictionary<string, string>? labels)
-        {
-            return labels is null ? null : new Dictionary<string, string>(labels);
-        }
+        private static string Serialize(T? value) => JsonSerializer.Serialize(value, JsonSerializerOptions.Default);
     }
 }

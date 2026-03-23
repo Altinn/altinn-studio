@@ -464,7 +464,7 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task Handle_RetryableError_LastError_IsSet()
+    public async Task Handle_RetryableError_ErrorHistory_IsPopulated()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
         var settings = new EngineSettings
@@ -492,20 +492,22 @@ public class WorkflowHandlerTests
 
         await handler.Handle(workflow, CancellationToken.None);
 
-        Assert.Equal("oops", workflow.Steps[0].LastError);
+        var entry = Assert.Single(workflow.Steps[0].ErrorHistory);
+        Assert.Equal("oops", entry.Message);
+        Assert.True(entry.WasRetryable);
     }
 
     [Fact]
-    public async Task Handle_Success_ClearsLastError()
+    public async Task Handle_Success_DoesNotAddErrorHistory()
     {
         var executor = MockExecutor(ExecutionResult.Success());
         var handler = CreateHandler(executor.Object);
         var step = CreateStep();
-        step.LastError = "previous error";
+        step.ErrorHistory.Add(new ErrorEntry(DateTimeOffset.UtcNow, "previous error", null, true));
         var workflow = CreateWorkflow(step);
 
         await handler.Handle(workflow, CancellationToken.None);
 
-        Assert.Null(workflow.Steps[0].LastError);
+        Assert.Single(workflow.Steps[0].ErrorHistory);
     }
 }

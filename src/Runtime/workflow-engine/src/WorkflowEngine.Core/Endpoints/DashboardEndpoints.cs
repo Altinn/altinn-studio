@@ -41,8 +41,11 @@ public static class DashboardEndpoints
         if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
         {
             // In dev/Docker, serve from disk so edits are picked up without a rebuild.
+            // Try volume-mounted /app/wwwroot first (Docker), then relative to DLL (dotnet run).
             var coreAssemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-            var wwwrootOnDisk = Path.GetFullPath(Path.Combine(coreAssemblyDir, "..", "..", "..", "wwwroot"));
+            var wwwrootOnDisk = Path.Combine(coreAssemblyDir, "wwwroot");
+            if (!Directory.Exists(wwwrootOnDisk))
+                wwwrootOnDisk = Path.GetFullPath(Path.Combine(coreAssemblyDir, "..", "..", "..", "wwwroot"));
 
             fileProvider = Directory.Exists(wwwrootOnDisk)
                 ? new PhysicalFileProvider(wwwrootOnDisk)
@@ -220,9 +223,9 @@ public static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
-                "/dashboard/stream/active",
+                "/dashboard/stream/live",
                 async (
-                    AsyncSignal workflowSignal,
+                    StatusChangeSignal workflowSignal,
                     IServiceProvider sp,
                     IHostApplicationLifetime lifetime,
                     HttpContext ctx,
@@ -303,12 +306,12 @@ public static class DashboardEndpoints
                             // Non-critical — retry next cycle
                         }
 
-                        // Wait for a workflow change signal or timeout after 500ms
+                        // Wait for a PG NOTIFY signal or timeout after 2s
                         try
                         {
                             using var signalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                            signalCts.CancelAfter(500);
-                            await workflowSignal.Wait(signalCts.Token);
+                            signalCts.CancelAfter(2000);
+                            await workflowSignal.WaitAsync(signalCts.Token);
                         }
                         catch (OperationCanceledException)
                         {
@@ -342,6 +345,7 @@ public static class DashboardEndpoints
                     DateTimeOffset? since,
                     bool? retried,
                     string? labels,
+                    string? correlationId,
                     CancellationToken ct
                 ) =>
                 {
@@ -382,6 +386,7 @@ public static class DashboardEndpoints
                         since: since,
                         retriedOnly: retriedOnly,
                         labelFilters: labelFilters,
+                        correlationId: correlationId,
                         cancellationToken: ct
                     );
 
@@ -436,10 +441,17 @@ public static class DashboardEndpoints
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,
                             retryCount = s.RequeueCount,
-                            lastError = s.LastError,
+                            errorHistory = s.ErrorHistory.Select(e => new
+                            {
+                                timestamp = e.Timestamp,
+                                message = e.Message,
+                                httpStatusCode = e.HttpStatusCode,
+                                wasRetryable = e.WasRetryable,
+                            }),
                             createdAt = s.CreatedAt,
                             executionStartedAt = s.ExecutionStartedAt,
                             updatedAt = s.UpdatedAt,
+                            backoffUntil = workflow.BackoffUntil,
                             labels = s.Labels,
                             command = s.Command,
                             retryStrategy = s.RetryStrategy,
@@ -484,6 +496,64 @@ public static class DashboardEndpoints
                         },
                         _jsonIndented
                     );
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapPost(
+                "/dashboard/retry",
+                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+                {
+                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
+                    if (
+                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
+                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
+                    )
+                    {
+                        return Results.BadRequest("Missing or invalid workflowId");
+                    }
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+
+                    bool updated = await repo.ResetWorkflowForRetry(workflowId, ct);
+                    if (updated)
+                        return Results.Ok();
+
+                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
+                    if (status is null)
+                        return Results.NotFound();
+
+                    return Results.Conflict($"Workflow is in {status} state");
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapPost(
+                "/dashboard/skip-backoff",
+                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+                {
+                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
+                    if (
+                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
+                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
+                    )
+                    {
+                        return Results.BadRequest("Missing or invalid workflowId");
+                    }
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+
+                    bool updated = await repo.SkipBackoff(workflowId, ct);
+                    if (updated)
+                        return Results.Ok();
+
+                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
+                    if (status is null)
+                        return Results.NotFound();
+
+                    return Results.Conflict($"Workflow is in {status} state");
                 }
             )
             .ExcludeFromDescription();

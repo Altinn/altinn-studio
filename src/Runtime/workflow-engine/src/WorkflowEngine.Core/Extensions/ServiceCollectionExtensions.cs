@@ -55,6 +55,8 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
             services.AddSingleton<AsyncSignal>();
+            services.AddSingleton<StatusChangeSignal>();
+            services.AddHostedService(sp => sp.GetRequiredService<StatusChangeSignal>());
             services.AddSingleton<InFlightTracker>();
 
             services.AddSingleton<WorkflowWriteBuffer>();

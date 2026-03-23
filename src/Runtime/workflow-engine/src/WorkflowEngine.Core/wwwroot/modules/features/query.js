@@ -73,7 +73,11 @@ const fetchQuery = async (opts) => {
         if (!isGuid && state.labelFilters.size > 0) {
             const labelPairs = [];
             for (const [key, values] of state.labelFilters) {
-                for (const v of values) labelPairs.push(`${key}:${v}`);
+                if (key === 'correlationId') {
+                    for (const v of values) params.set('correlationId', v);
+                } else {
+                    for (const v of values) labelPairs.push(`${key}:${v}`);
+                }
             }
             if (labelPairs.length > 0) params.set('labels', labelPairs.join(','));
         }
