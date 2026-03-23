@@ -258,7 +258,6 @@ export const queriesMock: ServicesContextProps = {
   updateAppSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
   getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getOrgRepos: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
   fetchBelongsToGiteaOrg: jest

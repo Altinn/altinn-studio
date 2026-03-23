@@ -82,7 +82,6 @@ import {
   customTemplatesPath,
   userApiKeysPath,
   contactPointsPath,
-  reposListPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
