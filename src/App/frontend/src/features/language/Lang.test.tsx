@@ -20,9 +20,7 @@ describe('Lang', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
   beforeEach(() => {
-    jest
-      .mocked(InstanceApi.getInstance)
-      .mockImplementation(async () => getInstanceWithProcessMock());
+    jest.mocked(InstanceApi.getInstance).mockImplementation(async () => getInstanceWithProcessMock());
   });
   afterAll(() => {
     jest.clearAllMocks();

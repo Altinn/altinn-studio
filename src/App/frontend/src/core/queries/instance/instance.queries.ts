@@ -23,10 +23,12 @@ export const instanceQueryKeys = {
 export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid }: InstanceQueryParams) {
   return queryOptions({
     queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
-    queryFn: async () => {
+    queryFn: async ({ client }) => {
       try {
         const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
-        return removeProcessFromInstance(instance);
+        const cleaned = removeProcessFromInstance(instance);
+        client.setQueryData(instanceQueryKeys.current(), cleaned);
+        return cleaned;
       } catch (error) {
         window.logError('Fetching instance data failed:\n', error);
         throw error;

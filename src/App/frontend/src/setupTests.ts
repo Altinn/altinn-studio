@@ -17,7 +17,7 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
-import { getInstanceDataMock, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
