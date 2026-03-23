@@ -893,6 +893,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private string GetResourceRegistryBaseUrl(string env)
         {
+            // Ensure app "production" env is accepted and correctly mapped to "PROD" for Resource Registry config lookup
+            env = env.Equals("production", StringComparison.OrdinalIgnoreCase) ? "PROD" : env;
             if (!_resourceRegistrySettings.TryGetValue(env, out ResourceRegistryEnvironmentSettings envSettings))
             {
                 throw new ArgumentException($"Invalid environment. Missing environment config for {env}");
