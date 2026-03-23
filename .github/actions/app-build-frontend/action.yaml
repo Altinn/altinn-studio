@@ -15,8 +15,6 @@ runs:
     - name: Installing Frontend Dependencies
       if: steps.cache-frontend.outputs.cache-hit != 'true'
       uses: ./.github/actions/yarn-install
-      with:
-        working-directory: src/App/frontend
 
     - name: Build frontend
       if: steps.cache-frontend.outputs.cache-hit != 'true'
