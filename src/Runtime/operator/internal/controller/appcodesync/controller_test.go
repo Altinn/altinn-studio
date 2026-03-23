@@ -116,6 +116,26 @@ func TestReconciler_CreatesCodesForMatchingSecrets(t *testing.T) {
 	g.Expect(untouched.Data).NotTo(HaveKey(appCodesFileName))
 }
 
+func TestReconciler_IgnoresMatchingSecretOutsideDefaultNamespace(t *testing.T) {
+	g := NewWithT(t)
+
+	target := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ttd-testapp-deployment-secrets",
+			Namespace: "other",
+		},
+	}
+
+	h := newTestHarness(t, target)
+	result := h.reconcile(t, client.ObjectKeyFromObject(target))
+
+	updated := &corev1.Secret{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
+	g.Expect(updated.Data).NotTo(HaveKey(appCodesFileName))
+	g.Expect(updated.Annotations).NotTo(HaveKey(monthlyIssuedAtAnnotationKey))
+	g.Expect(result.RequeueAfter).To(BeZero())
+}
+
 func TestReconciler_PrependsReplacementCodeBeforeExpiry(t *testing.T) {
 	g := NewWithT(t)
 

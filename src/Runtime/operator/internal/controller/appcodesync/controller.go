@@ -26,6 +26,7 @@ import (
 )
 
 const (
+	appSecretNamespace           = "default"
 	appSecretNameSuffix          = "-deployment-secrets"
 	appCodesFileName             = "app-codes.json"
 	monthlyIssuedAtAnnotationKey = "altinn.studio/app-codes-monthly-issued-at"
@@ -80,7 +81,7 @@ func (r *AppCodesSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	)
 	defer span.End()
 
-	if !isTargetSecret(req.Name, r.serviceOwnerPrefix()) {
+	if !isTargetSecret(req.Namespace, req.Name, r.serviceOwnerPrefix()) {
 		return ctrl.Result{}, nil
 	}
 
@@ -117,16 +118,16 @@ func (r *AppCodesSyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *AppCodesSyncReconciler) secretPredicate() predicate.Predicate {
 	return predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
-			return isTargetSecret(e.Object.GetName(), r.serviceOwnerPrefix())
+			return isTargetSecret(e.Object.GetNamespace(), e.Object.GetName(), r.serviceOwnerPrefix())
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			return isTargetSecret(e.ObjectNew.GetName(), r.serviceOwnerPrefix())
+			return isTargetSecret(e.ObjectNew.GetNamespace(), e.ObjectNew.GetName(), r.serviceOwnerPrefix())
 		},
 		DeleteFunc: func(event.DeleteEvent) bool {
 			return false
 		},
 		GenericFunc: func(e event.GenericEvent) bool {
-			return isTargetSecret(e.Object.GetName(), r.serviceOwnerPrefix())
+			return isTargetSecret(e.Object.GetNamespace(), e.Object.GetName(), r.serviceOwnerPrefix())
 		},
 	}
 }
@@ -135,7 +136,10 @@ func (r *AppCodesSyncReconciler) serviceOwnerPrefix() string {
 	return r.runtime.GetOperatorContext().ServiceOwner.Id + "-"
 }
 
-func isTargetSecret(name, serviceOwnerPrefix string) bool {
+func isTargetSecret(namespace, name, serviceOwnerPrefix string) bool {
+	if namespace != appSecretNamespace {
+		return false
+	}
 	if !strings.HasPrefix(name, serviceOwnerPrefix) || !strings.HasSuffix(name, appSecretNameSuffix) {
 		return false
 	}
