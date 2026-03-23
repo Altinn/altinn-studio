@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import axios from 'axios';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { GuidePage } from './GuidePage';
 
@@ -26,7 +27,7 @@ describe('GuidePage', () => {
   });
 
   it('should redirect to / when user is authenticated', async () => {
-    jest.spyOn(global, 'fetch').mockResolvedValue({ ok: true } as Response);
+    jest.spyOn(axios, 'get').mockResolvedValue({ data: { login: 'testuser' } });
 
     renderGuidePage();
 
@@ -42,7 +43,7 @@ describe('GuidePage', () => {
   });
 
   it('should show login guide when user is not authenticated and guide is not skipped', async () => {
-    jest.spyOn(global, 'fetch').mockResolvedValue({ ok: false, status: 401 } as Response);
+    jest.spyOn(axios, 'get').mockRejectedValue({ response: { status: 401 } });
 
     renderGuidePage();
 
