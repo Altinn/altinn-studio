@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Altinn.Studio.Admin.Controllers;
+namespace Altinn.Studio.Designer.Controllers.Admin;
 
 [ApiController]
 [Authorize]
@@ -102,12 +102,12 @@ public class ApplicationsController : ControllerBase
                 g => g.Item1.Name,
                 g =>
                     g.Item2.Select(deployment => new PublishedApplication()
-                        {
-                            Org = deployment.Org,
-                            App = deployment.App,
-                            Env = g.Item1.Name, // deployment.Env uses prod (not production)
-                            Version = deployment.ImageTag,
-                        })
+                    {
+                        Org = deployment.Org,
+                        App = deployment.App,
+                        Env = g.Item1.Name, // deployment.Env uses prod (not production)
+                        Version = deployment.ImageTag,
+                    })
                         .ToList()
             );
 

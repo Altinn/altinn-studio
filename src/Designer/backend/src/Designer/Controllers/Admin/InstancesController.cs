@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
 
-namespace Altinn.Studio.Designer.Controllers;
+namespace Altinn.Studio.Designer.Controllers.Admin;
 
 [ApiController]
 [Authorize]
