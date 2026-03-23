@@ -185,24 +185,10 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			recordPDFError(span, response.Error)
 			return nil, response.Error
 		}
-		pdfData := response.Data
-		if !g.convertToPDFA {
-			g.addPDFAEvent(requestSpan, span, "skipped", false, len(response.Data), 0)
-		} else {
-			if ctx.Err() != nil {
-				g.addPDFAEvent(requestSpan, span, "canceled", false, len(response.Data), 0)
-				pdfErr := types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
-				recordPDFError(span, pdfErr)
-				return nil, pdfErr
-			}
-			var pdfErr *types.PDFError
-			pdfData, pdfErr = g.postProcessPDF(ctx, response.Data)
-			if pdfErr != nil {
-				g.addPDFAEvent(requestSpan, span, "failed", false, len(response.Data), 0)
-				recordPDFError(span, pdfErr)
-				return nil, pdfErr
-			}
-			g.addPDFAEvent(requestSpan, span, "success", true, len(response.Data), len(pdfData))
+		pdfData, pdfErr := g.prepareResponsePDF(ctx, requestSpan, span, request.URL, response.Data)
+		if pdfErr != nil {
+			recordPDFError(span, pdfErr)
+			return nil, pdfErr
 		}
 		return &types.PdfResult{
 			Data:    pdfData,
@@ -218,6 +204,34 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
 	}
+}
+
+func (g *Custom) prepareResponsePDF(
+	ctx context.Context,
+	requestSpan trace.Span,
+	generateSpan trace.Span,
+	requestURL string,
+	data []byte,
+) ([]byte, *types.PDFError) {
+	if !g.convertToPDFA {
+		g.addPDFAEvent(requestSpan, generateSpan, "skipped", false, len(data), 0)
+		return data, nil
+	}
+
+	if ctx.Err() != nil {
+		g.addPDFAEvent(requestSpan, generateSpan, "canceled", false, len(data), 0)
+		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
+	}
+
+	converted, pdfErr := g.postProcessPDF(ctx, data)
+	if pdfErr != nil {
+		g.addPDFAEvent(requestSpan, generateSpan, "failed", false, len(data), 0)
+		g.logger.Warn("PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
+		return data, nil
+	}
+
+	g.addPDFAEvent(requestSpan, generateSpan, "success", true, len(data), len(converted))
+	return converted, nil
 }
 
 func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *types.PDFError) {

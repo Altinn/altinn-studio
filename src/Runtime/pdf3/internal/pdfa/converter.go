@@ -128,7 +128,7 @@ func prepareConversionSource(input []byte) (*conversionSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("extract root object: %w", err)
 	}
-	if bytes.Contains(rootBody, []byte("/Metadata ")) || bytes.Contains(rootBody, []byte("/OutputIntents ")) {
+	if containsPDFName(rootBody, "Metadata") || containsPDFName(rootBody, "OutputIntents") {
 		return nil, errAlreadyHasPDFAFix
 	}
 
@@ -147,6 +147,36 @@ func prepareConversionSource(input []byte) (*conversionSource, error) {
 		MetadataXML: metadataXML,
 		RootBody:    rootBody,
 	}, nil
+}
+
+func containsPDFName(data []byte, name string) bool {
+	token := []byte("/" + name)
+	for start := 0; start < len(data); {
+		index := bytes.Index(data[start:], token)
+		if index == -1 {
+			return false
+		}
+
+		matchStart := start + index
+		matchEnd := matchStart + len(token)
+		if matchEnd == len(data) || isPDFDelimiter(data[matchEnd]) {
+			return true
+		}
+		start = matchStart + 1
+	}
+
+	return false
+}
+
+func isPDFDelimiter(b byte) bool {
+	switch b {
+	case 0x00, 0x09, 0x0A, 0x0C, 0x0D, 0x20:
+		return true
+	case '(', ')', '<', '>', '[', ']', '{', '}', '/', '%':
+		return true
+	default:
+		return false
+	}
 }
 
 func loadInfoBody(input []byte, state *pdfState) ([]byte, error) {

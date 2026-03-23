@@ -77,6 +77,19 @@ func TestGenerateAppliesPDFAByGate(t *testing.T) {
 	}
 }
 
+func TestGenerateFallsBackToOriginalPDFWhenPDFAConversionFails(t *testing.T) {
+	input := []byte("not-a-pdf")
+	g := newTestGenerator(true, input)
+
+	result, pdfErr := g.Generate(context.Background(), types.PdfRequest{URL: "https://example.com"})
+	if pdfErr != nil {
+		t.Fatalf("Generate() error = %v", pdfErr)
+	}
+	if string(result.Data) != string(input) {
+		t.Fatalf("Generate() did not fall back to the original payload")
+	}
+}
+
 func loadPDFAFixture(t *testing.T) []byte {
 	t.Helper()
 
