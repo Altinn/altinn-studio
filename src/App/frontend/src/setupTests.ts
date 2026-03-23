@@ -17,7 +17,7 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
-import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceDataMock, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
@@ -146,7 +146,7 @@ jest.mock('src/queries/queries', () => ({
 
 jest.mock('src/core/api-client/instance.api', () => ({
   InstanceApi: {
-    getInstance: jest.fn(async () => ({ ...getInstanceDataMock(), process: getProcessDataMock() })),
+    getInstance: jest.fn(async () => getInstanceWithProcessMock()),
     getActiveInstances: jest.fn(async () => []),
     create: jest.fn(),
     createWithPrefill: jest.fn(),

@@ -2,8 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { InstanceApi } from 'src/core/api-client/instance.api';
 import { Lang } from 'src/features/language/Lang';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
@@ -23,7 +22,7 @@ describe('Lang', () => {
   beforeEach(() => {
     jest
       .mocked(InstanceApi.getInstance)
-      .mockImplementation(async () => ({ ...getInstanceDataMock(), process: getProcessDataMock() }));
+      .mockImplementation(async () => getInstanceWithProcessMock());
   });
   afterAll(() => {
     jest.clearAllMocks();
