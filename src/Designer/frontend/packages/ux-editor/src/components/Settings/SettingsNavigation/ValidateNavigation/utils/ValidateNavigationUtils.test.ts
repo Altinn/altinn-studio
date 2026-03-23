@@ -6,9 +6,9 @@ import {
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
-  isRuleDuplicateInScope,
+  findDuplicateRule,
   Scope,
-  validateForm,
+  isSaveDisabled,
 } from './ValidateNavigationUtils';
 import type { InternalConfigState } from './ValidateNavigationTypes';
 
@@ -177,32 +177,32 @@ describe('getAvailablePages', () => {
   });
 });
 
-describe('validateForm', () => {
-  it('should return false if no changes made to config', () => {
+describe('isSaveDisabled', () => {
+  it('should return true if no changes made to config', () => {
     const config = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
     };
-    expect(validateForm({ scope: Scope.AllTasks, config, newConfig: config })).toBe(false);
+    expect(isSaveDisabled({ scope: Scope.AllTasks, config, newConfig: config })).toBe(true);
   });
 
-  it('should return false if required fields are missing', () => {
+  it('should return true if required fields are missing', () => {
     const config = {
       types: [],
       pageScope: { value: '', label: '' },
     };
-    expect(validateForm({ scope: Scope.AllTasks, config, newConfig: null })).toBe(false);
+    expect(isSaveDisabled({ scope: Scope.AllTasks, config, newConfig: null })).toBe(true);
 
     const configWithTypes = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: '', label: '' },
     };
-    expect(validateForm({ scope: Scope.AllTasks, config: configWithTypes, newConfig: null })).toBe(
-      false,
-    );
+    expect(
+      isSaveDisabled({ scope: Scope.AllTasks, config: configWithTypes, newConfig: null }),
+    ).toBe(true);
   });
 
-  it('should return true if changes made and required fields are filled for all tasks scope', () => {
+  it('should return false if changes made and required fields are filled for all tasks scope', () => {
     const newConfig = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
@@ -211,10 +211,10 @@ describe('validateForm', () => {
       types: [{ value: 'type2', label: 'Type 2' }],
       pageScope: { value: 'current', label: 'Current Page' },
     };
-    expect(validateForm({ scope: Scope.AllTasks, config: originConfig, newConfig })).toBe(true);
+    expect(isSaveDisabled({ scope: Scope.AllTasks, config: originConfig, newConfig })).toBe(false);
   });
 
-  it('should return true if changes made and required fields are filled for SelectedTasks scope', () => {
+  it('should return false if changes made and required fields are filled for SelectedTasks scope', () => {
     const newConfig = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
@@ -225,12 +225,12 @@ describe('validateForm', () => {
       pageScope: { value: 'current', label: 'Current Page' },
       tasks: [{ value: 'task2', label: 'Task 2' }],
     };
-    expect(validateForm({ scope: Scope.SelectedTasks, config: originConfig, newConfig })).toBe(
-      true,
+    expect(isSaveDisabled({ scope: Scope.SelectedTasks, config: originConfig, newConfig })).toBe(
+      false,
     );
   });
 
-  it('should return true if changes made and required fields are filled for SelectedPages scope', () => {
+  it('should return false if changes made and required fields are filled for SelectedPages scope', () => {
     const newConfig = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
@@ -245,18 +245,13 @@ describe('validateForm', () => {
       pages: [{ value: 'page2', label: 'Page 2' }],
     };
 
-    expect(validateForm({ scope: Scope.SelectedPages, config: originConfig, newConfig })).toBe(
-      true,
+    expect(isSaveDisabled({ scope: Scope.SelectedPages, config: originConfig, newConfig })).toBe(
+      false,
     );
   });
 });
 
-describe('isRuleDuplicateInScope', () => {
-  const option = (value: string) => ({
-    value,
-    label: value,
-  });
-
+describe('findDuplicateRule', () => {
   const createConfig = (overrides?: Partial<InternalConfigState>): InternalConfigState => ({
     types: [option('type1')],
     pageScope: option('current'),
@@ -264,42 +259,56 @@ describe('isRuleDuplicateInScope', () => {
     pages: [option('page1')],
     ...overrides,
   });
+  const defaultKey = 'ux_editor.settings.navigation_validation_alert_message';
 
-  it('should return false if existingConfigs is undefined', () => {
-    const result = isRuleDuplicateInScope({
-      scope: Scope.AllTasks,
-      newConfig: createConfig(),
-    });
-    expect(result).toBe(false);
+  const option = (value: string) => ({
+    value,
+    label: value,
   });
 
-  it('should return false if form is not valid', () => {
-    const result = isRuleDuplicateInScope({
-      scope: Scope.AllTasks,
-      newConfig: createConfig(),
-      existingConfigs: [createConfig()],
-      isFormValid: false,
-    });
-    expect(result).toBe(false);
-  });
-
-  it('should return true if there is a duplicate rule in scope', () => {
-    const result = isRuleDuplicateInScope({
-      scope: Scope.SelectedPages,
-      newConfig: createConfig(),
-      existingConfigs: [createConfig()],
-      isFormValid: true,
-    });
-    expect(result).toBe(true);
-  });
-
-  it('should return false if there is no duplicate rule in scope', () => {
-    const result = isRuleDuplicateInScope({
+  it('should return null if there is no duplicate rule in scope', () => {
+    const result = findDuplicateRule({
       scope: Scope.SelectedPages,
       newConfig: createConfig(),
       existingConfigs: [createConfig({ task: option('task2') })],
-      isFormValid: true,
+      saveDisabled: false,
     });
-    expect(result).toBe(false);
+    expect(result).toBeNull();
+  });
+
+  it('should return correct alert message for page scope', () => {
+    const message = findDuplicateRule({
+      scope: Scope.SelectedPages,
+      newConfig: createConfig({
+        task: option('task1'),
+        pages: [option('page1'), option('page2')],
+      }),
+      existingConfigs: [
+        createConfig({
+          task: option('task1'),
+          pages: [option('page1'), option('page2')],
+        }),
+      ],
+      saveDisabled: false,
+    });
+
+    expect(message).toEqual({ key: defaultKey, values: 'page1 og page2' });
+  });
+
+  it('should return correct alert message for task scope', () => {
+    const message = findDuplicateRule({
+      scope: Scope.SelectedTasks,
+      newConfig: createConfig({
+        tasks: [option('task1')],
+      }),
+      existingConfigs: [
+        createConfig({
+          tasks: [option('task1')],
+        }),
+      ],
+      saveDisabled: false,
+    });
+
+    expect(message).toEqual({ key: defaultKey, values: 'task1' });
   });
 });

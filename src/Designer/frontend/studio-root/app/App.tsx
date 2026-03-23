@@ -8,6 +8,8 @@ import { PageLayout } from '../pages/PageLayout';
 import { ContactPage } from '../pages/Contact/ContactPage';
 import { FlagsPage } from '../pages/FlagsPage';
 
+import type { JSX } from 'react';
+
 export const App = (): JSX.Element => {
   return (
     <div className={classes.root}>

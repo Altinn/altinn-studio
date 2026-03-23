@@ -8,8 +8,8 @@ import {
   StudioTable,
   StudioTag,
 } from '@studio/components';
-import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
-import { useDeleteUserApiKeyMutation } from '../hooks/mutations/useDeleteUserApiKeyMutation';
+import { useUserApiKeysQuery } from '../../hooks/queries/useUserApiKeysQuery';
+import { useDeleteUserApiKeyMutation } from '../../hooks/mutations/useDeleteUserApiKeyMutation';
 import classes from './ApiKeysList.module.css';
 
 type ApiKeysListProps = {
