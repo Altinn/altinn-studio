@@ -75,7 +75,6 @@ public class InstancesController : ControllerBase
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
-    private readonly ProcessStateEnricher _processStateEnricher;
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -123,7 +122,6 @@ public class InstancesController : ControllerBase
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
-        _processStateEnricher = serviceProvider.GetRequiredService<ProcessStateEnricher>();
     }
 
     /// <summary>
@@ -173,15 +171,11 @@ public class InstancesController : ControllerBase
                 await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
             }
 
-            var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
-            var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
-
-            await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
+            var instanceOwnerParty = await _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
 
             var dto = InstanceResponse.From(
                 await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
-                await instanceOwnerPartyTask,
-                await processStateTask
+                instanceOwnerParty
             );
 
             return Ok(dto);
@@ -414,11 +408,9 @@ public class InstancesController : ControllerBase
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
-        var processState = await _processStateEnricher.Enrich(instance, instance.Process, User);
         var dto = InstanceResponse.From(
             await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
-            party,
-            processState
+            party
         );
 
         return Created(url, dto);
@@ -644,8 +636,7 @@ public class InstancesController : ControllerBase
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
-        var processState = await _processStateEnricher.Enrich(instance, instance.Process, User);
-        var dto = InstanceResponse.From(instance, party, processState);
+        var dto = InstanceResponse.From(instance, party);
 
         return Created(url, dto);
     }
