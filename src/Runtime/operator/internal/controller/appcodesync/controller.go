@@ -108,6 +108,7 @@ func (r *AppCodesSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 func (r *AppCodesSyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := ctrl.NewControllerManagedBy(mgr).
+		Named("appcodesync").
 		For(&corev1.Secret{}, builder.WithPredicates(r.secretPredicate())).
 		Complete(r); err != nil {
 		return fmt.Errorf("complete AppCodesSync controller builder: %w", err)
