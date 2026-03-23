@@ -46,9 +46,7 @@ describe('GuidePage', () => {
 
     renderGuidePage();
 
-    await waitFor(() =>
-      expect(screen.getByText(textMock('login_guide.q1_title'))).toBeInTheDocument(),
-    );
+    expect(await screen.findByText(textMock('login_guide.q1_title'))).toBeInTheDocument();
   });
 });
 
