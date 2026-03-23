@@ -53,6 +53,7 @@ services:
         [ "$$DEVELOP_PREVIEW" = "1" ] && export PREVIEW_HOST="host.docker.internal:2005" && disable_rewrite preview
         [ "$$DEVELOP_ADMIN" = "1" ] && export ADMIN_HOST="host.docker.internal:2006" && disable_rewrite admin
         [ "$$DEVELOP_RESOURCE_ADMIN" = "1" ] && export RESOURCEADM_HOST="host.docker.internal:2023" && disable_rewrite resourceadm
+        [ "$$DEVELOP_STUDIO_ROOT" = "1" ] && export INFO_HOST="host.docker.internal:2002" && disable_rewrite info
         [ "$$DEVELOP_USER_SETTINGS" = "1" ] && export USER_SETTINGS_HOST="host.docker.internal:2007" && disable_rewrite settings
         exec /entrypoint.sh
     environment:

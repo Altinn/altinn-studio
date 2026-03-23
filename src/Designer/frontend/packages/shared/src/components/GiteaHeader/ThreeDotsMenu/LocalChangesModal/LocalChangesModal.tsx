@@ -8,7 +8,7 @@ import classes from './LocalChangesModal.module.css';
 
 export const LocalChangesModal = (): ReactNode => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement>();
+  const dialogRef = useRef<HTMLDialogElement>(undefined);
   const openDialog = () => dialogRef.current?.showModal();
 
   return (

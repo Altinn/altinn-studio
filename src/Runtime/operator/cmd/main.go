@@ -29,6 +29,7 @@ import (
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/controller/appcodesync"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
 	"altinn.studio/operator/internal/controller/cnpgsync"
 	"altinn.studio/operator/internal/controller/grafanapolicysync"
@@ -56,7 +57,7 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
-//nolint:funlen,gocyclo,gocritic // Keeping Kubebuilder's scaffolded manager setup shape intact is more important here.
+//nolint:funlen,gocyclo,gocognit,gocritic // Keeping Kubebuilder's scaffolded manager setup shape intact is more important here.
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -162,6 +163,12 @@ func main() {
 
 	if err = secretsync.NewReconciler(rt, mgr.GetClient()).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SecretSync")
+		span.End()
+		os.Exit(1)
+	}
+
+	if err = appcodesync.NewReconciler(rt, mgr.GetClient()).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AppCodesSync")
 		span.End()
 		os.Exit(1)
 	}

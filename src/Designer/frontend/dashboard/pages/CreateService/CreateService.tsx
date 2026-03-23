@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 import classes from './CreateService.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';

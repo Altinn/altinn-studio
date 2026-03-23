@@ -3,8 +3,6 @@ package cnpgsync
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,6 +33,7 @@ import (
 
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/operatorcontext"
+	randomutil "altinn.studio/operator/internal/random"
 	rt "altinn.studio/operator/internal/runtime"
 )
 
@@ -1515,11 +1514,11 @@ func (r *CnpgSyncReconciler) ensurePasswordSecret(ctx context.Context, appId str
 }
 
 func generatePassword(length int) (string, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("generate password bytes: %w", err)
+	password, err := randomutil.GenerateURLSafeString(length)
+	if err != nil {
+		return "", fmt.Errorf("generate password: %w", err)
 	}
-	return base64.RawURLEncoding.EncodeToString(bytes)[:length], nil
+	return password, nil
 }
 
 // sanitizePostgresIdentifier converts appId to valid PostgreSQL identifier.

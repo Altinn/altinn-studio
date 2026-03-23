@@ -29,7 +29,7 @@ export const StudioDecimalInput = forwardRef(
       validationErrorMessage,
       ...rest
     }: StudioDecimalInputProps,
-    ref: RefObject<HTMLInputElement>,
+    ref: RefObject<HTMLInputElement | null>,
   ) => {
     const [inputValue, setInputValue] = useState('');
 

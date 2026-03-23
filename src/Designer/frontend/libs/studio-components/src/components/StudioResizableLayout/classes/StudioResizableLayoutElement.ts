@@ -1,8 +1,11 @@
+import type { ReactElement } from 'react';
+import type { StudioResizableLayoutElementProps } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
+
 export class StudioResizableLayoutArea {
   constructor(
     public index: number,
     public HTMLElementRef: HTMLElement,
-    public reactElement: React.ReactElement,
+    public reactElement: ReactElement<StudioResizableLayoutElementProps>,
     public orientation: 'horizontal' | 'vertical',
   ) {}
 
@@ -29,6 +32,6 @@ export class StudioResizableLayoutArea {
   }
 
   public get collapsed(): boolean {
-    return this.reactElement.props.collapsed;
+    return this.reactElement.props.collapsed || false;
   }
 }

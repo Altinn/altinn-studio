@@ -1,4 +1,4 @@
-import type { ChangeEvent, MouseEvent } from 'react';
+import type { ChangeEvent, InputEvent, MouseEvent } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
@@ -72,10 +72,10 @@ export const StudioGridSelector = ({
         value={sliderValue}
         list='gridValues'
         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-          handleSliderChange(convertToGridSize(event.target.value))
+          handleSliderChange(convertToGridSize(event.currentTarget.value))
         }
-        onInput={(event: ChangeEvent<HTMLInputElement>) => {
-          setSelectedValue(parseInt(event.target.value));
+        onInput={(event: InputEvent<HTMLInputElement>) => {
+          setSelectedValue(parseInt(event.currentTarget.value));
           setHoverValue(0);
         }}
         disabled={disabled}
