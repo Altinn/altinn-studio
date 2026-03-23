@@ -11,7 +11,7 @@ on:
       - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
-      - 'src/App/frontend/yarn.lock'
+      - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
   workflow_dispatch:
