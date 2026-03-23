@@ -9,7 +9,7 @@ namespace WorkflowEngine.Data.Services;
 /// Intended for development use only, to clear stale connections left behind
 /// by ungraceful shutdowns during load testing.
 /// </summary>
-public sealed class DbConnectionResetService(ILogger<DbConnectionResetService> logger)
+internal sealed class DbConnectionResetService(ILogger<DbConnectionResetService> logger)
 {
     public async Task ResetConnections(string dbConnectionString, CancellationToken cancellationToken = default)
     {

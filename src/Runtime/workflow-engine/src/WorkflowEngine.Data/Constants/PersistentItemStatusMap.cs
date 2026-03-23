@@ -2,7 +2,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Constants;
 
-public static class PersistentItemStatusMap
+internal static class PersistentItemStatusMap
 {
     public static IReadOnlyCollection<PersistentItemStatus> Incomplete =>
         [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];

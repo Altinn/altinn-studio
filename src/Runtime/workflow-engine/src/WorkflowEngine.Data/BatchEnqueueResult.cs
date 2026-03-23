@@ -3,7 +3,7 @@ namespace WorkflowEngine.Data;
 /// <summary>
 /// Result of a batch enqueue operation for a single request.
 /// </summary>
-public sealed record BatchEnqueueResult(
+internal sealed record BatchEnqueueResult(
     BatchEnqueueResultStatus Status,
     Guid[]? WorkflowIds,
     string? ErrorMessage = null

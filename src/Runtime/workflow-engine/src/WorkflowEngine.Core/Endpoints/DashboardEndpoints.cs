@@ -14,7 +14,7 @@ using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Endpoints;
 
-public static class DashboardEndpoints
+internal static class DashboardEndpoints
 {
     private static readonly JsonSerializerOptions _jsonCompact = new()
     {

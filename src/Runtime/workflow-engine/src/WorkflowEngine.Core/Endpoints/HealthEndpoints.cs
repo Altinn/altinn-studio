@@ -5,7 +5,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace WorkflowEngine.Core.Endpoints;
 
-public static class HealthEndpoints
+internal static class HealthEndpoints
 {
     public static WebApplication MapHealthEndpoints(this WebApplication app)
     {

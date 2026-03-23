@@ -1,6 +1,6 @@
 namespace WorkflowEngine.Data;
 
-public enum BatchEnqueueResultStatus
+internal enum BatchEnqueueResultStatus
 {
     /// <summary>
     /// New workflows were created.

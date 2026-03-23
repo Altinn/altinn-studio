@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace WorkflowEngine.Data.Constants;
 
-public static class JsonOptions
+internal static class JsonOptions
 {
     public static readonly JsonSerializerOptions Default = new()
     {

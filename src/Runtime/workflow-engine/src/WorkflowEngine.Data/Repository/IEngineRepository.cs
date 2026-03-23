@@ -5,7 +5,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Repository;
 
-public interface IEngineRepository
+internal interface IEngineRepository
 {
     /// <summary>
     /// Gets all active workflows, optionally filtered by namespace.

@@ -15,7 +15,7 @@ namespace WorkflowEngine.Data.Services;
 /// Service responsible for applying database migrations with distributed locking.
 /// Uses PostgreSQL advisory locks to ensure only one instance runs migrations at a time.
 /// </summary>
-public sealed class DbMigrationService
+internal sealed class DbMigrationService
 {
     private const long MigrationLockId = 0x4D6967726174; // "Migrat" in hex
     private static ILogger<DbMigrationService>? _logger { get; set; }

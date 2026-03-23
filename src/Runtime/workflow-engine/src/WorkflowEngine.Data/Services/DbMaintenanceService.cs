@@ -11,7 +11,7 @@ using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Data.Services;
 
-public sealed class DbMaintenanceService(
+internal sealed class DbMaintenanceService(
     ILogger<DbMaintenanceService> logger,
     TimeProvider timeProvider,
     NpgsqlDataSource dataSource,

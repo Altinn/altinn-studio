@@ -11,7 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="WorkflowEngine.Commands" />
     <InternalsVisibleTo Include="WorkflowEngine.Data" />
     <InternalsVisibleTo Include="WorkflowEngine.Core" />
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />

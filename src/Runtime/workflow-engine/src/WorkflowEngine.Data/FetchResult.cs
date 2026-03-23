@@ -6,4 +6,4 @@ namespace WorkflowEngine.Data;
 /// Result of <see cref="Repository.IEngineRepository.FetchAndLockWorkflows"/>,
 /// separating newly fetched workflows from reclaimed stale ones.
 /// </summary>
-public sealed record FetchResult(List<Workflow> Workflows, int ReclaimedCount, int AbandonedCount);
+internal sealed record FetchResult(List<Workflow> Workflows, int ReclaimedCount, int AbandonedCount);

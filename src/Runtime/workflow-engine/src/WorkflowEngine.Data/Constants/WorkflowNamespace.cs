@@ -7,7 +7,7 @@ namespace WorkflowEngine.Data.Constants;
 /// Centralizes namespace normalization and the default namespace constant.
 /// All namespace values are stored as lowercase; missing values fall back to <see cref="Default"/>.
 /// </summary>
-public static class WorkflowNamespace
+internal static class WorkflowNamespace
 {
     /// <summary>
     /// The global catch-all namespace used when no namespace is specified.

@@ -11,7 +11,7 @@ using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Core.Endpoints;
 
-public static class EngineEndpoints
+internal static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {

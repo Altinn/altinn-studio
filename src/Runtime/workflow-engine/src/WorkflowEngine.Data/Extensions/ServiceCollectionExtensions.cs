@@ -10,7 +10,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Extensions;
 
-public static class ServiceCollectionExtensions
+internal static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {

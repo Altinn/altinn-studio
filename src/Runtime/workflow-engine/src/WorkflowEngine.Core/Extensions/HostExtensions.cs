@@ -7,7 +7,7 @@ using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Extensions;
 
-public static class HostExtensions
+internal static class HostExtensions
 {
     extension(IHost host)
     {
