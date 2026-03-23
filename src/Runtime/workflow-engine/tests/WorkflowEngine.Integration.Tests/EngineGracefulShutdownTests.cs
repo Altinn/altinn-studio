@@ -9,7 +9,6 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using WorkflowEngine.Commands.Webhook;
-using WorkflowEngine.Core;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
@@ -165,32 +164,35 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Polls the in-memory <see cref="InFlightTracker"/> until the specified step (by index)
-    /// reaches <see cref="PersistentItemStatus.Processing"/> status. This confirms the command
-    /// is actually executing — no fixed delays needed.
+    /// Polls the database until the specified step (by processing order) reaches
+    /// <see cref="PersistentItemStatus.Processing"/> status. Checking the DB rather than
+    /// in-memory state guarantees the write buffer has flushed, which is the precondition
+    /// the shutdown tests need before calling <see cref="IHost.StopAsync"/>.
     /// </summary>
-    private static async Task WaitForStepProcessing(
+    private async Task WaitForStepProcessing(
         EngineWebApplicationFactory<Program> factory,
         Guid workflowId,
         int stepIndex = 0,
         TimeSpan? timeout = null
     )
     {
-        var tracker = factory.Services.GetRequiredService<InFlightTracker>();
+        _ = factory; // kept in signature for consistency; DB is queried directly
         using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
 
         while (true)
         {
             cts.Token.ThrowIfCancellationRequested();
 
-            if (
-                tracker.TryGetWorkflow(workflowId, out var workflow)
-                && workflow!.Steps.Count > stepIndex
-                && workflow.Steps[stepIndex].Status == PersistentItemStatus.Processing
-            )
+            await using var context = CreateDbContext();
+            var step = await context
+                .Steps.Where(s => s.JobId == workflowId && s.ProcessingOrder == stepIndex)
+                .Select(s => new { s.Status })
+                .SingleOrDefaultAsync(cts.Token);
+
+            if (step?.Status == PersistentItemStatus.Processing)
                 return;
 
-            await Task.Delay(25, cts.Token);
+            await Task.Delay(50, cts.Token);
         }
     }
 
