@@ -1,6 +1,7 @@
 #nullable disable
 using System.IO;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -35,6 +36,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application metadata</returns>
         [HttpGet]
+        [UseSystemTextJson]
         public async Task<ActionResult> GetApplicationMetadata(string org, string app)
         {
             ApplicationMetadata application = await _applicationMetadataService.GetApplicationMetadataFromRepository(
@@ -57,6 +59,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
+        [UseSystemTextJson]
         public async Task<ActionResult> UpdateApplicationMetadata(
             string org,
             string app,
@@ -76,6 +79,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The created application metadata</returns>
         [HttpPost]
+        [UseSystemTextJson]
         public async Task<ActionResult> CreateApplicationMetadata(string org, string app)
         {
             bool applicationMetadataAlreadyExists = _applicationMetadataService.ApplicationMetadataExistsInRepository(
