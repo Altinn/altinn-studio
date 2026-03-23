@@ -31,7 +31,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
-    <InternalsVisibleTo Include="WorkflowEngine.App.Tests" />
   </ItemGroup>
 
   <ItemGroup>

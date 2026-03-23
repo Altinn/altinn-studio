@@ -14,5 +14,5 @@ public abstract record PersistentItem
     public Dictionary<string, string>? Labels { get; init; }
     public string? EngineTraceContext { get; set; }
 
-    internal Activity? EngineActivity { get; set; }
+    public Activity? EngineActivity { get; set; }
 }

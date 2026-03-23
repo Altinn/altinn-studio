@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.Commands.Webhook;
-using WorkflowEngine.Core;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Resilience;
@@ -18,7 +17,7 @@ namespace WorkflowEngine.App.Tests.Fixtures;
 
 /// <summary>
 /// Unit test fixture for AppCommand. Provides a configured <see cref="ServiceProvider"/>
-/// with mocked HTTP, AppCommand and WebhookCommand registered.
+/// with mocked HTTP and AppCommand registered.
 /// </summary>
 internal sealed record AppCommandTestFixture(
     ServiceProvider ServiceProvider,
@@ -80,8 +79,6 @@ internal sealed record AppCommandTestFixture(
 
         services.AddSingleton<ICommand, AppCommand>();
         services.AddSingleton<ICommand, WebhookCommand>();
-        services.AddSingleton<ICommandRegistry, CommandRegistry>();
-        services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
         configureServices?.Invoke(services);
 
@@ -94,18 +91,44 @@ internal sealed record AppCommandTestFixture(
         );
     }
 
-    public static JsonElement DefaultWorkflowContext =>
-        JsonSerializer.SerializeToElement(
-            new
-            {
-                Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
-                LockToken = "test-lock-key",
-                Org = "ttd",
-                App = "test-app",
-                InstanceOwnerPartyId = 12345,
-                InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-            }
-        );
+    /// <summary>
+    /// Gets the AppCommand instance from DI, typed as <see cref="ICommand"/>.
+    /// </summary>
+    public ICommand GetAppCommand() => ServiceProvider.GetServices<ICommand>().Single(c => c.CommandType == "app");
+
+    public static AppWorkflowContext DefaultContext =>
+        new()
+        {
+            Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
+            LockToken = "test-lock-key",
+            Org = "ttd",
+            App = "test-app",
+            InstanceOwnerPartyId = 12345,
+            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+        };
+
+    public static JsonElement DefaultWorkflowContext => JsonSerializer.SerializeToElement(DefaultContext);
+
+    /// <summary>
+    /// Creates a <see cref="CommandExecutionContext"/> with pre-deserialized typed data,
+    /// matching what the engine's executor would produce.
+    /// </summary>
+    public static CommandExecutionContext CreateExecutionContext(
+        Workflow workflow,
+        Step step,
+        AppCommandData commandData,
+        AppWorkflowContext? workflowContext = null,
+        string? stateIn = null
+    ) =>
+        new()
+        {
+            Workflow = workflow,
+            Step = step,
+            RawCommandData = step.Command.Data,
+            TypedCommandData = commandData,
+            TypedWorkflowContext = workflowContext ?? DefaultContext,
+            StateIn = stateIn,
+        };
 
     public static Workflow CreateWorkflow(Step step) =>
         new()
