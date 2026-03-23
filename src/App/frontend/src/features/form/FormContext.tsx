@@ -13,7 +13,6 @@ import { PaymentInformationProvider } from 'src/features/payment/PaymentInformat
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { ValidationProvider } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { FormPrefetcher } from 'src/queries/formPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 export interface FormContext {
@@ -45,7 +44,6 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
 
   return (
     <LoadingRegistryProvider>
-      <FormPrefetcher />
       <LayoutsProvider>
         <CodeListsProvider>
           <DataModelsProvider>

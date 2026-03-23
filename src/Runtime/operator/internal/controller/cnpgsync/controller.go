@@ -55,16 +55,23 @@ const (
 	backupStorageClass  = "cnpg-backup-standard"
 	backupPGVersion     = 18
 
-	postgresqlJsonKey              = "postgresql.json"
-	maxUpdateRetries               = 3
-	passwordSecretNameFormat       = "pg-apps-cluster-%s-password"
-	databaseNameFormat             = "db-%s"
-	backupCronJobNameFormat        = "pgdump-%s"
-	managedByLabelValue            = "altinn-studio-operator"
-	managedByLabelKey              = "app.kubernetes.io/managed-by"
-	backupRoleLabelValue           = "pgdump-backup"
-	backupRoleLabelKey             = "altinn.studio/component"
-	backupFSGroup            int64 = 102
+	postgresqlJsonKey                   = "postgresql.json"
+	secretsJSONKey                      = "secrets.json"
+	maxUpdateRetries                    = 3
+	passwordSecretNameFormat            = "pg-apps-cluster-%s-password"
+	databaseNameFormat                  = "db-%s"
+	backupCronJobNameFormat             = "pgdump-%s"
+	managedByLabelValue                 = "altinn-studio-operator"
+	managedByLabelKey                   = "app.kubernetes.io/managed-by"
+	backupRoleLabelValue                = "pgdump-backup"
+	backupRoleLabelKey                  = "altinn.studio/component"
+	backupFSGroup                 int64 = 102
+	workflowEngineAppId                 = "workflow-engine-app"
+	workflowEngineDatabaseName          = "workflow_engine"
+	workflowEngineSecretName            = "workflow-engine-app-secrets"
+	workflowEngineSecretNamespace       = "runtime-workflow-engine-app"
+	workflowEngineLabelKey              = "altinn.studio/runtime-service"
+	workflowEngineLabelValue            = "workflow-engine-app"
 
 	connectionsPerApp   = 40
 	reservedConnections = 3  // superuser_reserved_connections
@@ -84,19 +91,20 @@ var postgresqlImageTags = map[int]string{
 var supportedPostgresqlMajorVersions = []int{17, 18}
 
 var (
-	errUnsupportedPostgresqlMajorVersion  = errors.New("unsupported PostgreSQL major version")
-	errUpdateRetryExhausted               = errors.New("failed to update resource after retries")
-	errBuildClusterInvalidScale           = errors.New("cluster scale must be >= 1")
-	errInvalidBackupPVCName               = errors.New("invalid backup PVC name")
-	errBackupScheduleRequired             = errors.New("backup schedule must be specified")
-	errBackupRetentionDaysInvalid         = errors.New("backup retentionDays must be >= 1")
-	errBackupPVCNameRequired              = errors.New("backup pvcName must be specified")
-	errBackupPVCSizeRequired              = errors.New("backup pvcSize must be specified")
-	errBackupStorageClassNameRequired     = errors.New("backup storageClassName must be specified")
-	errManagedRoleAddRetryExhausted       = errors.New("failed to add managed role after conflict retries")
-	errAppSecretUpdateRetryExhausted      = errors.New("failed to update app secret after retries")
-	errManagedRoleRemoveRetryExhausted    = errors.New("failed to remove managed role after conflict retries")
-	errPostgresqlJSONRemoveRetryExhausted = errors.New(
+	errUnsupportedPostgresqlMajorVersion        = errors.New("unsupported PostgreSQL major version")
+	errUpdateRetryExhausted                     = errors.New("failed to update resource after retries")
+	errBuildClusterInvalidScale                 = errors.New("cluster scale must be >= 1")
+	errInvalidBackupPVCName                     = errors.New("invalid backup PVC name")
+	errBackupScheduleRequired                   = errors.New("backup schedule must be specified")
+	errBackupRetentionDaysInvalid               = errors.New("backup retentionDays must be >= 1")
+	errBackupPVCNameRequired                    = errors.New("backup pvcName must be specified")
+	errBackupPVCSizeRequired                    = errors.New("backup pvcSize must be specified")
+	errBackupStorageClassNameRequired           = errors.New("backup storageClassName must be specified")
+	errManagedRoleAddRetryExhausted             = errors.New("failed to add managed role after conflict retries")
+	errAppSecretUpdateRetryExhausted            = errors.New("failed to update app secret after retries")
+	errWorkflowEngineSecretUpdateRetryExhausted = errors.New("failed to update workflow engine secret after retries")
+	errManagedRoleRemoveRetryExhausted          = errors.New("failed to remove managed role after conflict retries")
+	errPostgresqlJSONRemoveRetryExhausted       = errors.New(
 		"failed to remove postgresql.json from app secret after conflict retries",
 	)
 )
@@ -286,38 +294,11 @@ func (r *CnpgSyncReconciler) SyncAll(ctx context.Context) (needsRetry bool, err 
 		return true, nil
 	}
 
-	if err := r.ensureImageCatalog(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure ImageCatalog")
-		return false, fmt.Errorf("ensure ImageCatalog: %w", err)
-	}
-
-	if err := r.ensureCluster(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure Cluster")
-		return false, fmt.Errorf("ensure Cluster: %w", err)
-	}
-
-	if err := r.cleanupRemovedApps(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to cleanup removed apps")
-		return false, fmt.Errorf("cleanup removed apps: %w", err)
-	}
-
-	dbNeedsRetry, err := r.ensureAppDatabases(ctx)
+	needsRetry, err = r.syncProvisionedDatabases(ctx)
 	if err != nil {
 		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure app databases")
-		return false, fmt.Errorf("ensure app databases: %w", err)
-	}
-	if dbNeedsRetry {
-		needsRetry = true
-	}
-
-	if err := r.syncDatabaseSecrets(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to sync database secrets")
-		return false, fmt.Errorf("sync database secrets: %w", err)
+		span.SetStatus(codes.Error, "failed to sync provisioned databases")
+		return false, err
 	}
 
 	if err := r.ensureBackupResources(ctx); err != nil {
@@ -327,6 +308,47 @@ func (r *CnpgSyncReconciler) SyncAll(ctx context.Context) (needsRetry bool, err 
 	}
 
 	r.logger.Info("CNPG resources synced successfully")
+	return needsRetry, nil
+}
+
+func (r *CnpgSyncReconciler) syncProvisionedDatabases(ctx context.Context) (bool, error) {
+	if err := r.ensureImageCatalog(ctx); err != nil {
+		return false, fmt.Errorf("ensure ImageCatalog: %w", err)
+	}
+	if err := r.ensureCluster(ctx); err != nil {
+		return false, fmt.Errorf("ensure Cluster: %w", err)
+	}
+	if err := r.cleanupRemovedApps(ctx); err != nil {
+		return false, fmt.Errorf("cleanup removed apps: %w", err)
+	}
+	if err := r.cleanupRemovedWorkflowEngineApp(ctx); err != nil {
+		return false, fmt.Errorf("cleanup removed workflow engine app: %w", err)
+	}
+
+	needsRetry := false
+	dbNeedsRetry, err := r.ensureAppDatabases(ctx)
+	if err != nil {
+		return false, fmt.Errorf("ensure app databases: %w", err)
+	}
+	if dbNeedsRetry {
+		needsRetry = true
+	}
+
+	workflowNeedsRetry, err := r.ensureWorkflowEngineAppDatabase(ctx)
+	if err != nil {
+		return false, fmt.Errorf("ensure workflow engine database: %w", err)
+	}
+	if r.hasTargetWorkflowEngineApp() && !workflowNeedsRetry {
+		needsRetry = true
+	}
+
+	if err := r.syncDatabaseSecrets(ctx); err != nil {
+		return false, fmt.Errorf("sync database secrets: %w", err)
+	}
+	if err := r.syncWorkflowEngineAppSecret(ctx); err != nil {
+		return false, fmt.Errorf("sync workflow engine secret: %w", err)
+	}
+
 	return needsRetry, nil
 }
 
@@ -718,8 +740,7 @@ func (r *CnpgSyncReconciler) ensureCluster(ctx context.Context) error {
 	key := client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}
 	err := r.k8sClient.Get(ctx, key, cluster)
 
-	apps := r.getTargetApps()
-	desired := r.buildCluster(len(apps))
+	desired := r.buildCluster(r.getTargetDatabaseCount())
 	if desired == nil {
 		return r.deleteClusterIfExists(ctx, cluster, err)
 	}
@@ -1362,6 +1383,19 @@ func (r *CnpgSyncReconciler) getTargetApps() []string {
 	return target.Apps
 }
 
+func (r *CnpgSyncReconciler) hasTargetWorkflowEngineApp() bool {
+	target := r.getCurrentTarget()
+	return target != nil && target.WorkflowEngineApp
+}
+
+func (r *CnpgSyncReconciler) getTargetDatabaseCount() int {
+	count := len(r.getTargetApps())
+	if r.hasTargetWorkflowEngineApp() {
+		count++
+	}
+	return count
+}
+
 func (r *CnpgSyncReconciler) getCurrentTarget() *CnpgTarget {
 	opCtx := r.runtime.GetOperatorContext()
 	for i := range r.targets {
@@ -1474,7 +1508,14 @@ func (r *CnpgSyncReconciler) resolveBackupConfig() (*resolvedBackupConfig, error
 
 // ensurePasswordSecret creates a password secret for the app if it doesn't exist.
 func (r *CnpgSyncReconciler) ensurePasswordSecret(ctx context.Context, appId string) error {
-	secretName := fmt.Sprintf(passwordSecretNameFormat, appId)
+	return r.ensurePasswordSecretForResource(ctx, appId, sanitizePostgresIdentifier(appId))
+}
+
+func (r *CnpgSyncReconciler) ensurePasswordSecretForResource(
+	ctx context.Context,
+	resourceName, pgUser string,
+) error {
+	secretName := fmt.Sprintf(passwordSecretNameFormat, resourceName)
 	secret := &corev1.Secret{}
 	err := r.k8sClient.Get(ctx, client.ObjectKey{Name: secretName, Namespace: cnpgNamespace}, secret)
 	if err == nil {
@@ -1489,7 +1530,6 @@ func (r *CnpgSyncReconciler) ensurePasswordSecret(ctx context.Context, appId str
 		return fmt.Errorf("generate password: %w", err)
 	}
 
-	pgUser := sanitizePostgresIdentifier(appId)
 	secret = &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -1509,7 +1549,7 @@ func (r *CnpgSyncReconciler) ensurePasswordSecret(ctx context.Context, appId str
 	if err := r.k8sClient.Create(ctx, secret); err != nil {
 		return fmt.Errorf("create password secret: %w", err)
 	}
-	r.logger.Info("created password secret", "name", secretName, "appId", appId)
+	r.logger.Info("created password secret", "name", secretName, "resource", resourceName)
 	return nil
 }
 
@@ -1530,7 +1570,13 @@ func sanitizePostgresIdentifier(s string) string {
 // ensureManagedRole adds a role to the Cluster's managed.roles if not present.
 // Returns ready=true if the role has been reconciled by CNPG.
 func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string) (ready bool, err error) {
-	pgRole := sanitizePostgresIdentifier(appId)
+	return r.ensureManagedRoleForResource(ctx, appId, sanitizePostgresIdentifier(appId))
+}
+
+func (r *CnpgSyncReconciler) ensureManagedRoleForResource(
+	ctx context.Context,
+	resourceName, pgRole string,
+) (ready bool, err error) {
 	connectionLimit := int64(connectionsPerApp)
 	if scale, ok := clusterScaleForEnvironment(r.runtime.GetOperatorContext().Environment); ok {
 		connectionLimit = int64(scaleInt(connectionsPerApp, scale))
@@ -1553,7 +1599,7 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 	}
 
 	if !roleExists {
-		secretName := fmt.Sprintf(passwordSecretNameFormat, appId)
+		secretName := fmt.Sprintf(passwordSecretNameFormat, resourceName)
 		role := cnpgv1.RoleConfiguration{
 			Name:            pgRole,
 			Login:           true,
@@ -1571,13 +1617,13 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 		for attempt := range maxUpdateRetries {
 			err := r.k8sClient.Update(ctx, cluster)
 			if err == nil {
-				r.logger.Info("added managed role to cluster", "appId", appId)
+				r.logger.Info("added managed role to cluster", "resource", resourceName, "role", pgRole)
 				return false, nil // Not ready yet, just added
 			}
 			if !apierrors.IsConflict(err) {
 				return false, fmt.Errorf("update cluster with role: %w", err)
 			}
-			r.logger.Info("conflict updating cluster, retrying", "appId", appId, "attempt", attempt+1)
+			r.logger.Info("conflict updating cluster, retrying", "resource", resourceName, "attempt", attempt+1)
 			if err := r.k8sClient.Get(
 				ctx,
 				client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace},
@@ -1610,8 +1656,23 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 // ensureDatabase creates a Database resource for the app.
 // Returns ready=true if the database has been applied by CNPG.
 func (r *CnpgSyncReconciler) ensureDatabase(ctx context.Context, appId string) (ready bool, err error) {
-	dbName := fmt.Sprintf(databaseNameFormat, appId)
-	pgName := sanitizePostgresIdentifier(appId)
+	return r.ensureDatabaseForResource(
+		ctx,
+		appId,
+		sanitizePostgresIdentifier(appId),
+		map[string]string{
+			managedByLabelKey:      managedByLabelValue,
+			"altinn.studio/app-id": appId,
+		},
+	)
+}
+
+func (r *CnpgSyncReconciler) ensureDatabaseForResource(
+	ctx context.Context,
+	resourceName, pgName string,
+	labels map[string]string,
+) (ready bool, err error) {
+	dbName := fmt.Sprintf(databaseNameFormat, resourceName)
 	database := &cnpgv1.Database{}
 	err = r.k8sClient.Get(ctx, client.ObjectKey{Name: dbName, Namespace: cnpgNamespace}, database)
 
@@ -1620,10 +1681,7 @@ func (r *CnpgSyncReconciler) ensureDatabase(ctx context.Context, appId string) (
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      dbName,
 				Namespace: cnpgNamespace,
-				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "altinn-studio-operator",
-					"altinn.studio/app-id":         appId,
-				},
+				Labels:    labels,
 			},
 			Spec: cnpgv1.DatabaseSpec{
 				ClusterRef: corev1.LocalObjectReference{
@@ -1638,7 +1696,7 @@ func (r *CnpgSyncReconciler) ensureDatabase(ctx context.Context, appId string) (
 		if err := r.k8sClient.Create(ctx, database); err != nil {
 			return false, fmt.Errorf("create database: %w", err)
 		}
-		r.logger.Info("created database", "name", dbName, "appId", appId)
+		r.logger.Info("created database", "name", dbName, "resource", resourceName)
 		return false, nil
 	}
 	if err != nil {
@@ -1679,6 +1737,71 @@ func (r *CnpgSyncReconciler) syncDatabaseSecrets(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (r *CnpgSyncReconciler) ensureWorkflowEngineAppDatabase(ctx context.Context) (ready bool, err error) {
+	if !r.hasTargetWorkflowEngineApp() {
+		return true, nil
+	}
+
+	managedPasswordSecret, passwordSecretExists, err := r.workflowEnginePasswordSecretOwnership(ctx)
+	if err != nil {
+		return false, fmt.Errorf("check workflow engine password secret ownership: %w", err)
+	}
+	if passwordSecretExists && !managedPasswordSecret {
+		r.logger.Info("workflow engine password secret exists and is not managed by this controller, skipping")
+		return true, nil
+	}
+
+	managedDatabase, databaseExists, err := r.workflowEngineDatabaseOwnership(ctx)
+	if err != nil {
+		return false, fmt.Errorf("check workflow engine database ownership: %w", err)
+	}
+	if databaseExists && !managedDatabase {
+		r.logger.Info("workflow engine database exists and is not managed by this controller, skipping")
+		return true, nil
+	}
+
+	managedRole, roleExists, err := r.workflowEngineRoleOwnership(ctx)
+	if err != nil {
+		return false, fmt.Errorf("check workflow engine role ownership: %w", err)
+	}
+	if roleExists && !managedRole {
+		r.logger.Info("workflow engine role exists and is not managed by this controller, skipping")
+		return true, nil
+	}
+
+	if err := r.ensureWorkflowEnginePasswordSecret(ctx); err != nil {
+		return false, fmt.Errorf("ensure password secret: %w", err)
+	}
+
+	roleReady, err := r.ensureManagedRoleForResource(ctx, workflowEngineAppId, workflowEngineDatabaseName)
+	if err != nil {
+		return false, fmt.Errorf("ensure managed role: %w", err)
+	}
+	if !roleReady {
+		r.logger.Info("waiting for workflow engine role to be reconciled")
+		return false, nil
+	}
+
+	dbReady, err := r.ensureDatabaseForResource(
+		ctx,
+		workflowEngineAppId,
+		workflowEngineDatabaseName,
+		map[string]string{
+			managedByLabelKey:      managedByLabelValue,
+			workflowEngineLabelKey: workflowEngineLabelValue,
+		},
+	)
+	if err != nil {
+		return false, fmt.Errorf("ensure database: %w", err)
+	}
+	if !dbReady {
+		r.logger.Info("waiting for workflow engine database to be applied")
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // syncDatabaseSecret updates the app's secret with the PostgreSQL connection string.
@@ -1756,46 +1879,184 @@ func (r *CnpgSyncReconciler) syncDatabaseSecret(
 	return r.updateAppSecretWithRetry(ctx, appSecret, jsonBytes)
 }
 
+func (r *CnpgSyncReconciler) syncWorkflowEngineAppSecret(ctx context.Context) error {
+	if !r.hasTargetWorkflowEngineApp() {
+		return nil
+	}
+
+	database := &cnpgv1.Database{}
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: fmt.Sprintf(databaseNameFormat, workflowEngineAppId), Namespace: cnpgNamespace},
+		database,
+	); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("get workflow engine database: %w", err)
+	}
+	if !isManagedWorkflowEngineDatabase(database) {
+		return nil
+	}
+	if database.Status.Applied == nil || !*database.Status.Applied {
+		return nil
+	}
+
+	passwordSecret := &corev1.Secret{}
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: fmt.Sprintf(passwordSecretNameFormat, workflowEngineAppId), Namespace: cnpgNamespace},
+		passwordSecret,
+	); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("get password secret: %w", err)
+	}
+	if !isManagedWorkflowEnginePasswordSecret(passwordSecret) {
+		return nil
+	}
+	password := string(passwordSecret.Data["password"])
+
+	host := fmt.Sprintf("%s-rw.%s.svc.cluster.local", clusterName, cnpgNamespace)
+	connStr := fmt.Sprintf(
+		"Host=%s;Port=5432;Database=%s;Username=%s;Password=%s;Application Name=%s;Maximum Pool Size=%d;Tcp Keepalive=true",
+		host,
+		workflowEngineDatabaseName,
+		workflowEngineDatabaseName,
+		password,
+		workflowEngineAppId,
+		connectionsPerApp,
+	)
+
+	secret := &corev1.Secret{}
+	key := client.ObjectKey{Name: workflowEngineSecretName, Namespace: workflowEngineSecretNamespace}
+	err := r.k8sClient.Get(ctx, key, secret)
+	if apierrors.IsNotFound(err) {
+		r.logger.Info("workflow engine secret not found, skipping secret sync",
+			"secretName", workflowEngineSecretName,
+			"namespace", workflowEngineSecretNamespace,
+		)
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("get workflow engine secret: %w", err)
+	}
+
+	jsonBytes, err := mergeWorkflowEngineSecretsJSON(secret.Data[secretsJSONKey], connStr)
+	if err != nil {
+		return fmt.Errorf("build workflow engine secrets.json: %w", err)
+	}
+	if string(secret.Data[secretsJSONKey]) == string(jsonBytes) {
+		return nil
+	}
+
+	return r.updateWorkflowEngineSecretWithRetry(ctx, secret, jsonBytes)
+}
+
 // updateAppSecretWithRetry updates the app secret with retry on conflict.
 func (r *CnpgSyncReconciler) updateAppSecretWithRetry(
 	ctx context.Context,
 	appSecret *corev1.Secret,
 	postgresJson []byte,
 ) error {
+	return r.updateSecretDataWithRetry(
+		ctx,
+		appSecret,
+		postgresqlJsonKey,
+		postgresJson,
+		"updated app secret with postgresql connection",
+		"conflict updating app secret, retrying",
+		"update app secret",
+		"refresh app secret",
+		errAppSecretUpdateRetryExhausted,
+	)
+}
+
+func (r *CnpgSyncReconciler) updateWorkflowEngineSecretWithRetry(
+	ctx context.Context,
+	secret *corev1.Secret,
+	secretsJSON []byte,
+) error {
+	return r.updateSecretDataWithRetry(
+		ctx,
+		secret,
+		secretsJSONKey,
+		secretsJSON,
+		"updated workflow engine secret",
+		"conflict updating workflow engine secret, retrying",
+		"update workflow engine secret",
+		"refresh workflow engine secret",
+		errWorkflowEngineSecretUpdateRetryExhausted,
+	)
+}
+
+func (r *CnpgSyncReconciler) updateSecretDataWithRetry(
+	ctx context.Context,
+	secret *corev1.Secret,
+	dataKey string,
+	dataValue []byte,
+	successLogMsg, conflictLogMsg, updateErrMsg, refreshErrMsg string,
+	exhaustedErr error,
+) error {
 	for attempt := range maxUpdateRetries {
-		updatedSecret := appSecret.DeepCopy()
+		updatedSecret := secret.DeepCopy()
 		if updatedSecret.Data == nil {
 			updatedSecret.Data = make(map[string][]byte)
 		}
-		updatedSecret.Data[postgresqlJsonKey] = postgresJson
+		updatedSecret.Data[dataKey] = dataValue
 
 		err := r.k8sClient.Update(ctx, updatedSecret)
 		if err == nil {
-			r.logger.Info("updated app secret with postgresql connection",
-				"secretName", appSecret.Name,
-				"namespace", appSecret.Namespace,
+			r.logger.Info(successLogMsg,
+				"secretName", secret.Name,
+				"namespace", secret.Namespace,
 			)
 			return nil
 		}
 
 		if !apierrors.IsConflict(err) {
-			return fmt.Errorf("update app secret: %w", err)
+			return fmt.Errorf("%s: %w", updateErrMsg, err)
 		}
 
-		r.logger.Info("conflict updating app secret, retrying",
+		r.logger.Info(conflictLogMsg,
 			"attempt", attempt+1,
-			"secretName", appSecret.Name,
+			"secretName", secret.Name,
 		)
 
 		if err := r.k8sClient.Get(
 			ctx,
-			client.ObjectKey{Name: appSecret.Name, Namespace: appSecret.Namespace},
-			appSecret,
+			client.ObjectKey{Name: secret.Name, Namespace: secret.Namespace},
+			secret,
 		); err != nil {
-			return fmt.Errorf("refresh app secret: %w", err)
+			return fmt.Errorf("%s: %w", refreshErrMsg, err)
 		}
 	}
-	return fmt.Errorf("%w: %d attempts", errAppSecretUpdateRetryExhausted, maxUpdateRetries)
+	return fmt.Errorf("%w: %d attempts", exhaustedErr, maxUpdateRetries)
+}
+
+func mergeWorkflowEngineSecretsJSON(existing []byte, connectionString string) ([]byte, error) {
+	payload := map[string]any{}
+	if len(existing) > 0 {
+		if err := json.Unmarshal(existing, &payload); err != nil {
+			return nil, fmt.Errorf("unmarshal existing secrets.json: %w", err)
+		}
+	}
+
+	connectionStrings, ok := payload["ConnectionStrings"].(map[string]any)
+	if !ok {
+		connectionStrings = nil
+	}
+	if connectionStrings == nil {
+		connectionStrings = map[string]any{}
+	}
+	connectionStrings["WorkflowEngine"] = connectionString
+	payload["ConnectionStrings"] = connectionStrings
+
+	jsonBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("marshal workflow engine secrets.json: %w", err)
+	}
+	return jsonBytes, nil
 }
 
 // cleanupRemovedApps removes database resources for apps no longer in targets.
@@ -1833,6 +2094,142 @@ func (r *CnpgSyncReconciler) cleanupRemovedApps(ctx context.Context) error {
 	return nil
 }
 
+func (r *CnpgSyncReconciler) cleanupRemovedWorkflowEngineApp(ctx context.Context) error {
+	if r.hasTargetWorkflowEngineApp() {
+		return nil
+	}
+
+	ownedDatabase, _, err := r.workflowEngineDatabaseOwnership(ctx)
+	if err != nil {
+		return fmt.Errorf("check workflow engine database ownership: %w", err)
+	}
+	ownedRole, _, err := r.workflowEngineRoleOwnership(ctx)
+	if err != nil {
+		return fmt.Errorf("check workflow engine role ownership: %w", err)
+	}
+	ownedPasswordSecret, _, err := r.workflowEnginePasswordSecretOwnership(ctx)
+	if err != nil {
+		return fmt.Errorf("check workflow engine password secret ownership: %w", err)
+	}
+
+	if !ownedDatabase && !ownedRole && !ownedPasswordSecret {
+		return nil
+	}
+
+	return r.cleanupWorkflowEngineAppResources(ctx, ownedDatabase, ownedRole, ownedPasswordSecret)
+}
+
+func isManagedWorkflowEngineDatabase(database *cnpgv1.Database) bool {
+	return database.Labels[managedByLabelKey] == managedByLabelValue &&
+		database.Labels[workflowEngineLabelKey] == workflowEngineLabelValue
+}
+
+func isManagedWorkflowEnginePasswordSecret(secret *corev1.Secret) bool {
+	return secret.Labels[managedByLabelKey] == managedByLabelValue &&
+		secret.Labels[workflowEngineLabelKey] == workflowEngineLabelValue
+}
+
+func (r *CnpgSyncReconciler) workflowEngineDatabaseOwnership(ctx context.Context) (owned, exists bool, err error) {
+	database := &cnpgv1.Database{}
+	err = r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: fmt.Sprintf(databaseNameFormat, workflowEngineAppId), Namespace: cnpgNamespace},
+		database,
+	)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return false, false, fmt.Errorf("get workflow engine database: %w", err)
+	}
+	if apierrors.IsNotFound(err) {
+		return false, false, nil
+	}
+	return isManagedWorkflowEngineDatabase(database), true, nil
+}
+
+func (r *CnpgSyncReconciler) workflowEnginePasswordSecretOwnership(
+	ctx context.Context,
+) (owned, exists bool, err error) {
+	passwordSecret := &corev1.Secret{}
+	err = r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: fmt.Sprintf(passwordSecretNameFormat, workflowEngineAppId), Namespace: cnpgNamespace},
+		passwordSecret,
+	)
+	if apierrors.IsNotFound(err) {
+		return false, false, nil
+	}
+	if err != nil {
+		return false, false, fmt.Errorf("get workflow engine password secret: %w", err)
+	}
+	return isManagedWorkflowEnginePasswordSecret(passwordSecret), true, nil
+}
+
+func (r *CnpgSyncReconciler) ensureWorkflowEnginePasswordSecret(ctx context.Context) error {
+	_, exists, err := r.workflowEnginePasswordSecretOwnership(ctx)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	password, err := generatePassword(32)
+	if err != nil {
+		return fmt.Errorf("generate password: %w", err)
+	}
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf(passwordSecretNameFormat, workflowEngineAppId),
+			Namespace: cnpgNamespace,
+			Labels: map[string]string{
+				managedByLabelKey:      managedByLabelValue,
+				"cnpg.io/cluster":      clusterName,
+				workflowEngineLabelKey: workflowEngineLabelValue,
+			},
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{
+			"username": []byte(workflowEngineDatabaseName),
+			"password": []byte(password),
+		},
+	}
+
+	if err := r.k8sClient.Create(ctx, secret); err != nil {
+		return fmt.Errorf("create workflow engine password secret: %w", err)
+	}
+	r.logger.Info("created workflow engine password secret", "name", secret.Name)
+	return nil
+}
+
+func (r *CnpgSyncReconciler) workflowEngineRoleOwnership(ctx context.Context) (owned, exists bool, err error) {
+	cluster := &cnpgv1.Cluster{}
+	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, false, nil
+		}
+		return false, false, fmt.Errorf("get cluster: %w", err)
+	}
+	if cluster.Spec.Managed == nil {
+		return false, false, nil
+	}
+
+	passwordSecretOwned, _, err := r.workflowEnginePasswordSecretOwnership(ctx)
+	if err != nil {
+		return false, false, err
+	}
+
+	passwordSecretName := fmt.Sprintf(passwordSecretNameFormat, workflowEngineAppId)
+	for _, role := range cluster.Spec.Managed.Roles {
+		if role.Name != workflowEngineDatabaseName {
+			continue
+		}
+		return passwordSecretOwned &&
+			role.PasswordSecret != nil &&
+			role.PasswordSecret.Name == passwordSecretName, true, nil
+	}
+	return false, false, nil
+}
+
 // cleanupAppDatabase removes all database resources for an app.
 func (r *CnpgSyncReconciler) cleanupAppDatabase(ctx context.Context, appId string) error {
 	if err := r.deleteDatabaseIfExists(ctx, appId); err != nil {
@@ -1852,6 +2249,28 @@ func (r *CnpgSyncReconciler) cleanupAppDatabase(ctx context.Context, appId strin
 		return fmt.Errorf("remove postgresql.json: %w", err)
 	}
 
+	return nil
+}
+
+func (r *CnpgSyncReconciler) cleanupWorkflowEngineAppResources(
+	ctx context.Context,
+	deleteDatabase, deleteRole, deletePasswordSecret bool,
+) error {
+	if deleteDatabase {
+		if err := r.deleteDatabaseIfExists(ctx, workflowEngineAppId); err != nil {
+			return fmt.Errorf("delete database: %w", err)
+		}
+	}
+	if deleteRole {
+		if err := r.removeManagedRoleForResource(ctx, workflowEngineAppId, workflowEngineDatabaseName); err != nil {
+			return fmt.Errorf("remove managed role: %w", err)
+		}
+	}
+	if deletePasswordSecret {
+		if err := r.deletePasswordSecretIfExists(ctx, workflowEngineAppId); err != nil {
+			return fmt.Errorf("delete password secret: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -1875,8 +2294,13 @@ func (r *CnpgSyncReconciler) deleteDatabaseIfExists(ctx context.Context, appId s
 }
 
 func (r *CnpgSyncReconciler) removeManagedRole(ctx context.Context, appId string) error {
-	pgRole := sanitizePostgresIdentifier(appId)
+	return r.removeManagedRoleForResource(ctx, appId, sanitizePostgresIdentifier(appId))
+}
 
+func (r *CnpgSyncReconciler) removeManagedRoleForResource(
+	ctx context.Context,
+	resourceName, pgRole string,
+) error {
 	cluster := &cnpgv1.Cluster{}
 	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -1907,13 +2331,13 @@ func (r *CnpgSyncReconciler) removeManagedRole(ctx context.Context, appId string
 	for attempt := range maxUpdateRetries {
 		err := r.k8sClient.Update(ctx, cluster)
 		if err == nil {
-			r.logger.Info("removed managed role from cluster", "appId", appId)
+			r.logger.Info("removed managed role from cluster", "resource", resourceName, "role", pgRole)
 			return nil
 		}
 		if !apierrors.IsConflict(err) {
 			return fmt.Errorf("update cluster to remove role: %w", err)
 		}
-		r.logger.Info("conflict removing role, retrying", "appId", appId, "attempt", attempt+1)
+		r.logger.Info("conflict removing role, retrying", "resource", resourceName, "attempt", attempt+1)
 		if err := r.k8sClient.Get(
 			ctx,
 			client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace},
@@ -1963,7 +2387,7 @@ func (r *CnpgSyncReconciler) deletePasswordSecretIfExists(ctx context.Context, a
 	if err := r.k8sClient.Delete(ctx, secret); err != nil {
 		return fmt.Errorf("delete password secret: %w", err)
 	}
-	r.logger.Info("deleted password secret", "name", secretName, "appId", appId)
+	r.logger.Info("deleted password secret", "name", secretName, "resource", appId)
 	return nil
 }
 
