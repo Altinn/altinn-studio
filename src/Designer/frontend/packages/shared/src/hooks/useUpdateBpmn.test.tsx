@@ -1,4 +1,3 @@
-import React from 'react';
 import { useUpdateBpmn } from './useUpdateBpmn';
 import { queriesMock } from '../mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';

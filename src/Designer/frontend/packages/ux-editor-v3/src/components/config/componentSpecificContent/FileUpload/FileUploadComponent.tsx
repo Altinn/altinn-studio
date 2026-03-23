@@ -1,4 +1,3 @@
-import React from 'react';
 import { Fieldset, Radio } from '@digdir/designsystemet-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';

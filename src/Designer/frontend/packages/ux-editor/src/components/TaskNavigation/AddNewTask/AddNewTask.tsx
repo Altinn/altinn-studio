@@ -1,4 +1,3 @@
-import React from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,3 @@
-import React from 'react';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

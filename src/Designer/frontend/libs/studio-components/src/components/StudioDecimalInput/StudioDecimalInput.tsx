@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, FocusEvent, ReactElement, Ref } from 'react';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 import { StudioTextfield } from '../StudioTextfield';

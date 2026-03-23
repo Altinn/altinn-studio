@@ -2,6 +2,7 @@ import type { ExternalConfigState, InternalConfigState } from './ValidateNavigat
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -82,13 +83,12 @@ export const getAvailableTasks = (
 export const getAvailablePages = (
   formLayouts?: IFormLayouts,
   externalConfig?: ExternalConfigState[],
-  selectedPages?: string[],
+  initialSelectedPages?: string[],
 ): string[] => {
   const allPages = formLayouts ? Object.keys(formLayouts) : [];
   const pagesWithRules = externalConfig?.flatMap((config) => config.pages || []) || [];
-
   return allPages.filter((page) => {
-    return !pagesWithRules.includes(page) || selectedPages?.includes(page);
+    return !pagesWithRules.includes(page) || initialSelectedPages?.includes(page);
   });
 };
 
@@ -99,7 +99,7 @@ type IsSaveDisabledProps = {
 };
 
 export const isSaveDisabled = ({ scope, config, newConfig }: IsSaveDisabledProps): boolean => {
-  const noChangesMade = !newConfig || JSON.stringify(config) === JSON.stringify(newConfig);
+  const noChangesMade = !newConfig || ObjectUtils.areObjectsEqual(config, newConfig);
   if (noChangesMade) {
     return true;
   }

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import classes from './SecurityLevelSelect.module.css';
 import { Heading, Label, Paragraph, Link } from '@digdir/designsystemet-react';
 import { StudioHelpText, StudioSelect } from '@studio/components';

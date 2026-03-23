@@ -3,6 +3,11 @@
 This client supports both single-tenant and multi-tenant modes:
 - Multi-tenant: Token passed via Authorization header per request
 - Single-tenant: Token from environment variable (GITEA_API_KEY)
+
+TODO: Migrate to route requests through the Gitea proxy instead of authenticating
+directly with Gitea OR remove Gitea auth entirely, since it is currently not in use.
+The agents already pass a Designer API key via X-Api-Key header
+to the MCP server, which the proxy can validate.
 """
 
 from typing import List, Dict, Any, Optional

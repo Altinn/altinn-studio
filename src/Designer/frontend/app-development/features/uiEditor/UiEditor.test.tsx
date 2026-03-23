@@ -1,5 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
-import React from 'react';
+import { useEffect } from 'react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
@@ -15,7 +15,7 @@ jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
 }));
 jest.mock('@altinn/ux-editor/SubApp', () => ({
   SubApp: ({ onLayoutSetNameChange }: { onLayoutSetNameChange: (name: string) => void }) => {
-    React.useEffect(() => {
+    useEffect(() => {
       onLayoutSetNameChange('test-layout');
     }, [onLayoutSetNameChange]);
     return <div data-testid='latest version' />;

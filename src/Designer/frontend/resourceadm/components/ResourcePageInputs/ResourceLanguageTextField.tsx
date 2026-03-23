@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement, ReactNode, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioButton, StudioTextfield, StudioTabs } from '@studio/components';
@@ -96,7 +96,7 @@ export const ResourceLanguageTextField = ({
   onSetLanguage,
 }: ResourceLanguageTextFieldProps): ReactElement => {
   const { t } = useTranslation();
-  const inputRef = useRef<HTMLInputElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 

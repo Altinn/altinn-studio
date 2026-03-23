@@ -1,4 +1,3 @@
-import React from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

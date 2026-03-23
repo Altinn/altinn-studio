@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { BlobDownloader } from '@studio/pure-functions';
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';

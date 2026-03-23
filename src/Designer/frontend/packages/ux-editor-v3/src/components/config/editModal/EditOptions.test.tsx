@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { EditOptions } from './EditOptions';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';

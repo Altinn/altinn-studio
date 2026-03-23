@@ -1,5 +1,6 @@
-import React from 'react';
 import classes from './ErrorPage.module.css';
+
+import type { JSX } from 'react';
 
 type ErrorPageProps = {
   title: string;

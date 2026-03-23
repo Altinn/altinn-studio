@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import React, { useMemo, forwardRef } from 'react';
+import { useMemo, forwardRef } from 'react';
 import type { TextResource } from '../../../../studio-pure-functions/src/types/TextResource';
 import {
   StudioSuggestion,

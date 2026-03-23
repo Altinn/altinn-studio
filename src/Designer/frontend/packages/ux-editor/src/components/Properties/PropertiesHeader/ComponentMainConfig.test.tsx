@@ -1,4 +1,3 @@
-import React from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { screen } from '@testing-library/react';

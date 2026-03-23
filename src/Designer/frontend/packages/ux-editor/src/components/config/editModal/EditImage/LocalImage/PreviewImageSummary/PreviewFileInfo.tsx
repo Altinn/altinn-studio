@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './PreviewFileInfo.module.css';
 import { StudioParagraph } from '@studio/components';
 import { FileNameUtils } from '@studio/pure-functions';

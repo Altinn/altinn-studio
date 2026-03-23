@@ -1,4 +1,3 @@
-import React from 'react';
 import { PolicyRulesEditor } from './PolicyRulesEditor';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
 import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';

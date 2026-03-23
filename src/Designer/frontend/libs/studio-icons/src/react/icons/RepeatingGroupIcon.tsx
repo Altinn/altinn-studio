@@ -1,6 +1,6 @@
-import * as React from 'react';
 import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
+import type { JSX } from 'react';
 export const RepeatingGroupIcon = (props: IconProps): JSX.Element => {
   return (
     <SvgTemplate {...props}>

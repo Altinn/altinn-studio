@@ -36,7 +36,7 @@ async def handle(state: AgentState) -> AgentState:
     log.info(f"💬 Assistant node: handling query for session {state.session_id}")
     
     langfuse = get_client()
-    with langfuse.start_as_current_span(
+    with langfuse.start_as_current_observation(
         name="assistant_query",
         metadata={
             "span_type": "CHAIN",
@@ -147,7 +147,7 @@ async def handle(state: AgentState) -> AgentState:
 async def _scan_repository(state: AgentState) -> Dict[str, Any]:
     """Scan repository and extract context."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
+    with langfuse.start_as_current_observation(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
         span.update(input={"repo_path": state.repo_path})
         
         repo_context = discover_repository_context(state.repo_path)
@@ -167,7 +167,7 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
 async def _get_available_tools() -> List[str]:
     """Connect to MCP and get available tools."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="mcp_connection", metadata={"span_type": "TOOL"}) as span:
+    with langfuse.start_as_current_observation(name="mcp_connection", metadata={"span_type": "TOOL"}) as span:
         mcp_client = get_mcp_client()
         await mcp_client.connect()
         
@@ -191,7 +191,7 @@ async def _select_relevant_tools(
 ) -> List[Dict[str, Any]]:
     """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
+    with langfuse.start_as_current_observation(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
         span.update(input={
             "query": query,
             "available_tools": tool_names,
@@ -290,7 +290,7 @@ async def _select_relevant_tools(
 async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Execute selected MCP tools according to the plan."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
+    with langfuse.start_as_current_observation(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
         span.update(input={"tool_plan": tool_plan})
         
         mcp_client = get_mcp_client()
@@ -325,7 +325,7 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 # layout_components_tool, resource_tool, planning_tool, etc.
                 arguments = {"query": query or ""}
             
-            with langfuse.start_as_current_span(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
+            with langfuse.start_as_current_observation(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
                 tool_span.update(input={
                     "tool": tool_name,
                     "arguments": arguments,
@@ -701,7 +701,7 @@ async def _generate_response(
 ) -> str:
     """Generate natural language response using LLM."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="response_generation", metadata={"span_type": "LLM"}) as span:
+    with langfuse.start_as_current_observation(name="response_generation", metadata={"span_type": "LLM"}) as span:
         span.update(input={
             "query": query,
             "repo_summary": repo_summary,

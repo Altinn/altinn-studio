@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './MaskinportenTab.module.css';
 import { useTranslation } from 'react-i18next';

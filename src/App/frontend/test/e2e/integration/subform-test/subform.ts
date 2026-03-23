@@ -109,7 +109,8 @@ describe('Subform test', () => {
     cy.get('[data-testid=summary-single-value-component]').eq(0).should('contain.text', name);
     cy.get('[data-testid=summary-single-value-component]').eq(1).should('contain.text', '30 år');
     cy.get('#label-attachment-summary2-attachments')
-      .next()
+      .parent()
+      .parent()
       .should('contain.text', 'Du har ikke lagt inn informasjon her');
 
     cy.get('#form-content-subform-mopeder table tbody tr').should('have.length', 1);
@@ -132,7 +133,8 @@ describe('Subform test', () => {
     cy.get('[data-testid=summary-single-value-component]').eq(0).should('contain.text', name);
     cy.get('[data-testid=summary-single-value-component]').eq(1).should('contain.text', '30 år');
     cy.get('#label-attachment-summary2-attachments')
-      .next()
+      .parent()
+      .parent()
       .should('contain.text', 'Du har ikke lagt inn informasjon her');
 
     cy.get('#label-subform-mopeder').should('contain.text', 'Dine mopeder');

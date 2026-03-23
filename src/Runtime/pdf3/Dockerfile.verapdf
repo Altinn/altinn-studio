@@ -1,0 +1,50 @@
+#
+# Based on the upstream veraPDF container build, adapted for pdf3.
+#
+
+FROM eclipse-temurin:11-jdk-alpine@sha256:0ab8f6996f638b6f1e34438e5d926e86c0f7c872986ecf3b5ca21941574cc838 AS app-installer
+ARG VERAPDF_VERSION=1.28.2
+ARG VERAPDF_SIGNING_KEY=13DD102B4DD69354D12DE5A83184863278B17FE7
+
+WORKDIR /tmp
+COPY docker-install.xml .
+RUN apk add --no-cache gnupg unzip wget
+RUN verapdf_series="${VERAPDF_VERSION%.*}" \
+	&& export GNUPGHOME="$(mktemp -d)" \
+	&& wget -O /tmp/verapdf-installer.zip \
+		"https://software.verapdf.org/releases/${verapdf_series}/verapdf-greenfield-${VERAPDF_VERSION}-installer.zip" \
+	&& wget -O /tmp/verapdf-installer.zip.asc \
+		"https://software.verapdf.org/releases/${verapdf_series}/verapdf-greenfield-${VERAPDF_VERSION}-installer.zip.asc" \
+	&& gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${VERAPDF_SIGNING_KEY}" \
+	&& test "$(gpg --batch --with-colons --fingerprint "${VERAPDF_SIGNING_KEY}" | awk -F: '$1 == "fpr" { print $10; exit }')" = "${VERAPDF_SIGNING_KEY}" \
+	&& gpg --batch --verify /tmp/verapdf-installer.zip.asc /tmp/verapdf-installer.zip \
+	&& rm -rf "${GNUPGHOME}" /tmp/verapdf-installer.zip.asc
+RUN unzip verapdf-installer.zip \
+	&& java -jar "./verapdf-greenfield-${VERAPDF_VERSION}/verapdf-izpack-installer-${VERAPDF_VERSION}.jar" docker-install.xml
+
+FROM eclipse-temurin:11-jdk-alpine@sha256:0ab8f6996f638b6f1e34438e5d926e86c0f7c872986ecf3b5ca21941574cc838 AS jre-builder
+
+RUN "$JAVA_HOME/bin/jlink" \
+	--add-modules java.base,java.compiler,java.logging,java.xml,jdk.crypto.ec,java.desktop,jdk.management \
+	--strip-debug \
+	--no-man-pages \
+	--no-header-files \
+	--compress=2 \
+	--output /javaruntime
+
+FROM alpine:3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+COPY --from=jre-builder /javaruntime "${JAVA_HOME}"
+
+RUN addgroup -S verapdf && adduser -S -G verapdf -h /opt/verapdf verapdf
+RUN mkdir -p /var/opt/verapdf/logs && chown -R verapdf:verapdf /var/opt/verapdf
+
+USER verapdf
+COPY --from=app-installer /opt/verapdf/ /opt/verapdf/
+
+WORKDIR /data
+VOLUME /data
+
+ENTRYPOINT ["/opt/verapdf/verapdf"]

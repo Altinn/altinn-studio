@@ -11,12 +11,14 @@ export type StudioResizableOrientation = (typeof ORIENTATIONS)[number];
 export const horizontal: StudioResizableOrientation = 'horizontal';
 export const vertical: StudioResizableOrientation = 'vertical';
 
+type StudioResizableLayoutElementPropsWithRef = StudioResizableLayoutElementProps &
+  React.RefAttributes<HTMLDivElement>;
+
 export type StudioResizableLayoutContainerProps = {
   localStorageContext?: string;
   orientation: StudioResizableOrientation;
   style?: CSSProperties;
-
-  children: ReactElement<StudioResizableLayoutElementProps>[];
+  children: ReactElement<StudioResizableLayoutElementPropsWithRef>[];
 };
 
 const StudioResizableLayoutContainer = ({
@@ -41,10 +43,12 @@ const StudioResizableLayoutContainer = ({
   const renderChildren = (): React.ReactNode => {
     return Children.map(getValidChildren(children), (child, index) => {
       const hasNeighbour = index < getValidChildren(children).length - 1;
-      return React.cloneElement(child, {
+      return React.cloneElement<StudioResizableLayoutElementPropsWithRef>(child, {
         index,
         hasNeighbour,
-        ref: (element: HTMLDivElement) => (elementRefs.current[index] = element),
+        ref: (element: HTMLDivElement | null) => {
+          elementRefs.current[index] = element;
+        },
       });
     });
   };
@@ -64,10 +68,10 @@ const StudioResizableLayoutContainer = ({
 
 const getValidChildren = (
   children: React.ReactElement<
-    StudioResizableLayoutElementProps,
+    StudioResizableLayoutElementPropsWithRef,
     string | React.JSXElementConstructor<unknown>
   >[],
-): React.ReactElement<StudioResizableLayoutElementProps>[] => {
+): React.ReactElement<StudioResizableLayoutElementPropsWithRef>[] => {
   return children.filter((child) => !!child);
 };
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './PageLayout.module.css';
 import { Outlet } from 'react-router-dom';

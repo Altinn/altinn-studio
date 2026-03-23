@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { HeaderContextProvider, useHeaderContext } from './HeaderContext';
 import { renderWithProviders } from '../../testing/mocks';
@@ -52,8 +51,6 @@ describe('HeaderContext', () => {
   });
 
   it('should throw an error when useHeaderContext is used outside of a HeaderContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useHeaderContext();
       return <div data-testid='context'>Test</div>;
@@ -62,7 +59,6 @@ describe('HeaderContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useHeaderContext must be used within a HeaderContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should include user settings link in profile menu when studioOidc feature flag is enabled', () => {

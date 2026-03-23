@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { DropdownList } from '@digdir/designsystemet-react';
 import type { DropdownListProps } from '@digdir/designsystemet-react';

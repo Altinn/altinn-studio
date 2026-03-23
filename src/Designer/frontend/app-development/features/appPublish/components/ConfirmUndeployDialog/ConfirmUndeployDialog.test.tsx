@@ -1,7 +1,6 @@
 import { renderWithProviders } from '../../../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
-import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

@@ -214,6 +214,7 @@ func marshalJSONNoEscape(v any) ([]byte, error) {
 const sanitizedTimestamp = "2024-01-01T00:00:00Z"
 const sanitizedUID = "<sanitized-uid>"
 const sanitizedResourceVersion = "<sanitized-resource-version>"
+const appCodesIssuedAtAnnotationKey = "altinn.studio/app-codes-monthly-issued-at"
 
 // SanitizeMetadata removes/replaces non-deterministic metadata fields.
 func SanitizeMetadata(meta map[string]any) {
@@ -221,6 +222,11 @@ func SanitizeMetadata(meta map[string]any) {
 	meta["resourceVersion"] = sanitizedResourceVersion
 	meta["creationTimestamp"] = sanitizedTimestamp
 	delete(meta, "managedFields")
+	if annotations, ok := meta["annotations"].(map[string]any); ok {
+		if _, exists := annotations[appCodesIssuedAtAnnotationKey]; exists {
+			annotations[appCodesIssuedAtAnnotationKey] = fmt.Sprintf(`["%s"]`, sanitizedTimestamp)
+		}
+	}
 
 	// Sanitize ownerReferences UIDs
 	if refs, ok := meta["ownerReferences"].([]any); ok {

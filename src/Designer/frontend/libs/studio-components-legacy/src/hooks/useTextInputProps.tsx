@@ -1,5 +1,5 @@
 import type { ChangeEvent, FocusEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AdditionalProps, SharedTextInputProps } from '../types/SharedTextInputProps';
 import { StudioLabelWrapper } from '../components';
 

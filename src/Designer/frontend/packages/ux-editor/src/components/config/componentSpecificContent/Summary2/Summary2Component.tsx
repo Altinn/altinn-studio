@@ -1,9 +1,10 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { Summary2Override } from './Override/Summary2Override';
 import { Summary2Target } from './Summary2Target/Summary2Target';
 import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
+
+import type { JSX } from 'react';
 
 type Summary2ComponentProps = IGenericEditComponent<ComponentType.Summary2> & {
   className?: string;

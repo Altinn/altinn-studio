@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Message } from '../../types/ChatThread';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import classes from './CompactInterface.module.css';

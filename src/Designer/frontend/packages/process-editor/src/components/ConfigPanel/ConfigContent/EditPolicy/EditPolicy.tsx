@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioAlert, StudioLink, StudioRedirectBox } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ShieldLockIcon } from '@studio/icons';

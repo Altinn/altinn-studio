@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/types/global';
@@ -148,7 +148,7 @@ describe('TextResourceEdit', () => {
 const render = async (
   resources: ITextResources = {},
   editId?: string,
-  previewIframeRef: RefObject<HTMLIFrameElement> = appContextMock.previewIframeRef,
+  previewIframeRef: RefObject<HTMLIFrameElement | null> = appContextMock.previewIframeRef,
 ) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
