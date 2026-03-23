@@ -20,18 +20,20 @@ export function StudioSelect({
   description,
   children,
   error,
+  id: givenId,
   className,
   ...rest
 }: StudioSelectProps): ReactElement {
-  const id: string = useId();
+  const generatedId: string = useId();
+  const id = givenId || generatedId;
   const descriptionId: string | undefined = description ? `${id}-description` : undefined;
   const hasError: boolean = !!error;
 
   return (
     <StudioField className={cn(classes.field, className)}>
-      <StudioLabel>{label}</StudioLabel>
+      <StudioLabel htmlFor={id}>{label}</StudioLabel>
       {description && <StudioParagraph id={descriptionId}>{description}</StudioParagraph>}
-      <Select aria-invalid={hasError} aria-describedby={descriptionId} {...rest}>
+      <Select aria-invalid={hasError} aria-describedby={descriptionId} id={id} {...rest}>
         {children}
       </Select>
       {hasError && <StudioValidationMessage>{error}</StudioValidationMessage>}
