@@ -59,22 +59,20 @@ Much easier to read and edit!
 
 ### User Prompt Templates
 
-Stored in `templates/` subdirectory with **variable placeholders**:
+Stored in `templates/` subdirectory with **variable placeholders** using `{{variable}}` syntax (same as Langfuse):
 
 ```markdown
 USER GOAL:
-{user_goal}
+{{user_goal}}
 
 CURRENT PLAN STEP (if any):
-{planner_step}
+{{planner_step}}
 
 Return JSON with:
-{{
-  "goal_summary": "one paragraph"
-}}
+{
+"goal_summary": "one paragraph"
+}
 ```
-
-**Note:** Use `{{` and `}}` to escape braces in template text (for JSON examples).
 
 ## Usage
 
@@ -122,15 +120,6 @@ To use a prompt from Langfuse instead of the local file:
    - **Type**: `Text` (not Chat)
    - **Content**: Paste the prompt content (without YAML frontmatter for system prompts)
 4. **Label it `production`** — By default, `get_prompt()` fetches the version labeled `production`. If no version has this label, the fetch will fail and fall back to local.
-
-### Variable Syntax Difference
-
-| Source                    | Syntax         | Example         |
-| ------------------------- | -------------- | --------------- |
-| **Local `.md` templates** | `{variable}`   | `{user_goal}`   |
-| **Langfuse templates**    | `{{variable}}` | `{{user_goal}}` |
-
-When creating **user prompt templates** in Langfuse (the ones in `templates/`), convert `{variable}` to `{{variable}}`. For **system prompts** (no variables), copy the content as-is.
 
 ### Prompt Naming Reference
 

@@ -1,4 +1,5 @@
 """Prompt loader utility for managing system prompts"""
+import re
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -116,13 +117,23 @@ def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
     return load_prompt(prompt_name)["content"], None
 
 
+def _compile_template(content: str, variables: dict) -> str:
+    """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behaviour."""
+    def _replace_variable(match: re.Match) -> str:
+        variable_name = match.group(1).strip()
+        if variable_name in variables:
+            return str(variables[variable_name]) if variables[variable_name] is not None else ""
+        raise ValueError(f"Missing required template variable: '{variable_name}'")
+
+    return re.sub(r"\{\{(.+?)\}\}", _replace_variable, content)
+
+
 def render_template(template_name: str, **variables) -> str:
     """
     Load and render a template with variable substitution.
 
-    When Langfuse is enabled, tries to fetch and render from Langfuse first
-    (using Langfuse's {{variable}} syntax). Falls back to the local template
-    file (using Python's str.format() with {variable} syntax).
+    When Langfuse is enabled, tries to fetch from Langfuse
+    first and falls back to the local template file.
 
     Args:
         template_name: Name of the template file (without .md extension)
@@ -146,8 +157,4 @@ def render_template(template_name: str, **variables) -> str:
         raise FileNotFoundError(f"Template file not found: {template_file}")
 
     template_content = template_file.read_text(encoding="utf-8")
-
-    try:
-        return template_content.format(**variables)
-    except KeyError as e:
-        raise ValueError(f"Missing required template variable: {e}")
+    return _compile_template(template_content, variables)
