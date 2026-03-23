@@ -125,7 +125,6 @@ func TestReconciler_CreatesCodesForAllTypes(t *testing.T) {
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	g.Expect(updated.Data).To(HaveKey("existing-key"))
 	g.Expect(updated.Data).To(HaveKey(appCodesFileName))
-	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-notificationcallback-issued-at"))
 
 	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
 	g.Expect(parsed.AppCodes.NotificationCallback).To(HaveLen(1))
@@ -156,7 +155,7 @@ func TestReconciler_CreatesCodesForAllTypes(t *testing.T) {
 	g.Expect(untouched.Data).NotTo(HaveKey(appCodesFileName))
 }
 
-func TestReconciler_PreservesUnrelatedAnnotationsAndRemovesObsoleteAppCodeAnnotations(t *testing.T) {
+func TestReconciler_PreservesUnrelatedAnnotations(t *testing.T) {
 	g := NewWithT(t)
 
 	target := &corev1.Secret{
@@ -164,9 +163,7 @@ func TestReconciler_PreservesUnrelatedAnnotationsAndRemovesObsoleteAppCodeAnnota
 			Name:      "ttd-testapp-deployment-secrets",
 			Namespace: "default",
 			Annotations: map[string]string{
-				"other-annotation":                                       "preserved",
-				"altinn.studio/app-codes-monthly-issued-at":              `["2026-03-01T12:00:00Z"]`,
-				"altinn.studio/app-codes-notificationcallback-issued-at": `["2026-03-01T12:00:00Z"]`,
+				"other-annotation": "preserved",
 			},
 		},
 	}
@@ -177,8 +174,6 @@ func TestReconciler_PreservesUnrelatedAnnotationsAndRemovesObsoleteAppCodeAnnota
 	updated := &corev1.Secret{}
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	g.Expect(updated.Annotations).To(HaveKeyWithValue("other-annotation", "preserved"))
-	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-monthly-issued-at"))
-	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-notificationcallback-issued-at"))
 }
 
 func TestReconciler_ReturnsErrorAndPreservesSecretWhenAppCodesFileIsMalformed(t *testing.T) {
@@ -465,7 +460,6 @@ func TestReconciler_RetriesOnConflictAndPreservesConcurrentChanges(t *testing.T)
 			Namespace: "default",
 			Annotations: map[string]string{
 				"existing-annotation": "before",
-				"altinn.studio/app-codes-notificationcallback-issued-at": `["2026-03-01T12:00:00Z"]`,
 			},
 		},
 		Data: map[string][]byte{
@@ -503,7 +497,6 @@ func TestReconciler_RetriesOnConflictAndPreservesConcurrentChanges(t *testing.T)
 	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
 	g.Expect(conflictInjected).To(BeTrue())
 	g.Expect(updated.Annotations).To(HaveKeyWithValue("existing-annotation", "after-conflict"))
-	g.Expect(updated.Annotations).NotTo(HaveKey("altinn.studio/app-codes-notificationcallback-issued-at"))
 	g.Expect(updated.Data).To(HaveKeyWithValue("existing-key", []byte("after-conflict")))
 	g.Expect(updated.Data).To(HaveKey(appCodesFileName))
 }

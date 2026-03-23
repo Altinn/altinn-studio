@@ -221,13 +221,6 @@ func SanitizeMetadata(meta map[string]any) {
 	meta["resourceVersion"] = sanitizedResourceVersion
 	meta["creationTimestamp"] = sanitizedTimestamp
 	delete(meta, "managedFields")
-	if annotations, ok := meta["annotations"].(map[string]any); ok {
-		for key := range annotations {
-			if strings.HasPrefix(key, "altinn.studio/app-codes-") && strings.HasSuffix(key, "-issued-at") {
-				delete(annotations, key)
-			}
-		}
-	}
 
 	// Sanitize ownerReferences UIDs
 	if refs, ok := meta["ownerReferences"].([]any); ok {
