@@ -285,7 +285,7 @@ func parseCodesForSpec(file appCodesFile, spec codeTypeSpec, now time.Time) ([]a
 		return nil, nil
 	}
 
-	result := make([]appCode, 0, min(len(entries), spec.maxRetainedCodes()))
+	result := make([]appCode, 0, len(entries))
 	seenCodes := make(map[string]struct{}, len(entries))
 	seenIDs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
@@ -327,9 +327,11 @@ func parseCodesForSpec(file appCodesFile, spec codeTypeSpec, now time.Time) ([]a
 			IssuedAt:  issuedAt,
 			ExpiresAt: issuedAt.Add(spec.AcceptLifetime),
 		})
-		if len(result) == spec.maxRetainedCodes() {
-			break
-		}
+	}
+
+	normalizeCodeOrder(result)
+	if len(result) > spec.maxRetainedCodes() {
+		result = result[:spec.maxRetainedCodes()]
 	}
 
 	return result, nil
@@ -397,11 +399,18 @@ func buildDesiredCodes(spec codeTypeSpec, current []appCode, now time.Time) ([]a
 		active = append([]appCode{code}, active...)
 	}
 
+	normalizeCodeOrder(active)
 	if len(active) > spec.maxRetainedCodes() {
 		active = active[:spec.maxRetainedCodes()]
 	}
 
 	return active, nil
+}
+
+func normalizeCodeOrder(codes []appCode) {
+	slices.SortFunc(codes, func(a, b appCode) int {
+		return b.IssuedAt.Compare(a.IssuedAt)
+	})
 }
 
 func nextRequeueAfter(spec codeTypeSpec, codes []appCode, now time.Time) time.Duration {

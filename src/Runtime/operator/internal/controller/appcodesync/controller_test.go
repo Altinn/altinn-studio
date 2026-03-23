@@ -305,6 +305,39 @@ func TestReconciler_RequeuesForEarliestTypeEvent(t *testing.T) {
 	g.Expect(result.RequeueAfter).To(Equal(baseIssueLifetime - baseRotationLeadTime - 2*24*time.Hour))
 }
 
+func TestReconciler_ReordersOutOfOrderNotificationCodesByIssuedAt(t *testing.T) {
+	g := NewWithT(t)
+
+	now := time.Date(2026, 3, 23, 12, 0, 0, 0, time.UTC)
+	notificationCodes := []appCode{
+		testCode(
+			"NotificationCallback",
+			"oldoldoldoldoldoldold1",
+			"OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
+			now.Add(-26*24*time.Hour),
+		),
+		testCode(
+			"NotificationCallback",
+			"newnewnewnewnewnewnew1",
+			"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+			now.Add(-2*24*time.Hour),
+		),
+	}
+
+	target := buildSecretWithCodes(t, notificationCodes, nil, nil)
+	h := newTestHarness(t, target)
+	result := h.reconcile(t, client.ObjectKeyFromObject(target))
+
+	updated := &corev1.Secret{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKeyFromObject(target), updated)).To(Succeed())
+	parsed := parseAppCodesFileForTest(t, updated.Data[appCodesFileName])
+	g.Expect(entryCodes(parsed.AppCodes.NotificationCallback)).To(Equal([]string{
+		notificationCodes[1].Code,
+		notificationCodes[0].Code,
+	}))
+	g.Expect(result.RequeueAfter).To(Equal(22 * 24 * time.Hour))
+}
+
 func TestReconciler_KeepsThreeNotificationCodesAndRequeuesForOldestExpiry(t *testing.T) {
 	g := NewWithT(t)
 
