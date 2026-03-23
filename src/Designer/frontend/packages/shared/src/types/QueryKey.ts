@@ -111,5 +111,4 @@ export enum QueryKey {
 
   // Org settings
   ContactPoints = 'ContactPoints',
-  OrgRepos = 'OrgRepos',
 }

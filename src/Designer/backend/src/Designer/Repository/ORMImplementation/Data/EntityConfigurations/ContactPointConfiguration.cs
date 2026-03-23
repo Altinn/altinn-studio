@@ -31,6 +31,7 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
             .HasMany(e => e.Methods)
             .WithOne(e => e.ContactPoint)
             .HasForeignKey(e => e.ContactPointId)
+            .HasConstraintName("fk_contact_methods_contact_point_id")
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.Org, "idx_contact_points_org");

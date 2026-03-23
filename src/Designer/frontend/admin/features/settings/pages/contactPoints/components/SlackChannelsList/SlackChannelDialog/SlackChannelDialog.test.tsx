@@ -1,6 +1,5 @@
-import { screen } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from '@testing-library/react';
 import { useRef } from 'react';
 import type { ReactElement } from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -48,24 +47,33 @@ function SlackChannelDialogWrapper({
   );
 }
 
-const renderSlackChannelDialog = async (props: TestWrapperProps = {}) => {
-  const user = userEvent.setup();
-  render(<SlackChannelDialogWrapper {...props} />);
-  await user.click(screen.getByRole('button', { name: 'Open' }));
-  return user;
-};
-
 const getSaveButton = () =>
   screen.getByRole('button', { name: textMock('org.settings.contact_points.save') });
 
 const getCancelButton = () =>
   screen.getByRole('button', { name: textMock('org.settings.contact_points.cancel') });
 
+const getChannelNameInput = () =>
+  screen.getByRole('textbox', {
+    name: `${textMock('org.settings.contact_points.field_channel_name')} ${textMock('general.required')}`,
+  });
+
+const getWebhookUrlInput = () =>
+  screen.getByRole('textbox', {
+    name: `${textMock('org.settings.contact_points.field_webhook_url')} ${textMock('general.required')}`,
+  });
+
+const renderSlackChannelDialog = (props: TestWrapperProps = {}) => {
+  render(<SlackChannelDialogWrapper {...props} />);
+};
+
 describe('SlackChannelDialog', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('renders the add title when not editing', async () => {
-    await renderSlackChannelDialog();
+    const user = userEvent.setup();
+    renderSlackChannelDialog();
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
         name: textMock('org.settings.contact_points.dialog_add_slack_title'),
@@ -74,7 +82,9 @@ describe('SlackChannelDialog', () => {
   });
 
   it('renders the edit title when editing', async () => {
-    await renderSlackChannelDialog({ isEditing: true });
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ isEditing: true });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
         name: textMock('org.settings.contact_points.dialog_edit_slack_title'),
@@ -83,50 +93,35 @@ describe('SlackChannelDialog', () => {
   });
 
   it('renders the channel name and webhook URL fields', async () => {
-    await renderSlackChannelDialog();
-    expect(
-      screen.getByRole('textbox', {
-        name: textMock('org.settings.contact_points.field_channel_name'),
-        exact: false,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('textbox', {
-        name: textMock('org.settings.contact_points.field_webhook_url'),
-        exact: false,
-      }),
-    ).toBeInTheDocument();
+    const user = userEvent.setup();
+    renderSlackChannelDialog();
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(getChannelNameInput()).toBeInTheDocument();
+    expect(getWebhookUrlInput()).toBeInTheDocument();
   });
 
   it('calls onFieldChange when channel name input changes', async () => {
     const onFieldChange = jest.fn();
-    const user = await renderSlackChannelDialog({ onFieldChange });
-    await user.type(
-      screen.getByRole('textbox', {
-        name: textMock('org.settings.contact_points.field_channel_name'),
-        exact: false,
-      }),
-      '#general',
-    );
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ onFieldChange });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.type(getChannelNameInput(), '#general');
     expect(onFieldChange).toHaveBeenCalledWith('channelName', expect.any(String));
   });
 
   it('calls onFieldChange when webhook URL input changes', async () => {
     const onFieldChange = jest.fn();
-    const user = await renderSlackChannelDialog({ onFieldChange });
-    await user.type(
-      screen.getByRole('textbox', {
-        name: textMock('org.settings.contact_points.field_webhook_url'),
-        exact: false,
-      }),
-      'https://hooks.slack.com/test',
-    );
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ onFieldChange });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.type(getWebhookUrlInput(), 'https://hooks.slack.com/test');
     expect(onFieldChange).toHaveBeenCalledWith('webhookUrl', expect.any(String));
   });
 
   it('calls onSave when saving with valid data', async () => {
     const onSave = jest.fn();
-    const user = await renderSlackChannelDialog({
+    const user = userEvent.setup();
+    renderSlackChannelDialog({
       onSave,
       channel: {
         channelName: '#general',
@@ -134,49 +129,60 @@ describe('SlackChannelDialog', () => {
         isActive: true,
       },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
   it('does not call onSave when channel name is missing', async () => {
     const onSave = jest.fn();
-    const user = await renderSlackChannelDialog({
+    const user = userEvent.setup();
+    renderSlackChannelDialog({
       onSave,
       channel: { channelName: '', webhookUrl: 'https://hooks.slack.com/test', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it('does not call onSave when webhook URL is missing', async () => {
     const onSave = jest.fn();
-    const user = await renderSlackChannelDialog({
+    const user = userEvent.setup();
+    renderSlackChannelDialog({
       onSave,
       channel: { channelName: '#general', webhookUrl: '', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it('shows channel name required error after submit with empty channel name', async () => {
-    const user = await renderSlackChannelDialog({
+    const user = userEvent.setup();
+    renderSlackChannelDialog({
       channel: { channelName: '', webhookUrl: 'https://hooks.slack.com/test', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
   it('shows webhook URL required error after submit with empty webhook URL', async () => {
-    const user = await renderSlackChannelDialog({
+    const user = userEvent.setup();
+    renderSlackChannelDialog({
       channel: { channelName: '#general', webhookUrl: '', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
   it('calls onClose when cancel is clicked', async () => {
     const onClose = jest.fn();
-    const user = await renderSlackChannelDialog({ onClose });
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ onClose });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getCancelButton());
     expect(onClose).toHaveBeenCalledTimes(1);
   });

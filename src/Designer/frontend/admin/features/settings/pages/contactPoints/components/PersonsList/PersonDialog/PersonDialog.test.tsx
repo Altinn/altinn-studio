@@ -1,6 +1,5 @@
-import { screen } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from '@testing-library/react';
 import { useRef } from 'react';
 import type { ReactElement } from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -49,24 +48,28 @@ function PersonDialogWrapper({
   );
 }
 
-const renderPersonDialog = async (props: TestWrapperProps = {}) => {
-  const user = userEvent.setup();
-  render(<PersonDialogWrapper {...props} />);
-  await user.click(screen.getByRole('button', { name: 'Open' }));
-  return user;
-};
-
 const getSaveButton = () =>
   screen.getByRole('button', { name: textMock('org.settings.contact_points.save') });
 
 const getCancelButton = () =>
   screen.getByRole('button', { name: textMock('org.settings.contact_points.cancel') });
 
+const getNameInput = () =>
+  screen.getByRole('textbox', {
+    name: `${textMock('org.settings.contact_points.field_name')} ${textMock('general.required')}`,
+  });
+
+const renderPersonDialog = (props: TestWrapperProps = {}) => {
+  render(<PersonDialogWrapper {...props} />);
+};
+
 describe('PersonDialog', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('renders the add title when not editing', async () => {
-    await renderPersonDialog();
+    const user = userEvent.setup();
+    renderPersonDialog();
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
         name: textMock('org.settings.contact_points.dialog_add_person_title'),
@@ -75,7 +78,9 @@ describe('PersonDialog', () => {
   });
 
   it('renders the edit title when editing', async () => {
-    await renderPersonDialog({ isEditing: true });
+    const user = userEvent.setup();
+    renderPersonDialog({ isEditing: true });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
         name: textMock('org.settings.contact_points.dialog_edit_person_title'),
@@ -84,13 +89,10 @@ describe('PersonDialog', () => {
   });
 
   it('renders the name, email, and phone fields', async () => {
-    await renderPersonDialog();
-    expect(
-      screen.getByRole('textbox', {
-        name: textMock('org.settings.contact_points.field_name'),
-        exact: false,
-      }),
-    ).toBeInTheDocument();
+    const user = userEvent.setup();
+    renderPersonDialog();
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(getNameInput()).toBeInTheDocument();
     expect(
       screen.getByRole('textbox', {
         name: textMock('org.settings.contact_points.field_email'),
@@ -105,20 +107,18 @@ describe('PersonDialog', () => {
 
   it('calls onFieldChange when name input changes', async () => {
     const onFieldChange = jest.fn();
-    const user = await renderPersonDialog({ onFieldChange });
-    await user.type(
-      screen.getByRole('textbox', {
-        name: textMock('org.settings.contact_points.field_name'),
-        exact: false,
-      }),
-      'Alice',
-    );
+    const user = userEvent.setup();
+    renderPersonDialog({ onFieldChange });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.type(getNameInput(), 'Alice');
     expect(onFieldChange).toHaveBeenCalledWith('name', expect.any(String));
   });
 
   it('calls onFieldChange when email input changes', async () => {
     const onFieldChange = jest.fn();
-    const user = await renderPersonDialog({ onFieldChange });
+    const user = userEvent.setup();
+    renderPersonDialog({ onFieldChange });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.type(
       screen.getByRole('textbox', { name: textMock('org.settings.contact_points.field_email') }),
       'alice@example.com',
@@ -128,7 +128,9 @@ describe('PersonDialog', () => {
 
   it('calls onFieldChange when phone input changes', async () => {
     const onFieldChange = jest.fn();
-    const user = await renderPersonDialog({ onFieldChange });
+    const user = userEvent.setup();
+    renderPersonDialog({ onFieldChange });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.type(
       screen.getByRole('textbox', { name: textMock('org.settings.contact_points.field_phone') }),
       '12345678',
@@ -138,46 +140,56 @@ describe('PersonDialog', () => {
 
   it('calls onSave when saving with valid data', async () => {
     const onSave = jest.fn();
-    const user = await renderPersonDialog({
+    const user = userEvent.setup();
+    renderPersonDialog({
       onSave,
       person: { name: 'Alice', email: 'alice@example.com', phone: '', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
   it('does not call onSave when name is missing', async () => {
     const onSave = jest.fn();
-    const user = await renderPersonDialog({
+    const user = userEvent.setup();
+    renderPersonDialog({
       onSave,
       person: { name: '', email: 'alice@example.com', phone: '', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it('does not call onSave when both email and phone are missing', async () => {
     const onSave = jest.fn();
-    const user = await renderPersonDialog({
+    const user = userEvent.setup();
+    renderPersonDialog({
       onSave,
       person: { name: 'Alice', email: '', phone: '', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it('shows name required error after submit with empty name', async () => {
-    const user = await renderPersonDialog({
+    const user = userEvent.setup();
+    renderPersonDialog({
       person: { name: '', email: 'alice@example.com', phone: '', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
   it('shows contact method required error after submit with no email and no phone', async () => {
-    const user = await renderPersonDialog({
+    const user = userEvent.setup();
+    renderPersonDialog({
       person: { name: 'Alice', email: '', phone: '', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(
       screen.getAllByText(textMock('org.settings.contact_points.error_contact_method_required'))
@@ -187,17 +199,21 @@ describe('PersonDialog', () => {
 
   it('calls onClose when cancel is clicked', async () => {
     const onClose = jest.fn();
-    const user = await renderPersonDialog({ onClose });
+    const user = userEvent.setup();
+    renderPersonDialog({ onClose });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getCancelButton());
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('accepts phone as valid contact method (no email needed)', async () => {
     const onSave = jest.fn();
-    const user = await renderPersonDialog({
+    const user = userEvent.setup();
+    renderPersonDialog({
       onSave,
       person: { name: 'Alice', email: '', phone: '12345678', isActive: true },
     });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(onSave).toHaveBeenCalledTimes(1);
   });

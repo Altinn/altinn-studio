@@ -222,7 +222,6 @@ export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url
 export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<DelegationCountOverview>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
 export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(consentTemplatesPath(org));
 export const getContactPoints = (org: string) => get<ContactPoint[]>(contactPointsPath(org));
-export const getOrgRepos = (org: string) => get<Repository[]>(reposListPath(org));
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));
