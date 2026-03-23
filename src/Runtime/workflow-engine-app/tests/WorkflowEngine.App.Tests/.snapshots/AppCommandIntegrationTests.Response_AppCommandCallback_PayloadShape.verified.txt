@@ -1,0 +1,11 @@
+﻿{
+  commandKey: /snapshot-callback,
+  actor: {
+    userIdOrOrgNumber: test-user,
+    language: null
+  },
+  lockToken: e2e-lock-token-abc123,
+  payload: test-payload,
+  workflowId: {Scrubbed},
+  state: null
+}

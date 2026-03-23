@@ -1,0 +1,35 @@
+﻿{
+  status: Healthy,
+  checks: [
+    {
+      name: Engine,
+      status: Healthy,
+      description: Engine is operational,
+      data: {
+        status: Healthy, Running,
+        workers: {
+          active: 0,
+          max: 10
+        },
+        http_connections: {
+          count: 0,
+          limit: 400
+        },
+        db_connections: {
+          count: 0,
+          limit: 90
+        },
+        queue: {
+          active_workflows: {Scrubbed},
+          scheduled_workflows: {Scrubbed},
+          failed_workflows: {Scrubbed}
+        }
+      }
+    },
+    {
+      name: Database,
+      status: Healthy,
+      description: null
+    }
+  ]
+}

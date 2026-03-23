@@ -1,0 +1,13 @@
+{
+  "priority": 5,
+  "name": "Slow response (5s)",
+  "request": {
+    "urlPath": "/slow/5s",
+    "method": "ANY"
+  },
+  "response": {
+    "status": 200,
+    "fixedDelayMilliseconds": 5000,
+    "jsonBody": { "delay": "5s" }
+  }
+}
