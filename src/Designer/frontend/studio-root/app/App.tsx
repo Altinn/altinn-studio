@@ -7,6 +7,7 @@ import './App.css';
 import { PageLayout } from '../pages/PageLayout';
 import { ContactPage } from '../pages/Contact/ContactPage';
 import { FlagsPage } from '../pages/FlagsPage';
+import { GuidePage } from '../pages/Guide/GuidePage';
 
 import type { JSX } from 'react';
 
@@ -17,6 +18,7 @@ export const App = (): JSX.Element => {
         <Route element={<PageLayout />}>
           <Route path='/contact' element={<ContactPage />} />
           <Route path='/flags' element={<FlagsPage />} />
+          <Route path='/guide' element={<GuidePage />} />
           <Route path='*' element={<NotFoundPage />} />
         </Route>
       </Routes>
