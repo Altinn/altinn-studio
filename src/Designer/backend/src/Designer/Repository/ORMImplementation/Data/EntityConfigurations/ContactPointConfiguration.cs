@@ -19,7 +19,12 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
             .HasDefaultValueSql("gen_random_uuid()")
             .IsRequired();
 
-        builder.Property(e => e.Org).HasColumnType("character varying").HasColumnName("org").IsRequired();
+        builder
+            .Property(e => e.Org)
+            .HasColumnType("character varying")
+            .HasMaxLength(40)
+            .HasColumnName("org")
+            .IsRequired();
 
         builder
             .Property(e => e.Name)

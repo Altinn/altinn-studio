@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20260324174431_ContactPoints")]
+    [Migration("20260324181650_ContactPoints")]
     partial class ContactPoints
     {
         /// <inheritdoc />
@@ -389,6 +389,7 @@ namespace Altinn.Studio.Designer.Migrations
 
                     b.Property<string>("Org")
                         .IsRequired()
+                        .HasMaxLength(40)
                         .HasColumnType("character varying")
                         .HasColumnName("org");
 

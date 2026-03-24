@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    org = table.Column<string>(type: "character varying", nullable: false),
+                    org = table.Column<string>(type: "character varying", maxLength: 40, nullable: false),
                     name = table.Column<string>(type: "character varying", maxLength: 100, nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     created_at = table.Column<DateTimeOffset>(
