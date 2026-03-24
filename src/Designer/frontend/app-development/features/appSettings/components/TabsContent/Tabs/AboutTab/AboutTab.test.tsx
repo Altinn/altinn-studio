@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AboutTab } from './AboutTab';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
@@ -9,6 +9,7 @@ import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { studioTest } from '@studio/ui-test';
 
 jest.mock('app-development/hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -74,12 +75,14 @@ const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
-
+  studioTest.useFakeTimers();
   renderAboutTab({
     getAppMetadata,
     ...queries,
   });
   await waitForElementToBeRemoved(queryPageSpinner);
+  act(studioTest.runAllTimers);
+  studioTest.useRealTimers();
 };
 
 const queryPageSpinner = () => screen.queryByText(textMock('app_settings.loading_content'));

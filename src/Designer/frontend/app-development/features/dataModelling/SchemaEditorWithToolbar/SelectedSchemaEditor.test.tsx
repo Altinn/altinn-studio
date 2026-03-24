@@ -22,8 +22,9 @@ import type {
 } from 'app-shared/types/DataModelMetadata';
 import { verifyNeverOccurs } from '@studio/testing/testUtils';
 import { org, app } from '@studio/testing/testids';
+import { studioTest } from '@studio/ui-test';
 
-const user = userEvent.setup();
+const user = userEvent.setup({ advanceTimers: studioTest.advanceTimersByTime });
 
 // Test data:
 const model1Name = 'model1';

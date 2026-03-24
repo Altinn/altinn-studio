@@ -1,4 +1,4 @@
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -8,6 +8,7 @@ import { RunTab } from './RunTab';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
+import { studioTest } from '@studio/ui-test';
 
 describe('RunTab', () => {
   afterEach(jest.clearAllMocks);
@@ -105,8 +106,11 @@ const renderRunTab = (queries: Partial<ServicesContextProps> = {}) => {
 };
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
+  studioTest.useFakeTimers();
   renderRunTab(queries);
   await waitForElementToBeRemoved(queryPageSpinner);
+  act(studioTest.runAllTimers);
+  studioTest.useRealTimers();
 };
 
 const queryPageSpinner = () => screen.queryByText(textMock('app_settings.loading_content'));

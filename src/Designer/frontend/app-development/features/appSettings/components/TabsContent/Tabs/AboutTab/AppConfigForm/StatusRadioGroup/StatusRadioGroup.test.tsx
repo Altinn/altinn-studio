@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { StatusRadioGroup } from './StatusRadioGroup';
 import type { StatusRadioGroupProps } from './StatusRadioGroup';
@@ -6,6 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { LabelAndValue } from 'app-development/features/appSettings/types/LabelAndValue';
 import { getStatusOptions } from '../../utils/appConfigStatusUtils';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('StatusRadioGroup', () => {
   afterEach(jest.clearAllMocks);
@@ -68,7 +69,7 @@ const defaultProps: StatusRadioGroupProps = {
 };
 
 function renderStatusRadioGroup(props: Partial<StatusRadioGroupProps> = {}) {
-  return render(<StatusRadioGroup {...defaultProps} {...props} />);
+  return renderAndRunTimers(<StatusRadioGroup {...defaultProps} {...props} />);
 }
 
 const getText = (name: string): HTMLParagraphElement => screen.getByText(name);

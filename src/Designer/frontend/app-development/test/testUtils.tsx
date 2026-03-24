@@ -1,6 +1,6 @@
 import React from 'react';
 import type { RenderOptions } from '@testing-library/react';
-import { render } from '@testing-library/react';
+import { renderAndRunTimers } from '@studio/ui-test';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -50,7 +50,7 @@ export const renderWithProviders = (
   }
 
   return {
-    ...render(component, {
+    ...renderAndRunTimers(component, {
       wrapper: Wrapper,
       ...renderOptions,
     }),

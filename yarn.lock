@@ -4553,6 +4553,7 @@ __metadata:
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
+    "@studio/ui-test": "workspace:^"
     axios: "npm:1.13.6"
     classnames: "npm:2.5.1"
     i18next: "npm:25.8.14"
