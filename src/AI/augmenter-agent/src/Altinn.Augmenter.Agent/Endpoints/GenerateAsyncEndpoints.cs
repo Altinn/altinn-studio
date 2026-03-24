@@ -12,6 +12,7 @@ public static class GenerateAsyncEndpoints
             IMultipartParserService parser,
             IPdfGenerationQueue queue,
             ICallbackUrlValidator validator,
+            ILogger<Program> logger,
             CancellationToken cancellationToken) =>
         {
             ParsedFormData parsed;
@@ -42,6 +43,8 @@ public static class GenerateAsyncEndpoints
             {
                 return Results.BadRequest(new { error = validationError });
             }
+
+            GenerateEndpoints.LogParsedInput(logger, "/generate-async", parsed);
 
             // TODO: Files are captured in the job but not yet passed to PDF generation.
             var job = new PdfGenerationJob(parsed.CallbackUrl, DateTime.UtcNow, parsed.Files);
