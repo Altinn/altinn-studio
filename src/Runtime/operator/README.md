@@ -15,7 +15,7 @@ See [/CONTRIBUTING.md](/CONTRIBUTING.md).
 
 - `maskinporten`: Reconciles `MaskinportenClient` resources and related secrets.
 - `secretsync`: Syncs selected secrets between namespaces.
-- `appcodesync`: Maintains `app-codes.json` in app deployment secrets and rotates monthly verification codes.
+- `appcodesync`: Maintains `app-codes.json` in app deployment secrets and rotates callback verification codes per use case.
 - `grafanapolicysync`: Upserts the Altinn Grafana notification route via Grafana API without replacing unrelated policy branches.
 - `azurekeyvaultsync`: Syncs selected Key Vault secrets to Kubernetes.
 - `cnpgsync`: Provisions CNPG resources via Flux in selected environments.
