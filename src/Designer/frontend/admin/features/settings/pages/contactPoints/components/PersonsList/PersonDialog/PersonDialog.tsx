@@ -52,10 +52,6 @@ export const PersonDialog = ({
   const { t } = useTranslation();
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    setSubmitted(false);
-  }, [person]);
-
   const nameError = submitted && !person.name ? t('validation_errors.required') : undefined;
 
   const emailError =

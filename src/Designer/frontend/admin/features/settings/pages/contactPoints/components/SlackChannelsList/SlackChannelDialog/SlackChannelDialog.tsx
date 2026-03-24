@@ -48,10 +48,6 @@ export const SlackChannelDialog = ({
   const { t } = useTranslation();
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    setSubmitted(false);
-  }, [channel]);
-
   const channelNameError =
     submitted && !channel.channelName ? t('validation_errors.required') : undefined;
 

@@ -1,6 +1,6 @@
 import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PersonDialog } from './PersonDialog';
@@ -43,6 +43,38 @@ function PersonDialogWrapper({
         person={person}
         availableEnvironments={availableEnvironments}
         onFieldChange={onFieldChange}
+        onSave={onSave}
+        onClose={onClose}
+        isEditing={isEditing}
+        isSaving={isSaving}
+      />
+    </>
+  );
+}
+
+function PersonDialogStatefulWrapper({
+  person = defaultPerson,
+  availableEnvironments = ['tt02', 'production'],
+  onSave = jest.fn(),
+  onClose = jest.fn(),
+  isEditing = false,
+  isSaving = false,
+}: Omit<TestWrapperProps, 'onFieldChange'>): ReactElement {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [currentPerson, setCurrentPerson] = useState(person);
+
+  const handleFieldChange = (field: keyof Person, value: string | boolean | string[]) => {
+    setCurrentPerson((prev) => ({ ...prev, [field]: value as never }));
+  };
+
+  return (
+    <>
+      <button onClick={() => dialogRef.current?.showModal()}>Open</button>
+      <PersonDialog
+        dialogRef={dialogRef}
+        person={currentPerson}
+        availableEnvironments={availableEnvironments}
+        onFieldChange={handleFieldChange}
         onSave={onSave}
         onClose={onClose}
         isEditing={isEditing}
@@ -201,6 +233,29 @@ describe('PersonDialog', () => {
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
+    expect(
+      screen.getAllByText(textMock('org.settings.contact_points.error_contact_method_required'))
+        .length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('keeps submit validation active after field changes', async () => {
+    const user = userEvent.setup();
+
+    render(<PersonDialogStatefulWrapper />);
+
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+
+    expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+    expect(
+      screen.getAllByText(textMock('org.settings.contact_points.error_contact_method_required'))
+        .length,
+    ).toBeGreaterThan(0);
+
+    await user.type(getNameInput(), 'Test');
+
+    expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
     expect(
       screen.getAllByText(textMock('org.settings.contact_points.error_contact_method_required'))
         .length,

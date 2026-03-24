@@ -1,6 +1,6 @@
 import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { SlackChannelDialog } from './SlackChannelDialog';
@@ -41,6 +41,38 @@ function SlackChannelDialogWrapper({
         channel={channel}
         availableEnvironments={availableEnvironments}
         onFieldChange={onFieldChange}
+        onSave={onSave}
+        onClose={onClose}
+        isEditing={isEditing}
+        isSaving={isSaving}
+      />
+    </>
+  );
+}
+
+function SlackChannelDialogStatefulWrapper({
+  channel = defaultChannel,
+  availableEnvironments = ['tt02', 'production'],
+  onSave = jest.fn(),
+  onClose = jest.fn(),
+  isEditing = false,
+  isSaving = false,
+}: Omit<TestWrapperProps, 'onFieldChange'>): ReactElement {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [currentChannel, setCurrentChannel] = useState(channel);
+
+  const handleFieldChange = (field: keyof SlackChannel, value: string | boolean | string[]) => {
+    setCurrentChannel((prev) => ({ ...prev, [field]: value as never }));
+  };
+
+  return (
+    <>
+      <button onClick={() => dialogRef.current?.showModal()}>Open</button>
+      <SlackChannelDialog
+        dialogRef={dialogRef}
+        channel={currentChannel}
+        availableEnvironments={availableEnvironments}
+        onFieldChange={handleFieldChange}
         onSave={onSave}
         onClose={onClose}
         isEditing={isEditing}
@@ -189,6 +221,21 @@ describe('SlackChannelDialog', () => {
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
+    expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+  });
+
+  it('keeps submit validation active after field changes', async () => {
+    const user = userEvent.setup();
+
+    render(<SlackChannelDialogStatefulWrapper />);
+
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+
+    expect(screen.getAllByText(textMock('validation_errors.required')).length).toBeGreaterThan(0);
+
+    await user.type(getChannelNameInput(), '#general');
+
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
