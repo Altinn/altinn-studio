@@ -10,8 +10,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class ContactPointsService(IContactPointsRepository repository, TimeProvider timeProvider)
-    : IContactPointsService
+public class ContactPointsService(IContactPointsRepository repository) : IContactPointsService
 {
     public async Task<IReadOnlyList<ContactPoint>> GetContactPointsAsync(
         string org,
@@ -24,30 +23,23 @@ public class ContactPointsService(IContactPointsRepository repository, TimeProvi
     }
 
     public async Task<ContactPoint> AddContactPointAsync(
-        string org,
         ContactPoint contactPoint,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var entity = MapToEntity(contactPoint);
-        entity.Org = org;
-        entity.CreatedAt = timeProvider.GetUtcNow();
         var created = await repository.AddAsync(entity, cancellationToken);
         return MapToDomain(created);
     }
 
     public async Task<ContactPoint> UpdateContactPointAsync(
-        string org,
-        Guid id,
         ContactPoint contactPoint,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var entity = MapToEntity(contactPoint);
-        entity.Org = org;
-        entity.Id = id;
         var updated = await repository.UpdateAsync(entity, cancellationToken);
         return MapToDomain(updated);
     }
@@ -79,7 +71,7 @@ public class ContactPointsService(IContactPointsRepository repository, TimeProvi
     private static ContactPointEntity MapToEntity(ContactPoint contactPoint) =>
         new()
         {
-            Org = string.Empty,
+            Org = contactPoint.Org,
             Name = contactPoint.Name,
             IsActive = contactPoint.IsActive,
             Methods = contactPoint

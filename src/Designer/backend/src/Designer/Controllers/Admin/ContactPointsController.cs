@@ -36,7 +36,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
         CancellationToken cancellationToken
     )
     {
-        var created = await service.AddContactPointAsync(org, MapToDomain(request), cancellationToken);
+        var created = await service.AddContactPointAsync(MapToDomain(request, org), cancellationToken);
         return CreatedAtAction(nameof(GetContactPoints), new { org }, MapToResponse(created));
     }
 
@@ -49,7 +49,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
         CancellationToken cancellationToken
     )
     {
-        var updated = await service.UpdateContactPointAsync(org, id, MapToDomain(request), cancellationToken);
+        var updated = await service.UpdateContactPointAsync(MapToDomain(request, org, id), cancellationToken);
         return Ok(MapToResponse(updated));
     }
 
@@ -61,10 +61,11 @@ public class ContactPointsController(IContactPointsService service) : Controller
         return NoContent();
     }
 
-    private static ContactPoint MapToDomain(ContactPointRequest request) =>
+    private static ContactPoint MapToDomain(ContactPointRequest request, string org, Guid id = default) =>
         new()
         {
-            Org = string.Empty,
+            Id = id,
+            Org = org,
             Name = request.Name,
             IsActive = request.IsActive,
             Methods = request

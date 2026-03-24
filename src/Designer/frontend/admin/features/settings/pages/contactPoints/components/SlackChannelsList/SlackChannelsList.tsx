@@ -33,13 +33,13 @@ const emptyDraft = (): SlackChannelDraft => ({ channelName: '', webhookUrl: '', 
 const draftToPayload = (draft: SlackChannelDraft): ContactPointPayload => ({
   name: draft.channelName,
   isActive: draft.isActive,
-  methods: [{ methodType: 'slack_webhook', value: draft.webhookUrl }],
+  methods: [{ methodType: 'slack', value: draft.webhookUrl }],
 });
 
 const contactPointToDraft = (cp: ContactPoint): SlackChannelDraft => ({
   channelName: cp.name,
   isActive: cp.isActive,
-  webhookUrl: cp.methods.find((m) => m.methodType === 'slack_webhook')?.value ?? '',
+  webhookUrl: cp.methods.find((m) => m.methodType === 'slack')?.value ?? '',
 });
 
 export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): ReactElement => {
@@ -129,7 +129,7 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
               </StudioTable.Cell>
               <StudioTable.Cell>{channel.name}</StudioTable.Cell>
               <StudioTable.Cell>
-                {channel.methods.find((m) => m.methodType === 'slack_webhook')?.value}
+                {channel.methods.find((m) => m.methodType === 'slack')?.value}
               </StudioTable.Cell>
               <StudioTable.Cell className={classes.actions}>
                 <StudioButton

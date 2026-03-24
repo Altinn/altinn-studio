@@ -327,9 +327,8 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("contact_point_id");
 
-                    b.Property<string>("MethodType")
-                        .IsRequired()
-                        .HasColumnType("character varying")
+                    b.Property<int>("MethodType")
+                        .HasColumnType("integer")
                         .HasColumnName("method_type");
 
                     b.Property<string>("Value")
@@ -354,8 +353,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamptz")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()

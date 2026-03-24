@@ -25,7 +25,13 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
 
         builder.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true).IsRequired();
 
-        builder.Property(e => e.CreatedAt).HasColumnType("timestamptz").HasColumnName("created_at").IsRequired();
+        builder
+            .Property(e => e.CreatedAt)
+            .HasColumnType("timestamptz")
+            .HasColumnName("created_at")
+            .HasDefaultValueSql("now()")
+            .ValueGeneratedOnAdd()
+            .IsRequired();
 
         builder
             .HasMany(e => e.Methods)

@@ -1,4 +1,4 @@
-export type ContactMethodType = 'email' | 'sms' | 'slack_webhook';
+export type ContactMethodType = 'email' | 'sms' | 'slack';
 
 export type ContactMethod = {
   id: string;

@@ -9,7 +9,7 @@ import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 const isSlackChannel = (cp: ContactPoint): boolean =>
-  cp.methods.some((m) => m.methodType === 'slack_webhook');
+  cp.methods.some((m) => m.methodType === 'slack');
 
 export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();

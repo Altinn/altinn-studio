@@ -476,9 +476,8 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("contact_point_id");
 
-                    b.Property<string>("MethodType")
-                        .IsRequired()
-                        .HasColumnType("character varying")
+                    b.Property<int>("MethodType")
+                        .HasColumnType("integer")
                         .HasColumnName("method_type");
 
                     b.Property<string>("Value")

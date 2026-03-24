@@ -30,14 +30,14 @@ const channel1: ContactPoint = {
   id: 'slack-1',
   name: '#general',
   isActive: true,
-  methods: [{ id: 'm1', methodType: 'slack_webhook', value: 'https://hooks.slack.com/general' }],
+  methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/general' }],
 };
 
 const channel2: ContactPoint = {
   id: 'slack-2',
   name: '#dev',
   isActive: false,
-  methods: [{ id: 'm2', methodType: 'slack_webhook', value: 'https://hooks.slack.com/dev' }],
+  methods: [{ id: 'm2', methodType: 'slack', value: 'https://hooks.slack.com/dev' }],
 };
 
 const defaultProps = {

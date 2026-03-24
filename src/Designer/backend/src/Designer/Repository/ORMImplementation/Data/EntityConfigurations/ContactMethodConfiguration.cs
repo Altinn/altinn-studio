@@ -21,11 +21,7 @@ public class ContactMethodConfiguration : IEntityTypeConfiguration<ContactMethod
 
         builder.Property(e => e.ContactPointId).HasColumnType("uuid").HasColumnName("contact_point_id").IsRequired();
 
-        builder
-            .Property(e => e.MethodType)
-            .HasColumnType("character varying")
-            .HasColumnName("method_type")
-            .IsRequired();
+        builder.Property(e => e.MethodType).HasColumnType("integer").HasColumnName("method_type").IsRequired();
 
         builder.Property(e => e.Value).HasColumnType("character varying").HasColumnName("value").IsRequired();
 

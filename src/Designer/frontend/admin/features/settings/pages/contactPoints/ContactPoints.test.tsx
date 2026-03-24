@@ -32,7 +32,7 @@ const slackContactPoint: ContactPoint = {
   id: 'slack-1',
   name: '#general',
   isActive: true,
-  methods: [{ id: 'method-2', methodType: 'slack_webhook', value: 'https://hooks.slack.com/test' }],
+  methods: [{ id: 'method-2', methodType: 'slack', value: 'https://hooks.slack.com/test' }],
 };
 
 const routedContactPoints = (

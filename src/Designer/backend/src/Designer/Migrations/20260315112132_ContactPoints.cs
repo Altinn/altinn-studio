@@ -21,7 +21,11 @@ namespace Altinn.Studio.Designer.Migrations
                     org = table.Column<string>(type: "character varying", nullable: false),
                     name = table.Column<string>(type: "character varying", nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(
+                        type: "timestamptz",
+                        nullable: false,
+                        defaultValueSql: "now()"
+                    ),
                 },
                 constraints: table =>
                 {
@@ -36,7 +40,7 @@ namespace Altinn.Studio.Designer.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     contact_point_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    method_type = table.Column<string>(type: "character varying", nullable: false),
+                    method_type = table.Column<int>(type: "integer", nullable: false),
                     value = table.Column<string>(type: "character varying", nullable: false),
                 },
                 constraints: table =>
