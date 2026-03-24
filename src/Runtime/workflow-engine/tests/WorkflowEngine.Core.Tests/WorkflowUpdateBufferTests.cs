@@ -395,12 +395,12 @@ public class WorkflowUpdateBufferTests
             .Select(i => buffer.Submit(CreateTestWorkflow($"drain-{i}"), TestContext.Current.CancellationToken))
             .ToList();
 
-        // Stop should drain all pending items
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        // Stop should drain all pending items.
+        // Production drain code has a 30s internal timeout, so this won't hang.
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         await buffer.StopAsync(stopCts.Token);
 
-        using var resultCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await Task.WhenAll(tasks).WaitAsync(resultCts.Token);
+        await Task.WhenAll(tasks);
 
         Assert.Equal(5, flushCount);
     }

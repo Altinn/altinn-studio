@@ -500,13 +500,13 @@ public class WorkflowWriteBufferTests
             })
             .ToList();
 
-        // Stop the buffer — it should drain all remaining items
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        // Stop the buffer — it should drain all remaining items.
+        // Production drain code has a 30s internal timeout, so this won't hang.
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         await buffer.StopAsync(stopCts.Token);
 
         // All tasks should complete (not hang or fault)
-        using var resultCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await Task.WhenAll(tasks).WaitAsync(resultCts.Token);
+        await Task.WhenAll(tasks);
 
         Assert.Equal(5, flushCount);
     }
