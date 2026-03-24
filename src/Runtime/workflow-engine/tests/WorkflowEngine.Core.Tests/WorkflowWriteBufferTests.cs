@@ -490,23 +490,26 @@ public class WorkflowWriteBufferTests
         using var serviceCts = new CancellationTokenSource();
         await buffer.StartAsync(serviceCts.Token);
 
-        // Enqueue several items
-        var tasks = Enumerable
-            .Range(1, 5)
-            .Select(i =>
-            {
-                var (req, meta, h) = CreateTestRequest($"drain-{i}");
-                return buffer.Enqueue(req, meta, h, TestContext.Current.CancellationToken);
-            })
-            .ToList();
+        try
+        {
+            // Enqueue several items and wait for them to be flushed
+            var tasks = Enumerable
+                .Range(1, 5)
+                .Select(i =>
+                {
+                    var (req, meta, h) = CreateTestRequest($"drain-{i}");
+                    return buffer.Enqueue(req, meta, h, TestContext.Current.CancellationToken);
+                })
+                .ToList();
 
-        // Stop the buffer — it should drain all remaining items
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await buffer.StopAsync(stopCts.Token);
+            await Task.WhenAll(tasks);
 
-        // All tasks should complete (not hang or fault)
-        await Task.WhenAll(tasks);
-
-        Assert.Equal(5, flushCount);
+            Assert.Equal(5, flushCount);
+        }
+        finally
+        {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
     }
 }

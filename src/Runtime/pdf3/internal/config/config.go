@@ -24,6 +24,7 @@ const (
 var defaultPDFAConversionConfig = PDFAConversionConfig{
 	Targets: []PDFATarget{
 		{Environment: "tt02", ServiceOwner: "ikta"},
+		{Environment: "prod", ServiceOwner: "ikta"},
 	},
 }
 

@@ -63,23 +63,28 @@ public class HeartbeatServiceTests
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
 
-        // Wait for at least one heartbeat cycle
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        try
+        {
+            // Wait for at least one heartbeat cycle
+            await Task.Delay(200, TestContext.Current.CancellationToken);
 
-        repo.Verify(
-            r =>
-                r.BatchUpdateHeartbeats(
-                    It.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.AtLeastOnce
-        );
-
-        cts.Cancel();
-        tracker.TryRemove(id1, out _);
-        tracker.TryRemove(id2, out _);
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await service.StopAsync(stopCts.Token);
+            repo.Verify(
+                r =>
+                    r.BatchUpdateHeartbeats(
+                        It.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.AtLeastOnce
+            );
+        }
+        finally
+        {
+            cts.Cancel();
+            tracker.TryRemove(id1, out _);
+            tracker.TryRemove(id2, out _);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
     }
 
     [Fact]
@@ -102,28 +107,34 @@ public class HeartbeatServiceTests
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
 
-        // Wait for at least one heartbeat
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        try
+        {
+            // Wait for at least one heartbeat
+            await Task.Delay(200, TestContext.Current.CancellationToken);
 
-        // Cancel the stopping token — simulates shutdown
-        cts.Cancel();
+            // Cancel the stopping token — simulates shutdown
+            cts.Cancel();
 
-        // Reset the mock to only track calls after shutdown
-        repo.Invocations.Clear();
+            // Reset the mock to only track calls after shutdown
+            repo.Invocations.Clear();
 
-        // Wait for another heartbeat cycle — service should keep running
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+            // Wait for another heartbeat cycle — service should keep running
+            await Task.Delay(200, TestContext.Current.CancellationToken);
 
-        // Verify heartbeat was still called after shutdown signal
-        repo.Verify(
-            r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
-            Times.AtLeastOnce
-        );
-
-        // Now empty the tracker — service should exit
-        tracker.TryRemove(id, out _);
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await service.StopAsync(stopCts.Token);
+            // Verify heartbeat was still called after shutdown signal
+            repo.Verify(
+                r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
+                Times.AtLeastOnce
+            );
+        }
+        finally
+        {
+            // Now empty the tracker — service should exit
+            cts.Cancel(); // no-op if already cancelled, but ensures it's cancelled
+            tracker.TryRemove(id, out _);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
     }
 
     [Fact]
@@ -143,17 +154,22 @@ public class HeartbeatServiceTests
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
 
-        // Wait for several heartbeat cycles with nothing in-flight
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        try
+        {
+            // Wait for several heartbeat cycles with nothing in-flight
+            await Task.Delay(200, TestContext.Current.CancellationToken);
 
-        repo.Verify(
-            r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-
-        cts.Cancel();
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await service.StopAsync(stopCts.Token);
+            repo.Verify(
+                r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
+                Times.Never
+            );
+        }
+        finally
+        {
+            cts.Cancel();
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
     }
 
     [Fact]
@@ -188,14 +204,19 @@ public class HeartbeatServiceTests
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
 
-        // Wait for at least two heartbeat cycles
-        await Task.Delay(300, TestContext.Current.CancellationToken);
+        try
+        {
+            // Wait for at least two heartbeat cycles
+            await Task.Delay(300, TestContext.Current.CancellationToken);
 
-        Assert.True(callCount >= 2, $"Expected at least 2 calls but got {callCount}");
-
-        cts.Cancel();
-        tracker.TryRemove(id, out _);
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await service.StopAsync(stopCts.Token);
+            Assert.True(callCount >= 2, $"Expected at least 2 calls but got {callCount}");
+        }
+        finally
+        {
+            cts.Cancel();
+            tracker.TryRemove(id, out _);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
     }
 }
