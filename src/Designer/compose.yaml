@@ -12,6 +12,7 @@ services:
   fake_ansattporten:
     container_name: fake-ansattporten
     image: fake-ansattporten:${COMMIT:-latest}
+    restart: always
     build:
       context: ./development/fake-ansattporten
     ports:
