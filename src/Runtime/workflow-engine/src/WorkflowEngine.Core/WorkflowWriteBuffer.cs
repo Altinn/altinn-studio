@@ -112,8 +112,6 @@ internal class WorkflowWriteBuffer : BackgroundService
             // Expected on shutdown
         }
 
-        _channel.Writer.TryComplete();
-
         // Wait for all in-flight flushes to complete (bounded to prevent indefinite hangs)
         using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         try
