@@ -1,0 +1,170 @@
+﻿[
+  {
+    Plan: {
+      Node Type: Sort,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Sort Key: [
+        w2."WorkflowId"
+      ],
+      Plans: [
+        {
+          Node Type: Hash Join,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Join Type: Inner,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Inner Unique: true,
+          Hash Cond: (w2."LinkedWorkflowId" = w3."Id"),
+          Plans: [
+            {
+              Node Type: Nested Loop,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Join Type: Inner,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Inner Unique: false,
+              Join Filter: (w2."WorkflowId" = w."Id"),
+              Plans: [
+                {
+                  Node Type: Hash Join,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Join Type: Semi,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Inner Unique: false,
+                  Hash Cond: (w."Id" = s."JobId"),
+                  Plans: [
+                    {
+                      Node Type: Index Scan,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Scan Direction: Forward,
+                      Index Name: IX_Workflows_Status,
+                      Relation Name: Workflows,
+                      Alias: w,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Index Cond: ("Status" = ANY ('{0,1,2}'::integer[])),
+                      Filter: (("StartAt" IS NULL) OR ("StartAt" <= now()))
+                    },
+                    {
+                      Node Type: Hash,
+                      Parent Relationship: Inner,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Plans: [
+                        {
+                          Node Type: Bitmap Heap Scan,
+                          Parent Relationship: Outer,
+                          Parallel Aware: {Scrubbed},
+                          Async Capable: {Scrubbed},
+                          Relation Name: Steps,
+                          Alias: s,
+                          Startup Cost: {Scrubbed},
+                          Total Cost: {Scrubbed},
+                          Plan Rows: {Scrubbed},
+                          Plan Width: {Scrubbed},
+                          Disabled: false,
+                          Recheck Cond: ("Status" = ANY ('{0,1,2}'::integer[])),
+                          Plans: [
+                            {
+                              Node Type: Bitmap Index Scan,
+                              Parent Relationship: Outer,
+                              Parallel Aware: {Scrubbed},
+                              Async Capable: {Scrubbed},
+                              Index Name: IX_Steps_JobId_Status,
+                              Startup Cost: {Scrubbed},
+                              Total Cost: {Scrubbed},
+                              Plan Rows: {Scrubbed},
+                              Plan Width: {Scrubbed},
+                              Disabled: false,
+                              Index Cond: ("Status" = ANY ('{0,1,2}'::integer[]))
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  Node Type: Index Only Scan,
+                  Parent Relationship: Inner,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: PK_WorkflowLink,
+                  Relation Name: WorkflowLink,
+                  Alias: w2,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Index Cond: ("WorkflowId" = s."JobId")
+                }
+              ]
+            },
+            {
+              Node Type: Hash,
+              Parent Relationship: Inner,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Plans: [
+                {
+                  Node Type: Index Scan,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: PK_Workflows,
+                  Relation Name: Workflows,
+                  Alias: w3,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

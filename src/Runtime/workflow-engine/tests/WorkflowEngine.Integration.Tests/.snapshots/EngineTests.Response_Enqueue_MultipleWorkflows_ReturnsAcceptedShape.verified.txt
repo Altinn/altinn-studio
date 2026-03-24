@@ -1,0 +1,14 @@
+﻿{
+  workflows: [
+    {
+      ref: wf-a,
+      databaseId: {Scrubbed},
+      namespace: ttd:e2e-tests
+    },
+    {
+      ref: wf-b,
+      databaseId: {Scrubbed},
+      namespace: ttd:e2e-tests
+    }
+  ]
+}

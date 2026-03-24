@@ -19,6 +19,8 @@
   "packageManager": "yarn@4.12.0",
   "private": true,
   "scripts": {
+    "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
+    "codeowners:validate": "node .github/scripts/codeowners-generate.mjs --check",
     "lint": "yarn workspace studio-designer-frontend lint",
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",

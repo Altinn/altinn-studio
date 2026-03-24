@@ -11,6 +11,10 @@ on:
       - '.github/workflows/designer-backend-gitea-and-db-integration-tests.yaml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   gitea-and-db-integration-tests:
     name: Run integration tests against actual gitea and dbs

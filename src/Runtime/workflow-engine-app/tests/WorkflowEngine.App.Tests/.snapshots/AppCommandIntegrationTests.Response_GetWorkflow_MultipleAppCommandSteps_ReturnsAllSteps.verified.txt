@@ -1,0 +1,51 @@
+﻿{
+  databaseId: {Scrubbed},
+  operationId: op-wf-1,
+  idempotencyKey: idem-Guid_1,
+  namespace: ttd:e2e-tests,
+  createdAt: {Scrubbed},
+  updatedAt: {Scrubbed},
+  labels: {
+    app: e2e-tests,
+    org: ttd
+  },
+  overallStatus: Completed,
+  steps: [
+    {
+      databaseId: {Scrubbed},
+      idempotencyKey: idem-Guid_1//multi-step-1,
+      operationId: /multi-step-1,
+      processingOrder: 0,
+      updatedAt: {Scrubbed},
+      command: {
+        type: app
+      },
+      status: Completed,
+      retryCount: 0
+    },
+    {
+      databaseId: {Scrubbed},
+      idempotencyKey: idem-Guid_1//multi-step-2,
+      operationId: /multi-step-2,
+      processingOrder: 1,
+      updatedAt: {Scrubbed},
+      command: {
+        type: app
+      },
+      status: Completed,
+      retryCount: 0
+    },
+    {
+      databaseId: {Scrubbed},
+      idempotencyKey: idem-Guid_1//multi-step-3,
+      operationId: /multi-step-3,
+      processingOrder: 2,
+      updatedAt: {Scrubbed},
+      command: {
+        type: app
+      },
+      status: Completed,
+      retryCount: 0
+    }
+  ]
+}

@@ -1,4 +1,5 @@
-import type { IInstance, IParty } from 'src/types/shared';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import type { IInstance, IParty, IProcess } from 'src/types/shared';
 
 export const defaultMockDataElementId = '4f2610c9-911a-46a3-bc2d-5191602193f4';
 
@@ -74,4 +75,8 @@ export function getInstanceDataMock(
     mutate(out);
   }
   return out;
+}
+
+export function getInstanceWithProcessMock(): IInstance & { process: IProcess } {
+  return { ...getInstanceDataMock(), process: getProcessDataMock() };
 }

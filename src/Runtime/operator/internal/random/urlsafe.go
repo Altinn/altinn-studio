@@ -8,6 +8,7 @@ import (
 )
 
 var errLengthMustBePositive = errors.New("length must be positive")
+var errByteLengthMustBePositive = errors.New("byte length must be positive")
 
 func GenerateURLSafeString(length int) (string, error) {
 	if length <= 0 {
@@ -20,4 +21,17 @@ func GenerateURLSafeString(length int) (string, error) {
 	}
 
 	return base64.RawURLEncoding.EncodeToString(bytes)[:length], nil
+}
+
+func GenerateURLSafeStringFromBytes(byteLength int) (string, error) {
+	if byteLength <= 0 {
+		return "", fmt.Errorf("%w: %d", errByteLengthMustBePositive, byteLength)
+	}
+
+	bytes := make([]byte, byteLength)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("generate random bytes: %w", err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(bytes), nil
 }

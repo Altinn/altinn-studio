@@ -8,6 +8,10 @@ on:
       - '.github/workflows/runtime-devenv-build.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Check formatting and lint

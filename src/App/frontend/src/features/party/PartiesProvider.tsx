@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { useAppMutations, useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
-import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
+import { useCurrentInstance } from 'src/core/queries/instance';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { GlobalData } from 'src/GlobalData';
-import type { IInstance, IParty } from 'src/types/shared';
+import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const partyQueryKeys = {
@@ -172,11 +172,9 @@ export const useSetHasSelectedParty = () => useSelectedPartyCtx().setUserHasSele
 
 export function useInstanceOwnerParty(): IParty | null {
   const parties = usePartiesAllowedToInstantiate() ?? [];
-  const queryClient = useQueryClient();
+  const instance = useCurrentInstance();
 
-  const instanceOwner = queryClient.getQueryData<IInstance>(
-    instanceQueries.instanceData(useInstanceDataQueryArgs()).queryKey,
-  )?.instanceOwner;
+  const instanceOwner = instance?.instanceOwner;
 
   if (!instanceOwner) {
     return null;
