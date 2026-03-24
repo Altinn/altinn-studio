@@ -1,4 +1,4 @@
- .gitattributes
+.gitattributes
 .github/
 .husky/
 LICENSE.md
@@ -44,4 +44,3 @@ src/utils/refs/
 src/utils/versioning/versions.ts
 test/e2e/integration/frontend-test/language.ts
 test/e2e/integration/frontend-test/process-next.ts
-src/features/formData/FormDataWrite.test.ts
