@@ -12,7 +12,7 @@ import {
 } from '@studio/components';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import { SlackChannelDialog } from './SlackChannelDialog/SlackChannelDialog';
-import type { SlackChannelDraft } from './SlackChannelDialog/SlackChannelDialog';
+import type { SlackChannel } from './SlackChannelDialog/SlackChannelDialog';
 import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
 import { useToggleContactPointActiveMutation } from 'admin/features/settings/hooks/useToggleContactPointActiveMutation';
@@ -26,21 +26,21 @@ type SlackChannelsListProps = {
   channels: ContactPoint[];
 };
 
-const emptyDraft = (availableEnvironments: string[]): SlackChannelDraft => ({
+const createEmptySlackChannel = (availableEnvironments: string[]): SlackChannel => ({
   channelName: '',
   webhookUrl: '',
   isActive: true,
   environments: availableEnvironments,
 });
 
-const draftToPayload = (draft: SlackChannelDraft): ContactPointPayload => ({
-  name: draft.channelName,
-  isActive: draft.isActive,
-  environments: draft.environments,
-  methods: [{ methodType: 'slack', value: draft.webhookUrl }],
+const slackChannelToPayload = (channel: SlackChannel): ContactPointPayload => ({
+  name: channel.channelName,
+  isActive: channel.isActive,
+  environments: channel.environments,
+  methods: [{ methodType: 'slack', value: channel.webhookUrl }],
 });
 
-const contactPointToDraft = (cp: ContactPoint): SlackChannelDraft => ({
+const contactPointToSlackChannel = (cp: ContactPoint): SlackChannel => ({
   channelName: cp.name,
   isActive: cp.isActive,
   environments: cp.environments,
@@ -50,7 +50,7 @@ const contactPointToDraft = (cp: ContactPoint): SlackChannelDraft => ({
 export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): ReactElement => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [draft, setDraft] = useState<SlackChannelDraft>(emptyDraft([]));
+  const [channelForm, setChannelForm] = useState<SlackChannel>(createEmptySlackChannel([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const { mutate: addChannel, isPending: isAdding } = useAddContactPointMutation(org);
@@ -64,13 +64,13 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
   const isSaving = isAdding || isUpdating;
 
   const openAddDialog = () => {
-    setDraft(emptyDraft(availableEnvironments));
+    setChannelForm(createEmptySlackChannel(availableEnvironments));
     setEditingId(null);
     dialogRef.current?.showModal();
   };
 
   const openEditDialog = (channel: ContactPoint) => {
-    setDraft(contactPointToDraft(channel));
+    setChannelForm(contactPointToSlackChannel(channel));
     setEditingId(channel.id);
     dialogRef.current?.showModal();
   };
@@ -79,15 +79,12 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
     dialogRef.current?.close();
   };
 
-  const handleFieldChange = (
-    field: keyof SlackChannelDraft,
-    value: string | boolean | string[],
-  ) => {
-    setDraft((prev) => ({ ...prev, [field]: value }));
+  const handleFieldChange = (field: keyof SlackChannel, value: string | boolean | string[]) => {
+    setChannelForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = () => {
-    const payload = draftToPayload(draft);
+    const payload = slackChannelToPayload(channelForm);
     if (editingId) {
       updateChannel({ id: editingId, payload }, { onSuccess: closeDialog });
     } else {
@@ -170,7 +167,7 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
       </div>
       <SlackChannelDialog
         dialogRef={dialogRef}
-        channel={draft}
+        channel={channelForm}
         availableEnvironments={availableEnvironments}
         onFieldChange={handleFieldChange}
         onSave={handleSave}

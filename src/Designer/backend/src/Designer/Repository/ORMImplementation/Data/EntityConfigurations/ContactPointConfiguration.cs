@@ -21,7 +21,12 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
 
         builder.Property(e => e.Org).HasColumnType("character varying").HasColumnName("org").IsRequired();
 
-        builder.Property(e => e.Name).HasColumnType("character varying").HasColumnName("name").IsRequired();
+        builder
+            .Property(e => e.Name)
+            .HasColumnType("character varying")
+            .HasMaxLength(100)
+            .HasColumnName("name")
+            .IsRequired();
 
         builder.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true).IsRequired();
 

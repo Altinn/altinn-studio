@@ -14,8 +14,10 @@ import classes from './SlackChannelDialog.module.css';
 
 const slackWebhookUrlRegex = /^https:\/\/hooks\.slack\.com\/services\/.+/;
 const slackWebhookPlaceholder = 'https://hooks.slack.com/services/...';
+const channelNameMaxLength = 100;
+const webhookUrlMaxLength = 255;
 
-export type SlackChannelDraft = {
+export type SlackChannel = {
   channelName: string;
   webhookUrl: string;
   isActive: boolean;
@@ -24,9 +26,9 @@ export type SlackChannelDraft = {
 
 type SlackChannelDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>;
-  channel: SlackChannelDraft;
+  channel: SlackChannel;
   availableEnvironments: string[];
-  onFieldChange: (field: keyof SlackChannelDraft, value: string | boolean | string[]) => void;
+  onFieldChange: (field: keyof SlackChannel, value: string | boolean | string[]) => void;
   onSave: () => void;
   onClose: () => void;
   isEditing: boolean;
@@ -98,6 +100,7 @@ export const SlackChannelDialog = ({
             label={t('org.settings.contact_points.field_channel_name')}
             value={channel.channelName}
             onChange={(e) => onFieldChange('channelName', e.target.value)}
+            maxLength={channelNameMaxLength}
             required
             error={channelNameError}
             tagText={t('general.required')}
@@ -106,6 +109,7 @@ export const SlackChannelDialog = ({
             label={t('org.settings.contact_points.field_webhook_url')}
             value={channel.webhookUrl}
             onChange={(e) => onFieldChange('webhookUrl', e.target.value)}
+            maxLength={webhookUrlMaxLength}
             placeholder={slackWebhookPlaceholder}
             required
             error={webhookUrlError}

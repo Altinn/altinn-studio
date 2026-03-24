@@ -5,10 +5,10 @@ import type { ReactElement } from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PersonDialog } from './PersonDialog';
 
-import type { PersonDraft } from './PersonDialog';
+import type { Person } from './PersonDialog';
 
 type TestWrapperProps = {
-  person?: PersonDraft;
+  person?: Person;
   availableEnvironments?: string[];
   onFieldChange?: jest.Mock;
   onSave?: jest.Mock;
@@ -17,7 +17,7 @@ type TestWrapperProps = {
   isSaving?: boolean;
 };
 
-const defaultPerson: PersonDraft = {
+const defaultPerson: Person = {
   name: '',
   email: '',
   phone: '',

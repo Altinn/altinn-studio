@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     org = table.Column<string>(type: "character varying", nullable: false),
-                    name = table.Column<string>(type: "character varying", nullable: false),
+                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     environments = table.Column<List<string>>(
                         type: "text[]",
@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     contact_point_id = table.Column<Guid>(type: "uuid", nullable: false),
                     method_type = table.Column<int>(type: "integer", nullable: false),
-                    value = table.Column<string>(type: "character varying", nullable: false),
+                    value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 },
                 constraints: table =>
                 {

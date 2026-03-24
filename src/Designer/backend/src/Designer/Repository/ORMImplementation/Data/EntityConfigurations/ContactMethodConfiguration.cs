@@ -23,7 +23,12 @@ public class ContactMethodConfiguration : IEntityTypeConfiguration<ContactMethod
 
         builder.Property(e => e.MethodType).HasColumnType("integer").HasColumnName("method_type").IsRequired();
 
-        builder.Property(e => e.Value).HasColumnType("character varying").HasColumnName("value").IsRequired();
+        builder
+            .Property(e => e.Value)
+            .HasColumnType("character varying")
+            .HasMaxLength(255)
+            .HasColumnName("value")
+            .IsRequired();
 
         builder.HasIndex(e => e.ContactPointId, "idx_contact_methods_contact_point_id");
     }

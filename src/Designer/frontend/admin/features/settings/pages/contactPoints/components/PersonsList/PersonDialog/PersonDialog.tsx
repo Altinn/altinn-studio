@@ -16,8 +16,11 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\+?[\d\s\-]{8,15}$/;
 const emailPlaceholder = 'name@example.com';
 const phonePlaceholder = '+4712345678';
+const nameMaxLength = 100;
+const emailMaxLength = 254;
+const phoneMaxLength = 32;
 
-export type PersonDraft = {
+export type Person = {
   name: string;
   email: string;
   phone: string;
@@ -27,9 +30,9 @@ export type PersonDraft = {
 
 type PersonDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>;
-  person: PersonDraft;
+  person: Person;
   availableEnvironments: string[];
-  onFieldChange: (field: keyof PersonDraft, value: string | boolean | string[]) => void;
+  onFieldChange: (field: keyof Person, value: string | boolean | string[]) => void;
   onSave: () => void;
   onClose: () => void;
   isEditing: boolean;
@@ -110,6 +113,7 @@ export const PersonDialog = ({
             label={t('org.settings.contact_points.field_name')}
             value={person.name}
             onChange={(e) => onFieldChange('name', e.target.value)}
+            maxLength={nameMaxLength}
             required
             error={nameError}
             tagText={t('general.required')}
@@ -118,6 +122,7 @@ export const PersonDialog = ({
             label={t('org.settings.contact_points.field_email')}
             value={person.email}
             onChange={(e) => onFieldChange('email', e.target.value)}
+            maxLength={emailMaxLength}
             placeholder={emailPlaceholder}
             error={emailError ?? contactMethodError}
           />
@@ -125,6 +130,7 @@ export const PersonDialog = ({
             label={t('org.settings.contact_points.field_phone')}
             value={person.phone}
             onChange={(e) => onFieldChange('phone', e.target.value)}
+            maxLength={phoneMaxLength}
             placeholder={phonePlaceholder}
             error={phoneError ?? contactMethodError}
           />

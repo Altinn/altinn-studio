@@ -4,10 +4,10 @@ import { useRef } from 'react';
 import type { ReactElement } from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { SlackChannelDialog } from './SlackChannelDialog';
-import type { SlackChannelDraft } from './SlackChannelDialog';
+import type { SlackChannel } from './SlackChannelDialog';
 
 type TestWrapperProps = {
-  channel?: SlackChannelDraft;
+  channel?: SlackChannel;
   availableEnvironments?: string[];
   onFieldChange?: jest.Mock;
   onSave?: jest.Mock;
@@ -16,7 +16,7 @@ type TestWrapperProps = {
   isSaving?: boolean;
 };
 
-const defaultChannel: SlackChannelDraft = {
+const defaultChannel: SlackChannel = {
   channelName: '',
   webhookUrl: '',
   isActive: true,

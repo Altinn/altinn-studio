@@ -334,6 +334,7 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("character varying")
+                        .HasMaxLength(255)
                         .HasColumnName("value");
 
                     b.HasKey("Id")
@@ -373,6 +374,7 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("character varying")
+                        .HasMaxLength(100)
                         .HasColumnName("name");
 
                     b.Property<string>("Org")

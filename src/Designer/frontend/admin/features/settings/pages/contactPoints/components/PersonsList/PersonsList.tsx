@@ -12,7 +12,7 @@ import {
 } from '@studio/components';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import { PersonDialog } from './PersonDialog/PersonDialog';
-import type { PersonDraft } from './PersonDialog/PersonDialog';
+import type { Person } from './PersonDialog/PersonDialog';
 import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
 import { useToggleContactPointActiveMutation } from 'admin/features/settings/hooks/useToggleContactPointActiveMutation';
@@ -26,7 +26,7 @@ type PersonsListProps = {
   persons: ContactPoint[];
 };
 
-const emptyDraft = (availableEnvironments: string[]): PersonDraft => ({
+const createEmptyPerson = (availableEnvironments: string[]): Person => ({
   name: '',
   email: '',
   phone: '',
@@ -34,17 +34,17 @@ const emptyDraft = (availableEnvironments: string[]): PersonDraft => ({
   environments: availableEnvironments,
 });
 
-const draftToPayload = (draft: PersonDraft): ContactPointPayload => ({
-  name: draft.name,
-  isActive: draft.isActive,
-  environments: draft.environments,
+const personToPayload = (person: Person): ContactPointPayload => ({
+  name: person.name,
+  isActive: person.isActive,
+  environments: person.environments,
   methods: [
-    ...(draft.email ? [{ methodType: 'email' as const, value: draft.email }] : []),
-    ...(draft.phone ? [{ methodType: 'sms' as const, value: draft.phone }] : []),
+    ...(person.email ? [{ methodType: 'email' as const, value: person.email }] : []),
+    ...(person.phone ? [{ methodType: 'sms' as const, value: person.phone }] : []),
   ],
 });
 
-const contactPointToDraft = (cp: ContactPoint): PersonDraft => ({
+const contactPointToPerson = (cp: ContactPoint): Person => ({
   name: cp.name,
   isActive: cp.isActive,
   environments: cp.environments,
@@ -55,7 +55,7 @@ const contactPointToDraft = (cp: ContactPoint): PersonDraft => ({
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [draft, setDraft] = useState<PersonDraft>(emptyDraft([]));
+  const [personForm, setPersonForm] = useState<Person>(createEmptyPerson([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const { mutate: addPerson, isPending: isAdding } = useAddContactPointMutation(org);
@@ -69,13 +69,13 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   const isSaving = isAdding || isUpdating;
 
   const openAddDialog = () => {
-    setDraft(emptyDraft(availableEnvironments));
+    setPersonForm(createEmptyPerson(availableEnvironments));
     setEditingId(null);
     dialogRef.current?.showModal();
   };
 
   const openEditDialog = (person: ContactPoint) => {
-    setDraft(contactPointToDraft(person));
+    setPersonForm(contactPointToPerson(person));
     setEditingId(person.id);
     dialogRef.current?.showModal();
   };
@@ -84,12 +84,12 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
     dialogRef.current?.close();
   };
 
-  const handleFieldChange = (field: keyof PersonDraft, value: string | boolean | string[]) => {
-    setDraft((prev) => ({ ...prev, [field]: value }));
+  const handleFieldChange = (field: keyof Person, value: string | boolean | string[]) => {
+    setPersonForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = () => {
-    const payload = draftToPayload(draft);
+    const payload = personToPayload(personForm);
     if (editingId) {
       updatePerson({ id: editingId, payload }, { onSuccess: closeDialog });
     } else {
@@ -178,7 +178,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
       </div>
       <PersonDialog
         dialogRef={dialogRef}
-        person={draft}
+        person={personForm}
         availableEnvironments={availableEnvironments}
         onFieldChange={handleFieldChange}
         onSave={handleSave}
