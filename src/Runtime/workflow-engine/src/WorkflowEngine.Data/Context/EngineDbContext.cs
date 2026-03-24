@@ -120,17 +120,16 @@ internal sealed class EngineDbContext : DbContext
         where T : class
     {
         public static readonly ValueConverter<T?, string> Converter = new(
-            v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
-            v => JsonSerializer.Deserialize<T>(v, JsonSerializerOptions.Default)!
+            v => JsonSerializer.Serialize(v, JsonOptions.Default),
+            v => JsonSerializer.Deserialize<T>(v, JsonOptions.Default)!
         );
 
         public static readonly ValueComparer<T?> Comparer = new(
             equalsExpression: (a, b) => Serialize(a) == Serialize(b),
             hashCodeExpression: v => Serialize(v).GetHashCode(),
-            snapshotExpression: v =>
-                v == null ? null : JsonSerializer.Deserialize<T>(Serialize(v), JsonSerializerOptions.Default)
+            snapshotExpression: v => v == null ? null : JsonSerializer.Deserialize<T>(Serialize(v), JsonOptions.Default)
         );
 
-        private static string Serialize(T? value) => JsonSerializer.Serialize(value, JsonSerializerOptions.Default);
+        private static string Serialize(T? value) => JsonSerializer.Serialize(value, JsonOptions.Default);
     }
 }
