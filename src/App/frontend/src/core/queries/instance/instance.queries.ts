@@ -2,8 +2,8 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { InstanceApi } from 'src/core/api-client/instance.api';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import type { Instantiation } from 'src/core/api-client/instance.api';
+import type { IInstance } from 'src/types/shared';
 
 type InstantiationArgs = number | Instantiation;
 
@@ -28,9 +28,11 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid }: Instan
     queryFn: async ({ client }) => {
       try {
         const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
-        const cleaned = removeProcessFromInstance(instance);
-        client.setQueryData(instanceQueryKeys.current(), cleaned);
-        return cleaned;
+        const currentKey = instanceQueryKeys.current();
+        if (!client.getQueryData(currentKey)) {
+          client.setQueryData(currentKey, instance as IInstance);
+        }
+        return instance as IInstance;
       } catch (error) {
         window.logError('Fetching instance data failed:\n', error);
         throw error;
@@ -60,9 +62,9 @@ export function useCreateInstance(language: string) {
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
-      const cleaned = removeProcessFromInstance(data);
-      queryClient.setQueryData(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }), cleaned);
-      queryClient.setQueryData(instanceQueryKeys.current(), cleaned);
+      const instance = data as IInstance;
+      queryClient.setQueryData(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }), instance);
+      queryClient.setQueryData(instanceQueryKeys.current(), instance);
     },
   });
 }
