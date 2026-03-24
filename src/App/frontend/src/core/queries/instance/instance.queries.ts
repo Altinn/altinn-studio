@@ -2,8 +2,8 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 
 import { InstanceApi } from 'src/core/api-client/instance.api';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
+import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import type { Instantiation } from 'src/core/api-client/instance.api';
-import type { IInstance } from 'src/types/shared';
 
 type InstantiationArgs = number | Instantiation;
 
@@ -14,7 +14,6 @@ interface InstanceQueryParams {
 
 export const instanceQueryKeys = {
   all: () => ['instanceData'] as const,
-  current: () => [...instanceQueryKeys.all(), 'current'] as const,
   instance: ({ instanceOwnerPartyId, instanceGuid }: InstanceQueryParams) =>
     [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
   active: (partyId: string) => [...instanceQueryKeys.all(), 'active', partyId] as const,
@@ -25,14 +24,10 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid }: Instan
     queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    queryFn: async ({ client }) => {
+    queryFn: async () => {
       try {
         const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
-        const currentKey = instanceQueryKeys.current();
-        if (!client.getQueryData(currentKey)) {
-          client.setQueryData(currentKey, instance as IInstance);
-        }
-        return instance as IInstance;
+        return removeProcessFromInstance(instance);
       } catch (error) {
         window.logError('Fetching instance data failed:\n', error);
         throw error;
@@ -62,9 +57,10 @@ export function useCreateInstance(language: string) {
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
-      const instance = data as IInstance;
-      queryClient.setQueryData(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }), instance);
-      queryClient.setQueryData(instanceQueryKeys.current(), instance);
+      queryClient.setQueryData(
+        instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
+        removeProcessFromInstance(data),
+      );
     },
   });
 }

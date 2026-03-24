@@ -21,17 +21,11 @@ function useActiveInstances(partyId: string): UseActiveInstancesResult {
   return { instances: query.data, isLoading: query.isLoading, error: query.error };
 }
 
-function getCurrentInstance(queryClient: QueryClient): IInstance | undefined {
-  return queryClient.getQueryData<IInstance>(instanceQueryKeys.current());
-}
-
-function setCurrentInstance(queryClient: QueryClient, instance: IInstance | undefined): void {
-  queryClient.setQueryData(instanceQueryKeys.current(), instance);
-}
-
 function useCurrentInstance(): IInstance | undefined {
   const queryClient = useQueryClient();
-  return getCurrentInstance(queryClient);
+  return queryClient
+    .getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() })
+    .find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object')?.[1];
 }
 
 function useCreateInstance(language: string) {
@@ -48,13 +42,11 @@ function prefetchActiveInstances(queryClient: QueryClient, partyId: string) {
   return queryClient.ensureQueryData(activeInstancesQuery(partyId));
 }
 
-async function prefetchInstanceData(
+function prefetchInstanceData(
   queryClient: QueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string },
 ) {
-  const instance = await queryClient.ensureQueryData(instanceDataQuery(params));
-  setCurrentInstance(queryClient, instance);
-  return instance;
+  return queryClient.prefetchQuery(instanceDataQuery(params));
 }
 
 function invalidateInstanceData(queryClient: QueryClient) {
@@ -66,7 +58,6 @@ export {
   invalidateInstanceData,
   prefetchActiveInstances,
   prefetchInstanceData,
-  setCurrentInstance,
   useActiveInstances,
   useCreateInstance,
   useCurrentInstance,
