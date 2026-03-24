@@ -22,7 +22,7 @@ public class GiteaUserProvisioningService(HttpClient httpClient) : IUserProvisio
 
         if (!string.IsNullOrWhiteSpace(fullName))
         {
-            request.Headers.TryAddWithoutValidation("X-WEBAUTH-FULLNAME", fullName);
+            request.Headers.TryAddWithoutValidation("X-WEBAUTH-FULLNAME", GiteaAuthHeadersProvider.ToAscii(fullName));
         }
 
         await httpClient.SendAsync(request, cancellationToken);

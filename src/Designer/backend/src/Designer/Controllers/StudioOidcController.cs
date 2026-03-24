@@ -86,25 +86,11 @@ public class StudioOidcController(
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
 
-        string afterCallbackUrl = Url.Action(nameof(AfterCallback), new { redirect_to = redirectTo })!;
-        return LocalRedirect(afterCallbackUrl);
-    }
-
-    [Authorize]
-    [HttpGet("after-callback")]
-    public async Task<IActionResult> AfterCallback([FromQuery(Name = "redirect_to")] string redirectTo)
-    {
-        if (!Url.IsLocalUrl(redirectTo))
-        {
-            return Forbid();
-        }
-
-        string username = User.Identity?.Name ?? string.Empty;
-        string? givenName = User.FindFirst("given_name")?.Value;
-        string? familyName = User.FindFirst("family_name")?.Value;
         string? fullName = $"{givenName} {familyName}".Trim();
-
-        await userProvisioningService.EnsureUserExistsAsync(username, string.IsNullOrEmpty(fullName) ? null : fullName);
+        await userProvisioningService.EnsureUserExistsAsync(
+            computedUsername,
+            string.IsNullOrEmpty(fullName) ? null : fullName
+        );
 
         return LocalRedirect(redirectTo);
     }
