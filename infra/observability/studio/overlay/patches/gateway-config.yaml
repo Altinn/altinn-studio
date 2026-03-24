@@ -15,7 +15,7 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [transform/azuremonitor, tail_sampling, batch]
+          processors: [transform/azuremonitor, transform/azuremonitor_expected_404, tail_sampling, batch]
           exporters: [azuremonitor]
         metrics:
           receivers: [otlp]

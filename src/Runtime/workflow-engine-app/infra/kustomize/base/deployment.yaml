@@ -1,0 +1,128 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: workflow-engine-app-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: workflow-engine-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-engine-app
+  annotations:
+    altinn.studio/image: workflow-engine-app:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: workflow-engine-app
+  template:
+    metadata:
+      labels:
+        app: workflow-engine-app
+      annotations:
+        linkerd.io/inject: enabled
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: workflow-engine-app
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: workflow-engine-app
+      serviceAccountName: workflow-engine-app
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: workflow-engine-app
+          image: ''
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8081
+              name: http-metrics
+              protocol: TCP
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: "workflow-engine-app"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: runtime-environment
+                  key: environment
+          volumeMounts:
+            - name: secrets
+              mountPath: /app/secrets
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+      volumes:
+        - name: secrets
+          projected:
+            sources:
+              - secret:
+                  name: workflow-engine-app-secrets
+                  items:
+                    - key: secrets.json
+                      path: secrets.json

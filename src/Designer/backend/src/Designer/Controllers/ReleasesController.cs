@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -18,6 +19,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller for creating, getting and updating releases
     /// </summary>
     [ApiController]
+    [AllowApiKey]
     [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/releases")]
     [AutoValidateAntiforgeryToken]
     public class ReleasesController : ControllerBase

@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, type JSX } from 'react';
 import { v1 as uuidv1 } from 'uuid';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
@@ -42,7 +42,7 @@ interface IConditionalRenderingComponentState {
   connectionId: string | null;
   selectableActions: string[];
   conditionalRendering: ConditionalRenderingConnection;
-  dialogRef: React.RefObject<HTMLDialogElement>;
+  dialogRef: React.RefObject<HTMLDialogElement | null>;
 }
 
 class ConditionalRendering extends React.Component<

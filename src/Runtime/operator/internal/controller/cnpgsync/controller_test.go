@@ -2,6 +2,7 @@ package cnpgsync
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -675,6 +676,442 @@ func TestReconciler_UpdatesAppSecretWithConnectionString(t *testing.T) {
 	g.Expect(connJson).To(ContainSubstring("Host=pg-apps-cluster-rw.runtime-cnpg.svc.cluster.local"))
 	g.Expect(connJson).To(ContainSubstring("Database=testapp"))
 	g.Expect(connJson).To(ContainSubstring("Username=testapp"))
+}
+
+func TestReconciler_UpdatesExistingWorkflowEngineSecret(t *testing.T) {
+	g := NewWithT(t)
+
+	targets := []CnpgTarget{{
+		ServiceOwnerId:    "ttd",
+		Environment:       "localtest",
+		WorkflowEngineApp: true,
+	}}
+	h := newTestHarness(t, "localtest", targets)
+	g.Expect(h.k8sClient.Create(h.ctx(), &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: workflowEngineSecretNamespace},
+	})).To(Succeed())
+
+	h.mustSyncAll(g)
+	h.setHelmReleaseReady(t)
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeTrue())
+
+	passwordSecret := &corev1.Secret{}
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "pg-apps-cluster-workflow-engine-app-password", Namespace: cnpgNamespace},
+		passwordSecret,
+	)).To(Succeed())
+	g.Expect(string(passwordSecret.Data["username"])).To(Equal(workflowEngineDatabaseName))
+	g.Expect(passwordSecret.Labels[managedByLabelKey]).To(Equal(managedByLabelValue))
+	g.Expect(passwordSecret.Labels[workflowEngineLabelKey]).To(Equal(workflowEngineLabelValue))
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	g.Expect(cluster.Spec.Managed.Roles).To(HaveLen(1))
+	g.Expect(cluster.Spec.Managed.Roles[0].Name).To(Equal(workflowEngineDatabaseName))
+
+	cluster.Status.ManagedRolesStatus = cnpgv1.ManagedRoles{
+		ByStatus: map[cnpgv1.RoleStatus][]string{
+			cnpgv1.RoleStatusReconciled: {workflowEngineDatabaseName},
+		},
+	}
+	g.Expect(h.k8sClient.Status().Update(h.ctx(), cluster)).To(Succeed())
+
+	h.mustSyncAll(g)
+
+	db := &cnpgv1.Database{}
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "db-workflow-engine-app", Namespace: cnpgNamespace},
+		db,
+	)).To(Succeed())
+	g.Expect(db.Spec.Name).To(Equal(workflowEngineDatabaseName))
+	g.Expect(db.Spec.Owner).To(Equal(workflowEngineDatabaseName))
+	g.Expect(db.Labels[workflowEngineLabelKey]).To(Equal(workflowEngineLabelValue))
+
+	applied := true
+	db.Status.Applied = &applied
+	g.Expect(h.k8sClient.Status().Update(h.ctx(), db)).To(Succeed())
+
+	workflowSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      workflowEngineSecretName,
+			Namespace: workflowEngineSecretNamespace,
+		},
+		Data: map[string][]byte{
+			secretsJSONKey: []byte(`{"AppCommandSettings":{"ApiKey":"keep-me"}}`),
+			"other-key":    []byte("keep-me"),
+		},
+	}
+	g.Expect(h.k8sClient.Create(h.ctx(), workflowSecret)).To(Succeed())
+
+	h.mustSyncAll(g)
+
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: workflowEngineSecretName, Namespace: workflowEngineSecretNamespace},
+		workflowSecret,
+	)).To(Succeed())
+	g.Expect(workflowSecret.Data["other-key"]).To(Equal([]byte("keep-me")))
+	g.Expect(workflowSecret.Data).To(HaveKey(secretsJSONKey))
+
+	var payload struct {
+		ConnectionStrings  map[string]string `json:"ConnectionStrings"`
+		AppCommandSettings map[string]string `json:"AppCommandSettings"`
+	}
+	g.Expect(json.Unmarshal(workflowSecret.Data[secretsJSONKey], &payload)).To(Succeed())
+	g.Expect(payload.ConnectionStrings["WorkflowEngine"]).To(ContainSubstring("Database=workflow_engine"))
+	g.Expect(payload.ConnectionStrings["WorkflowEngine"]).To(ContainSubstring("Username=workflow_engine"))
+	g.Expect(payload.AppCommandSettings["ApiKey"]).To(Equal("keep-me"))
+}
+
+func TestReconciler_DoesNotCreateWorkflowEngineTargetSecret(t *testing.T) {
+	g := NewWithT(t)
+
+	targets := []CnpgTarget{{
+		ServiceOwnerId:    "ttd",
+		Environment:       "localtest",
+		WorkflowEngineApp: true,
+	}}
+	h := newTestHarness(t, "localtest", targets)
+	g.Expect(h.k8sClient.Create(h.ctx(), &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: workflowEngineSecretNamespace},
+	})).To(Succeed())
+
+	h.mustSyncAll(g)
+	h.setHelmReleaseReady(t)
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeTrue())
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	cluster.Status.ManagedRolesStatus = cnpgv1.ManagedRoles{
+		ByStatus: map[cnpgv1.RoleStatus][]string{
+			cnpgv1.RoleStatusReconciled: {workflowEngineDatabaseName},
+		},
+	}
+	g.Expect(h.k8sClient.Status().Update(h.ctx(), cluster)).To(Succeed())
+
+	h.mustSyncAll(g)
+
+	db := &cnpgv1.Database{}
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "db-workflow-engine-app", Namespace: cnpgNamespace},
+		db,
+	)).To(Succeed())
+	applied := true
+	db.Status.Applied = &applied
+	g.Expect(h.k8sClient.Status().Update(h.ctx(), db)).To(Succeed())
+
+	h.mustSyncAll(g)
+
+	err = h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: workflowEngineSecretName, Namespace: workflowEngineSecretNamespace},
+		&corev1.Secret{},
+	)
+	g.Expect(apierrors.IsNotFound(err)).To(BeTrue())
+}
+
+func TestReconciler_CleansUpRemovedWorkflowEngineAppWithoutDeletingSecret(t *testing.T) {
+	g := NewWithT(t)
+
+	targets := []CnpgTarget{{
+		ServiceOwnerId:    "ttd",
+		Environment:       "localtest",
+		WorkflowEngineApp: true,
+	}}
+	h := newTestHarness(t, "localtest", targets)
+	g.Expect(h.k8sClient.Create(h.ctx(), &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{Name: workflowEngineSecretNamespace},
+	})).To(Succeed())
+
+	h.mustSyncAll(g)
+	h.setHelmReleaseReady(t)
+	h.mustSyncAll(g)
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	cluster.Status.ManagedRolesStatus = cnpgv1.ManagedRoles{
+		ByStatus: map[cnpgv1.RoleStatus][]string{
+			cnpgv1.RoleStatusReconciled: {workflowEngineDatabaseName},
+		},
+	}
+	g.Expect(h.k8sClient.Status().Update(h.ctx(), cluster)).To(Succeed())
+
+	h.mustSyncAll(g)
+
+	db := &cnpgv1.Database{}
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "db-workflow-engine-app", Namespace: cnpgNamespace},
+		db,
+	)).To(Succeed())
+	applied := true
+	db.Status.Applied = &applied
+	g.Expect(h.k8sClient.Status().Update(h.ctx(), db)).To(Succeed())
+
+	workflowSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      workflowEngineSecretName,
+			Namespace: workflowEngineSecretNamespace,
+		},
+		Data: map[string][]byte{
+			secretsJSONKey: []byte(`{"ConnectionStrings":{"WorkflowEngine":"old"}}`),
+		},
+	}
+	g.Expect(h.k8sClient.Create(h.ctx(), workflowSecret)).To(Succeed())
+
+	h.mustSyncAll(g)
+
+	h.reconciler.targets = []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "localtest",
+	}}
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeFalse())
+
+	err = h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "db-workflow-engine-app", Namespace: cnpgNamespace},
+		&cnpgv1.Database{},
+	)
+	g.Expect(err).To(HaveOccurred())
+
+	err = h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "pg-apps-cluster-workflow-engine-app-password", Namespace: cnpgNamespace},
+		&corev1.Secret{},
+	)
+	g.Expect(err).To(HaveOccurred())
+
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: workflowEngineSecretName, Namespace: workflowEngineSecretNamespace},
+		workflowSecret,
+	)).To(Succeed())
+}
+
+func TestReconciler_CleansUpPartialWorkflowEngineStateWhenTargetRemoved(t *testing.T) {
+	g := NewWithT(t)
+
+	targets := []CnpgTarget{{
+		ServiceOwnerId:    "ttd",
+		Environment:       "localtest",
+		WorkflowEngineApp: true,
+	}}
+	h := newTestHarness(t, "localtest", targets)
+
+	h.mustSyncAll(g)
+	h.setHelmReleaseReady(t)
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeTrue())
+
+	passwordSecret := &corev1.Secret{}
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "pg-apps-cluster-workflow-engine-app-password", Namespace: cnpgNamespace},
+		passwordSecret,
+	)).To(Succeed())
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	g.Expect(cluster.Spec.Managed.Roles).To(HaveLen(1))
+	g.Expect(cluster.Spec.Managed.Roles[0].Name).To(Equal(workflowEngineDatabaseName))
+
+	h.reconciler.targets = []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "localtest",
+	}}
+
+	needsRetry, err = h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeFalse())
+
+	err = h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "pg-apps-cluster-workflow-engine-app-password", Namespace: cnpgNamespace},
+		&corev1.Secret{},
+	)
+	g.Expect(apierrors.IsNotFound(err)).To(BeTrue())
+
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	g.Expect(cluster.Spec.Managed.Roles).To(BeEmpty())
+}
+
+func TestReconciler_DoesNotDeleteUnmanagedWorkflowEngineDatabaseAfterCreatingPasswordSecret(t *testing.T) {
+	g := NewWithT(t)
+
+	targets := []CnpgTarget{{
+		ServiceOwnerId:    "ttd",
+		Environment:       "localtest",
+		WorkflowEngineApp: true,
+	}}
+	h := newTestHarness(t, "localtest", targets)
+
+	h.mustSyncAll(g)
+	h.setHelmReleaseReady(t)
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeTrue())
+
+	unmanagedDatabase := &cnpgv1.Database{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "db-workflow-engine-app",
+			Namespace: cnpgNamespace,
+			Labels: map[string]string{
+				managedByLabelKey: "someone-else",
+			},
+		},
+	}
+	g.Expect(h.k8sClient.Create(h.ctx(), unmanagedDatabase)).To(Succeed())
+
+	h.reconciler.targets = []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "localtest",
+	}}
+
+	needsRetry, err = h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeFalse())
+
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "db-workflow-engine-app", Namespace: cnpgNamespace},
+		&cnpgv1.Database{},
+	)).To(Succeed())
+
+	err = h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "pg-apps-cluster-workflow-engine-app-password", Namespace: cnpgNamespace},
+		&corev1.Secret{},
+	)
+	g.Expect(apierrors.IsNotFound(err)).To(BeTrue())
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	g.Expect(cluster.Spec.Managed.Roles).To(BeEmpty())
+}
+
+func TestReconciler_DoesNotAdoptExistingWorkflowEnginePasswordSecretOrRole(t *testing.T) {
+	g := NewWithT(t)
+
+	targets := []CnpgTarget{{
+		ServiceOwnerId:    "ttd",
+		Environment:       "localtest",
+		WorkflowEngineApp: true,
+	}}
+	h := newTestHarness(t, "localtest", targets)
+
+	passwordSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pg-apps-cluster-workflow-engine-app-password",
+			Namespace: cnpgNamespace,
+		},
+		Data: map[string][]byte{
+			"username": []byte("workflow_engine"),
+			"password": []byte("not-ours"),
+		},
+	}
+	g.Expect(h.k8sClient.Create(h.ctx(), passwordSecret)).To(Succeed())
+
+	h.mustSyncAll(g)
+	h.setHelmReleaseReady(t)
+	h.mustSyncAll(g)
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	cluster.Spec.Managed = &cnpgv1.ManagedConfiguration{
+		Roles: []cnpgv1.RoleConfiguration{{
+			Name: workflowEngineDatabaseName,
+			PasswordSecret: &cnpgv1.LocalObjectReference{
+				Name: "pg-apps-cluster-workflow-engine-app-password",
+			},
+		}},
+	}
+	g.Expect(h.k8sClient.Update(h.ctx(), cluster)).To(Succeed())
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeFalse())
+
+	err = h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "db-workflow-engine-app", Namespace: cnpgNamespace},
+		&cnpgv1.Database{},
+	)
+	g.Expect(apierrors.IsNotFound(err)).To(BeTrue())
+
+	h.reconciler.targets = []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "localtest",
+	}}
+
+	needsRetry, err = h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeFalse())
+
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "pg-apps-cluster-workflow-engine-app-password", Namespace: cnpgNamespace},
+		&corev1.Secret{},
+	)).To(Succeed())
+
+	g.Expect(h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
+	g.Expect(cluster.Spec.Managed.Roles).To(HaveLen(1))
+	g.Expect(cluster.Spec.Managed.Roles[0].Name).To(Equal(workflowEngineDatabaseName))
+}
+
+func TestReconciler_DoesNotCleanUpUnmanagedWorkflowEngineResources(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newTestHarness(t, "localtest", []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "localtest",
+	}})
+
+	db := &cnpgv1.Database{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "db-workflow-engine-app",
+			Namespace: cnpgNamespace,
+			Labels: map[string]string{
+				managedByLabelKey: "someone-else",
+			},
+		},
+	}
+	g.Expect(h.k8sClient.Create(h.ctx(), db)).To(Succeed())
+
+	h.mustSyncAll(g)
+	h.setHelmReleaseReady(t)
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeFalse())
+
+	g.Expect(h.k8sClient.Get(
+		h.ctx(),
+		client.ObjectKey{Name: "db-workflow-engine-app", Namespace: cnpgNamespace},
+		&cnpgv1.Database{},
+	)).To(Succeed())
 }
 
 func TestReconciler_NoRetryWhenNoApps(t *testing.T) {

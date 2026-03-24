@@ -96,7 +96,7 @@ function OptionListSelectorWithData({
 }
 
 type ModalContentProps = OptionListSelectorWithDataProps & {
-  modalRef: React.RefObject<HTMLDialogElement>;
+  modalRef: React.RefObject<HTMLDialogElement | null>;
 };
 
 function ModalContent({

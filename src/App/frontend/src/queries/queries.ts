@@ -1,3 +1,4 @@
+import { queryOptions } from '@tanstack/react-query';
 import axios from 'axios';
 import type { QueryClient } from '@tanstack/react-query';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -195,6 +196,14 @@ export const fetchLogo = async (): Promise<string> =>
 
 export const fetchActiveInstances = (partyId: number): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));
+
+export const activeInstancesQueryKey = (partyId: number) => ['getActiveInstances', partyId] as const;
+
+export const activeInstancesQueryOptions = (partyId: number) =>
+  queryOptions({
+    queryKey: activeInstancesQueryKey(partyId),
+    queryFn: () => fetchActiveInstances(partyId),
+  });
 
 export const fetchInstanceData = async (partyId: string, instanceGuid: string): Promise<IInstance> =>
   removeProcessFromInstance(
