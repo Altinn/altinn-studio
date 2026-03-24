@@ -102,3 +102,17 @@ src/Runtime/pdf3/**/yarn.lock                                   @altinn/team-alt
 src/tools/health/**/go.mod                                      @altinn/team-altinn-studio-kjoring
 src/tools/health/**/go.sum                                      @altinn/team-altinn-studio-kjoring
 src/tools/releaser/**/go.mod                                    @altinn/team-altinn-studio-kjoring
+
+# Squad Flyt
+.github/workflows/deploy-runtime-workflow-engine-app.yaml       @altinn/team-altinn-studio-flyt
+.github/workflows/runtime-workflow-engine-app-tests.yaml        @altinn/team-altinn-studio-flyt
+.github/workflows/runtime-workflow-engine-tests.yaml            @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine-app/**/*.csproj                     @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine-app/**/Directory.Packages.props     @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine-app/**/docker-compose.yaml          @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine-app/**/Dockerfile*                  @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine/**/*.csproj                         @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine/**/Directory.Packages.props         @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine/**/docker-compose.yaml              @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine/**/Dockerfile*                      @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine/**/global.json                      @altinn/team-altinn-studio-flyt

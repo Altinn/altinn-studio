@@ -102,9 +102,22 @@ const GROUPS = [
       ".github/workflows/runtime-pdf3-build.yml",
       ".github/workflows/template-runtime-construct-environments.yaml",
       ".github/workflows/template-studio-construct-environments.yaml",
-      ".github/workflows/validate-renovate.yaml"
+      ".github/workflows/validate-renovate.yaml",
     ],
   },
+  {
+    title: "Squad Flyt",
+    owner: "@altinn/team-altinn-studio-flyt",
+    roots: [
+      "src/Runtime/workflow-engine",
+      "src/Runtime/workflow-engine-app",
+    ],
+    extraPaths: [
+      ".github/workflows/deploy-runtime-workflow-engine-app.yaml",
+      ".github/workflows/runtime-workflow-engine-app-tests.yaml",
+      ".github/workflows/runtime-workflow-engine-tests.yaml",
+    ],
+  }
 ];
 
 /**
