@@ -5,8 +5,10 @@ WORKDIR /build
 COPY ./package.json yarn.lock ./
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
+COPY ./.yarn/patches ./.yarn/patches
 
 COPY src/App/frontend/package.json ./src/App/frontend/
+
 COPY src/Designer/development/azure-devops-mock/package.json ./src/Designer/development/azure-devops-mock/
 COPY src/Designer/frontend/package.json ./src/Designer/frontend/
 COPY src/Designer/frontend/app-development/package.json ./src/Designer/frontend/app-development/
