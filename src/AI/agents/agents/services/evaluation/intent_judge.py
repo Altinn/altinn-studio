@@ -3,6 +3,8 @@ import json
 import re
 from typing import Optional
 
+from agents.prompts.loader import get_prompt_with_langfuse
+from agents.services.llm import LLMClient
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import score_validation
 from shared.utils.logging_utils import get_logger
@@ -10,7 +12,7 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-_JUDGE_PROMPT_NAME = "llm-as-a-judge/intent_match_judge"
+_JUDGE_PROMPT_NAME = "intent_match"
 
 
 def _parse_judge_response(response: str) -> tuple[bool, str]:
@@ -38,15 +40,12 @@ async def run_intent_judge(
     (its high-level description of what it will do). Scores 1 if the plan
     correctly captures the intent, 0 otherwise.
     """
-    from agents.prompts.loader import get_prompt_content
-    from agents.services.llm import LLMClient
-
     if not agent_plan:
         log.warning("intent_match: no agent_plan available — skipping evaluation")
         return
 
     try:
-        system_prompt = get_prompt_content(_JUDGE_PROMPT_NAME)
+        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME)
     except FileNotFoundError:
         log.error("Judge prompt '%s' not found — skipping intent_match", _JUDGE_PROMPT_NAME)
         return
@@ -65,6 +64,7 @@ async def run_intent_judge(
         response = await client.call_async(
             system_prompt=system_prompt,
             user_prompt=user_message,
+            langfuse_prompt=lf_prompt,
         )
     except Exception as e:
         log.warning("intent_match judge LLM call failed: %s", e)
