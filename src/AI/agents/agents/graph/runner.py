@@ -9,7 +9,10 @@ from .nodes.actor_node import handle as actor_node
 from .nodes.verifier_node import handle as verifier_node
 from .nodes.reviewer_node import handle as reviewer_node
 from agents.services.events import AgentEvent, EventSink, sink
+from shared.utils.logging_utils import get_logger
 import asyncio
+
+log = get_logger(__name__)
 
 def should_continue_after_intake(state: AgentState) -> str:
     """Route from intake to scan or stop"""
