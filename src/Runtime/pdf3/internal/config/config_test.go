@@ -79,7 +79,7 @@ func TestPDFAConversionConfigEnabledFor(t *testing.T) {
 		},
 		{
 			name:         "wrong environment disabled",
-			environment:  "prod",
+			environment:  "proda",
 			serviceOwner: "ikta",
 			cfg:          defaultPDFAConversionConfig,
 			want:         false,
@@ -149,7 +149,7 @@ func TestConfigShouldConvertToPDFA(t *testing.T) {
 		},
 		{
 			name:         "wrong environment disabled",
-			environment:  "prod",
+			environment:  "proda",
 			serviceOwner: "ikta",
 			pdfa:         defaultPDFAConversionConfig,
 			want:         false,

@@ -21,11 +21,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Altinn.Studio.Admin.Controllers;
+namespace Altinn.Studio.Designer.Controllers.Admin;
 
 [ApiController]
 [Authorize]
-[Route("designer/api/admin/[controller]")]
+[Route("designer/api/v1/admin/[controller]/{org}")]
 public class ApplicationsController : ControllerBase
 {
     private readonly IEnvironmentsService _environmentsService;
@@ -55,7 +55,7 @@ public class ApplicationsController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{org}")]
+    [HttpGet]
     public async Task<ActionResult<Dictionary<string, List<PublishedApplication>>>> GetApplications(
         string org,
         CancellationToken ct
@@ -132,7 +132,7 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}")]
+    [HttpGet("{env}/{app}")]
     public async Task<ActionResult<PublishedApplicationDetails>> GetApplicationDetails(
         string org,
         string env,
@@ -245,7 +245,7 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/application-metadata")]
+    [HttpGet("{env}/{app}/application-metadata")]
     public async Task<ActionResult<ApplicationMetadata>> GetApplicationMetadata(
         string org,
         string env,
@@ -271,7 +271,7 @@ public class ApplicationsController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/process-metadata")]
+    [HttpGet("{env}/{app}/process-metadata")]
     public async Task<ActionResult<IEnumerable<ProcessTaskMetadata>>> GetProcessMetadata(
         string org,
         string env,

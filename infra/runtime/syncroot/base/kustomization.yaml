@@ -11,4 +11,3 @@ resources:
   - altinn-charts.yaml
   - apps-syncroot.yaml
   - observability.yaml
-  - workflow-engine-app.yaml

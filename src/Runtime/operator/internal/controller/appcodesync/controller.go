@@ -116,13 +116,6 @@ var codeTypeSpecs = []codeTypeSpec{
 var errSecretUpdateRetryExhausted = errors.New("failed to update secret after conflict retries")
 var errGeneratedInvalidCodeIDLength = errors.New("generated invalid code ID length")
 
-var obsoleteAppCodesAnnotationKeys = map[string]struct{}{
-	"altinn.studio/app-codes-monthly-issued-at":                {},
-	"altinn.studio/app-codes-notificationcallback-issued-at":   {},
-	"altinn.studio/app-codes-paymentscallback-issued-at":       {},
-	"altinn.studio/app-codes-workflowenginecallback-issued-at": {},
-}
-
 func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *AppCodesSyncReconciler {
 	return &AppCodesSyncReconciler{
 		logger:    log.FromContext(context.Background()).WithName("appcodesync"),
@@ -255,7 +248,7 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 		currentFileBytes = secret.Data[appCodesFileName]
 	}
 
-	if slices.Equal(currentFileBytes, desiredFileBytes) && !hasObsoleteAppCodesAnnotations(secret.Annotations) {
+	if slices.Equal(currentFileBytes, desiredFileBytes) {
 		return nextRequeue, nil
 	}
 
@@ -498,23 +491,6 @@ func marshalCodeEntries(codes []appCode) []appCodeEntry {
 	return values
 }
 
-func hasObsoleteAppCodesAnnotations(annotations map[string]string) bool {
-	for key := range annotations {
-		if _, ok := obsoleteAppCodesAnnotationKeys[key]; ok {
-			return true
-		}
-	}
-	return false
-}
-
-func removeObsoleteAppCodesAnnotations(annotations map[string]string) {
-	for key := range annotations {
-		if _, ok := obsoleteAppCodesAnnotationKeys[key]; ok {
-			delete(annotations, key)
-		}
-	}
-}
-
 func isValidURLSafeToken(value string, expectedLength int) bool {
 	if len(value) != expectedLength {
 		return false
@@ -551,12 +527,8 @@ func (r *AppCodesSyncReconciler) updateSecretWithRetry(
 		if updatedSecret.Data == nil {
 			updatedSecret.Data = make(map[string][]byte)
 		}
-		if updatedSecret.Annotations == nil {
-			updatedSecret.Annotations = make(map[string]string)
-		}
 
 		updatedSecret.Data[appCodesFileName] = appCodesFile
-		removeObsoleteAppCodesAnnotations(updatedSecret.Annotations)
 
 		err := r.k8sClient.Update(ctx, updatedSecret)
 		if err == nil {
