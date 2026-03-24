@@ -1,47 +1,55 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class ContactPointsService(IContactPointRepository repository, TimeProvider timeProvider) : IContactPointsService
+public class ContactPointsService(IContactPointsRepository repository, TimeProvider timeProvider)
+    : IContactPointsService
 {
-    public Task<IReadOnlyList<ContactPointEntity>> GetContactPointsAsync(
+    public async Task<IReadOnlyList<ContactPoint>> GetContactPointsAsync(
         string org,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return repository.GetAllAsync(org, cancellationToken);
+        var entities = await repository.GetAllAsync(org, cancellationToken);
+        return entities.Select(MapToDomain).ToList();
     }
 
-    public Task<ContactPointEntity> AddContactPointAsync(
+    public async Task<ContactPoint> AddContactPointAsync(
         string org,
-        ContactPointEntity entity,
+        ContactPoint contactPoint,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var entity = MapToEntity(contactPoint);
         entity.Org = org;
         entity.CreatedAt = timeProvider.GetUtcNow();
-        return repository.AddAsync(entity, cancellationToken);
+        var created = await repository.AddAsync(entity, cancellationToken);
+        return MapToDomain(created);
     }
 
-    public Task<ContactPointEntity> UpdateContactPointAsync(
+    public async Task<ContactPoint> UpdateContactPointAsync(
         string org,
         Guid id,
-        ContactPointEntity entity,
+        ContactPoint contactPoint,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var entity = MapToEntity(contactPoint);
         entity.Org = org;
         entity.Id = id;
-        return repository.UpdateAsync(entity, cancellationToken);
+        var updated = await repository.UpdateAsync(entity, cancellationToken);
+        return MapToDomain(updated);
     }
 
     public Task DeleteContactPointAsync(string org, Guid id, CancellationToken cancellationToken = default)
@@ -49,4 +57,33 @@ public class ContactPointsService(IContactPointRepository repository, TimeProvid
         cancellationToken.ThrowIfCancellationRequested();
         return repository.DeleteAsync(org, id, cancellationToken);
     }
+
+    private static ContactPoint MapToDomain(ContactPointEntity entity) =>
+        new()
+        {
+            Id = entity.Id,
+            Org = entity.Org,
+            Name = entity.Name,
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt,
+            Methods = entity
+                .Methods.Select(m => new ContactMethod
+                {
+                    Id = m.Id,
+                    MethodType = m.MethodType,
+                    Value = m.Value,
+                })
+                .ToList(),
+        };
+
+    private static ContactPointEntity MapToEntity(ContactPoint contactPoint) =>
+        new()
+        {
+            Org = string.Empty,
+            Name = contactPoint.Name,
+            IsActive = contactPoint.IsActive,
+            Methods = contactPoint
+                .Methods.Select(m => new ContactMethodEntity { MethodType = m.MethodType, Value = m.Value })
+                .ToList(),
+        };
 }

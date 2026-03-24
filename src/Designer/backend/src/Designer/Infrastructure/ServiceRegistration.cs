@@ -74,7 +74,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
             services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
-            services.AddScoped<IContactPointRepository, ContactPointRepository>();
+            services.AddScoped<IContactPointsRepository, ContactPointRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
             services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();

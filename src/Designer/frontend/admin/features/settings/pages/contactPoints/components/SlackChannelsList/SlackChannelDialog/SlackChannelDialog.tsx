@@ -17,7 +17,7 @@ type SlackChannelDraft = {
 };
 
 type SlackChannelDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement>;
+  dialogRef: RefObject<HTMLDialogElement | null>;
   channel: SlackChannelDraft;
   onFieldChange: (field: keyof SlackChannelDraft, value: string | boolean) => void;
   onSave: () => void;

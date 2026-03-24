@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.ModelBinding.Constants;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,8 +24,8 @@ public class ContactPointsController(IContactPointsService service) : Controller
         CancellationToken cancellationToken
     )
     {
-        var entities = await service.GetContactPointsAsync(org, cancellationToken);
-        return Ok(entities.Select(MapToResponse).ToList());
+        var contactPoints = await service.GetContactPointsAsync(org, cancellationToken);
+        return Ok(contactPoints.Select(MapToResponse).ToList());
     }
 
     [HttpPost]
@@ -36,8 +36,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
         CancellationToken cancellationToken
     )
     {
-        var entity = MapToEntity(org, request);
-        var created = await service.AddContactPointAsync(org, entity, cancellationToken);
+        var created = await service.AddContactPointAsync(org, MapToDomain(request), cancellationToken);
         return CreatedAtAction(nameof(GetContactPoints), new { org }, MapToResponse(created));
     }
 
@@ -50,8 +49,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
         CancellationToken cancellationToken
     )
     {
-        var entity = MapToEntity(org, request);
-        var updated = await service.UpdateContactPointAsync(org, id, entity, cancellationToken);
+        var updated = await service.UpdateContactPointAsync(org, id, MapToDomain(request), cancellationToken);
         return Ok(MapToResponse(updated));
     }
 
@@ -63,24 +61,24 @@ public class ContactPointsController(IContactPointsService service) : Controller
         return NoContent();
     }
 
-    private static ContactPointEntity MapToEntity(string org, ContactPointRequest request) =>
+    private static ContactPoint MapToDomain(ContactPointRequest request) =>
         new()
         {
-            Org = org,
+            Org = string.Empty,
             Name = request.Name,
             IsActive = request.IsActive,
             Methods = request
-                .Methods.Select(m => new ContactMethodEntity { MethodType = m.MethodType, Value = m.Value })
+                .Methods.Select(m => new ContactMethod { MethodType = m.MethodType, Value = m.Value })
                 .ToList(),
         };
 
-    private static ContactPointResponse MapToResponse(ContactPointEntity entity) =>
+    private static ContactPointResponse MapToResponse(ContactPoint contactPoint) =>
         new()
         {
-            Id = entity.Id,
-            Name = entity.Name,
-            IsActive = entity.IsActive,
-            Methods = entity
+            Id = contactPoint.Id,
+            Name = contactPoint.Name,
+            IsActive = contactPoint.IsActive,
+            Methods = contactPoint
                 .Methods.Select(m => new ContactMethodResponse
                 {
                     Id = m.Id,

@@ -1,8 +1,7 @@
-import { renderHook } from '@testing-library/react';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithProviders } from '../../../testing/mocks';
 import { useAddContactPointMutation } from './useAddContactPointMutation';
 import type { ContactPointPayload } from 'app-shared/types/ContactPoint';
 
@@ -15,13 +14,7 @@ const payload: ContactPointPayload = {
 };
 
 const renderUseAddContactPointMutation = (queryClient = createQueryClientMock()) =>
-  renderHook(() => useAddContactPointMutation(testOrg), {
-    wrapper: ({ children }) => (
-      <ServicesContextProvider {...queriesMock} client={queryClient}>
-        {children}
-      </ServicesContextProvider>
-    ),
-  });
+  renderHookWithProviders(() => useAddContactPointMutation(testOrg), { queryClient });
 
 describe('useAddContactPointMutation', () => {
   it('calls addContactPoint with the correct arguments', async () => {

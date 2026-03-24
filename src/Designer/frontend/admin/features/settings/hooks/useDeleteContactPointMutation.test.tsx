@@ -1,21 +1,14 @@
-import { renderHook } from '@testing-library/react';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithProviders } from '../../../testing/mocks';
 import { useDeleteContactPointMutation } from './useDeleteContactPointMutation';
 
 const testOrg = 'ttd';
 const contactPointId = 'cp-1';
 
 const renderUseDeleteContactPointMutation = (queryClient = createQueryClientMock()) =>
-  renderHook(() => useDeleteContactPointMutation(testOrg), {
-    wrapper: ({ children }) => (
-      <ServicesContextProvider {...queriesMock} client={queryClient}>
-        {children}
-      </ServicesContextProvider>
-    ),
-  });
+  renderHookWithProviders(() => useDeleteContactPointMutation(testOrg), { queryClient });
 
 describe('useDeleteContactPointMutation', () => {
   it('calls deleteContactPoint with the correct arguments', async () => {

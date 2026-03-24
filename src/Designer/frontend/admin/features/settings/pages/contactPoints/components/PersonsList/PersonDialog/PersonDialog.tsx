@@ -18,7 +18,7 @@ type PersonDraft = {
 };
 
 type PersonDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement>;
+  dialogRef: RefObject<HTMLDialogElement | null>;
   person: PersonDraft;
   onFieldChange: (field: keyof PersonDraft, value: string | boolean) => void;
   onSave: () => void;

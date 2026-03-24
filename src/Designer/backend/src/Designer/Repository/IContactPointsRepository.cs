@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 
 namespace Altinn.Studio.Designer.Repository;
 
-public interface IContactPointRepository
+public interface IContactPointsRepository
 {
     Task<IReadOnlyList<ContactPointEntity>> GetAllAsync(string org, CancellationToken cancellationToken = default);
     Task<ContactPointEntity> AddAsync(ContactPointEntity entity, CancellationToken cancellationToken = default);

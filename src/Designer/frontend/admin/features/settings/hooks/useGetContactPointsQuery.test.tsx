@@ -1,19 +1,12 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { waitFor } from '@testing-library/react';
+import { renderHookWithProviders } from '../../../testing/mocks';
 import { useGetContactPointsQuery } from './useGetContactPointsQuery';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const testOrg = 'ttd';
 
 const renderUseGetContactPointsQuery = () =>
-  renderHook(() => useGetContactPointsQuery(testOrg), {
-    wrapper: ({ children }) => (
-      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        {children}
-      </ServicesContextProvider>
-    ),
-  });
+  renderHookWithProviders(() => useGetContactPointsQuery(testOrg));
 
 describe('useGetContactPointsQuery', () => {
   it('calls getContactPoints with the correct org', async () => {

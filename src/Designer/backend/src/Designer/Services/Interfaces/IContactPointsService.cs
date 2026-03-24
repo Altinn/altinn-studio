@@ -2,27 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Repository.Models.ContactPoint;
+using Altinn.Studio.Designer.Models.ContactPoints;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IContactPointsService
 {
-    Task<IReadOnlyList<ContactPointEntity>> GetContactPointsAsync(
+    Task<IReadOnlyList<ContactPoint>> GetContactPointsAsync(string org, CancellationToken cancellationToken = default);
+
+    Task<ContactPoint> AddContactPointAsync(
         string org,
+        ContactPoint contactPoint,
         CancellationToken cancellationToken = default
     );
 
-    Task<ContactPointEntity> AddContactPointAsync(
-        string org,
-        ContactPointEntity entity,
-        CancellationToken cancellationToken = default
-    );
-
-    Task<ContactPointEntity> UpdateContactPointAsync(
+    Task<ContactPoint> UpdateContactPointAsync(
         string org,
         Guid id,
-        ContactPointEntity entity,
+        ContactPoint contactPoint,
         CancellationToken cancellationToken = default
     );
 

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
-public class ContactPointRepository(DesignerdbContext dbContext) : IContactPointRepository
+public class ContactPointRepository(DesignerdbContext dbContext) : IContactPointsRepository
 {
     public async Task<IReadOnlyList<ContactPointEntity>> GetAllAsync(
         string org,
