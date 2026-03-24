@@ -919,14 +919,14 @@ public class GiteaClient(
 
     public async Task<List<Team>> GetOrgTeamsAsync(string org, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await httpClient.GetAsync($"orgs/{org}/teams", cancellationToken);
+        using HttpResponseMessage response = await httpClient.GetAsync($"orgs/{org}/teams", cancellationToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<List<Team>>(s_jsonOptions, cancellationToken);
     }
 
     public async Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await httpClient.PutAsync(
+        using HttpResponseMessage response = await httpClient.PutAsync(
             $"teams/{teamId}/members/{username}",
             null,
             cancellationToken
@@ -936,7 +936,7 @@ public class GiteaClient(
 
     public async Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await httpClient.DeleteAsync(
+        using HttpResponseMessage response = await httpClient.DeleteAsync(
             $"teams/{teamId}/members/{username}",
             cancellationToken
         );
