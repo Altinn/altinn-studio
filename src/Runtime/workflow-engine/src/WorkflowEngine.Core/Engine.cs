@@ -285,6 +285,60 @@ internal sealed class Engine(
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<CancelWorkflowResult> CancelWorkflow(
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = timeProvider.GetUtcNow();
+        var updated = await repository.RequestCancellation(workflowId, now, cancellationToken);
+
+        if (updated)
+        {
+            Metrics.WorkflowsCanceled.Add(1);
+            var canceledImmediately = tracker.TryCancel(workflowId);
+            return new CancelWorkflowResult.Requested(workflowId, now, canceledImmediately);
+        }
+
+        // Not updated — either not found, already canceling, or already terminal
+        var info = await repository.GetCancellationInfo(workflowId, cancellationToken);
+
+        if (info is null)
+            return new CancelWorkflowResult.NotFound();
+
+        if (info.CancellationRequestedAt is not null)
+            return new CancelWorkflowResult.AlreadyRequested(workflowId, info.CancellationRequestedAt.Value);
+
+        return new CancelWorkflowResult.TerminalState();
+    }
+
+    /// <inheritdoc/>
+    public async Task<ResumeWorkflowResult> ResumeWorkflow(
+        Guid workflowId,
+        bool cascade = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var now = timeProvider.GetUtcNow();
+        var resumedIds = await repository.ResumeWorkflow(workflowId, now, cascade, cancellationToken);
+
+        if (resumedIds.Count > 0)
+        {
+            Metrics.WorkflowsResumed.Add(resumedIds.Count);
+            workflowSignal.Signal();
+
+            var cascadeResumed = resumedIds.Count > 1 ? resumedIds.Skip(1).ToList() : (IReadOnlyList<Guid>)[];
+            return new ResumeWorkflowResult.Resumed(workflowId, now, cascadeResumed);
+        }
+
+        var status = await repository.GetWorkflowStatus(workflowId, cancellationToken);
+        if (status is null)
+            return new ResumeWorkflowResult.NotFound();
+
+        return new ResumeWorkflowResult.NotResumable(status.Value);
+    }
+
     /// <summary>
     /// Validates that all command types in the request are known to the registry
     /// and that command-specific validation passes (including typed deserialization).
@@ -412,59 +466,5 @@ internal sealed class Engine(
         }
 
         return new SizeLimitValidationResult.Valid();
-    }
-
-    /// <inheritdoc/>
-    public async Task<CancelWorkflowResult> CancelWorkflow(
-        Guid workflowId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var now = timeProvider.GetUtcNow();
-        var updated = await repository.RequestCancellation(workflowId, now, cancellationToken);
-
-        if (updated)
-        {
-            Metrics.WorkflowsCanceled.Add(1);
-            var canceledImmediately = tracker.TryCancel(workflowId);
-            return new CancelWorkflowResult.Requested(workflowId, now, canceledImmediately);
-        }
-
-        // Not updated — either not found, already canceling, or already terminal
-        var info = await repository.GetCancellationInfo(workflowId, cancellationToken);
-
-        if (info is null)
-            return new CancelWorkflowResult.NotFound();
-
-        if (info.CancellationRequestedAt is not null)
-            return new CancelWorkflowResult.AlreadyRequested(workflowId, info.CancellationRequestedAt.Value);
-
-        return new CancelWorkflowResult.TerminalState();
-    }
-
-    /// <inheritdoc/>
-    public async Task<ResumeWorkflowResult> ResumeWorkflow(
-        Guid workflowId,
-        bool cascade = false,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var now = timeProvider.GetUtcNow();
-        var resumedIds = await repository.ResumeWorkflow(workflowId, now, cascade, cancellationToken);
-
-        if (resumedIds.Count > 0)
-        {
-            Metrics.WorkflowsResumed.Add(resumedIds.Count);
-            workflowSignal.Signal();
-
-            var cascadeResumed = resumedIds.Count > 1 ? resumedIds.Skip(1).ToList() : (IReadOnlyList<Guid>)[];
-            return new ResumeWorkflowResult.Resumed(workflowId, now, cascadeResumed);
-        }
-
-        var status = await repository.GetWorkflowStatus(workflowId, cancellationToken);
-        if (status is null)
-            return new ResumeWorkflowResult.NotFound();
-
-        return new ResumeWorkflowResult.NotResumable(status.Value);
     }
 }

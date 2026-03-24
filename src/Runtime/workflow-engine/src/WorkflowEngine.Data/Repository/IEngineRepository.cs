@@ -178,7 +178,6 @@ internal interface IEngineRepository
     /// Returns the list of all resumed workflow IDs (primary + cascaded), or empty if
     /// the target workflow was not in a resumable state.
     /// </summary>
-    /// <param name="resumedAt">Timestamp to use for UpdatedAt on all resumed workflows and steps.</param>
     Task<IReadOnlyList<Guid>> ResumeWorkflow(
         Guid workflowId,
         DateTimeOffset resumedAt,
