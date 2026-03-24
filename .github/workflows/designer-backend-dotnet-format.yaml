@@ -8,6 +8,10 @@ on:
       - '.github/workflows/designer-backend-dotnet-format.yaml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   dotnet-format-check:
     name: Format check

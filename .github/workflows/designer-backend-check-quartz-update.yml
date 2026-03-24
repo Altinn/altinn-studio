@@ -8,6 +8,10 @@ on:
       - '.github/workflows/designer-backend-check-quartz-update.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   check-quartz-update:
     name: Check Quartz update
@@ -97,4 +101,3 @@ jobs:
           else
             echo "Tables file is up to date"
           fi
-
