@@ -35,113 +35,118 @@ async def handle(state: AgentState) -> AgentState:
     """
     log.info(f"💬 Assistant node: handling query for session {state.session_id}")
     
+    from langfuse import propagate_attributes
+
     langfuse = get_client()
-    with langfuse.start_as_current_observation(
-        name="assistant_query",
-        metadata={
-            "span_type": "CHAIN",
-            "session_id": state.session_id,
-            "query_length": len(state.user_goal),
-            "has_attachments": bool(state.attachments),
-            "attachment_count": len(state.attachments) if state.attachments else 0,
-        },
-        input={
-            "query": state.user_goal,
-            "repo_path": state.repo_path,
-            "attachments": [
-                {"name": att.name, "mime_type": att.mime_type}
-                for att in (state.attachments or [])
-            ]
-        }
-    ) as main_span:
-        
-        try:
-            # Step 1: Scan repository for context
-            log.info("📂 Scanning repository for context...")
-            repo_summary = await _scan_repository(state)
-            
-            # Step 2: Connect to MCP and get available tools
-            log.info("🔧 Connecting to MCP tools...")
-            tool_names = await _get_available_tools()
-            
-            # Step 3: Plan tool execution (LLM-based, always includes planning_tool)
-            log.info("🎯 Planning tool execution...")
-            tool_plan = await _select_relevant_tools(
-                state.user_goal,
-                tool_names,
-                repo_summary,
-                state.conversation_history  # Include conversation history for context
-            )
-            
-            # Step 4: Execute tool plan
-            tool_results = {}
-            if tool_plan:
-                log.info(f"📊 Executing {len(tool_plan)} tools according to plan...")
-                tool_results = await _execute_tools(tool_plan)
-            
-            # Step 5: Generate response
-            log.info("🤖 Generating response...")
-            response = await _generate_response(
-                state.user_goal,
-                repo_summary,
-                tool_results,
-                state.attachments,
-                state.conversation_history  # Include conversation history for context
-            )
-            
-            # Step 6: Extract all available sources from tool results
-            all_sources = _extract_sources(tool_results)
-            log.info(f"📚 Extracted {len(all_sources)} sources available: {[s.get('title') for s in all_sources]}")
-            
-            # Step 7: Parse which sources LLM actually cited and clean response
-            clean_response, cited_sources = _extract_cited_sources_from_response(response, all_sources)
-            log.info(f"✅ LLM cited {len(cited_sources)}/{len(all_sources)} sources: {[s.get('title') for s in cited_sources]}")
-            
-            # Set outputs on main span
-            main_span.update(output={
-                "response_length": len(clean_response),
-                "tools_used": list(tool_results.keys()),
-                "repository_summary": repo_summary,
-                "sources_count": len(cited_sources),
-                "cited_sources": [s.get('title') for s in cited_sources]
-            })
-            
-            # Store result in state
-            state.assistant_response = {
-                "response": clean_response,
-                "repository_summary": repo_summary,
-                "tools_used": list(tool_results.keys()),
-                "sources": cited_sources,  # Only sources that were actually cited
-                "mode": "chat"
+    with propagate_attributes(
+        user_id=state.org,
+        session_id=state.session_id,
+    ):
+        with langfuse.start_as_current_observation(
+            name="assistant_query",
+            metadata={
+                "span_type": "CHAIN",
+                "session_id": state.session_id,
+                "query_length": len(state.user_goal),
+                "has_attachments": bool(state.attachments),
+                "attachment_count": len(state.attachments) if state.attachments else 0,
+            },
+            input={
+                "query": state.user_goal,
+                "repo_path": state.repo_path,
+                "attachments": [
+                    {"name": att.name, "mime_type": att.mime_type}
+                    for att in (state.attachments or [])
+                ]
             }
-            
-            # Add this Q&A to conversation history for future context
-            from agents.graph.state import ConversationMessage
-            state.conversation_history.append(
-                ConversationMessage(role="user", content=state.user_goal)
-            )
-            state.conversation_history.append(
-                ConversationMessage(
-                    role="assistant",
-                    content=clean_response,
-                    sources=cited_sources
+        ) as main_span:
+            try:
+                # Step 1: Scan repository for context
+                log.info("📂 Scanning repository for context...")
+                repo_summary = await _scan_repository(state)
+
+                # Step 2: Connect to MCP and get available tools
+                log.info("🔧 Connecting to MCP tools...")
+                tool_names = await _get_available_tools()
+
+                # Step 3: Plan tool execution (LLM-based, always includes planning_tool)
+                log.info("🎯 Planning tool execution...")
+                tool_plan = await _select_relevant_tools(
+                    state.user_goal,
+                    tool_names,
+                    repo_summary,
+                    state.conversation_history  # Include conversation history for context
                 )
-            )
-            log.info(f"✅ Assistant query completed for session {state.session_id} (history: {len(state.conversation_history)} messages)")
-            
-            # Send event with response
-            sink.send(AgentEvent(
-                type="assistant_message",
-                session_id=state.session_id,
-                data=state.assistant_response
-            ))
-            
-            return state
-            
-        except Exception as e:
-            log.error(f"Assistant query failed: {e}")
-            main_span.update(metadata={"error": True, "error_message": str(e)})
-            raise
+
+                # Step 4: Execute tool plan
+                tool_results = {}
+                if tool_plan:
+                    log.info(f"📊 Executing {len(tool_plan)} tools according to plan...")
+                    tool_results = await _execute_tools(tool_plan)
+
+                # Step 5: Generate response
+                log.info("🤖 Generating response...")
+                response = await _generate_response(
+                    state.user_goal,
+                    repo_summary,
+                    tool_results,
+                    state.attachments,
+                    state.conversation_history  # Include conversation history for context
+                )
+
+                # Step 6: Extract all available sources from tool results
+                all_sources = _extract_sources(tool_results)
+                log.info(f"📚 Extracted {len(all_sources)} sources available: {[s.get('title') for s in all_sources]}")
+
+                # Step 7: Parse which sources LLM actually cited and clean response
+                clean_response, cited_sources = _extract_cited_sources_from_response(response, all_sources)
+                log.info(f"✅ LLM cited {len(cited_sources)}/{len(all_sources)} sources: {[s.get('title') for s in cited_sources]}")
+
+                # Set outputs on main span
+                main_span.update(output={
+                    "response_length": len(clean_response),
+                    "tools_used": list(tool_results.keys()),
+                    "repository_summary": repo_summary,
+                    "sources_count": len(cited_sources),
+                    "cited_sources": [s.get('title') for s in cited_sources]
+                })
+
+                # Store result in state
+                state.assistant_response = {
+                    "response": clean_response,
+                    "repository_summary": repo_summary,
+                    "tools_used": list(tool_results.keys()),
+                    "sources": cited_sources,  # Only sources that were actually cited
+                    "mode": "chat"
+                }
+
+                # Add this Q&A to conversation history for future context
+                from agents.graph.state import ConversationMessage
+                state.conversation_history.append(
+                    ConversationMessage(role="user", content=state.user_goal)
+                )
+                state.conversation_history.append(
+                    ConversationMessage(
+                        role="assistant",
+                        content=clean_response,
+                        sources=cited_sources
+                    )
+                )
+                log.info(f"✅ Assistant query completed for session {state.session_id} (history: {len(state.conversation_history)} messages)")
+
+                # Send event with response
+                sink.send(AgentEvent(
+                    type="assistant_message",
+                    session_id=state.session_id,
+                    data=state.assistant_response
+                ))
+
+                return state
+
+            except Exception as e:
+                log.error(f"Assistant query failed: {e}")
+                main_span.update(metadata={"error": True, "error_message": str(e)})
+                raise
 
 
 async def _scan_repository(state: AgentState) -> Dict[str, Any]:

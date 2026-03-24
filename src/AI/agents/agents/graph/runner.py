@@ -81,7 +81,7 @@ def build_graph():
 
 graph = build_graph()
 
-from langfuse import get_client
+from langfuse import get_client, propagate_attributes
 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled
 
 async def run_once(state: AgentState, event_sink: EventSink = None):
@@ -95,30 +95,34 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 
     # Create single root trace for entire workflow
     if langfuse:
-        with langfuse.start_as_current_observation(
-            name="altinity_agent_workflow",
-            metadata={"span_type": "AGENT"},
-            input={
-                "user_goal": str(state.user_goal),
-                "repo_path": str(state.repo_path),
-                "session_id": str(state.session_id)
-            }
-        ) as root_span:
-            try:
-                # Rebuild graph to ensure latest changes are used
-                current_graph = build_graph()
-                # Run the graph workflow asynchronously - all nested operations will be under this trace
-                final_state = await current_graph.ainvoke(state)
-                
-                root_span.update(output={
-                    "success": bool(final_state.get("tests_passed", False)),
-                    "changed_files": len(final_state.get("changed_files", [])),
-                    "next_action": str(final_state.get("next_action", ""))
-                })
-                    
-            except Exception as e:
-                root_span.update(metadata={"error": str(e)})
-                raise
+        with propagate_attributes(
+            user_id=state.org,
+            session_id=state.session_id,
+        ):
+            with langfuse.start_as_current_observation(
+                name="altinity_agent_workflow",
+                metadata={"span_type": "AGENT"},
+                input={
+                    "user_goal": str(state.user_goal),
+                    "repo_path": str(state.repo_path),
+                    "session_id": str(state.session_id)
+                }
+            ) as root_span:
+                try:
+                    # Rebuild graph to ensure latest changes are used
+                    current_graph = build_graph()
+                    # Run the graph workflow asynchronously - all nested operations will be under this trace
+                    final_state = await current_graph.ainvoke(state)
+
+                    root_span.update(output={
+                        "success": bool(final_state.get("tests_passed", False)),
+                        "changed_files": len(final_state.get("changed_files", [])),
+                        "next_action": str(final_state.get("next_action", ""))
+                    })
+
+                except Exception as e:
+                    root_span.update(metadata={"error": str(e)})
+                    raise
     else:
         # Run without tracing if Langfuse is disabled
         current_graph = build_graph()

@@ -25,13 +25,15 @@ class StartReq(BaseModel):
     repo_url: str  # Git repository URL to clone
     branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
     allow_app_changes: bool = True  # If False, run in chat-only mode (no modifications)
+    org: Optional[str] = None  # Service owner organization (e.g. 'ttd', 'skd')
     attachments: List[AttachmentUpload] = Field(default_factory=list)
 
 @router.post("/api/agent/start")
 async def start_agent(
     req: StartReq,
     designer_api_key: str = Depends(get_designer_api_key),
-    x_session_id: str = Header(..., alias="X-Session-Id")
+    x_session_id: str = Header(..., alias="X-Session-Id"),
+    x_developer: Optional[str] = Header(None, alias="X-Developer"),
 ):
     """Start an agent workflow for a single atomic change"""
     try:
@@ -95,6 +97,8 @@ async def start_agent(
                         session_id=session_id,
                         user_goal=req.goal,
                         repo_path=str(repo_path),
+                        developer=x_developer,
+                        org=req.org,
                         designer_api_key=designer_api_key,
                         attachments=saved_attachments
                     )
@@ -165,6 +169,8 @@ async def start_agent(
                 session_id=session_id,
                 user_goal=req.goal,
                 repo_path=str(repo_path),  # Use cloned repo path
+                developer=x_developer,
+                org=req.org,
                 designer_api_key=designer_api_key,
                 attachments=saved_attachments
             )

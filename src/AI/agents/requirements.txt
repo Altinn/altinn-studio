@@ -26,4 +26,4 @@ fastmcp>=2.0.0
 mcp>=1.23.0
 
 # Observability
-langfuse>=3.0.0
+langfuse>=4.0.0
