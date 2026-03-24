@@ -34,7 +34,7 @@ describe('CookieStorage', () => {
     });
 
     test('getItem should return object when cookie was set with object', () => {
-      const testObject = { name: 'Test', age: 30, active: true };
+      const testObject = { name: 'Alice', age: 30, active: true };
       CookieStorage.setItem('objectKey', testObject);
       const result = CookieStorage.getItem<typeof testObject>('objectKey');
       expect(result).toEqual(testObject);
@@ -50,7 +50,7 @@ describe('CookieStorage', () => {
     test('getItem should return complex nested object when cookie was set with nested structure', () => {
       const complexObject = {
         user: {
-          name: 'Test 2',
+          name: 'Bob',
           preferences: {
             theme: 'dark',
             notifications: true,

@@ -257,7 +257,6 @@ export const queriesMock: ServicesContextProps = {
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
   fetchBelongsToGiteaOrg: jest
@@ -266,6 +265,9 @@ export const queriesMock: ServicesContextProps = {
 
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
+
+  // Mutations - Org settings
+  getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
