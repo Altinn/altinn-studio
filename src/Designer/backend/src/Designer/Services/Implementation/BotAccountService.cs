@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.BotAccount;
 using Altinn.Studio.Designer.Models.UserAccount;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -23,9 +23,6 @@ public class BotAccountService(
     TimeProvider timeProvider
 ) : IBotAccountService
 {
-    private const int MaxGiteaUsernameLength = 40;
-    private const int RandomSuffixLength = 4;
-
     public async Task<BotAccount> CreateAsync(
         string org,
         string name,
@@ -34,7 +31,7 @@ public class BotAccountService(
         CancellationToken cancellationToken = default
     )
     {
-        string username = GenerateBotUsername(org, name);
+        string username = GiteaUsernameGenerator.GenerateBotUsername(org, name);
 
         await userProvisioningService.EnsureUserExistsAsync(username, cancellationToken: cancellationToken);
 
@@ -213,42 +210,6 @@ public class BotAccountService(
             .UserAccounts.AsNoTracking()
             .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
         return account?.Id;
-    }
-
-    internal static string GenerateBotUsername(string org, string name)
-    {
-        string sanitizedOrg = SanitizeName(org);
-        string sanitizedName = SanitizeName(name);
-        string suffix = Guid.NewGuid().ToString("N")[..RandomSuffixLength];
-
-        string prefix = string.IsNullOrEmpty(sanitizedName)
-            ? $"bot_{sanitizedOrg}"
-            : $"bot_{sanitizedOrg}_{sanitizedName}";
-
-        int maxPrefixLength = MaxGiteaUsernameLength - 1 - RandomSuffixLength;
-        if (prefix.Length > maxPrefixLength)
-        {
-            prefix = prefix[..maxPrefixLength].TrimEnd('_');
-        }
-
-        return $"{prefix}_{suffix}";
-    }
-
-    private static string SanitizeName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return string.Empty;
-        }
-
-        string sanitized = name.Trim().ToLowerInvariant().Replace("æ", "ae").Replace("ø", "o").Replace("å", "a");
-
-        sanitized = Regex.Replace(sanitized, @"\s+", "_");
-        sanitized = Regex.Replace(sanitized, "[^a-z0-9_]", "");
-        sanitized = Regex.Replace(sanitized, "_+", "_");
-        sanitized = sanitized.Trim('_');
-
-        return sanitized;
     }
 
     private static BotAccount MapToDomain(UserAccountDbModel model, string? createdByUsername) =>
