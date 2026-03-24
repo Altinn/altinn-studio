@@ -67,6 +67,10 @@ const GROUPS = [
     roots: [
       "src/Designer/frontend/resourceadm",
     ],
+    extraPaths: [
+      ".github/workflows/playwright-resourceadm.yml",
+      ".github/workflows/run-playwright-resourceadm-on-pr.yml",
+    ],
   },
   {
     title: "Squad Kjøring",

@@ -32,6 +32,8 @@ src/Designer/frontend/**/package.json                           @altinn/team-alt
 src/Designer/frontend/**/yarn.lock                              @altinn/team-altinn-studio-utforming
 
 # Team Access Info
+.github/workflows/playwright-resourceadm.yml                    @altinn/team-access-info
+.github/workflows/run-playwright-resourceadm-on-pr.yml          @altinn/team-access-info
 src/Designer/frontend/resourceadm/**/package.json               @altinn/team-access-info
 
 # Squad Kjøring
