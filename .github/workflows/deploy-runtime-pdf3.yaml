@@ -100,27 +100,6 @@ jobs:
           wait $PROXY_PID
           wait $WORKER_PID
 
-      - name: scan image - proxy
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
-        with:
-          image-ref: '${{ steps.vars.outputs.ghcr-image-proxy-repo }}'
-          format: 'table'
-          exit-code: '0'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
-
-      - name: scan image - worker
-        if: success() || failure()
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
-        with:
-          image-ref: '${{ steps.vars.outputs.ghcr-image-worker-repo }}'
-          format: 'table'
-          exit-code: '0'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
-
       - name: push images
         run: |
           set -e

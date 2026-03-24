@@ -6,15 +6,27 @@ import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { WithTranslationProps } from 'react-i18next';
 import { configure } from '@testing-library/dom';
 import { TextEncoder, TextDecoder } from 'util';
+import { createElement, type ComponentType } from 'react';
 import { webcrypto } from 'crypto';
 
 failOnConsole({
   shouldFailOnWarn: true,
   silenceMessage(message) {
-    return /React Router Future Flag Warning/.test(message); // TODO: remove when react router has been updated to v7
+    if (/React Router Future Flag Warning/.test(message)) {
+      // TODO: remove when react router has been updated to v7
+      return true;
+    }
+    if (
+      // TODO: remove when we no longer are using forwardRef from react (it was deprecated in React 19)
+      'Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release.' ===
+      message
+    ) {
+      return true;
+    }
+
+    return false;
   },
 });
 
@@ -78,6 +90,9 @@ jest.mock('i18next', () => ({
   t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
 }));
 
+type ComponentWithTranslationProps = {
+  t: (key: string, variables?: KeyValuePairs<string>) => string;
+};
 jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }) => textMock(i18nKey),
   useTranslation: () => ({
@@ -89,14 +104,13 @@ jest.mock('react-i18next', () => ({
   }),
   withTranslation:
     () =>
-    (
-      Component: React.ComponentType,
-    ): React.ComponentType<React.ComponentProps<any> & WithTranslationProps> => {
-      Component.defaultProps = {
-        ...Component.defaultProps,
-        t: (key: string, variables?) => textMock(key, variables),
-      };
-      return Component;
+    <P extends object>(Component: ComponentType<P & ComponentWithTranslationProps>) => {
+      const WithTranslationMock = (props: P) =>
+        createElement(Component, {
+          ...props,
+          t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+        });
+      return WithTranslationMock;
     },
 }));
 

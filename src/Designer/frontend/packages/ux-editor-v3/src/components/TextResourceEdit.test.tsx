@@ -148,7 +148,7 @@ describe('TextResourceEdit', () => {
 const render = async (
   resources: ITextResources = {},
   editId?: string,
-  previewIframeRef: RefObject<HTMLIFrameElement> = appContextMock.previewIframeRef,
+  previewIframeRef: RefObject<HTMLIFrameElement | null> = appContextMock.previewIframeRef,
 ) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,

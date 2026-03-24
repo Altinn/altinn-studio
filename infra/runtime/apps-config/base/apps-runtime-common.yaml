@@ -11,7 +11,8 @@ data:
         "RepositoryLocation": "/AltinnService/"
       },
       "PlatformSettings": {
-        "ApiPdf2Endpoint": "http://pdf-generator.pdf.svc.cluster.local/pdf"
+        "ApiPdf2Endpoint": "http://pdf-generator.pdf.svc.cluster.local/pdf",
+        "ApiWorkflowEngineEndpoint": "http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local/api/v1/workflows/"
       },
       "GeneralSettings": {
         "ExternalAppBaseUrl": "https://{org}.apps.{hostName}/{org}/{app}/"

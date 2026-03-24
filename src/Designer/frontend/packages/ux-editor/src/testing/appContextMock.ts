@@ -2,7 +2,7 @@ import type { AppContextProps } from '../AppContext';
 import type { RefObject } from 'react';
 import { layout1NameMock } from './layoutMock';
 
-const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
+const previewIframeRefMock: RefObject<HTMLIFrameElement | null> = {
   current: null,
 };
 

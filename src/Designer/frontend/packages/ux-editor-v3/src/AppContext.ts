@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 import { createContext } from 'react';
 
 export interface AppContextProps {
-  previewIframeRef: RefObject<HTMLIFrameElement>;
+  previewIframeRef: RefObject<HTMLIFrameElement | null>;
   selectedLayoutSet: string;
   setSelectedLayoutSet: (layoutSet: string) => void;
   removeSelectedLayoutSet: () => void;

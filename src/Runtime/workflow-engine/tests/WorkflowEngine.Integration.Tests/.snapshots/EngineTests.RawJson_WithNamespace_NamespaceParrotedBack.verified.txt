@@ -1,0 +1,9 @@
+﻿{
+  Workflows: [
+    {
+      Ref: wf-with-ns,
+      DatabaseId: Guid_1,
+      Namespace: custom:namespace
+    }
+  ]
+}

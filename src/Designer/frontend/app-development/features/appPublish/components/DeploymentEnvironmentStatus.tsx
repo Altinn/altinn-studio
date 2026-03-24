@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type JSX } from 'react';
 import classes from './DeploymentEnvironmentStatus.module.css';
 import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';

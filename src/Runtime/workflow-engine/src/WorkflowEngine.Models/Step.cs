@@ -1,0 +1,26 @@
+using WorkflowEngine.Resilience.Models;
+
+// CA1716: Identifiers should not match keywords (https://github.com/dotnet/roslyn-analyzers/issues/1858)
+#pragma warning disable CA1716
+
+namespace WorkflowEngine.Models;
+
+public sealed record Step : PersistentItem
+{
+    public required int ProcessingOrder { get; init; }
+    public required CommandDefinition Command { get; init; }
+
+    public RetryStrategy? RetryStrategy { get; init; }
+    public int RequeueCount { get; set; }
+    public List<ErrorEntry> ErrorHistory { get; set; } = [];
+    public string? StateOut { get; set; }
+
+    internal DateTimeOffset? ExecutionStartedAt { get; set; }
+    internal bool HasPendingChanges { get; set; }
+
+    public override string ToString() => $"[{nameof(Step)}.{Command.Type}] {OperationId} ({Status})";
+
+    public override int GetHashCode() => DatabaseId.GetHashCode();
+
+    public bool Equals(Step? other) => other?.DatabaseId == DatabaseId;
+}

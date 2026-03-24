@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -44,6 +45,7 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
         return Created(string.Empty, new CreateApiKeyResponse(apiKey.Id, rawKey, apiKey.Name, apiKey.ExpiresAt));
     }
 
+    [AllowApiKey]
     [HttpGet]
     public async Task<ActionResult<List<ApiKeyResponse>>> List(CancellationToken cancellationToken)
     {
