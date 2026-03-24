@@ -185,7 +185,11 @@ public class BotAccountService(
                 .UserAccounts.AsNoTracking()
                 .Include(u => u.CreatedByUserAccount)
                 .FirstOrDefaultAsync(
-                    u => u.Id == botAccountId && u.OrganizationName == org && u.AccountType == AccountType.Bot,
+                    u =>
+                        u.Id == botAccountId
+                        && u.OrganizationName == org
+                        && u.AccountType == AccountType.Bot
+                        && !u.Deactivated,
                     cancellationToken
                 )
             ?? throw new InvalidOperationException($"Bot account '{botAccountId}' not found in org '{org}'.");
