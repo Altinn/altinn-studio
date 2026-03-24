@@ -29,6 +29,7 @@ public class OrgOwnerHandler(IHttpContextAccessor httpContextAccessor, IGiteaCli
         if (string.IsNullOrWhiteSpace(org))
         {
             httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Fail();
             return;
         }
 
