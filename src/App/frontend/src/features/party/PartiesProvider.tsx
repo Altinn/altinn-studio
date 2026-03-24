@@ -12,6 +12,7 @@ import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
+import { GlobalData } from 'src/GlobalData';
 import type { IInstance, IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -109,7 +110,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   }
 
   const partyFromMutation = dataFromMutation === 'Party successfully updated' ? sentToMutation : undefined;
-  const selectedParty = partyFromMutation ?? window.altinnAppGlobalData.selectedParty;
+  const selectedParty = partyFromMutation ?? GlobalData.getSelectedParty();
   const selectedIsValid = selectedParty && validParties?.some((party) => party.partyId === selectedParty.partyId);
 
   return (
@@ -124,6 +125,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
             setSentToMutation(party);
             const result = await mutateAsync(party);
             if (result === 'Party successfully updated') {
+              GlobalData.setSelectedParty(party);
               return party;
             }
             return undefined;

@@ -51,8 +51,6 @@ describe('PageHeaderContext', () => {
   });
 
   it('should throw an error when usePageHeaderContext is used outside of a PageHeaderContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       usePageHeaderContext();
       return <div data-testid='context'>Test</div>;
@@ -61,7 +59,6 @@ describe('PageHeaderContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'usePageHeaderContext must be used within a PageHeaderContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should include user settings link in profile menu when studioOidc feature flag is enabled', () => {

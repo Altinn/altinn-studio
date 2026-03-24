@@ -2,6 +2,8 @@ import classes from './BPMNViewer.module.css';
 import { useBpmnViewer } from '../../../hooks/useBpmnViewer';
 import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
 
+import type { JSX } from 'react';
+
 /**
  * @component
  *  Displays the canvas area of the ProcessEditor

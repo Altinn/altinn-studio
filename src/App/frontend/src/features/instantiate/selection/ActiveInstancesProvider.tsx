@@ -8,21 +8,15 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { activeInstancesQueryKey } from 'src/queries/queries';
 
 const useActiveInstancesQuery = () => {
   const { fetchActiveInstances } = useAppQueries();
   const selectedParty = useSelectedParty();
 
   const utils = useQuery({
-    queryKey: ['getActiveInstances', selectedParty?.partyId],
-    queryFn: async () => {
-      const simpleInstances = await fetchActiveInstances(selectedParty?.partyId ?? -1);
-
-      // Sort array by last changed date
-      simpleInstances.sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());
-
-      return simpleInstances;
-    },
+    queryKey: activeInstancesQueryKey(selectedParty?.partyId ?? -1),
+    queryFn: () => fetchActiveInstances(selectedParty?.partyId ?? -1),
   });
 
   useEffect(() => {

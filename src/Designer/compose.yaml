@@ -94,10 +94,18 @@ services:
     container_name: studio-designer
     image: designer:${COMMIT:-latest}
     restart: always
+    post_start:
+      - command: >
+          sh -c '
+          STUDIO_OIDC_FLAG=$$([ "$$FeatureManagement__StudioOidc" = "true" ] && echo true || echo false) &&
+          echo "{\"accountLinkUrl\": \"$$StudioOidcLoginSettings__AccountLinkUrl\", \"featureFlags\": {\"studioOidc\": $$STUDIO_OIDC_FLAG}}" > /app/wwwroot/designer/config/env.json
+          '
     volumes:
       - 'designer-git-data:/AltinnCore/Repos'
       - 'keys:/mnt/keys'
     environment:
+      - FeatureManagement__StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
+      - StudioOidcLoginSettings__AccountLinkUrl=http://studio.localhost/repos/user/oauth2/fake-ansattporten
       - OTEL_SERVICE_NAME=studio-designer
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000

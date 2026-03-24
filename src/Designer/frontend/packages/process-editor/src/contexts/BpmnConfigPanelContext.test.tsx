@@ -37,8 +37,6 @@ describe('BpmnConfigPanelContext', () => {
   });
 
   it('should throw an error when useBpmnConfigPanelFormContext is used outside of a BpmnConfigPanelFormContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useBpmnConfigPanelFormContext();
       return <div data-testid='context'>Test</div>;
@@ -47,7 +45,6 @@ describe('BpmnConfigPanelContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useBpmnConfigPanelFormContext must be used within a BpmnConfigPanelContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should provide method to reset meta data', async () => {

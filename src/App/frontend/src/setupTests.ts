@@ -23,6 +23,7 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { GlobalData } from 'src/GlobalData';
 import type { doProcessNext, doUpdateAttachmentTags, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import type { AppQueries } from 'src/queries/types';
 import type { IProcess } from 'src/types/shared';
@@ -73,6 +74,7 @@ window.app = 'test';
 // Set up altinnAppGlobalData with default mocks before each test to prevent pollution between tests
 
 beforeEach(() => {
+  GlobalData.setSelectedParty(undefined);
   window.altinnAppGlobalData = {
     applicationMetadata: getApplicationMetadataMock(),
     frontendSettings: getApplicationSettingsMock(),

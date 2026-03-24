@@ -34,7 +34,7 @@ export function FileUploaderWithValidation({
 
 const isFileValid = (
   file: File,
-  fileRef: RefObject<HTMLInputElement>,
+  fileRef: RefObject<HTMLInputElement | null>,
   customFileValidation: FileValidation,
 ): boolean => {
   if (!customFileValidation) return true;

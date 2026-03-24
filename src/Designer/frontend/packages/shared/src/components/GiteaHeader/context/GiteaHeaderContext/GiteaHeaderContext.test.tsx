@@ -21,8 +21,6 @@ describe('GiteaHeaderContext', () => {
   });
 
   it('should throw an error when useGiteaHeaderContext is used outside of a GiteaHeaderContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useGiteaHeaderContext();
       return <div data-testid='context'>Test</div>;
@@ -31,6 +29,5 @@ describe('GiteaHeaderContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useGiteaHeaderContext must be used within a GiteaHeaderContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 });
