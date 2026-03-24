@@ -23,6 +23,8 @@ export const instanceQueryKeys = {
 export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid }: InstanceQueryParams) {
   return queryOptions({
     queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     queryFn: async ({ client }) => {
       try {
         const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
