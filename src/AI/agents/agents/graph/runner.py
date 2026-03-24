@@ -119,9 +119,10 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
                 try:
                     from agents.services.evaluation.intent_judge import run_intent_judge
+                    step_plan = final_state.get("step_plan") or []
                     await run_intent_judge(
                         user_goal=state.user_goal,
-                        general_plan=final_state.get("general_plan"),
+                        agent_plan=step_plan[0] if step_plan else None,
                         trace_id=root_span.trace_id,
                     )
                 except Exception as e:

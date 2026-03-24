@@ -13,16 +13,6 @@ config = get_config()
 _JUDGE_PROMPT_NAME = "intent_match_judge"
 
 
-def _format_plan(general_plan: Optional[dict]) -> str:
-    """Stringify general_plan for inclusion in the judge prompt."""
-    if not general_plan:
-        return "No plan available."
-    try:
-        return json.dumps(general_plan, indent=2, ensure_ascii=False)
-    except Exception:
-        return str(general_plan)
-
-
 def _parse_judge_response(response: str) -> tuple[bool, str]:
     """Extract (passed, reasoning) from the judge's JSON response."""
     try:
@@ -39,17 +29,21 @@ def _parse_judge_response(response: str) -> tuple[bool, str]:
 
 async def run_intent_judge(
     user_goal: str,
-    general_plan: Optional[dict],
+    agent_plan: Optional[str],
     trace_id: str,
 ) -> None:
     """Evaluate intent_match and write a boolean score to Langfuse.
 
-    Compares the user's original goal against the agent's general_plan
-    (its interpretation of what to build). Scores 1 if the plan correctly
-    captures the intent, 0 otherwise.
+    Compares the user's original goal against the agent's step_plan
+    (its high-level description of what it will do). Scores 1 if the plan
+    correctly captures the intent, 0 otherwise.
     """
     from agents.prompts.loader import get_prompt_content
     from agents.services.llm import LLMClient
+
+    if not agent_plan:
+        log.warning("intent_match: no agent_plan available — skipping evaluation")
+        return
 
     try:
         system_prompt = get_prompt_content(_JUDGE_PROMPT_NAME)
@@ -61,7 +55,7 @@ async def run_intent_judge(
         "## User's original goal\n"
         f"{user_goal}\n\n"
         "## Agent's plan (its interpretation of the goal)\n"
-        f"{_format_plan(general_plan)}\n\n"
+        f"{agent_plan}\n\n"
         "Evaluate whether the agent's plan correctly captures the user's intent. "
         "Respond with JSON only."
     )
