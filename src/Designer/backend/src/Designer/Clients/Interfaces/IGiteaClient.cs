@@ -222,4 +222,28 @@ public interface IGiteaClient
         string branchName = null,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Returns a list of teams for the given organization.
+    /// </summary>
+    /// <param name="org">The organization name.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A list of teams in the organization.</returns>
+    Task<List<Team>> GetOrgTeamsAsync(string org, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a user as a member of a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="username">The username to add.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a user from a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="username">The username to remove.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
 }

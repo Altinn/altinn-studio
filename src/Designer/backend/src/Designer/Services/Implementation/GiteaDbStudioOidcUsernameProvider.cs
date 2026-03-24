@@ -1,7 +1,7 @@
 using System;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -25,9 +25,6 @@ public class GiteaDbStudioOidcUsernameProvider(
         LIMIT 1
         """;
 
-    private const int MaxGiteaUsernameLength = 40;
-    private const int RandomSuffixLength = 4;
-
     public async Task<string> ResolveUsernameAsync(string sub, PidHash pidHash, string? givenName, string? familyName)
     {
         string pidHashValue = pidHash.Value;
@@ -37,6 +34,11 @@ public class GiteaDbStudioOidcUsernameProvider(
 
         if (mapping != null)
         {
+            if (mapping.Deactivated)
+            {
+                throw new UnauthorizedAccessException($"User account '{mapping.Username}' has been deactivated.");
+            }
+
             return mapping.Username;
         }
 
@@ -49,7 +51,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         }
 
         // Step 3: Generate new username
-        string generatedUsername = GenerateUsername(givenName, familyName);
+        string generatedUsername = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
         await StoreMapping(pidHash, generatedUsername);
         return generatedUsername;
     }
@@ -77,52 +79,5 @@ public class GiteaDbStudioOidcUsernameProvider(
             }
         );
         await designerDb.SaveChangesAsync();
-    }
-
-    internal static string GenerateUsername(string? givenName, string? familyName)
-    {
-        string prefix = BuildNamePrefix(givenName, familyName);
-        string suffix = Guid.NewGuid().ToString("N")[..RandomSuffixLength];
-        return $"{prefix}_{suffix}";
-    }
-
-    private static string BuildNamePrefix(string? givenName, string? familyName)
-    {
-        string sanitizedGiven = SanitizeName(givenName);
-        string sanitizedFamily = SanitizeName(familyName);
-
-        string combined = (sanitizedGiven, sanitizedFamily) switch
-        {
-            ("", "") => "dev",
-            ("", _) => sanitizedFamily,
-            (_, "") => sanitizedGiven,
-            _ => $"{sanitizedGiven}_{sanitizedFamily}",
-        };
-
-        // Reserve space for "_" separator and random suffix
-        int maxPrefixLength = MaxGiteaUsernameLength - 1 - RandomSuffixLength;
-        if (combined.Length > maxPrefixLength)
-        {
-            combined = combined[..maxPrefixLength].TrimEnd('_');
-        }
-
-        return combined;
-    }
-
-    private static string SanitizeName(string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return "";
-        }
-
-        string sanitized = name.Trim().ToLowerInvariant().Replace("æ", "ae").Replace("ø", "o").Replace("å", "a");
-
-        sanitized = Regex.Replace(sanitized, @"\s+", "_");
-        sanitized = Regex.Replace(sanitized, "[^a-z_]", "");
-        sanitized = Regex.Replace(sanitized, "_+", "_");
-        sanitized = sanitized.Trim('_');
-
-        return sanitized;
     }
 }

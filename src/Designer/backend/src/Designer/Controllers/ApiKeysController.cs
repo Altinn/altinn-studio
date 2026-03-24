@@ -39,7 +39,7 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
             request.Name,
             ApiKeyType.User,
             request.ExpiresAt,
-            cancellationToken
+            cancellationToken: cancellationToken
         );
 
         return Created(string.Empty, new CreateApiKeyResponse(apiKey.Id, rawKey, apiKey.Name, apiKey.ExpiresAt));

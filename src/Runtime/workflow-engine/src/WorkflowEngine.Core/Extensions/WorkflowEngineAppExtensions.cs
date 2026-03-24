@@ -24,21 +24,14 @@ public static class WorkflowEngineAppExtensions
 
             // Middleware
             app.UseExceptionHandler();
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseHttpsRedirection();
-            }
 
             // Endpoints
             app.MapHealthEndpoints();
             app.MapEngineEndpoints();
 
-            // Dashboard (dev and Docker only)
-            if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
-            {
-                app.MapDashboardUI();
-                app.MapDashboardEndpoints();
-            }
+            // Dashboard
+            app.MapDashboardUI();
+            app.MapDashboardEndpoints();
 
             // Database lifecycle
             await app.ResetDatabaseConnectionsInDev();

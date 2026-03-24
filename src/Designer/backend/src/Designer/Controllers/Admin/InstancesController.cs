@@ -14,11 +14,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
 
-namespace Altinn.Studio.Designer.Controllers;
+namespace Altinn.Studio.Designer.Controllers.Admin;
 
 [ApiController]
 [Authorize]
-[Route("designer/api/admin/[controller]")]
+[Route("designer/api/v1/admin/[controller]/{org}/{env}")]
 public class InstancesController : ControllerBase
 {
     private readonly ILogger<InstancesController> _logger;
@@ -30,7 +30,7 @@ public class InstancesController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{org}/{env}/{app}")]
+    [HttpGet("{app}")]
     [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
     public async Task<ActionResult<InstancesResponse>> GetInstances(
         string org,
@@ -89,7 +89,7 @@ public class InstancesController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/{instanceId}")]
+    [HttpGet("{app}/{instanceId}")]
     [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
     public async Task<ActionResult<SimpleInstanceDetails>> GetInstanceDetails(
         string org,

@@ -10,7 +10,7 @@ from agents.graph.state import AgentState
 from agents.services.events import AgentEvent
 from agents.services.events import sink
 from agents.services.llm import LLMClient
-from agents.prompts import get_prompt_content, render_template
+from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -244,15 +244,15 @@ async def _generate_fix_patch(
                 errors_summary.append(f"- {str(error)}")
         
         client = LLMClient(role="validator_fixer")
-        
-        system_prompt = get_prompt_content("verifier_error_fixer")
+
+        system_prompt, lf_prompt = get_prompt_with_langfuse("verifier_error_fixer")
         user_prompt = render_template(
             "verifier_error_fix_user",
             errors_summary=chr(10).join(errors_summary),
             file_contents=json.dumps(file_contents, indent=2)
         )
-        
-        response = client.call_sync(system_prompt, user_prompt)
+
+        response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
         
         # Parse JSON response
         clean = response.strip()

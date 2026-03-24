@@ -36,6 +36,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("CreatedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_account_id");
+
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("expires_at");
@@ -68,6 +72,8 @@ namespace Altinn.Studio.Designer.Migrations
 
                     b.HasKey("Id")
                         .HasName("api_keys_pkey");
+
+                    b.HasIndex("CreatedByUserAccountId");
 
                     b.HasIndex(new[] { "KeyHash" }, "idx_api_keys_key_hash")
                         .IsUnique();
@@ -557,12 +563,35 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<int>("AccountType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("account_type");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamptz")
                         .HasColumnName("created");
 
+                    b.Property<Guid?>("CreatedByUserAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_account_id");
+
+                    b.Property<bool>("Deactivated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("deactivated");
+
+                    b.Property<DateTimeOffset?>("DeactivatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("deactivated_at");
+
+                    b.Property<string>("OrganizationName")
+                        .HasColumnType("character varying")
+                        .HasColumnName("organization_name");
+
                     b.Property<string>("PidHash")
-                        .IsRequired()
                         .HasColumnType("character varying")
                         .HasColumnName("pid_hash");
 
@@ -574,8 +603,13 @@ namespace Altinn.Studio.Designer.Migrations
                     b.HasKey("Id")
                         .HasName("user_accounts_pkey");
 
+                    b.HasIndex("CreatedByUserAccountId");
+
+                    b.HasIndex(new[] { "OrganizationName" }, "idx_user_accounts_organization_name");
+
                     b.HasIndex(new[] { "PidHash" }, "idx_user_accounts_pid_hash")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("pid_hash IS NOT NULL");
 
                     b.HasIndex(new[] { "Username" }, "idx_user_accounts_username")
                         .IsUnique();
@@ -585,11 +619,18 @@ namespace Altinn.Studio.Designer.Migrations
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ApiKeyDbModel", b =>
                 {
+                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.UserAccountDbModel", "CreatedByUserAccount")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserAccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.UserAccountDbModel", "UserAccount")
                         .WithMany()
                         .HasForeignKey("UserAccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CreatedByUserAccount");
 
                     b.Navigation("UserAccount");
                 });
@@ -637,9 +678,14 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Navigation("Build");
                 });
 
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactPointDbModel", b =>
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.UserAccountDbModel", b =>
                 {
-                    b.Navigation("Methods");
+                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.UserAccountDbModel", "CreatedByUserAccount")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserAccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUserAccount");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>
