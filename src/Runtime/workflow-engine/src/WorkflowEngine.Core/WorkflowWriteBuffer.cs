@@ -112,6 +112,8 @@ internal class WorkflowWriteBuffer : BackgroundService
             // Expected on shutdown
         }
 
+        _channel.Writer.TryComplete();
+
         // Wait for all in-flight flushes to complete (bounded to prevent indefinite hangs)
         using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         try
@@ -136,6 +138,18 @@ internal class WorkflowWriteBuffer : BackgroundService
         }
         catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
+            // Cancel any items still in the current batch
+            foreach (var pending in batch)
+            {
+                pending.Completion.TrySetCanceled();
+            }
+
+            // Cancel any items still queued in the channel
+            while (_channel.Reader.TryRead(out var pending))
+            {
+                pending.Completion.TrySetCanceled();
+            }
+
             _logger.LogWarning(
                 "WorkflowWriteBuffer drain timed out — {Count} in-flight flushes may not have completed",
                 _settings.WriteBuffer.FlushConcurrency
