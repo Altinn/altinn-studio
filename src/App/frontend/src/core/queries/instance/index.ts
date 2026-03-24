@@ -7,7 +7,7 @@ import {
   instanceQueryKeys,
   useCreateInstance as useCreateInstanceInternal,
 } from 'src/core/queries/instance/instance.queries';
-import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'src/core/queries/instance/utils';
+import { parseInstanceId } from 'src/core/queries/instance/utils';
 import type { BaseQueryResult } from 'src/core/queries/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance } from 'src/types/shared';
@@ -23,7 +23,9 @@ function useActiveInstances(partyId: string): UseActiveInstancesResult {
 
 function useCurrentInstance(): IInstance | undefined {
   const queryClient = useQueryClient();
-  return queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() }).find(([, data]) => data)?.[1];
+  return queryClient
+    .getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() })
+    .find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object')?.[1];
 }
 
 function useCreateInstance(language: string) {
@@ -56,7 +58,7 @@ function useOptimisticallyUpdateInstance() {
 
   return (updater: (oldData: IInstance) => IInstance) => {
     const cached = queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() });
-    const entry = cached.find(([, data]) => data);
+    const entry = cached.find(([key, data]) => data && key.length === 2 && typeof key[1] === 'object');
     if (entry) {
       const [queryKey, oldData] = entry;
       if (oldData) {
@@ -67,7 +69,7 @@ function useOptimisticallyUpdateInstance() {
 }
 
 export {
-  extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId,
+  parseInstanceId,
   invalidateInstanceData,
   prefetchActiveInstances,
   prefetchInstanceData,

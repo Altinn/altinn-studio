@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, JSX } from 'react';
 import React from 'react';
 import { PlusIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';

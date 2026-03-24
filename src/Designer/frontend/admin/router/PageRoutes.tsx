@@ -20,7 +20,7 @@ const BASE_PATH = '/:org';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path='/' element={<App />} errorElement={<AppRouteErrorBoundary />}>
+    <Route element={<App />} errorElement={<AppRouteErrorBoundary />}>
       <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
         {routerRoutes.map((route) => (
           <Route

@@ -63,13 +63,10 @@ describe('StudioTextarea', () => {
     expect(input).toHaveValue(inputValue);
   });
 
-  it('should apply the description when provided and give it an id', () => {
+  it('should apply the description when provided', () => {
     const description: string = 'This is a description';
     renderStudioTextarea({ description });
-    expect(screen.getByText(description)).toBeInTheDocument();
-    const descriptionElement: HTMLParagraphElement = screen.getByText(description);
-    expect(descriptionElement).toHaveAttribute('id');
-    expect(screen.getByRole('textbox')).toHaveAttribute('aria-describedby', descriptionElement.id);
+    expect(screen.getByRole('textbox')).toHaveAccessibleDescription(description);
   });
 
   it('should apply the error message when provided and display it', () => {

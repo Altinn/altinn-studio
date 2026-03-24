@@ -1,20 +1,20 @@
 USER GOAL:
-{user_goal}
+{{user_goal}}
 
 GENERAL PLAN (high-level approach):
-{general_plan}
+{{general_plan}}
 
 TOOL RESULTS (use these to understand component schemas, data model patterns, and Altinn conventions):
-{tool_results}
+{{tool_results}}
 
 CURRENT LAYOUT CONTENT (for component placement reference):
-{current_layout_content}
+{{current_layout_content}}
 
 CURRENT MODEL SCHEMA (for datamodel updates):
-{current_model_content}
+{{current_model_content}}
 
 REPOSITORY FACTS SUMMARY:
-{repo_summary}
+{{repo_summary}}
 
 CRITICAL: Generate the patch JSON with EXACTLY these keys: "files" (array of strings) and "changes" (array of objects).
 
@@ -26,7 +26,7 @@ ONLY use text resource files that ACTUALLY EXIST in the repository.
 - DO NOT hardcode locales - use ONLY what you see in the resources array
 - Example: If resources shows ["App/config/texts/resource.nb.json", "App/config/texts/resource.nn.json"], use ONLY nb and nn
 
-For every value referenced in textResourceBindings, ensure the patch includes an insert_json_array_item operation inserting {{"id": binding, "value": translated_text}} into EACH resource file listed in REPOSITORY FACTS.
+For every value referenced in textResourceBindings, ensure the patch includes an insert_json_array_item operation inserting {"id": binding, "value": translated_text} into EACH resource file listed in REPOSITORY FACTS.
 
 🚨 CRITICAL: TEXT RESOURCE INSERT OPERATION 🚨
 Text resource files have a nested structure with "resources" array. When inserting text resources:
@@ -35,20 +35,20 @@ Text resource files have a nested structure with "resources" array. When inserti
 - Path: Use ["resources"] (points to the resources array inside the root object)
 - Item: Use "item" key (NOT "value"!) with the resource object
 - Example operation:
-  {{
-    "file": "App/config/texts/resource.nb.json",
-    "op": "insert_json_array_item",
-    "path": ["resources"],
-    "item": {{"id": "app.field.projectType", "value": "Prosjekttype"}}
-  }}
+  {
+  "file": "App/config/texts/resource.nb.json",
+  "op": "insert_json_array_item",
+  "path": ["resources"],
+  "item": {"id": "app.field.projectType", "value": "Prosjekttype"}
+  }
 
 Text resource file structure:
-{{
-  "language": "nb",
-  "resources": [
-    {{"id": "app.field.something", "value": "Text"}}
+{
+"language": "nb",
+"resources": [
+{"id": "app.field.something", "value": "Text"}
 ]
-}}
+}
 
 CRITICAL: The operation expects "item" key, not "value"! The resource object itself has an "id" and "value".
 CRITICAL: Path must be ["resources"], not [] - text resources are nested, not at root level.
@@ -133,20 +133,20 @@ CRITICAL: ALL PREFILL MAPPINGS MUST USE Model. PREFIX
 - CORRECT: "Name": "Model.applicantName"
 
 Prefill mapping examples (FOLLOW THIS EXACT PATTERN):
-{{
-  "ER": {{
-    "OrgNumber": "Model.orgNumber",
-    "Name": "Model.applicantName",
-    "TelephoneNumber": "Model.applicantPhone",
-    "MailingAddress": "Model.address.street",
-    "EMailAddress": "Model.applicantEmail"
-  }},
-"UserProfile": {{
-    "PhoneNumber": "Model.contact.phone",
-    "Email": "Model.contact.email",
-    "ProfileSettingPreference.Language": "Model.preferredLanguage"
-  }}
-}}
+{
+"ER": {
+"OrgNumber": "Model.orgNumber",
+"Name": "Model.applicantName",
+"TelephoneNumber": "Model.applicantPhone",
+"MailingAddress": "Model.address.street",
+"EMailAddress": "Model.applicantEmail"
+},
+"UserProfile": {
+"PhoneNumber": "Model.contact.phone",
+"Email": "Model.contact.email",
+"ProfileSettingPreference.Language": "Model.preferredLanguage"
+}
+}
 
 The field name after "Model." must match the dataModelBindings exactly (e.g., if dataModelBindings uses "applicantName", prefill uses "Model.applicantName")
 
@@ -162,39 +162,39 @@ Each change object MUST have these exact fields:
 OPERATION FORMATS (follow EXACTLY):
 
 For insert_json_property:
-{{
-  "file": "path/to/file.json",
-  "op": "insert_json_property",
-  "path": ["properties"],  // array of strings
-  "key": "fieldName",       // string
-  "value": "fieldValue"     // any type
-}}
+{
+"file": "path/to/file.json",
+"op": "insert_json_property",
+"path": ["properties"], // array of strings
+"key": "fieldName", // string
+"value": "fieldValue" // any type
+}
 
 For insert_json_array_item:
-{{
-  "file": "path/to/file.json",
-  "op": "insert_json_array_item",
-  "path": ["data", "layout"],  // array of strings pointing to array
-  "value": {{"id": "component_id", "type": "Input"}}, // object to insert
+{
+"file": "path/to/file.json",
+"op": "insert_json_array_item",
+"path": ["data", "layout"], // array of strings pointing to array
+"value": {"id": "component_id", "type": "Input"}, // object to insert
 "insert_after_index": 2 // optional number
-}}
+}
 
 For insert_text_at_pattern:
-{{
-  "file": "path/to/file.cs",
-  "op": "insert_text_at_pattern",
-  "pattern": "regex_pattern",  // string
-  "text": "text_to_insert",     // string
-  "find_last": false           // optional boolean
-}}
+{
+"file": "path/to/file.cs",
+"op": "insert_text_at_pattern",
+"pattern": "regex_pattern", // string
+"text": "text_to_insert", // string
+"find_last": false // optional boolean
+}
 
 For replace_text:
-{{
-  "file": "path/to/file.json",
-  "op": "replace_text",
-  "old_text": "text to replace",    // string
-  "new_text": "replacement text"    // string
-}}
+{
+"file": "path/to/file.json",
+"op": "replace_text",
+"old_text": "text to replace", // string
+"new_text": "replacement text" // string
+}
 
 RULES:
 
@@ -255,4 +255,4 @@ Your response MUST be ONLY valid JSON. Do NOT include:
 - Markdown formatting
 - Any text before or after the JSON
 
-Start your response with {{ and end with }}
+Start your response with { and end with }

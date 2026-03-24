@@ -73,6 +73,7 @@ export function AppVisibilityAndDelegationCard({
     sectionRef: descriptionSectionRef,
     searchParams,
     setSearchParams,
+    clearFocusParam: false,
   });
 
   return (

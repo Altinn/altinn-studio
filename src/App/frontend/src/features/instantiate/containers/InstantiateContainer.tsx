@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Loader } from 'src/core/loading/Loader';
+import { parseInstanceId } from 'src/core/queries/instance';
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { buildInstanceUrl } from 'src/routesBuilder';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -20,14 +22,18 @@ export const InstantiateContainer = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const shouldCreateInstance = !!party;
-    if (shouldCreateInstance) {
-      instantiation.instantiate(party.partyId).then((data) => {
-        if (data) {
-          navigate(`/instance/${data.id}`);
-        }
-      });
-    }
+    const createInstance = async () => {
+      if (!party) {
+        return;
+      }
+      const data = await instantiation.instantiate(party.partyId);
+      const instanceId = data?.id ?? instantiation.lastResult?.id;
+      if (instanceId) {
+        const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instanceId);
+        navigate(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
+      }
+    };
+    createInstance();
   }, [instantiation, party, navigate]);
 
   if (isAxiosError(instantiation.error) && instantiation.error.response?.status === HttpStatusCodes.Forbidden) {

@@ -531,15 +531,15 @@ describe('File uploading components', () => {
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     queries,
   }: Props<T>) {
+    const id = uuidv4();
+    const attachments = attachmentsGenerator(id);
+
     jest.mocked(InstanceApi.getInstance).mockImplementation(async () => ({
       ...getInstanceDataMock((i) => {
         i.data.push(...attachments);
       }),
       process: getProcessDataMock(),
     }));
-
-    const id = uuidv4();
-    const attachments = attachmentsGenerator(id);
 
     window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
       a.dataTypes.push({

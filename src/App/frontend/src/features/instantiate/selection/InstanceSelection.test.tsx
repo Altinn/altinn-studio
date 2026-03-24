@@ -13,12 +13,12 @@ import type { ISimpleInstance } from 'src/types';
 
 const mockActiveInstances: ISimpleInstance[] = [
   {
-    id: 'some-id',
+    id: '512345/some-guid',
     lastChanged: '2021-10-05T07:51:57.8795258Z',
     lastChangedBy: 'Navn Navnesen',
   },
   {
-    id: 'some-other-id',
+    id: '512345/some-other-guid',
     lastChanged: '2021-05-13T07:51:57.8795258Z',
     lastChangedBy: 'Kåre Nordmannsen',
   },
@@ -94,7 +94,7 @@ describe('InstanceSelection', () => {
     });
 
     await userEvent.click(button);
-    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-id');
+    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/512345/some-guid');
     expect(InstanceApi.create).toHaveBeenCalledTimes(0);
   });
 
@@ -112,7 +112,7 @@ describe('InstanceSelection', () => {
     });
 
     await userEvent.click(button);
-    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-other-id');
+    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/512345/some-other-guid');
     expect(InstanceApi.create).toHaveBeenCalledTimes(0);
   });
 });

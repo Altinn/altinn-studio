@@ -1,5 +1,4 @@
-import { type ReactNode } from 'react';
-import { createContext, useEffect, useMemo } from 'react';
+import { type ReactNode, type JSX, createContext, useEffect, useMemo } from 'react';
 import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';

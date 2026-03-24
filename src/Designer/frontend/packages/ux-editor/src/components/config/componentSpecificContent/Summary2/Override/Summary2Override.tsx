@@ -3,7 +3,7 @@ import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,
 } from 'app-shared/types/ComponentSpecificConfig';
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
 import { PlusCircleIcon } from '@studio/icons';

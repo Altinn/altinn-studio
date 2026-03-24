@@ -9,7 +9,7 @@ import { InstanceApi } from 'src/core/api-client/instance.api';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { TaskKeys } from 'src/routesBuilder';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';

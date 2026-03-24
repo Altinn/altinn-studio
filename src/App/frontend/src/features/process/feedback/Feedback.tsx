@@ -7,7 +7,8 @@ import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess } from 'src/features/instance/useProcessQuery';
 import { LangAsParagraph } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { TaskKeys } from 'src/routesBuilder';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
 export function Feedback() {

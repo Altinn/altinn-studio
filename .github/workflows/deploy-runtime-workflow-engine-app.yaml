@@ -1,0 +1,156 @@
+name: Runtime - deploy workflow-engine-app
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/common/**
+      - src/Runtime/workflow-engine/src/**
+      - src/Runtime/workflow-engine/Directory.Packages.props
+      - src/Runtime/workflow-engine-app/src/**
+      - src/Runtime/workflow-engine-app/Directory.Packages.props
+      - src/Runtime/workflow-engine-app/Dockerfile
+      - src/Runtime/workflow-engine-app/Dockerfile.dockerignore
+      - src/Runtime/workflow-engine-app/infra/**
+      - infra/runtime/syncroot/base/workflow-engine-app.yaml
+      - infra/runtime/flux-config/**
+      - .github/workflows/deploy-runtime-workflow-engine-app.yaml
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
+        required: false
+        default: "tt_ring1"
+      tag-latest:
+        description: 'Tag the GHCR image as "latest"'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+  packages: write
+
+jobs:
+
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-rings-array:
+    uses: ./.github/workflows/template-runtime-construct-environments.yaml
+    with:
+      inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-runtime-environments: tt_ring1
+
+  push-workflow-engine-app-artifact:
+    name: Push workflow-engine-app as OCI artifact
+    needs: get-short-sha
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinncr
+      IMAGE_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app:${{ needs.get-short-sha.outputs.short-sha }}
+      CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
+      GHCR_IMAGE: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:${{ needs.get-short-sha.outputs.short-sha }}
+    outputs:
+      config-repo: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
+    defaults:
+      run:
+        working-directory: src/Runtime/workflow-engine-app
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: docker build
+        working-directory: src
+        run: |
+          TAGS="-t ${{ env.IMAGE_REPO }} -t ${{ env.GHCR_IMAGE }}"
+          if [ "${{ inputs.tag-latest }}" = "true" ]; then
+            TAGS="$TAGS -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest"
+          fi
+          docker build --platform linux/amd64,linux/arm64 $TAGS -f Runtime/workflow-engine-app/Dockerfile .
+
+      - name: push image
+        run: docker push ${{ env.IMAGE_REPO }}
+
+      - name: push GHCR image
+        run: |
+          docker push ${{ env.GHCR_IMAGE }}
+          if [ "${{ inputs.tag-latest }}" = "true" ]; then
+            docker push ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest
+          fi
+
+      - name: patch base with image tag
+        working-directory: src/Runtime/workflow-engine-app/infra/kustomize/base
+        run: |
+          export IMAGE="${{ env.IMAGE_REPO }}"
+          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
+
+      - name: push artifact
+        working-directory: src/Runtime/workflow-engine-app/infra/kustomize
+        run: |
+          flux push artifact oci://${{ env.CONFIG_REPO }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag-workflow-engine-app:
+    name: Tag workflow-engine-app
+    needs: [push-workflow-engine-app-artifact, construct-rings-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-workflow-engine-app-artifact.outputs.config-repo }} \
+            --tag ${{ matrix.ring }}

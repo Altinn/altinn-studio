@@ -5,6 +5,7 @@ export type AltinnStudioEnvironment = {
   aiConnectionString?: string;
   postHogApiKey?: string;
   postHogApiHost?: string;
+  accountLinkUrl?: string;
   featureFlags?: {
     studioOidc?: boolean;
   };

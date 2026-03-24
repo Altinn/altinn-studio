@@ -8,6 +8,10 @@ on:
       - '.github/workflows/designer-backend-dotnet-migrations-ensure-compatibility.yaml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   ensure-migrations-compatibility:
     name: Try to generate script and to add a new migrations

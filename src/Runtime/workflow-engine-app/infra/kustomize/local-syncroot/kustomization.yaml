@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../../infra/runtime/syncroot/base/workflow-engine-app.yaml
+patches:
+  # Use local OCI registry for workflow-engine-app
+  - patch: |-
+      apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: workflow-engine-app-repo
+        namespace: runtime-workflow-engine-app
+      spec:
+        insecure: true
+        provider: generic
+        ref:
+          tag: local
+        url: oci://kind-registry:5000/workflow-engine-app-repo
+  # Use local kustomize overlay
+  - patch: |-
+      apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: workflow-engine-app
+        namespace: runtime-workflow-engine-app
+      spec:
+        path: ./local
+        prune: true
+  # Set local environment config
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: runtime-environment
+        namespace: runtime-workflow-engine-app
+      data:
+        upgrade_channel: local
+        environment: local
+        serviceowner: ttd

@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, JSX } from 'react';
 import { forwardRef } from 'react';
 import classes from './StudioCenter.module.css';
 import cn from 'classnames';

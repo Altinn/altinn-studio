@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, JSX } from 'react';
 import { forwardRef, useId } from 'react';
 import { Paragraph, Spinner } from '@digdir/designsystemet-react';
 import type { SpinnerProps } from '@digdir/designsystemet-react';

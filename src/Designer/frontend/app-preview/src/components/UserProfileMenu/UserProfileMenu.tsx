@@ -3,9 +3,10 @@ import { type Repository, type User } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useMediaQuery, StudioAvatar } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/components-legacy';
 import {
   StudioPageHeader,
+  StudioAvatar,
   type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
 } from '@studio/components';

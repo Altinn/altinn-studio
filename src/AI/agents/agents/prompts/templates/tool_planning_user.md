@@ -1,31 +1,31 @@
 GOAL SUMMARY:
-{goal_summary}
+{{goal_summary}}
 
 KEY REQUIREMENTS:
-{key_requirements}
+{{key_requirements}}
 
 RISKS:
-{risks}
+{{risks}}
 
 NOTES FOR TEAM:
-{notes_for_team}
+{{notes_for_team}}
 
 RAW USER GOAL (trimmed):
-{user_goal_trimmed}
+{{user_goal_trimmed}}
 
 AVAILABLE TOOLS:
-{available_tools}
+{{available_tools}}
 
 TOOL CATALOG:
-{tool_catalog}
+{{tool_catalog}}
 
 REPO SNAPSHOT:
-{repo_lines}
+{{repo_lines}}
 
 CURRENT PLAN STEP:
-{planner_step}
+{{planner_step}}
 
-ATTACHMENTS PROVIDED: {attachments_hint}
+ATTACHMENTS PROVIDED: {{attachments_hint}}
 
 CRITICAL INSTRUCTIONS:
 
@@ -39,7 +39,6 @@ CRITICAL INSTRUCTIONS:
 - Never return generic queries like "documentation" or "help".
 - Ensure coverage for data bindings, text resources, rules/expressions, and layout details whenever the goal implies them.
 - IMPORTANT: These tools accept NO query parameters:
-
   - Documentation tools (datamodel_tool, prefill_tool, dynamic_expression, resource_tool) - return static documentation
   - layout_components_tool - returns ALL component examples from the library (no filtering)
     Do NOT include a query for these tools.
@@ -100,11 +99,12 @@ Query requirements:
 5. Length 150-250 characters for complex queries is ACCEPTABLE and ENCOURAGED for clarity
 
 Return JSON with:
+{
 "tool_sequence": [
-{{
+{
 "tool": "tool_name",
 "objective": "short reason (max 20 words)",
 "query": "descriptive query - explain WHAT to extract and WHY (150-250 chars for complex needs)"
-}}
+}
 ]
-}}
+}
