@@ -399,7 +399,8 @@ public class WorkflowUpdateBufferTests
         using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         await buffer.StopAsync(stopCts.Token);
 
-        await Task.WhenAll(tasks);
+        using var resultCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await Task.WhenAll(tasks).WaitAsync(resultCts.Token);
 
         Assert.Equal(5, flushCount);
     }

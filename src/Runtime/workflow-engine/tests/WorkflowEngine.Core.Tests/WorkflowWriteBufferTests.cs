@@ -505,7 +505,8 @@ public class WorkflowWriteBufferTests
         await buffer.StopAsync(stopCts.Token);
 
         // All tasks should complete (not hang or fault)
-        await Task.WhenAll(tasks);
+        using var resultCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await Task.WhenAll(tasks).WaitAsync(resultCts.Token);
 
         Assert.Equal(5, flushCount);
     }

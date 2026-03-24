@@ -40,4 +40,4 @@ jobs:
           CI: true
 
       - name: Test
-        run: dotnet test --no-build --blame-hang --blame-hang-timeout 10m
+        run: dotnet test --no-build --blame-hang --blame-hang-timeout 5m
