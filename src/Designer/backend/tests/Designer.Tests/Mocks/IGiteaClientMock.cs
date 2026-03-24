@@ -320,21 +320,18 @@ namespace Designer.Tests.Mocks
                     {
                         Id = 1,
                         Name = "Owners",
-                        Permission = "owner",
                         Organization = new Organization { Username = org },
                     },
                     new()
                     {
                         Id = 2,
                         Name = "Deploy-TT02",
-                        Permission = "write",
                         Organization = new Organization { Username = org },
                     },
                     new()
                     {
                         Id = 3,
                         Name = "Devs",
-                        Permission = "write",
                         Organization = new Organization { Username = org },
                     },
                 }

@@ -16,11 +16,6 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         public string Name { get; set; }
 
-        /// <summary>
-        /// The permission level of the team
-        /// </summary>
-        public string Permission { get; set; }
-
         public bool CanCreateOrgRepo { get; set; }
 
         /// <summary>

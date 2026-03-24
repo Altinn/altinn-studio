@@ -38,8 +38,9 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
             cancellationToken
         );
 
-        return Created(
-            string.Empty,
+        return CreatedAtAction(
+            nameof(Get),
+            new { org, id = botAccount.Id },
             new CreateBotAccountResponse(
                 botAccount.Id,
                 botAccount.Username,
