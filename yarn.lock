@@ -13789,6 +13789,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "user-settings@workspace:src/Designer/frontend/user-settings"
   dependencies:
+    "@studio/ui-test": "workspace:^"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft
