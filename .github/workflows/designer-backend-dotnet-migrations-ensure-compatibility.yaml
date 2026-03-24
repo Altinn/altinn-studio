@@ -16,6 +16,7 @@ jobs:
   ensure-migrations-compatibility:
     name: Try to generate script and to add a new migrations
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile: 'false'
       OidcLoginSettings__ClientId: 'dummyRequired'

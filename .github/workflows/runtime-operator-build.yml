@@ -18,6 +18,7 @@ jobs:
   test:
     name: Build and test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     defaults:
       run:
@@ -51,6 +52,7 @@ jobs:
   test-e2e:
     name: Build and test - e2e
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     defaults:
       run:
