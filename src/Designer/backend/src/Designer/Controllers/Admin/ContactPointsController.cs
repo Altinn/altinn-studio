@@ -19,7 +19,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
 {
     [HttpGet]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<IReadOnlyList<OrgContactPointResponse>>> GetContactPoints(
+    public async Task<ActionResult<IReadOnlyList<ContactPointResponse>>> GetContactPoints(
         string org,
         CancellationToken cancellationToken
     )
@@ -30,9 +30,9 @@ public class ContactPointsController(IContactPointsService service) : Controller
 
     [HttpPost]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<OrgContactPointResponse>> AddContactPoint(
+    public async Task<ActionResult<ContactPointResponse>> AddContactPoint(
         string org,
-        [FromBody] OrgContactPointRequest request,
+        [FromBody] ContactPointRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -43,10 +43,10 @@ public class ContactPointsController(IContactPointsService service) : Controller
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
-    public async Task<ActionResult<OrgContactPointResponse>> UpdateContactPoint(
+    public async Task<ActionResult<ContactPointResponse>> UpdateContactPoint(
         string org,
         Guid id,
-        [FromBody] OrgContactPointRequest request,
+        [FromBody] ContactPointRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -63,7 +63,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
         return NoContent();
     }
 
-    private static ContactPointEntity MapToEntity(string org, OrgContactPointRequest request) =>
+    private static ContactPointEntity MapToEntity(string org, ContactPointRequest request) =>
         new()
         {
             Org = org,
@@ -74,7 +74,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
                 .ToList(),
         };
 
-    private static OrgContactPointResponse MapToResponse(ContactPointEntity entity) =>
+    private static ContactPointResponse MapToResponse(ContactPointEntity entity) =>
         new()
         {
             Id = entity.Id,

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class OrgContactPointResponse
+public class ContactPointResponse
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }
