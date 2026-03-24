@@ -15,6 +15,7 @@ public static class ContactPointMapper
             Name = entity.Name,
             IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt,
+            Environments = entity.Environments,
             Methods = entity
                 .Methods.Select(m => new ContactMethodDbModel
                 {
@@ -36,6 +37,7 @@ public static class ContactPointMapper
             Name = dbModel.Name,
             IsActive = dbModel.IsActive,
             CreatedAt = dbModel.CreatedAt,
+            Environments = dbModel.Environments,
             Methods = dbModel
                 .Methods.Select(m => new ContactMethodEntity
                 {

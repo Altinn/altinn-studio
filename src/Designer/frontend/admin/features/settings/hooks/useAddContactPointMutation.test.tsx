@@ -8,9 +8,10 @@ import type { ContactPointPayload } from 'app-shared/types/ContactPoint';
 const testOrg = 'ttd';
 
 const payload: ContactPointPayload = {
-  name: 'Alice',
+  name: 'Test',
   isActive: true,
-  methods: [{ methodType: 'email', value: 'alice@example.com' }],
+  environments: [],
+  methods: [{ methodType: 'email', value: 'test@example.com' }],
 };
 
 const renderUseAddContactPointMutation = (queryClient = createQueryClientMock()) =>

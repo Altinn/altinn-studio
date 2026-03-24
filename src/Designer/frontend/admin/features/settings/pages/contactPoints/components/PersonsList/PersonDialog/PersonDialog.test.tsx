@@ -5,15 +5,11 @@ import type { ReactElement } from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PersonDialog } from './PersonDialog';
 
-type PersonDraft = {
-  name: string;
-  email: string;
-  phone: string;
-  isActive: boolean;
-};
+import type { PersonDraft } from './PersonDialog';
 
 type TestWrapperProps = {
   person?: PersonDraft;
+  availableEnvironments?: string[];
   onFieldChange?: jest.Mock;
   onSave?: jest.Mock;
   onClose?: jest.Mock;
@@ -21,10 +17,17 @@ type TestWrapperProps = {
   isSaving?: boolean;
 };
 
-const defaultPerson: PersonDraft = { name: '', email: '', phone: '', isActive: true };
+const defaultPerson: PersonDraft = {
+  name: '',
+  email: '',
+  phone: '',
+  isActive: true,
+  environments: [],
+};
 
 function PersonDialogWrapper({
   person = defaultPerson,
+  availableEnvironments = ['tt02', 'production'],
   onFieldChange = jest.fn(),
   onSave = jest.fn(),
   onClose = jest.fn(),
@@ -38,6 +41,7 @@ function PersonDialogWrapper({
       <PersonDialog
         dialogRef={dialogRef}
         person={person}
+        availableEnvironments={availableEnvironments}
         onFieldChange={onFieldChange}
         onSave={onSave}
         onClose={onClose}
@@ -110,7 +114,7 @@ describe('PersonDialog', () => {
     const user = userEvent.setup();
     renderPersonDialog({ onFieldChange });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.type(getNameInput(), 'Alice');
+    await user.type(getNameInput(), 'Test');
     expect(onFieldChange).toHaveBeenCalledWith('name', expect.any(String));
   });
 
@@ -121,7 +125,7 @@ describe('PersonDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.type(
       screen.getByRole('textbox', { name: textMock('org.settings.contact_points.field_email') }),
-      'alice@example.com',
+      'test@example.com',
     );
     expect(onFieldChange).toHaveBeenCalledWith('email', expect.any(String));
   });
@@ -143,7 +147,13 @@ describe('PersonDialog', () => {
     const user = userEvent.setup();
     renderPersonDialog({
       onSave,
-      person: { name: 'Alice', email: 'alice@example.com', phone: '', isActive: true },
+      person: {
+        name: 'Test',
+        email: 'test@example.com',
+        phone: '',
+        isActive: true,
+        environments: [],
+      },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -155,7 +165,7 @@ describe('PersonDialog', () => {
     const user = userEvent.setup();
     renderPersonDialog({
       onSave,
-      person: { name: '', email: 'alice@example.com', phone: '', isActive: true },
+      person: { name: '', email: 'test@example.com', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -167,7 +177,7 @@ describe('PersonDialog', () => {
     const user = userEvent.setup();
     renderPersonDialog({
       onSave,
-      person: { name: 'Alice', email: '', phone: '', isActive: true },
+      person: { name: 'Test', email: '', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -177,7 +187,7 @@ describe('PersonDialog', () => {
   it('shows name required error after submit with empty name', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
-      person: { name: '', email: 'alice@example.com', phone: '', isActive: true },
+      person: { name: '', email: 'test@example.com', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -187,7 +197,7 @@ describe('PersonDialog', () => {
   it('shows contact method required error after submit with no email and no phone', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
-      person: { name: 'Alice', email: '', phone: '', isActive: true },
+      person: { name: 'Test', email: '', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -211,7 +221,7 @@ describe('PersonDialog', () => {
     const user = userEvent.setup();
     renderPersonDialog({
       onSave,
-      person: { name: 'Alice', email: '', phone: '12345678', isActive: true },
+      person: { name: 'Test', email: '', phone: '12345678', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -221,7 +231,7 @@ describe('PersonDialog', () => {
   it('shows invalid email error when email is malformed', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
-      person: { name: 'Alice', email: 'not-an-email', phone: '', isActive: true },
+      person: { name: 'Test', email: 'not-an-email', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -233,7 +243,7 @@ describe('PersonDialog', () => {
     const user = userEvent.setup();
     renderPersonDialog({
       onSave,
-      person: { name: 'Alice', email: 'not-an-email', phone: '', isActive: true },
+      person: { name: 'Test', email: 'not-an-email', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -243,7 +253,7 @@ describe('PersonDialog', () => {
   it('shows invalid phone error when phone is malformed', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
-      person: { name: 'Alice', email: '', phone: 'abc', isActive: true },
+      person: { name: 'Test', email: '', phone: 'abc', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -255,7 +265,7 @@ describe('PersonDialog', () => {
     const user = userEvent.setup();
     renderPersonDialog({
       onSave,
-      person: { name: 'Alice', email: '', phone: 'abc', isActive: true },
+      person: { name: 'Test', email: '', phone: 'abc', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -265,7 +275,7 @@ describe('PersonDialog', () => {
   it('does not show email format error when email field is empty', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
-      person: { name: 'Alice', email: '', phone: '12345678', isActive: true },
+      person: { name: 'Test', email: '', phone: '12345678', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -275,10 +285,52 @@ describe('PersonDialog', () => {
   it('does not show phone format error when phone field is empty', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
-      person: { name: 'Alice', email: 'alice@example.com', phone: '', isActive: true },
+      person: {
+        name: 'Test',
+        email: 'test@example.com',
+        phone: '',
+        isActive: true,
+        environments: [],
+      },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(screen.queryByText(textMock('validation_errors.invalid_phone'))).not.toBeInTheDocument();
+  });
+
+  it('updates checked environments when person prop changes', async () => {
+    const user = userEvent.setup();
+
+    const { rerender } = render(
+      <PersonDialogWrapper
+        person={{
+          name: 'Test',
+          email: 'test@example.com',
+          phone: '',
+          isActive: true,
+          environments: ['tt02'],
+        }}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+
+    expect(screen.getByRole('checkbox', { name: 'tt02' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'production' })).not.toBeChecked();
+
+    rerender(
+      <PersonDialogWrapper
+        person={{
+          name: 'Test',
+          email: 'test@example.com',
+          phone: '',
+          isActive: true,
+          environments: ['production'],
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('checkbox', { name: 'tt02' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'production' })).toBeChecked();
   });
 });

@@ -13,3 +13,8 @@
   max-width: 400px;
   flex: 1;
 }
+
+.environmentsWrapper {
+  display: flex;
+  gap: var(--ds-size-2);
+}

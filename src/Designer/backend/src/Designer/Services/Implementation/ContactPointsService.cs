@@ -17,7 +17,6 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
         CancellationToken cancellationToken = default
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var entities = await repository.GetAllAsync(org, cancellationToken);
         return entities.Select(MapToDomain).ToList();
     }
@@ -27,7 +26,6 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
         CancellationToken cancellationToken = default
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var entity = MapToEntity(contactPoint);
         var created = await repository.AddAsync(entity, cancellationToken);
         return MapToDomain(created);
@@ -38,7 +36,6 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
         CancellationToken cancellationToken = default
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var entity = MapToEntity(contactPoint);
         var updated = await repository.UpdateAsync(entity, cancellationToken);
         return MapToDomain(updated);
@@ -49,17 +46,10 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
         Guid id,
         bool isActive,
         CancellationToken cancellationToken = default
-    )
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return repository.ToggleActiveAsync(org, id, isActive, cancellationToken);
-    }
+    ) => repository.ToggleActiveAsync(org, id, isActive, cancellationToken);
 
-    public Task DeleteContactPointAsync(string org, Guid id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return repository.DeleteAsync(org, id, cancellationToken);
-    }
+    public Task DeleteContactPointAsync(string org, Guid id, CancellationToken cancellationToken = default) =>
+        repository.DeleteAsync(org, id, cancellationToken);
 
     private static ContactPoint MapToDomain(ContactPointEntity entity) =>
         new()
@@ -69,6 +59,7 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
             Name = entity.Name,
             IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt,
+            Environments = entity.Environments,
             Methods = entity
                 .Methods.Select(m => new ContactMethod
                 {
@@ -86,6 +77,7 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
             Org = contactPoint.Org,
             Name = contactPoint.Name,
             IsActive = contactPoint.IsActive,
+            Environments = contactPoint.Environments,
             Methods = contactPoint
                 .Methods.Select(m => new ContactMethodEntity { MethodType = m.MethodType, Value = m.Value })
                 .ToList(),

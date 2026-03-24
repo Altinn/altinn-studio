@@ -9,9 +9,10 @@ const testOrg = 'ttd';
 const contactPointId = 'cp-1';
 
 const payload: ContactPointPayload = {
-  name: 'Alice',
+  name: 'Test',
   isActive: false,
-  methods: [{ methodType: 'email', value: 'alice@example.com' }],
+  environments: [],
+  methods: [{ methodType: 'email', value: 'test@example.com' }],
 };
 
 const renderUseUpdateContactPointMutation = (queryClient = createQueryClientMock()) =>

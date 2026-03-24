@@ -8,33 +8,36 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioDeleteButton,
+  StudioTag,
 } from '@studio/components';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import { PersonDialog } from './PersonDialog/PersonDialog';
+import type { PersonDraft } from './PersonDialog/PersonDialog';
 import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
 import { useToggleContactPointActiveMutation } from 'admin/features/settings/hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from 'admin/features/settings/hooks/useDeleteContactPointMutation';
+import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 import { PlusIcon, StudioEditIcon } from '@studio/icons';
 import classes from './PersonsList.module.css';
-
-type PersonDraft = {
-  name: string;
-  email: string;
-  phone: string;
-  isActive: boolean;
-};
 
 type PersonsListProps = {
   org: string;
   persons: ContactPoint[];
 };
 
-const emptyDraft = (): PersonDraft => ({ name: '', email: '', phone: '', isActive: true });
+const emptyDraft = (availableEnvironments: string[]): PersonDraft => ({
+  name: '',
+  email: '',
+  phone: '',
+  isActive: true,
+  environments: availableEnvironments,
+});
 
 const draftToPayload = (draft: PersonDraft): ContactPointPayload => ({
   name: draft.name,
   isActive: draft.isActive,
+  environments: draft.environments,
   methods: [
     ...(draft.email ? [{ methodType: 'email' as const, value: draft.email }] : []),
     ...(draft.phone ? [{ methodType: 'sms' as const, value: draft.phone }] : []),
@@ -44,6 +47,7 @@ const draftToPayload = (draft: PersonDraft): ContactPointPayload => ({
 const contactPointToDraft = (cp: ContactPoint): PersonDraft => ({
   name: cp.name,
   isActive: cp.isActive,
+  environments: cp.environments,
   email: cp.methods.find((m) => m.methodType === 'email')?.value ?? '',
   phone: cp.methods.find((m) => m.methodType === 'sms')?.value ?? '',
 });
@@ -51,7 +55,7 @@ const contactPointToDraft = (cp: ContactPoint): PersonDraft => ({
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [draft, setDraft] = useState<PersonDraft>(emptyDraft());
+  const [draft, setDraft] = useState<PersonDraft>(emptyDraft([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const { mutate: addPerson, isPending: isAdding } = useAddContactPointMutation(org);
@@ -59,10 +63,13 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   const { mutate: toggleActive } = useToggleContactPointActiveMutation(org);
   const { mutate: deletePerson } = useDeleteContactPointMutation(org);
 
+  const { data: orgs } = useOrgListQuery();
+  const availableEnvironments = orgs?.[org]?.environments ?? [];
+
   const isSaving = isAdding || isUpdating;
 
   const openAddDialog = () => {
-    setDraft(emptyDraft());
+    setDraft(emptyDraft(availableEnvironments));
     setEditingId(null);
     dialogRef.current?.showModal();
   };
@@ -77,7 +84,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
     dialogRef.current?.close();
   };
 
-  const handleFieldChange = (field: keyof PersonDraft, value: string | boolean) => {
+  const handleFieldChange = (field: keyof PersonDraft, value: string | boolean | string[]) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -96,12 +103,8 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
 
   return (
     <>
-      <StudioHeading level={3} data-size='sm'>
-        {t('org.settings.contact_points.persons_heading')}
-      </StudioHeading>
-      <StudioParagraph data-size='sm'>
-        {t('org.settings.contact_points.persons_description')}
-      </StudioParagraph>
+      <StudioHeading level={3}>{t('org.settings.contact_points.persons_heading')}</StudioHeading>
+      <StudioParagraph>{t('org.settings.contact_points.persons_description')}</StudioParagraph>
       <StudioTable>
         <StudioTable.Head>
           <StudioTable.Row>
@@ -117,40 +120,50 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
             <StudioTable.HeaderCell>
               {t('org.settings.contact_points.col_sms')}
             </StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>
+              {t('org.settings.contact_points.col_environments')}
+            </StudioTable.HeaderCell>
             <StudioTable.HeaderCell />
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {persons.map((person) => (
-            <StudioTable.Row key={person.id}>
-              <StudioTable.Cell>
-                <StudioSwitch
-                  checked={person.isActive}
-                  onChange={() => handleToggleActive(person)}
-                  aria-label={person.name}
-                />
-              </StudioTable.Cell>
-              <StudioTable.Cell>{person.name}</StudioTable.Cell>
-              <StudioTable.Cell>
-                {person.methods.find((m) => m.methodType === 'email')?.value}
-              </StudioTable.Cell>
-              <StudioTable.Cell>
-                {person.methods.find((m) => m.methodType === 'sms')?.value}
-              </StudioTable.Cell>
-              <StudioTable.Cell className={classes.actions}>
-                <StudioButton
-                  variant='tertiary'
-                  icon={<StudioEditIcon />}
-                  onClick={() => openEditDialog(person)}
-                  aria-label={t('org.settings.contact_points.dialog_edit_person_title')}
-                />
-                <StudioDeleteButton
-                  onDelete={() => deletePerson(person.id)}
-                  confirmMessage={t('org.settings.contact_points.delete_confirm')}
-                />
-              </StudioTable.Cell>
-            </StudioTable.Row>
-          ))}
+          {persons.map((person) => {
+            const email = person.methods.find((m) => m.methodType === 'email')?.value;
+            const phone = person.methods.find((m) => m.methodType === 'sms')?.value;
+            return (
+              <StudioTable.Row key={person.id}>
+                <StudioTable.Cell>
+                  <StudioSwitch
+                    checked={person.isActive}
+                    onChange={() => handleToggleActive(person)}
+                    aria-label={person.name}
+                  />
+                </StudioTable.Cell>
+                <StudioTable.Cell>{person.name}</StudioTable.Cell>
+                <StudioTable.Cell>{email}</StudioTable.Cell>
+                <StudioTable.Cell>{phone}</StudioTable.Cell>
+                <StudioTable.Cell>
+                  <div className={classes.environmentsWrapper}>
+                    {person.environments.map((env) => (
+                      <StudioTag key={env}>{env}</StudioTag>
+                    ))}
+                  </div>
+                </StudioTable.Cell>
+                <StudioTable.Cell className={classes.actions}>
+                  <StudioButton
+                    variant='tertiary'
+                    icon={<StudioEditIcon />}
+                    onClick={() => openEditDialog(person)}
+                    aria-label={t('org.settings.contact_points.dialog_edit_person_title')}
+                  />
+                  <StudioDeleteButton
+                    onDelete={() => deletePerson(person.id)}
+                    confirmMessage={t('org.settings.contact_points.delete_confirm')}
+                  />
+                </StudioTable.Cell>
+              </StudioTable.Row>
+            );
+          })}
         </StudioTable.Body>
       </StudioTable>
       <div className={classes.addButtonWrapper}>
@@ -166,6 +179,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
       <PersonDialog
         dialogRef={dialogRef}
         person={draft}
+        availableEnvironments={availableEnvironments}
         onFieldChange={handleFieldChange}
         onSave={handleSave}
         onClose={closeDialog}

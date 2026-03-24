@@ -26,15 +26,17 @@ const testOrg = 'ttd';
 
 const personContactPoint: ContactPoint = {
   id: 'person-1',
-  name: 'Alice',
+  name: 'Test',
   isActive: true,
-  methods: [{ id: 'method-1', methodType: 'email', value: 'alice@example.com' }],
+  environments: [],
+  methods: [{ id: 'method-1', methodType: 'email', value: 'test@example.com' }],
 };
 
 const slackContactPoint: ContactPoint = {
   id: 'slack-1',
   name: '#general',
   isActive: true,
+  environments: [],
   methods: [{ id: 'method-2', methodType: 'slack', value: 'https://hooks.slack.com/test' }],
 };
 

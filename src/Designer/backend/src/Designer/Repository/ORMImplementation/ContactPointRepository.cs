@@ -52,6 +52,7 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
 
         existing.Name = entity.Name;
         existing.IsActive = entity.IsActive;
+        existing.Environments = entity.Environments;
 
         dbContext.ContactMethods.RemoveRange(existing.Methods);
         existing.Methods = entity
@@ -75,16 +76,14 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var existing = await dbContext.ContactPoints.SingleAsync(p => p.Org == org && p.Id == id, cancellationToken);
-        existing.IsActive = isActive;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext
+            .ContactPoints.Where(p => p.Org == org && p.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsActive, isActive), cancellationToken);
     }
 
     public async Task DeleteAsync(string org, Guid id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var existing = await dbContext.ContactPoints.SingleAsync(p => p.Org == org && p.Id == id, cancellationToken);
-        dbContext.ContactPoints.Remove(existing);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.ContactPoints.Where(p => p.Org == org && p.Id == id).ExecuteDeleteAsync(cancellationToken);
     }
 }

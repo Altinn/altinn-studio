@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Altinn.Studio.Designer.Migrations.SqlScripts;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -21,6 +22,11 @@ namespace Altinn.Studio.Designer.Migrations
                     org = table.Column<string>(type: "character varying", nullable: false),
                     name = table.Column<string>(type: "character varying", nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    environments = table.Column<List<string>>(
+                        type: "text[]",
+                        nullable: false,
+                        defaultValueSql: "'{}'::text[]"
+                    ),
                     created_at = table.Column<DateTimeOffset>(
                         type: "timestamptz",
                         nullable: false,

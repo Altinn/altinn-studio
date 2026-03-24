@@ -81,6 +81,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
             Org = org,
             Name = request.Name,
             IsActive = request.IsActive,
+            Environments = request.Environments,
             Methods = request
                 .Methods.Select(m => new ContactMethod { MethodType = m.MethodType, Value = m.Value })
                 .ToList(),
@@ -92,6 +93,7 @@ public class ContactPointsController(IContactPointsService service) : Controller
             Id = contactPoint.Id,
             Name = contactPoint.Name,
             IsActive = contactPoint.IsActive,
+            Environments = contactPoint.Environments,
             Methods = contactPoint
                 .Methods.Select(m => new ContactMethodResponse
                 {

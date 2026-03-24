@@ -28,22 +28,24 @@ const testOrg = 'ttd';
 
 const person1: ContactPoint = {
   id: 'person-1',
-  name: 'Alice',
+  name: 'Test 1',
   isActive: true,
+  environments: ['tt02'],
   methods: [
-    { id: 'm1', methodType: 'email', value: 'alice@example.com' },
+    { id: 'm1', methodType: 'email', value: 'test@example.com' },
     { id: 'm2', methodType: 'sms', value: '12345678' },
   ],
 };
 
 const person2: ContactPoint = {
   id: 'person-2',
-  name: 'Bob',
+  name: 'Test 2',
   isActive: false,
+  environments: [],
   methods: [{ id: 'm3', methodType: 'email', value: 'bob@example.com' }],
 };
 
-const defaultProps = {
+const defaultProps: { org: string; persons: ContactPoint[] } = {
   org: testOrg,
   persons: [],
 };
@@ -78,20 +80,20 @@ describe('PersonsList', () => {
 
   it('renders persons in the table', () => {
     renderPersonsList({ persons: [person1, person2] });
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(screen.getByText('Test 1')).toBeInTheDocument();
+    expect(screen.getByText('Test 2')).toBeInTheDocument();
   });
 
   it('renders email and phone values for persons', () => {
     renderPersonsList({ persons: [person1] });
-    expect(screen.getByText('alice@example.com')).toBeInTheDocument();
+    expect(screen.getByText('test@example.com')).toBeInTheDocument();
     expect(screen.getByText('12345678')).toBeInTheDocument();
   });
 
   it('renders a switch for each person with their name as aria-label', () => {
     renderPersonsList({ persons: [person1, person2] });
-    expect(screen.getByRole('switch', { name: 'Alice' })).toBeChecked();
-    expect(screen.getByRole('switch', { name: 'Bob' })).not.toBeChecked();
+    expect(screen.getByRole('switch', { name: 'Test 1' })).toBeChecked();
+    expect(screen.getByRole('switch', { name: 'Test 2' })).not.toBeChecked();
   });
 
   it('opens add dialog when add button is clicked', async () => {
@@ -111,7 +113,7 @@ describe('PersonsList', () => {
   it('calls toggleContactPointActive when toggling active status', async () => {
     const user = userEvent.setup();
     renderPersonsList({ persons: [person1] });
-    await user.click(screen.getByRole('switch', { name: 'Alice' }));
+    await user.click(screen.getByRole('switch', { name: 'Test 1' }));
     expect(queriesMock.toggleContactPointActive).toHaveBeenCalledWith(testOrg, 'person-1', false);
   });
 
@@ -144,7 +146,7 @@ describe('PersonsList', () => {
     expect(queriesMock.updateContactPoint).toHaveBeenCalledWith(
       testOrg,
       'person-1',
-      expect.objectContaining({ name: 'Alice' }),
+      expect.objectContaining({ name: 'Test 1' }),
     );
   });
 });

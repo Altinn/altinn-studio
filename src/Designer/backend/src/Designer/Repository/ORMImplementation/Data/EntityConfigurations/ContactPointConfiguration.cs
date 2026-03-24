@@ -34,6 +34,13 @@ public class ContactPointConfiguration : IEntityTypeConfiguration<ContactPointDb
             .IsRequired();
 
         builder
+            .Property(e => e.Environments)
+            .HasColumnType("text[]")
+            .HasColumnName("environments")
+            .HasDefaultValueSql("'{}'::text[]")
+            .IsRequired();
+
+        builder
             .HasMany(e => e.Methods)
             .WithOne(e => e.ContactPoint)
             .HasForeignKey(e => e.ContactPointId)

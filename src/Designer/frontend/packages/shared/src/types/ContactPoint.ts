@@ -10,6 +10,7 @@ export type ContactPoint = {
   id: string;
   name: string;
   isActive: boolean;
+  environments: string[];
   methods: ContactMethod[];
 };
 

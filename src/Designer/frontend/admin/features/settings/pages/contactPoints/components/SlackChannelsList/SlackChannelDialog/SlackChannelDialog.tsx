@@ -2,6 +2,8 @@ import type { ReactElement, RefObject } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  StudioCheckboxGroup,
+  useStudioCheckboxGroup,
   StudioDialog,
   StudioTextfield,
   StudioHeading,
@@ -10,16 +12,21 @@ import {
 } from '@studio/components';
 import classes from './SlackChannelDialog.module.css';
 
-type SlackChannelDraft = {
+const slackWebhookUrlRegex = /^https:\/\/hooks\.slack\.com\/services\/.+/;
+const slackWebhookPlaceholder = 'https://hooks.slack.com/services/...';
+
+export type SlackChannelDraft = {
   channelName: string;
   webhookUrl: string;
   isActive: boolean;
+  environments: string[];
 };
 
 type SlackChannelDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>;
   channel: SlackChannelDraft;
-  onFieldChange: (field: keyof SlackChannelDraft, value: string | boolean) => void;
+  availableEnvironments: string[];
+  onFieldChange: (field: keyof SlackChannelDraft, value: string | boolean | string[]) => void;
   onSave: () => void;
   onClose: () => void;
   isEditing: boolean;
@@ -29,6 +36,7 @@ type SlackChannelDialogProps = {
 export const SlackChannelDialog = ({
   dialogRef,
   channel,
+  availableEnvironments,
   onFieldChange,
   onSave,
   onClose,
@@ -42,8 +50,6 @@ export const SlackChannelDialog = ({
     setSubmitted(false);
   }, [channel]);
 
-  const slackWebhookUrlRegex = /^https:\/\/hooks\.slack\.com\/services\/.+/;
-
   const channelNameError =
     submitted && !channel.channelName ? t('validation_errors.required') : undefined;
 
@@ -51,7 +57,7 @@ export const SlackChannelDialog = ({
     ? !channel.webhookUrl
       ? t('validation_errors.required')
       : !slackWebhookUrlRegex.test(channel.webhookUrl)
-        ? t('validation_errors.value_as_url')
+        ? t('validation_errors.invalid_slack_webhook_url')
         : undefined
     : undefined;
 
@@ -72,15 +78,21 @@ export const SlackChannelDialog = ({
     ? t('org.settings.contact_points.dialog_edit_slack_title')
     : t('org.settings.contact_points.dialog_add_slack_title');
 
+  const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
+    value: channel.environments,
+    onChange: (value) => onFieldChange('environments', value),
+    name: 'slackEnvironments',
+  });
+
+  useEffect(() => {
+    setValue(channel.environments);
+  }, [channel.environments, setValue]);
+
   return (
     <StudioDialog ref={dialogRef} onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
-        <StudioHeading level={2} data-size='sm'>
-          {title}
-        </StudioHeading>
-        <StudioParagraph data-size='sm'>
-          {t('org.settings.contact_points.dialog_subtitle')}
-        </StudioParagraph>
+        <StudioHeading level={2}>{title}</StudioHeading>
+        <StudioParagraph>{t('org.settings.contact_points.dialog_subtitle')}</StudioParagraph>
         <div className={classes.fields}>
           <StudioTextfield
             label={t('org.settings.contact_points.field_channel_name')}
@@ -94,15 +106,31 @@ export const SlackChannelDialog = ({
             label={t('org.settings.contact_points.field_webhook_url')}
             value={channel.webhookUrl}
             onChange={(e) => onFieldChange('webhookUrl', e.target.value)}
+            placeholder={slackWebhookPlaceholder}
             required
             error={webhookUrlError}
             tagText={t('general.required')}
           />
+          <StudioCheckboxGroup
+            legend={t('org.settings.contact_points.field_environments')}
+            className={classes.environments}
+          >
+            <div className={classes.environmentOptions}>
+              {availableEnvironments.map((env) => (
+                <StudioCheckboxGroup.Item
+                  key={env}
+                  label={env}
+                  getCheckboxProps={getCheckboxProps(env)}
+                />
+              ))}
+            </div>
+          </StudioCheckboxGroup>
         </div>
         <StudioFormActions
           primary={{ label: t('org.settings.contact_points.save'), onClick: handleSave }}
           secondary={{ label: t('org.settings.contact_points.cancel'), onClick: handleClose }}
           isLoading={isSaving}
+          className={classes.actionsWrapper}
         />
       </StudioDialog.Block>
     </StudioDialog>

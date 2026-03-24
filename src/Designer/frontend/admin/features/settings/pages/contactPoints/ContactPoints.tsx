@@ -30,7 +30,9 @@ export const ContactPoints = (): ReactElement => {
 
   return (
     <div className={classes.container}>
-      <StudioHeading level={2}>{t('org.settings.contact_points.contact_points')}</StudioHeading>
+      <StudioHeading level={2} data-size='md'>
+        {t('org.settings.contact_points.contact_points')}
+      </StudioHeading>
       <section className={classes.section}>
         <PersonsList org={org} persons={persons} />
       </section>

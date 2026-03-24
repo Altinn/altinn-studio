@@ -358,6 +358,12 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<List<string>>("Environments")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("environments")
+                        .HasDefaultValueSql("'{}'::text[]");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")

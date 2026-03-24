@@ -10,5 +10,6 @@ public class ContactPoint
     public required string Name { get; init; }
     public bool IsActive { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
+    public List<string> Environments { get; init; } = [];
     public List<ContactMethod> Methods { get; init; } = [];
 }

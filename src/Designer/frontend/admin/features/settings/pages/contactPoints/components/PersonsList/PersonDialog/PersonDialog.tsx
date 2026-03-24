@@ -2,6 +2,8 @@ import type { ReactElement, RefObject } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  StudioCheckboxGroup,
+  useStudioCheckboxGroup,
   StudioDialog,
   StudioTextfield,
   StudioHeading,
@@ -10,17 +12,24 @@ import {
 } from '@studio/components';
 import classes from './PersonDialog.module.css';
 
-type PersonDraft = {
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^\+?[\d\s\-]{8,15}$/;
+const emailPlaceholder = 'name@example.com';
+const phonePlaceholder = '+4712345678';
+
+export type PersonDraft = {
   name: string;
   email: string;
   phone: string;
   isActive: boolean;
+  environments: string[];
 };
 
 type PersonDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>;
   person: PersonDraft;
-  onFieldChange: (field: keyof PersonDraft, value: string | boolean) => void;
+  availableEnvironments: string[];
+  onFieldChange: (field: keyof PersonDraft, value: string | boolean | string[]) => void;
   onSave: () => void;
   onClose: () => void;
   isEditing: boolean;
@@ -30,6 +39,7 @@ type PersonDialogProps = {
 export const PersonDialog = ({
   dialogRef,
   person,
+  availableEnvironments,
   onFieldChange,
   onSave,
   onClose,
@@ -42,9 +52,6 @@ export const PersonDialog = ({
   useEffect(() => {
     setSubmitted(false);
   }, [person]);
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^\+?[\d\s\-]{8,15}$/;
 
   const nameError = submitted && !person.name ? t('validation_errors.required') : undefined;
 
@@ -83,15 +90,21 @@ export const PersonDialog = ({
     ? t('org.settings.contact_points.dialog_edit_person_title')
     : t('org.settings.contact_points.dialog_add_person_title');
 
+  const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
+    value: person.environments,
+    onChange: (value) => onFieldChange('environments', value),
+    name: 'personEnvironments',
+  });
+
+  useEffect(() => {
+    setValue(person.environments);
+  }, [person.environments, setValue]);
+
   return (
     <StudioDialog ref={dialogRef} onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
-        <StudioHeading level={2} data-size='sm'>
-          {title}
-        </StudioHeading>
-        <StudioParagraph data-size='sm'>
-          {t('org.settings.contact_points.dialog_subtitle')}
-        </StudioParagraph>
+        <StudioHeading level={2}>{title}</StudioHeading>
+        <StudioParagraph>{t('org.settings.contact_points.dialog_subtitle')}</StudioParagraph>
         <div className={classes.fields}>
           <StudioTextfield
             label={t('org.settings.contact_points.field_name')}
@@ -105,19 +118,36 @@ export const PersonDialog = ({
             label={t('org.settings.contact_points.field_email')}
             value={person.email}
             onChange={(e) => onFieldChange('email', e.target.value)}
+            placeholder={emailPlaceholder}
             error={emailError ?? contactMethodError}
           />
           <StudioTextfield
             label={t('org.settings.contact_points.field_phone')}
             value={person.phone}
             onChange={(e) => onFieldChange('phone', e.target.value)}
+            placeholder={phonePlaceholder}
             error={phoneError ?? contactMethodError}
           />
+          <StudioCheckboxGroup
+            legend={t('org.settings.contact_points.field_environments')}
+            className={classes.environments}
+          >
+            <div className={classes.environmentOptions}>
+              {availableEnvironments.map((env) => (
+                <StudioCheckboxGroup.Item
+                  key={env}
+                  label={env}
+                  getCheckboxProps={getCheckboxProps(env)}
+                />
+              ))}
+            </div>
+          </StudioCheckboxGroup>
         </div>
         <StudioFormActions
           primary={{ label: t('org.settings.contact_points.save'), onClick: handleSave }}
           secondary={{ label: t('org.settings.contact_points.cancel'), onClick: handleClose }}
           isLoading={isSaving}
+          className={classes.actionsWrapper}
         />
       </StudioDialog.Block>
     </StudioDialog>

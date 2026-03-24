@@ -30,6 +30,7 @@ const channel1: ContactPoint = {
   id: 'slack-1',
   name: '#general',
   isActive: true,
+  environments: ['tt02'],
   methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/general' }],
 };
 
@@ -37,10 +38,11 @@ const channel2: ContactPoint = {
   id: 'slack-2',
   name: '#dev',
   isActive: false,
+  environments: [],
   methods: [{ id: 'm2', methodType: 'slack', value: 'https://hooks.slack.com/dev' }],
 };
 
-const defaultProps = {
+const defaultProps: { org: string; channels: ContactPoint[] } = {
   org: testOrg,
   channels: [],
 };

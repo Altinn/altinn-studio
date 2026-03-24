@@ -10,5 +10,6 @@ public class ContactPointEntity
     public required string Name { get; set; }
     public bool IsActive { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    public List<string> Environments { get; set; } = [];
     public List<ContactMethodEntity> Methods { get; set; } = [];
 }
