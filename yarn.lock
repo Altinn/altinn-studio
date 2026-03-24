@@ -13040,6 +13040,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "studio-root@workspace:src/Designer/frontend/studio-root"
   dependencies:
+    "@studio/ui-test": "workspace:^"
     vite: "npm:^6.3.2"
   languageName: unknown
   linkType: soft

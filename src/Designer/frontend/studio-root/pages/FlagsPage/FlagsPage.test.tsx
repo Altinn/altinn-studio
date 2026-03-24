@@ -4,9 +4,10 @@ import {
   FeatureFlagMutationContextProvider,
 } from '@studio/feature-flags';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { FlagsPage } from './FlagsPage';
 import { userEvent } from '@testing-library/user-event';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 const allFlags: FeatureFlag[] = Object.values(FeatureFlag);
 
@@ -59,7 +60,7 @@ describe('FlagsPage', () => {
 });
 
 function renderFlagsPage(flags: FeatureFlag[] = []): RenderResult {
-  return render(<FlagsPage />, {
+  return renderAndRunTimers(<FlagsPage />, {
     wrapper: ({ children }) => (
       <FeatureFlagMutationContextProvider value={{ addFlag, removeFlag }}>
         <FeatureFlagsContextProvider value={{ flags }}>{children}</FeatureFlagsContextProvider>
