@@ -382,7 +382,11 @@ func cleanupTempFile(path string, errs ...error) error {
 
 // PathInstructions returns platform-specific instructions for adding a directory to PATH.
 func PathInstructions(dir string) string {
-	switch runtime.GOOS {
+	return pathInstructions(runtime.GOOS, dir)
+}
+
+func pathInstructions(goos, dir string) string {
+	switch goos {
 	case "linux":
 		return fmt.Sprintf(`Add %s to your PATH by adding this to your shell profile:
 
@@ -409,6 +413,7 @@ Then restart your shell or run: source ~/.bashrc (or equivalent)`, dir, dir, dir
 Then restart your shell or run: source ~/.zshrc`, dir, dir, dir)
 
 	case osWindows:
+		displayDir := strings.TrimRight(dir, `\/`) + `\`
 		return fmt.Sprintf(`Add %s to your PATH:
 
   1. Open System Properties > Environment Variables
@@ -417,7 +422,7 @@ Then restart your shell or run: source ~/.zshrc`, dir, dir, dir)
   4. Click OK and restart your terminal
 
 Or run this in PowerShell (as Administrator):
-  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";%s", "User")`, dir, dir, dir)
+  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";%s", "User")`, displayDir, displayDir, displayDir)
 
 	default:
 		return fmt.Sprintf("Add %s to your PATH environment variable.", dir)
