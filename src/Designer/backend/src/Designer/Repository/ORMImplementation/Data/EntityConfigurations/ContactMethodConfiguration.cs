@@ -30,6 +30,8 @@ public class ContactMethodConfiguration : IEntityTypeConfiguration<ContactMethod
             .HasColumnName("value")
             .IsRequired();
 
-        builder.HasIndex(e => e.ContactPointId, "idx_contact_methods_contact_point_id");
+        builder
+            .HasIndex(e => new { e.ContactPointId, e.MethodType }, "idx_contact_methods_contact_point_id_method_type")
+            .IsUnique();
     }
 }

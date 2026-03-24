@@ -346,7 +346,8 @@ namespace Altinn.Studio.Designer.Migrations
                     b.HasKey("Id")
                         .HasName("contact_methods_pkey");
 
-                    b.HasIndex(new[] { "ContactPointId" }, "idx_contact_methods_contact_point_id");
+                    b.HasIndex(new[] { "ContactPointId", "MethodType" }, "idx_contact_methods_contact_point_id_method_type")
+                        .IsUnique();
 
                     b.ToTable("contact_methods", "designer");
                 });

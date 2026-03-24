@@ -64,10 +64,11 @@ namespace Altinn.Studio.Designer.Migrations
             );
 
             migrationBuilder.CreateIndex(
-                name: "idx_contact_methods_contact_point_id",
+                name: "idx_contact_methods_contact_point_id_method_type",
                 schema: "designer",
                 table: "contact_methods",
-                column: "contact_point_id"
+                columns: new[] { "contact_point_id", "method_type" },
+                unique: true
             );
 
             migrationBuilder.CreateIndex(
