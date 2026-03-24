@@ -28,11 +28,6 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
         CancellationToken cancellationToken
     )
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         var botAccount = await botAccountService.CreateAsync(
@@ -105,11 +100,6 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
         CancellationToken cancellationToken
     )
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         var (rawKey, apiKey) = await botAccountService.CreateApiKeyAsync(
@@ -158,11 +148,6 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
         CancellationToken cancellationToken
     )
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         await botAccountService.AddToDeployTeamAsync(id, org, request.Environment, cancellationToken);
         return NoContent();
     }

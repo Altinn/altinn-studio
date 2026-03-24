@@ -25,7 +25,6 @@ public class GiteaUserProvisioningService(HttpClient httpClient) : IUserProvisio
             request.Headers.TryAddWithoutValidation("X-WEBAUTH-FULLNAME", fullName);
         }
 
-        using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await httpClient.SendAsync(request, cancellationToken);
     }
 }

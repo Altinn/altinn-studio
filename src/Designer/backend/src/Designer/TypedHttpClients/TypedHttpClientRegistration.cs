@@ -226,16 +226,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             IConfiguration config
         )
         {
-            return services.AddHttpClient<IUserProvisioningService, GiteaUserProvisioningService>(
-                (_, httpClient) =>
-                {
-                    ServiceRepositorySettings serviceRepoSettings = config
-                        .GetSection(nameof(ServiceRepositorySettings))
-                        .Get<ServiceRepositorySettings>();
-                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
-                    httpClient.BaseAddress = uri;
-                }
-            );
+            return services
+                .AddHttpClient<IUserProvisioningService, GiteaUserProvisioningService>(
+                    (_, httpClient) =>
+                    {
+                        ServiceRepositorySettings serviceRepoSettings = config
+                            .GetSection(nameof(ServiceRepositorySettings))
+                            .Get<ServiceRepositorySettings>();
+                        Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                        httpClient.BaseAddress = uri;
+                    }
+                )
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
         }
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(

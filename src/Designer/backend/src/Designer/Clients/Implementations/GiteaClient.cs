@@ -936,21 +936,12 @@ public class GiteaClient(
 
     public async Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await httpClient.PutAsync(
-            $"teams/{teamId}/members/{username}",
-            null,
-            cancellationToken
-        );
-        response.EnsureSuccessStatusCode();
+        await httpClient.PutAsync($"teams/{teamId}/members/{username}", null, cancellationToken);
     }
 
     public async Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await httpClient.DeleteAsync(
-            $"teams/{teamId}/members/{username}",
-            cancellationToken
-        );
-        response.EnsureSuccessStatusCode();
+        await httpClient.DeleteAsync($"teams/{teamId}/members/{username}", cancellationToken);
     }
 
     private static string AddRefIfExists(string path, string reference)
