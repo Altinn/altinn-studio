@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models.BotAccount;
 using Altinn.Studio.Designer.Models.UserAccount;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -20,13 +19,12 @@ public class BotAccountService(
     DesignerdbContext dbContext,
     IUserProvisioningService userProvisioningService,
     IApiKeyService apiKeyService,
-    IGiteaClient giteaClient,
+    IDeployEnvironmentAccessService deployEnvironmentAccessService,
     TimeProvider timeProvider
 ) : IBotAccountService
 {
     private const int MaxGiteaUsernameLength = 40;
     private const int RandomSuffixLength = 4;
-    private const string DeployTeamPrefix = "Deploy-";
 
     public async Task<BotAccount> CreateAsync(
         string org,
@@ -161,14 +159,7 @@ public class BotAccountService(
     )
     {
         var botAccount = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
-        var orgTeams = await giteaClient.GetOrgTeamsAsync(org, cancellationToken);
-        string teamName = $"{DeployTeamPrefix}{environment}";
-
-        var team =
-            orgTeams.FirstOrDefault(t => t.Name.Equals(teamName, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException($"Deploy team '{teamName}' not found in org '{org}'.");
-
-        await giteaClient.AddTeamMemberAsync(team.Id, botAccount.Username, cancellationToken);
+        await deployEnvironmentAccessService.GrantAccessAsync(org, botAccount.Username, environment, cancellationToken);
     }
 
     public async Task RemoveFromDeployTeamAsync(
@@ -179,14 +170,12 @@ public class BotAccountService(
     )
     {
         var botAccount = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
-        var orgTeams = await giteaClient.GetOrgTeamsAsync(org, cancellationToken);
-        string teamName = $"{DeployTeamPrefix}{environment}";
-
-        var team =
-            orgTeams.FirstOrDefault(t => t.Name.Equals(teamName, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException($"Deploy team '{teamName}' not found in org '{org}'.");
-
-        await giteaClient.RemoveTeamMemberAsync(team.Id, botAccount.Username, cancellationToken);
+        await deployEnvironmentAccessService.RevokeAccessAsync(
+            org,
+            botAccount.Username,
+            environment,
+            cancellationToken
+        );
     }
 
     private async Task<UserAccountDbModel> GetBotAccountModelAsync(
@@ -212,17 +201,9 @@ public class BotAccountService(
         CancellationToken cancellationToken
     )
     {
-        var orgTeams = await giteaClient.GetOrgTeamsAsync(org, cancellationToken);
-
         foreach (string env in environments)
         {
-            string teamName = $"{DeployTeamPrefix}{env}";
-            var team = orgTeams.FirstOrDefault(t => t.Name.Equals(teamName, StringComparison.OrdinalIgnoreCase));
-
-            if (team != null)
-            {
-                await giteaClient.AddTeamMemberAsync(team.Id, botUsername, cancellationToken);
-            }
+            await deployEnvironmentAccessService.GrantAccessAsync(org, botUsername, env, cancellationToken);
         }
     }
 
