@@ -127,24 +127,35 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             // Expected on shutdown
         }
 
-        // Wait for all in-flight flushes to complete
-        for (int i = 0; i < _settings.UpdateBuffer.FlushConcurrency; i++)
+        // Wait for all in-flight flushes to complete (bounded to prevent indefinite hangs)
+        using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try
         {
-            await flushSemaphore.WaitAsync(CancellationToken.None);
-        }
+            for (int i = 0; i < _settings.UpdateBuffer.FlushConcurrency; i++)
+            {
+                await flushSemaphore.WaitAsync(drainCts.Token);
+            }
 
-        // batch may still hold items from an interrupted iteration — append remaining channel items
-        while (_channel.Reader.TryRead(out var remaining))
+            // batch may still hold items from an interrupted iteration — append remaining channel items
+            while (_channel.Reader.TryRead(out var remaining))
+            {
+                batch.Add(remaining);
+            }
+
+            if (batch.Count > 0)
+            {
+                await FlushBatchCore(batch, drainCts.Token);
+            }
+
+            _logger.LogInformation("WorkflowUpdateBuffer shutdown complete");
+        }
+        catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
-            batch.Add(remaining);
+            _logger.LogWarning(
+                "WorkflowUpdateBuffer drain timed out — {Count} in-flight flushes may not have completed",
+                _settings.UpdateBuffer.FlushConcurrency
+            );
         }
-
-        if (batch.Count > 0)
-        {
-            await FlushBatchCore(batch, CancellationToken.None);
-        }
-
-        _logger.LogInformation("WorkflowUpdateBuffer shutdown complete");
     }
 
     private async Task FlushBatch(List<WorkflowUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
