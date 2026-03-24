@@ -5912,6 +5912,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:src/Designer/frontend/dashboard"
   dependencies:
+    "@studio/ui-test": "workspace:^"
     jest: "npm:29.7.0"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
