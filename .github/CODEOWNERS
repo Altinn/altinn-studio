@@ -10,6 +10,27 @@ src/test/K6/**/docker-compose.yml                               @altinn/team-cor
 src/test/K6/**/package.json                                     @altinn/team-core
 src/test/K6/**/yarn.lock                                        @altinn/team-core
 
+# Team Utforming
+.github/workflows/app-frontend-codeql.yml                       @altinn/team-altinn-studio-utforming
+.github/workflows/app-frontend-compare-repos.yml                @altinn/team-altinn-studio-utforming
+.github/workflows/app-frontend-cypress.yml                      @altinn/team-altinn-studio-utforming
+.github/workflows/app-frontend-k6-browser.yml                   @altinn/team-altinn-studio-utforming
+.github/workflows/app-frontend-lighthouse-ci.yml                @altinn/team-altinn-studio-utforming
+.github/workflows/app-frontend-unit-tests.yml                   @altinn/team-altinn-studio-utforming
+.github/workflows/designer-frontend-codeql.yml                  @altinn/team-altinn-studio-utforming
+.github/workflows/designer-frontend-config-coverage.yml         @altinn/team-altinn-studio-utforming
+.github/workflows/designer-frontend-playwright-staging.yml      @altinn/team-altinn-studio-utforming
+.github/workflows/designer-frontend-run-playwright-on-pr.yaml   @altinn/team-altinn-studio-utforming
+.github/workflows/designer-frontend-unit-tests.yml              @altinn/team-altinn-studio-utforming
+.github/workflows/storybook-to-github-pages.yaml                @altinn/team-altinn-studio-utforming
+.github/workflows/studio-components-deploy.yaml                 @altinn/team-altinn-studio-utforming
+.github/workflows/studio-components-legacy-deploy.yaml          @altinn/team-altinn-studio-utforming
+src/App/frontend/**/docker-compose.yml                          @altinn/team-altinn-studio-utforming
+src/App/frontend/**/package.json                                @altinn/team-altinn-studio-utforming
+src/App/frontend/**/yarn.lock                                   @altinn/team-altinn-studio-utforming
+src/Designer/frontend/**/package.json                           @altinn/team-altinn-studio-utforming
+src/Designer/frontend/**/yarn.lock                              @altinn/team-altinn-studio-utforming
+
 # Team Access Info
 src/Designer/frontend/resourceadm/**/package.json               @altinn/team-access-info
 
