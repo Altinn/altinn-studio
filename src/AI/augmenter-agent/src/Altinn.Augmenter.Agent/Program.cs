@@ -26,6 +26,7 @@ builder.Services.AddHostedService<PdfGenerationBackgroundService>();
 
 // Services
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
+builder.Services.AddSingleton<IRequestInfoDataMapper, RequestInfoDataMapper>();
 builder.Services.AddScoped<IMultipartParserService, MultipartParserService>();
 var callbackOptions = builder.Configuration.GetSection(CallbackOptions.SectionName).Get<CallbackOptions>() ?? new CallbackOptions();
 builder.Services.AddHttpClient<ICallbackService, CallbackService>(client =>

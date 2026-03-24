@@ -10,23 +10,27 @@ public sealed class PdfGeneratorService(
     IConfiguration configuration,
     IOptions<PdfGenerationOptions> pdfOptions) : IPdfGeneratorService
 {
-    public async Task<byte[]> GeneratePdfAsync(DateTime timestamp, CancellationToken cancellationToken = default)
+    public async Task<byte[]> GeneratePdfAsync(JsonDocument data, CancellationToken cancellationToken = default)
     {
-        var templatePath = Path.Combine(AppContext.BaseDirectory, pdfOptions.Value.TemplatePath);
+        var templateDir = Path.Combine(AppContext.BaseDirectory, "pdf-templates");
+        var templateFile = Path.GetFileName(pdfOptions.Value.TemplatePath);
 
         var tempDir = Path.Combine(Path.GetTempPath(), "augmenter-agent", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
 
-        var inputPath = Path.Combine(tempDir, "input.typ");
+        var inputPath = Path.Combine(tempDir, templateFile);
         var outputPath = Path.Combine(tempDir, "output.pdf");
         var dataPath = Path.Combine(tempDir, "data.json");
 
         try
         {
-            File.Copy(templatePath, inputPath);
+            CopyTemplateFiles(templateDir, tempDir);
 
-            var dataJson = JsonSerializer.Serialize(new { timestamp = timestamp.ToString("yyyy-MM-dd HH:mm:ss") });
-            await File.WriteAllTextAsync(dataPath, dataJson, cancellationToken);
+            await using (var fs = File.Create(dataPath))
+            {
+                using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true });
+                data.WriteTo(writer);
+            }
 
             using var process = new Process();
             process.StartInfo = new ProcessStartInfo
@@ -41,7 +45,6 @@ public sealed class PdfGeneratorService(
 
             process.Start();
 
-            // Read stdout and stderr concurrently to avoid deadlocks
             var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
             var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
 
@@ -69,7 +72,6 @@ public sealed class PdfGeneratorService(
             }
 
             var stderr = await stderrTask;
-            // Ensure stdout is also consumed
             await stdoutTask;
 
             if (process.ExitCode != 0)
@@ -90,6 +92,18 @@ public sealed class PdfGeneratorService(
             {
                 logger.LogWarning(ex, "Failed to clean up temp directory: {TempDir}", tempDir);
             }
+        }
+    }
+
+    private static void CopyTemplateFiles(string sourceDir, string targetDir)
+    {
+        if (!Directory.Exists(sourceDir))
+            return;
+
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            var destFile = Path.Combine(targetDir, Path.GetFileName(file));
+            File.Copy(file, destFile, overwrite: true);
         }
     }
 }

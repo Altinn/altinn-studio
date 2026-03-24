@@ -9,7 +9,7 @@
 // ---------------------------------------------------------------------------
 // 1. Les JSON-datagrunnlag
 // ---------------------------------------------------------------------------
-#let data = json(sys.inputs.at("data", default: "data.json"))
+#let data = json("data.json")
 
 // ---------------------------------------------------------------------------
 // 2. Sidesett (A4, Calibri, norske marginer lik originaldokumentet)

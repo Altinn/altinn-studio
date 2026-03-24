@@ -46,7 +46,6 @@ public static class GenerateAsyncEndpoints
 
             GenerateEndpoints.LogParsedInput(logger, "/generate-async", parsed);
 
-            // TODO: Files are captured in the job but not yet passed to PDF generation.
             var job = new PdfGenerationJob(parsed.CallbackUrl, DateTime.UtcNow, parsed.Files);
             if (!queue.TryEnqueue(job))
             {

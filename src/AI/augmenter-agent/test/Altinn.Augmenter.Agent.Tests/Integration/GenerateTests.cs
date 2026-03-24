@@ -9,11 +9,33 @@ public class GenerateTests(TestWebApplicationFactory factory) : IClassFixture<Te
 {
     private readonly HttpClient _client = factory.CreateClient();
 
+    private static readonly string TestApplicationJson = """
+        {
+            "FlatData": {
+                "BevillingsType": "arrangement",
+                "Arrangement": {
+                    "Navn": "Testfest",
+                    "ArrangementPeriode": [{ "StartDato": "2026-12-12", "SluttDato": "2026-12-12" }],
+                    "Arrangementssted": {
+                        "StedsNavn": "Festsalen",
+                        "StedsAdresse": { "Gateadresse": "Testveien 1" }
+                    }
+                },
+                "Bevillingsansvarlig": {
+                    "Styrer": { "FulltNavn": "Test Person", "Foedselsnummer": "01039012345" },
+                    "Stedfortreder": { "Fornavn": "Ole", "Etternavn": "Hansen", "Foedselsnummer": "01019012345" }
+                },
+                "PersonerMedInnflytelse": { "FysiskePersoner": [], "JuridiskePersoner": [] },
+                "VedleggsListe": { "Rader": [] }
+            }
+        }
+        """;
+
     [Fact]
     public async Task PostGenerate_WithValidFile_ReturnsPdf()
     {
         using var content = new MultipartFormDataContent();
-        var fileContent = new ByteArrayContent("{}"u8.ToArray());
+        var fileContent = new ByteArrayContent(Encoding.UTF8.GetBytes(TestApplicationJson));
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
         content.Add(fileContent, "file", "test.json");
 

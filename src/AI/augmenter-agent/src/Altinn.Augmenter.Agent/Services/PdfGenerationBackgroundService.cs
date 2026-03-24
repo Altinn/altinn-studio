@@ -1,5 +1,6 @@
 using System.Diagnostics.Metrics;
 using Altinn.Augmenter.Agent.Configuration;
+using Altinn.Augmenter.Agent.Endpoints;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Augmenter.Agent.Services;
@@ -53,7 +54,21 @@ public sealed class PdfGenerationBackgroundService(
                     var pdfGenerator = scope.ServiceProvider.GetRequiredService<IPdfGeneratorService>();
                     var callbackService = scope.ServiceProvider.GetRequiredService<ICallbackService>();
 
-                    var pdfBytes = await pdfGenerator.GeneratePdfAsync(job.Timestamp, stoppingToken);
+                    var dataMapper = scope.ServiceProvider.GetRequiredService<IRequestInfoDataMapper>();
+                    var mappedData = GenerateEndpoints.MapApplicationData(job.Files, dataMapper, logger);
+
+                    if (mappedData == null)
+                    {
+                        logger.LogError("No valid JSON data found in job for {CallbackUrl}. Job dropped.", job.CallbackUrl);
+                        _jobs.Failed.Add(1);
+                        break;
+                    }
+
+                    byte[] pdfBytes;
+                    using (mappedData)
+                    {
+                        pdfBytes = await pdfGenerator.GeneratePdfAsync(mappedData, stoppingToken);
+                    }
                     await callbackService.SendPdfAsync(job.CallbackUrl, pdfBytes, stoppingToken);
 
                     _jobs.Processed.Add(1);

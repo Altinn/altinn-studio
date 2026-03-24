@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Tests.Integration.Helpers;
 using FluentAssertions;
@@ -12,6 +13,28 @@ public class GenerateAsyncTests : IClassFixture<TestWebApplicationFactory>, IDis
 {
     private readonly HttpClient _client;
     private readonly WireMockServer _callbackServer;
+
+    private static readonly string TestApplicationJson = """
+        {
+            "FlatData": {
+                "BevillingsType": "arrangement",
+                "Arrangement": {
+                    "Navn": "Testfest",
+                    "ArrangementPeriode": [{ "StartDato": "2026-12-12", "SluttDato": "2026-12-12" }],
+                    "Arrangementssted": {
+                        "StedsNavn": "Festsalen",
+                        "StedsAdresse": { "Gateadresse": "Testveien 1" }
+                    }
+                },
+                "Bevillingsansvarlig": {
+                    "Styrer": { "FulltNavn": "Test Person", "Foedselsnummer": "01039012345" },
+                    "Stedfortreder": { "Fornavn": "Ole", "Etternavn": "Hansen", "Foedselsnummer": "01019012345" }
+                },
+                "PersonerMedInnflytelse": { "FysiskePersoner": [], "JuridiskePersoner": [] },
+                "VedleggsListe": { "Rader": [] }
+            }
+        }
+        """;
 
     public GenerateAsyncTests(TestWebApplicationFactory factory)
     {
@@ -27,7 +50,7 @@ public class GenerateAsyncTests : IClassFixture<TestWebApplicationFactory>, IDis
             .RespondWith(Response.Create().WithStatusCode(200));
 
         using var content = new MultipartFormDataContent();
-        var fileContent = new ByteArrayContent("{}"u8.ToArray());
+        var fileContent = new ByteArrayContent(Encoding.UTF8.GetBytes(TestApplicationJson));
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
         content.Add(fileContent, "file", "test.json");
         content.Add(new StringContent($"{_callbackServer.Url}/callback"), "callback-url");
@@ -58,7 +81,7 @@ public class GenerateAsyncTests : IClassFixture<TestWebApplicationFactory>, IDis
     public async Task PostGenerateAsync_WithMissingCallbackUrl_Returns400()
     {
         using var content = new MultipartFormDataContent();
-        var fileContent = new ByteArrayContent("{}"u8.ToArray());
+        var fileContent = new ByteArrayContent(Encoding.UTF8.GetBytes(TestApplicationJson));
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
         content.Add(fileContent, "file", "test.json");
 
@@ -71,7 +94,7 @@ public class GenerateAsyncTests : IClassFixture<TestWebApplicationFactory>, IDis
     public async Task PostGenerateAsync_WithInvalidCallbackUrl_Returns400()
     {
         using var content = new MultipartFormDataContent();
-        var fileContent = new ByteArrayContent("{}"u8.ToArray());
+        var fileContent = new ByteArrayContent(Encoding.UTF8.GetBytes(TestApplicationJson));
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
         content.Add(fileContent, "file", "test.json");
         content.Add(new StringContent("not-a-url"), "callback-url");
