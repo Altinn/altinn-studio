@@ -9,5 +9,6 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "useUnknownInCatchVariables": true
-  }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
 }
