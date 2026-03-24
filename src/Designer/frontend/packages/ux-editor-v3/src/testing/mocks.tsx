@@ -5,7 +5,7 @@ import configureStore from 'redux-mock-store';
 import type { IAppState } from '../types/global';
 import { Provider } from 'react-redux';
 import type { PreloadedState } from '@reduxjs/toolkit';
-import { render, renderHook } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
@@ -21,6 +21,7 @@ import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { AppStore, RootState } from '../store';
 import { setupStore } from '../store';
+import { renderAndRunTimers } from '@studio/ui-test';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -83,7 +84,7 @@ export const renderWithMockStore =
       state,
       storeCreator,
     });
-    const renderResult = render(renderComponent(component));
+    const renderResult = renderAndRunTimers(renderComponent(component));
     const rerender = (rerenderedComponent) =>
       renderResult.rerender(renderComponent(rerenderedComponent));
     return { renderResult: { ...renderResult, rerender }, store };
@@ -146,7 +147,7 @@ export const renderWithProviders = (
 
   return {
     store,
-    ...render(component, {
+    ...renderAndRunTimers(component, {
       wrapper: Wrapper,
       ...renderOptions,
     }),

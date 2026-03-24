@@ -96,6 +96,7 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "npm:1.9.7"
     "@studio/icons": "workspace:^"
+    "@studio/ui-test": "workspace:^"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
     react: "npm:18.3.1"

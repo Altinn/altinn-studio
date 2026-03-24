@@ -15,6 +15,7 @@
     "uuid": "13.0.0"
   },
   "devDependencies": {
+    "@studio/ui-test": "workspace:^",
     "jest": "29.7.0",
     "redux-mock-store": "1.5.5"
   },
