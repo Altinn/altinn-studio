@@ -18,18 +18,34 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData("orgCode", "repoName", "", "", "")]
         [InlineData("orgCode", "repoName", "developerName", "", "")]
         [InlineData("orgCode", "repoName", "developerName", null, null)]
-        public void Constructor_EmptyParameters_ShouldFail(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory)
+        public void Constructor_EmptyParameters_ShouldFail(
+            string org,
+            string repository,
+            string developer,
+            string repositoriesRootDirectory,
+            string repositoryDirectory
+        )
         {
-            Assert.Throws<DirectoryNotFoundException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory));
+            Assert.Throws<DirectoryNotFoundException>(() =>
+                new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
+            );
         }
 
         [Theory]
         [InlineData("orgCode", "repoName", "developerName", "nothing here", "nothing here either")]
         [InlineData("orgCode", "repoName", "developerName", @"c:\there should not be anything here either", "")]
         [InlineData("orgCode", "repoName", "developerName", @"c:\there\should\not\be\anything\here\either", "")]
-        public void Constructor_InvalidBasePath_ShouldFail(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory)
+        public void Constructor_InvalidBasePath_ShouldFail(
+            string org,
+            string repository,
+            string developer,
+            string repositoriesRootDirectory,
+            string repositoryDirectory
+        )
         {
-            Assert.Throws<DirectoryNotFoundException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory));
+            Assert.Throws<DirectoryNotFoundException>(() =>
+                new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
+            );
         }
 
         [Theory]
@@ -40,9 +56,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public void Constructor_InValidParametersCorrectPath_ShouldFail(string org, string repository, string developer)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(
+                "ttd",
+                "hvem-er-hvem",
+                "testUser"
+            );
 
-            Assert.Throws<ArgumentException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory));
+            Assert.Throws<ArgumentException>(() =>
+                new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
+            );
         }
 
         [Theory]
@@ -52,7 +74,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
 
-            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+            var altinnGitRepository = new AltinnGitRepository(
+                org,
+                repository,
+                developer,
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             Assert.Equal(org, altinnGitRepository.Org);
             Assert.Equal(repository, altinnGitRepository.Repository);
@@ -66,7 +94,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             string repositoryDirectory = Path.Combine(repositoriesRootDirectory, "..", "Deployments");
 
-            Assert.Throws<ArgumentException>(() => new AltinnGitRepository("ttd", "hvem-er-hvem", "testUser", repositoriesRootDirectory, repositoryDirectory));
+            Assert.Throws<ArgumentException>(() =>
+                new AltinnGitRepository(
+                    "ttd",
+                    "hvem-er-hvem",
+                    "testUser",
+                    repositoriesRootDirectory,
+                    repositoryDirectory
+                )
+            );
         }
 
         [Fact]
@@ -91,7 +127,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
             {
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
                 Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
-                Assert.True(altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio", "settings.json")));
+                Assert.True(
+                    altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio", "settings.json"))
+                );
             }
             finally
             {
@@ -104,7 +142,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
 
-            var altinnGitRepository = new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+            var altinnGitRepository = new AltinnGitRepository(
+                org,
+                repository,
+                developer,
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             return altinnGitRepository;
         }

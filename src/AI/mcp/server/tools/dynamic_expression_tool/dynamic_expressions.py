@@ -8,14 +8,50 @@ from scripts.github_client import get_file
 @register_tool(
     name="dynamic_expression",
     description="""
-This tool provides documentation and implementation guides for dynamic expressions in Altinn Studio applications.
-Use this tool when you need to implement conditional logic in forms, create dynamic validation rules, or show/hide components based on conditions.
+Returns static documentation on dynamic expressions for conditional logic in Altinn forms.
 
-The tool returns comprehensive documentation on dynamic expression syntax, usage examples, and best practices directly from the official Altinn documentation.
+## Purpose
+Understand how to implement conditional show/hide, validation, and calculations in forms.
 
-Dynamic expressions must reference valid data fields created with the datamodel_tool and often apply to components selected with the layout_components_tool.
+## No Parameters Required
+Returns comprehensive static documentation - call ONCE per session.
 
-No query parameter is needed as this tool returns complete static documentation that covers all aspects of dynamic expressions.
+## Documentation Covers
+- Expression syntax and operators
+- Conditional visibility (hidden property)
+- Dynamic validation rules
+- Calculated values
+- Available functions and operators
+- Data field references
+
+## Common Use Cases
+- **Show/hide components**: `"hidden": ["equals", ["dataModel", "field"], "value"]`
+- **Conditional required**: Make fields required based on other values
+- **Calculated fields**: Auto-compute values from other fields
+- **Dynamic validation**: Validate based on complex conditions
+
+## Expression Syntax
+Expressions use array-based syntax:
+```json
+["operator", "operand1", "operand2"]
+["equals", ["dataModel", "someField"], "expectedValue"]
+```
+
+## When to Use
+✅ To understand dynamic expression syntax
+✅ When implementing conditional component visibility
+✅ When creating dynamic validation rules
+✅ When implementing calculated fields
+
+## When NOT to Use
+❌ To understand datamodel structure (use `datamodel_tool` instead)
+❌ To find component examples (use `layout_components_tool` instead)
+❌ Multiple times in same session (returns identical static content)
+
+## Related Tools
+- `datamodel_tool`: Expressions reference datamodel fields
+- `layout_components_tool`: Components use expressions in hidden, required, etc.
+- `schema_validator_tool`: Validate layouts containing expressions
 """,
     title="Dynamic Expression Tool",
     annotations=ToolAnnotations(

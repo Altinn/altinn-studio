@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { NoScopesAlert } from './NoScopesAlert';
 import { textMock } from '@studio/testing/mocks/i18nMock';

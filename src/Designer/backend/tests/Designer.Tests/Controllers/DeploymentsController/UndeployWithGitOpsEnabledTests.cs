@@ -26,19 +26,27 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<UndeployWithGitOpsEnabledTests>,
-    IClassFixture<WebApplicationFactory<Program>>,
-    IClassFixture<DesignerDbFixture>,
-    IClassFixture<MockServerFixture>
+public class UndeployWithGitOpsEnabledTests
+    : DbDesignerEndpointsTestsBase<UndeployWithGitOpsEnabledTests>,
+        IClassFixture<WebApplicationFactory<Program>>,
+        IClassFixture<DesignerDbFixture>,
+        IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
     private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManagerMock;
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock;
     private const int DecommissionDefinitionId = 297;
     private const int GitOpsManagerDefinitionId = 298;
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
 
-    public UndeployWithGitOpsEnabledTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture, MockServerFixture mockServerFixture) : base(factory, designerDbFixture)
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/deployments";
+
+    public UndeployWithGitOpsEnabledTests(
+        WebApplicationFactory<Program> factory,
+        DesignerDbFixture designerDbFixture,
+        MockServerFixture mockServerFixture
+    )
+        : base(factory, designerDbFixture)
     {
         _mockServerFixture = mockServerFixture;
         _gitOpsConfigurationManagerMock = new Mock<IGitOpsConfigurationManager>();
@@ -46,19 +54,20 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
 
         JsonConfigOverrides.Add(
             $$"""
-              {
-                 "FeatureManagement": {
-                      "{{StudioFeatureFlags.GitOpsDeploy}}": true
-                 },
-                 "Integrations": {
-                      "AzureDevOpsSettings": {
-                          "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
-                          "DecommissionDefinitionId": {{DecommissionDefinitionId}},
-                          "GitOpsManagerDefinitionId": {{GitOpsManagerDefinitionId}}
-                      }
-                 }
-              }
-              """);
+            {
+               "FeatureManagement": {
+                    "{{StudioFeatureFlags.GitOpsDeploy}}": true
+               },
+               "Integrations": {
+                    "AzureDevOpsSettings": {
+                        "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
+                        "DecommissionDefinitionId": {{DecommissionDefinitionId}},
+                        "GitOpsManagerDefinitionId": {{GitOpsManagerDefinitionId}}
+                    }
+               }
+            }
+            """
+        );
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
@@ -72,28 +81,40 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
 
     [Theory]
     [MemberData(nameof(TestDataAppExistsInGitOps))]
-    public async Task Undeploy_WhenAppExistsInGitOps_ShouldRemoveAppAndUseGitOpsManagerDefinitionId(string org, string app, string environment, string azureDevopsMockQueueBuildResponse)
+    public async Task Undeploy_WhenAppExistsInGitOps_ShouldRemoveAppAndUseGitOpsManagerDefinitionId(
+        string org,
+        string app,
+        string environment,
+        string azureDevopsMockQueueBuildResponse
+    )
     {
         // Arrange
-        _gitOpsConfigurationManagerMock.Setup(m => m.GitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>()
-        )).ReturnsAsync(true);
+        _gitOpsConfigurationManagerMock
+            .Setup(m => m.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(true);
 
-        _gitOpsConfigurationManagerMock.Setup(m => m.AppExistsInGitOpsConfigurationAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.Is<AltinnRepoName>(r => r.Name == app),
-            It.Is<AltinnEnvironment>(e => e.Name == environment)
-        )).ReturnsAsync(true);
+        _gitOpsConfigurationManagerMock
+            .Setup(m =>
+                m.AppExistsInGitOpsConfigurationAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.Is<AltinnRepoName>(r => r.Name == app),
+                    It.Is<AltinnEnvironment>(e => e.Name == environment)
+                )
+            )
+            .ReturnsAsync(true);
 
-        _gitOpsConfigurationManagerMock.Setup(m => m.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
-            It.IsAny<AltinnRepoEditingContext>(),
-            It.IsAny<AltinnEnvironment>()
-        )).Returns(Task.CompletedTask);
+        _gitOpsConfigurationManagerMock
+            .Setup(m =>
+                m.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<AltinnEnvironment>()
+                )
+            )
+            .Returns(Task.CompletedTask);
 
-        _gitOpsConfigurationManagerMock.Setup(m => m.PersistGitOpsConfiguration(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.IsAny<AltinnEnvironment>()
-        ));
+        _gitOpsConfigurationManagerMock.Setup(m =>
+            m.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>())
+        );
 
         _mockServerFixture.PrepareQueueBuildResponse(GitOpsManagerDefinitionId, azureDevopsMockQueueBuildResponse);
 
@@ -102,7 +123,11 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
 
         string uri = $"{VersionPrefix(org, app)}/undeploy";
         var request = new UndeployRequest { Environment = environment };
-        using var content = new StringContent(JsonSerializer.Serialize(request, JsonSerializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var content = new StringContent(
+            JsonSerializer.Serialize(request, JsonSerializerOptions),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
 
         // Act
         using var response = await HttpClient.PostAsync(uri, content);
@@ -110,49 +135,75 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
         // Assert
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.GitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>()
-        ), Times.Once);
+        _gitOpsConfigurationManagerMock.Verify(
+            m => m.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()),
+            Times.Once
+        );
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.AppExistsInGitOpsConfigurationAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.Is<AltinnRepoName>(r => r.Name == app),
-            It.Is<AltinnEnvironment>(e => e.Name == environment)
-        ), Times.Once);
+        _gitOpsConfigurationManagerMock.Verify(
+            m =>
+                m.AppExistsInGitOpsConfigurationAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.Is<AltinnRepoName>(r => r.Name == app),
+                    It.Is<AltinnEnvironment>(e => e.Name == environment)
+                ),
+            Times.Once
+        );
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
-            It.IsAny<AltinnRepoEditingContext>(),
-            It.Is<AltinnEnvironment>(e => e.Name == environment)
-        ), Times.Once);
+        _gitOpsConfigurationManagerMock.Verify(
+            m =>
+                m.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.Is<AltinnEnvironment>(e => e.Name == environment)
+                ),
+            Times.Once
+        );
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfiguration(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.Is<AltinnEnvironment>(e => e.Name == environment)
-        ), Times.Once);
+        _gitOpsConfigurationManagerMock.Verify(
+            m =>
+                m.PersistGitOpsConfiguration(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.Is<AltinnEnvironment>(e => e.Name == environment)
+                ),
+            Times.Once
+        );
     }
 
     [Theory]
     [MemberData(nameof(TestDataAppNotInGitOps))]
-    public async Task Undeploy_WhenAppDoesNotExistInGitOps_AndNotDeployedInCluster_ShouldFallbackToDecommissionDefinitionId(string org, string app, string environment, string azureDevopsMockQueueBuildResponse)
+    public async Task Undeploy_WhenAppDoesNotExistInGitOps_AndNotDeployedInCluster_ShouldFallbackToDecommissionDefinitionId(
+        string org,
+        string app,
+        string environment,
+        string azureDevopsMockQueueBuildResponse
+    )
     {
         // Arrange
-        _gitOpsConfigurationManagerMock.Setup(m => m.GitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>()
-        )).ReturnsAsync(true);
+        _gitOpsConfigurationManagerMock
+            .Setup(m => m.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(true);
 
-        _gitOpsConfigurationManagerMock.Setup(m => m.AppExistsInGitOpsConfigurationAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.Is<AltinnRepoName>(r => r.Name == app),
-            It.Is<AltinnEnvironment>(e => e.Name == environment)
-        )).ReturnsAsync(false);
+        _gitOpsConfigurationManagerMock
+            .Setup(m =>
+                m.AppExistsInGitOpsConfigurationAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.Is<AltinnRepoName>(r => r.Name == app),
+                    It.Is<AltinnEnvironment>(e => e.Name == environment)
+                )
+            )
+            .ReturnsAsync(false);
 
         // App is NOT deployed in cluster
-        _runtimeGatewayClientMock.Setup(m => m.IsAppDeployedWithGitOpsAsync(
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<AltinnEnvironment>(),
-            It.IsAny<CancellationToken>()
-        )).ReturnsAsync(false);
+        _runtimeGatewayClientMock
+            .Setup(m =>
+                m.IsAppDeployedWithGitOpsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(false);
 
         _mockServerFixture.PrepareQueueBuildResponse(DecommissionDefinitionId, azureDevopsMockQueueBuildResponse);
 
@@ -161,7 +212,11 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
 
         string uri = $"{VersionPrefix(org, app)}/undeploy";
         var request = new UndeployRequest { Environment = environment };
-        using var content = new StringContent(JsonSerializer.Serialize(request, JsonSerializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var content = new StringContent(
+            JsonSerializer.Serialize(request, JsonSerializerOptions),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
 
         // Act
         using var response = await HttpClient.PostAsync(uri, content);
@@ -169,49 +224,72 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
         // Assert
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.GitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>()
-        ), Times.Once);
+        _gitOpsConfigurationManagerMock.Verify(
+            m => m.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()),
+            Times.Once
+        );
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.AppExistsInGitOpsConfigurationAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.Is<AltinnRepoName>(r => r.Name == app),
-            It.Is<AltinnEnvironment>(e => e.Name == environment)
-        ), Times.Once);
+        _gitOpsConfigurationManagerMock.Verify(
+            m =>
+                m.AppExistsInGitOpsConfigurationAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.Is<AltinnRepoName>(r => r.Name == app),
+                    It.Is<AltinnEnvironment>(e => e.Name == environment)
+                ),
+            Times.Once
+        );
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
-            It.IsAny<AltinnRepoEditingContext>(),
-            It.IsAny<AltinnEnvironment>()
-        ), Times.Never);
+        _gitOpsConfigurationManagerMock.Verify(
+            m =>
+                m.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<AltinnEnvironment>()
+                ),
+            Times.Never
+        );
 
-        _gitOpsConfigurationManagerMock.Verify(m => m.PersistGitOpsConfiguration(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.IsAny<AltinnEnvironment>()
-        ), Times.Never);
+        _gitOpsConfigurationManagerMock.Verify(
+            m => m.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>()),
+            Times.Never
+        );
     }
 
     [Theory]
     [MemberData(nameof(TestDataDeprecatedPipelineScheduledEvent))]
-    public async Task Undeploy_WhenUsingDeprecatedPipeline_ShouldCreateDeprecatedPipelineScheduledEvent(string org, string app, string environment, string buildId, string azureDevopsMockQueueBuildResponse)
+    public async Task Undeploy_WhenUsingDeprecatedPipeline_ShouldCreateDeprecatedPipelineScheduledEvent(
+        string org,
+        string app,
+        string environment,
+        string buildId,
+        string azureDevopsMockQueueBuildResponse
+    )
     {
         // Arrange
-        _gitOpsConfigurationManagerMock.Setup(m => m.GitOpsConfigurationExistsAsync(
-            It.IsAny<AltinnOrgEditingContext>()
-        )).ReturnsAsync(true);
+        _gitOpsConfigurationManagerMock
+            .Setup(m => m.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(true);
 
-        _gitOpsConfigurationManagerMock.Setup(m => m.AppExistsInGitOpsConfigurationAsync(
-            It.IsAny<AltinnOrgEditingContext>(),
-            It.Is<AltinnRepoName>(r => r.Name == app),
-            It.Is<AltinnEnvironment>(e => e.Name == environment)
-        )).ReturnsAsync(false);
+        _gitOpsConfigurationManagerMock
+            .Setup(m =>
+                m.AppExistsInGitOpsConfigurationAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.Is<AltinnRepoName>(r => r.Name == app),
+                    It.Is<AltinnEnvironment>(e => e.Name == environment)
+                )
+            )
+            .ReturnsAsync(false);
 
         // App is NOT deployed in cluster - this causes deprecated pipeline to be used
-        _runtimeGatewayClientMock.Setup(m => m.IsAppDeployedWithGitOpsAsync(
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<AltinnEnvironment>(),
-            It.IsAny<CancellationToken>()
-        )).ReturnsAsync(false);
+        _runtimeGatewayClientMock
+            .Setup(m =>
+                m.IsAppDeployedWithGitOpsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(false);
 
         _mockServerFixture.PrepareQueueBuildResponse(DecommissionDefinitionId, azureDevopsMockQueueBuildResponse);
 
@@ -220,7 +298,11 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
 
         string uri = $"{VersionPrefix(org, app)}/undeploy";
         var request = new UndeployRequest { Environment = environment };
-        using var content = new StringContent(JsonSerializer.Serialize(request, JsonSerializerOptions), Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var content = new StringContent(
+            JsonSerializer.Serialize(request, JsonSerializerOptions),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
 
         // Act
         using var response = await HttpClient.PostAsync(uri, content);
@@ -229,8 +311,8 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         // Verify DeprecatedPipelineScheduled event was created in the database
-        var events = await DesignerDbFixture.DbContext.DeployEvents
-            .AsNoTracking()
+        var events = await DesignerDbFixture
+            .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
             .ToListAsync();
 
@@ -246,13 +328,13 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
             "gitops-app",
             "TestEnv",
             """
-            {
-              "id" : 90001,
-              "startTime" : "2025-01-24T09:46:54.201826+01:00",
-              "status" : "InProgress",
-              "result" : "None"
-            }
-            """
+                {
+                  "id" : 90001,
+                  "startTime" : "2025-01-24T09:46:54.201826+01:00",
+                  "status" : "InProgress",
+                  "result" : "None"
+                }
+                """,
         ];
     }
 
@@ -264,13 +346,13 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
             "non-gitops-app",
             "TestEnv",
             """
-            {
-              "id" : 90002,
-              "startTime" : "2025-01-24T09:46:54.201826+01:00",
-              "status" : "InProgress",
-              "result" : "None"
-            }
-            """
+                {
+                  "id" : 90002,
+                  "startTime" : "2025-01-24T09:46:54.201826+01:00",
+                  "status" : "InProgress",
+                  "result" : "None"
+                }
+                """,
         ];
     }
 
@@ -283,13 +365,13 @@ public class UndeployWithGitOpsEnabledTests : DbDesignerEndpointsTestsBase<Undep
             "TestEnv",
             "90003",
             """
-            {
-              "id" : 90003,
-              "startTime" : "2025-01-24T09:46:54.201826+01:00",
-              "status" : "InProgress",
-              "result" : "None"
-            }
-            """
+                {
+                  "id" : 90003,
+                  "startTime" : "2025-01-24T09:46:54.201826+01:00",
+                  "status" : "InProgress",
+                  "result" : "None"
+                }
+                """,
         ];
     }
 }

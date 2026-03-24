@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { IconPlacement } from '../../types/IconPlacement';
 import classes from './TextWithIcon.module.css';

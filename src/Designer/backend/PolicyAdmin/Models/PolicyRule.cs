@@ -13,6 +13,5 @@
         public List<string>? Actions { get; set; }
 
         public List<List<string>>? Resources { get; set; }
-
     }
 }

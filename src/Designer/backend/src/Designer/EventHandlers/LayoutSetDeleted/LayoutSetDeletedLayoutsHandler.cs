@@ -11,7 +11,10 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.LayoutSetDeleted;
 
-public class LayoutSetDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<LayoutSetDeletedEvent>
+public class LayoutSetDeletedLayoutsHandler(
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+    IAppDevelopmentService appDevelopmentService
+) : INotificationHandler<LayoutSetDeletedEvent>
 {
     public async Task Handle(LayoutSetDeletedEvent notification, CancellationToken cancellationToken)
     {
@@ -21,8 +24,16 @@ public class LayoutSetDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHan
             "layouts",
             async () =>
             {
-                List<Reference> referencesToDelete = [new Reference(ReferenceType.LayoutSet, notification.LayoutSetName, notification.LayoutSetName)];
-                return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToDelete, cancellationToken);
-            });
+                List<Reference> referencesToDelete =
+                [
+                    new Reference(ReferenceType.LayoutSet, notification.LayoutSetName, notification.LayoutSetName),
+                ];
+                return await appDevelopmentService.UpdateLayoutReferences(
+                    notification.EditingContext,
+                    referencesToDelete,
+                    cancellationToken
+                );
+            }
+        );
     }
 }

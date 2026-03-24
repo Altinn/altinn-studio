@@ -1,26 +1,15 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { cyMockResponses, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
-import { cyUserCredentials } from 'test/e2e/support/auth';
 
 const appFrontend = new AppFrontend();
 
+// Party selection redirects are handled by the backend (HomeController).
+// User 2001 (multiPartyPrompt) has doNotPromptForParty=false in localtest,
+// so the backend will redirect to party selection.
+
 describe('Stateless party selection', () => {
   it('should show party selection before starting instance', () => {
-    const user = cyUserCredentials.accountant.firstName;
-    cyMockResponses({
-      partyTypesAllowed: {
-        person: true,
-        subUnit: false,
-        bankruptcyEstate: false,
-        organisation: false,
-      },
-      allowedToInstantiate: (parties) =>
-        // Removing all other users as well, since one of the users are not allowed to instantiate on tt02
-        removeAllButOneOrg(parties).filter((party) => party.orgNumber || party.name.includes(user)),
-      doNotPromptForParty: false,
-    });
-
-    cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'accountant' });
+    // User 2001 has multiple parties and doNotPromptForParty=false
+    cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'multiPartyPrompt' });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
     cy.findByText(/Jeg ønsker ikke å bli spurt om aktør hver gang/).should('be.visible');
 

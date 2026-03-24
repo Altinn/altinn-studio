@@ -59,7 +59,10 @@ namespace DataModeling.Tests
             var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
-            var validationResults = jsonSchema.Evaluate(jsonDocument.RootElement, new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical });
+            var validationResults = jsonSchema.Evaluate(
+                jsonDocument.RootElement,
+                new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical }
+            );
 
             Assert.True(validationResults.IsValid);
             return Task.CompletedTask;
@@ -84,7 +87,10 @@ namespace DataModeling.Tests
             var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
-            var validationResults = jsonSchema.Evaluate(jsonDocument.RootElement, new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical });
+            var validationResults = jsonSchema.Evaluate(
+                jsonDocument.RootElement,
+                new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical }
+            );
 
             Assert.True(validationResults.IsValid);
         }
@@ -93,7 +99,10 @@ namespace DataModeling.Tests
         {
             var xmlStream = SharedResourcesHelper.LoadTestData(xmlResource);
 
-            return (_TestData.Model.CSharp.melding)new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.melding)).Deserialize(xmlStream);
+            return (_TestData.Model.CSharp.melding)
+                new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.melding)).Deserialize(
+                    xmlStream
+                );
         }
 
         private bool ValidateXml(string xml)

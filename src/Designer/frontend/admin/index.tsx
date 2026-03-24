@@ -1,4 +1,3 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
@@ -9,6 +8,9 @@ import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
+import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
+import { ConsentProvider } from 'app-shared/utils/consent';
+import { ConsentBanner } from 'app-shared/components';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,
@@ -32,7 +34,12 @@ root.render(
   <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
     <EnvironmentConfigProvider>
       <LoggerContextProvider config={loggerConfig}>
-        <PageRoutes />
+        <PostHogContextProvider>
+          <ConsentProvider>
+            <ConsentBanner />
+            <PageRoutes />
+          </ConsentProvider>
+        </PostHogContextProvider>
       </LoggerContextProvider>
     </EnvironmentConfigProvider>
   </ServicesContextProvider>,

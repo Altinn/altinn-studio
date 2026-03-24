@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import type { ReactElement } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';

@@ -1,8 +1,9 @@
-﻿import type { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { BasePage } from '../helpers/BasePage';
 import { Language } from '../enum/Language';
 
-// Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
+const SKIP_LOGIN_GUIDE_KEY = 'altinn-studio-skip-login-guide';
+
 const loginPageTexts: Record<string, string> = {
   login: 'Logg inn',
   username: 'Brukernavn eller e-postadresse',
@@ -76,6 +77,31 @@ export class LoginPage extends BasePage {
 
   public async clickOnNorwegianLanguageOption(): Promise<void> {
     await this.page.getByRole('menuitem', { name: Language.Norwegian }).click();
+  }
+
+  public async loginViaFakeAnsattporten(): Promise<void> {
+    await this.skipLoginGuide();
+    await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+    await this.page.waitForURL(/\/authorize/);
+    await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
+
+    const nextButton = this.page.getByRole('button', { name: 'Neste' });
+    const dashboardLoaded = this.page.waitForURL(this.getRoute('dashboard'));
+    const orgPickerVisible = nextButton.waitFor({ state: 'visible' });
+
+    const result = await Promise.race([
+      dashboardLoaded.then(() => 'dashboard' as const),
+      orgPickerVisible.then(() => 'orgPicker' as const),
+    ]);
+
+    if (result === 'orgPicker') {
+      await nextButton.click();
+      await this.confirmSuccessfulLogin();
+    }
+  }
+
+  private async skipLoginGuide(): Promise<void> {
+    await this.page.evaluate((key) => localStorage.setItem(key, 'true'), SKIP_LOGIN_GUIDE_KEY);
   }
 
   public async addSessionToSharableStorage() {

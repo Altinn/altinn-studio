@@ -32,7 +32,8 @@ public class DeploymentsController(IKubernetesApiWrapper apiWrapper) : Controlle
         var deployments = await apiWrapper.GetDeployedResources(
             resourceType: ResourceType.Deployment,
             fieldSelector: fieldSelector,
-            labelSelector: labelSelector
+            labelSelector: labelSelector,
+            cancellationToken: HttpContext.RequestAborted
         );
         return Ok(deployments);
     }

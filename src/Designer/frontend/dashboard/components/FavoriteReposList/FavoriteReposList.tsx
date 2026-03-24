@@ -1,4 +1,3 @@
-import React from 'react';
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';

@@ -23,10 +23,15 @@ namespace DataModeling.Tests.Assertions
 
             foreach (IJsonSchemaKeyword expectedKeyword in expected.Keywords)
             {
-                IJsonSchemaKeyword actualKeyword = actual.Keywords!.SingleOrDefault(kw => string.Equals(expectedKeyword.Keyword(), kw.Keyword()));
+                IJsonSchemaKeyword actualKeyword = actual.Keywords!.SingleOrDefault(kw =>
+                    string.Equals(expectedKeyword.Keyword(), kw.Keyword())
+                );
                 if (actualKeyword == null)
                 {
-                    throw ContainsException.ForCollectionItemNotFound(expectedKeyword.Keyword(), string.Join(',', actual.Keywords.Select(x => x.Keyword())));
+                    throw ContainsException.ForCollectionItemNotFound(
+                        expectedKeyword.Keyword(),
+                        string.Join(',', actual.Keywords.Select(x => x.Keyword()))
+                    );
                 }
 
                 IsEquivalentTo(expectedKeyword, actualKeyword);
@@ -34,10 +39,15 @@ namespace DataModeling.Tests.Assertions
 
             foreach (IJsonSchemaKeyword actualKeyword in actual.Keywords!)
             {
-                IJsonSchemaKeyword expectedKeyword = expected.Keywords.SingleOrDefault(kw => string.Equals(actualKeyword.Keyword(), kw.Keyword()));
+                IJsonSchemaKeyword expectedKeyword = expected.Keywords.SingleOrDefault(kw =>
+                    string.Equals(actualKeyword.Keyword(), kw.Keyword())
+                );
                 if (expectedKeyword == null)
                 {
-                    throw DoesNotContainException.ForKeyFound(actualKeyword.Keyword(), string.Join(',', expected.Keywords.Select(x => x.Keyword())));
+                    throw DoesNotContainException.ForKeyFound(
+                        actualKeyword.Keyword(),
+                        string.Join(',', expected.Keywords.Select(x => x.Keyword()))
+                    );
                 }
 
                 IsEquivalentTo(expectedKeyword, actualKeyword);
@@ -303,7 +313,10 @@ namespace DataModeling.Tests.Assertions
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(XsdUnhandledEnumAttributesKeyword expected, XsdUnhandledEnumAttributesKeyword actual)
+        private static void KeywordEqual(
+            XsdUnhandledEnumAttributesKeyword expected,
+            XsdUnhandledEnumAttributesKeyword actual
+        )
         {
             Assert.True(expected.Equals(actual));
         }
@@ -368,7 +381,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!actual.Definitions.TryGetValue(key, out JsonSchema actualProperty))
                 {
-                    throw ContainsException.ForKeyNotFound(key, string.Join(',', actual.Definitions.Select(x => x.Key)));
+                    throw ContainsException.ForKeyNotFound(
+                        key,
+                        string.Join(',', actual.Definitions.Select(x => x.Key))
+                    );
                 }
 
                 IsEquivalentTo(value, actualProperty);
@@ -378,7 +394,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!expected.Definitions.ContainsKey(key))
                 {
-                    throw DoesNotContainException.ForKeyFound(key, string.Join(',', expected.Definitions.Select(x => x.Key)));
+                    throw DoesNotContainException.ForKeyFound(
+                        key,
+                        string.Join(',', expected.Definitions.Select(x => x.Key))
+                    );
                 }
             }
         }
@@ -389,7 +408,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!actual.Definitions.TryGetValue(key, out JsonSchema actualProperty))
                 {
-                    throw ContainsException.ForKeyNotFound(key, string.Join(',', actual.Definitions.Select(x => x.Key)));
+                    throw ContainsException.ForKeyNotFound(
+                        key,
+                        string.Join(',', actual.Definitions.Select(x => x.Key))
+                    );
                 }
 
                 IsEquivalentTo(value, actualProperty);
@@ -399,7 +421,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!expected.Definitions.ContainsKey(key))
                 {
-                    throw DoesNotContainException.ForKeyFound(key, string.Join(',', expected.Definitions.Select(x => x.Key)));
+                    throw DoesNotContainException.ForKeyFound(
+                        key,
+                        string.Join(',', expected.Definitions.Select(x => x.Key))
+                    );
                 }
             }
         }
@@ -603,8 +628,10 @@ namespace DataModeling.Tests.Assertions
             {
                 if (!expected.Properties.ContainsKey(key))
                 {
-
-                    throw DoesNotContainException.ForKeyFound(key, string.Join(',', expected.Properties.Select(x => x.Key)));
+                    throw DoesNotContainException.ForKeyFound(
+                        key,
+                        string.Join(',', expected.Properties.Select(x => x.Key))
+                    );
                 }
             }
         }

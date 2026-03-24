@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DndItem, ExistingDndItem } from '../types';
 import { DragCursorPosition, DraggableEditorItemType } from '../types';
 import type { CSSProperties, ElementType, ReactElement, ReactNode } from 'react';
@@ -127,8 +127,19 @@ export function StudioDragAndDropListItem<T>({
       className={classes.root + ' ' + domSelectors.item.className}
       id={domSelectors.item.id}
     >
-      <div ref={drop} style={wrapperStyle} className={classes.wrapper}>
-        <div ref={dragPreview} style={{ opacity, boxShadow }}>
+      <div
+        ref={(element) => {
+          drop(element);
+        }}
+        style={wrapperStyle}
+        className={classes.wrapper}
+      >
+        <div
+          ref={(element) => {
+            dragPreview(element);
+          }}
+          style={{ opacity, boxShadow }}
+        >
           <StudioDragAndDropListItemContext.Provider
             value={{ isDisabled: isDragging || isParentDisabled, itemId }}
           >

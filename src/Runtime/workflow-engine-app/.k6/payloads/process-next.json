@@ -1,0 +1,35 @@
+{
+  "namespace": "test-org:test-app",
+  "idempotencyKey": "__REPLACED_AT_RUNTIME__",
+  "labels": { "org": "test-org", "app": "test-app" },
+  "context": {
+    "org": "test-org",
+    "app": "test-app",
+    "instanceOwnerPartyId": 12345,
+    "instanceGuid": "f13f515d-17b2-4f86-9c7a-a955583c4a1c",
+    "actor": {
+      "userIdOrOrgNumber": "1337",
+      "language": "nb"
+    },
+    "lockToken": "k6-load-test-lock-token"
+  },
+  "workflows": [
+    {
+      "ref": "wf-1",
+      "operationId": "next",
+      "steps": [
+        { "operationId": "ProcessTaskEnd", "command": { "type": "app", "data": { "commandKey": "ProcessTaskEnd" } } },
+        { "operationId": "CommonTaskFinalization", "command": { "type": "app", "data": { "commandKey": "CommonTaskFinalization" } } },
+        { "operationId": "EndTaskLegacyHook", "command": { "type": "app", "data": { "commandKey": "EndTaskLegacyHook" } } },
+        { "operationId": "OnTaskEndingHook", "command": { "type": "app", "data": { "commandKey": "OnTaskEndingHook" } } },
+        { "operationId": "LockTaskData", "command": { "type": "app", "data": { "commandKey": "LockTaskData" } } },
+        { "operationId": "UpdateInstanceProcessState", "command": { "type": "app", "data": { "commandKey": "UpdateInstanceProcessState" } } },
+        { "operationId": "UnlockTaskData", "command": { "type": "app", "data": { "commandKey": "UnlockTaskData" } } },
+        { "operationId": "StartTaskLegacyHook", "command": { "type": "app", "data": { "commandKey": "StartTaskLegacyHook" } } },
+        { "operationId": "OnTaskStartingHook", "command": { "type": "app", "data": { "commandKey": "OnTaskStartingHook" } } },
+        { "operationId": "ProcessTaskStart", "command": { "type": "app", "data": { "commandKey": "ProcessTaskStart" } } },
+        { "operationId": "MovedToAltinnEvent", "command": { "type": "app", "data": { "commandKey": "MovedToAltinnEvent" } } }
+      ]
+    }
+  ]
+}

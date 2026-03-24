@@ -38,7 +38,11 @@ public sealed class XsdAnyKeyword : IJsonSchemaKeyword, IEquatable<XsdAnyKeyword
         Value = new List<string>(value);
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }

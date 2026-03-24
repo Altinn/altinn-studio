@@ -1,5 +1,4 @@
 export * from './StudioAlert';
-export * from './StudioAvatar';
 export * from './StudioButton';
 export * from './StudioCenter';
 export * from './StudioCheckbox';
@@ -7,7 +6,6 @@ export * from './StudioCodeFragment';
 export * from './StudioCodeListEditor';
 export * from './StudioCombobox';
 export * from './StudioDecimalInput';
-export * from './StudioDeleteButton';
 export * from './StudioFieldset';
 export * from './StudioGridSelector';
 export * from './StudioInputTable';

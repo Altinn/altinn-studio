@@ -1,10 +1,9 @@
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
 import type { Org } from 'app-shared/types/OrgList';
-import type { StudioProfileMenuGroup } from '@studio/components-legacy';
-import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
-import { StudioAvatar } from '@studio/components';
+import type { StudioProfileMenuGroup } from '@studio/components';
+import { StudioPageHeader, StudioAvatar } from '@studio/components';
+import { useMediaQuery } from '@studio/hooks';
 import type { ReactElement } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
@@ -12,6 +11,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { NavLink, useParams } from 'react-router-dom';
 import classes from './PageHeader.module.css';
 import { useCurrentOrg, useCurrentUser } from './PageLayout';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 
 export const PageHeader = (): ReactElement => {
   const org = useCurrentOrg();
@@ -20,18 +20,20 @@ export const PageHeader = (): ReactElement => {
   const { i18n } = useTranslation();
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left
-          showTitle={shouldDisplayDesktopMenu}
-          title={org.name[i18n.language]}
-        />
-        {shouldDisplayDesktopMenu && <CenterContent />}
-        <StudioPageHeader.Right>
-          <ProfileMenu org={org} user={user} />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left
+            showTitle={shouldDisplayDesktopMenu}
+            title={org.name[i18n.language]}
+          />
+          {shouldDisplayDesktopMenu && <CenterContent />}
+          <StudioPageHeader.Right>
+            <ProfileMenu org={org} user={user} />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+      </StudioPageHeader>
+    </div>
   );
 };
 
@@ -42,8 +44,6 @@ const CenterContent = (): ReactElement => {
   return (
     <StudioPageHeader.Center>
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         renderLink={(props) => (
           <a href={`/dashboard/app-dashboard/${org}`} {...props}>
             <span>{t('dashboard.header_item_dashboard')}</span>
@@ -51,17 +51,13 @@ const CenterContent = (): ReactElement => {
         )}
       />
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         renderLink={(props) => (
-          <NavLink to={`/${org}/apps`} {...props}>
+          <NavLink data-color='dark' to={`/${org}/apps`} {...props}>
             <span className={classes.active}>{t('admin.apps.title')}</span>
           </NavLink>
         )}
       />
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         isBeta={true}
         renderLink={(props) => (
           <a href={`/dashboard/org-library/${org}`} {...props}>
@@ -87,31 +83,37 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
   });
 
   const { mutate: logout } = useLogoutMutation();
+  const { environment } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
+
+  const docsMenuItem = {
+    action: { type: 'link' as const, href: altinnDocsUrl() },
+    itemName: t('sync_header.documentation'),
+  };
+
+  const userSettingsMenuItem = {
+    action: {
+      type: 'link' as const,
+      href: USER_SETTINGS_BASENAME,
+      openInNewTab: false,
+    },
+    itemName: t('user.settings'),
+  };
+
+  const logOutMenuItem = {
+    action: { type: 'button' as const, onClick: logout },
+    itemName: t('shared.header_logout'),
+  };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    {
-      items: [
-        {
-          action: { type: 'link', href: altinnDocsUrl() },
-          itemName: t('sync_header.documentation'),
-        },
-      ],
-    },
-    {
-      items: [
-        {
-          action: { type: 'button', onClick: logout },
-          itemName: t('shared.header_logout'),
-        },
-      ],
-    },
+    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
+    { items: [logOutMenuItem] },
   ];
 
   return (
     <StudioPageHeader.ProfileMenu
       profileMenuGroups={profileMenuGroups}
       triggerButtonText={userNameAndOrg}
-      ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
           src={user?.avatar_url}
@@ -119,8 +121,6 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
           title={t('shared.header_profile_icon_text')}
         />
       }
-      color='dark'
-      variant={'regular'}
     />
   );
 };

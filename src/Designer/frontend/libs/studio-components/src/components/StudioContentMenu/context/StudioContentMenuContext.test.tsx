@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import {
@@ -33,7 +32,6 @@ describe('StudioContentMenuContext', () => {
   });
 
   it('should throw an error when useStudioContentMenuContext is used outside of a StudioContentMenuContextProvider', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = (): ReactElement => {
       useStudioContentMenuContext();
       return <div data-testid='context'>Test</div>;
@@ -42,6 +40,5 @@ describe('StudioContentMenuContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useStudioContentMenuContext must be used within a StudioContentMenuContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 });

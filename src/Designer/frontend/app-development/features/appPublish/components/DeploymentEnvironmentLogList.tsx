@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
 import { Link, Table } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';

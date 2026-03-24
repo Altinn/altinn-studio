@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +10,9 @@ import { Dynamics } from './Dynamics';
 export const Properties = () => {
   const { t } = useTranslation();
   const { formItemId: formId } = useFormItemContext();
-  const formIdRef = React.useRef(formId);
+  const formIdRef = useRef(formId);
 
-  const [openList, setOpenList] = React.useState<string[]>([]);
+  const [openList, setOpenList] = useState<string[]>([]);
 
   useEffect(() => {
     if (formIdRef.current !== formId) {

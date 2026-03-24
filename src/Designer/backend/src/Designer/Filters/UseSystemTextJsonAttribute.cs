@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,8 @@ namespace Altinn.Studio.Designer.Filters
             PropertyNameCaseInsensitive = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
         public void Apply(ActionModel action)
@@ -47,8 +49,7 @@ namespace Altinn.Studio.Designer.Filters
             if (context.Result is ObjectResult objectResult)
             {
                 // remove Newtonsoft formatter
-                objectResult.Formatters
-                    .RemoveType<NewtonsoftJsonOutputFormatter>();
+                objectResult.Formatters.RemoveType<NewtonsoftJsonOutputFormatter>();
                 objectResult.Formatters.Add(formatter);
             }
             else
@@ -68,8 +69,11 @@ namespace Altinn.Studio.Designer.Filters
                 {
                     string body = await ReadBody(bindingContext.HttpContext.Request);
 
-                    object deserialized =
-                        JsonSerializer.Deserialize(body, bindingContext.ModelType, s_jsonSerializerOptions);
+                    object deserialized = JsonSerializer.Deserialize(
+                        body,
+                        bindingContext.ModelType,
+                        s_jsonSerializerOptions
+                    );
                     bindingContext.Result = ModelBindingResult.Success(deserialized!);
                 }
                 catch (Exception ex)
@@ -87,7 +91,8 @@ namespace Altinn.Studio.Designer.Filters
                     encoding: Encoding.UTF8,
                     detectEncodingFromByteOrderMarks: true,
                     bufferSize: 1024,
-                    leaveOpen: true);
+                    leaveOpen: true
+                );
 
                 string body = await reader.ReadToEndAsync();
                 request.Body.Seek(0, SeekOrigin.Begin);

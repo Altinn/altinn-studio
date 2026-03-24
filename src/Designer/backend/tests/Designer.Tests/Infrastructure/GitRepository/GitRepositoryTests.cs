@@ -1,9 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-
 using Designer.Tests.Utils;
-
 using Xunit;
 
 namespace Designer.Tests.Infrastructure.GitRepository
@@ -17,8 +15,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public async Task WriteTextByRelativePathAsync_ValidText_ShouldReadBackEqual(string expectedContent)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            string repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest(
+                "ttd",
+                TestDataHelper.GenerateTestRepoName(),
+                "testUser"
+            );
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             var filename = $"{Guid.NewGuid()}.json";
             try
@@ -48,8 +53,16 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            var repositoryDirectory = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var repositoryDirectory = await TestDataHelper.CopyRepositoryForTest(
+                org,
+                sourceRepository,
+                developer,
+                targetRepository
+            );
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             var expectedContent = await gitRepository.ReadTextByRelativePathAsync(expectedFilePath);
 
@@ -70,27 +83,46 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task WriteTextByRelativePathAsync_RelativePathOutsideParent_ShouldThrowArgumentException()
         {
-            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository(
+                "ttd",
+                "hvem-er-hvem",
+                "testUser"
+            );
 
-            await Assert.ThrowsAsync<ArgumentException>(async () => await gitRepository.WriteTextByRelativePathAsync(@"../should.not.exist", "some content"));
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await gitRepository.WriteTextByRelativePathAsync(@"../should.not.exist", "some content")
+            );
         }
 
         [Fact]
         public async Task WriteTextByRelativePathAsync_PathDontExist_ShouldThrowException()
         {
-            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository(
+                "ttd",
+                "hvem-er-hvem",
+                "testUser"
+            );
 
             var relativeFileUrl = "test_this/does/not/exits/deleteme.txt";
             Assert.False(gitRepository.FileExistsByRelativePath(relativeFileUrl));
-            await Assert.ThrowsAsync<DirectoryNotFoundException>(async () => await gitRepository.WriteTextByRelativePathAsync(relativeFileUrl, "this file should not be here", false));
+            await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
+                await gitRepository.WriteTextByRelativePathAsync(relativeFileUrl, "this file should not be here", false)
+            );
         }
 
         [Fact]
         public async Task WriteTextByRelativePathAsync_PathDontExist_ShouldCreateDirectory()
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest(
+                "ttd",
+                TestDataHelper.GenerateTestRepoName(),
+                "testUser"
+            );
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             var relativeFileUrl = "test_directory/should/be/created/deleteme.txt";
             Assert.False(gitRepository.FileExistsByRelativePath(relativeFileUrl));
@@ -151,7 +183,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
                 int actualFileCount = Directory.GetFiles(targetPath, "*", SearchOption.AllDirectories).Length;
 
                 // Assert
-                int expectedFileCount = Directory.GetFiles(gitRepository.RepositoryDirectory, "*", SearchOption.AllDirectories).Length;
+                int expectedFileCount = Directory
+                    .GetFiles(gitRepository.RepositoryDirectory, "*", SearchOption.AllDirectories)
+                    .Length;
 
                 Assert.Equal(expectedFileCount, actualFileCount);
             }
@@ -175,7 +209,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
                 int actualFileCount = Directory.GetFiles(targetPath, "*", SearchOption.AllDirectories).Length;
 
                 // Assert
-                int expectedFileCount = Directory.GetFiles(gitRepository.RepositoryDirectory, "*", SearchOption.AllDirectories).Length;
+                int expectedFileCount = Directory
+                    .GetFiles(gitRepository.RepositoryDirectory, "*", SearchOption.AllDirectories)
+                    .Length;
 
                 Assert.True(Directory.Exists(targetPath));
                 Assert.Equal(expectedFileCount, actualFileCount);
@@ -186,11 +222,18 @@ namespace Designer.Tests.Infrastructure.GitRepository
             }
         }
 
-        private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(string org, string repository, string developer)
+        private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(
+            string org,
+            string repository,
+            string developer
+        )
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
-            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+                repositoriesRootDirectory,
+                repositoryDirectory
+            );
 
             return gitRepository;
         }

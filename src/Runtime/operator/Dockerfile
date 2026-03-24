@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM golang:1.25.6-trixie@sha256:fb4b74a39c7318d53539ebda43ccd3ecba6e447a78591889c0efc0a7235ea8b3 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.1-trixie@sha256:96b28783b99bcd265fbfe0b36a3ac6462416ce6bf1feac85d4c4ff533cbaa473 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -8,10 +8,10 @@ WORKDIR /workspace
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-# Remove the test fixture dependency from go.mod as it's not needed for building binaries
-# The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
-RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
-    sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
+# Remove the devenv dependency from go.mod as it's not needed for building binaries
+# The test/harness package is only imported by test files, not by cmd/main.go.
+RUN sed -i '/altinn\.studio\/devenv v/d' go.mod && \
+    sed -i '/replace altinn\.studio\/devenv/d' go.mod
 
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
@@ -25,11 +25,11 @@ COPY . ./
 # was called. For example, if we call make docker-build in a local env which has the Apple Silicon M1 SO
 # the docker BUILDPLATFORM arg will be linux/arm64 when for Apple x86 it will be linux/amd64. Therefore,
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -o manager cmd/main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot@sha256:cba10d7abd3e203428e86f5b2d7fd5eb7d8987c387864ae4996cf97191b33764
+FROM gcr.io/distroless/static:nonroot@sha256:e3f945647ffb95b5839c07038d64f9811adf17308b9121d8a2b87b6a22a80a39
 WORKDIR /
 COPY --from=builder /workspace/manager .
 USER 65532:65532

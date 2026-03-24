@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -22,17 +23,22 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
-	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
-	"altinn.studio/operator/internal/controller/cnpgsync"
-	"altinn.studio/operator/internal/controller/maskinporten"
-	"altinn.studio/operator/internal/controller/secretsync"
-	"altinn.studio/operator/internal/telemetry"
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
+
+	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/controller/appcodesync"
+	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
+	"altinn.studio/operator/internal/controller/cnpgsync"
+	"altinn.studio/operator/internal/controller/grafanapolicysync"
+	"altinn.studio/operator/internal/controller/inactivityscaler"
+	"altinn.studio/operator/internal/controller/maskinporten"
+	"altinn.studio/operator/internal/controller/secretsync"
+	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -41,6 +47,7 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+//nolint:gochecknoinits // Scheme registration follows controller-runtime/Kubebuilder conventions.
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(resourcesv1alpha1.AddToScheme(scheme))
@@ -51,6 +58,7 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
+//nolint:funlen,gocyclo,gocognit,gocritic // Keeping Kubebuilder's scaffolded manager setup shape intact is more important here.
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -121,6 +129,12 @@ func main() {
 	restConfig := ctrl.GetConfigOrDie()
 	telemetry.WrapTransport(restConfig)
 	syncPeriod := time.Hour * 5
+	const (
+		leaderElectionLeaseDuration = 30 * time.Second
+		leaderElectionRenewDeadline = 20 * time.Second
+		leaderElectionRetryPeriod   = 5 * time.Second
+	)
+	managerCtx := telemetry.WithoutSpan(ctx)
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
@@ -132,18 +146,14 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ec156e4c.altinn.studio",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
-
+		// Stretch the lease timings to reduce steady-state renewal chatter while
+		// keeping multiple renewal attempts before leadership is lost.
+		LeaseDuration: ptr.To(leaderElectionLeaseDuration),
+		RenewDeadline: ptr.To(leaderElectionRenewDeadline),
+		RetryPeriod:   ptr.To(leaderElectionRetryPeriod),
+		BaseContext: func() context.Context {
+			return managerCtx
+		},
 		Cache: cache.Options{
 			// SyncPeriod will force additional reconciliations periodically
 			SyncPeriod: &syncPeriod,
@@ -171,14 +181,29 @@ func main() {
 		span.End()
 		os.Exit(1)
 	}
+
+	if err = appcodesync.NewReconciler(rt, mgr.GetClient()).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "AppCodesSync")
+		span.End()
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
+
+	grafanaPolicySyncController := grafanapolicysync.NewReconciler(rt, mgr.GetClient())
+	if err = mgr.Add(grafanaPolicySyncController); err != nil {
+		setupLog.Error(err, "unable to add GrafanaPolicySync controller to manager")
+		span.End()
+		os.Exit(1)
+	}
 
 	kvSyncController, err := azurekeyvaultsync.NewReconciler(
 		ctx,
 		rt,
 		mgr.GetClient(),
 	)
-	if err != nil {
+	if errors.Is(err, azurekeyvaultsync.ErrDisabledInLocalEnv) {
+		kvSyncController = nil
+	} else if err != nil {
 		setupLog.Error(err, "unable to create KeyVaultSync controller")
 		span.End()
 		os.Exit(1)
@@ -198,6 +223,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	if rt.GetOperatorContext().Environment != operatorcontext.EnvironmentProd {
+		inactivityScalerController := inactivityscaler.NewReconciler(rt, mgr.GetClient(), mgr.GetAPIReader())
+		if err = mgr.Add(inactivityScalerController); err != nil {
+			setupLog.Error(err, "unable to add InactivityScaler controller to manager")
+			span.End()
+			os.Exit(1)
+		}
+	} else {
+		setupLog.Info("skipping InactivityScaler controller in prod")
+	}
+
 	if err = mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
 		span.End()
@@ -211,8 +247,7 @@ func main() {
 
 	setupLog.Info("starting manager")
 	span.End()
-
-	if err = mgr.Start(ctx); err != nil {
+	if err = mgr.Start(managerCtx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

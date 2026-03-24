@@ -68,10 +68,13 @@
                 </div>
                 <div class="row">
                     <div class="col-12 pt-5 text-center">
-                        <input type="button" class="btn-lg text-center" onclick="location.href='/login'" value="Logg inn" />
-                        <span>
-                            <a href="repos/user/sign_up" class="link-new-user">Opprett ny bruker</a>
-                        </span>
+                        <input type="button" class="btn-lg text-center" onclick="handleLogin()" value="Logg inn" />
+                        @if (ViewBag.StudioOidc != true)
+                        {
+                            <span>
+                                <a href="repos/user/sign_up" class="link-new-user">Opprett ny bruker</a>
+                            </span>
+                        }
                     </div>
                 </div>
             </div>
@@ -304,5 +307,17 @@
                 </div>
             </div>
         </div>
+        <script type="text/javascript">
+            var SKIP_GUIDE_KEY = 'altinn-studio-skip-login-guide';
+            var studioOidc = @(ViewBag.StudioOidc == true ? "true" : "false");
+
+            function handleLogin() {
+                if (studioOidc && localStorage.getItem(SKIP_GUIDE_KEY) !== 'true') {
+                    location.href = '/info/guide';
+                    return;
+                }
+                location.href = '/login';
+            }
+        </script>
     </body>
 </html>

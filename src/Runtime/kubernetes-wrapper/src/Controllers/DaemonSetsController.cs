@@ -32,7 +32,8 @@ public class DaemonSetsController(IKubernetesApiWrapper apiWrapper) : Controller
         var daemonSets = await apiWrapper.GetDeployedResources(
             resourceType: ResourceType.DaemonSet,
             fieldSelector: fieldSelector,
-            labelSelector: labelSelector
+            labelSelector: labelSelector,
+            cancellationToken: HttpContext.RequestAborted
         );
         return Ok(daemonSets);
     }

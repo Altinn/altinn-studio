@@ -1,11 +1,4 @@
 services:
-  localtest_loadbalancer:
-    build:
-      cache_from:
-        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest
-      cache_to:
-        - type=registry,ref=ghcr.io/altinn/altinn-studio/localtest-loadbalancer-cache:latest,mode=max
-
   altinn_pdf3:
     build:
       cache_from:

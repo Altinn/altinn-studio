@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { useStudioCheckboxGroup, StudioCheckboxGroup } from '@studio/components';
 import { useTranslation } from 'react-i18next';

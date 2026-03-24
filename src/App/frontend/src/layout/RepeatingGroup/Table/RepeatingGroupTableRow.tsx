@@ -7,6 +7,7 @@ import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
+import { translationKey } from 'src/AppComponentsBridge';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayData, useDisplayDataFor } from 'src/features/displayData/useDisplayData';
@@ -345,7 +346,7 @@ function EditElement({
       color='second'
       icon={!ariaExpanded && mobileViewSmall}
       onClick={onClick}
-      aria-label={ariaLabel}
+      aria-label={translationKey(ariaLabel)}
       className={classes.tableButton}
     >
       {showText && editButtonText}
@@ -409,7 +410,7 @@ function DeleteElement({
         popoverTarget={`delete-warning-popover-${uuid}`}
         disabled={isDeletingRow || disabled}
         onClick={() => handleDelete({ index, uuid })}
-        aria-label={ariaLabel}
+        aria-label={translationKey(ariaLabel)}
         icon={!children}
         className={classes.tableButton}
       >

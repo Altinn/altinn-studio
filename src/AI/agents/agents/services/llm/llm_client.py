@@ -14,7 +14,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
-from agents.prompts import get_prompt_content
+from agents.prompts import get_prompt_content, get_prompt_with_langfuse
 
 log = get_logger(__name__)
 config = get_config()
@@ -315,81 +315,156 @@ class LLMClient:
             return HumanMessage(content=content)
         return HumanMessage(content=user_prompt)
 
-    async def call_async(self, system_prompt: str, user_prompt: str, attachments: Optional[List[AgentAttachment]] = None, timeout: int = 300) -> str:
+    async def call_async(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        attachments: Optional[List[AgentAttachment]] = None,
+        timeout: int = 300,
+        langfuse_prompt=None,
+    ) -> str:
         """
         Make async LLM call with timeout
-        
+
         Args:
             system_prompt: System prompt
             user_prompt: User prompt
             attachments: Optional list of attachments
             timeout: Timeout in seconds (default: 300s / 5 minutes)
+            langfuse_prompt: Optional raw Langfuse prompt object for prompt-to-trace linking
         """
         if self.llm is None and not self.use_responses and not self.use_anthropic:
             raise ValueError("LLM not configured - please set OPENAI_API_KEY or configure Anthropic")
 
-        try:
-            loop = asyncio.get_event_loop()
-            if self.use_anthropic:
-                if attachments:
-                    log.warning("Attachments provided but Anthropic model does not support them in this implementation; ignoring attachments")
-                
-                def _call_anthropic():
-                    return self.anthropic_client.messages.create(
-                        model=self.model,
-                        system=system_prompt.strip() if system_prompt else "",
-                        messages=[{"role": "user", "content": user_prompt.strip()}],
-                        max_tokens=8192,
+        langfuse = get_client()
+        with langfuse.start_as_current_observation(
+            name=f"llm_call_{self.role}",
+            as_type="generation",
+            model=self.model,
+            input={
+                "system_message": system_prompt,
+                "user_message": user_prompt,
+                "role": self.role,
+                "model_metadata": self.get_model_metadata(),
+                "attachment_count": len(attachments) if attachments else 0,
+                "attachment_names": [att.name for att in attachments] if attachments else [],
+            },
+            metadata={"role": self.role},
+        ) as span:
+            if langfuse_prompt is not None:
+                try:
+                    langfuse.update_current_generation(prompt=langfuse_prompt)
+                except Exception as e:
+                    log.debug("Failed to link langfuse prompt to generation: %s", e)
+
+            try:
+                loop = asyncio.get_running_loop()
+                response_text = ""
+                usage_details = {}
+
+                if self.use_anthropic:
+                    if attachments:
+                        log.warning("Attachments provided but Anthropic model does not support them in this implementation; ignoring attachments")
+
+                    def _call_anthropic():
+                        return self.anthropic_client.messages.create(
+                            model=self.model,
+                            system=system_prompt.strip() if system_prompt else "",
+                            messages=[{"role": "user", "content": user_prompt.strip()}],
+                            max_tokens=8192,
+                        )
+
+                    response = await asyncio.wait_for(
+                        loop.run_in_executor(None, _call_anthropic),
+                        timeout=timeout
                     )
+                    response_text = self._extract_anthropic_text(response)
+                    usage = getattr(response, "usage", None)
+                    if usage:
+                        usage_details = {
+                            "input_tokens": getattr(usage, "input_tokens", 0),
+                            "output_tokens": getattr(usage, "output_tokens", 0),
+                            "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0),
+                        }
+                elif self.use_responses:
+                    if attachments:
+                        log.warning("Attachments provided but responses model does not support them; ignoring attachments")
+                    input_messages = self._build_responses_input(system_prompt, user_prompt)
 
-                response = await asyncio.wait_for(
-                    loop.run_in_executor(None, _call_anthropic),
-                    timeout=timeout
-                )
-                return self._extract_anthropic_text(response)
-            elif self.use_responses:
-                if attachments:
-                    log.warning("Attachments provided but responses model does not support them; ignoring attachments")
-                input_messages = self._build_responses_input(system_prompt, user_prompt)
+                    def _call_responses():
+                        return self.responses_client.responses.create(
+                            model=self.model,
+                            input=input_messages,
+                        )
 
-                def _call_responses():
-                    return self.responses_client.responses.create(
-                        model=self.model,
-                        input=input_messages,
+                    response = await asyncio.wait_for(
+                        loop.run_in_executor(None, _call_responses),
+                        timeout=timeout
                     )
+                    response_text = self._extract_responses_text(response)
+                    usage = getattr(response, "usage", None)
+                    if usage:
+                        usage_details = {
+                            "input_tokens": getattr(usage, "input_tokens", 0),
+                            "output_tokens": getattr(usage, "output_tokens", 0),
+                            "total_tokens": getattr(usage, "total_tokens", 0),
+                        }
+                elif self.llm is None:
+                    raise ValueError("LLM client not initialized")
+                elif self.use_completions:
+                    if attachments:
+                        log.warning("Attachments provided but completion model does not support them; ignoring attachments")
+                    prompt = self._format_completion_prompt(system_prompt, user_prompt)
+                    response = await asyncio.wait_for(
+                        loop.run_in_executor(None, self.llm.invoke, prompt),
+                        timeout=timeout
+                    )
+                    response_text = response.strip() if isinstance(response, str) else str(response)
+                else:
+                    messages = [
+                        SystemMessage(content=system_prompt),
+                        self._build_human_message(user_prompt, attachments)
+                    ]
+                    response = await asyncio.wait_for(
+                        loop.run_in_executor(None, self.llm.invoke, messages),
+                        timeout=timeout
+                    )
+                    response_text = response.content.strip()
+                    if hasattr(response, "response_metadata") and "token_usage" in response.response_metadata:
+                        usage = response.response_metadata["token_usage"]
+                        usage_details = {
+                            "input_tokens": usage.get("prompt_tokens", 0),
+                            "output_tokens": usage.get("completion_tokens", 0),
+                            "total_tokens": usage.get("total_tokens", 0),
+                        }
 
-                response = await asyncio.wait_for(
-                    loop.run_in_executor(None, _call_responses),
-                    timeout=timeout
-                )
-                return self._extract_responses_text(response)
-            elif self.llm is None:
-                raise ValueError("LLM client not initialized")
-            elif self.use_completions:
-                if attachments:
-                    log.warning("Attachments provided but completion model does not support them; ignoring attachments")
-                prompt = self._format_completion_prompt(system_prompt, user_prompt)
-                response = await asyncio.wait_for(
-                    loop.run_in_executor(None, self.llm.invoke, prompt),
-                    timeout=timeout
-                )
-                return response.strip() if isinstance(response, str) else str(response)
-            else:
-                messages = [
-                    SystemMessage(content=system_prompt),
-                    self._build_human_message(user_prompt, attachments)
-                ]
-                response = await asyncio.wait_for(
-                    loop.run_in_executor(None, self.llm.invoke, messages),
-                    timeout=timeout
-                )
-                return response.content.strip()
-        except asyncio.TimeoutError:
-            log.error(f"LLM call timed out after {timeout} seconds (role={self.role}, model={self.model})")
-            raise TimeoutError(f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request.")
-        except Exception as e:
-            log.error(f"LLM call failed: {e}")
-            raise
+                try:
+                    span.update(
+                        output={"response": response_text},
+                        usage_details=usage_details if usage_details else None,
+                        metadata={
+                            "request_length": len(system_prompt) + len(user_prompt),
+                            "response_length": len(response_text),
+                        },
+                    )
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with response: %s", span_e)
+                return response_text
+
+            except asyncio.TimeoutError:
+                log.error(f"LLM call timed out after {timeout} seconds (role={self.role}, model={self.model})")
+                try:
+                    span.update(metadata={"error": "timeout"})
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with timeout error: %s", span_e)
+                raise TimeoutError(f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request.")
+            except Exception as e:
+                log.error(f"LLM call failed: {e}")
+                try:
+                    span.update(metadata={"error": str(e)})
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with error: %s", span_e)
+                raise
 
     def get_model_metadata(self) -> dict:
         """Get model metadata for tracing"""
@@ -421,11 +496,12 @@ class LLMClient:
             }
     
     def call_sync(
-        self, 
-        system_message: str, 
-        user_message: str, 
+        self,
+        system_message: str,
+        user_message: str,
         attachments: Optional[List[AgentAttachment]] = None,
-        conversation_history: Optional[List] = None
+        conversation_history: Optional[List] = None,
+        langfuse_prompt=None,
     ) -> str:
         """
         Synchronous call to LLM
@@ -454,6 +530,11 @@ class LLMClient:
             },
             metadata={"role": self.role}
         ) as span:
+            if langfuse_prompt is not None:
+                try:
+                    langfuse.update_current_generation(prompt=langfuse_prompt)
+                except Exception as e:
+                    log.debug("Failed to link langfuse prompt to generation: %s", e)
 
             try:
                 if self.use_anthropic:
@@ -529,19 +610,25 @@ class LLMClient:
                             "total_tokens": usage.get('total_tokens', 0)
                         }
                 
-                span.update(
-                    output={"response": response_text},
-                    usage_details=usage_details if usage_details else None,
-                    metadata={
-                        "request_length": len(system_message) + len(user_message),
-                        "response_length": len(response_text)
-                    }
-                )
-                
+                try:
+                    span.update(
+                        output={"response_length": len(response_text)},
+                        usage_details=usage_details if usage_details else None,
+                        metadata={
+                            "request_length": len(system_message) + len(user_message),
+                            "response_length": len(response_text)
+                        }
+                    )
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with response: %s", span_e)
+
                 return response_text
-                
+
             except Exception as e:
-                span.update(metadata={"error": str(e)})
+                try:
+                    span.update(metadata={"error": str(e)})
+                except Exception as span_e:
+                    log.debug("Failed to update Langfuse span with error: %s", span_e)
                 raise
 
 
@@ -618,12 +705,12 @@ def get_llm_client(role: str = "default") -> LLMClient:
 
 async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
     """Parse user intent using LLM"""
-    system_prompt = get_prompt_content("intent_security")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("intent_security")
 
     user_prompt = f"Parse this goal: {goal}"
 
     client = get_llm_client()
-    response = await client.call_async(system_prompt, user_prompt, attachments=attachments)
+    response = await client.call_async(system_prompt, user_prompt, attachments=attachments, langfuse_prompt=lf_prompt)
 
     cleaned_response = response.strip()
     if cleaned_response.startswith("```"):
@@ -654,13 +741,13 @@ async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttac
 
 def suggest_goals_with_llm(unclear_goal: str) -> list[str]:
     """Generate goal suggestions using LLM"""
-    system_prompt = get_prompt_content("goal_suggestions")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("goal_suggestions")
 
     user_prompt = f"Suggest clear goals similar to: {unclear_goal}"
 
     try:
         client = get_llm_client()
-        response = client.call_sync(system_prompt, user_prompt)
+        response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
 
         # Split response into lines and clean up
         suggestions = [line.strip().lstrip('- ') for line in response.split('\n') if line.strip()]

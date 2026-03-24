@@ -30,9 +30,10 @@ class PatchGenerator:
         tool_results: Optional[List[Dict[str, Any]]] = None,
         implementation_plan: Optional[Dict[str, Any]] = None,
         attachments: Optional[list] = None,
+        designer_api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate a patch while caching intermediate artefacts."""
-        
+
         from shared.utils.logging_utils import get_logger
         log = get_logger(__name__)
 
@@ -49,6 +50,7 @@ class PatchGenerator:
                 tool_results_override=tool_results,
                 implementation_plan_override=implementation_plan,
                 attachments=attachments,
+                designer_api_key=designer_api_key,
             )
             
             if not pipeline_output:

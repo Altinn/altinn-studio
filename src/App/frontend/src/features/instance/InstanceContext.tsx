@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
+import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';

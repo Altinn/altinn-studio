@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
@@ -213,7 +213,7 @@ describe('ServicesContext', () => {
   it('Throws an error if used outside a ServiceContextProvider', () => {
     const renderHookFn = () => renderHook(() => useServicesContext());
     jest.spyOn(console, 'error').mockImplementation();
-    expect(renderHookFn).toThrowError(
+    expect(renderHookFn).toThrow(
       'useServicesContext must be used within a ServicesContextProvider.',
     );
   });

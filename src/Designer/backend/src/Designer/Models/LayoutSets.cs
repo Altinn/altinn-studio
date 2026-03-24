@@ -25,7 +25,8 @@ public class LayoutSetConfig
     [JsonPropertyName("id")]
     public required string Id { get; set; }
 
-    [JsonPropertyName("dataType")] public string? DataType { get; set; }
+    [JsonPropertyName("dataType")]
+    public string? DataType { get; set; }
 
     [JsonPropertyName("tasks")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -44,6 +45,10 @@ public class UiSettings
     [JsonPropertyName("taskNavigation")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IEnumerable<TaskNavigationGroup>? TaskNavigation { get; set; }
+
+    [JsonPropertyName("validationOnNavigation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ValidationOnNavigation? ValidationOnNavigation { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
@@ -72,5 +77,5 @@ public class TaskNavigationReceipt : TaskNavigationGroup
 public enum TaskNavigationReceiptType
 {
     [JsonStringEnumMemberName("receipt")]
-    Receipt
+    Receipt,
 }

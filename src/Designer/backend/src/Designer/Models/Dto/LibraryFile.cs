@@ -11,7 +11,13 @@ public sealed record LibraryFile
     public string? Url { get; set; }
     public ProblemDetails? Problem { get; set; }
 
-    public LibraryFile(string path, string contentType, string? content = null, string? url = null, ProblemDetails? problem = null)
+    public LibraryFile(
+        string path,
+        string contentType,
+        string? content = null,
+        string? url = null,
+        ProblemDetails? problem = null
+    )
     {
         if (problem is not null && AtLeastOneHasValue(content, url))
         {
@@ -31,6 +37,8 @@ public sealed record LibraryFile
     }
 
     private static bool AtLeastOneHasValue(string? first, string? second) => first is not null || second is not null;
+
     private static bool BothAreNull(string? first, string? second) => first is null && second is null;
+
     private static bool BothNotNull(string? first, string? second) => first is not null && second is not null;
 }

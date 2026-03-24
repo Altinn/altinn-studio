@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { FeedbackFormImpl } from '../config/FeedbackFormImpl';
 import { mockQuestions } from '../../mocks/mockQuestionsConfig';

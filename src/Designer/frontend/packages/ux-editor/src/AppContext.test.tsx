@@ -105,8 +105,8 @@ describe('AppContext', () => {
 
     await clickButton();
 
-    await waitFor(async () =>
-      expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
+    await waitFor(() =>
+      expect(screen.getByTestId('selectedFormLayoutName').textContent).toEqual(
         mockSelectedFormLayoutName,
       ),
     );
@@ -119,8 +119,8 @@ describe('AppContext', () => {
 
     await clickButton();
 
-    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
+    await waitFor(() => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
         queryKey: [AppsQueryKey.AppLayouts, mockSelectedFormLayoutSetName],
       }),
@@ -134,8 +134,8 @@ describe('AppContext', () => {
 
     await clickButton();
 
-    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
+    await waitFor(() => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
         queryKey: [AppsQueryKey.AppLayoutSets],
       }),
@@ -151,8 +151,8 @@ describe('AppContext', () => {
 
     await clickButton();
 
-    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
+    await waitFor(() => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
         queryKey: [AppsQueryKey.AppLayoutSettings, mockSelectedFormLayoutSetName],
       }),
@@ -168,8 +168,8 @@ describe('AppContext', () => {
 
     await clickButton();
 
-    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
+    await waitFor(() => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
         queryKey: [AppsQueryKey.AppLayoutSettings, mockSelectedFormLayoutSetName],
       }),
@@ -185,8 +185,8 @@ describe('AppContext', () => {
 
     await clickButton();
 
-    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
+    await waitFor(() => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
         queryKey: [AppsQueryKey.AppTextResources, mockLanguage],
       }),
@@ -202,8 +202,8 @@ describe('AppContext', () => {
 
     await clickButton();
 
-    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
+    await waitFor(() => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
         queryKey: [AppsQueryKey.AppTextResources, mockLanguage],
       }),

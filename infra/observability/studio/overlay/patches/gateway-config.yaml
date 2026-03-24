@@ -8,17 +8,19 @@ spec:
       azuremonitor:
         spaneventsenabled: true
         connection_string: $${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
+      # Sink metrics while preserving pipeline structure for future re-enable.
+      nop: {}
 
     service:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [transform/azuremonitor, tail_sampling, batch]
+          processors: [transform/azuremonitor, transform/azuremonitor_expected_404, tail_sampling, batch]
           exporters: [azuremonitor]
         metrics:
           receivers: [otlp]
-          processors: [batch]
-          exporters: [azuremonitor]
+          processors: [filter/metrics_allowlist, batch]
+          exporters: [nop]
         logs:
           receivers: [otlp]
           processors: [batch]

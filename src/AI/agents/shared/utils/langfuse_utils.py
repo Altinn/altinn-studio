@@ -13,15 +13,15 @@ _initialized = False
 def init_langfuse():
     """Initialize Langfuse with proper configuration"""
     global _client, _initialized
-    
+
     if _initialized:
         log.debug("Langfuse already initialized")
         return _client
-    
+
     if not config.LANGFUSE_ENABLED:
         log.info("Langfuse tracking is disabled")
         return None
-    
+
     try:
         # Initialize Langfuse client (without 'enabled' parameter - control via LANGFUSE_ENABLED env var)
         _client = Langfuse(
@@ -31,12 +31,12 @@ def init_langfuse():
             release=config.LANGFUSE_RELEASE,
             environment=config.LANGFUSE_ENVIRONMENT,
         )
-        
+
         _initialized = True
         log.info(f"Langfuse initialized successfully (host: {config.LANGFUSE_HOST}, release: {config.LANGFUSE_RELEASE}, env: {config.LANGFUSE_ENVIRONMENT})")
-        
+
         return _client
-        
+
     except Exception as e:
         log.error(f"Failed to initialize Langfuse: {e}")
         log.warning("Langfuse tracking will be disabled")
@@ -48,14 +48,74 @@ def is_langfuse_enabled() -> bool:
     return config.LANGFUSE_ENABLED and _initialized
 
 
-def get_langfuse_client() -> Langfuse:
+def get_langfuse_client() -> Langfuse | None:
     """Get or initialize Langfuse client"""
     global _client
-    
+
     if not _initialized:
         init_langfuse()
-    
+
     return _client
+
+
+def get_raw_langfuse_prompt(prompt_name: str, **kwargs):
+    """Return the raw Langfuse prompt object (not compiled) for linking to generation spans.
+
+    Returns None if Langfuse is disabled, unavailable, or the prompt is not found.
+    Pass the returned object to call_sync/call_async via the langfuse_prompt parameter.
+    """
+    client = get_langfuse_client()
+    if not client:
+        return None
+    try:
+        return client.get_prompt(prompt_name, type="text", **kwargs)
+    except Exception as e:
+        log.debug("Could not fetch raw prompt '%s': %s", prompt_name, e)
+        return None
+
+
+def fetch_langfuse_prompt(
+    prompt_name: str,
+    variables: dict | None = None,
+    *,
+    label: str | None = None,
+    version: int | None = None,
+    cache_ttl_seconds: int | None = None,
+) -> str:
+    """
+    Fetch a prompt from Langfuse by name.
+
+    When variables are provided, they are substituted into the prompt using
+    Langfuse's {{variable}} syntax.
+
+    Args:
+        prompt_name: Name of the prompt in Langfuse
+        variables: Optional dictionary of variables to substitute into the prompt
+        label: Optional label (e.g. "production", "latest"). Defaults to "production" in Langfuse.
+        version: Optional specific version number to fetch
+        cache_ttl_seconds: Optional cache TTL override in seconds
+
+    Returns:
+        Compiled prompt content as string
+
+    Raises:
+        RuntimeError: If Langfuse client is not initialized
+        Exception: If prompt not found in Langfuse
+    """
+    client = get_langfuse_client()
+    if client is None:
+        raise RuntimeError("Langfuse client not initialized")
+
+    kwargs = {}
+    if label is not None:
+        kwargs["label"] = label
+    if version is not None:
+        kwargs["version"] = version
+    if cache_ttl_seconds is not None:
+        kwargs["cache_ttl_seconds"] = cache_ttl_seconds
+
+    prompt = client.get_prompt(prompt_name, type="text", **kwargs)
+    return prompt.compile(**(variables or {}))
 
 
 def flush_langfuse():
@@ -67,6 +127,37 @@ def flush_langfuse():
         except Exception as e:
             log.debug(f"Failed to flush Langfuse: {e}")
 
+def score_validation(
+    name: str,
+    passed: bool,
+    trace_id: str | None,
+    observation_id: str | None = None,
+    config_id: str | None = None,
+    comment: str | None = None,
+) -> None:
+    """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail)."""
+    client = get_langfuse_client()
+    if not config.LANGFUSE_ENABLED:
+        return
+    if not client or not trace_id:
+        return
+    try:
+        kwargs: dict = {
+            "trace_id": trace_id,
+            "name": name,
+            "value": 1.0 if passed else 0.0,
+            "data_type": "BOOLEAN",
+        }
+        if config_id:
+            kwargs["config_id"] = config_id
+        if observation_id:
+            kwargs["observation_id"] = observation_id
+        if comment:
+            kwargs["comment"] = comment
+        client.create_score(**kwargs)
+        log.debug("Langfuse score '%s' = %s written to trace %s", name, passed, trace_id)
+    except Exception as e:
+        log.debug("Failed to create Langfuse score '%s': %s", name, e)
 
 # For backward compatibility with code that expects these functions
 # These are no-ops now since Langfuse handles things differently

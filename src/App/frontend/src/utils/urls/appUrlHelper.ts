@@ -8,7 +8,6 @@ export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
-export const selectedPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
 export const postalCodesUrl = 'https://altinncdn.no/postcodes/registry.json';
@@ -155,10 +154,9 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
-export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
-export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
-export const getInstanceLayoutsUrl = (layoutSetId: string, instanceId: string) =>
-  `${appPath}/instances/${instanceId}/layouts/${layoutSetId}`;
+export const getLayoutsUrl = (uiFolder: string) => `${appPath}/api/layouts/${uiFolder}`;
+export const getInstanceLayoutsUrl = (uiFolder: string, instanceId: string) =>
+  `${appPath}/instances/${instanceId}/layouts/${uiFolder}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 

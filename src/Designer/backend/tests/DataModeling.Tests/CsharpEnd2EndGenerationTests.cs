@@ -23,7 +23,8 @@ namespace DataModeling.Tests
         [ClassData(typeof(CSharpEnd2EndTestData))]
         public void Convert_FromXsd_Should_EqualExpected(string xsdSchemaPath, string expectedCsharpClassPath)
         {
-            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            Given
+                .That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
@@ -37,9 +38,15 @@ namespace DataModeling.Tests
         // enum, max/min exclusive, fractions are ignored in c# class.
         [Theory]
         [ClassData(typeof(CSharpE2ERestrictionsTestData))]
-        public void Convert_CSharpClass_ShouldContainRestriction(string xsdSchemaPath, string propertyName, string expectedPropertyType, string restrictionString)
+        public void Convert_CSharpClass_ShouldContainRestriction(
+            string xsdSchemaPath,
+            string propertyName,
+            string expectedPropertyType,
+            string restrictionString
+        )
         {
-            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            Given
+                .That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
@@ -47,22 +54,27 @@ namespace DataModeling.Tests
 
             Assert.NotNull(CompiledAssembly);
 
-            And.PropertyShouldHaveDefinedTypeAndContainAnnotation("Root", propertyName, expectedPropertyType, restrictionString);
+            And.PropertyShouldHaveDefinedTypeAndContainAnnotation(
+                "Root",
+                propertyName,
+                expectedPropertyType,
+                restrictionString
+            );
         }
 
         [Theory]
         [InlineData("Model/JsonSchema/General/NonXsdContextSchema.json", "root", "arrayWithProps")]
         public void JsonSchemaShouldConvertToXsdAndCSharp(string jsonSchemaPath, params string[] typesCreated)
         {
-            Given.That.JsonSchemaLoaded(jsonSchemaPath)
+            Given
+                .That.JsonSchemaLoaded(jsonSchemaPath)
                 .When.LoadedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
                 .And.CSharpClassesCompiledToAssembly();
 
             Assert.NotNull(CompiledAssembly);
 
-            And.ClassesShouldBeGenerated(typesCreated)
-                .And.When.LoadedJsonSchemaConvertedToXsdSchema();
+            And.ClassesShouldBeGenerated(typesCreated).And.When.LoadedJsonSchemaConvertedToXsdSchema();
 
             Assert.NotNull(ConvertedXsdSchema);
         }
@@ -71,7 +83,8 @@ namespace DataModeling.Tests
         [InlineData("Model/JsonSchema/General/StringUriFormat.json")]
         public void JsonSchemaWithStringFieldInUriFormatShouldConvertToCSharp(string jsonSchemaPath)
         {
-            Given.That.JsonSchemaLoaded(jsonSchemaPath)
+            Given
+                .That.JsonSchemaLoaded(jsonSchemaPath)
                 .When.LoadedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
                 .And.CSharpClassesCompiledToAssembly();
@@ -79,7 +92,10 @@ namespace DataModeling.Tests
             Assert.NotNull(CompiledAssembly);
         }
 
-        private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath, bool overwriteExpected = false)
+        private void GeneratedClassesShouldBeEquivalentToExpected(
+            string expectedCsharpClassPath,
+            bool overwriteExpected = false
+        )
         {
             string expectedClasses = SharedResourcesHelper.LoadTestDataAsString(expectedCsharpClassPath);
 
@@ -97,19 +113,30 @@ namespace DataModeling.Tests
             var expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
 
             // Compare root types.
-            var newType = CompiledAssembly.GetTypes().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+            var newType = CompiledAssembly
+                .GetTypes()
+                .Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
             var oldType = expectedAssembly.GetType(newType.FullName);
             Assert.NotNull(oldType);
 
             TypeAssertions.IsEquivalentTo(oldType, newType);
         }
 
-        private void PropertyShouldHaveDefinedTypeAndContainAnnotation(string className, string propertyName, string propertyType, string annotationString)
+        private void PropertyShouldHaveDefinedTypeAndContainAnnotation(
+            string className,
+            string propertyName,
+            string propertyType,
+            string annotationString
+        )
         {
             var type = CompiledAssembly.GetTypes().Single(type => type.Name == className);
-            TypeAssertions.PropertyShouldContainCustomAnnotationAndHaveTypeType(type, propertyName, propertyType, annotationString);
+            TypeAssertions.PropertyShouldContainCustomAnnotationAndHaveTypeType(
+                type,
+                propertyName,
+                propertyType,
+                annotationString
+            );
         }
-
 
         private CsharpEnd2EndGenerationTests ClassesShouldBeGenerated(string[] classNames)
         {

@@ -15,11 +15,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListIdTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UpdateCodeListIdTests
+    : DesignerEndpointsTestsBase<UpdateCodeListIdTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<ISharedContentClient> _contentClientMock;
 
-    public UpdateCodeListIdTests(WebApplicationFactory<Program> factory) : base(factory)
+    public UpdateCodeListIdTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         _contentClientMock = new Mock<ISharedContentClient>();
     }
@@ -45,7 +48,11 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
 
         string apiUrl = ApiUrl(targetOrg, codeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        httpRequestMessage.Content = new StringContent($"\"{newCodeListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+        httpRequestMessage.Content = new StringContent(
+            $"\"{newCodeListId}\"",
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -61,7 +68,10 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
 
     [Theory]
     [InlineData("codeListString", "codeListNumber")]
-    public async Task Put_Returns409Conflict_WhenUpdatingCodeListId_IfCodeListAlreadyWithNewIdExist(string codeListId, string newCodeListId)
+    public async Task Put_Returns409Conflict_WhenUpdatingCodeListId_IfCodeListAlreadyWithNewIdExist(
+        string codeListId,
+        string newCodeListId
+    )
     {
         // Arrange
         string targetOrg = TestDataHelper.GenerateTestOrgName();
@@ -70,7 +80,11 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
 
         string apiUrl = ApiUrl(targetOrg, codeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        httpRequestMessage.Content = new StringContent($"\"{newCodeListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+        httpRequestMessage.Content = new StringContent(
+            $"\"{newCodeListId}\"",
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -81,7 +95,10 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
 
     [Theory]
     [InlineData("non-existing-code-list", "new-id")]
-    public async Task Put_Returns404NotFound_WhenUpdatingCodeListId_IfCodeListDoesNotExist(string codeListId, string newCodeListId)
+    public async Task Put_Returns404NotFound_WhenUpdatingCodeListId_IfCodeListDoesNotExist(
+        string codeListId,
+        string newCodeListId
+    )
     {
         // Arrange
         string targetOrg = TestDataHelper.GenerateTestOrgName();
@@ -90,7 +107,11 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
 
         string apiUrl = ApiUrl(targetOrg, codeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        httpRequestMessage.Content = new StringContent($"\"{newCodeListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+        httpRequestMessage.Content = new StringContent(
+            $"\"{newCodeListId}\"",
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -98,5 +119,7 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-    private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/change-name/{codeListId}";
+
+    private static string ApiUrl(string targetOrg, string codeListId) =>
+        $"designer/api/{targetOrg}/code-lists/change-name/{codeListId}";
 }

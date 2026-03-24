@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,16 +28,6 @@ public interface IMetricsService
         AltinnEnvironment environment,
         string app,
         int range,
-        CancellationToken cancellationToken
-    );
-
-    public Task<Uri?> GetAppErrorMetricsLogsAsync(
-        string org,
-        AltinnEnvironment environment,
-        IReadOnlyCollection<string> apps,
-        string metric,
-        DateTimeOffset from,
-        DateTimeOffset to,
         CancellationToken cancellationToken
     );
 

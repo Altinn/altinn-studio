@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useProfile } from 'src/features/profile/ProfileProvider';

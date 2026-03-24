@@ -30,7 +30,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
             PlatformSettings options,
-             ILogger<AltinnAuthorizationPolicyClient> logger)
+            ILogger<AltinnAuthorizationPolicyClient> logger
+        )
         {
             _httpClient = httpClient;
             _platformSettings = options;
@@ -61,7 +62,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
              */
             try
             {
-                Uri refreshSubjectsUri = new($"{platformUri}{_platformSettings.ResourceRegistryUrl}/app_{org}_{app}/policy/subjects?reloadFromXacml=true");
+                Uri refreshSubjectsUri = new(
+                    $"{platformUri}{_platformSettings.ResourceRegistryUrl}/app_{org}_{app}/policy/subjects?reloadFromXacml=true"
+                );
                 using HttpRequestMessage getRequest = new(HttpMethod.Get, refreshSubjectsUri);
                 await _httpClient.SendAsync(getRequest);
             }

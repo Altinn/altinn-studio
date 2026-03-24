@@ -6,7 +6,7 @@ import type { FileRejection } from 'react-dropzone';
 import cn from 'classnames';
 
 import classes from 'src/app-components/Dropzone/Dropzone.module.css';
-import { RefsUtils } from 'src/utils/refs/mergeRefs';
+import { RefsUtils } from 'src/app-components/Dropzone/utils';
 
 type MaxFileSize = {
   sizeInMB: number;

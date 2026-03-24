@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kuberneteswrapper
+  annotations:
+    altinn.studio/image: ghcr.io/altinn/altinn-studio/kubernetes-wrapper:latest
+    altinn.studio/image-tag: latest
+  labels:
+    app: kuberneteswrapper
+    release: kuberneteswrapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kuberneteswrapper
+  template:
+    metadata:
+      labels:
+        app: kuberneteswrapper
+        release: kuberneteswrapper
+    spec:
+      serviceAccountName: kuberneteswrappersa
+      containers:
+        - name: kuberneteswrapper
+          image: ""
+          imagePullPolicy: Always
+          env:
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_SERVICE_NAME
+              value: "kubernetes-wrapper"
+          ports:
+            - containerPort: 8080

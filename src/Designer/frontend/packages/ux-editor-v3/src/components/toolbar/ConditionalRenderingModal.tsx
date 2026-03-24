@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './ConditionalRenderingModal.module.css';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import type { IRuleModelFieldElement } from '../../types/global';
@@ -20,6 +19,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext } from '../../hooks/useAppContext';
 import { StudioParagraph } from '@studio/components';
+
+import type { JSX } from 'react';
 
 export function ConditionalRenderingModal() {
   const { org, app } = useStudioEnvironmentParams();

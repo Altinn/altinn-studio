@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kuberneteswrapper-kubernetes-api-wrapper
+  labels:
+    app: kubernetes-api-wrapper
+    release: kuberneteswrapper
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: kuberneteswrapper
+  selector:
+    app: kubernetes-api-wrapper
+    release: kuberneteswrapper

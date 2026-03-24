@@ -1,4 +1,3 @@
-import React from 'react';
 import type { DeployProps } from './Deploy';
 import { Deploy } from './Deploy';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
@@ -165,8 +164,6 @@ describe('DeploymentActions', () => {
     const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
     await user.click(confirmButton);
 
-    expect(
-      await screen.findByText(textMock('app_deployment.technical_error_1')),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
   });
 });

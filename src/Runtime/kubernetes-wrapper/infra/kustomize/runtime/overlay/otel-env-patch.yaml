@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kuberneteswrapper
+spec:
+  template:
+    spec:
+      containers:
+        - name: kuberneteswrapper
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-router.runtime-obs.svc.cluster.local:4317"

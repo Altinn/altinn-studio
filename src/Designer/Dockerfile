@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:c921b97d4b74f51744057454b306b418cf693865e73b8100559189605f6955b8 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:7fddd9ddeae8196abf4a3ef2de34e11f7b1a722119f91f28ddf1e99dcafdf114 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -24,6 +24,7 @@ COPY src/Designer/frontend/libs/studio-guard/package.json ./src/Designer/fronten
 COPY src/Designer/frontend/libs/studio-hooks/package.json ./src/Designer/frontend/libs/studio-hooks/
 COPY src/Designer/frontend/libs/studio-icons/package.json ./src/Designer/frontend/libs/studio-icons/
 COPY src/Designer/frontend/libs/studio-pure-functions/package.json ./src/Designer/frontend/libs/studio-pure-functions/
+COPY src/Designer/frontend/libs/studio-ui-test/package.json ./src/Designer/frontend/libs/studio-ui-test/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
 COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/frontend/packages/schema-editor/
@@ -37,6 +38,7 @@ COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Des
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
+COPY src/Designer/frontend/user-settings/package.json ./src/Designer/frontend/user-settings/
 
 RUN yarn --immutable
 
@@ -44,7 +46,7 @@ COPY . .
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:e0f7abfb9c18aa419198b2c4e05dc2f7fd864a6098f09bddb1ceb2b0bce67685 AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:5e2228a03bcb9b75b9078f7a2379c2c82639422b785601ff271f744745ac2f71 AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/Designer/backend .
@@ -55,7 +57,7 @@ WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
 # Prepare app template
-FROM alpine@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS app-template-release
+FROM alpine@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS app-template-release
 RUN apk add --no-cache rsync
 
 COPY ./src/App/template/src /app-template-dotnet-src
@@ -63,7 +65,7 @@ WORKDIR /app-template-dotnet-src
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:56f0ed1f866f9db4fa0969dc2cd222d50a41800f455107e63f5bcca76c0b4cff AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:86883194752e8cb9c3914edea40961cc179da6804fcfe814f18f89ed6515d8cf AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
@@ -78,6 +80,7 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/dashboard/dist
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/dist ./wwwroot/info/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
+COPY --from=generate-studio-frontend /build/src/Designer/frontend/user-settings/dist ./wwwroot/settings/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

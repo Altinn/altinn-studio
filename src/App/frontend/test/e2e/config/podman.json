@@ -23,6 +23,18 @@
 
     "selfIdentifiedFullName": "Selvregistrert Bruker",
     "selfIdentifiedFirstName": "Selvregistrert",
-    "selfIdentifiedPartyId": "1004.510004"
+    "selfIdentifiedPartyId": "1004.510004",
+
+    "multiPartyPromptFullName": "MultiParty Prompt",
+    "multiPartyPromptFirstName": "MultiParty",
+    "multiPartyPromptPartyId": "2001.512001",
+
+    "multiPartyPrompt2FullName": "Kari Nordvik",
+    "multiPartyPrompt2FirstName": "Kari",
+    "multiPartyPrompt2PartyId": "2002.512002",
+
+    "doNotPromptPartyFullName": "Pengelens Partner",
+    "doNotPromptPartyFirstName": "Pengelens",
+    "doNotPromptPartyPartyId": "1001.510001"
   }
 }

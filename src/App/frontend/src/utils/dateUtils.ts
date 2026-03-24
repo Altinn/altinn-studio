@@ -99,13 +99,6 @@ export function getDatepickerFormat(unicodeFormat: string): string {
   }, '');
 }
 
-/**
- * Convert the date picker format to a react-number-format pattern format
- */
-export function getFormatAsPatternFormat(datePickerFormat: string): string {
-  return datePickerFormat.replaceAll(/[dmy]/gi, '#');
-}
-
 function selectPartToUse(parts: Intl.DateTimeFormatPart[], token: Token) {
   if (['G', 'GG', 'GGG', 'GGGG', 'GGGGG'].includes(token)) {
     return parts.find((part) => part.type === 'era');
@@ -177,25 +170,4 @@ function lookup(lang: FixedLanguageList, key: keyof FixedLanguageList) {
  */
 export function toTimeZonedDate(date: string | Date, zone: string = 'Europe/Oslo') {
   return new TZDate(new Date(date), zone);
-}
-
-/**
- * This will accept a Unicode date format and figure out if 'inputMode: numeric' can be used for an input field when
- * combined with a pattern format in react-number-format. When the numeric mode is set, the mobile OS will show a
- * strictly numeric keyboard (with no punctuation possible, at least on iOS). Since react-number-format fills in the
- * separators for you automatically, there is no need for the user to actually type them, so we can give the user
- * a better keyboard for these inputs.
- *
- * @see https://github.com/s-yadav/react-number-format/issues/189
- * @see getFormatAsPatternFormat
- */
-export function dateFormatCanBeNumericInReactPatternFormat(format: string): boolean {
-  const tokens = format.split(UNICODE_TOKENS) as Token[];
-  for (const token of tokens) {
-    if (!tokenOptions[token] || !tokenOptions[token].numeric) {
-      return false;
-    }
-  }
-
-  return true;
 }

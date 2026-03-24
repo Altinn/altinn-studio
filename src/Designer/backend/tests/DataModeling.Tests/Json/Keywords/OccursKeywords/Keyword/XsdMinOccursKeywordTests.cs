@@ -27,7 +27,8 @@ public class XsdMinOccursKeywordTests : ValueKeywordTestsBase<XsdMinOccursKeywor
         var expectedKeyword = new XsdMinOccursKeyword(value);
         object expectedKeywordObject = new XsdMinOccursKeyword(value);
 
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

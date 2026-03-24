@@ -1,0 +1,56 @@
+name: "CodeQL Config"
+description: "Generates a workflow-specific CodeQL config from language defaults and scan paths"
+inputs:
+  language:
+    description: "CodeQL language"
+    required: true
+  queries:
+    description: "CodeQL query suites"
+    required: false
+    default: "security-extended,security-and-quality"
+  paths:
+    description: "Newline-separated repository paths to include in analysis"
+    required: false
+    default: ""
+outputs:
+  config-file:
+    description: "Path to the generated CodeQL config file"
+    value: ${{ steps.generate.outputs.config-file }}
+  queries:
+    description: "CodeQL query suites to pass to init"
+    value: ${{ steps.generate.outputs.queries }}
+runs:
+  using: "composite"
+  steps:
+    - name: Generate CodeQL config
+      id: generate
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        base_config="${GITHUB_WORKSPACE}/.github/codeql/codeql-config-${{ inputs.language }}.yml"
+        if [[ ! -f "$base_config" ]]; then
+          echo "Missing CodeQL config for language: ${{ inputs.language }}" >&2
+          echo "Expected file: $base_config" >&2
+          exit 1
+        fi
+
+        generated_config_dir="${GITHUB_WORKSPACE}/.github/codeql/generated"
+        mkdir -p "$generated_config_dir"
+
+        config_file="${generated_config_dir}/codeql-config-${{ inputs.language }}-${GITHUB_RUN_ID}-${GITHUB_JOB}.yml"
+        cp "$base_config" "$config_file"
+
+        if [[ -n "${{ inputs.paths }}" ]]; then
+          printf '\npaths:\n' >> "$config_file"
+          while IFS= read -r path; do
+            if [[ -z "${path//[[:space:]]/}" ]]; then
+              continue
+            fi
+            escaped_path=$(printf "%s" "$path" | sed "s/'/''/g")
+            printf "  - '%s'\n" "$escaped_path" >> "$config_file"
+          done <<< "${{ inputs.paths }}"
+        fi
+
+        echo "config-file=$config_file" >> "$GITHUB_OUTPUT"
+        echo "queries=${{ inputs.queries }}" >> "$GITHUB_OUTPUT"

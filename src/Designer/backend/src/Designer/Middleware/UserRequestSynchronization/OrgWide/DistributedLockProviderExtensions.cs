@@ -13,14 +13,15 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide;
 /// </summary>
 public static class DistributedLockProviderExtensions
 {
-    private static string GenerateKey(AltinnOrgContext context)
-        => $"org_wide_lock_{context.Org}".ToLower();
+    private static string GenerateKey(AltinnOrgContext context) => $"org_wide_lock_{context.Org}".ToLower();
 
     /// <summary>
     /// Constructs an <see cref="IDistributedLock"/> instance with the given <paramref name="context"/>.
     /// </summary>
-    public static IDistributedLock CreateLock(this IDistributedLockProvider distributedLockProvider,
-        AltinnOrgContext context)
+    public static IDistributedLock CreateLock(
+        this IDistributedLockProvider distributedLockProvider,
+        AltinnOrgContext context
+    )
     {
         string key = GenerateKey(context);
         return distributedLockProvider.CreateLock(key);
@@ -30,8 +31,13 @@ public static class DistributedLockProviderExtensions
     /// Equivalent to calling <see cref="DistributedLockProviderExtensions.CreateLock(IDistributedLockProvider,AltinnOrgContext)" /> and then
     /// <see cref="IDistributedLock.AcquireAsync(TimeSpan?, CancellationToken)" />.
     /// </summary>
-    public static ValueTask<IDistributedSynchronizationHandle> AcquireLockAsync(this IDistributedLockProvider provider, AltinnOrgContext context, TimeSpan? timeout = null, CancellationToken cancellationToken = default) =>
-        (provider ?? throw new ArgumentNullException(nameof(provider))).CreateLock(context).AcquireAsync(timeout, cancellationToken);
-
-
+    public static ValueTask<IDistributedSynchronizationHandle> AcquireLockAsync(
+        this IDistributedLockProvider provider,
+        AltinnOrgContext context,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        (provider ?? throw new ArgumentNullException(nameof(provider)))
+            .CreateLock(context)
+            .AcquireAsync(timeout, cancellationToken);
 }

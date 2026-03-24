@@ -12,7 +12,7 @@ from textwrap import dedent
 from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
 from agents.services.llm import LLMClient
-from agents.prompts import get_prompt_content, render_template
+from agents.prompts import get_prompt_content, get_prompt_with_langfuse, render_template
 from agents.services.telemetry import is_json
 from agents.services.repo import ensure_text_resources_in_patch
 
@@ -99,6 +99,7 @@ def get_looked_up_component_types(tool_results: List[Dict[str, Any]]) -> Set[str
 async def ensure_component_schemas_looked_up(
     mcp_client,
     tool_results: List[Dict[str, Any]],
+    designer_api_key: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Ensure all component types found in layout files have their schemas looked up.
     
@@ -127,7 +128,8 @@ async def ensure_component_schemas_looked_up(
                 {
                     "component_type": comp_type,
                     "schema_url": schema_url,
-                }
+                },
+                designer_api_key=designer_api_key,
             )
             
             # Extract text from result
@@ -162,12 +164,13 @@ async def run_actor_pipeline(
     tool_results_override: Optional[List[Dict[str, Any]]] = None,
     implementation_plan_override: Optional[Dict[str, Any]] = None,
     attachments: Optional[List[AgentAttachment]] = None,
+    designer_api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Execute the full actor workflow pipeline."""
 
     # Ensure MCP client is connected and has available tools populated
     if not hasattr(mcp_client, '_available_tools') or not mcp_client._available_tools:
-        await mcp_client.connect()
+        await mcp_client.connect(designer_api_key)
 
     attachments = attachments or repo_facts.get("attachments")
     general_plan = general_plan_override or await create_general_plan(user_goal, planner_step, attachments=attachments)
@@ -178,7 +181,7 @@ async def run_actor_pipeline(
         tool_results = tool_results_override
     else:
         tool_results = await execute_tool_plan(
-            mcp_client, repository_path, user_goal, repo_facts, tool_plan, planner_step, general_plan
+            mcp_client, repository_path, user_goal, repo_facts, tool_plan, planner_step, general_plan, designer_api_key
         )
     
     # 🚨 CRITICAL: Ensure all component types found in layout files have their schemas looked up
@@ -187,6 +190,7 @@ async def run_actor_pipeline(
     tool_results = await ensure_component_schemas_looked_up(
         mcp_client,
         tool_results,
+        designer_api_key,
     )
     
     # Skip the separate implementation_planning_llm step - it was taking ~99s and only
@@ -230,7 +234,7 @@ async def run_actor_pipeline(
 
 async def create_general_plan(user_goal: str, planner_step: Optional[str] = None, *, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
     client = LLMClient(role="planner")
-    system_prompt = get_prompt_content("general_planning")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("general_planning")
     user_prompt = render_template(
         "general_planning_user",
         user_goal=user_goal,
@@ -245,7 +249,7 @@ async def create_general_plan(user_goal: str, planner_step: Optional[str] = None
         input={"user_goal": user_goal, "planner_step_present": bool(planner_step)},
         metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
     ) as span:
-        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
+        response = client.call_sync(system_prompt, user_prompt, attachments=attachments, langfuse_prompt=lf_prompt)
         span.update(output={"response": response[:5000]})
 
     return parse_json_response(response, "general plan")
@@ -261,7 +265,7 @@ async def create_tool_plan(
     attachments: Optional[List[AgentAttachment]] = None,
 ) -> List[Dict[str, Any]]:
     client = LLMClient(role="tool_planner")
-    system_prompt = get_prompt_content("tool_planning")
+    system_prompt, lf_prompt_tool = get_prompt_with_langfuse("tool_planning")
 
     # Create repo summary for context
     repo_summary = {
@@ -362,7 +366,7 @@ async def create_tool_plan(
         },
         metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
     ) as span:
-        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
+        response = client.call_sync(system_prompt, user_prompt, attachments=attachments, langfuse_prompt=lf_prompt_tool)
         span.update(output={"response": response[:5000]})
 
     tool_plan_data = parse_json_response(response, "tool plan")
@@ -442,10 +446,11 @@ async def execute_tool_plan(
     tool_plan: List[Dict[str, Any]],
     planner_step: Optional[str] = None,
     general_plan: Optional[Dict[str, Any]] = None,
+    designer_api_key: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
     langfuse = get_client()
-    with langfuse.start_as_current_span(
+    with langfuse.start_as_current_observation(
         name="tool_execution_phase",
         input={
             "tool_names": [entry.get("tool") for entry in tool_plan],
@@ -515,12 +520,12 @@ async def execute_tool_plan(
             entry["arguments"] = arguments
 
             objective = entry.get("objective", "")
-            with langfuse.start_as_current_span(
+            with langfuse.start_as_current_observation(
                 name=f"tool::{tool_name}",
                 input={"arguments": arguments},
                 metadata={"span_type": "TOOL", "tool": tool_name, "objective": objective}
             ) as tool_span:
-                result = await mcp_client.call_tool(tool_name, arguments)
+                result = await mcp_client.call_tool(tool_name, arguments, designer_api_key=designer_api_key)
                 if isinstance(result, dict) and "error" in result:
                     error_message = result["error"]
                     tool_span.update(output={"success": False, "error": error_message})
@@ -664,7 +669,7 @@ async def synthesize_patch(
     attachments: Optional[List[AgentAttachment]] = None,
 ) -> Dict[str, Any]:
     client = LLMClient(role="actor")
-    system_prompt = get_prompt_content("patch_synthesis")
+    system_prompt, lf_prompt_patch = get_prompt_with_langfuse("patch_synthesis")
 
     # Documentation tools need full content preserved
     documentation_tools = {"datamodel_tool", "prefill_tool", "planning_tool", "dynamic_expression", "resource_tool"}
@@ -746,7 +751,7 @@ async def synthesize_patch(
         },
         metadata={**client.get_model_metadata(), "tool_results_count": len(tool_results)}
     ) as span:
-        response = client.call_sync(system_prompt, user_prompt)
+        response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt_patch)
         span.update(output={"response": response[:5000]})
 
     patch_data = parse_json_response(response, "patch synthesis")

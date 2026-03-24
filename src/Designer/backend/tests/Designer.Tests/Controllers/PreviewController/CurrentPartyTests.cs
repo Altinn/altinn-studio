@@ -10,19 +10,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class CurrentPartyTests : PreviewControllerTestsBase<CurrentPartyTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class CurrentPartyTests
+        : PreviewControllerTestsBase<CurrentPartyTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public CurrentPartyTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public CurrentPartyTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_CurrentParty_Ok()
         {
             string dataPathWithData = $"{Org}/{AppV4}/api/authorization/parties/current";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -21,7 +21,8 @@ public class RequestSyncEvaluator<TContext, TEvaluatorType> : IRequestSyncEvalua
 
     public RequestSyncEvaluator(
         IEnumerable<TEvaluatorType> syncEligibilityEvaluators,
-        IRequestContextResolver<TContext> requestContextResolver)
+        IRequestContextResolver<TContext> requestContextResolver
+    )
     {
         _syncEligibilityEvaluators = syncEligibilityEvaluators;
         _requestContextResolver = requestContextResolver;

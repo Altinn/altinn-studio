@@ -106,10 +106,7 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
         public static bool HasKeyword<T>(this IEnumerable<IJsonSchemaKeyword> keywords, Func<T, bool> filter)
         {
-            return keywords
-                .Where(keyword => keyword is T)
-                .Cast<T>()
-                .Any(filter);
+            return keywords.Where(keyword => keyword is T).Cast<T>().Any(filter);
         }
 
         /// <summary>
@@ -131,8 +128,7 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
         public static bool HasAnyOfKeywords(this IEnumerable<IJsonSchemaKeyword> keywords, params Type[] keywordTypes)
         {
-            return keywords
-                .Any(keyword => keywordTypes.Contains(keyword.GetType()));
+            return keywords.Any(keyword => keywordTypes.Contains(keyword.GetType()));
         }
 
         /// <summary>
@@ -161,7 +157,10 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <param name="keywords">The list of keywords to filter</param>
         /// <param name="keywordTypesToFilterAway">The types of keyword to filter away</param>
         /// <returns>enumerable without the filtered out keywords</returns>
-        public static IEnumerable<IJsonSchemaKeyword> Filter(this IEnumerable<IJsonSchemaKeyword> keywords, params Type[] keywordTypesToFilterAway)
+        public static IEnumerable<IJsonSchemaKeyword> Filter(
+            this IEnumerable<IJsonSchemaKeyword> keywords,
+            params Type[] keywordTypesToFilterAway
+        )
         {
             return keywords.Where(keyword => !keywordTypesToFilterAway.Contains(keyword.GetType()));
         }

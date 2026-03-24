@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { LeftContent, type LeftContentProps, SubHeader, type SubHeaderProps } from './SubHeader';
 import { renderWithProviders } from '../../../test/mocks';

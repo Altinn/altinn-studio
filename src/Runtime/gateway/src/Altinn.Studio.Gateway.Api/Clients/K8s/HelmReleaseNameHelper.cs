@@ -1,0 +1,45 @@
+using System.Text.RegularExpressions;
+
+namespace Altinn.Studio.Gateway.Api.Clients.K8s;
+
+/// <summary>
+/// Helper for parsing and generating HelmRelease names.
+/// </summary>
+internal static partial class HelmReleaseNameHelper
+{
+    // HelmRelease name format: {org}-{app}-{studio-env}
+    // All parts are lowercase (Kubernetes requirement). org has no hyphens, app can have hyphens
+    // Example: ttd-my-app-prod, digdir-some-app-dev
+    [GeneratedRegex(@"^(?<org>[a-z0-9]+)-(?<app>[a-z0-9-]+)-(?<env>dev|staging|prod)$")]
+    private static partial Regex NamePattern();
+
+    /// <summary>
+    /// Tries to parse org, app, and environment from a HelmRelease name.
+    /// Expected format: {org}-{app}-{env} where env is one of: dev, staging, prod
+    /// </summary>
+    public static bool TryParse(string name, out string org, out string app, out string env)
+    {
+        var match = NamePattern().Match(name);
+        if (!match.Success)
+        {
+            org = string.Empty;
+            app = string.Empty;
+            env = string.Empty;
+            return false;
+        }
+
+        org = match.Groups["org"].Value;
+        app = match.Groups["app"].Value;
+        env = match.Groups["env"].Value;
+        return true;
+    }
+
+    /// <summary>
+    /// Generates a HelmRelease name from org, app, and environment.
+    /// Format: {org}-{app}-{env} (all lowercase)
+    /// </summary>
+    public static string Generate(string org, string app, string env)
+    {
+        return $"{org}-{app}-{env}".ToLowerInvariant();
+    }
+}

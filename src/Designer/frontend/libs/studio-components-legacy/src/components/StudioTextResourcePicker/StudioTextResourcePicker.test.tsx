@@ -1,5 +1,4 @@
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { StudioTextResourcePickerProps } from './StudioTextResourcePicker';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';
@@ -56,7 +55,7 @@ describe('StudioTextResourcePicker', () => {
     await user.click(getCombobox());
     const textResourceToPick = textResources[arbitraryTextResourceIndex];
     await user.click(screen.getByRole('option', { name: expectedOptionName(textResourceToPick) }));
-    await waitFor(expect(onValueChange).toBeCalled);
+    await waitFor(() => expect(onValueChange).toHaveBeenCalled());
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(textResourceToPick.id);
   });

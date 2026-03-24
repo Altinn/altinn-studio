@@ -1,7 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IInstance } from 'src/types/shared';
 
@@ -77,13 +77,9 @@ describe('Subform test', () => {
       },
     });
 
-    cy.intercept('GET', '**/api/layoutsettings/moped-subform', (req) => {
-      req.on('response', (res) => {
-        const body = JSON.parse(res.body) as ILayoutSettings;
-        body.pages.pdfLayoutName = 'moped-pdf'; // Forces PDF engine to use a tailor-made layout
-        res.send(body);
-      });
-    }).as('settings');
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders['moped-subform'].pages.pdfLayoutName = 'moped-pdf';
+    });
 
     cy.testPdf({
       snapshotName: 'single-subform-custom',
@@ -156,15 +152,9 @@ describe('Subform test', () => {
 
   it('should render PDF with summary2 layoutset with subform and subform table', { retries: 0 }, () => {
     const pdfLayoutName = 'CustomPDF';
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: ILayoutSettings = JSON.parse(res.body);
-        res.send({
-          ...body,
-          pages: { ...body.pages, pdfLayoutName },
-        });
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_1.pages.pdfLayoutName = pdfLayoutName;
+    });
 
     cy.intercept('GET', '**/layouts/**', (req) =>
       req.on('response', (res) => {

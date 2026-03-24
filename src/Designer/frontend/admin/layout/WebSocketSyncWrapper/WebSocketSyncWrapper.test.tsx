@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import { act, render } from '@testing-library/react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';

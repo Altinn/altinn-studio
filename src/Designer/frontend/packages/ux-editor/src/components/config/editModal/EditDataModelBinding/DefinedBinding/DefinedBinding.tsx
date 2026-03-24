@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioSpinner } from '@studio/components-legacy';
 import { StudioProperty } from '@studio/components';
 import { LinkIcon } from '@studio/icons';

@@ -1,3 +1,5 @@
-import type { GetCheckboxProps } from '@digdir/designsystemet-react/dist/types/utilities/hooks/use-checkbox-group/use-checkbox-group';
+import type { useCheckboxGroup } from '@digdir/designsystemet-react';
 
-export type StudioGetCheckboxProps = GetCheckboxProps;
+export type StudioGetCheckboxProps = ReturnType<
+  ReturnType<typeof useCheckboxGroup>['getCheckboxProps']
+>;

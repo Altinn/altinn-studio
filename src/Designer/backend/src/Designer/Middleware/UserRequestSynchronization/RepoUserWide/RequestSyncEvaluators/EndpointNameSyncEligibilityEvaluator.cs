@@ -14,8 +14,14 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserW
 public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEvaluator
 {
     private const string RemoveControllerSuffix = "Controller";
-    private static string TrimmedControllerName(string controllerName) => controllerName.Replace(RemoveControllerSuffix, string.Empty);
-    private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList = new Dictionary<string, FrozenSet<string>>
+
+    private static string TrimmedControllerName(string controllerName) =>
+        controllerName.Replace(RemoveControllerSuffix, string.Empty);
+
+    private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList = new Dictionary<
+        string,
+        FrozenSet<string>
+    >
     {
         {
             TrimmedControllerName(nameof(RepositoryController)),
@@ -46,12 +52,10 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
         },
         {
             TrimmedControllerName(nameof(ApplicationMetadataController)),
-            GenerateFrozenSet(
-                nameof(ApplicationMetadataController.DeleteMetadataForAttachment)
-            )
+            GenerateFrozenSet(nameof(ApplicationMetadataController.DeleteMetadataForAttachment))
         },
         {
-            TrimmedControllerName( nameof(ProcessModelingController)),
+            TrimmedControllerName(nameof(ProcessModelingController)),
             GenerateFrozenSet(
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
                 nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
@@ -60,37 +64,19 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
             )
         },
         {
-            TrimmedControllerName( nameof(ResourceAdminController)),
-            GenerateFrozenSet(
-                nameof(ResourceAdminController.UpdateResource)
-            )
+            TrimmedControllerName(nameof(ResourceAdminController)),
+            GenerateFrozenSet(nameof(ResourceAdminController.UpdateResource))
         },
-        {
-            TrimmedControllerName(nameof(ReleasesController)),
-            GenerateFrozenSet(
-                nameof(ReleasesController.Create)
-            )
-        },
+        { TrimmedControllerName(nameof(ReleasesController)), GenerateFrozenSet(nameof(ReleasesController.Create)) },
         {
             TrimmedControllerName(nameof(DeploymentsController)),
-            GenerateFrozenSet(
-                nameof(DeploymentsController.Create),
-                nameof(DeploymentsController.Undeploy)
-            )
+            GenerateFrozenSet(nameof(DeploymentsController.Create), nameof(DeploymentsController.Undeploy))
         },
         {
             TrimmedControllerName(nameof(DatamodelsController)),
-            GenerateFrozenSet(
-                nameof(DatamodelsController.Get),
-                nameof(DatamodelsController.PutDatamodel)
-            )
+            GenerateFrozenSet(nameof(DatamodelsController.Get), nameof(DatamodelsController.PutDatamodel))
         },
-        {
-            TrimmedControllerName(nameof(PreviewController)),
-            GenerateFrozenSet(
-                nameof(PreviewController.Datamodel)
-            )
-        },
+        { TrimmedControllerName(nameof(PreviewController)), GenerateFrozenSet(nameof(PreviewController.Datamodel)) },
         {
             TrimmedControllerName(nameof(LayoutController)),
             GenerateFrozenSet(
@@ -123,7 +109,10 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
         string controllerName = controllerActionDescriptor.ControllerName;
         string actionName = controllerActionDescriptor.ActionName;
 
-        if (_endpointsWhiteList.TryGetValue(controllerName, out FrozenSet<string> actionSet) && actionSet.Contains(actionName))
+        if (
+            _endpointsWhiteList.TryGetValue(controllerName, out FrozenSet<string> actionSet)
+            && actionSet.Contains(actionName)
+        )
         {
             return true;
         }

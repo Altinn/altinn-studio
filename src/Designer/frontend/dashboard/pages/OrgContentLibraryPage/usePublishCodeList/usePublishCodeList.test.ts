@@ -1,7 +1,7 @@
 import { usePublishCodeList } from './usePublishCodeList';
 import { renderHookWithProviders } from '../../../testing/mocks';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
-import { waitFor } from '@testing-library/react';
+import { waitFor, act } from '@testing-library/react';
 
 // Test data:
 const orgName = 'test-org';
@@ -23,7 +23,7 @@ describe('usePublishCodeList', () => {
       queries: { publishCodeList },
     });
 
-    result.current.publish(payload);
+    act(() => result.current.publish(payload));
     await waitFor(expect(publishCodeList).toHaveBeenCalled);
 
     expect(publishCodeList).toHaveBeenCalledTimes(1);
@@ -42,7 +42,7 @@ describe('usePublishCodeList', () => {
       resolvePublish();
     });
     expect(result.current.isPublishing(title)).toBe(false);
-    result.current.publish(payload);
+    act(() => result.current.publish(payload));
     await waitFor(expect(publishCodeList).toHaveBeenCalled);
     await waitFor(expect(resolvePublish).toHaveBeenCalled);
     expect(result.current.isPublishing(title)).toBe(false);
@@ -60,7 +60,7 @@ describe('usePublishCodeList', () => {
       expect(result.current.isPublishing('Another code list')).toBe(false);
       resolvePublish();
     });
-    result.current.publish(payload);
+    act(() => result.current.publish(payload));
     await waitFor(expect(publishCodeList).toHaveBeenCalled);
     await waitFor(expect(resolvePublish).toHaveBeenCalled);
   });

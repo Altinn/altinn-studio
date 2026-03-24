@@ -132,7 +132,12 @@ namespace Altinn.Studio.Designer.Configuration
             app = app.AsFileName();
             developer = developer.AsFileName();
 
-            return Path.Combine(RepositoryLocation, developer ?? string.Empty, org ?? string.Empty, app ?? string.Empty);
+            return Path.Combine(
+                RepositoryLocation,
+                developer ?? string.Empty,
+                org ?? string.Empty,
+                app ?? string.Empty
+            );
         }
 
         /// <summary>

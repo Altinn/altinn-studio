@@ -1,6 +1,5 @@
 import classes from './TimeRangeSelect.module.css';
 import { StudioSelect } from '@studio/components';
-import React from 'react';
 
 export type TimeRangeSelectProps = {
   label: string;
@@ -15,7 +14,6 @@ export const TimeRangeSelect = ({ label, value, onChange }: TimeRangeSelectProps
       value={String(value)}
       onChange={(e) => onChange(Number(e.target.value))}
       className={classes.select}
-      data-size='xs'
     >
       <StudioSelect.Option value='5'>5m</StudioSelect.Option>
       <StudioSelect.Option value='15'>15m</StudioSelect.Option>

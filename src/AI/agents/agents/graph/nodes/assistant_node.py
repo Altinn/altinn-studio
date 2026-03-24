@@ -11,7 +11,7 @@ from agents.services.mcp import get_mcp_client
 from agents.services.repo import discover_repository_context
 from agents.services.llm import LLMClient
 from agents.services.events import AgentEvent, sink
-from agents.prompts import get_prompt_content, render_template
+from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -36,7 +36,7 @@ async def handle(state: AgentState) -> AgentState:
     log.info(f"💬 Assistant node: handling query for session {state.session_id}")
     
     langfuse = get_client()
-    with langfuse.start_as_current_span(
+    with langfuse.start_as_current_observation(
         name="assistant_query",
         metadata={
             "span_type": "CHAIN",
@@ -140,16 +140,15 @@ async def handle(state: AgentState) -> AgentState:
             
         except Exception as e:
             log.error(f"Assistant query failed: {e}")
-            main_span.set_attribute("error", True)
-            main_span.set_attribute("error_message", str(e))
+            main_span.update(metadata={"error": True, "error_message": str(e)})
             raise
 
 
 async def _scan_repository(state: AgentState) -> Dict[str, Any]:
     """Scan repository and extract context."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
-        span.set_inputs({"repo_path": state.repo_path})
+    with langfuse.start_as_current_observation(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
+        span.update(input={"repo_path": state.repo_path})
         
         repo_context = discover_repository_context(state.repo_path)
         repo_summary = {
@@ -168,7 +167,7 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
 async def _get_available_tools() -> List[str]:
     """Connect to MCP and get available tools."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="mcp_connection", metadata={"span_type": "TOOL"}) as span:
+    with langfuse.start_as_current_observation(name="mcp_connection", metadata={"span_type": "TOOL"}) as span:
         mcp_client = get_mcp_client()
         await mcp_client.connect()
         
@@ -192,8 +191,8 @@ async def _select_relevant_tools(
 ) -> List[Dict[str, Any]]:
     """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
-        span.set_inputs({
+    with langfuse.start_as_current_observation(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
+        span.update(input={
             "query": query,
             "available_tools": tool_names,
             "has_conversation_history": bool(conversation_history)
@@ -207,8 +206,8 @@ async def _select_relevant_tools(
         
         # STEP 2: Use tool planner to select tools (with semantic query for planning_tool)
         client = LLMClient(role="tool_planner")
-        
-        system_prompt = get_prompt_content("assistant_tool_orchestration")
+
+        system_prompt, lf_prompt_tool = get_prompt_with_langfuse("assistant_tool_orchestration")
         
         repo_context = f"""Repository: {repo_summary.get('layouts', []).__len__()} layouts, {repo_summary.get('locales', []).__len__()} locales"""
         
@@ -222,7 +221,6 @@ async def _select_relevant_tools(
                 role = "User" if msg.role == "user" else "Assistant"
                 history_lines.append(f"{role}: {msg.content[:200]}")  # Truncate long messages
             history_context = "CONVERSATION HISTORY:\n" + "\n".join(history_lines) + "\n\n"
-        
         user_prompt = render_template(
             "assistant_tool_selection_user",
             history_context=history_context,
@@ -231,16 +229,16 @@ async def _select_relevant_tools(
             repo_context=repo_context,
             tool_names=', '.join(tool_names)
         )
-        
-        span.set_inputs({
+
+        span.update(input={
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",
             "semantic_query": semantic_query
         })
         
         try:
-            response = client.call_sync(system_prompt, user_prompt)
-            
+            response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt_tool)
+
             # Parse JSON response
             response_clean = response.strip()
             if response_clean.startswith("```json"):
@@ -292,8 +290,8 @@ async def _select_relevant_tools(
 async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Execute selected MCP tools according to the plan."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
-        span.set_inputs({"tool_plan": tool_plan})
+    with langfuse.start_as_current_observation(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
+        span.update(input={"tool_plan": tool_plan})
         
         mcp_client = get_mcp_client()
         tool_results = {}
@@ -327,8 +325,8 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 # layout_components_tool, resource_tool, planning_tool, etc.
                 arguments = {"query": query or ""}
             
-            with langfuse.start_as_current_span(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
-                tool_span.set_inputs({
+            with langfuse.start_as_current_observation(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
+                tool_span.update(input={
                     "tool": tool_name,
                     "arguments": arguments,
                     "objective": objective
@@ -336,8 +334,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 
                 try:
                     result = await mcp_client.call_tool(tool_name, arguments)
-                    
+
                     # Handle CallToolResult objects
+                    extracted = None
                     if hasattr(result, 'structured_content') and result.structured_content:
                         extracted = result.structured_content
                         tool_results[tool_name] = extracted
@@ -355,8 +354,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                             extracted = content
                         tool_results[tool_name] = extracted
                     else:
+                        extracted = result
                         tool_results[tool_name] = result
-                    
+
                     result_size = len(str(extracted)) if extracted else 0
                     
                     # Extract text content for markdown display
@@ -701,8 +701,8 @@ async def _generate_response(
 ) -> str:
     """Generate natural language response using LLM."""
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="response_generation", metadata={"span_type": "LLM"}) as span:
-        span.set_inputs({
+    with langfuse.start_as_current_observation(name="response_generation", metadata={"span_type": "LLM"}) as span:
+        span.update(input={
             "query": query,
             "repo_summary": repo_summary,
             "tools_used": list(tool_results.keys()),
@@ -712,8 +712,8 @@ async def _generate_response(
         
         # Use assistant role - model config comes from environment
         client = LLMClient(role="assistant")
-        
-        system_prompt = get_prompt_content("assistant_response_generation")
+
+        system_prompt, lf_prompt_resp = get_prompt_with_langfuse("assistant_response_generation")
         
         # Build context from repository
         layouts_list = repo_summary.get('layouts', [])
@@ -787,8 +787,8 @@ REPOSITORY CONTEXT:
             tool_context=tool_context,
             citation_note=citation_note
         )
-        
-        span.set_inputs({
+
+        span.update(input={
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",  # Truncate for logging
             "model": client.model,
@@ -798,10 +798,11 @@ REPOSITORY CONTEXT:
         
         # Pass conversation history directly to LLM API (uses native messages array)
         response = client.call_sync(
-            system_prompt, 
-            user_prompt.strip(), 
+            system_prompt,
+            user_prompt.strip(),
             attachments=attachments,
-            conversation_history=conversation_history  # Native API support
+            conversation_history=conversation_history,  # Native API support
+            langfuse_prompt=lf_prompt_resp,
         )
         
         span.update(output={

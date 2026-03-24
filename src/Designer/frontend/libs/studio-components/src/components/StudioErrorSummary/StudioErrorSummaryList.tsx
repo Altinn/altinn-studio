@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { ErrorSummaryList } from '@digdir/designsystemet-react';
 import type { ErrorSummaryListProps } from '@digdir/designsystemet-react';

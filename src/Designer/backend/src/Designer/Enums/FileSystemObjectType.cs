@@ -17,6 +17,6 @@ namespace Altinn.Studio.Designer.Enums
         Symlink,
 
         [EnumMember(Value = "submodule")]
-        Submodule
+        Submodule,
     }
 }

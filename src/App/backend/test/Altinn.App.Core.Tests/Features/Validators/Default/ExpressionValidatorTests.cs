@@ -90,7 +90,7 @@ public class ExpressionValidatorTests
 
         var dataModel = DynamicClassBuilder.DataAccessorFromJsonDocument(instance, testCase.FormData, dataElement);
 
-        var layout = new LayoutSetComponent(testCase.Layouts, "layout", dataType);
+        var layout = new UiFolderComponent(testCase.Layouts, "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var translationService = new TranslationService(
             new AppIdentifier("org", "app"),

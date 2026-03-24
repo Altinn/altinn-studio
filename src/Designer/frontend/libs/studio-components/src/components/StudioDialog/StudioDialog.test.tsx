@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';

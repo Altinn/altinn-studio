@@ -37,11 +37,47 @@ def initialize_documentation_search(verbose: bool = False):
 @register_tool(
     name="planning_tool",
     description="""
-    This tool provides comprehensive documentation on Altinn Studio planning and searches relevant Altinn Studio documentation.
-    Use this tool when you need to understand planning in Altinn Studio, create or modify a plan, or find specific documentation.
+⚠️ MANDATORY FIRST TOOL - Call this BEFORE any other tool in every session.
 
-    Provide a query parameter to search for relevant documentation. The tool will return planning context plus the most relevant documentation sections.
-    """,
+## Why This Must Be First
+This tool provides essential Altinn domain knowledge that ALL other tools depend on:
+- Altinn-specific conventions and patterns
+- Correct file structure and locations
+- Required relationships between components, datamodels, and resources
+- Platform constraints and best practices
+
+Without this context, you will make mistakes that require rework.
+
+## What It Returns
+- `planning_context`: Critical guidelines for Altinn development workflow
+- `search_results`: Relevant official documentation for your task
+- `content`: Combined context optimized for your specific query
+
+## Parameters
+- `query` (optional but recommended): Describe your task (e.g., "create form with date field and navigation")
+- `max_results` (optional): Number of docs to return (default: 3)
+- `include_planning_context` (optional): Include planning docs (default: true)
+- `include_full_content` (optional): Full content vs excerpts (default: true)
+
+## Correct Workflow
+```
+1. planning_tool(query="<describe task>")  ← ALWAYS START HERE
+2. layout_components_tool()                 ← Then get components
+3. Other tools as needed...
+```
+
+## ❌ WRONG: Skipping This Tool
+Do NOT call `layout_components_tool`, `datamodel_tool`, or any other tool first.
+You will miss critical context about:
+- How Altinn forms are structured
+- Required file relationships
+- Platform-specific patterns
+
+## Example Queries
+- "create form with input fields and navigation button"
+- "date picker component with validation"
+- "multi-page form with submit"
+""",
     title="Planning Tool",
     annotations=ToolAnnotations(
         readOnlyHint=True,

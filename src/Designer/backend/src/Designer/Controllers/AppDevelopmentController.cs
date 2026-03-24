@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ILayoutService _layoutService;
         private readonly IMediator _mediator;
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
         /// </summary>
@@ -46,7 +46,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">The source control service.</param>
         /// <param name="layoutService">An <see cref="ILayoutService"/></param>
         /// <param name="mediator"></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, ILayoutService layoutService, IMediator mediator)
+        public AppDevelopmentController(
+            IAppDevelopmentService appDevelopmentService,
+            IRepository repositoryService,
+            ISourceControl sourceControl,
+            ILayoutService layoutService,
+            IMediator mediator
+        )
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
@@ -66,13 +72,22 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<IActionResult> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetFormLayouts(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(editingContext, layoutSetName, cancellationToken);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(
+                    editingContext,
+                    layoutSetName,
+                    cancellationToken
+                );
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
@@ -98,46 +113,80 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] FormLayoutPayload formLayoutPayload, CancellationToken cancellationToken)
+        public async Task<ActionResult> SaveFormLayout(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            [FromRoute] string layoutName,
+            [FromBody] FormLayoutPayload formLayoutPayload,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(editingContext, layoutSetName, cancellationToken);
-                await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayoutPayload.Layout, cancellationToken);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(
+                    editingContext,
+                    layoutSetName,
+                    cancellationToken
+                );
+                await _appDevelopmentService.SaveFormLayout(
+                    editingContext,
+                    layoutSetName,
+                    layoutName,
+                    formLayoutPayload.Layout,
+                    cancellationToken
+                );
 
                 if (formLayoutPayload.ComponentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
                 {
-                    foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange.Where((componentIdChange) => componentIdChange.OldComponentId != componentIdChange.NewComponentId))
+                    foreach (
+                        var componentIdChange in formLayoutPayload.ComponentIdsChange.Where(
+                            (componentIdChange) => componentIdChange.OldComponentId != componentIdChange.NewComponentId
+                        )
+                    )
                     {
                         if (componentIdChange.NewComponentId == null)
                         {
-                            await _mediator.Publish(new ComponentDeletedEvent
-                            {
-                                ComponentId = componentIdChange.OldComponentId,
-                                LayoutSetName = layoutSetName,
-                                EditingContext = editingContext
-                            }, cancellationToken);
+                            await _mediator.Publish(
+                                new ComponentDeletedEvent
+                                {
+                                    ComponentId = componentIdChange.OldComponentId,
+                                    LayoutSetName = layoutSetName,
+                                    EditingContext = editingContext,
+                                },
+                                cancellationToken
+                            );
                         }
-                        await _mediator.Publish(new ComponentIdChangedEvent
-                        {
-                            OldComponentId = componentIdChange.OldComponentId,
-                            NewComponentId = componentIdChange.NewComponentId,
-                            LayoutSetName = layoutSetName,
-                            EditingContext = editingContext
-                        }, cancellationToken);
+                        await _mediator.Publish(
+                            new ComponentIdChangedEvent
+                            {
+                                OldComponentId = componentIdChange.OldComponentId,
+                                NewComponentId = componentIdChange.NewComponentId,
+                                LayoutSetName = layoutSetName,
+                                EditingContext = editingContext,
+                            },
+                            cancellationToken
+                        );
                     }
                 }
                 if (!formLayouts.ContainsKey(layoutName))
                 {
-                    LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetName, cancellationToken);
-                    await _mediator.Publish(new LayoutPageAddedEvent
-                    {
-                        LayoutSetConfig = layoutSetConfig,
-                        LayoutName = layoutName,
-                        EditingContext = editingContext,
-                    }, cancellationToken);
+                    LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(
+                        editingContext,
+                        layoutSetName,
+                        cancellationToken
+                    );
+                    await _mediator.Publish(
+                        new LayoutPageAddedEvent
+                        {
+                            LayoutSetConfig = layoutSetConfig,
+                            LayoutName = layoutName,
+                            EditingContext = editingContext,
+                        },
+                        cancellationToken
+                    );
                 }
                 return Ok();
             }
@@ -158,19 +207,28 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteFormLayout(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            [FromRoute] string layoutName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-                await _mediator.Publish(new LayoutPageDeletedEvent
-                {
-                    EditingContext = editingContext,
-                    LayoutSetName = layoutSetName,
-                    LayoutName = layoutName,
-                }, cancellationToken);
+                await _mediator.Publish(
+                    new LayoutPageDeletedEvent
+                    {
+                        EditingContext = editingContext,
+                        LayoutSetName = layoutSetName,
+                        LayoutName = layoutName,
+                    },
+                    cancellationToken
+                );
 
                 _appDevelopmentService.DeleteFormLayout(editingContext, layoutSetName, layoutName);
 
@@ -194,20 +252,30 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout-name/{layoutName}")]
-        public async Task<ActionResult> UpdateFormLayoutName(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] string newName, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateFormLayoutName(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            [FromRoute] string layoutName,
+            [FromBody] string newName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 _appDevelopmentService.UpdateFormLayoutName(editingContext, layoutSetName, layoutName, newName);
-                await _mediator.Publish(new LayoutPageIdChangedEvent
-                {
-                    EditingContext = editingContext,
-                    LayoutSetName = layoutSetName,
-                    LayoutName = layoutName,
-                    NewLayoutName = newName,
-                }, cancellationToken);
+                await _mediator.Publish(
+                    new LayoutPageIdChangedEvent
+                    {
+                        EditingContext = editingContext,
+                        LayoutSetName = layoutSetName,
+                        LayoutName = layoutName,
+                        NewLayoutName = newName,
+                    },
+                    cancellationToken
+                );
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -228,13 +296,24 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName, [FromBody] JsonNode layoutSettings, CancellationToken cancellationToken)
+        public async Task<ActionResult> SaveLayoutSettings(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            [FromBody] JsonNode layoutSettings,
+            CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             try
             {
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettings, layoutSetName, cancellationToken);
+                await _appDevelopmentService.SaveLayoutSettings(
+                    editingContext,
+                    layoutSettings,
+                    layoutSetName,
+                    cancellationToken
+                );
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -254,14 +333,391 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<IActionResult> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetLayoutSettings(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                var layoutSettings = await _appDevelopmentService.GetLayoutSettings(editingContext, layoutSetName, cancellationToken);
+                var layoutSettings = await _appDevelopmentService.GetLayoutSettings(
+                    editingContext,
+                    layoutSetName,
+                    cancellationToken
+                );
                 return Ok(layoutSettings);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+            catch (BadHttpRequestException exception)
+            {
+                return BadRequest(exception);
+            }
+        }
+
+        /// <summary>
+        /// Updates validation on navigation settings for multiple layout sets based on grouped configurations
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="settings">List of grouped validation navigation settings to apply</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The updated list of grouped validation navigation settings</returns>
+        [HttpPost("layout-settings/validation-on-navigation")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> UpdateValidationOnNavigationLayoutSettings(
+            string org,
+            string app,
+            [FromBody] List<ValidationOnNavigationDto> settings,
+            CancellationToken cancellationToken
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                editingContext,
+                cancellationToken
+            );
+
+            var taskSettingsMap = new Dictionary<string, ValidationOnNavigation>();
+
+            foreach (var settingGroup in settings)
+            {
+                if (settingGroup.Tasks == null || !settingGroup.Tasks.Any())
+                {
+                    continue;
+                }
+
+                var validationSettings = new ValidationOnNavigation
+                {
+                    Show = settingGroup.Show,
+                    Page = settingGroup.Page,
+                };
+
+                foreach (var taskId in settingGroup.Tasks)
+                {
+                    taskSettingsMap[taskId] = validationSettings;
+                }
+            }
+
+            foreach (var layoutSet in layoutSetsModel.Sets)
+            {
+                try
+                {
+                    LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(
+                        editingContext,
+                        layoutSet.Id,
+                        cancellationToken
+                    );
+                    layoutSettings.Pages ??= new Pages();
+
+                    taskSettingsMap.TryGetValue(layoutSet.Id, out var newValidationSettings);
+
+                    if (
+                        HasValidationSettingsChanged(layoutSettings.Pages.ValidationOnNavigation, newValidationSettings)
+                    )
+                    {
+                        layoutSettings.Pages.ValidationOnNavigation = newValidationSettings;
+
+                        await _appDevelopmentService.SaveLayoutSettings(
+                            editingContext,
+                            System.Text.Json.Nodes.JsonNode.Parse(
+                                System.Text.Json.JsonSerializer.Serialize(layoutSettings)
+                            ),
+                            layoutSet.Id,
+                            cancellationToken
+                        );
+                    }
+                }
+                catch (FileNotFoundException)
+                {
+                    if (taskSettingsMap.TryGetValue(layoutSet.Id, out var validationSettings))
+                    {
+                        var newLayoutSettings = new LayoutSettings
+                        {
+                            Pages = new Pages { ValidationOnNavigation = validationSettings },
+                        };
+
+                        await _appDevelopmentService.SaveLayoutSettings(
+                            editingContext,
+                            System.Text.Json.Nodes.JsonNode.Parse(
+                                System.Text.Json.JsonSerializer.Serialize(newLayoutSettings)
+                            ),
+                            layoutSet.Id,
+                            cancellationToken
+                        );
+                    }
+                }
+            }
+            return await GetValidationOnNavigationLayoutSettings(org, app, cancellationToken);
+        }
+
+        private static bool HasValidationSettingsChanged(
+            ValidationOnNavigation existingSettings,
+            ValidationOnNavigation incomingSettings
+        )
+        {
+            if (existingSettings == null && incomingSettings == null)
+            {
+                return false;
+            }
+            if (existingSettings == null || incomingSettings == null)
+            {
+                return true;
+            }
+            if (existingSettings.Page != incomingSettings.Page)
+            {
+                return true;
+            }
+            if (existingSettings.Show == null && incomingSettings.Show == null)
+            {
+                return false;
+            }
+            if (existingSettings.Show == null || incomingSettings.Show == null)
+            {
+                return true;
+            }
+            bool showListsAreDifferent = !existingSettings
+                .Show.OrderBy(x => x)
+                .SequenceEqual(incomingSettings.Show.OrderBy(x => x));
+            return showListsAreDifferent;
+        }
+
+        /// <summary>
+        /// Gets validation on navigation settings grouped by shared show/page values across all layout sets
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>A list of grouped validation navigation settings</returns>
+        [HttpGet("layout-settings/validation-on-navigation")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> GetValidationOnNavigationLayoutSettings(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+                LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                    editingContext,
+                    cancellationToken
+                );
+
+                var settingsWithIds = new List<(string Id, LayoutSettings Settings)>();
+                foreach (var layoutSet in layoutSetsModel.Sets)
+                {
+                    LayoutSettings settings = await _layoutService.GetLayoutSettings(
+                        editingContext,
+                        layoutSet.Id,
+                        cancellationToken
+                    );
+                    if (settings != null)
+                    {
+                        settingsWithIds.Add((layoutSet.Id, settings));
+                    }
+                }
+
+                var result = settingsWithIds
+                    .Where(item => item.Settings?.Pages?.ValidationOnNavigation != null)
+                    .Select(item => new
+                    {
+                        item.Id,
+                        Show = item.Settings.Pages.ValidationOnNavigation.Show,
+                        Page = item.Settings.Pages.ValidationOnNavigation.Page,
+                    })
+                    .GroupBy(x => new
+                    {
+                        ShowKey = x.Show != null ? string.Join(",", x.Show.OrderBy(s => s)) : "",
+                        x.Page,
+                    })
+                    .Select(group => new ValidationOnNavigationDto
+                    {
+                        Tasks = group.Select(x => x.Id).ToList(),
+                        Show = group.First().Show,
+                        Page = group.First().Page,
+                    })
+                    .ToList();
+
+                return Ok(result);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+            catch (BadHttpRequestException exception)
+            {
+                return BadRequest(exception);
+            }
+        }
+
+        /// <summary>
+        /// Gets pages in each layout set grouped by their shared validationOnNavigation settings.
+        /// Each page's validationOnNavigation is read from the top-level property of its layout file.
+        /// Only pages that have validationOnNavigation configured are included.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>A list of page groups per layout set, each sharing the same validationOnNavigation settings</returns>
+        [HttpGet("layout-settings/validation-on-navigation/pages")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> GetValidationOnNavigationPageSettings(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+                LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                    editingContext,
+                    cancellationToken
+                );
+
+                var result = new List<PageValidationOnNavigationDto>();
+
+                foreach (var layoutSet in layoutSetsModel.Sets)
+                {
+                    Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                        editingContext,
+                        layoutSet.Id,
+                        cancellationToken
+                    );
+
+                    IEnumerable<PageValidationOnNavigationDto> groups = layouts
+                        .Where(kvp => kvp.Value?["data"]?["validationOnNavigation"] != null)
+                        .Select(kvp => new
+                        {
+                            PageName = kvp.Key,
+                            Nav = kvp.Value["data"]["validationOnNavigation"].Deserialize<ValidationOnNavigation>(),
+                        })
+                        .GroupBy(x => new
+                        {
+                            Page = x.Nav.Page ?? string.Empty,
+                            ShowKey = x.Nav.Show != null ? string.Join(",", x.Nav.Show.OrderBy(s => s)) : string.Empty,
+                        })
+                        .Select(group => new PageValidationOnNavigationDto
+                        {
+                            Task = layoutSet.Id,
+                            Pages = [.. group.Select(x => x.PageName)],
+                            Page = group.First().Nav.Page,
+                            Show = group.First().Nav.Show?.OrderBy(s => s).ToList(),
+                        });
+
+                    result.AddRange(groups);
+                }
+
+                return Ok(result);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+            catch (BadHttpRequestException exception)
+            {
+                return BadRequest(exception);
+            }
+        }
+
+        /// <summary>
+        /// Updates validationOnNavigation settings for individual pages by writing to each page's layout file.
+        /// Pages included in a group get their data.validationOnNavigation set; pages not in any group have it removed.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="pageSettings">List of page validation groups to update.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        [HttpPost("layout-settings/validation-on-navigation/pages")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> UpdateValidationOnNavigationPageSettings(
+            string org,
+            string app,
+            [FromBody] List<PageValidationOnNavigationDto> pageSettings,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+                LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                    editingContext,
+                    cancellationToken
+                );
+
+                foreach (var layoutSet in layoutSetsModel.Sets)
+                {
+                    Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                        editingContext,
+                        layoutSet.Id,
+                        cancellationToken
+                    );
+
+                    var validationGroupsForLayoutSet = pageSettings.Where(g => g.Task == layoutSet.Id).ToList();
+
+                    foreach ((string pageName, JsonNode layoutNode) in layouts)
+                    {
+                        PageValidationOnNavigationDto matchingGroupForPage =
+                            validationGroupsForLayoutSet.FirstOrDefault(g => g.Pages.Contains(pageName));
+
+                        JsonObject dataNode = layoutNode?["data"]?.AsObject();
+                        if (dataNode == null)
+                        {
+                            continue;
+                        }
+
+                        ValidationOnNavigation existingValidation = dataNode["validationOnNavigation"]
+                            ?.Deserialize<ValidationOnNavigation>();
+                        ValidationOnNavigation newValidation =
+                            matchingGroupForPage != null
+                                ? new ValidationOnNavigation
+                                {
+                                    Page = matchingGroupForPage.Page,
+                                    Show = matchingGroupForPage.Show?.OrderBy(s => s).ToList(),
+                                }
+                                : null;
+
+                        if (!HasValidationSettingsChanged(existingValidation, newValidation))
+                        {
+                            continue;
+                        }
+
+                        if (newValidation != null)
+                        {
+                            dataNode["validationOnNavigation"] = JsonSerializer.SerializeToNode(newValidation);
+                        }
+                        else
+                        {
+                            dataNode.Remove("validationOnNavigation");
+                        }
+
+                        await _appDevelopmentService.SaveFormLayout(
+                            editingContext,
+                            layoutSet.Id,
+                            pageName,
+                            layoutNode,
+                            cancellationToken
+                        );
+                    }
+                }
+
+                return Ok();
             }
             catch (FileNotFoundException exception)
             {
@@ -302,10 +758,19 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-ids")]
-        public async Task<IActionResult> GetAppMetadataDataModelIds(string org, string app, CancellationToken cancellationToken, [FromQuery] bool onlyUnReferenced = false)
+        public async Task<IActionResult> GetAppMetadataDataModelIds(
+            string org,
+            string app,
+            CancellationToken cancellationToken,
+            [FromQuery] bool onlyUnReferenced = false
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), onlyUnReferenced, cancellationToken);
+            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+                onlyUnReferenced,
+                cancellationToken
+            );
             return Ok(dataModelIds);
         }
 
@@ -321,10 +786,21 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-metadata")]
-        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, [FromQuery] string dataModelName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetModelMetadata(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            [FromQuery] string dataModelName,
+            CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, dataModelName, cancellationToken);
+            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+                layoutSetName,
+                dataModelName,
+                cancellationToken
+            );
 
             return Ok(modelMetadata);
         }
@@ -349,27 +825,94 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet("layout-sets/extended")]
         [UseSystemTextJson]
-        public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
+        public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                editingContext,
+                cancellationToken
+            );
 
-            IEnumerable<LayoutSetDto> layoutSetDtoList = await Task.WhenAll(layoutSetsModel.Sets.Select(async (layoutSet) =>
-            {
-                LayoutSetDto layoutSetDto = layoutSet.ToDto();
-                string layoutSetId = layoutSet?.Id;
-                LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(
-                    editingContext,
-                    layoutSetId
-                );
-                PagesDto pages = PagesDto.From(layoutSettings);
-                layoutSetDto.PageCount = pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages.Count;
+            IEnumerable<LayoutSetDto> layoutSetDtoList = await Task.WhenAll(
+                layoutSetsModel.Sets.Select(
+                    async (layoutSet) =>
+                    {
+                        LayoutSetDto layoutSetDto = layoutSet.ToDto();
+                        string layoutSetId = layoutSet?.Id;
+                        LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(
+                            editingContext,
+                            layoutSetId
+                        );
+                        PagesDto pages = PagesDto.From(layoutSettings);
+                        layoutSetDto.PageCount =
+                            pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages.Count;
 
-                return layoutSetDto;
-            }));
+                        return layoutSetDto;
+                    }
+                )
+            );
             return layoutSetDtoList;
+        }
+
+        [HttpGet("layout-sets/validation-on-navigation")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> GetValidationOnNavigationLayoutSets(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            ValidationOnNavigation config = await _appDevelopmentService.GetValidationOnNavigationLayoutSets(
+                editingContext,
+                cancellationToken
+            );
+
+            return Ok(config);
+        }
+
+        [HttpPost("layout-sets/validation-on-navigation")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> SaveValidationOnNavigationLayoutSets(
+            string org,
+            string app,
+            [FromBody] ValidationOnNavigation config,
+            CancellationToken cancellationToken
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            await _appDevelopmentService.SaveValidationOnNavigationLayoutSets(
+                editingContext,
+                config,
+                cancellationToken
+            );
+
+            return Ok();
+        }
+
+        [HttpDelete("layout-sets/validation-on-navigation")]
+        public async Task<IActionResult> DeleteValidationOnNavigationLayoutSets(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            await _appDevelopmentService.SaveValidationOnNavigationLayoutSets(editingContext, null, cancellationToken);
+
+            return Ok();
         }
 
         /// <summary>
@@ -382,16 +925,29 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromBody] LayoutSetPayload layoutSetPayload, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddLayoutSet(
+            string org,
+            string app,
+            [FromBody] LayoutSetPayload layoutSetPayload,
+            CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutSetPayload.TaskType, cancellationToken);
-            await _mediator.Publish(new LayoutSetCreatedEvent
-            {
-                EditingContext = editingContext,
-                LayoutSet = layoutSetPayload.LayoutSetConfig
-            }, cancellationToken);
+            LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(
+                editingContext,
+                layoutSetPayload.LayoutSetConfig,
+                layoutSetPayload.TaskType,
+                cancellationToken
+            );
+            await _mediator.Publish(
+                new LayoutSetCreatedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSet = layoutSetPayload.LayoutSetConfig,
+                },
+                cancellationToken
+            );
             return Ok(layoutSets);
         }
 
@@ -406,17 +962,31 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> UpdateLayoutSetName(string org, string app, [FromRoute] string layoutSetIdToUpdate, [FromBody] string newLayoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateLayoutSetName(
+            string org,
+            string app,
+            [FromRoute] string layoutSetIdToUpdate,
+            [FromBody] string newLayoutSetName,
+            CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSetName(editingContext, layoutSetIdToUpdate, newLayoutSetName, cancellationToken);
-            await _mediator.Publish(new LayoutSetIdChangedEvent
-            {
-                EditingContext = editingContext,
-                LayoutSetName = layoutSetIdToUpdate,
-                NewLayoutSetName = newLayoutSetName,
-            }, cancellationToken);
+            LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSetName(
+                editingContext,
+                layoutSetIdToUpdate,
+                newLayoutSetName,
+                cancellationToken
+            );
+            await _mediator.Publish(
+                new LayoutSetIdChangedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSetName = layoutSetIdToUpdate,
+                    NewLayoutSetName = newLayoutSetName,
+                },
+                cancellationToken
+            );
             return Ok(layoutSets);
         }
 
@@ -430,18 +1000,26 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> DeleteLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteLayoutSet(
+            string org,
+            string app,
+            [FromRoute] string layoutSetIdToUpdate,
+            CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            await _mediator.Publish(new LayoutSetDeletedEvent
-            {
-                EditingContext = editingContext,
-                LayoutSetName = layoutSetIdToUpdate
-            }, cancellationToken);
+            await _mediator.Publish(
+                new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetIdToUpdate },
+                cancellationToken
+            );
 
-            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(
+                editingContext,
+                layoutSetIdToUpdate,
+                cancellationToken
+            );
 
             return Ok(layoutSets);
         }
@@ -456,13 +1034,22 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("rule-handler")]
-        public async Task<IActionResult> GetRuleHandler(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetRuleHandler(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                string ruleHandler = await _appDevelopmentService.GetRuleHandler(editingContext, layoutSetName, cancellationToken);
+                string ruleHandler = await _appDevelopmentService.GetRuleHandler(
+                    editingContext,
+                    layoutSetName,
+                    cancellationToken
+                );
                 return Content(ruleHandler);
             }
             catch (FileNotFoundException)
@@ -485,7 +1072,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpPost]
         [Route("rule-handler")]
-        public async Task<IActionResult> SaveRuleHandler(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> SaveRuleHandler(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
@@ -494,7 +1086,12 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     var content = await reader.ReadToEndAsync(cancellationToken);
                     var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                    await _appDevelopmentService.SaveRuleHandler(editingContext, content, layoutSetName, cancellationToken);
+                    await _appDevelopmentService.SaveRuleHandler(
+                        editingContext,
+                        content,
+                        layoutSetName,
+                        cancellationToken
+                    );
                 }
 
                 return NoContent();
@@ -517,13 +1114,24 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("rule-config")]
-        public async Task<IActionResult> SaveRuleConfig(string org, string app, [FromBody] JsonNode ruleConfig, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> SaveRuleConfig(
+            string org,
+            string app,
+            [FromBody] JsonNode ruleConfig,
+            [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.SaveRuleConfig(editingContext, ruleConfig, layoutSetName, cancellationToken);
+                await _appDevelopmentService.SaveRuleConfig(
+                    editingContext,
+                    ruleConfig,
+                    layoutSetName,
+                    cancellationToken
+                );
                 return Ok();
             }
             catch (Exception exception)
@@ -542,13 +1150,22 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("rule-config")]
-        public async Task<IActionResult> GetRuleConfig(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetRuleConfig(
+            string org,
+            string app,
+            [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                string ruleConfig = await _appDevelopmentService.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(editingContext, layoutSetName, cancellationToken);
+                string ruleConfig = await _appDevelopmentService.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(
+                    editingContext,
+                    layoutSetName,
+                    cancellationToken
+                );
                 return Content(ruleConfig);
             }
             catch (FileNotFoundException)
@@ -573,7 +1190,9 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult GetWidgetSettings(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string widgetSettings = _repository.GetWidgetSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
+            string widgetSettings = _repository.GetWidgetSettings(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)
+            );
             return Ok(widgetSettings);
         }
 
@@ -586,11 +1205,7 @@ namespace Altinn.Studio.Designer.Controllers
             var backendVersion = _appDevelopmentService.GetAppLibVersion(editingContext);
             _appDevelopmentService.TryGetFrontendVersion(editingContext, out string frontendVersion);
 
-            return new VersionResponse
-            {
-                BackendVersion = backendVersion,
-                FrontendVersion = frontendVersion
-            };
+            return new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion };
         }
     }
 }

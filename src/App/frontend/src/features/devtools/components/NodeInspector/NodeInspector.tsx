@@ -5,6 +5,7 @@ import { Tabs } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/NodeHierarchy';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
@@ -49,7 +50,7 @@ export const NodeInspector = () => {
                 onClick={() => setSelected(undefined)}
                 variant='tertiary'
                 color='second'
-                aria-label='close'
+                aria-label={translationKey('general.close')}
                 icon={true}
               >
                 <XMarkIcon

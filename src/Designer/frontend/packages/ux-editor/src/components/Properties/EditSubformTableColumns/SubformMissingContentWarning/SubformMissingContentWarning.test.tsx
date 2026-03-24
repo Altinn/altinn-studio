@@ -1,6 +1,5 @@
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { SubformMissingContentWarning } from './SubformMissingContentWarning';
-import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';

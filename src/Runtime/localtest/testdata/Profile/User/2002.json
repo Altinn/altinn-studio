@@ -1,0 +1,17 @@
+{
+  "UserId": 2002,
+  "UserName": "KariNordvik",
+  "PhoneNumber": "+4791234567",
+  "Email": "kari.nordvik@test.com",
+  "PartyId": 512002,
+  "Party": {
+    "partyId": "512002",
+    "partyUuid": "b2c3d4e5-f6a7-8901-bcde-fa2345678901",
+    "ssn": "12889898001"
+  },
+  "UserType": 0,
+  "ProfileSettingPreference": {
+    "Language": "nb",
+    "doNotPromptForParty": false
+  }
+}

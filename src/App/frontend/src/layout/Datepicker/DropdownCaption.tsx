@@ -8,8 +8,8 @@ import { addYears, max, min, setMonth, setYear, startOfMonth, subYears } from 'd
 
 import { Button } from 'src/app-components/Button/Button';
 import styles from 'src/app-components/Datepicker/Calendar.module.css';
-import { getMonths, getYears } from 'src/app-components/Datepicker/DatePickerHelpers';
-import { getDateLib } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { getDateLib, getMonths, getYears } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { translationKey } from 'src/AppComponentsBridge';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import comboboxClasses from 'src/styles/combobox.module.css';
@@ -41,7 +41,7 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
         icon={true}
         color='second'
         variant='tertiary'
-        aria-label={langAsString('date_picker.aria_label_left_arrow')}
+        aria-label={translationKey('date_picker.aria_label_left_arrow')}
         disabled={!previousMonth}
         onClick={() => previousMonth && goToMonth(previousMonth)}
       >
@@ -88,7 +88,7 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
         icon={true}
         color='second'
         variant='tertiary'
-        aria-label={langAsString('date_picker.aria_label_right_arrow')}
+        aria-label={translationKey('date_picker.aria_label_right_arrow')}
         disabled={!nextMonth}
         onClick={() => nextMonth && goToMonth(nextMonth)}
       >

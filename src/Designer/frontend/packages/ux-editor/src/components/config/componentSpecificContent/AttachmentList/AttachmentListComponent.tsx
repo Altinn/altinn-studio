@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
@@ -14,6 +13,8 @@ import { convertInternalToExternalFormat } from './convertFunctions/convertToExt
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+
+import type { JSX } from 'react';
 
 type AttachmentListComponentProps = IGenericEditComponent<ComponentType.AttachmentList> & {
   className?: string;

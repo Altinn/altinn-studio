@@ -21,6 +21,8 @@ export enum QueryKey {
   FetchBpmn = 'FetchBpmn',
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
+  ValidationOnNavigationLayoutSettings = 'ValidationOnNavigationLayoutSettings',
+  ValidationOnNavigationPageSettings = 'ValidationOnNavigationPageSettings',
   FormLayouts = 'FormLayouts',
   FrontEndSettings = 'FrontEndSettings',
   ImageFileNames = 'ImageFileNames',
@@ -57,13 +59,14 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   AppConfig = 'AppConfig',
-  IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
+  AppSettings = 'AppSettings',
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
   UserOrgPermissions = 'UserOrgPermissions',
   DataType = 'DataType',
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
+  ValidationOnNavigationLayoutSets = 'ValidationOnNavigationLayoutSets',
 
   // Admin
   ErrorMetrics = 'ErrorMetrics',
@@ -102,4 +105,7 @@ export enum QueryKey {
   Altinn2DelegationCount = 'Altinn2DelegationCount',
   UpdateDataType = 'UpdateDataType',
   ConsentResourceTemplates = 'ConsentResourceTemplates',
+
+  // User settings
+  UserApiKeys = 'UserApiKeys',
 }

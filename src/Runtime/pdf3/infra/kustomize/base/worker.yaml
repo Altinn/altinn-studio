@@ -126,7 +126,9 @@ spec:
       labels:
         app: pdf3-worker
         component: pdf3
-      # We don't use linkerd annotation here as only the proxy contacts it
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+        # We don't use linkerd annotation here as only the proxy contacts it
     spec:
       topologySpreadConstraints:
         # Try to spread across availability zones first (highest priority)

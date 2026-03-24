@@ -9,18 +9,14 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
     public class CsharpGenerationException : Exception
     {
         /// <inheritdoc/>
-        public CsharpGenerationException()
-        {
-        }
+        public CsharpGenerationException() { }
 
         /// <inheritdoc/>
-        public CsharpGenerationException(string message) : base(message)
-        {
-        }
+        public CsharpGenerationException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public CsharpGenerationException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public CsharpGenerationException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

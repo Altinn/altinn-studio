@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -23,6 +23,7 @@ describe('BpmnConfigPanelContext', () => {
   it('should provide a useBpmnConfigPanelFormContext hook', () => {
     const TestComponent = () => {
       const { metadataFormRef } = useBpmnConfigPanelFormContext();
+      // Todo: add eslint disable next line when updating eslint-react-hooks to v7
       return <div data-testid='context'>{JSON.stringify(metadataFormRef.current)}</div>;
     };
 
@@ -36,8 +37,6 @@ describe('BpmnConfigPanelContext', () => {
   });
 
   it('should throw an error when useBpmnConfigPanelFormContext is used outside of a BpmnConfigPanelFormContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useBpmnConfigPanelFormContext();
       return <div data-testid='context'>Test</div>;
@@ -46,7 +45,6 @@ describe('BpmnConfigPanelContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useBpmnConfigPanelFormContext must be used within a BpmnConfigPanelContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should provide method to reset meta data', async () => {
@@ -71,6 +69,7 @@ describe('BpmnConfigPanelContext', () => {
           <button onClick={handleSetMetadata}>Set meta data</button>
           <button onClick={handleResetMetadata}>Reset meta data</button>
           <div data-testid='context'>
+            {/* Todo: add eslint disable next line when updating eslint-react-hooks to v7 */}
             {metadataFormRef.current ? JSON.stringify(metadataFormRef.current) : 'Empty'}
           </div>
         </div>

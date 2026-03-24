@@ -4,10 +4,10 @@ import { FormattedInput } from 'src/app-components/Input/FormattedInput';
 import { Input } from 'src/app-components/Input/Input';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Label } from 'src/app-components/Label/Label';
-import { getDescriptionId } from 'src/components/label/Label';
+import { translationKey } from 'src/AppComponentsBridge';
+import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
@@ -102,10 +102,11 @@ function getMobileKeyboardProps(
   return { inputMode: 'text', pattern: undefined };
 }
 
-export const InputVariant = ({
+const InputVariant = ({
   baseComponentId,
   overrideDisplay,
-}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'>) => {
+  labelId,
+}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'> & { labelId: string }) => {
   const {
     id,
     readOnly,
@@ -122,7 +123,6 @@ export const InputVariant = ({
     formData: { simpleBinding: realFormValue },
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
-  const { langAsString } = useLanguage();
 
   const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
   const formValue = localValue ?? realFormValue;
@@ -145,9 +145,13 @@ export const InputVariant = ({
     hasValidations,
   });
 
+  const labelProps = textResourceBindings?.title
+    ? { 'aria-label': translationKey(textResourceBindings?.title) }
+    : { 'aria-labelledby': labelId };
+
   const inputProps: InputProps = {
     id,
-    'aria-label': langAsString(textResourceBindings?.title),
+    ...labelProps,
     'aria-describedby': inputDescribedBy,
     autoComplete: autocomplete,
     className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
@@ -156,8 +160,8 @@ export const InputVariant = ({
     required,
     onBlur: () => debounce('blur'),
     error: !useIsValid(baseComponentId),
-    prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
-    suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
+    prefix: translationKey(textResourceBindings?.prefix),
+    suffix: translationKey(textResourceBindings?.suffix),
     style: { width: '100%' },
     inputMode,
     pattern,
@@ -198,6 +202,8 @@ export const InputVariant = ({
         <NumericInput
           {...inputProps}
           {...variant.format}
+          prefix={translationKey(variant.format.prefix)}
+          suffix={translationKey(variant.format.suffix)}
           value={formValue}
           type='text'
           onBlur={() => {
@@ -260,8 +266,11 @@ export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });
 
+  const labelId = getLabelId(id);
+
   return (
     <Label
+      id={labelId}
       htmlFor={id}
       label={labelText}
       grid={grid?.labelGrid}
@@ -275,6 +284,7 @@ export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'
         <InputVariant
           baseComponentId={baseComponentId}
           overrideDisplay={overrideDisplay}
+          labelId={labelId}
         />
       </ComponentStructureWrapper>
     </Label>

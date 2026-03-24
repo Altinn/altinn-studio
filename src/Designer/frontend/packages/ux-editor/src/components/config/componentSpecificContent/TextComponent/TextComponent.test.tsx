@@ -1,4 +1,3 @@
-import React from 'react';
 import { TextComponent, type TextComponentProps } from './TextComponent';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { componentMocks } from '../../../../../../ux-editor/src/testing/componentMocks';

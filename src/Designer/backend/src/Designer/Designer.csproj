@@ -155,7 +155,6 @@
     <Watch Remove="Services\Implementation\PolicyOptionsService.cs" />
     <Watch Remove="Services\Implementation\ResourceRegistryAdminService.cs" />
     <Watch Remove="Services\Implementation\ResourceService.cs" />
-    <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
     <Watch Remove="Services\Interfaces\IOrgService.cs" />
     <Watch Remove="Services\Interfaces\IResourceRegistry.cs" />
     <Watch Remove="Services\Interfaces\IPolicyOptions.cs" />

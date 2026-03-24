@@ -5,7 +5,8 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords
 {
-    public class XsdNillableKeywordJsonConverterTests : ValueKeywordConverterTestBase<XsdNillableKeywordJsonConverterTests, XsdNillableKeyword, bool>
+    public class XsdNillableKeywordJsonConverterTests
+        : ValueKeywordConverterTestBase<XsdNillableKeywordJsonConverterTests, XsdNillableKeyword, bool>
     {
         private const string KeywordPlaceholder = "@xsdNillable";
 
@@ -16,13 +17,12 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(false)]
         public void Read_ValidJson_FromSchema(bool value)
         {
-            var jsonSchema = @$"{{
+            var jsonSchema =
+                @$"{{
                 ""{KeywordPlaceholder}"": {value.ToString().ToLower()}
             }}";
 
-            Given.That.JsonSchemaLoaded(jsonSchema)
-                .When.KeywordReadFromSchema()
-                .Then.KeywordShouldNotBeNull();
+            Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
 
             Assert.Equal(Keyword.Value, value);
         }
@@ -32,7 +32,8 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(false)]
         public void Write_ValidStructure_ShouldWriteToJson(bool value)
         {
-            Given.That.KeywordCreatedWithValue(value)
+            Given
+                .That.KeywordCreatedWithValue(value)
                 .When.KeywordSerializedAsJson()
                 .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}");
         }
@@ -41,13 +42,13 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(true)]
         public void Read_InvalidJson_ShouldThrow(bool value)
         {
-            var jsonSchema = @$"{{
+            var jsonSchema =
+                @$"{{
                     ""{KeywordPlaceholder}"": {{
                         ""value"": ""{value}""
                 }}";
 
-            var ex = Assert.Throws<JsonException>(() =>
-                Given.That.JsonSchemaLoaded(jsonSchema));
+            var ex = Assert.Throws<JsonException>(() => Given.That.JsonSchemaLoaded(jsonSchema));
 
             Assert.Equal("Expected boolean", ex.Message);
         }

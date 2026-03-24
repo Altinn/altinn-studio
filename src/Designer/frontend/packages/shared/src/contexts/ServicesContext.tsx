@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import type { MutationMeta, QueryClientConfig, QueryMeta } from '@tanstack/react-query';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type * as queries from '../api/queries';
@@ -45,10 +45,21 @@ const handleError = (
     console.error(error);
   }
 
-  const renderToast = (key: string, options: ToastOptions = {}) => {
+  const renderToast = (key: string, detail?: string, options: ToastOptions = {}) => {
     const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), {
+      const message = (
+        <>
+          {t(errorMessageKey)}{' '}
+          {detail && (
+            <>
+              <br />
+              {`${t('app_error.details')}: ${detail}`}
+            </>
+          )}
+        </>
+      );
+      toast.error(message, {
         toastId: errorMessageKey,
         ...options,
       });
@@ -58,10 +69,11 @@ const handleError = (
   };
 
   const errorCode = error?.response?.data?.errorCode;
+  const detail = error?.response?.data?.detail;
   const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
 
   if (unAuthorizedErrorCode) {
-    return renderToast(errorCode || 'Unauthorized', {
+    return renderToast(errorCode || 'Unauthorized', detail, {
       onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
       autoClose: LOG_OUT_TIMER_MS,
     });
@@ -74,7 +86,7 @@ const handleError = (
     return;
 
   if (errorCode) {
-    return renderToast(errorCode);
+    return renderToast(errorCode, detail);
   }
 
   renderDefaultToast();

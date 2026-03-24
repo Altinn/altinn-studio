@@ -9,14 +9,14 @@
   },
   "dependencies": {
     "@studio/pure-functions": "workspace:^",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "uuid": "13.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
-    "@testing-library/react": "16.3.1",
-    "@types/jest": "^29.5.5",
+    "@testing-library/react": "16.3.2",
+    "@types/jest": "^30.0.0",
     "eslint": "8.57.1",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",

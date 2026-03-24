@@ -15,7 +15,7 @@ describe('Group', () => {
   };
 
   it('Should work without table headers', () => {
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'RepeatingGroup') {
         component.tableHeaders = [];
       }
@@ -32,7 +32,7 @@ describe('Group', () => {
 
   [true, false].forEach((alwaysShowAddButton) => {
     it(`Add items on main group when AlwaysShowAddButton = ${alwaysShowAddButton}`, () => {
-      cy.interceptLayout('group', (c) => {
+      cy.interceptLayout('Task_3', (c) => {
         if (c.type === 'RepeatingGroup' && c.edit && c.id === 'mainGroup') {
           c.edit.alwaysShowAddButton = alwaysShowAddButton;
           c.maxCount = 2;
@@ -59,7 +59,7 @@ describe('Group', () => {
 
   [true, false].forEach((openByDefault) => {
     it(`Add and delete items on main and nested group (openByDefault = ${openByDefault ? 'true' : 'false'})`, () => {
-      cy.interceptLayout('group', (c) => {
+      cy.interceptLayout('Task_3', (c) => {
         if (c.type === 'RepeatingGroup' && c.edit) {
           c.edit.openByDefault = openByDefault;
         }
@@ -91,7 +91,7 @@ describe('Group', () => {
   });
 
   it('Should not be possible to add more rows than maxCount', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.edit && c.id === 'mainGroup') {
         c.maxCount = 2;
       }
@@ -105,7 +105,7 @@ describe('Group', () => {
   });
 
   it('MaxCount exceeded hides add button when alwaysShowAddButton is true', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.edit && c.id === 'mainGroup') {
         c.maxCount = 2;
         c.edit.alwaysShowAddButton = true;
@@ -157,7 +157,7 @@ describe('Group', () => {
 
   it('Validation on repeating group for minCount', () => {
     // set minCount to 3 on main group
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.edit && c.id === 'mainGroup') {
         c.minCount = 3;
       }
@@ -197,7 +197,7 @@ describe('Group', () => {
         component.required = true;
       }
     };
-    cy.interceptLayout('group', layoutMutator);
+    cy.interceptLayout('Task_3', layoutMutator);
 
     init();
 
@@ -295,7 +295,7 @@ describe('Group', () => {
   });
 
   it('Delete group row after validation', () => {
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (['currentValue', 'newValue'].includes(component.id) && component.type === 'Input') {
         // Sets these two components to required
         component.required = true;
@@ -336,7 +336,7 @@ describe('Group', () => {
     // False must always be last here, so that we are allowed to delete the stray row before proceeding in the test,
     // as any other setting would just re-create it again.
     [true, 'first' as const, 'last' as const, false].forEach((openByDefault) => {
-      cy.interceptLayout('group', (c) => {
+      cy.interceptLayout('Task_3', (c) => {
         if (c.type === 'RepeatingGroup' && c.edit) {
           c.edit.openByDefault = openByDefault;
         }
@@ -366,7 +366,7 @@ describe('Group', () => {
     cy.findByRole('button', { name: 'Slett' }).click();
     cy.get(appFrontend.group.mainGroupTableBody).children().should('have.length', 0);
 
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.edit) {
         c.edit.openByDefault = c.id === 'subGroup';
       }
@@ -422,7 +422,7 @@ describe('Group', () => {
   });
 
   it('openByDefault should not prevent navigation via linkToComponent', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.edit && c.id === 'mainGroup') {
         c.edit.openByDefault = 'first';
       }
@@ -487,7 +487,7 @@ describe('Group', () => {
   });
 
   it('Opens delete warning popup when alertOnDelete is true and deletes on confirm', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.edit && typeof c.edit.openByDefault !== 'undefined') {
         c.edit.alertOnDelete = true;
       }
@@ -653,7 +653,7 @@ describe('Group', () => {
   });
 
   it('should be possible to set text resource bindings to empty string to use default values', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.id === 'mainGroup' && c.textResourceBindings && c.edit) {
         // A bit special for repeating groups and these text resource bindings: They should use the default texts when
         // set to empty strings, so as to make it easy to default to conditionally set the text so something else, but
@@ -806,7 +806,7 @@ describe('Group', () => {
   });
 
   it('openByDefault = first should work even if the first row is hidden', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.type === 'RepeatingGroup' && c.id === 'mainGroup' && c.edit) {
         c.edit.openByDefault = 'first';
       }
@@ -880,7 +880,7 @@ describe('Group', () => {
   });
 
   it('Non-standard modes (showAll, hideTable, onlyTable), hidden rows, editing and label visibility', () => {
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.id === 'summary1' && c.type === 'Summary') {
         c.largeGroup = false;
       }
@@ -1033,7 +1033,7 @@ describe('Group', () => {
   });
 
   it('Navigation on multiPage Group should skip pages with hidden components only', () => {
-    cy.interceptLayout('group', (component) => {
+    cy.interceptLayout('Task_3', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
         component.children = [
           '0:currentValue',

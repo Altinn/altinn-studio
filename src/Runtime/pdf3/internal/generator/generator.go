@@ -8,30 +8,33 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Custom struct {
-	logger         *slog.Logger
-	browserVersion types.BrowserVersion
-	tracer         trace.Tracer
-
+	tracer           trace.Tracer
+	logger           *slog.Logger
 	activeSession    atomic.Pointer[browserSession]
+	pdfaConverter    *pdfa.Converter
+	browserVersion   types.BrowserVersion
 	sessionIDCounter atomic.Int32
+	convertToPDFA    bool
 }
 
-// getBrowserVersion starts a temporary browser and retrieves its version information
+// getBrowserVersion starts a temporary browser and retrieves its version information.
 func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	// Start temporary browser instance
 	browserProc, err := browser.Start(-1)
@@ -39,8 +42,8 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 		return types.BrowserVersion{}, fmt.Errorf("failed to create temporary browser for version info: %w", err)
 	}
 	defer func() {
-		if err := browserProc.Close(); err != nil {
-			logger.Error("Failed to close temporary browser", "error", err)
+		if closeErr := browserProc.Close(); closeErr != nil {
+			logger.Error("Failed to close temporary browser", "error", closeErr)
 		}
 	}()
 
@@ -51,7 +54,9 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	}
 	defer func() {
 		// Closing connection during init - will be recreated anyway
-		_ = conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			logger.Error("Failed to close temporary browser connection", "error", closeErr)
+		}
 	}()
 
 	// Get browser version using CDP command
@@ -66,10 +71,20 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 func New() (*Custom, error) {
 	logger := log.NewComponent("generator")
 	logger.Info("Starting PDF generator")
+	cfg := config.ReadConfig()
 
 	generator := &Custom{
-		logger: logger,
-		tracer: telemetry.Tracer(),
+		logger:        logger,
+		tracer:        telemetry.Tracer(),
+		convertToPDFA: cfg.ShouldConvertToPDFA(),
+	}
+	if generator.convertToPDFA {
+		generator.pdfaConverter = pdfa.NewConverter()
+		logger.Info(
+			"PDF/A conversion enabled",
+			"environment", cfg.Environment,
+			"service_owner", cfg.ServiceOwner,
+		)
 	}
 
 	go func() {
@@ -137,6 +152,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
 	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
 
+	requestSpan := trace.SpanFromContext(ctx)
 	ctx, span := g.tracer.Start(ctx, "pdf.generate", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
@@ -155,7 +171,11 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	} else {
 		g.logger.Warn("Request queue full, rejecting request", "url", request.URL)
 		pdfErr := types.NewPDFError(types.ErrQueueFull, "", nil)
-		recordPDFError(span, pdfErr)
+		// Queue-full 429s are expected; proxy retries handle them.
+		// Mark as an event, not a span error, to avoid false error noise.
+		if span.IsRecording() {
+			span.AddEvent("pdf.queue.full")
+		}
 		return nil, pdfErr
 	}
 
@@ -165,8 +185,13 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			recordPDFError(span, response.Error)
 			return nil, response.Error
 		}
+		pdfData, pdfErr := g.prepareResponsePDF(ctx, requestSpan, span, request.URL, response.Data)
+		if pdfErr != nil {
+			recordPDFError(span, pdfErr)
+			return nil, pdfErr
+		}
 		return &types.PdfResult{
-			Data:    response.Data,
+			Data:    pdfData,
 			Browser: g.browserVersion,
 		}, nil
 	case <-ctx.Done():
@@ -179,6 +204,80 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
 	}
+}
+
+func (g *Custom) prepareResponsePDF(
+	ctx context.Context,
+	requestSpan trace.Span,
+	generateSpan trace.Span,
+	requestURL string,
+	data []byte,
+) ([]byte, *types.PDFError) {
+	if !g.convertToPDFA {
+		g.addPDFAEvent(requestSpan, generateSpan, "skipped", false, len(data), 0)
+		return data, nil
+	}
+
+	if ctx.Err() != nil {
+		g.addPDFAEvent(requestSpan, generateSpan, "canceled", false, len(data), 0)
+		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
+	}
+
+	converted, pdfErr := g.postProcessPDF(ctx, data)
+	if pdfErr != nil {
+		g.addPDFAEvent(requestSpan, generateSpan, "failed", false, len(data), 0)
+		g.logger.Warn("PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
+		return data, nil
+	}
+
+	g.addPDFAEvent(requestSpan, generateSpan, "success", true, len(data), len(converted))
+	return converted, nil
+}
+
+func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *types.PDFError) {
+	assert.That(g.convertToPDFA, "convertToPDFA config must be true for this method")
+	assert.That(g.pdfaConverter != nil, "PDF/A converter must be configured when conversion is enabled")
+	_, span := g.tracer.Start(ctx, "pdf.convert_to_pdfa", trace.WithSpanKind(trace.SpanKindInternal))
+	defer span.End()
+
+	converted, err := g.pdfaConverter.Convert(data)
+	if err != nil {
+		if span.IsRecording() {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "pdfa_conversion_failed")
+		}
+		return nil, types.NewPDFError(types.ErrGenerationFail, "PDF/A conversion failed", err)
+	}
+	return converted, nil
+}
+
+func (g *Custom) addPDFAEvent(
+	requestSpan trace.Span,
+	fallbackSpan trace.Span,
+	status string,
+	applied bool,
+	inputSize int,
+	outputSize int,
+) {
+	targetSpan := requestSpan
+	if !targetSpan.IsRecording() {
+		targetSpan = fallbackSpan
+	}
+	if !targetSpan.IsRecording() {
+		return
+	}
+
+	attrs := []attribute.KeyValue{
+		attribute.Bool("pdf.convert_to_pdfa.enabled", g.convertToPDFA),
+		attribute.Bool("pdf.convert_to_pdfa.applied", applied),
+		attribute.String("pdf.convert_to_pdfa.status", status),
+		attribute.Int("pdf.convert_to_pdfa.input_size_bytes", inputSize),
+	}
+	if outputSize > 0 {
+		attrs = append(attrs, attribute.Int("pdf.convert_to_pdfa.output_size_bytes", outputSize))
+	}
+
+	targetSpan.AddEvent("pdf.convert_to_pdfa", trace.WithAttributes(attrs...))
 }
 
 func (g *Custom) Close() error {
@@ -259,12 +358,13 @@ func (g *Custom) periodicRestart() {
 }
 
 type workerRequest struct {
-	request    types.PdfRequest
-	responder  chan workerResponse
-	ctx        context.Context
 	enqueuedAt time.Time
-	cleanedUp  bool
-	logger     *slog.Logger
+	//nolint:containedctx // The request context is the ownership boundary for request cancellation and test-mode state.
+	ctx       context.Context
+	responder chan workerResponse
+	logger    *slog.Logger
+	request   types.PdfRequest
+	cleanedUp bool
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
@@ -321,11 +421,11 @@ func (r *workerRequest) hasResponded() bool {
 }
 
 type workerResponse struct {
-	Data  []byte
 	Error *types.PDFError
+	Data  []byte
 }
 
-// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors
+// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors.
 func mapCustomError(err error) *types.PDFError {
 	if err == nil {
 		return nil

@@ -1,0 +1,13 @@
+{
+  "partyId": "512001",
+  "partyTypeName": 1,
+  "orgNumber": null,
+  "ssn": "01019012345",
+  "unitType": null,
+  "name": "Test Bruker",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

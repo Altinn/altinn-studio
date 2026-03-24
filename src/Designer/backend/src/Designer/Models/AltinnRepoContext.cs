@@ -8,13 +8,13 @@ namespace Altinn.Studio.Designer.Models
     /// </summary>
     public record AltinnRepoContext : AltinnOrgContext
     {
-
         /// <summary>
         /// The name of the repository as specified in Gitea.
         /// </summary>
         public string Repo { get; }
 
-        protected AltinnRepoContext(string org, string repo) : base(org)
+        protected AltinnRepoContext(string org, string repo)
+            : base(org)
         {
             Guard.AssertValidAppRepoName(repo);
             Repo = repo;

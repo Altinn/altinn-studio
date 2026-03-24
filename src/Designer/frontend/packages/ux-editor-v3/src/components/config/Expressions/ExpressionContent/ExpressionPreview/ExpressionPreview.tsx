@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from '../ExpressionContent.module.css';
 import type { Expression } from '../../../../../types/Expressions';
 import { expressionInPreviewPropertyTextKeys } from '../../../../../types/Expressions';

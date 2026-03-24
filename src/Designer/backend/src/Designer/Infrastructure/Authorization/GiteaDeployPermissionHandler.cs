@@ -27,9 +27,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// </summary>
         /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        public GiteaDeployPermissionHandler(
-            IGiteaClient giteaClient,
-            IHttpContextAccessor httpContextAccessor)
+        public GiteaDeployPermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaClient = giteaClient;
@@ -38,7 +36,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            GiteaDeployPermissionRequirement requirement)
+            GiteaDeployPermissionRequirement requirement
+        )
         {
             if (_httpContext == null)
             {
@@ -59,12 +58,15 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             {
                 _httpContext.Request.EnableBuffering();
 
-                using (var reader = new StreamReader(
-                   _httpContext.Request.Body,
-                   encoding: Encoding.UTF8,
-                   detectEncodingFromByteOrderMarks: false,
-                   bufferSize: 1024,
-                   leaveOpen: true))
+                using (
+                    var reader = new StreamReader(
+                        _httpContext.Request.Body,
+                        encoding: Encoding.UTF8,
+                        detectEncodingFromByteOrderMarks: false,
+                        bufferSize: 1024,
+                        leaveOpen: true
+                    )
+                )
                 {
                     try
                     {
@@ -94,9 +96,10 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             string matchTeam = $"Deploy-{environment}";
             List<Team> teams = await _giteaClient.GetTeams();
 
-            bool any = teams.Any(t => t.Organization.Username.Equals(
-                org, System.StringComparison.OrdinalIgnoreCase)
-                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase));
+            bool any = teams.Any(t =>
+                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+            );
 
             if (any)
             {

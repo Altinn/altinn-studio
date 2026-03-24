@@ -3,7 +3,6 @@ import React from 'react';
 import { act, renderHook, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { useCookieState } from 'src/hooks/useCookieState';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 import { CookieStorage } from 'src/utils/cookieStorage/CookieStorage';
@@ -16,12 +15,7 @@ describe('useCookieState', () => {
       document.cookie = `${name}=; max-age=0; path=/${window.org}/${window.app}`;
     });
 
-    // Set default profile
-    window.altinnAppGlobalData.userProfile = getProfileMock();
-  });
-
-  afterEach(() => {
-    window.altinnAppGlobalData.userProfile = getProfileMock();
+    window.altinnAppGlobalData.availableLanguages = [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }];
   });
 
   it('should return the default value when no cookie exists', () => {

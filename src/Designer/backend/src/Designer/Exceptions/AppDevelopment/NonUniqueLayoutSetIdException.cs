@@ -9,18 +9,14 @@ namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
     public class NonUniqueLayoutSetIdException : Exception
     {
         /// <inheritdoc/>
-        public NonUniqueLayoutSetIdException()
-        {
-        }
+        public NonUniqueLayoutSetIdException() { }
 
         /// <inheritdoc/>
-        public NonUniqueLayoutSetIdException(string message) : base(message)
-        {
-        }
+        public NonUniqueLayoutSetIdException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public NonUniqueLayoutSetIdException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public NonUniqueLayoutSetIdException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

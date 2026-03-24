@@ -33,10 +33,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         _testCacheRoot = Path.Combine(testRoot, "Cache");
         _targetRepoRoot = Path.Combine(testRoot, "Repos");
 
-        _repoSettings = new ServiceRepositorySettings
-        {
-            RepositoryLocation = _testCacheRoot
-        };
+        _repoSettings = new ServiceRepositorySettings { RepositoryLocation = _testCacheRoot };
 
         _templateSettings = new CustomTemplateSettings
         {
@@ -46,19 +43,19 @@ public class ApplyTemplateToRepositoryTests : IDisposable
                 LocalCacheFolder = ".template-cache",
                 MetadataFileName = ".cache-info.json",
                 ExpirationDays = 7,
-                MaxParallelDownloads = 15
+                MaxParallelDownloads = 15,
             },
             Lock = new LockSettings
             {
                 MaxRetries = 30,
-                RetryDelayMs = 100 // Faster for tests
-            }
+                RetryDelayMs = 100, // Faster for tests
+            },
         };
 
         _giteaClientMock = new Mock<IGiteaClient>();
         _giteaClientMock
-         .Setup(x => x.GetLatestCommitOnBranch("als", "als-content", null, default))
-         .ReturnsAsync("abc123def456");
+            .Setup(x => x.GetLatestCommitOnBranch("als", "als-content", null, default))
+            .ReturnsAsync("abc123def456");
 
         _loggerMock = new Mock<ILogger<CustomTemplateService>>();
     }
@@ -80,7 +77,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Owner = templateOwner,
             Name = "Test Template",
             Description = "A template for testing.",
-            Remove = new List<string> { "App/config/oldfile.json", "OldFolder" }
+            Remove = new List<string> { "App/config/oldfile.json", "OldFolder" },
         };
 
         // Setup target repository with existing files to be removed
@@ -91,12 +88,16 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         CreateFileInRepo(targetRepoPath, "KeepMe/file.txt", "keep this");
 
         // Setup template cache with content
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "Controllers/HomeController.cs", "public class HomeController {}" },
-            { "Views/Index.cshtml", "<h1>Hello</h1>" },
-            { "Models/Data/Model.cs", "public class Model {}" }
-        });
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string>
+            {
+                { "Controllers/HomeController.cs", "public class HomeController {}" },
+                { "Views/Index.cshtml", "<h1>Hello</h1>" },
+                { "Models/Data/Model.cs", "public class Model {}" },
+            }
+        );
 
         // Mock template.json retrieval
         MockTemplateJsonFile(templateOwner, templateId, template);
@@ -112,7 +113,9 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         Assert.True(File.Exists(Path.Combine(targetRepoPath, "Models/Data/Model.cs")));
 
         // Assert - Verify content is correct
-        string controllerContent = await File.ReadAllTextAsync(Path.Combine(targetRepoPath, "Controllers/HomeController.cs"));
+        string controllerContent = await File.ReadAllTextAsync(
+            Path.Combine(targetRepoPath, "Controllers/HomeController.cs")
+        );
         Assert.Equal("public class HomeController {}", controllerContent);
 
         // Assert - Verify removed files/folders are gone
@@ -139,16 +142,17 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Owner = templateOwner,
             Name = "Simple Template",
             Description = "A simple template without removals.",
-            Remove = new List<string>() // Empty remove list
+            Remove = new List<string>(), // Empty remove list
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
         CreateFileInRepo(targetRepoPath, "existing.txt", "existing");
 
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "newfile.txt", "new content" }
-        });
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string> { { "newfile.txt", "new content" } }
+        );
 
         MockTemplateJsonFile(templateOwner, templateId, template);
 
@@ -177,16 +181,17 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Id = templateId,
             Owner = templateOwner,
             Name = "Update Template",
-            Description = "A template that updates existing files."
+            Description = "A template that updates existing files.",
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
         CreateFileInRepo(targetRepoPath, "config.json", "old config");
 
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "config.json", "new config from template" }
-        });
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string> { { "config.json", "new config from template" } }
+        );
 
         MockTemplateJsonFile(templateOwner, templateId, template);
 
@@ -216,15 +221,12 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Owner = templateOwner,
             Name = "Safe Template",
             Description = "A template that tries to remove non-existent paths.",
-            Remove = new List<string> { "NonExistent/file.txt", "AlsoNotThere.json" }
+            Remove = new List<string> { "NonExistent/file.txt", "AlsoNotThere.json" },
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
 
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "file.txt", "content" }
-        });
+        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string> { { "file.txt", "content" } });
 
         MockTemplateJsonFile(templateOwner, templateId, template);
 
@@ -251,17 +253,21 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Id = templateId,
             Owner = templateOwner,
             Name = "Nested Template",
-            Description = "A template with nested directories."
+            Description = "A template with nested directories.",
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
 
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "Level1/Level2/Level3/deep.txt", "deep file" },
-            { "Level1/sibling.txt", "sibling" },
-            { "root.txt", "root" }
-        });
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string>
+            {
+                { "Level1/Level2/Level3/deep.txt", "deep file" },
+                { "Level1/sibling.txt", "sibling" },
+                { "root.txt", "root" },
+            }
+        );
 
         MockTemplateJsonFile(templateOwner, templateId, template);
 
@@ -293,18 +299,25 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         string invalidJson = "{ \"id\": \"test\" }"; // Invalid according to schema
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync(templateOwner, "als-content",
-                   It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")), null, default))
-            .ReturnsAsync((new FileSystemObject
-            {
-                Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(invalidJson))
-            }, null));
+            .Setup(x =>
+                x.GetFileAndErrorAsync(
+                    templateOwner,
+                    "als-content",
+                    It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")),
+                    null,
+                    default
+                )
+            )
+            .ReturnsAsync(
+                (new FileSystemObject { Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(invalidJson)) }, null)
+            );
 
         var sut = CreateService();
 
         // Act & Assert
         await Assert.ThrowsAsync<CustomTemplateException>(() =>
-            sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer));
+            sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer)
+        );
     }
 
     [Fact]
@@ -320,17 +333,25 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         CreateTargetRepository(targetOrg, targetRepo, developer);
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync(templateOwner, "als-content",
-                It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")), null, default))
+            .Setup(x =>
+                x.GetFileAndErrorAsync(
+                    templateOwner,
+                    "als-content",
+                    It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")),
+                    null,
+                    default
+                )
+            )
             .ReturnsAsync((null, new ProblemDetails { Status = 404 }));
 
         var sut = CreateService();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<CustomTemplateException>(() =>
-            sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer));
+            sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer)
+        );
 
-        Assert.Equal("NotFound", exception.Code);
+        Assert.Equal(CustomTemplateErrorCode.NotFound, exception.Code);
     }
 
     [Fact]
@@ -350,16 +371,18 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Owner = templateOwner,
             Name = "Cached Template",
             Description = "A template to test caching.",
-            Remove = new List<string>()
+            Remove = new List<string>(),
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
 
         // Pre-populate cache
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "cached.txt", "from cache" }
-        }, commitSha);
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string> { { "cached.txt", "from cache" } },
+            commitSha
+        );
 
         MockTemplateJsonFile(templateOwner, templateId, template);
 
@@ -372,10 +395,131 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         Assert.True(File.Exists(Path.Combine(targetRepoPath, "cached.txt")));
 
         // Verify API was NOT called for content download (only for template.json and commit check)
-        _giteaClientMock.Verify(x => x.GetDirectoryAsync(
-            It.IsAny<string>(), It.IsAny<string>(),
-            It.Is<string>(p => p.Contains("/content")),
-            It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _giteaClientMock.Verify(
+            x =>
+                x.GetDirectoryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.Is<string>(p => p.Contains("/content")),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task ApplyTemplateToRepository_NewPackageReferencesIncluded_NewEntryIncludedInCsproj()
+    {
+        // Arrange
+        string templateOwner = "als";
+        string templateId = "simple-template";
+        string targetOrg = "ttd";
+        string targetRepo = "package-reference";
+        string developer = "testUser";
+        string projectFilePath = "App/App.csproj";
+        var template = new CustomTemplateModel
+        {
+            Id = templateId,
+            Owner = templateOwner,
+            Name = "Package reference repo",
+            Description = "A simple template with package references.",
+            PackageReferences = new List<PackageReference>
+            {
+                new()
+                {
+                    Project = "App/App.csproj",
+                    Include = "Newtonsoft.Json",
+                    Version = "13.0.1",
+                },
+            },
+        };
+
+        string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
+        CreateFileInRepo(
+            targetRepoPath,
+            projectFilePath,
+            "<Project>\r\n  <ItemGroup>\r\n    <Compile Include=\"helloworld.cs\" />\r\n  </ItemGroup>\r\n</Project>"
+        );
+
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string> { { "newfile.txt", "new content" } }
+        );
+
+        MockTemplateJsonFile(templateOwner, templateId, template);
+
+        var sut = CreateService();
+
+        // Act
+        await sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
+
+        // Assert
+        Assert.True(File.Exists(Path.Combine(targetRepoPath, projectFilePath)));
+        string projectFile = await File.ReadAllTextAsync(Path.Combine(targetRepoPath, projectFilePath));
+
+        Assert.Contains("<PackageReference Include=\"Newtonsoft.Json\" Version=\"13.0.1\" />", projectFile);
+    }
+
+    [Fact]
+    public async Task ApplyTemplateToRepository_ExistingPackageReferencesIncluded_ExistingEntryUpdatedInCsproj()
+    {
+        // Arrange
+        string templateOwner = "als";
+        string templateId = "simple-template";
+        string targetOrg = "ttd";
+        string targetRepo = "package-reference";
+        string developer = "testUser";
+        string projectFilePath = "App/App.csproj";
+        var template = new CustomTemplateModel
+        {
+            Id = templateId,
+            Owner = templateOwner,
+            Name = "Package reference repo",
+            Description = "A simple template with package references.",
+            PackageReferences = new List<PackageReference>
+            {
+                new()
+                {
+                    Project = "App/App.csproj",
+                    Include = "Newtonsoft.Json",
+                    Version = "10.0.0",
+                },
+            },
+        };
+
+        string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
+        CreateFileInRepo(
+            targetRepoPath,
+            projectFilePath,
+            @"
+            <Project>
+                <ItemGroup>
+                    <PackageReference Include=""Newtonsoft.Json"" Version=""13.0.1""/>
+                </ItemGroup>
+            </Project>"
+        );
+
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string> { { "newfile.txt", "new content" } }
+        );
+
+        MockTemplateJsonFile(templateOwner, templateId, template);
+
+        var sut = CreateService();
+
+        // Act
+        await sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
+
+        // Assert
+        Assert.True(File.Exists(Path.Combine(targetRepoPath, projectFilePath)));
+        string projectFile = await File.ReadAllTextAsync(Path.Combine(targetRepoPath, projectFilePath));
+
+        Assert.Contains("<PackageReference Include=\"Newtonsoft.Json\" Version=\"10.0.0\" />", projectFile);
+        Assert.DoesNotContain("<PackageReference Include=\"Newtonsoft.Json\" Version=\"13.0.1\" />", projectFile);
     }
 
     #region Helper Methods
@@ -394,7 +538,12 @@ public class ApplyTemplateToRepositoryTests : IDisposable
         File.WriteAllText(fullPath, content);
     }
 
-    private void SetupTemplateCache(string owner, string templateId, Dictionary<string, string> files, string commitSha = "abc123def456")
+    private void SetupTemplateCache(
+        string owner,
+        string templateId,
+        Dictionary<string, string> files,
+        string commitSha = "abc123def456"
+    )
     {
         string cachePath = Path.Combine(_testCacheRoot, ".template-cache", owner, templateId, "content");
         Directory.CreateDirectory(cachePath);
@@ -409,11 +558,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         // Create cache metadata
         string metadataPath = Path.Combine(Path.GetDirectoryName(cachePath)!, ".cache-info.json");
-        var metadata = new
-        {
-            CommitSha = commitSha,
-            CachedAt = DateTime.UtcNow
-        };
+        var metadata = new { CommitSha = commitSha, CachedAt = DateTime.UtcNow };
         File.WriteAllText(metadataPath, JsonSerializer.Serialize(metadata));
 
         // Mock commit SHA check
@@ -424,7 +569,7 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
     private void MockTemplateJsonFile(string owner, string templateId, CustomTemplateModel template)
     {
-        string templateJson = JsonSerializer.Serialize(template);
+        string templateJson = JsonSerializer.Serialize(template, CustomTemplateService.JsonOptions);
         string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(templateJson));
 
         _giteaClientMock
@@ -432,17 +577,21 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             .ReturnsAsync("abc123def456");
 
         _giteaClientMock
-            .Setup(x => x.GetFileAndErrorAsync(owner, $"{owner}-content", It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")), null, default))
+            .Setup(x =>
+                x.GetFileAndErrorAsync(
+                    owner,
+                    $"{owner}-content",
+                    It.Is<string>(s => s.Contains(templateId) && s.Contains("template.json")),
+                    null,
+                    default
+                )
+            )
             .ReturnsAsync((new FileSystemObject { Content = base64Content }, null));
     }
 
     private CustomTemplateService CreateService()
     {
-        return new CustomTemplateService(
-            _giteaClientMock.Object,
-            _repoSettings,
-            _templateSettings,
-            _loggerMock.Object);
+        return new CustomTemplateService(_giteaClientMock.Object, _repoSettings, _templateSettings, _loggerMock.Object);
     }
 
     public void Dispose()

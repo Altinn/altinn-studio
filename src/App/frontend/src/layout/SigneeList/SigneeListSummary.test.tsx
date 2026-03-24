@@ -1,7 +1,6 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
@@ -16,7 +15,7 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 jest.mock('src/layout/SigneeList/api');
-jest.mock('react-router-dom');
+jest.mock('react-router');
 jest.mock('src/utils/layout/useNodeItem');
 jest.mock('src/features/language/Lang');
 jest.mock('src/features/form/layout/LayoutsContext');

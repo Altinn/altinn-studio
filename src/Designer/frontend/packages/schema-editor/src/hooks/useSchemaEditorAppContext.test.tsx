@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useSchemaEditorAppContext } from './useSchemaEditorAppContext';
 import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
@@ -30,7 +29,7 @@ describe('useSchemaEditorAppContext', () => {
   it('Throws an error if used outside a SchemaEditorAppContextProvider', () => {
     const renderHookFn = () => renderHook(() => useSchemaEditorAppContext());
     jest.spyOn(console, 'error').mockImplementation();
-    expect(renderHookFn).toThrowError(
+    expect(renderHookFn).toThrow(
       'useSchemaEditorAppContext must be used within a SchemaEditorAppContextProvider.',
     );
   });

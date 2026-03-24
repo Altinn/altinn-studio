@@ -19,7 +19,6 @@ namespace Altinn.Studio.Designer.Helpers.Preview
         /// <returns>The minimum build version of the nuget package</returns>
         public static string GetMockedAltinnNugetBuildFromVersion(string version)
         {
-
             string[] versionParts = version.Split('.');
             if (!IsValidSemVerVersion(versionParts))
             {
@@ -28,7 +27,11 @@ namespace Altinn.Studio.Designer.Helpers.Preview
 
             string normalVersion = version.Split('-').First();
             int[] numberVersion = [.. normalVersion.Split('.').Take(3).Select((split) => Convert.ToInt32(split))];
-            if (IsVersionOrBelow(numberVersion, [8, 0, 0]) && IsPreviewVersion(versionParts) && GetPreviewVersion(versionParts) < MINIMUM_PREVIEW_NUGET_VERSION)
+            if (
+                IsVersionOrBelow(numberVersion, [8, 0, 0])
+                && IsPreviewVersion(versionParts)
+                && GetPreviewVersion(versionParts) < MINIMUM_PREVIEW_NUGET_VERSION
+            )
             {
                 return string.Empty;
             }

@@ -6,7 +6,6 @@ type IgnoredQueriesAndMutations = keyof Pick<
   | 'fetchProcessState'
   | 'doProcessNext'
   | 'doUpdateAttachmentTags'
-  | 'fetchUserProfile'
   | 'fetchInstanceData'
   | 'fetchTextResources'
 >;

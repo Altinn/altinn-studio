@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import DeployPage from './DeployPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -6,6 +5,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { org } from '@studio/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 describe('DeployPage', () => {
   it('renders a spinner while loading', () => {
@@ -80,5 +80,9 @@ describe('DeployPage', () => {
 });
 
 const render = (queries?: Partial<ServicesContextProps>) => {
-  return renderWithProviders(queries)(<DeployPage />);
+  return renderWithProviders(queries)(
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <DeployPage />
+    </FeatureFlagsContextProvider>,
+  );
 };

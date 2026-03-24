@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
@@ -63,7 +63,7 @@ const accessPackageAreaSkatt: PolicyAccessPackageArea = {
   urn: 'accesspackage:area:skatt_avgift_regnskap_og_toll',
   name: 'Skatt',
   description: '',
-  iconUrl: '',
+  iconUrl: 'TaxIcon',
   packages: [skattPackage],
 };
 

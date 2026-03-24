@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import type { SetURLSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
+import type { SetURLSearchParams } from 'react-router';
 
 import classNames from 'classnames';
 

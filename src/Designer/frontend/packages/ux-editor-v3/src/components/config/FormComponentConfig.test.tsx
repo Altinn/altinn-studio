@@ -1,4 +1,3 @@
-import React from 'react';
 import type { FormComponentConfigProps } from './FormComponentConfig';
 import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithMockStore } from '../../testing/mocks';

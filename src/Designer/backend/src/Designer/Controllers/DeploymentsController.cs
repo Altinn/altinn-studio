@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -25,7 +26,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [ApiController]
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+    [AllowApiKey]
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
     [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments")]
     public class DeploymentsController : ControllerBase
     {
@@ -33,7 +35,11 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IGiteaClient _giteaClient;
         private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
 
-        public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, IKubernetesDeploymentsService kubernetesDeploymentsService)
+        public DeploymentsController(
+            IDeploymentService deploymentService,
+            IGiteaClient giteaClient,
+            IKubernetesDeploymentsService kubernetesDeploymentsService
+        )
         {
             _deploymentService = deploymentService;
             _giteaClient = giteaClient;
@@ -50,11 +56,25 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>List of Pipeline deployments and Kubernete deployments</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<DeploymentsResponse> Get(string org, string app, [FromQuery] DocumentQueryModel query, CancellationToken cancellationToken)
+        public async Task<DeploymentsResponse> Get(
+            string org,
+            string app,
+            [FromQuery] DocumentQueryModel query,
+            CancellationToken cancellationToken
+        )
         {
-            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query, cancellationToken);
+            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(
+                org,
+                app,
+                query,
+                cancellationToken
+            );
 
-            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app, cancellationToken);
+            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(
+                org,
+                app,
+                cancellationToken
+            );
 
             return new DeploymentsResponse
             {
@@ -74,11 +94,13 @@ namespace Altinn.Studio.Designer.Controllers
             // Add Owners to permitted environments so that users in Owners team can see deploy page with
             // all environments even though they are not in Deploy-<env> team and cannot deploy to the environment.
             List<Team> teams = await _giteaClient.GetTeams();
-            List<string> permittedEnvironments = teams.Where(t =>
-                        t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
-                        && (t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase) || t.Name.Equals("Owners")))
-                    .Select(t => t.Name.Equals("Owners") ? t.Name : t.Name.Split('-')[1])
-                    .ToList();
+            List<string> permittedEnvironments = teams
+                .Where(t =>
+                    t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
+                    && (t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase) || t.Name.Equals("Owners"))
+                )
+                .Select(t => t.Name.Equals("Owners") ? t.Name : t.Name.Split('-')[1])
+                .ToList();
 
             return Ok(permittedEnvironments);
         }
@@ -93,7 +115,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment)
+        public async Task<ActionResult<DeploymentEntity>> Create(
+            string org,
+            string app,
+            [FromBody] CreateDeploymentRequestViewModel createDeployment
+        )
         {
             if (!ModelState.IsValid)
             {
@@ -102,9 +128,14 @@ namespace Altinn.Studio.Designer.Controllers
 
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
 
-            return Created(string.Empty, await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel()));
+            var createResult = await _deploymentService.CreateAsync(
+                authenticatedContext,
+                createDeployment.ToDomainModel()
+            );
+            return Created(string.Empty, createResult);
         }
 
         /// <summary>
@@ -113,19 +144,29 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation name</param>
         /// <param name="app">Application name</param>
         /// <param name="undeployRequest">Undeployment request containing the target environment</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Accepted response with tracking information</returns>
         [HttpPost("undeploy")]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
-        public async Task<IActionResult> Undeploy(string org, string app, [FromBody] UndeployRequest undeployRequest)
+        public async Task<IActionResult> Undeploy(
+            string org,
+            string app,
+            [FromBody] UndeployRequest undeployRequest,
+            CancellationToken cancellationToken
+        )
         {
             Guard.AssertValidEnvironmentName(undeployRequest.Environment);
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
-            await _deploymentService.UndeployAsync(authenticatedContext, undeployRequest.Environment);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
+            await _deploymentService.UndeployAsync(
+                authenticatedContext,
+                undeployRequest.Environment,
+                cancellationToken
+            );
 
             return Accepted();
         }
-
     }
 }

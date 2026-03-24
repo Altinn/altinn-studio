@@ -32,5 +32,8 @@ public interface IGitOpsManifestsRenderer
     /// <returns>
     /// A dictionary where the key is the relative file path and the value is the content of the manifest file.
     /// </returns>
-    Dictionary<string, string> GetEnvironmentOverlayManifests(AltinnEnvironment environment, HashSet<AltinnRepoName> apps);
+    Dictionary<string, string> GetEnvironmentOverlayManifests(
+        AltinnEnvironment environment,
+        HashSet<AltinnRepoName> apps
+    );
 }

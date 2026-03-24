@@ -22,7 +22,11 @@ namespace Altinn.Studio.DataModeling.Templates
         /// <param name="value">The value to insert.</param>
         protected void ReplaceVariable(string variableName, string value)
         {
-            JsonSchemaInstance = JsonSchemaInstance.Replace("{{" + variableName + "}}", value, System.StringComparison.InvariantCultureIgnoreCase);
+            JsonSchemaInstance = JsonSchemaInstance.Replace(
+                "{{" + variableName + "}}",
+                value,
+                System.StringComparison.InvariantCultureIgnoreCase
+            );
         }
 
         /// <summary>

@@ -8,17 +8,22 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetFormLayoutsTests : PreviewControllerTestsBase<GetFormLayoutsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetFormLayoutsTests
+        : PreviewControllerTestsBase<GetFormLayoutsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetFormLayoutsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetFormLayoutsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_FormLayouts_Ok()
         {
-            string expectedFormLayout = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/ui/layouts/layout.json");
+            string expectedFormLayout = TestDataHelper.GetFileFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/ui/layouts/layout.json"
+            );
             string expectedFormLayouts = @"{""layout"": " + expectedFormLayout + "}";
 
             string dataPathWithData = $"{Org}/{PreviewApp}/api/resource/FormLayout.json";

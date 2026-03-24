@@ -14,23 +14,25 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.CanUseFeatureController;
 
-public class GetCanUseFeatureTests : DesignerEndpointsTestsBase<GetCanUseFeatureTests>,
-    IClassFixture<WebApplicationFactory<Program>>
+public class GetCanUseFeatureTests
+    : DesignerEndpointsTestsBase<GetCanUseFeatureTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     public GetCanUseFeatureTests(WebApplicationFactory<Program> factory)
-        : base(factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
+        : base(
+            factory.WithWebHostBuilder(builder =>
             {
-                var evaluatorMock = new Mock<ICanUseFeatureEvaluator>();
-                evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
-                evaluatorMock.Setup(e => e.CanUseFeatureAsync()).ReturnsAsync(true);
+                builder.ConfigureServices(services =>
+                {
+                    var evaluatorMock = new Mock<ICanUseFeatureEvaluator>();
+                    evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
+                    evaluatorMock.Setup(e => e.CanUseFeatureAsync()).ReturnsAsync(true);
 
-                services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { evaluatorMock.Object });
-                services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
-            });
-        }))
-    { }
+                    services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { evaluatorMock.Object });
+                    services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
+                });
+            })
+        ) { }
 
     [Fact]
     public async Task CanUseFeature_Returns200Ok_WithTrue()
@@ -38,8 +40,10 @@ public class GetCanUseFeatureTests : DesignerEndpointsTestsBase<GetCanUseFeature
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, ApiUrl("UploadDataModel"));
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<CanUseFeatureDto>(responseBody,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var result = JsonSerializer.Deserialize<CanUseFeatureDto>(
+            responseBody,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+        );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(result);

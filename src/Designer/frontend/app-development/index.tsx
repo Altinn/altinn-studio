@@ -1,4 +1,3 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
@@ -13,8 +12,8 @@ import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
-import { ConsentProvider } from './utils/consent';
-import { ConsentBanner } from './components/ConsentBanner';
+import { ConsentProvider } from 'app-shared/utils/consent';
+import { ConsentBanner } from 'app-shared/components';
 
 const loggerConfig: LoggerConfig = {
   enableUnhandledPromiseRejectionTracking: true,

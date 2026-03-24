@@ -84,8 +84,8 @@ test('That it is possible to navigate to Gitea and that data model bindings are 
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
+  const newTab = await header.clickOnGoToGiteaRepository();
+  await giteaPage.useNewTab(newTab);
   await navigateInToLayoutJsonFile(giteaPage, pageName);
   await giteaPage.verifyThatDataModelBindingsAreNotPresent();
   await giteaPage.goBackNPages(6); // 5 because of: Gitea -> App -> ui -> layoutsSet -> layouts -> page1.json
@@ -146,8 +146,8 @@ test('That it is possible to upload the changes to Gitea and view the changes in
   await header.waitForPushToGiteaSpinnerToDisappear();
   await header.checkThatUploadSuccessMessageIsVisible();
   await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
+  const newTab = await header.clickOnGoToGiteaRepository();
+  await giteaPage.useNewTab(newTab);
   await navigateInToLayoutJsonFile(giteaPage, pageName);
   await giteaPage.verifyThatDataModelBindingsAreVisible(
     `"simpleBinding": "${dataModelBindingName}"`,
@@ -206,8 +206,8 @@ test('That it is possible to upload to Gitea and that files are updated correctl
   await header.waitForPushToGiteaSpinnerToDisappear();
   await header.checkThatUploadSuccessMessageIsVisible();
   await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
+  const newTab = await header.clickOnGoToGiteaRepository();
+  await giteaPage.useNewTab(newTab);
   await navigateInToLayoutJsonFile(giteaPage, pageName);
   await giteaPage.verifyThatDataModelBindingsAreVisible(
     `"simpleBinding": { "field: "", dataType: "${newDataModel}" }`,

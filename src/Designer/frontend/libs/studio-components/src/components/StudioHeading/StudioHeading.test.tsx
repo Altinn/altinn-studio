@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import { StudioHeading, type StudioHeadingProps } from './StudioHeading';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';

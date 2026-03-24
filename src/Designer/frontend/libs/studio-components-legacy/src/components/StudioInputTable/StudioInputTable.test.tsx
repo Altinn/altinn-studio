@@ -1,11 +1,10 @@
-import type { FormEvent, ForwardedRef, ReactNode } from 'react';
+import type { ChangeEvent, ForwardedRef, ReactNode } from 'react';
 import React from 'react';
 import { StudioInputTable } from './';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { TestTable } from './test-data/TestTable';
 import type { StudioInputTableProps } from './StudioInputTable';
-import { expect } from 'storybook/test';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
@@ -335,7 +334,7 @@ describe('StudioInputTable', () => {
             renderSingleNumberfieldCell({
               label: 'test',
               onChange: (value: number) =>
-                onChange?.({ target: { value } } as unknown as FormEvent<HTMLInputElement>),
+                onChange?.({ target: { value } } as unknown as ChangeEvent<HTMLInputElement>),
             }),
           action: (user) => user.type(screen.getByRole('textbox'), '1'),
         },

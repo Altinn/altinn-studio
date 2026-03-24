@@ -1,6 +1,5 @@
 import type { FormItem } from '../../../types/FormItem';
 import type { FormItemProperty } from '../../../types/FormItemProperty';
-import React from 'react';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { Trans } from 'react-i18next';
 import classes from './ExpressionHeading.module.css';

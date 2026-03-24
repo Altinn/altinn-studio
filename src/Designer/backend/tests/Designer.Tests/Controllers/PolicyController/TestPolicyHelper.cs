@@ -24,7 +24,9 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             }
             else
             {
-                resourceSet1.Add(AltinnXacmlConstants.MatchAttributeIdentifiers.ResourceRegistryResource + ":" + resourceid);
+                resourceSet1.Add(
+                    AltinnXacmlConstants.MatchAttributeIdentifiers.ResourceRegistryResource + ":" + resourceid
+                );
             }
 
             rule1.Resources.Add(resourceSet1);

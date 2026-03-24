@@ -11,17 +11,24 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
-    public class GetProcessDefinitionTests : DesignerEndpointsTestsBase<GetProcessDefinitionTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetProcessDefinitionTests
+        : DesignerEndpointsTestsBase<GetProcessDefinitionTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "app-with-options", "testUser", "App/config/process/process.bpmn")]
-        public async Task GetProcessDefinitionTests_ShouldReturnOK(string org, string app, string developer, string bpmnFilePath)
+        public async Task GetProcessDefinitionTests_ShouldReturnOK(
+            string org,
+            string app,
+            string developer,
+            string bpmnFilePath
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -63,6 +70,5 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             await File.WriteAllTextAsync(filePath, fileContent);
             return fileContent;
         }
-
     }
 }

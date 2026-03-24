@@ -8,11 +8,11 @@ import { createContext } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
-import { Loader } from 'src/core/loading/Loader';
 import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
+import { GlobalData } from 'src/GlobalData';
 import type { IInstance, IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -44,26 +44,6 @@ const usePartiesAllowedToInstantiateQuery = () => {
     ...utils,
     enabled: allowAnonymous,
   };
-};
-
-// Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts
-export function useSelectedPartyQueryDef(enabled: boolean) {
-  const { fetchSelectedParty } = useAppQueries();
-  return {
-    queryKey: ['fetchUseSelectedParty', enabled],
-    queryFn: fetchSelectedParty,
-    enabled,
-  };
-}
-
-const useSelectedPartyQuery = (enabled: boolean) => {
-  const query = useQuery(useSelectedPartyQueryDef(enabled));
-
-  useEffect(() => {
-    query.error && window.logError('Fetching current party failed:\n', query.error);
-  }, [query.error]);
-
-  return query;
 };
 
 const useSetSelectedPartyMutation = () => {
@@ -119,16 +99,10 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   const validParties = useValidParties();
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
   const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetSelectedPartyMutation();
-  const { data: partyFromQuery, isLoading, error: errorFromQuery } = useSelectedPartyQuery(true);
   const [userHasSelectedParty, setUserHasSelectedParty] = useState(false);
 
-  if (isLoading) {
-    return <Loader reason='current-party' />;
-  }
-
-  const error = errorFromMutation || errorFromQuery;
-  if (error) {
-    return <DisplayError error={error} />;
+  if (errorFromMutation) {
+    return <DisplayError error={errorFromMutation} />;
   }
 
   if (!validParties?.length) {
@@ -136,7 +110,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   }
 
   const partyFromMutation = dataFromMutation === 'Party successfully updated' ? sentToMutation : undefined;
-  const selectedParty = partyFromMutation ?? partyFromQuery;
+  const selectedParty = partyFromMutation ?? GlobalData.getSelectedParty();
   const selectedIsValid = selectedParty && validParties?.some((party) => party.partyId === selectedParty.partyId);
 
   return (
@@ -151,6 +125,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
             setSentToMutation(party);
             const result = await mutateAsync(party);
             if (result === 'Party successfully updated') {
+              GlobalData.setSelectedParty(party);
               return party;
             }
             return undefined;

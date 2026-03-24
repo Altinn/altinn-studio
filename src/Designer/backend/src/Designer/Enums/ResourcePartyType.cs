@@ -19,6 +19,6 @@ namespace Altinn.Studio.Designer.Enums
         BankruptcyEstate = 3,
 
         [EnumMember(Value = "SelfRegisteredUser")]
-        SelfRegisteredUser = 4
+        SelfRegisteredUser = 4,
     }
 }

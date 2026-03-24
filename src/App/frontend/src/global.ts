@@ -3,10 +3,10 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
-import type { ILayoutSets } from 'src/features/form/layoutSets/types';
+import type { UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
-import type { IAppLanguage, IApplicationSettings, IProfile } from 'src/types/shared';
+import type { IAppLanguage, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
 
@@ -19,11 +19,12 @@ export interface OrgName {
 export type AltinnAppGlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
-  layoutSets: ILayoutSets;
+  ui: UiConfig;
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
   returnUrl?: string;
+  selectedParty?: IParty;
   textResources?: ITextResourceResult;
   orgName?: OrgName;
   orgLogoUrl?: string;

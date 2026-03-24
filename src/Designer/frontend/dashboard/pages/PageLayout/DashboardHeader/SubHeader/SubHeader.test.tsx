@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { SubHeader } from './SubHeader';
@@ -10,6 +9,10 @@ import { repoStatus } from 'app-shared/mocks/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useParams } from 'react-router-dom';
 import { SelectedContextType } from '../../../../enums/SelectedContextType';
+
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

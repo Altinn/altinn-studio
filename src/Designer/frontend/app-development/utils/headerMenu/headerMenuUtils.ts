@@ -1,10 +1,11 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { FeatureFlag } from '@studio/feature-flags';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuGroup } from 'app-development/types/HeaderMenu/HeaderMenuGroup';
 import {
   BookIcon,
+  ChatIcon,
   DatabaseIcon,
   Density3Icon,
   PencilIcon,
@@ -15,7 +16,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
 
-export const topBarMenuItem: HeaderMenuItem[] = [
+export const topBarMenuItems: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.About,
     link: RoutePaths.Overview,
@@ -65,34 +66,45 @@ export const topBarMenuItem: HeaderMenuItem[] = [
     group: HeaderMenuGroupKey.Tools,
     isBeta: true,
   },
+  {
+    key: HeaderMenuItemKey.AiAssistant,
+    link: RoutePaths.AiAssistant,
+    icon: ChatIcon,
+    repositoryTypes: [RepositoryType.App],
+    group: HeaderMenuGroupKey.Tools,
+    featureFlagName: FeatureFlag.AiAssistant,
+    isBeta: true,
+  },
 ];
 
-export const getFilteredTopBarMenu = (repositoryType: RepositoryType): HeaderMenuItem[] => {
-  return topBarMenuItem
+export const getFilteredTopBarMenu = (
+  repositoryType: RepositoryType,
+  activeFeatureFlags: FeatureFlag[],
+): HeaderMenuItem[] => {
+  return topBarMenuItems
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
-    .filter(filterRoutesByFeatureFlag)
-    .filter(filterRoutesByDataModel);
+    .filter((menuItem) => isMenuItemEnabledByFeatureFlag(menuItem, activeFeatureFlags));
 };
 
 export const getTopBarMenuItems = (
   repositoryType: RepositoryType,
   repoOwnerIsOrg: boolean,
+  activeFeatureFlags: FeatureFlag[],
 ): HeaderMenuItem[] => {
-  const filteredMenuItems: HeaderMenuItem[] = getFilteredTopBarMenu(repositoryType);
+  const filteredMenuItems: HeaderMenuItem[] = getFilteredTopBarMenu(
+    repositoryType,
+    activeFeatureFlags,
+  );
   return filterOutDeployItem(filteredMenuItems, repoOwnerIsOrg, repositoryType);
 };
 
-export const filterRoutesByFeatureFlag = (menuItem: HeaderMenuItem): boolean => {
+export const isMenuItemEnabledByFeatureFlag = (
+  menuItem: HeaderMenuItem,
+  activeFeatureFlags: FeatureFlag[],
+): boolean => {
   if (!menuItem.featureFlagName) return true;
 
-  return menuItem.featureFlagName && shouldDisplayFeature(menuItem.featureFlagName);
-};
-
-const filterRoutesByDataModel = (menuItem: HeaderMenuItem) => {
-  if (menuItem.repositoryTypes.includes(RepositoryType.DataModels)) {
-    return menuItem.key === HeaderMenuItemKey.DataModel;
-  }
-  return true;
+  return activeFeatureFlags.includes(menuItem.featureFlagName);
 };
 
 const filterOutDeployItem = (
@@ -136,8 +148,10 @@ export const mapHeaderMenuGroupToNavigationMenu = (
   })),
 });
 
-export const getFilteredMenuListForOverviewPage = (): HeaderMenuItem[] => {
-  return getFilteredTopBarMenu(RepositoryType.App).filter(
+export const getFilteredMenuListForOverviewPage = (
+  activeFeatureFlags: FeatureFlag[],
+): HeaderMenuItem[] => {
+  return getFilteredTopBarMenu(RepositoryType.App, activeFeatureFlags).filter(
     (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
   );
 };

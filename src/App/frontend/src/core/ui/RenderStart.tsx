@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { loadingAttribute, useHasElementsByAttribute } from 'src/components/ReadyForPrint';
 import { useIsLoading } from 'src/core/loading/LoadingContext';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
-import { useNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
+import { useNavigationEffect, useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 
 interface Props extends PropsWithChildren {
   devTools?: boolean;
@@ -33,6 +33,7 @@ function RunNavigationEffect() {
   const isLoading = useIsLoading();
   const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const navigationEffect = useNavigationEffect();
+  const setNavigationEffect = useSetNavigationEffect();
   const location = useLocation().pathname;
 
   const targetLocation = navigationEffect?.targetLocation?.split('?')[0];
@@ -44,9 +45,13 @@ function RunNavigationEffect() {
 
   useEffect(() => {
     if (shouldRun && navigationEffect) {
-      navigationEffect.callback();
+      try {
+        navigationEffect.callback();
+      } finally {
+        setNavigationEffect(null);
+      }
     }
-  }, [navigationEffect, shouldRun]);
+  }, [navigationEffect, shouldRun, setNavigationEffect]);
 
   return null;
 }

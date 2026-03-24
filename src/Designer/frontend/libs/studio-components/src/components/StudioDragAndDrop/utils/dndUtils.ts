@@ -22,7 +22,7 @@ export const getDragCursorPosition = <T>(
   monitor?: DropTargetMonitor,
   dragItem?: DndItem<T>,
   dropItem?: ExistingDndItem,
-  dropRef?: RefObject<HTMLDivElement>,
+  dropRef?: RefObject<HTMLDivElement | null>,
   disabledDrop?: boolean,
 ): DragCursorPosition => {
   if (!monitor || !dragItem || !dropItem || !dropRef) return DragCursorPosition.Idle;

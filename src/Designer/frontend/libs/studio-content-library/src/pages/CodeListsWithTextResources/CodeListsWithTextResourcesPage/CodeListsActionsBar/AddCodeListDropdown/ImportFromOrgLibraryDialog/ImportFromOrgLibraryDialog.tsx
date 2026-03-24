@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import { forwardRef, useState } from 'react';
 import type { ChangeEvent, ReactElement, RefObject } from 'react';
 import classes from './ImportFromOrgLibraryDialog.module.css';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +12,7 @@ export type ImportFromOrgLibraryDialogProps = {
 
 function ImportFromOrgLibraryDialog(
   { codeListIds, onImportCodeListFromOrg }: ImportFromOrgLibraryDialogProps,
-  ref: RefObject<HTMLDialogElement>,
+  ref: RefObject<HTMLDialogElement | null>,
 ): ReactElement {
   const { t } = useTranslation();
 

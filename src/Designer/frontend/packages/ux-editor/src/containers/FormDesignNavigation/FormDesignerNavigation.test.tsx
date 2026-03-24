@@ -1,8 +1,8 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { FormDesignerNavigation } from './FormDesignerNavigation';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 describe('FormDesignerNavigation', () => {
   it('renders the contact link', () => {
@@ -11,4 +11,10 @@ describe('FormDesignerNavigation', () => {
   });
 });
 
-const render = () => renderWithProviders()(<FormDesignerNavigation />);
+const render = () =>
+  renderWithProviders()(
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <FormDesignerNavigation />
+    </FeatureFlagsContextProvider>,
+  );
+// FeatureFlagsContextProvider can be removed when the feature flag "ValidateNavigation" is removed

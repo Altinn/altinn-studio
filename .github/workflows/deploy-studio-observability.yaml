@@ -24,9 +24,9 @@ jobs:
     uses: ./.github/workflows/template-short-sha.yaml
 
   construct-environments-array:
-    uses: ./.github/workflows/template-construct-environments.yaml
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+      inputs: ${{ toJSON(github.event.inputs) }}
 
   push-artifact:
     name: Push observability as OCI artifact
@@ -42,7 +42,7 @@ jobs:
       run:
         working-directory: infra/observability
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -55,7 +55,7 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: build manifests
         run: ./build.sh studio
@@ -78,7 +78,7 @@ jobs:
       REGISTRY_NAME: altinntjenestercontainerregistry
     strategy:
       matrix:
-        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
     steps:
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -91,7 +91,7 @@ jobs:
         run: az acr login --name ${{ env.REGISTRY_NAME }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: tag artifact
         run: |

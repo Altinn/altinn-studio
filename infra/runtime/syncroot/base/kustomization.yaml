@@ -1,10 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - apps-config.yaml
   - pdf3.yaml
   - operator.yaml
   - pdf.yaml
-  - studio-gateway.yaml
+  - gateway.yaml
+  - kubernetes-wrapper.yaml
   - flux-config.yaml
   - altinn-charts.yaml
   - apps-syncroot.yaml

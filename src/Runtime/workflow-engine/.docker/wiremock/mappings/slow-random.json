@@ -1,0 +1,17 @@
+{
+  "priority": 5,
+  "name": "Slow response (random 1-10s)",
+  "request": {
+    "urlPath": "/slow/random",
+    "method": "ANY"
+  },
+  "response": {
+    "status": 200,
+    "delayDistribution": {
+      "type": "uniform",
+      "lower": 1000,
+      "upper": 10000
+    },
+    "jsonBody": { "delay": "random 1-10s" }
+  }
+}

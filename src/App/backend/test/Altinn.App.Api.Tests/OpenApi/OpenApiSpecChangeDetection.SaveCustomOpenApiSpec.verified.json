@@ -2126,7 +2126,7 @@
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "externalIdentifier": {
             "type": "string",
             "nullable": true
           }
@@ -3398,6 +3398,10 @@
           },
           "altinnNugetVersion": {
             "type": "string"
+          },
+          "promptForParty": {
+            "type": "string",
+            "nullable": true
           },
           "externalApiIds": {
             "type": "array",

@@ -1,9 +1,7 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPageHeader } from './index';
 import { StudioParagraph } from '../StudioParagraph';
 import { type StudioProfileMenuGroup } from './StudioPageHeaderProfileMenu';
-import { StudioAvatar } from '../StudioAvatar';
 
 const profileMenuGroups: StudioProfileMenuGroup[] = [
   {
@@ -49,7 +47,7 @@ const PreviewComponent = (args): React.ReactElement => (
             color='dark'
             variant='regular'
             profileMenuGroups={profileMenuGroups}
-            profileImage={<StudioAvatar />}
+            profileImage='dummy-url'
           />
         </div>
       </StudioPageHeader.Right>
@@ -69,9 +67,7 @@ const PreviewComponent = (args): React.ReactElement => (
   </StudioPageHeader>
 );
 
-type Story = StoryFn<typeof StudioPageHeader>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioPageHeader',
   component: PreviewComponent,
   argTypes: {
@@ -80,11 +76,13 @@ const meta: Meta = {
       options: ['regular', 'preview'],
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <PreviewComponent {...args} />;
-
-Preview.args = {
-  variant: 'regular',
-};
-
+} satisfies Meta<typeof PreviewComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    variant: 'regular',
+  },
+};

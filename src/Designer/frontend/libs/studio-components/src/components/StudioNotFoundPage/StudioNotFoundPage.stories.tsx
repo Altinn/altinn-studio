@@ -1,12 +1,12 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioNotFoundPage } from './StudioNotFoundPage';
 
-type Story = StoryFn<typeof StudioNotFoundPage>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioNotFoundPage',
   component: StudioNotFoundPage,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioNotFoundPage {...args} />;
+} satisfies Meta<typeof StudioNotFoundPage>;
 export default meta;
+
+type Story = StoryObj<typeof StudioNotFoundPage>;
+
+export const Preview: Story = {};

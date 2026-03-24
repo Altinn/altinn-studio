@@ -3,9 +3,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -29,14 +33,44 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The configuration</param>
         /// <param name="env">The web hosting environment</param>
-        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services,
-            IConfiguration config, IWebHostEnvironment env)
+        public static IServiceCollection ConfigureAuthentication(
+            this IServiceCollection services,
+            IConfiguration config,
+            IWebHostEnvironment env
+        )
         {
+            // Register org access policy unconditionally so [Authorize] attributes
+            // are valid at startup regardless of which auth flow is active.
+            services
+                .AddAuthorizationBuilder()
+                .AddPolicy(
+                    StudioOidcConstants.OrgAccessAuthorizationPolicy,
+                    policy =>
+                    {
+                        policy.AuthenticationSchemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
+                        policy.RequireAuthenticatedUser();
+                        policy.Requirements.Add(new OrgAccessRequirement());
+                    }
+                );
+
+            services.AddScoped<IAuthorizationHandler, OrgAccessHandler>();
+
+            bool studioOidcEnabled =
+                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
+
+            if (studioOidcEnabled)
+            {
+                return services.AddStudioOidcAuthentication(config, env);
+            }
+
             return AddGiteaOidcAuthentication(services, config, env);
         }
 
-        private static IServiceCollection AddGiteaOidcAuthentication(this IServiceCollection services,
-            IConfiguration configuration, IWebHostEnvironment env)
+        private static IServiceCollection AddGiteaOidcAuthentication(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            IWebHostEnvironment env
+        )
         {
             var oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
 
@@ -46,26 +80,30 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
                 })
-                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-                {
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    options.Cookie.SameSite = SameSiteMode.Lax;
-
-                    options.Cookie.IsEssential = true;
-
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(oidcSettings.CookieExpiryTimeInMinutes);
-                    options.SlidingExpiration = false;
-
-                    options.Cookie.Name = Constants.General.DesignerCookieName;
-
-                    options.Events.OnRedirectToAccessDenied = context =>
+                .AddCookie(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    options =>
                     {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        return Task.CompletedTask;
-                    };
-                })
-                .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme,
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                        options.Cookie.SameSite = SameSiteMode.Lax;
+
+                        options.Cookie.IsEssential = true;
+
+                        options.ExpireTimeSpan = TimeSpan.FromMinutes(oidcSettings.CookieExpiryTimeInMinutes);
+                        options.SlidingExpiration = false;
+
+                        options.Cookie.Name = Constants.General.DesignerCookieName;
+
+                        options.Events.OnRedirectToAccessDenied = context =>
+                        {
+                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                            return Task.CompletedTask;
+                        };
+                    }
+                )
+                .AddOpenIdConnect(
+                    OpenIdConnectDefaults.AuthenticationScheme,
                     options =>
                     {
                         options.Authority = oidcSettings.Authority;
@@ -89,17 +127,18 @@ namespace Altinn.Studio.Designer.Infrastructure
                         options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            NameClaimType = GiteaUserNameClaim
+                            NameClaimType = GiteaUserNameClaim,
                         };
-
 
                         options.Events.OnRedirectToIdentityProvider = context =>
                         {
                             // AspNetCore.OpenIdConnect.Nonce being created after each login
                             // This is a workaround to delete the cookie after each login
                             // to avoid the cookie from growing too large
-                            var cookiesToDelete = context.HttpContext.Request.Cookies.Keys
-                                .Where(key => key.StartsWith(".AspNetCore.OpenIdConnect.Nonce"))
+                            var cookiesToDelete = context
+                                .HttpContext.Request.Cookies.Keys.Where(key =>
+                                    key.StartsWith(".AspNetCore.OpenIdConnect.Nonce")
+                                )
                                 .ToList();
 
                             foreach (string cookieName in cookiesToDelete)
@@ -109,15 +148,22 @@ namespace Altinn.Studio.Designer.Infrastructure
 
                             return Task.CompletedTask;
                         };
-                    });
+                    }
+                );
 
             return services;
         }
 
-        private static OidcLoginSettings FetchOidcSettingsFromConfiguration(IConfiguration configuration, IWebHostEnvironment env)
+        private static OidcLoginSettings FetchOidcSettingsFromConfiguration(
+            IConfiguration configuration,
+            IWebHostEnvironment env
+        )
         {
             var oidcSettings = configuration.GetSection(nameof(OidcLoginSettings)).Get<OidcLoginSettings>();
-            if (!string.IsNullOrWhiteSpace(oidcSettings.ClientId) && !string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
+            if (
+                !string.IsNullOrWhiteSpace(oidcSettings.ClientId)
+                && !string.IsNullOrWhiteSpace(oidcSettings.ClientSecret)
+            )
             {
                 return oidcSettings;
             }
@@ -129,7 +175,9 @@ namespace Altinn.Studio.Designer.Infrastructure
                 oidcSettings.ClientSecret = clientSecret;
             }
 
-            if (string.IsNullOrWhiteSpace(oidcSettings.ClientId) || string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
+            if (
+                string.IsNullOrWhiteSpace(oidcSettings.ClientId) || string.IsNullOrWhiteSpace(oidcSettings.ClientSecret)
+            )
             {
                 throw new ArgumentException("ClientId or ClientSecret is missing in the configuration");
             }
@@ -137,13 +185,16 @@ namespace Altinn.Studio.Designer.Infrastructure
             return oidcSettings;
         }
 
-
         private static bool TryGetClientSecretFromRootDotEnvFile(out string clientId, out string clientSecret)
         {
             clientId = null;
             clientSecret = null;
-            var keys = DotNetEnv.Env.Load(AltinnStudioRepositoryScanner.FindDotEnvFilePath(),
-                new DotNetEnv.LoadOptions(false, false, false)).ToList();
+            var keys = DotNetEnv
+                .Env.Load(
+                    AltinnStudioRepositoryScanner.FindDotEnvFilePath(),
+                    new DotNetEnv.LoadOptions(false, false, false)
+                )
+                .ToList();
 
             clientId = keys.FirstOrDefault(k => k.Key == "CLIENT_ID").Value;
             clientSecret = keys.FirstOrDefault(k => k.Key == "CLIENT_SECRET").Value;

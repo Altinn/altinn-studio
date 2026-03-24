@@ -9,18 +9,14 @@ namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
     public class EmptyLayoutSetIdException : Exception
     {
         /// <inheritdoc/>
-        public EmptyLayoutSetIdException()
-        {
-        }
+        public EmptyLayoutSetIdException() { }
 
         /// <inheritdoc/>
-        public EmptyLayoutSetIdException(string message) : base(message)
-        {
-        }
+        public EmptyLayoutSetIdException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public EmptyLayoutSetIdException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public EmptyLayoutSetIdException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }

@@ -1,9 +1,12 @@
 #nullable disable
+using Altinn.Studio.Designer.Converters;
+using Altinn.Studio.Designer.Filters.ApiKey;
 using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Filters.Git;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Filters.Options;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +24,8 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         public static IServiceCollection ConfigureMvc(this IServiceCollection services)
         {
-            services.AddControllers()
+            services
+                .AddControllers()
                 .AddMvcOptions(options =>
                 {
                     options.Filters.Add(typeof(AppDevelopmentExceptionFilterAttribute));
@@ -29,9 +33,16 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.Filters.Add(typeof(GitExceptionFilterAttribute));
                     options.Filters.Add(typeof(IoExceptionFilterAttribute));
                     options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
+                    options.Filters.Add(typeof(ApiKeyExceptionFilterAttribute));
+                    options.Filters.Add(typeof(ApiKeyScopeFilter));
                 })
-                .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
-
+                .AddNewtonsoftJson(options =>
+                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())
+                )
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new NextStepTypeJsonConverter());
+                });
 
             services.AddMvc(options => options.EnableEndpointRouting = false);
 

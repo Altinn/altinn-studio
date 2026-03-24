@@ -6,7 +6,6 @@ import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/L
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
-import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
@@ -14,7 +13,6 @@ import { PaymentInformationProvider } from 'src/features/payment/PaymentInformat
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { ValidationProvider } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { FormPrefetcher } from 'src/queries/formPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 export interface FormContext {
@@ -46,32 +44,29 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
 
   return (
     <LoadingRegistryProvider>
-      <FormPrefetcher />
       <LayoutsProvider>
         <CodeListsProvider>
           <DataModelsProvider>
-            <LayoutSettingsProvider>
-              <PageNavigationProvider>
-                <FormDataWriteProvider>
-                  <ValidationProvider>
-                    <NodesProvider
-                      readOnly={readOnly}
-                      isEmbedded={isEmbedded}
-                    >
-                      <PaymentInformationProvider>
-                        <OrderDetailsProvider>
-                          <MaybePaymentProvider hasProcess={hasProcess}>
-                            <Provider value={{ readOnly }}>
-                              <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
-                            </Provider>
-                          </MaybePaymentProvider>
-                        </OrderDetailsProvider>
-                      </PaymentInformationProvider>
-                    </NodesProvider>
-                  </ValidationProvider>
-                </FormDataWriteProvider>
-              </PageNavigationProvider>
-            </LayoutSettingsProvider>
+            <PageNavigationProvider>
+              <FormDataWriteProvider>
+                <ValidationProvider>
+                  <NodesProvider
+                    readOnly={readOnly}
+                    isEmbedded={isEmbedded}
+                  >
+                    <PaymentInformationProvider>
+                      <OrderDetailsProvider>
+                        <MaybePaymentProvider hasProcess={hasProcess}>
+                          <Provider value={{ readOnly }}>
+                            <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
+                          </Provider>
+                        </MaybePaymentProvider>
+                      </OrderDetailsProvider>
+                    </PaymentInformationProvider>
+                  </NodesProvider>
+                </ValidationProvider>
+              </FormDataWriteProvider>
+            </PageNavigationProvider>
           </DataModelsProvider>
         </CodeListsProvider>
       </LayoutsProvider>

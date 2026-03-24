@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { ScopeList } from './ScopeList';
 import type { ScopeListProps } from './ScopeList';
@@ -132,7 +131,7 @@ describe('ScopeList', () => {
     await user.click(saveButton);
 
     const allSelectedScopes: MaskinportenScopes = {
-      scopes: [...maskinportenScopesMock, ...selectedScopesMock],
+      scopes: [...selectedScopesMock, ...maskinportenScopesMock],
     };
 
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);

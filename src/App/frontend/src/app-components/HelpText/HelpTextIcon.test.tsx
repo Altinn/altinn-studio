@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { render as renderRtl, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import { HelpTextIcon } from 'src/app-components/HelpText/HelpTextIcon';
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 import type { HelpTextIconProps } from 'src/app-components/HelpText/HelpTextIcon';
 
 // Test data:
@@ -55,7 +56,7 @@ describe('HelpTextIcon', () => {
 });
 
 const render = (props: Partial<HelpTextIconProps> = {}) =>
-  renderRtl(
+  renderWithAppComponentsProvider(
     <HelpTextIcon
       {...defaultProps}
       {...props}

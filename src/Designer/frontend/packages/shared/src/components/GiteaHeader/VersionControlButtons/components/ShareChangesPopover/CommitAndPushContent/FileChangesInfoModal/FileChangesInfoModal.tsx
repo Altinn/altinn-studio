@@ -101,7 +101,7 @@ const DiffStatus = ({ status }: DiffStatusProps) => {
       );
     case 'error':
       return (
-        <StudioError data-size='small'>
+        <StudioError data-size='sm'>
           {t('sync_header.show_changes_modal.repo_diff_error_title')}
         </StudioError>
       );

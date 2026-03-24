@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
 import type { ReactElement } from 'react';
+import { Fragment, useEffect, useState, useRef, useCallback } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { get } from 'app-shared/utils/networking';
 import { StudioButton, StudioCenter, StudioParagraph, StudioSpinner } from '@studio/components';
@@ -129,7 +129,7 @@ export const FileBrowser = (): ReactElement => {
                 .map((segment, index, allSegments) => {
                   const segmentPath = allSegments.slice(0, index + 1).join('/');
                   return (
-                    <React.Fragment key={segmentPath}>
+                    <Fragment key={segmentPath}>
                       <span className={classes.breadcrumbSeparator}>
                         <ChevronRightIcon aria-hidden />
                       </span>
@@ -141,7 +141,7 @@ export const FileBrowser = (): ReactElement => {
                         <FolderIcon aria-hidden />
                         <span className={classes.breadcrumbLabel}>{segment}</span>
                       </button>
-                    </React.Fragment>
+                    </Fragment>
                   );
                 })}
           </div>

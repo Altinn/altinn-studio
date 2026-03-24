@@ -11,6 +11,5 @@ internal static class ServiceTelemetry
 
     // Tail sampling is configured per collector pipeline, not globally.
     // We explicitly mark spans that must be retained.
-    public static void SetAlwaysSample(this Activity? activity) =>
-        activity?.SetTag(SamplingAttribute, AlwaysSample);
+    public static void SetAlwaysSample(this Activity? activity) => activity?.SetTag(SamplingAttribute, AlwaysSample);
 }

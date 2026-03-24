@@ -1,28 +1,25 @@
 import { RepositoryType } from 'app-shared/types/global';
 import {
-  filterRoutesByFeatureFlag,
+  isMenuItemEnabledByFeatureFlag,
   getFilteredMenuListForOverviewPage,
   getFilteredTopBarMenu,
   getTopBarMenuItems,
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
-  topBarMenuItem,
+  topBarMenuItems,
 } from './headerMenuUtils';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { DatabaseIcon } from '@studio/icons';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
-import { typedLocalStorage } from '@studio/pure-functions';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-
-jest.mock('app-shared/utils/featureToggleUtils');
+import { FeatureFlag } from '@studio/feature-flags';
 
 describe('headerMenuUtils', () => {
   describe('getFilteredTopBarMenu', () => {
     it('should return all items when provided repository type is "App" which is not hidden behind feature-flags', () => {
-      const menuLength = topBarMenuItem.filter((menuItem) => !menuItem.featureFlagName).length;
-      expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(menuLength);
+      const menuLength = topBarMenuItems.filter((menuItem) => !menuItem.featureFlagName).length;
+      expect(getFilteredTopBarMenu(RepositoryType.App, [])).toHaveLength(menuLength);
     });
 
     it('Should only return the data model menu item when the provided repo type is "DataModels"', () => {
@@ -36,41 +33,42 @@ describe('headerMenuUtils', () => {
         },
       ];
 
-      expect(getFilteredTopBarMenu(RepositoryType.DataModels)).toEqual(expected);
+      expect(getFilteredTopBarMenu(RepositoryType.DataModels, [])).toEqual(expected);
     });
 
     it('should return empty list when provided repo type is "Unknown"', () => {
       const expected: HeaderMenuItem[] = [];
 
-      expect(getFilteredTopBarMenu(RepositoryType.Unknown)).toEqual(expected);
+      expect(getFilteredTopBarMenu(RepositoryType.Unknown, [])).toEqual(expected);
     });
 
-    it('should return menu items including items hidden behind feature flag, if the flag i activated', () => {
-      typedLocalStorage.setItem('featureFlags', []); // Add the flags in the array when you want to test it
-      expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(topBarMenuItem.length);
+    it('should return menu items including items hidden behind feature flag, if the flag is activated', () => {
+      expect(getFilteredTopBarMenu(RepositoryType.App, Object.values(FeatureFlag))).toHaveLength(
+        topBarMenuItems.length,
+      );
     });
   });
 
   describe('getTopBarMenuItems', () => {
     it('should filter out Deploy item when repoOwnerIsOrg is false', () => {
-      const filteredItems = getTopBarMenuItems(RepositoryType.App, false);
+      const filteredItems = getTopBarMenuItems(RepositoryType.App, false, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
     });
 
     it('should include Deploy item when repoOwnerIsOrg is true and repositoryType is not DataModels', () => {
-      const filteredItems = getTopBarMenuItems(RepositoryType.App, true);
+      const filteredItems = getTopBarMenuItems(RepositoryType.App, true, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(true);
     });
 
     it('should filter out Deploy item when repositoryType is DataModels', () => {
-      const filteredItems = getTopBarMenuItems(RepositoryType.DataModels, true);
+      const filteredItems = getTopBarMenuItems(RepositoryType.DataModels, true, []);
       expect(filteredItems.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
     });
   });
 
   describe('groupMenuItemsByGroup', () => {
     it('should group items by their group key', () => {
-      const groupedItems = groupMenuItemsByGroup(topBarMenuItem);
+      const groupedItems = groupMenuItemsByGroup(topBarMenuItems);
       expect(groupedItems.length).toBeGreaterThan(0);
 
       groupedItems.forEach((group) => {
@@ -85,7 +83,7 @@ describe('headerMenuUtils', () => {
     it('should correctly map header menu group to navigation menu group', () => {
       const group = {
         groupName: HeaderMenuGroupKey.Tools,
-        menuItems: [topBarMenuItem.find((item) => item.key === HeaderMenuItemKey.Create)!],
+        menuItems: [topBarMenuItems.find((item) => item.key === HeaderMenuItemKey.Create)!],
       };
       const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group);
       expect(mappedGroup.name).toBe(HeaderMenuGroupKey.Tools);
@@ -94,7 +92,7 @@ describe('headerMenuUtils', () => {
     });
   });
 
-  describe('filterRoutesByFeatureFlag', () => {
+  describe('isMenuItemEnabledByFeatureFlag', () => {
     it('should return true if menuItem does not have a featureFlagName', () => {
       const menuItem: HeaderMenuItem = {
         key: HeaderMenuItemKey.DataModel,
@@ -104,12 +102,10 @@ describe('headerMenuUtils', () => {
         group: HeaderMenuGroupKey.Tools,
       };
 
-      expect(filterRoutesByFeatureFlag(menuItem)).toBe(true);
+      expect(isMenuItemEnabledByFeatureFlag(menuItem, [])).toBe(true);
     });
 
     it('should return true if feature flag is active', () => {
-      (shouldDisplayFeature as jest.Mock).mockReturnValue(true);
-
       const menuItem: HeaderMenuItem = {
         key: HeaderMenuItemKey.DataModel,
         link: RoutePaths.DataModel,
@@ -119,12 +115,12 @@ describe('headerMenuUtils', () => {
         featureFlagName: FeatureFlag.ShouldOverrideAppLibCheck,
       };
 
-      expect(filterRoutesByFeatureFlag(menuItem)).toBe(true);
+      expect(
+        isMenuItemEnabledByFeatureFlag(menuItem, [FeatureFlag.ShouldOverrideAppLibCheck]),
+      ).toBe(true);
     });
 
     it('should return false if feature flag is not active', () => {
-      (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
-
       const menuItem: HeaderMenuItem = {
         key: HeaderMenuItemKey.DataModel,
         link: RoutePaths.DataModel,
@@ -134,13 +130,13 @@ describe('headerMenuUtils', () => {
         featureFlagName: FeatureFlag.ShouldOverrideAppLibCheck,
       };
 
-      expect(filterRoutesByFeatureFlag(menuItem)).toBe(false);
+      expect(isMenuItemEnabledByFeatureFlag(menuItem, [])).toBe(false);
     });
   });
 
   describe('getFilteredMenuListForOverviewPage', () => {
     it('should filter out menu items with keys "About" and "Deploy"', () => {
-      const filteredMenu = getFilteredMenuListForOverviewPage();
+      const filteredMenu = getFilteredMenuListForOverviewPage([]);
 
       // Ensure no item with key 'About' is present
       expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.About)).toBe(false);

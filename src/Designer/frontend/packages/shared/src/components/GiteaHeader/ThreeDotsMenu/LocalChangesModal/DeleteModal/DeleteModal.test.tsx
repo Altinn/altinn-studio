@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import type { DeleteModalProps } from './DeleteModal';

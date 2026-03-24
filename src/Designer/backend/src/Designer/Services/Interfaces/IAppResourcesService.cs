@@ -9,12 +9,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IAppResourcesService
 {
-    public Task<ApplicationMetadata> GetApplicationMetadata(
-        string org,
-        string env,
-        string app,
-        CancellationToken ct
-    );
+    public Task<ApplicationMetadata> GetApplicationMetadata(string org, string env, string app, CancellationToken ct);
 
     public Task<IEnumerable<ProcessTaskMetadata>> GetProcessMetadata(
         string org,

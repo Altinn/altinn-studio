@@ -7,5 +7,4 @@ public static class TestDbConstants
     public const string Database = "designer";
     public const string NonAdminUser = "designer";
     public const string NonAdminPassword = "Test1234$";
-
 }

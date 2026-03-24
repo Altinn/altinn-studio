@@ -10,13 +10,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class GetSubjectOptionsTests : DesignerEndpointsTestsBase<GetSubjectOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetSubjectOptionsTests
+        : DesignerEndpointsTestsBase<GetSubjectOptionsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetSubjectOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetSubjectOptionsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_SubjectOptions()
@@ -32,7 +33,10 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
 
-                subjectionOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                subjectionOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(
+                    responseBody,
+                    new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+                );
             }
 
             Assert.NotNull(subjectionOptions);

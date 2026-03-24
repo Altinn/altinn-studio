@@ -1,38 +1,37 @@
 import { Canvas, Meta } from '@storybook/addon-docs/blocks';
 import * as StudioPropertyStories from './StudioProperty.stories';
-import { StudioHeading } from '../StudioHeading';
+import { Heading, List } from '@digdir/designsystemet-react';
 import { StudioParagraph } from '../StudioParagraph';
-import { StudioList } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
 
 <Meta of={StudioPropertyStories} />
 
-<StudioHeading level={1} size='small'>
+<Heading level={1} size='small'>
   StudioProperty
-</StudioHeading>
+</Heading>
 <StudioParagraph>
   StudioProperty is a composed component designed to present configurable content. It may be used to
   let the user view and edit complex data structures.
 </StudioParagraph>
 <StudioParagraph>
   It provides the following elements:
-  <StudioList.Root>
-    <StudioList.Unordered>
-      <StudioList.Item>
+  <List.Root>
+    <List.Unordered>
+      <List.Item>
         `StudioProperty.Group`: Groups the list of `Fieldset` and `Button` components together,
         providing proper spacing between the components.
-      </StudioList.Item>
-      <StudioList.Item>
+      </List.Item>
+      <List.Item>
         `StudioProperty.Fieldset`: Editable state of a property. Its children should be form
         elements to set up the given property. It may also contain a nested `StudioProperty.Group`
         component.
-      </StudioList.Item>
-      <StudioList.Item>
+      </List.Item>
+      <List.Item>
         `StudioProperty.Button`: A button element to represent a given property. When no value is
         given, it defaults to only show the property name with a <PlusCircleIcon /> icon.
-      </StudioList.Item>
-    </StudioList.Unordered>
-  </StudioList.Root>
+      </List.Item>
+    </List.Unordered>
+  </List.Root>
 </StudioParagraph>
 <StudioParagraph>
   The `StudioProperty.Fieldset` and `StudioProperty.Button` are designed to switch between each
