@@ -42,13 +42,21 @@ export const SlackChannelDialog = ({
     setSubmitted(false);
   }, [channel]);
 
+  const slackWebhookUrlRegex = /^https:\/\/hooks\.slack\.com\/services\/.+/;
+
   const channelNameError =
     submitted && !channel.channelName ? t('validation_errors.required') : undefined;
 
-  const webhookUrlError =
-    submitted && !channel.webhookUrl ? t('validation_errors.required') : undefined;
+  const webhookUrlError = submitted
+    ? !channel.webhookUrl
+      ? t('validation_errors.required')
+      : !slackWebhookUrlRegex.test(channel.webhookUrl)
+        ? t('validation_errors.value_as_url')
+        : undefined
+    : undefined;
 
-  const isValid = !!channel.channelName && !!channel.webhookUrl;
+  const isValid =
+    !!channel.channelName && !!channel.webhookUrl && slackWebhookUrlRegex.test(channel.webhookUrl);
 
   const handleSave = () => {
     setSubmitted(true);

@@ -104,15 +104,11 @@ describe('SlackChannelsList', () => {
     expect(screen.getByText('EditDialog')).toBeInTheDocument();
   });
 
-  it('calls updateContactPoint when toggling active status', async () => {
+  it('calls toggleContactPointActive when toggling active status', async () => {
     const user = userEvent.setup();
     renderSlackChannelsList({ channels: [channel1] });
     await user.click(screen.getByRole('switch', { name: '#general' }));
-    expect(queriesMock.updateContactPoint).toHaveBeenCalledWith(
-      testOrg,
-      'slack-1',
-      expect.objectContaining({ isActive: false }),
-    );
+    expect(queriesMock.toggleContactPointActive).toHaveBeenCalledWith(testOrg, 'slack-1', false);
   });
 
   it('calls deleteContactPoint when delete is confirmed', async () => {

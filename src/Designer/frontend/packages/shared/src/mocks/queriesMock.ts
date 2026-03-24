@@ -377,5 +377,6 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - Org settings
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
   updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  toggleContactPointActive: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
 };

@@ -44,6 +44,17 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
         return MapToDomain(updated);
     }
 
+    public Task ToggleContactPointActiveAsync(
+        string org,
+        Guid id,
+        bool isActive,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return repository.ToggleActiveAsync(org, id, isActive, cancellationToken);
+    }
+
     public Task DeleteContactPointAsync(string org, Guid id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -71,6 +82,7 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
     private static ContactPointEntity MapToEntity(ContactPoint contactPoint) =>
         new()
         {
+            Id = contactPoint.Id,
             Org = contactPoint.Org,
             Name = contactPoint.Name,
             IsActive = contactPoint.IsActive,

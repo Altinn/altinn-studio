@@ -1,5 +1,4 @@
 import { screen } from '@testing-library/react';
-import { Route, Routes } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -19,6 +18,10 @@ jest.mock('./components/SlackChannelsList/SlackChannelsList', () => ({
   ),
 }));
 
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: () => ({ org: 'ttd' }),
+}));
+
 const testOrg = 'ttd';
 
 const personContactPoint: ContactPoint = {
@@ -35,21 +38,12 @@ const slackContactPoint: ContactPoint = {
   methods: [{ id: 'method-2', methodType: 'slack', value: 'https://hooks.slack.com/test' }],
 };
 
-const routedContactPoints = (
-  <Routes>
-    <Route path='/:org/settings/contact-points' element={<ContactPoints />} />
-  </Routes>
-);
-
 const renderContactPoints = (contactPoints?: ContactPoint[]) => {
   const queryClient = createQueryClientMock();
   if (contactPoints !== undefined) {
     queryClient.setQueryData([QueryKey.ContactPoints, testOrg], contactPoints);
   }
-  return renderWithProviders(routedContactPoints, {
-    queryClient,
-    initialEntries: [`/${testOrg}/settings/contact-points`],
-  });
+  return renderWithProviders(<ContactPoints />, { queryClient });
 };
 
 describe('ContactPoints', () => {
@@ -61,10 +55,9 @@ describe('ContactPoints', () => {
   it('renders the error message when query fails', async () => {
     const queryClient = createQueryClientMock();
     const getContactPoints = jest.fn().mockRejectedValue(new Error('Failed'));
-    renderWithProviders(routedContactPoints, {
+    renderWithProviders(<ContactPoints />, {
       queries: { getContactPoints },
       queryClient,
-      initialEntries: [`/${testOrg}/settings/contact-points`],
     });
     await screen.findByText(textMock('org.settings.contact_points.error'));
     expect(screen.getByText(textMock('org.settings.contact_points.error'))).toBeInTheDocument();

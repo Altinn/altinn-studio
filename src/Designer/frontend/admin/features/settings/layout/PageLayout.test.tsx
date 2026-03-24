@@ -17,6 +17,11 @@ jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: {} }),
 }));
 
+const mockOrg: { value: string | undefined } = { value: 'ttd' };
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: () => ({ org: mockOrg.value }),
+}));
+
 const testOrg = 'ttd';
 const orgsMock: KeyValuePairs<Org> = {
   [testOrg]: {
@@ -28,14 +33,18 @@ const orgsMock: KeyValuePairs<Org> = {
   },
 };
 
-const renderPageLayout = (initialEntries: string[] = [`/${testOrg}/settings`]) => {
+const renderPageLayout = () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OrgList], orgsMock);
   queryClient.setQueryData([QueryKey.CurrentUser], userMock);
-  return renderWithProviders(<PageLayout />, { initialEntries, queryClient });
+  return renderWithProviders(<PageLayout />, { queryClient });
 };
 
 describe('PageLayout', () => {
+  beforeEach(() => {
+    mockOrg.value = testOrg;
+  });
+
   it('renders the settings heading', () => {
     renderPageLayout();
     expect(screen.getByRole('heading', { name: textMock('org.settings') })).toBeInTheDocument();
@@ -53,32 +62,25 @@ describe('PageLayout', () => {
 
   it('renders the loading spinner while data is pending', () => {
     const queryClient = createQueryClientMock();
-    renderWithProviders(<PageLayout />, {
-      initialEntries: [`/${testOrg}/settings`],
-      queryClient,
-    });
+    renderWithProviders(<PageLayout />, { queryClient });
     expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
   });
 
   it('renders the not-found page when org is not in the org list', () => {
+    mockOrg.value = 'unknown-org';
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgList], orgsMock);
     queryClient.setQueryData([QueryKey.CurrentUser], userMock);
-    renderWithProviders(<PageLayout />, {
-      initialEntries: ['/unknown-org/settings'],
-      queryClient,
-    });
+    renderWithProviders(<PageLayout />, { queryClient });
     expect(screen.getByText(textMock('not_found_page.heading'))).toBeInTheDocument();
   });
 
   it('renders the not-found page when there is no org in the path', () => {
+    mockOrg.value = undefined;
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgList], orgsMock);
     queryClient.setQueryData([QueryKey.CurrentUser], userMock);
-    renderWithProviders(<PageLayout />, {
-      initialEntries: ['/'],
-      queryClient,
-    });
+    renderWithProviders(<PageLayout />, { queryClient });
     expect(screen.getByText(textMock('not_found_page.heading'))).toBeInTheDocument();
   });
 
@@ -86,10 +88,7 @@ describe('PageLayout', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgList], orgsMock);
     queryClient.setQueryData([QueryKey.CurrentUser], undefined);
-    renderWithProviders(<PageLayout />, {
-      initialEntries: [`/${testOrg}/settings`],
-      queryClient,
-    });
+    renderWithProviders(<PageLayout />, { queryClient });
     expect(
       screen.queryByRole('heading', { name: textMock('org.settings') }),
     ).not.toBeInTheDocument();

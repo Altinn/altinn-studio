@@ -108,15 +108,11 @@ describe('PersonsList', () => {
     expect(screen.getByText('EditDialog')).toBeInTheDocument();
   });
 
-  it('calls updateContactPoint when toggling active status', async () => {
+  it('calls toggleContactPointActive when toggling active status', async () => {
     const user = userEvent.setup();
     renderPersonsList({ persons: [person1] });
     await user.click(screen.getByRole('switch', { name: 'Alice' }));
-    expect(queriesMock.updateContactPoint).toHaveBeenCalledWith(
-      testOrg,
-      'person-1',
-      expect.objectContaining({ isActive: false }),
-    );
+    expect(queriesMock.toggleContactPointActive).toHaveBeenCalledWith(testOrg, 'person-1', false);
   });
 
   it('calls deleteContactPoint when delete is confirmed', async () => {

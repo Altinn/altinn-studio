@@ -13,6 +13,7 @@ import type { ContactPoint, ContactPointPayload } from 'app-shared/types/Contact
 import { PersonDialog } from './PersonDialog/PersonDialog';
 import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
+import { useToggleContactPointActiveMutation } from 'admin/features/settings/hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from 'admin/features/settings/hooks/useDeleteContactPointMutation';
 import { PlusIcon, StudioEditIcon } from '@studio/icons';
 import classes from './PersonsList.module.css';
@@ -55,6 +56,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
 
   const { mutate: addPerson, isPending: isAdding } = useAddContactPointMutation(org);
   const { mutate: updatePerson, isPending: isUpdating } = useUpdateContactPointMutation(org);
+  const { mutate: toggleActive } = useToggleContactPointActiveMutation(org);
   const { mutate: deletePerson } = useDeleteContactPointMutation(org);
 
   const isSaving = isAdding || isUpdating;
@@ -89,14 +91,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   };
 
   const handleToggleActive = (person: ContactPoint) => {
-    updatePerson({
-      id: person.id,
-      payload: {
-        name: person.name,
-        isActive: !person.isActive,
-        methods: person.methods.map(({ methodType, value }) => ({ methodType, value })),
-      },
-    });
+    toggleActive({ id: person.id, isActive: !person.isActive });
   };
 
   return (

@@ -217,4 +217,68 @@ describe('PersonDialog', () => {
     await user.click(getSaveButton());
     expect(onSave).toHaveBeenCalledTimes(1);
   });
+
+  it('shows invalid email error when email is malformed', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      person: { name: 'Alice', email: 'not-an-email', phone: '', isActive: true },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(screen.getByText(textMock('validation_errors.invalid_email'))).toBeInTheDocument();
+  });
+
+  it('does not call onSave when email is malformed', async () => {
+    const onSave = jest.fn();
+    const user = userEvent.setup();
+    renderPersonDialog({
+      onSave,
+      person: { name: 'Alice', email: 'not-an-email', phone: '', isActive: true },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('shows invalid phone error when phone is malformed', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      person: { name: 'Alice', email: '', phone: 'abc', isActive: true },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(screen.getByText(textMock('validation_errors.invalid_phone'))).toBeInTheDocument();
+  });
+
+  it('does not call onSave when phone is malformed', async () => {
+    const onSave = jest.fn();
+    const user = userEvent.setup();
+    renderPersonDialog({
+      onSave,
+      person: { name: 'Alice', email: '', phone: 'abc', isActive: true },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('does not show email format error when email field is empty', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      person: { name: 'Alice', email: '', phone: '12345678', isActive: true },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(screen.queryByText(textMock('validation_errors.invalid_email'))).not.toBeInTheDocument();
+  });
+
+  it('does not show phone format error when phone field is empty', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      person: { name: 'Alice', email: 'alice@example.com', phone: '', isActive: true },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(screen.queryByText(textMock('validation_errors.invalid_phone'))).not.toBeInTheDocument();
+  });
 });

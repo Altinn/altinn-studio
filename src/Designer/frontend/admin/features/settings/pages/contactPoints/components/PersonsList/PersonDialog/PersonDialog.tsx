@@ -43,14 +43,31 @@ export const PersonDialog = ({
     setSubmitted(false);
   }, [person]);
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\+?[\d\s\-]{8,15}$/;
+
   const nameError = submitted && !person.name ? t('validation_errors.required') : undefined;
+
+  const emailError =
+    submitted && person.email && !emailRegex.test(person.email)
+      ? t('validation_errors.invalid_email')
+      : undefined;
+
+  const phoneError =
+    submitted && person.phone && !phoneRegex.test(person.phone)
+      ? t('validation_errors.invalid_phone')
+      : undefined;
 
   const contactMethodError =
     submitted && !person.email && !person.phone
       ? t('org.settings.contact_points.error_contact_method_required')
       : undefined;
 
-  const isValid = !!person.name && (!!person.email || !!person.phone);
+  const isValid =
+    !!person.name &&
+    (!!person.email || !!person.phone) &&
+    (!person.email || emailRegex.test(person.email)) &&
+    (!person.phone || phoneRegex.test(person.phone));
 
   const handleSave = () => {
     setSubmitted(true);
@@ -88,13 +105,13 @@ export const PersonDialog = ({
             label={t('org.settings.contact_points.field_email')}
             value={person.email}
             onChange={(e) => onFieldChange('email', e.target.value)}
-            error={contactMethodError}
+            error={emailError ?? contactMethodError}
           />
           <StudioTextfield
             label={t('org.settings.contact_points.field_phone')}
             value={person.phone}
             onChange={(e) => onFieldChange('phone', e.target.value)}
-            error={contactMethodError}
+            error={phoneError ?? contactMethodError}
           />
         </div>
         <StudioFormActions

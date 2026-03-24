@@ -17,5 +17,12 @@ public interface IContactPointsService
         CancellationToken cancellationToken = default
     );
 
+    Task ToggleContactPointActiveAsync(
+        string org,
+        Guid id,
+        bool isActive,
+        CancellationToken cancellationToken = default
+    );
+
     Task DeleteContactPointAsync(string org, Guid id, CancellationToken cancellationToken = default);
 }

@@ -23,6 +23,7 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
             .ContactPoints.AsNoTracking()
             .Include(p => p.Methods)
             .Where(p => p.Org == org)
+            .OrderBy(p => p.Name)
             .ToListAsync(cancellationToken);
         return dbModels.Select(ContactPointMapper.MapToEntity).ToList();
     }
@@ -64,6 +65,19 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return ContactPointMapper.MapToEntity(existing);
+    }
+
+    public async Task ToggleActiveAsync(
+        string org,
+        Guid id,
+        bool isActive,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var existing = await dbContext.ContactPoints.SingleAsync(p => p.Org == org && p.Id == id, cancellationToken);
+        existing.IsActive = isActive;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(string org, Guid id, CancellationToken cancellationToken = default)

@@ -125,7 +125,7 @@ describe('SlackChannelDialog', () => {
       onSave,
       channel: {
         channelName: '#general',
-        webhookUrl: 'https://hooks.slack.com/test',
+        webhookUrl: 'https://hooks.slack.com/services/T00/B00/abc123',
         isActive: true,
       },
     });
@@ -139,7 +139,11 @@ describe('SlackChannelDialog', () => {
     const user = userEvent.setup();
     renderSlackChannelDialog({
       onSave,
-      channel: { channelName: '', webhookUrl: 'https://hooks.slack.com/test', isActive: true },
+      channel: {
+        channelName: '',
+        webhookUrl: 'https://hooks.slack.com/services/T00/B00/abc123',
+        isActive: true,
+      },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -161,7 +165,11 @@ describe('SlackChannelDialog', () => {
   it('shows channel name required error after submit with empty channel name', async () => {
     const user = userEvent.setup();
     renderSlackChannelDialog({
-      channel: { channelName: '', webhookUrl: 'https://hooks.slack.com/test', isActive: true },
+      channel: {
+        channelName: '',
+        webhookUrl: 'https://hooks.slack.com/services/T00/B00/abc123',
+        isActive: true,
+      },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
@@ -185,5 +193,35 @@ describe('SlackChannelDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getCancelButton());
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows invalid URL error when webhook URL does not match Slack format', async () => {
+    const user = userEvent.setup();
+    renderSlackChannelDialog({
+      channel: {
+        channelName: '#general',
+        webhookUrl: 'https://example.com/webhook',
+        isActive: true,
+      },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(screen.getByText(textMock('validation_errors.value_as_url'))).toBeInTheDocument();
+  });
+
+  it('does not call onSave when webhook URL does not match Slack format', async () => {
+    const onSave = jest.fn();
+    const user = userEvent.setup();
+    renderSlackChannelDialog({
+      onSave,
+      channel: {
+        channelName: '#general',
+        webhookUrl: 'https://example.com/webhook',
+        isActive: true,
+      },
+    });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    await user.click(getSaveButton());
+    expect(onSave).not.toHaveBeenCalled();
   });
 });

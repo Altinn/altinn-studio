@@ -53,6 +53,19 @@ public class ContactPointsController(IContactPointsService service) : Controller
         return Ok(MapToResponse(updated));
     }
 
+    [HttpPatch("{id:guid}/active")]
+    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
+    public async Task<IActionResult> ToggleContactPointActive(
+        string org,
+        Guid id,
+        [FromBody] ToggleActiveRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        await service.ToggleContactPointActiveAsync(org, id, request.IsActive, cancellationToken);
+        return NoContent();
+    }
+
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     public async Task<IActionResult> DeleteContactPoint(string org, Guid id, CancellationToken cancellationToken)

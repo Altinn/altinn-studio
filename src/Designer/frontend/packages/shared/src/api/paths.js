@@ -230,3 +230,4 @@ export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, 
 // Org settings
 export const contactPointsPath = (org) => `${apiBasePath}/v1/admin/contact-points/${org}`; // Get, Post
 export const contactPointPath = (org, id) => `${apiBasePath}/v1/admin/contact-points/${org}/${id}`; // Put, Delete
+export const contactPointActivePath = (org, id) => `${apiBasePath}/v1/admin/contact-points/${org}/${id}/active`; // Patch

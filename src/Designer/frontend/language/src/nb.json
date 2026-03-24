@@ -2517,6 +2517,8 @@
   "ux_editor.warning": "Advarsel",
   "validation_errors.file_name_invalid": "Filnavnet er ugyldig. Det må ha mellom 2 og 28 tegn og kan inneholde tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",
   "validation_errors.file_name_occupied": "Det finnes allerede en kodeliste med det navnet. Bruk et annet navn.",
+  "validation_errors.invalid_email": "Ugyldig e-postadresse.",
+  "validation_errors.invalid_phone": "Ugyldig telefonnummer.",
   "validation_errors.length": "Antall tillatte tegn er {{0}}.",
   "validation_errors.max": "Største gyldig verdi er {{0}}.",
   "validation_errors.maxLength": "Bruk {{number}} eller færre tegn.",

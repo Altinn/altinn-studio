@@ -71,6 +71,7 @@ import {
   validateNavigationLayoutSettingsPath,
   contactPointsPath,
   contactPointPath,
+  contactPointActivePath,
   validateNavigationPageSettingsPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -245,4 +246,5 @@ export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));
 // Org settings
 export const addContactPoint = async (org: string, payload: ContactPointPayload): Promise<ContactPoint> => post(contactPointsPath(org), payload);
 export const updateContactPoint = async (org: string, id: string, payload: ContactPointPayload): Promise<ContactPoint> => put(contactPointPath(org, id), payload);
+export const toggleContactPointActive = async (org: string, id: string, isActive: boolean): Promise<void> => patch(contactPointActivePath(org, id), { isActive });
 export const deleteContactPoint = async (org: string, id: string): Promise<void> => del(contactPointPath(org, id));
