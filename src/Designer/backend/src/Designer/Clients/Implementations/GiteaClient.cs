@@ -920,28 +920,27 @@ public class GiteaClient(
     public async Task<List<Team>> GetOrgTeamsAsync(string org, CancellationToken cancellationToken = default)
     {
         HttpResponseMessage response = await httpClient.GetAsync($"orgs/{org}/teams", cancellationToken);
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            return await response.Content.ReadFromJsonAsync<List<Team>>(s_jsonOptions, cancellationToken);
-        }
-
-        logger.LogError(
-            "Method {MethodName} failed with status {StatusCode} for org {Org}",
-            nameof(GetOrgTeamsAsync),
-            response.StatusCode,
-            org
-        );
-        return [];
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<Team>>(s_jsonOptions, cancellationToken);
     }
 
     public async Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
-        await httpClient.PutAsync($"teams/{teamId}/members/{username}", null, cancellationToken);
+        HttpResponseMessage response = await httpClient.PutAsync(
+            $"teams/{teamId}/members/{username}",
+            null,
+            cancellationToken
+        );
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
-        await httpClient.DeleteAsync($"teams/{teamId}/members/{username}", cancellationToken);
+        HttpResponseMessage response = await httpClient.DeleteAsync(
+            $"teams/{teamId}/members/{username}",
+            cancellationToken
+        );
+        response.EnsureSuccessStatusCode();
     }
 
     private static string AddRefIfExists(string path, string reference)
