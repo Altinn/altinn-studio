@@ -150,7 +150,8 @@ public class WorkflowUpdateBufferTests
         var (buffer, repo) = CreateBuffer();
         SetupMockSuccess(repo);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -168,7 +169,8 @@ public class WorkflowUpdateBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -189,7 +191,8 @@ public class WorkflowUpdateBufferTests
             )
             .Returns(Task.CompletedTask);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -206,7 +209,8 @@ public class WorkflowUpdateBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -236,7 +240,8 @@ public class WorkflowUpdateBufferTests
                 }
             );
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -259,7 +264,8 @@ public class WorkflowUpdateBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -277,7 +283,8 @@ public class WorkflowUpdateBufferTests
             )
             .ThrowsAsync(expectedException);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -290,7 +297,8 @@ public class WorkflowUpdateBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -300,7 +308,8 @@ public class WorkflowUpdateBufferTests
         var (buffer, repo) = CreateBuffer();
         SetupMockSuccess(repo);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -317,7 +326,8 @@ public class WorkflowUpdateBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -331,7 +341,8 @@ public class WorkflowUpdateBufferTests
         var gate = new TaskCompletionSource();
         SetupMockSuccess(repo, gate);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -353,7 +364,8 @@ public class WorkflowUpdateBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -375,7 +387,8 @@ public class WorkflowUpdateBufferTests
             )
             .Returns(Task.CompletedTask);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         var tasks = Enumerable
             .Range(1, 5)
@@ -383,7 +396,8 @@ public class WorkflowUpdateBufferTests
             .ToList();
 
         // Stop should drain all pending items
-        await buffer.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await buffer.StopAsync(stopCts.Token);
 
         await Task.WhenAll(tasks);
 

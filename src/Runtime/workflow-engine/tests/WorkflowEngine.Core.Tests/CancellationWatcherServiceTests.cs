@@ -76,7 +76,8 @@ public class CancellationWatcherServiceTests
 
         cts.Cancel();
         tracker.TryRemove(id, out _);
-        await service.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await service.StopAsync(stopCts.Token);
     }
 
     [Fact]
@@ -105,7 +106,8 @@ public class CancellationWatcherServiceTests
         );
 
         cts.Cancel();
-        await service.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await service.StopAsync(stopCts.Token);
     }
 
     [Fact]
@@ -151,6 +153,7 @@ public class CancellationWatcherServiceTests
 
         cts.Cancel();
         tracker.TryRemove(id, out _);
-        await service.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await service.StopAsync(stopCts.Token);
     }
 }
