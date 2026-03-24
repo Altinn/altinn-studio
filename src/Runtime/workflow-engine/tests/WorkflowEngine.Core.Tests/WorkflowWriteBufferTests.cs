@@ -148,7 +148,8 @@ public class WorkflowWriteBufferTests
                     reqs.Select(_ => BatchEnqueueResult.Created(workflowIds)).ToArray()
             );
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -167,7 +168,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -198,7 +200,8 @@ public class WorkflowWriteBufferTests
                 }
             );
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -228,7 +231,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -259,7 +263,8 @@ public class WorkflowWriteBufferTests
                 }
             );
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -280,7 +285,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -298,7 +304,8 @@ public class WorkflowWriteBufferTests
             )
             .ThrowsAsync(expectedException);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -311,7 +318,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -321,7 +329,8 @@ public class WorkflowWriteBufferTests
         var (buffer, repo, _) = CreateBuffer();
         SetupMockCreated(repo);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -339,7 +348,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -365,7 +375,8 @@ public class WorkflowWriteBufferTests
                 }
             );
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -390,7 +401,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -400,7 +412,8 @@ public class WorkflowWriteBufferTests
         var (buffer, repo, signal) = CreateBuffer();
         SetupMockCreated(repo);
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -413,7 +426,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -434,7 +448,8 @@ public class WorkflowWriteBufferTests
                     reqs.Select(_ => BatchEnqueueResult.Duplicate(existingIds)).ToArray()
             );
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
@@ -446,7 +461,8 @@ public class WorkflowWriteBufferTests
         }
         finally
         {
-            await buffer.StopAsync(CancellationToken.None);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
         }
     }
 
@@ -471,7 +487,8 @@ public class WorkflowWriteBufferTests
                 }
             );
 
-        await buffer.StartAsync(TestContext.Current.CancellationToken);
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
 
         // Enqueue several items
         var tasks = Enumerable
@@ -484,7 +501,8 @@ public class WorkflowWriteBufferTests
             .ToList();
 
         // Stop the buffer — it should drain all remaining items
-        await buffer.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await buffer.StopAsync(stopCts.Token);
 
         // All tasks should complete (not hang or fault)
         await Task.WhenAll(tasks);

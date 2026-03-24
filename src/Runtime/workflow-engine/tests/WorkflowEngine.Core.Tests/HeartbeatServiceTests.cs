@@ -78,7 +78,8 @@ public class HeartbeatServiceTests
         cts.Cancel();
         tracker.TryRemove(id1, out _);
         tracker.TryRemove(id2, out _);
-        await service.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await service.StopAsync(stopCts.Token);
     }
 
     [Fact]
@@ -121,7 +122,8 @@ public class HeartbeatServiceTests
 
         // Now empty the tracker — service should exit
         tracker.TryRemove(id, out _);
-        await service.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await service.StopAsync(stopCts.Token);
     }
 
     [Fact]
@@ -150,7 +152,8 @@ public class HeartbeatServiceTests
         );
 
         cts.Cancel();
-        await service.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await service.StopAsync(stopCts.Token);
     }
 
     [Fact]
@@ -192,6 +195,7 @@ public class HeartbeatServiceTests
 
         cts.Cancel();
         tracker.TryRemove(id, out _);
-        await service.StopAsync(CancellationToken.None);
+        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await service.StopAsync(stopCts.Token);
     }
 }
