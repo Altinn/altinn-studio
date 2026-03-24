@@ -79,7 +79,12 @@ public class ContactPointsService(IContactPointsRepository repository) : IContac
             IsActive = contactPoint.IsActive,
             Environments = contactPoint.Environments,
             Methods = contactPoint
-                .Methods.Select(m => new ContactMethodEntity { MethodType = m.MethodType, Value = m.Value })
+                .Methods.Select(m => new ContactMethodEntity
+                {
+                    Id = m.Id,
+                    MethodType = m.MethodType,
+                    Value = m.Value,
+                })
                 .ToList(),
         };
 }

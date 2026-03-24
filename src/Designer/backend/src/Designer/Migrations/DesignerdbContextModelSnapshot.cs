@@ -339,8 +339,8 @@ namespace Altinn.Studio.Designer.Migrations
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("character varying")
                         .HasMaxLength(255)
+                        .HasColumnType("character varying")
                         .HasColumnName("value");
 
                     b.HasKey("Id")
@@ -365,8 +365,9 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<List<string>>("Environments")
+                    b.PrimitiveCollection<List<string>>("Environments")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text[]")
                         .HasColumnName("environments")
                         .HasDefaultValueSql("'{}'::text[]");
@@ -379,8 +380,8 @@ namespace Altinn.Studio.Designer.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("character varying")
                         .HasMaxLength(100)
+                        .HasColumnType("character varying")
                         .HasColumnName("name");
 
                     b.Property<string>("Org")
@@ -686,6 +687,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("CreatedByUserAccount");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactPointDbModel", b =>
+                {
+                    b.Navigation("Methods");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>

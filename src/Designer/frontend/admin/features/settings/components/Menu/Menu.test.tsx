@@ -22,7 +22,7 @@ const getTab = () =>
 describe('Menu', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the api keys tab', () => {
+  it('renders the contact points tab', () => {
     renderMenu();
     expect(getTab()).toBeInTheDocument();
   });

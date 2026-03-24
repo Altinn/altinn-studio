@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Migrations.SqlScripts;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -20,17 +20,17 @@ namespace Altinn.Studio.Designer.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     org = table.Column<string>(type: "character varying", nullable: false),
-                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    name = table.Column<string>(type: "character varying", maxLength: 100, nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    environments = table.Column<List<string>>(
-                        type: "text[]",
-                        nullable: false,
-                        defaultValueSql: "'{}'::text[]"
-                    ),
                     created_at = table.Column<DateTimeOffset>(
                         type: "timestamptz",
                         nullable: false,
                         defaultValueSql: "now()"
+                    ),
+                    environments = table.Column<List<string>>(
+                        type: "text[]",
+                        nullable: false,
+                        defaultValueSql: "'{}'::text[]"
                     ),
                 },
                 constraints: table =>
@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     contact_point_id = table.Column<Guid>(type: "uuid", nullable: false),
                     method_type = table.Column<int>(type: "integer", nullable: false),
-                    value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    value = table.Column<string>(type: "character varying", maxLength: 255, nullable: false),
                 },
                 constraints: table =>
                 {
@@ -64,6 +64,13 @@ namespace Altinn.Studio.Designer.Migrations
             );
 
             migrationBuilder.CreateIndex(
+                name: "idx_contact_methods_contact_point_id",
+                schema: "designer",
+                table: "contact_methods",
+                column: "contact_point_id"
+            );
+
+            migrationBuilder.CreateIndex(
                 name: "idx_contact_points_org",
                 schema: "designer",
                 table: "contact_points",
@@ -75,13 +82,6 @@ namespace Altinn.Studio.Designer.Migrations
                 schema: "designer",
                 table: "contact_points",
                 columns: new[] { "org", "is_active" }
-            );
-
-            migrationBuilder.CreateIndex(
-                name: "idx_contact_methods_contact_point_id",
-                schema: "designer",
-                table: "contact_methods",
-                column: "contact_point_id"
             );
 
             migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("ContactPoints/setup-grants.sql"));

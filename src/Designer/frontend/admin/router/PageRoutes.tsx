@@ -51,7 +51,7 @@ const router = createBrowserRouter(
         </Route>
         <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
-      <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />,
+      <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,
   ),
   {
