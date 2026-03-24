@@ -171,7 +171,7 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed) by resetting it and
+    /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed) or a Requeued workflow by resetting it and
     /// its non-completed steps back to Enqueued. Clears CancellationRequestedAt, BackoffUntil,
     /// HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
     /// any transitively dependent workflows that are in DependencyFailed state.

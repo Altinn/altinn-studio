@@ -1006,7 +1006,7 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // Reset the primary workflow — only if in a terminal state
+                    // Reset the primary workflow — terminal states + Requeued (skips backoff wait)
                     const string resetPrimarySql = """
                     UPDATE engine."Workflows"
                     SET "Status" = @enqueued,
