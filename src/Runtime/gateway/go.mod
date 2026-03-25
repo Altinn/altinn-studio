@@ -34,7 +34,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fluxcd/flux2/v2 v2.7.5 // indirect
-	github.com/fluxcd/helm-controller/api v1.5.2 // indirect
+	github.com/fluxcd/helm-controller/api v1.5.3 // indirect
 	github.com/fluxcd/kustomize-controller/api v1.8.2 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v1.15.1 // indirect
@@ -125,10 +125,10 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	helm.sh/helm/v3 v3.20.1 // indirect
-	k8s.io/api v0.35.2 // indirect
-	k8s.io/apiextensions-apiserver v0.35.2 // indirect
-	k8s.io/apimachinery v0.35.2 // indirect
-	k8s.io/client-go v0.35.2 // indirect
+	k8s.io/api v0.35.3 // indirect
+	k8s.io/apiextensions-apiserver v0.35.3 // indirect
+	k8s.io/apimachinery v0.35.3 // indirect
+	k8s.io/client-go v0.35.3 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e // indirect
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 // indirect
