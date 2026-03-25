@@ -10,6 +10,9 @@ using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
+// S3878: This is required to avoid nullability mismatch in call to Metrics.Errors.Add()
+#pragma warning disable S3878
+
 namespace WorkflowEngine.Core;
 
 /// <summary>
