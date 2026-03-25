@@ -2,16 +2,20 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { prefetchInstanceData } from 'src/core/queries/instance';
+import { fetchFreshInstanceData } from 'src/core/queries/instance';
+
+export type InstanceLoaderResult = null | { error: Error };
 
 export function instanceLoader(queryClient: QueryClient) {
-  return function loader({ params }: LoaderFunctionArgs) {
+  return async function loader({ params }: LoaderFunctionArgs): Promise<InstanceLoaderResult> {
     const { instanceOwnerPartyId, instanceGuid } = params;
 
-    // Fire-and-forget: warm the cache without blocking route rendering.
-    // The route components show their own loading states via <Loader />.
     if (instanceOwnerPartyId && instanceGuid) {
-      prefetchInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid });
+      try {
+        await fetchFreshInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid });
+      } catch (error) {
+        return { error: error instanceof Error ? error : new Error(String(error)) };
+      }
     }
 
     return null;

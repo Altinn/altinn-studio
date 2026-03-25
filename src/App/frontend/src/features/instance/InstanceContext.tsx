@@ -86,7 +86,7 @@ export function useInstanceDataQuery<R = IInstance>(
           queryKey: [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
           queryFn: skipToken,
         }),
-    refetchOnWindowFocus: queryOptions.refetchInterval !== false,
+    refetchOnWindowFocus: !!queryOptions.refetchInterval,
     select: queryOptions.select, // FIXME: somehow TS complains if this is not here
     ...queryOptions,
   });
