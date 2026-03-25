@@ -6,8 +6,7 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioButton, StudioError, StudioHeading } from '@studio/components';
+import { StudioButton, StudioError, StudioHeading, StudioSpinner } from '@studio/components';
 import { SidebarLeftIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
@@ -46,10 +45,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
   if (isFetchingProcessTaskType) {
     return (
       <div className={classes.root}>
-        <StudioSpinner
-          spinnerTitle={t('schema_editor.loading_available_components')}
-          showSpinnerTitle
-        />
+        <StudioSpinner spinnerTitle={t('schema_editor.loading_available_components')} aria-hidden />
       </div>
     );
   }

@@ -16,6 +16,7 @@ jobs:
   lint:
     name: Check formatting and lint
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: src/tools/health

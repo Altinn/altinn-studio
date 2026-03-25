@@ -4,8 +4,7 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading, StudioSpinner } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
@@ -26,12 +25,7 @@ export function OptionListFromAppLibrarySelector({
 
   switch (status) {
     case 'pending':
-      return (
-        <StudioSpinner
-          showSpinnerTitle={false}
-          spinnerTitle={t('ux_editor.modal_properties_loading')}
-        />
-      );
+      return <StudioSpinner aria-label={t('ux_editor.modal_properties_loading')} />;
     case 'error':
       return (
         <ErrorMessage>

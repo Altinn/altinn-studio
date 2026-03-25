@@ -106,20 +106,16 @@ describe('EditBinding', () => {
   it('should render loading spinner', async () => {
     renderEditBinding({});
 
-    const loadingSpinnerTitle = textMock('ux_editor.modal_properties_loading');
+    const loadingSpinnerLabel = textMock('ux_editor.modal_properties_loading');
 
-    const loadingSpinner = screen.getByTitle(loadingSpinnerTitle);
+    const loadingSpinner = screen.getByLabelText(loadingSpinnerLabel);
     expect(loadingSpinner).toBeInTheDocument();
-
-    await waitForElementToBeRemoved(() => screen.queryByTitle(loadingSpinnerTitle));
+    await waitForLoadingToFinish();
   });
 
   it('should render card', async () => {
     renderEditBinding({});
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
     const card = screen.getByRole('region');
     expect(card).toBeInTheDocument();
   });
@@ -131,10 +127,7 @@ describe('EditBinding', () => {
         getDataModelMetadata: getDataModelMetadataMock,
       },
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const dataModelSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_binding'),
@@ -161,10 +154,7 @@ describe('EditBinding', () => {
         getDataModelMetadata: getDataModelMetadataMock,
       },
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const dataModelSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_binding'),
@@ -193,10 +183,7 @@ describe('EditBinding', () => {
         getDataModelMetadata: getDataModelMetadataMock,
       },
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const errorMessage = screen.getByText(
       textMock('ux_editor.modal_properties_data_model_field_update'),
@@ -220,10 +207,7 @@ describe('EditBinding', () => {
       },
       shouldRenderWithMockedParent: true,
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const errorMessage = screen.getByText(
       textMock('ux_editor.modal_properties_data_model_field_update'),
@@ -251,10 +235,7 @@ describe('EditBinding', () => {
         getDataModelMetadata: getDataModelMetadataMock,
       },
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const dataModelFieldSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_field_binding'),
@@ -300,10 +281,7 @@ describe('EditBinding', () => {
         getDataModelMetadata: getDataModelMetadataMock,
       },
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const dataModelSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_binding'),
@@ -351,10 +329,7 @@ describe('EditBinding', () => {
         getDataModelMetadata: getDataModelMetadataMock,
       },
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_delete_button'),
@@ -387,9 +362,7 @@ describe('EditBinding', () => {
         onSetDataModelSelectVisible,
       },
     });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
     const cancelButton = screen.getByRole('button', {
       name: textMock('general.cancel'),
     });
@@ -399,3 +372,9 @@ describe('EditBinding', () => {
     expect(onSetDataModelSelectVisible).toHaveBeenCalledWith(false);
   });
 });
+
+const waitForLoadingToFinish = async () => {
+  await waitForElementToBeRemoved(() =>
+    screen.queryByLabelText(textMock('ux_editor.modal_properties_loading')),
+  );
+};
