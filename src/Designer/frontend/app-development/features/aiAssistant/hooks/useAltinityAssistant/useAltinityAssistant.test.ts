@@ -27,6 +27,9 @@ describe('useAltinityAssistant', () => {
       workflowStatus: { isActive: false },
       onSubmitMessage: jest.fn(),
       resetWorkflowStatus,
+      cancelCurrentWorkflow: jest.fn(),
+      cancelledMessageContent: null,
+      clearCancelledMessageContent: jest.fn(),
     });
 
     const { result } = renderUseAltinityAssistant();

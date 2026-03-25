@@ -32,6 +32,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
+      cancelWorkflow: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -66,6 +67,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
+      cancelWorkflow: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
