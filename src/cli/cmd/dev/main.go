@@ -16,9 +16,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	selfapp "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
@@ -38,9 +40,11 @@ const (
 )
 
 var (
-	errBinaryPathIsDirectory = errors.New("binary path is a directory")
-	errNoPathsSpecified      = errors.New("no paths specified")
-	errUnexpectedBinaryName  = errors.New("unexpected binary name")
+	errBinaryPathIsDirectory       = errors.New("binary path is a directory")
+	errInstallWindowsHostNeedsUser = errors.New("windows-host install requires -user")
+	errNotRunningInWSL             = errors.New("windows-host install requires WSL")
+	errNoPathsSpecified            = errors.New("no paths specified")
+	errUnexpectedBinaryName        = errors.New("unexpected binary name")
 )
 
 func main() {
@@ -116,14 +120,17 @@ func createResourcesTarball() error {
 func runInstall(args []string) error {
 	fs := flag.NewFlagSet("install", flag.ExitOnError)
 	user := fs.Bool("user", false, "Install to user directories (~/.local/bin)")
+	windowsHost := fs.Bool("windows-host", false, "Install to the Windows host from WSL")
 	fs.Usage = func() {
 		fmt.Print(`Usage: go run ./cmd/dev install [options]
 
 Builds studioctl and installs it with localtest resources.
 
 Options:
-  -user    Install to user directories (~/.local/bin, ~/.altinn-studio)
-           Default: install to build/dev-home/
+  -user           Install to user directories (~/.local/bin, ~/.altinn-studio)
+  -windows-host   From WSL, stage a Windows build and install to the recommended
+                  Windows user location
+                  Default: install to build/dev-home/
 
 `)
 	}
@@ -131,8 +138,7 @@ Options:
 		return fmt.Errorf("parse flags: %w", err)
 	}
 
-	binaryPath, err := buildStudioctl()
-	if err != nil {
+	if err := validateInstallMode(*user, *windowsHost, osutil.IsWSL()); err != nil {
 		return err
 	}
 
@@ -140,20 +146,42 @@ Options:
 		return err
 	}
 
+	if *windowsHost {
+		return installWindowsHostMode()
+	}
+
+	binaryPath, err := buildStudioctl(runtime.GOOS, buildDir)
+	if err != nil {
+		return err
+	}
+
 	return installBinary(binaryPath, *user)
 }
 
-func buildStudioctl() (string, error) {
+func buildStudioctl(goos, outputDir string) (string, error) {
 	fmt.Println("Building studioctl...")
-	binaryName := binaryNameWithExt("studioctl")
-	binaryPath := filepath.Join(buildDir, binaryName)
+	binaryName := binaryNameWithExt("studioctl", goos)
+	binaryPath := filepath.Join(outputDir, binaryName)
 	ldflags := "-X altinn.studio/studioctl/internal/cmd.version=" + version
 
-	if err := goBuild(binaryPath, ldflags, "./cmd/studioctl"); err != nil {
+	if err := goBuild(binaryPath, ldflags, "./cmd/studioctl", goos, runtime.GOARCH); err != nil {
 		return "", fmt.Errorf("build studioctl: %w", err)
 	}
 
 	return binaryPath, nil
+}
+
+func validateInstallMode(userInstall, windowsHost, runningInWSL bool) error {
+	if !windowsHost {
+		return nil
+	}
+	if !userInstall {
+		return errInstallWindowsHostNeedsUser
+	}
+	if !runningInWSL {
+		return errNotRunningInWSL
+	}
+	return nil
 }
 
 func installBinary(binaryPath string, userInstall bool) error {
@@ -166,6 +194,59 @@ func installBinary(binaryPath string, userInstall bool) error {
 		return installUserMode(binaryPath, tarballPath)
 	}
 	return installDevMode(binaryPath, tarballPath)
+}
+
+func installWindowsHostMode() error {
+	tarballPath, err := filepath.Abs(filepath.Join(buildDir, "localtest-resources.tar.gz"))
+	if err != nil {
+		return fmt.Errorf("get tarball absolute path: %w", err)
+	}
+
+	stageDirWindows, err := windowsEnv("TEMP")
+	if err != nil {
+		return err
+	}
+	stageDirWindows = joinWindowsPath(stageDirWindows, "studioctl-dev")
+
+	stageDirWSL, err := wslPathToUnix(stageDirWindows)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(stageDirWSL, dirPermDefault); err != nil {
+		return fmt.Errorf("create windows staging directory: %w", err)
+	}
+
+	binaryPathWSL, err := buildStudioctl("windows", stageDirWSL)
+	if err != nil {
+		return err
+	}
+	binaryPathWindows, err := windowsPath(binaryPathWSL)
+	if err != nil {
+		return err
+	}
+
+	tarballWindows := joinWindowsPath(stageDirWindows, "localtest-resources.tar.gz")
+	tarballWSL, err := wslPathToUnix(tarballWindows)
+	if err != nil {
+		return err
+	}
+	if err := copyFile(tarballPath, tarballWSL); err != nil {
+		return fmt.Errorf("stage resources tarball: %w", err)
+	}
+
+	installDirWindows, err := recommendedWindowsInstallDir()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Running Windows studioctl self install...")
+	fmt.Printf("Installing to %s\n", installDirWindows)
+
+	if err := runWindowsInstall(binaryPathWindows, tarballWindows, installDirWindows); err != nil {
+		return fmt.Errorf("run windows self install: %w", err)
+	}
+
+	return nil
 }
 
 func installUserMode(binaryPath, tarballPath string) error {
@@ -206,7 +287,7 @@ func installDevMode(binaryPath, tarballPath string) error {
 		return fmt.Errorf("run self install: %w", err)
 	}
 
-	destBinary := filepath.Join(binDir, binaryNameWithExt("studioctl"))
+	destBinary := filepath.Join(binDir, binaryNameWithExt("studioctl", runtime.GOOS))
 	fmt.Printf("\nRun with: %s=%s %s <command>\n", config.EnvHome, devHome, destBinary)
 	return nil
 }
@@ -244,14 +325,14 @@ Removes build/ and bin/ directories.
 	return nil
 }
 
-func binaryNameWithExt(name string) string {
-	if runtime.GOOS == "windows" {
+func binaryNameWithExt(name, goos string) string {
+	if goos == "windows" {
 		return name + ".exe"
 	}
 	return name
 }
 
-func goBuild(output, ldflags, pkg string) error {
+func goBuild(output, ldflags, pkg, goos, goarch string) error {
 	args := []string{"build"}
 	if ldflags != "" {
 		args = append(args, "-ldflags", ldflags)
@@ -261,6 +342,7 @@ func goBuild(output, ldflags, pkg string) error {
 	cmd := exec.CommandContext(context.Background(), "go", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = append(os.Environ(), "GOOS="+goos, "GOARCH="+goarch)
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("go build failed: %w", err)
@@ -301,11 +383,95 @@ func validateStudioctlBinary(binary string) error {
 	if info.IsDir() {
 		return fmt.Errorf("%w: %s", errBinaryPathIsDirectory, absBinary)
 	}
-	if filepath.Base(absBinary) != binaryNameWithExt("studioctl") {
+	if !isStudioctlBinaryName(filepath.Base(absBinary)) {
 		return fmt.Errorf("%w: %s", errUnexpectedBinaryName, absBinary)
 	}
 
 	return nil
+}
+
+func isStudioctlBinaryName(name string) bool {
+	return name == "studioctl" || name == "studioctl.exe"
+}
+
+func recommendedWindowsInstallDir() (string, error) {
+	localAppData, err := windowsEnv("LOCALAPPDATA")
+	if err != nil {
+		return "", err
+	}
+	return joinWindowsPath(localAppData, "Programs", "studioctl"), nil
+}
+
+func windowsEnv(name string) (string, error) {
+	out, err := commandOutput("cmd.exe", "/c", "echo", "%"+name+"%")
+	if err != nil {
+		return "", fmt.Errorf("read Windows %s: %w", name, err)
+	}
+	if out == "" || out == "%"+name+"%" {
+		return "", fmt.Errorf("read Windows %s: variable is empty", name)
+	}
+	return out, nil
+}
+
+func wslPathToUnix(path string) (string, error) {
+	out, err := commandOutput("wslpath", "-u", path)
+	if err != nil {
+		return "", fmt.Errorf("convert Windows path to WSL path: %w", err)
+	}
+	return out, nil
+}
+
+func windowsPath(path string) (string, error) {
+	out, err := commandOutput("wslpath", "-w", path)
+	if err != nil {
+		return "", fmt.Errorf("convert WSL path to Windows path: %w", err)
+	}
+	return out, nil
+}
+
+func commandOutput(name string, args ...string) (string, error) {
+	cmd := exec.CommandContext(context.Background(), name, args...)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
+func runWindowsInstall(binaryPath, tarballPath, installDir string) error {
+	script := fmt.Sprintf(
+		"$env:%s = %s; & %s self install --path %s",
+		config.EnvResourcesTarball,
+		powerShellSingleQuoted(tarballPath),
+		powerShellSingleQuoted(binaryPath),
+		powerShellSingleQuoted(installDir),
+	)
+
+	cmd := exec.CommandContext(context.Background(), "powershell.exe", "-NoProfile", "-Command", script)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("run PowerShell install command: %w", err)
+	}
+
+	return nil
+}
+
+func powerShellSingleQuoted(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
+func joinWindowsPath(base string, elems ...string) string {
+	parts := []string{strings.TrimRight(base, `\/`)}
+	for _, elem := range elems {
+		trimmed := strings.Trim(elem, `\/`)
+		if trimmed != "" {
+			parts = append(parts, trimmed)
+		}
+	}
+	return strings.Join(parts, `\`)
 }
 
 func createTarGz(dest, baseDir string, paths ...string) (err error) {
@@ -388,6 +554,30 @@ func addFileContentToTar(tw *tar.Writer, filePath string) (err error) {
 
 	if _, copyErr := io.Copy(tw, srcFile); copyErr != nil {
 		return fmt.Errorf("copy file content: %w", copyErr)
+	}
+
+	return nil
+}
+
+func copyFile(src, dest string) (err error) {
+	if err := os.MkdirAll(filepath.Dir(dest), dirPermDefault); err != nil {
+		return fmt.Errorf("create destination directory: %w", err)
+	}
+
+	srcFile, err := os.Open(src) //nolint:gosec // G304: src is controlled by the dev helper.
+	if err != nil {
+		return fmt.Errorf("open source file: %w", err)
+	}
+	defer func() { err = closeWithError(srcFile, "close source file", err) }()
+
+	destFile, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, filePermDefault) //nolint:gosec // G304: dest is controlled by the dev helper.
+	if err != nil {
+		return fmt.Errorf("open destination file: %w", err)
+	}
+	defer func() { err = closeWithError(destFile, "close destination file", err) }()
+
+	if _, err := io.Copy(destFile, srcFile); err != nil {
+		return fmt.Errorf("copy file: %w", err)
 	}
 
 	return nil
