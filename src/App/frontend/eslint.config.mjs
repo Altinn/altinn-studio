@@ -220,7 +220,7 @@ export default defineConfig([
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/core/**', 'src/routes/**'],
+    ignores: ['src/core/**', 'src/routes/**', 'src/test/**'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'warn',
