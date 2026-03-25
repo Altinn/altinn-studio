@@ -91,11 +91,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "WorkflowUpdateBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
-            _settings.UpdateBuffer.MaxBatchSize,
-            _settings.UpdateBuffer.FlushConcurrency
-        );
+        _logger.UpdateBufferStarted(_settings.UpdateBuffer.MaxBatchSize, _settings.UpdateBuffer.FlushConcurrency);
 
         using var flushSemaphore = new SemaphoreSlim(_settings.UpdateBuffer.FlushConcurrency);
         var batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
@@ -150,7 +146,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                 await FlushBatchCore(batch, drainCts.Token);
             }
 
-            _logger.LogInformation("WorkflowUpdateBuffer shutdown complete");
+            _logger.UpdateBufferShutdownComplete();
         }
         catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
@@ -166,10 +162,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                 pending.Completion.TrySetCanceled(drainCts.Token);
             }
 
-            _logger.LogWarning(
-                "WorkflowUpdateBuffer drain timed out — {Count} in-flight flushes may not have completed",
-                _settings.UpdateBuffer.FlushConcurrency
-            );
+            _logger.UpdateBufferDrainTimedOut(_settings.UpdateBuffer.FlushConcurrency);
         }
     }
 
@@ -223,7 +216,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Update flush failed for {Count} requests", batch.Count);
+            _logger.UpdateBufferFlushFailed(batch.Count, ex);
             activity?.Errored(ex);
 
             // Fault all waiting callers
@@ -233,6 +226,35 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             }
         }
     }
+}
+
+internal static partial class WorkflowUpdateBufferLogs
+{
+    [LoggerMessage(
+        LogLevel.Information,
+        "WorkflowUpdateBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})"
+    )]
+    internal static partial void UpdateBufferStarted(
+        this ILogger<WorkflowUpdateBuffer> logger,
+        int maxBatchSize,
+        int concurrency
+    );
+
+    [LoggerMessage(LogLevel.Information, "WorkflowUpdateBuffer shutdown complete")]
+    internal static partial void UpdateBufferShutdownComplete(this ILogger<WorkflowUpdateBuffer> logger);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "WorkflowUpdateBuffer drain timed out — {Count} in-flight flushes may not have completed"
+    )]
+    internal static partial void UpdateBufferDrainTimedOut(this ILogger<WorkflowUpdateBuffer> logger, int count);
+
+    [LoggerMessage(LogLevel.Error, "Update flush failed for {Count} requests")]
+    internal static partial void UpdateBufferFlushFailed(
+        this ILogger<WorkflowUpdateBuffer> logger,
+        int count,
+        Exception ex
+    );
 }
 
 /// <summary>

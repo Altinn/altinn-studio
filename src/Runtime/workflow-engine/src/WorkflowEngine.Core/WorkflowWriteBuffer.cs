@@ -76,11 +76,7 @@ internal class WorkflowWriteBuffer : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "WorkflowWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
-            _settings.WriteBuffer.MaxBatchSize,
-            _settings.WriteBuffer.FlushConcurrency
-        );
+        _logger.WriteBufferStarted(_settings.WriteBuffer.MaxBatchSize, _settings.WriteBuffer.FlushConcurrency);
 
         using var flushSemaphore = new SemaphoreSlim(_settings.WriteBuffer.FlushConcurrency);
         var batch = new List<BufferedEnqueueRequest>(_settings.WriteBuffer.MaxBatchSize);
@@ -135,7 +131,7 @@ internal class WorkflowWriteBuffer : BackgroundService
                 await FlushBatchCore(batch, drainCts.Token);
             }
 
-            _logger.LogInformation("WorkflowWriteBuffer shutdown complete");
+            _logger.WriteBufferShutdownComplete();
         }
         catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
@@ -151,10 +147,7 @@ internal class WorkflowWriteBuffer : BackgroundService
                 pending.Completion.TrySetCanceled(drainCts.Token);
             }
 
-            _logger.LogWarning(
-                "WorkflowWriteBuffer drain timed out — {Count} in-flight flushes may not have completed",
-                _settings.WriteBuffer.FlushConcurrency
-            );
+            _logger.WriteBufferDrainTimedOut(_settings.WriteBuffer.FlushConcurrency);
         }
     }
 
@@ -252,7 +245,7 @@ internal class WorkflowWriteBuffer : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Batch flush failed for {Count} requests", active.Count);
+            _logger.WriteBufferFlushFailed(active.Count, ex);
 
             activity?.Errored(ex);
 
@@ -262,4 +255,33 @@ internal class WorkflowWriteBuffer : BackgroundService
             }
         }
     }
+}
+
+internal static partial class WorkflowWriteBufferLogs
+{
+    [LoggerMessage(
+        LogLevel.Information,
+        "WorkflowWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})"
+    )]
+    internal static partial void WriteBufferStarted(
+        this ILogger<WorkflowWriteBuffer> logger,
+        int maxBatchSize,
+        int concurrency
+    );
+
+    [LoggerMessage(LogLevel.Information, "WorkflowWriteBuffer shutdown complete")]
+    internal static partial void WriteBufferShutdownComplete(this ILogger<WorkflowWriteBuffer> logger);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "WorkflowWriteBuffer drain timed out — {Count} in-flight flushes may not have completed"
+    )]
+    internal static partial void WriteBufferDrainTimedOut(this ILogger<WorkflowWriteBuffer> logger, int count);
+
+    [LoggerMessage(LogLevel.Error, "Batch flush failed for {Count} requests")]
+    internal static partial void WriteBufferFlushFailed(
+        this ILogger<WorkflowWriteBuffer> logger,
+        int count,
+        Exception ex
+    );
 }
