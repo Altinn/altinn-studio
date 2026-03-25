@@ -6,18 +6,20 @@ import type { IParty } from 'src/types/shared';
 
 interface UsePartiesAllowedToInstantiateResult extends BaseQueryResult {
   parties: IParty[] | undefined;
+  isPending: boolean;
 }
 
-function usePartiesAllowedToInstantiate(): UsePartiesAllowedToInstantiateResult {
-  const query = useQuery(partiesAllowedtoInstantiateQuery());
-  return { parties: query.data, isLoading: query.isLoading, error: query.error };
+function usePartiesAllowedToInstantiate(options?: { enabled?: boolean }): UsePartiesAllowedToInstantiateResult {
+  const query = useQuery(partiesAllowedtoInstantiateQuery(options));
+  return { parties: query.data, isLoading: query.isLoading, error: query.error, isPending: query.isPending };
 }
 
-function useSetSelectedParty({ partyId }: { partyId: number | string }) {
-  const mutation = useMutation(selectedPartyMutation(partyId));
+function useSetSelectedParty() {
+  const mutation = useMutation(selectedPartyMutation());
   return {
     setSelectedParty: mutation.mutate,
     setSelectedPartyAsync: mutation.mutateAsync,
+    data: mutation.data,
     isPending: mutation.isPending,
     error: mutation.error,
   };

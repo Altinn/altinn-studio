@@ -7,17 +7,18 @@ export const partyQueryKeys = {
   partiesAllowedToInstantiate: () => [...partyQueryKeys.all(), 'partiesAllowedToInstantiate'] as const,
 };
 
-export function partiesAllowedtoInstantiateQuery() {
+export function partiesAllowedtoInstantiateQuery(options?: { enabled?: boolean }) {
   return queryOptions({
     queryKey: ['partiesAllowedToInstantiate'],
     queryFn: async () => await PartyApi.getPartiesAllowedToInstantiateHierarchical(),
+    enabled: options?.enabled,
   });
 }
 
-export function selectedPartyMutation(partyId: number | string) {
+export function selectedPartyMutation() {
   return mutationOptions({
     mutationKey: ['setSelectedParty'],
-    mutationFn: async () => await PartyApi.setSelectedParty({ partyId }),
+    mutationFn: async ({ partyId }: { partyId: number | string }) => await PartyApi.setSelectedParty({ partyId }),
     onError: (error: Error) => window.logError('Setting current party failed:\n', error),
   });
 }
