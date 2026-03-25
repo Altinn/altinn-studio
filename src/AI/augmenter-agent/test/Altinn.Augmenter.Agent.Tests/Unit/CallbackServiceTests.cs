@@ -1,4 +1,5 @@
 using System.Text;
+using Altinn.Augmenter.Agent.Models;
 using Altinn.Augmenter.Agent.Services;
 using FluentAssertions;
 using WireMock.RequestBuilders;
@@ -21,15 +22,18 @@ public class CallbackServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SendPdfAsync_PostsPdfToCallbackUrl()
+    public async Task SendPdfsAsync_PostsPdfsToCallbackUrl()
     {
         _server
             .Given(Request.Create().WithPath("/callback").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(200));
 
-        var pdfBytes = Encoding.UTF8.GetBytes("%PDF-fake");
+        var pdfs = new List<GeneratedPdf>
+        {
+            new("test.pdf", Encoding.UTF8.GetBytes("%PDF-fake")),
+        };
 
-        await _sut.SendPdfAsync($"{_server.Url}/callback", pdfBytes);
+        await _sut.SendPdfsAsync($"{_server.Url}/callback", pdfs);
 
         var logs = _server.LogEntries;
         logs.Should().HaveCount(1);
@@ -39,15 +43,18 @@ public class CallbackServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SendPdfAsync_ServerReturns500_ThrowsException()
+    public async Task SendPdfsAsync_ServerReturns500_ThrowsException()
     {
         _server
             .Given(Request.Create().WithPath("/callback").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(500));
 
-        var pdfBytes = Encoding.UTF8.GetBytes("%PDF-fake");
+        var pdfs = new List<GeneratedPdf>
+        {
+            new("test.pdf", Encoding.UTF8.GetBytes("%PDF-fake")),
+        };
 
-        var act = () => _sut.SendPdfAsync($"{_server.Url}/callback", pdfBytes);
+        var act = () => _sut.SendPdfsAsync($"{_server.Url}/callback", pdfs);
 
         await act.Should().ThrowAsync<HttpRequestException>();
     }

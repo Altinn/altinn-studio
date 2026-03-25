@@ -43,7 +43,7 @@ public class PdfGeneratorServiceTests
         }
 
         using var data = CreateMinimalRequestInfoData();
-        var result = await _sut.GeneratePdfAsync(data);
+        var result = await _sut.GeneratePdfAsync(data, "pdf-templates/request-info.typ");
 
         result.Should().NotBeEmpty();
         Encoding.ASCII.GetString(result, 0, 5).Should().Be("%PDF-");
@@ -58,7 +58,7 @@ public class PdfGeneratorServiceTests
         }
 
         using var data = CreateFullRequestInfoData();
-        var result = await _sut.GeneratePdfAsync(data);
+        var result = await _sut.GeneratePdfAsync(data, "pdf-templates/request-info.typ");
 
         result.Should().NotBeEmpty();
         Encoding.ASCII.GetString(result, 0, 5).Should().Be("%PDF-");

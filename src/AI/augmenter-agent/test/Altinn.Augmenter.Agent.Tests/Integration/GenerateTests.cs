@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using Altinn.Augmenter.Agent.Tests.Integration.Helpers;
 using FluentAssertions;
 
@@ -32,7 +33,7 @@ public class GenerateTests(TestWebApplicationFactory factory) : IClassFixture<Te
         """;
 
     [Fact]
-    public async Task PostGenerate_WithValidFile_ReturnsPdf()
+    public async Task PostGenerate_WithValidFile_ReturnsJsonWithMultiplePdfs()
     {
         using var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(Encoding.UTF8.GetBytes(TestApplicationJson));
@@ -42,10 +43,23 @@ public class GenerateTests(TestWebApplicationFactory factory) : IClassFixture<Te
         var response = await _client.PostAsync("/generate", content);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        response.Content.Headers.ContentType!.MediaType.Should().Be("application/pdf");
+        response.Content.Headers.ContentType!.MediaType.Should().Be("application/json");
 
-        var bytes = await response.Content.ReadAsByteArrayAsync();
-        Encoding.ASCII.GetString(bytes, 0, 5).Should().Be("%PDF-");
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+
+        var pdfs = doc.RootElement.GetProperty("pdfs");
+        pdfs.GetArrayLength().Should().BeGreaterOrEqualTo(3);
+
+        foreach (var pdf in pdfs.EnumerateArray())
+        {
+            pdf.GetProperty("name").GetString().Should().EndWith(".pdf");
+
+            var base64 = pdf.GetProperty("data").GetString()!;
+            var pdfBytes = Convert.FromBase64String(base64);
+            pdfBytes.Should().NotBeEmpty();
+            Encoding.ASCII.GetString(pdfBytes, 0, 5).Should().Be("%PDF-");
+        }
     }
 
     [Fact]

@@ -10,10 +10,13 @@ public sealed class PdfGeneratorService(
     IConfiguration configuration,
     IOptions<PdfGenerationOptions> pdfOptions) : IPdfGeneratorService
 {
-    public async Task<byte[]> GeneratePdfAsync(JsonDocument data, CancellationToken cancellationToken = default)
+    public async Task<byte[]> GeneratePdfAsync(
+        JsonDocument data,
+        string templatePath,
+        CancellationToken cancellationToken = default)
     {
         var templateDir = Path.Combine(AppContext.BaseDirectory, "pdf-templates");
-        var templateFile = Path.GetFileName(pdfOptions.Value.TemplatePath);
+        var templateFile = Path.GetFileName(templatePath);
 
         var tempDir = Path.Combine(Path.GetTempPath(), "augmenter-agent", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);

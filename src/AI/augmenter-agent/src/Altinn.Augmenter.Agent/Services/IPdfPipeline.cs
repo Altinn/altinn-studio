@@ -2,10 +2,9 @@ using Altinn.Augmenter.Agent.Models;
 
 namespace Altinn.Augmenter.Agent.Services;
 
-public interface ICallbackService
+public interface IPdfPipeline
 {
-    Task SendPdfsAsync(
-        string callbackUrl,
-        IReadOnlyList<GeneratedPdf> pdfs,
+    Task<IReadOnlyList<GeneratedPdf>> ExecuteAsync(
+        IReadOnlyList<UploadedFile> files,
         CancellationToken cancellationToken = default);
 }

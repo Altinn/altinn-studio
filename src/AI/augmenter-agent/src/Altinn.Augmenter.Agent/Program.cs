@@ -34,6 +34,22 @@ builder.Services.AddHttpClient<ICallbackService, CallbackService>(client =>
     client.Timeout = TimeSpan.FromSeconds(callbackOptions.TimeoutSeconds);
 });
 
+// PDF generation pipeline steps (order matters — PDFs are returned in registration order)
+builder.Services.AddScoped<IPdfGenerationStep, RequestInfoGenerationStep>();
+builder.Services.AddScoped<IPdfGenerationStep>(sp =>
+    new DummyPdfGenerationStep(
+        "dummy-1",
+        "pdf-templates/default.typ",
+        sp.GetRequiredService<IPdfGeneratorService>()));
+builder.Services.AddScoped<IPdfGenerationStep>(sp =>
+    new DummyPdfGenerationStep(
+        "dummy-2",
+        "pdf-templates/default.typ",
+        sp.GetRequiredService<IPdfGeneratorService>()));
+
+// Pipeline orchestrator
+builder.Services.AddScoped<IPdfPipeline, PdfPipeline>();
+
 var app = builder.Build();
 
 app.MapHealthEndpoints();

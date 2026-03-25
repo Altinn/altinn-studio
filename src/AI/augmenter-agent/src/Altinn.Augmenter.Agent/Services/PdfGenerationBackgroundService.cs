@@ -43,7 +43,7 @@ public sealed class PdfGenerationBackgroundService(
                     {
                         _jobs.Retried.Add(1);
                         var shift = Math.Min(attempt - 1, 16);
-                        var delay = baseDelay * (1 << shift); // exponential backoff, capped to prevent overflow
+                        var delay = baseDelay * (1 << shift);
                         logger.LogWarning(
                             "Retrying job for {CallbackUrl} (attempt {Attempt}/{MaxRetries}) after {Delay}s",
                             job.CallbackUrl, attempt, maxRetries, delay.TotalSeconds);
@@ -51,28 +51,24 @@ public sealed class PdfGenerationBackgroundService(
                     }
 
                     using var scope = scopeFactory.CreateScope();
-                    var pdfGenerator = scope.ServiceProvider.GetRequiredService<IPdfGeneratorService>();
+                    var pipeline = scope.ServiceProvider.GetRequiredService<IPdfPipeline>();
                     var callbackService = scope.ServiceProvider.GetRequiredService<ICallbackService>();
 
-                    var dataMapper = scope.ServiceProvider.GetRequiredService<IRequestInfoDataMapper>();
-                    var mappedData = GenerateEndpoints.MapApplicationData(job.Files, dataMapper, logger);
+                    var pdfs = await pipeline.ExecuteAsync(job.Files, stoppingToken);
 
-                    if (mappedData == null)
+                    if (pdfs.Count == 0)
                     {
-                        logger.LogError("No valid JSON data found in job for {CallbackUrl}. Job dropped.", job.CallbackUrl);
+                        logger.LogError("Pipeline produced no PDFs for {CallbackUrl}. Job dropped.", job.CallbackUrl);
                         _jobs.Failed.Add(1);
                         break;
                     }
 
-                    byte[] pdfBytes;
-                    using (mappedData)
-                    {
-                        pdfBytes = await pdfGenerator.GeneratePdfAsync(mappedData, stoppingToken);
-                    }
-                    await callbackService.SendPdfAsync(job.CallbackUrl, pdfBytes, stoppingToken);
+                    await callbackService.SendPdfsAsync(job.CallbackUrl, pdfs, stoppingToken);
 
                     _jobs.Processed.Add(1);
-                    logger.LogInformation("PDF sent to callback URL: {CallbackUrl}", job.CallbackUrl);
+                    logger.LogInformation(
+                        "{PdfCount} PDF(s) sent to callback URL: {CallbackUrl}",
+                        pdfs.Count, job.CallbackUrl);
                     break;
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
@@ -81,7 +77,7 @@ public sealed class PdfGenerationBackgroundService(
                     {
                         _jobs.Failed.Add(1);
                         logger.LogError(ex,
-                            "Failed to generate or send PDF to {CallbackUrl} after {Attempts} attempts. Job dropped.",
+                            "Failed to generate or send PDFs to {CallbackUrl} after {Attempts} attempts. Job dropped.",
                             job.CallbackUrl, attempt + 1);
                     }
                     else

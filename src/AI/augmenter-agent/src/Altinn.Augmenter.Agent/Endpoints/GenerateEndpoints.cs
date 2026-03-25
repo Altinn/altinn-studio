@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 
 using Altinn.Augmenter.Agent.Services;
 
@@ -12,8 +11,7 @@ public static class GenerateEndpoints
         app.MapPost("/generate", async (
             HttpRequest request,
             IMultipartParserService parser,
-            IRequestInfoDataMapper dataMapper,
-            IPdfGeneratorService pdfGenerator,
+            IPdfPipeline pipeline,
             ILogger<Program> logger,
             CancellationToken cancellationToken) =>
         {
@@ -42,42 +40,22 @@ public static class GenerateEndpoints
 
             LogParsedInput(logger, "/generate", parsed);
 
-            var mappedData = MapApplicationData(parsed.Files, dataMapper, logger);
-            if (mappedData == null)
+            var pdfs = await pipeline.ExecuteAsync(parsed.Files, cancellationToken);
+
+            if (pdfs.Count == 0)
             {
-                return Results.BadRequest(new { error = "No valid JSON application data found in uploaded files." });
+                return Results.BadRequest(new { error = "No PDFs were generated." });
             }
 
-            using (mappedData)
+            var response = pdfs.Select(pdf => new
             {
-                var pdfBytes = await pdfGenerator.GeneratePdfAsync(mappedData, cancellationToken);
-                return Results.File(pdfBytes, "application/pdf", "generated.pdf");
-            }
+                name = pdf.Name,
+                data = Convert.ToBase64String(pdf.Data),
+            });
+
+            return Results.Json(new { pdfs = response });
         })
         .DisableAntiforgery();
-    }
-
-    internal static JsonDocument? MapApplicationData(
-        IReadOnlyList<Models.UploadedFile> files,
-        IRequestInfoDataMapper dataMapper,
-        ILogger logger)
-    {
-        var jsonFile = files.FirstOrDefault(f => f.ContentType == "application/json");
-        if (jsonFile == null)
-        {
-            logger.LogWarning("No JSON file found in uploaded files");
-            return null;
-        }
-
-        var jsonString = Encoding.UTF8.GetString(jsonFile.Data);
-        using var doc = JsonDocument.Parse(jsonString);
-
-        // Support both { "FlatData": { ... } } and direct flat data
-        var flatData = doc.RootElement.TryGetProperty("FlatData", out var fd)
-            ? fd
-            : doc.RootElement;
-
-        return dataMapper.MapToRequestInfo(flatData);
     }
 
     internal static void LogParsedInput(ILogger logger, string endpoint, Models.ParsedFormData parsed)
