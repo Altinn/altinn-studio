@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from langfuse import get_client
+from langfuse import get_client, propagate_attributes
 import re
 import json
 from typing import Dict, Any, List, Optional
@@ -34,14 +34,12 @@ async def handle(state: AgentState) -> AgentState:
         AgentState with assistant_response populated
     """
     log.info(f"💬 Assistant node: handling query for session {state.session_id}")
-    
-    from langfuse import propagate_attributes
 
     langfuse = get_client()
     with propagate_attributes(
         user_id=state.org,
         session_id=state.session_id,
-        metadata={"developer": state.developer or ""},
+        metadata={"developer": state.developer},
     ):
         with langfuse.start_as_current_observation(
             name="assistant_query",

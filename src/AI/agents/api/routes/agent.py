@@ -25,7 +25,7 @@ class StartReq(BaseModel):
     repo_url: str  # Git repository URL to clone
     branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
     allow_app_changes: bool = True  # If False, run in chat-only mode (no modifications)
-    org: Optional[str] = None  # Service owner organization (e.g. 'ttd', 'skd')
+    org: str
     attachments: List[AttachmentUpload] = Field(default_factory=list)
 
 @router.post("/api/agent/start")
@@ -33,7 +33,7 @@ async def start_agent(
     req: StartReq,
     designer_api_key: str = Depends(get_designer_api_key),
     x_session_id: str = Header(..., alias="X-Session-Id"),
-    x_developer: Optional[str] = Header(None, alias="X-Developer"),
+    x_developer: str = Header(..., alias="X-Developer"),
 ):
     """Start an agent workflow for a single atomic change"""
     try:
