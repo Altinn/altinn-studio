@@ -29,7 +29,6 @@ import {
   postalCodesUrl,
   refreshJwtTokenUrl,
   textResourcesUrl,
-  validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import type { DataPostResponse } from 'src/features/attachments';
@@ -186,8 +185,6 @@ export const fetchLayoutsForInstance = (uiFolder: string, instanceId: string): P
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
-
-export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
