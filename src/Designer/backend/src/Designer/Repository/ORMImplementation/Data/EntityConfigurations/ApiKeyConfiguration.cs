@@ -39,9 +39,20 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKeyDbModel>
             .HasFilter("revoked = false");
 
         builder
+            .Property(e => e.CreatedByUserAccountId)
+            .HasColumnType("uuid")
+            .HasColumnName("created_by_user_account_id");
+
+        builder
             .HasOne(e => e.UserAccount)
             .WithMany()
             .HasForeignKey(e => e.UserAccountId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(e => e.CreatedByUserAccount)
+            .WithMany()
+            .HasForeignKey(e => e.CreatedByUserAccountId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/frontend/src/**'
-      - 'src/App/frontend/yarn.lock'
+      - 'src/App/frontend/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
 
 concurrency:
@@ -15,6 +15,7 @@ concurrency:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     name: Type-checks, eslint, unit tests and SonarCloud
     defaults:
       run:

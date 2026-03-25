@@ -16,6 +16,7 @@ jobs:
   check-quartz-update:
     name: Check Quartz update
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       tables-file: src/Designer/backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql
     steps:

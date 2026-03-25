@@ -103,7 +103,7 @@ runs:
       with:
         node-version: '22'
         cache: 'yarn'
-        cache-dependency-path: src/App/frontend/yarn.lock
+        cache-dependency-path: yarn.lock
 
     - name: Install dependencies
       if: ${{ inputs.run-frontend == 'true' }}

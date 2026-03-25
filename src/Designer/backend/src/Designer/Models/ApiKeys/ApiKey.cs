@@ -10,4 +10,5 @@ public class ApiKey
     public DateTimeOffset ExpiresAt { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public string Username { get; init; } = string.Empty;
+    public string? CreatedByUsername { get; init; }
 }
