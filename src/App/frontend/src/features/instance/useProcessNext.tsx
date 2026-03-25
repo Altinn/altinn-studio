@@ -79,15 +79,13 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     },
     onSuccess: async ([processData, validationIssues]) => {
       if (processData) {
-        optimisticallyUpdateProcess(processData);
-        await reFetchInstanceData();
-        await invalidateFormDataQueries(queryClient);
-
         const task = getTargetTaskFromProcess(processData);
         if (!task) {
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
         navigateToTask(task);
+        await reFetchInstanceData();
+        await invalidateFormDataQueries(queryClient);
       } else if (validationIssues) {
         // Set initial validation to validation issues from process/next and make all errors visible
         updateInitialValidations(validationIssues);

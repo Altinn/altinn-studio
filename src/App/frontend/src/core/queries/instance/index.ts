@@ -49,6 +49,13 @@ function prefetchInstanceData(
   return queryClient.prefetchQuery(instanceDataQuery(params));
 }
 
+function fetchFreshInstanceData(
+  queryClient: QueryClient,
+  params: { instanceOwnerPartyId: string; instanceGuid: string },
+) {
+  return queryClient.fetchQuery({ ...instanceDataQuery(params), staleTime: 0 });
+}
+
 function invalidateInstanceData(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
 }
@@ -72,6 +79,7 @@ export {
   parseInstanceId,
   invalidateInstanceData,
   prefetchActiveInstances,
+  fetchFreshInstanceData,
   prefetchInstanceData,
   useActiveInstances,
   useCreateInstance,

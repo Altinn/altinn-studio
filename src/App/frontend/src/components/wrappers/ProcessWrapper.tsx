@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
+import { useIsMutating, useQueryClient } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -13,7 +12,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
+import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -33,9 +32,7 @@ interface NavigationErrorProps {
   label: string;
 }
 
-function isRunningProcessNext(queryClient: QueryClient) {
-  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
-}
+const processNextMutationKeyPrefix = ['processNext'] as const;
 
 function NavigationError({ label }: NavigationErrorProps) {
   const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
@@ -81,9 +78,8 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
   const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
   const location = useLocation();
 
-  const processNextKey = getProcessNextMutationKey();
   const queryClient = useQueryClient();
-  const isRunningProcessNext = queryClient.isMutating({ mutationKey: processNextKey });
+  const isRunningProcessNext = queryClient.isMutating({ mutationKey: processNextMutationKeyPrefix });
   const isNavigating = useIsNavigating();
 
   const currentLocation = location.pathname + location.search;
@@ -108,8 +104,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-  const queryClient = useQueryClient();
-  const processNextRunning = isRunningProcessNext(queryClient);
+  const processNextRunning = useIsMutating({ mutationKey: processNextMutationKeyPrefix }) > 0;
 
   if (processNextRunning || !process) {
     return <Loader reason='process-wrapper' />;
