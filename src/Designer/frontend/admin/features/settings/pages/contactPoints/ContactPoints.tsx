@@ -1,6 +1,13 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioError, StudioHeading, StudioSpinner } from '@studio/components';
+import {
+  StudioError,
+  StudioHeading,
+  StudioList,
+  StudioParagraph,
+  StudioSpinner,
+} from '@studio/components';
+import { BellIcon } from '@studio/icons';
 import { useGetContactPointsQuery } from '../../hooks/useGetContactPointsQuery';
 import { PersonsList } from './components/PersonsList/PersonsList';
 import { SlackChannelsList } from './components/SlackChannelsList/SlackChannelsList';
@@ -33,6 +40,37 @@ export const ContactPoints = (): ReactElement => {
       <StudioHeading level={2} data-size='md'>
         {t('org.settings.contact_points.contact_points')}
       </StudioHeading>
+      <div className={classes.description}>
+        <div>
+          <StudioHeading level={3} spacing>
+            {t('org.settings.contact_points.description_heading')}
+          </StudioHeading>
+          <StudioParagraph data-size='md' className={classes.descriptionText}>
+            {t('org.settings.contact_points.description_body')}
+          </StudioParagraph>
+        </div>
+        <div className={classes.alertBox}>
+          <div className={classes.alertBoxHeading}>
+            <BellIcon aria-hidden data-size='lg' />
+            <StudioHeading level={3}>
+              {t('org.settings.contact_points.alert_heading')}
+            </StudioHeading>
+          </div>
+          <StudioParagraph data-size='sm'>
+            <StudioList.Unordered>
+              <StudioList.Item>
+                {t('org.settings.contact_points.alert_item_publish')}
+              </StudioList.Item>
+              <StudioList.Item>
+                {t('org.settings.contact_points.alert_item_instantiation')}
+              </StudioList.Item>
+              <StudioList.Item>
+                {t('org.settings.contact_points.alert_item_process_next')}
+              </StudioList.Item>
+            </StudioList.Unordered>
+          </StudioParagraph>
+        </div>
+      </div>
       <section className={classes.section}>
         <PersonsList org={org} persons={persons} />
       </section>

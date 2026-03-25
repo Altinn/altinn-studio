@@ -14,7 +14,7 @@ export function Menu(): ReactElement {
   const menuTabs = [
     {
       tabId: RoutePaths.ContactPoints,
-      tabName: t('org.settings.contact_points.contact_points'),
+      tabName: t('org.settings.contact_points.menu.contact_points'),
       icon: <ShieldLockIcon />,
     },
   ];
