@@ -22,7 +22,7 @@ export const ConfirmUndeployDialog = ({
 }: ConfirmUndeployDialogProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app: appName } = useStudioEnvironmentParams();
-  const dialogRef = useRef<HTMLDialogElement>();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [isAppNameConfirmed, setIsAppNameConfirmed] = useState<boolean>(false);
   const {
     mutate: mutateUndeploy,
@@ -33,8 +33,8 @@ export const ConfirmUndeployDialog = ({
     setIsAppNameConfirmed(isAppNameConfirmedForDelete(event.currentTarget.value, appName));
   };
 
-  const openDialog = () => dialogRef.current.showModal();
-  const closeDialog = () => dialogRef.current.close();
+  const openDialog = () => dialogRef.current?.showModal();
+  const closeDialog = () => dialogRef.current?.close();
 
   const onUndeployClicked = (): void => {
     mutateUndeploy(

@@ -130,9 +130,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 policyString = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(policyString, org, app);
                 byte[] policyBytes = Encoding.UTF8.GetBytes(policyString);
 
+                // Ensure correct environment name is sent to Resource Registry (e.g., "production" should be sent as "prod")
+                string resourceRegistryEnvName = envName.Equals("production", StringComparison.OrdinalIgnoreCase)
+                    ? "prod"
+                    : envName;
                 ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
                     serviceResource,
-                    envName,
+                    resourceRegistryEnvName,
                     policyBytes
                 );
 

@@ -72,10 +72,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return LocalRedirect("/dashboard");
             }
 
-            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
-            {
-                ViewBag.AccountLinkUrl = _studioOidcLoginSettings.AccountLinkUrl;
-            }
+            ViewBag.StudioOidc = await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc);
 
             Response.Cookies.Delete(General.DesignerCookieName);
             Response.Cookies.Delete(_settings.GiteaCookieName);

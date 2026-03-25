@@ -12,7 +12,7 @@ from textwrap import dedent
 from shared.utils.logging_utils import get_logger
 from shared.models import AgentAttachment
 from agents.services.llm import LLMClient
-from agents.prompts import get_prompt_content, render_template
+from agents.prompts import get_prompt_content, get_prompt_with_langfuse, render_template
 from agents.services.telemetry import is_json
 from agents.services.repo import ensure_text_resources_in_patch
 
@@ -252,7 +252,7 @@ async def run_actor_pipeline(
 
 async def create_general_plan(user_goal: str, planner_step: Optional[str] = None, *, attachments: Optional[List[AgentAttachment]] = None, form_spec_summary: Optional[str] = None) -> Dict[str, Any]:
     client = LLMClient(role="planner")
-    system_prompt = get_prompt_content("general_planning")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("general_planning")
     user_prompt = render_template(
         "general_planning_user",
         user_goal=user_goal,
@@ -288,7 +288,7 @@ async def create_tool_plan(
     attachments: Optional[List[AgentAttachment]] = None,
 ) -> List[Dict[str, Any]]:
     client = LLMClient(role="tool_planner")
-    system_prompt = get_prompt_content("tool_planning")
+    system_prompt, lf_prompt_tool = get_prompt_with_langfuse("tool_planning")
 
     # Create repo summary for context
     repo_summary = {
@@ -714,7 +714,7 @@ async def synthesize_patch(
     form_spec_summary: Optional[str] = None,
 ) -> Dict[str, Any]:
     client = LLMClient(role="actor")
-    system_prompt = get_prompt_content("patch_synthesis")
+    system_prompt, lf_prompt_patch = get_prompt_with_langfuse("patch_synthesis")
 
     # Documentation tools need full content preserved
     documentation_tools = {"altinn_datamodel_docs", "altinn_prefill_docs", "altinn_route", "altinn_expression_docs", "altinn_resource_docs", "altinn_help"}
@@ -809,7 +809,7 @@ async def synthesize_patch(
         start_time = time.time()
         try:
             # Don't pass image attachments — form_spec_summary + tool_results provide text context.
-            response = client.call_sync(system_prompt, user_prompt)
+            response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt_patch)
             elapsed = time.time() - start_time
             log.info(f"✅ Patch synthesis completed in {elapsed:.1f}s")
             log.info(f"   Response length: {len(response)} chars (~{len(response) // 4} tokens)")

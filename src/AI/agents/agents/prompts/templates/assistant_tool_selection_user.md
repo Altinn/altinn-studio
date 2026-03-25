@@ -5,10 +5,10 @@ SEMANTIC SEARCH QUERY (for reference):
 {semantic_query}
 
 REPOSITORY CONTEXT:
-{repo_context}
+{{repo_context}}
 
 AVAILABLE TOOLS:
-{tool_names}
+{{tool_names}}
 
 Select tools to answer the question. Remember:
 

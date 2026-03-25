@@ -6,6 +6,7 @@ import React, {
   useRef,
   useEffect,
   useContext,
+  type JSX,
 } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';

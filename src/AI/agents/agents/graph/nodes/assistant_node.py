@@ -11,7 +11,7 @@ from agents.services.mcp import get_mcp_client
 from agents.services.repo import discover_repository_context
 from agents.services.llm import LLMClient
 from agents.services.events import AgentEvent, sink
-from agents.prompts import get_prompt_content, render_template
+from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -220,8 +220,8 @@ async def _select_relevant_tools(
         
         # STEP 2: Use tool planner to select tools
         client = LLMClient(role="tool_planner")
-        
-        system_prompt = get_prompt_content("assistant_tool_orchestration")
+
+        system_prompt, lf_prompt_tool = get_prompt_with_langfuse("assistant_tool_orchestration")
         
         repo_context = f"""Repository: {repo_summary.get('layouts', []).__len__()} layouts, {repo_summary.get('locales', []).__len__()} locales"""
         
@@ -241,12 +241,8 @@ async def _select_relevant_tools(
         })
         
         try:
-            response = client.call_sync(
-                system_prompt,
-                user_prompt,
-                conversation_history=conversation_history,
-            )
-            
+            response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt_tool, conversation_history=conversation_history)
+
             # Parse JSON response
             response_clean = response.strip()
             if response_clean.startswith("```json"):
@@ -640,8 +636,8 @@ async def _generate_response(
         
         # Use assistant role - model config comes from environment
         client = LLMClient(role="assistant")
-        
-        system_prompt = get_prompt_content("assistant_response_generation")
+
+        system_prompt, lf_prompt_resp = get_prompt_with_langfuse("assistant_response_generation")
         
         # Build context from repository
         layouts_list = repo_summary.get('layouts', [])
@@ -723,10 +719,11 @@ REPOSITORY CONTEXT:
         
         # Pass conversation history directly to LLM API (uses native messages array)
         response = client.call_sync(
-            system_prompt, 
-            user_prompt.strip(), 
+            system_prompt,
+            user_prompt.strip(),
             attachments=attachments,
-            conversation_history=conversation_history  # Native API support
+            conversation_history=conversation_history,  # Native API support
+            langfuse_prompt=lf_prompt_resp,
         )
         
         span.update(output={

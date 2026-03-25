@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from shared.utils.langfuse_utils import trace_span
 from agents.services.llm import LLMClient
-from agents.prompts import get_prompt_content, render_template
+from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -29,8 +29,8 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
         Output: "authorization policy configuration skip role requirement organization access"
     """
     llm = LLMClient(role="planner")
-    
-    system_prompt = get_prompt_content("semantic_query_extraction")
+
+    system_prompt, lf_prompt = get_prompt_with_langfuse("semantic_query_extraction")
     user_prompt = render_template("semantic_query_user", user_input=user_input)
     
     with trace_span(
@@ -43,9 +43,9 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
         },
         metadata={"context": context}
     ) as span:
-        
+
         try:
-            semantic_query = await llm.call_async(system_prompt, user_prompt)
+            semantic_query = await llm.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
             semantic_query = semantic_query.strip()
             
             span.update(output={

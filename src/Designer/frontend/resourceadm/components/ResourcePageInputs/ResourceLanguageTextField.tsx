@@ -96,7 +96,7 @@ export const ResourceLanguageTextField = ({
   onSetLanguage,
 }: ResourceLanguageTextFieldProps): ReactElement => {
   const { t } = useTranslation();
-  const inputRef = useRef<HTMLInputElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 

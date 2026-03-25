@@ -1,8 +1,8 @@
 USER GOAL:
-{user_goal}
+{{user_goal}}
 
 CURRENT PLAN STEP (if any):
-{planner_step}
+{{planner_step}}
 
 FORM SPECIFICATION (if available):
 {form_spec}
@@ -14,10 +14,10 @@ If a FORM SPECIFICATION is provided above, it is the authoritative source of tru
 3. Use the exact field labels, types, and descriptions specified
 
 Return JSON with:
-{{
-  "goal_summary": "one paragraph",
-  "key_requirements": ["..."],
-  "risks": ["..."],
-  "suggested_subtasks": ["..."],
-  "notes_for_team": "guidance for other agents"
-}}
+{
+"goal_summary": "one paragraph",
+"key_requirements": ["..."],
+"risks": ["..."],
+"suggested_subtasks": ["..."],
+"notes_for_team": "guidance for other agents"
+}

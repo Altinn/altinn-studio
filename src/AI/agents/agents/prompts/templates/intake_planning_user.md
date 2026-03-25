@@ -1,4 +1,4 @@
-GOAL: {user_goal}
+GOAL: {{user_goal}}
 
 Create a high-level plan for this task. Focus on understanding user intent.
 

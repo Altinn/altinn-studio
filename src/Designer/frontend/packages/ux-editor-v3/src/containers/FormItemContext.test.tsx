@@ -77,13 +77,11 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await user.click(button);
 
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItem.id')).textContent).toEqual(mockFormItem.id),
+    await waitFor(() =>
+      expect(screen.getByTestId('formItem.id').textContent).toEqual(mockFormItem.id),
     );
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItem.itemType')).textContent).toEqual(
-        mockFormItem.itemType,
-      ),
+    await waitFor(() =>
+      expect(screen.getByTestId('formItem.itemType').textContent).toEqual(mockFormItem.itemType),
     );
   });
 
@@ -112,16 +110,14 @@ describe('FormItemContext', () => {
 
     const state = store.getState() as IAppState;
     expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
+    await waitFor(() =>
+      expect(screen.getByTestId('formItemId').textContent).toEqual(mockFormItem.id),
     );
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItem.id')).textContent).toEqual(mockFormItem.id),
+    await waitFor(() =>
+      expect(screen.getByTestId('formItem.id').textContent).toEqual(mockFormItem.id),
     );
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItem.itemType')).textContent).toEqual(
-        mockFormItem.itemType,
-      ),
+    await waitFor(() =>
+      expect(screen.getByTestId('formItem.itemType').textContent).toEqual(mockFormItem.itemType),
     );
   });
 
@@ -183,15 +179,9 @@ describe('FormItemContext', () => {
 
     const state = store.getState() as IAppState;
     expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItemId')).textContent).toBe(''),
-    );
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItem.id')).textContent).toBe(''),
-    );
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItem.itemType')).textContent).toBe(''),
-    );
+    await waitFor(() => expect(screen.getByTestId('formItemId').textContent).toBe(''));
+    await waitFor(() => expect(screen.getByTestId('formItem.id').textContent).toBe(''));
+    await waitFor(() => expect(screen.getByTestId('formItem.itemType').textContent).toBe(''));
   });
 
   it('should save the container when calling handleSave', async () => {
@@ -239,8 +229,8 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await user.click(button);
 
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
+    await waitFor(() =>
+      expect(screen.getByTestId('formItemId').textContent).toEqual(mockFormItem.id),
     );
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
@@ -313,8 +303,8 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await user.click(button);
 
-    await waitFor(async () =>
-      expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
+    await waitFor(() =>
+      expect(screen.getByTestId('formItemId').textContent).toEqual(mockFormItem.id),
     );
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });

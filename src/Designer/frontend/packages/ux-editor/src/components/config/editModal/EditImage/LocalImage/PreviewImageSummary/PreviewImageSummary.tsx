@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { ImageIcon } from '@studio/icons';
-import { StudioDeleteButton } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components';
 import classes from './PreviewImageSummary.module.css';
 import { useTranslation } from 'react-i18next';
 import { DeleteOptionsModal } from './DeleteOptionsModal/DeleteOptionsModal';
@@ -31,7 +31,7 @@ export const PreviewImageSummary = ({
       <StudioDeleteButton
         title={t('ux_editor.properties_panel.images.delete_image_reference_title')}
         variant='tertiary'
-        size='small'
+        data-color='accent'
         onDelete={openDeleteOptionsDialog}
       />
       <DeleteOptionsModal

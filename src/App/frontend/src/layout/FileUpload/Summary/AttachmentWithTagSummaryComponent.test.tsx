@@ -4,8 +4,9 @@ import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { IData } from 'src/types/shared';
@@ -127,10 +128,11 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     });
   });
 
-  jest.mocked(fetchInstanceData).mockImplementation(async () => ({
+  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => ({
     ...getInstanceDataMock((i) => {
       addAttachment && i.data.push(attachment);
     }),
+    process: getProcessDataMock(),
   }));
 
   return await renderWithInstanceAndLayout({

@@ -9,10 +9,15 @@ on:
       - '.github/workflows/gitea-check-texts-file.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   check-gitea-texts-file:
     name: Check Gitea texts file
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -89,4 +94,3 @@ jobs:
           else
             echo "All custom US locale keys exist in Gitea v${{ steps.get-gitea-version.outputs.gitea-version }}."
           fi
-
