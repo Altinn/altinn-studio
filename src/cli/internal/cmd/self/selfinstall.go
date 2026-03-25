@@ -33,6 +33,9 @@ var (
 
 	// ErrAlreadyInstalled is returned when the binary is already at the target location.
 	ErrAlreadyInstalled = errors.New("binary already installed at this location")
+
+	errInstallFileSourceRequired = errors.New("install file: empty source path")
+	errInstallFileTargetRequired = errors.New("install file: empty target path")
 )
 
 // Candidate represents a potential installation directory.
@@ -251,17 +254,44 @@ func Install(targetDir string) (string, error) {
 		return "", fmt.Errorf("create target directory: %w", err)
 	}
 
-	if err := copyFile(execPath, targetPath); err != nil {
-		return "", fmt.Errorf("copy binary: %w", err)
+	return InstallFile(execPath, targetPath)
+}
+
+// InstallFile copies an external executable to the target path.
+func InstallFile(srcPath, targetPath string) (string, error) {
+	if srcPath == "" {
+		return "", errInstallFileSourceRequired
+	}
+	if targetPath == "" {
+		return "", errInstallFileTargetRequired
 	}
 
+	absSource, err := filepath.Abs(srcPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve source path: %w", err)
+	}
+	absTarget, err := filepath.Abs(targetPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve target path: %w", err)
+	}
+
+	if filepath.Clean(absSource) == filepath.Clean(absTarget) {
+		return absTarget, ErrAlreadyInstalled
+	}
+
+	if err := os.MkdirAll(filepath.Dir(absTarget), osutil.DirPermDefault); err != nil {
+		return "", fmt.Errorf("create target directory: %w", err)
+	}
+	if err := copyFile(absSource, absTarget); err != nil {
+		return "", fmt.Errorf("copy binary: %w", err)
+	}
 	if runtime.GOOS != osWindows {
-		if err := os.Chmod(targetPath, executablePerm); err != nil {
+		if err := os.Chmod(absTarget, executablePerm); err != nil {
 			return "", fmt.Errorf("make binary executable: %w", err)
 		}
 	}
 
-	return targetPath, nil
+	return absTarget, nil
 }
 
 func copyFile(src, dst string) (err error) {

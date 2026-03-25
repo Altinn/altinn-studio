@@ -37,6 +37,9 @@ const (
 	dirPermDefault = 0o755
 
 	filePermDefault = 0o644
+
+	goArchAMD64 = "amd64"
+	goArchARM64 = "arm64"
 )
 
 var (
@@ -45,6 +48,7 @@ var (
 	errNotRunningInWSL             = errors.New("windows-host install requires WSL")
 	errNoPathsSpecified            = errors.New("no paths specified")
 	errUnexpectedBinaryName        = errors.New("unexpected binary name")
+	errUnsupportedAppManagerRID    = errors.New("unsupported app-manager runtime")
 	errWindowsVariableEmpty        = errors.New("windows variable is empty")
 )
 
@@ -125,7 +129,7 @@ func runInstall(args []string) error {
 	fs.Usage = func() {
 		fmt.Print(`Usage: go run ./cmd/dev install [options]
 
-Builds studioctl and installs it with localtest resources.
+Builds studioctl, publishes app-manager, and installs them with localtest resources.
 
 Options:
   -user           Install to user directories (~/.local/bin, ~/.altinn-studio)
@@ -155,8 +159,12 @@ Options:
 	if err != nil {
 		return err
 	}
+	appManagerPath, err := publishAppManager(runtime.GOOS, runtime.GOARCH, buildDir)
+	if err != nil {
+		return err
+	}
 
-	return installBinary(binaryPath, *user)
+	return installBinary(binaryPath, appManagerPath, *user)
 }
 
 func buildStudioctl(goos, outputDir string) (string, error) {
@@ -185,16 +193,16 @@ func validateInstallMode(userInstall, windowsHost, runningInWSL bool) error {
 	return nil
 }
 
-func installBinary(binaryPath string, userInstall bool) error {
+func installBinary(binaryPath, appManagerPath string, userInstall bool) error {
 	tarballPath, err := filepath.Abs(filepath.Join(buildDir, "localtest-resources.tar.gz"))
 	if err != nil {
 		return fmt.Errorf("get tarball absolute path: %w", err)
 	}
 
 	if userInstall {
-		return installUserMode(binaryPath, tarballPath)
+		return installUserMode(binaryPath, appManagerPath, tarballPath)
 	}
-	return installDevMode(binaryPath, tarballPath)
+	return installDevMode(binaryPath, appManagerPath, tarballPath)
 }
 
 func installWindowsHostMode() error {
@@ -221,7 +229,15 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
+	appManagerPathWSL, err := publishAppManager("windows", runtime.GOARCH, stageDirWSL)
+	if err != nil {
+		return err
+	}
 	binaryPathWindows, err := windowsPath(binaryPathWSL)
+	if err != nil {
+		return err
+	}
+	appManagerPathWindows, err := windowsPath(appManagerPathWSL)
 	if err != nil {
 		return err
 	}
@@ -243,14 +259,19 @@ func installWindowsHostMode() error {
 	fmt.Println("Running Windows studioctl self install...")
 	fmt.Printf("Installing to %s\n", installDirWindows)
 
-	if err := runWindowsInstall(binaryPathWindows, tarballWindows, installDirWindows); err != nil {
+	if err := runWindowsInstall(
+		binaryPathWindows,
+		appManagerPathWindows,
+		tarballWindows,
+		installDirWindows,
+	); err != nil {
 		return fmt.Errorf("run windows self install: %w", err)
 	}
 
 	return nil
 }
 
-func installUserMode(binaryPath, tarballPath string) error {
+func installUserMode(binaryPath, appManagerPath, tarballPath string) error {
 	// Use the same candidate detection as self install
 	binDir := findRecommendedBinDir()
 	if binDir == "" {
@@ -262,6 +283,7 @@ func installUserMode(binaryPath, tarballPath string) error {
 	// Only set tarball env - let config use default home resolution
 	env := []string{
 		config.EnvResourcesTarball + "=" + tarballPath,
+		config.EnvAppManagerBinary + "=" + appManagerPath,
 	}
 
 	if err := runBinary(binaryPath, env, "self", "install", "--path", binDir); err != nil {
@@ -270,7 +292,7 @@ func installUserMode(binaryPath, tarballPath string) error {
 	return nil
 }
 
-func installDevMode(binaryPath, tarballPath string) error {
+func installDevMode(binaryPath, appManagerPath, tarballPath string) error {
 	devHome, err := filepath.Abs(filepath.Join(buildDir, "dev-home"))
 	if err != nil {
 		return fmt.Errorf("get dev home absolute path: %w", err)
@@ -281,6 +303,7 @@ func installDevMode(binaryPath, tarballPath string) error {
 
 	env := []string{
 		config.EnvResourcesTarball + "=" + tarballPath,
+		config.EnvAppManagerBinary + "=" + appManagerPath,
 		config.EnvHome + "=" + devHome,
 	}
 
@@ -349,6 +372,72 @@ func goBuild(output, ldflags, pkg, goos, goarch string) error {
 		return fmt.Errorf("go build failed: %w", err)
 	}
 	return nil
+}
+
+func publishAppManager(goos, goarch, outputDir string) (string, error) {
+	fmt.Println("Publishing app-manager...")
+
+	rid, err := dotnetRuntimeIdentifier(goos, goarch)
+	if err != nil {
+		return "", err
+	}
+
+	publishDir := filepath.Join(outputDir, "app-manager-"+goos+"-"+goarch)
+	if err := os.MkdirAll(publishDir, dirPermDefault); err != nil {
+		return "", fmt.Errorf("create app-manager publish dir: %w", err)
+	}
+
+	args := []string{
+		"publish",
+		"./app-manager/app-manager.csproj",
+		"-c", "Release",
+		"-o", publishDir,
+		"-r", rid,
+		"--self-contained", "true",
+		"-p:PublishSingleFile=true",
+		"-p:DebugType=None",
+		"-p:DebugSymbols=false",
+	}
+
+	//nolint:gosec // G204: command and arguments are fixed local tooling with validated RID values.
+	cmd := exec.CommandContext(context.Background(), "dotnet", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = "."
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("dotnet publish failed: %w", err)
+	}
+
+	return filepath.Join(publishDir, binaryNameWithExt("app-manager", goos)), nil
+}
+
+func dotnetRuntimeIdentifier(goos, goarch string) (string, error) {
+	switch goos {
+	case "linux":
+		switch goarch {
+		case goArchAMD64:
+			return "linux-x64", nil
+		case goArchARM64:
+			return "linux-arm64", nil
+		}
+	case "darwin":
+		switch goarch {
+		case goArchAMD64:
+			return "osx-x64", nil
+		case goArchARM64:
+			return "osx-arm64", nil
+		}
+	case "windows":
+		switch goarch {
+		case goArchAMD64:
+			return "win-x64", nil
+		case goArchARM64:
+			return "win-arm64", nil
+		}
+	}
+
+	return "", fmt.Errorf("%w: %s/%s", errUnsupportedAppManagerRID, goos, goarch)
 }
 
 func runBinary(binary string, env []string, args ...string) error {
@@ -440,11 +529,13 @@ func commandOutput(name string, args ...string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func runWindowsInstall(binaryPath, tarballPath, installDir string) error {
+func runWindowsInstall(binaryPath, appManagerPath, tarballPath, installDir string) error {
 	script := fmt.Sprintf(
-		"$env:%s = %s; & %s self install --path %s",
+		"$env:%s = %s; $env:%s = %s; & %s self install --path %s",
 		config.EnvResourcesTarball,
 		powerShellSingleQuoted(tarballPath),
+		config.EnvAppManagerBinary,
+		powerShellSingleQuoted(appManagerPath),
 		powerShellSingleQuoted(binaryPath),
 		powerShellSingleQuoted(installDir),
 	)

@@ -6,11 +6,18 @@ import (
 	"flag"
 	"fmt"
 	"runtime"
+	"time"
 
+	"altinn.studio/studioctl/internal/appmanager"
 	selfsvc "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
+)
+
+const (
+	appManagerShutdownWait = 3 * time.Second
+	appManagerShutdownPoll = 100 * time.Millisecond
 )
 
 // SelfCommand implements the 'self' subcommand.
@@ -25,7 +32,7 @@ func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
 		cfg:     cfg,
 		out:     out,
-		service: selfsvc.NewService(cfg.DataDir, cfg.Version),
+		service: selfsvc.NewService(cfg),
 	}
 }
 
@@ -42,7 +49,7 @@ func (c *SelfCommand) Usage() string {
 Manage the %s installation.
 
 Subcommands:
-  install   Install binary and localtest resources
+  install   Install binary, app-manager, and localtest resources
   update    Check for and install updates
   uninstall Remove installed binary
 
@@ -80,11 +87,11 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 	fs.Usage = func() {
 		c.out.Printf(`Usage: %s self install [options]
 
-Install %s binary to PATH and download localtest resources.
+Install %s, app-manager, and localtest resources.
 
 Options:
   --path DIR          Install binary to specific directory (non-interactive)
-  --skip-resources    Skip downloading localtest resources
+  --skip-resources    Skip localtest resources
   -h, --help          Show this help message
 
 If --path is not specified, an interactive picker will prompt you to
@@ -171,7 +178,7 @@ func (c *SelfCommand) performInstall(
 		}
 	}
 
-	return nil
+	return c.installAppManager(ctx)
 }
 
 func (c *SelfCommand) handleNoWritableLocations() error {
@@ -213,6 +220,43 @@ func (c *SelfCommand) installResources(ctx context.Context) error {
 	c.out.Verbosef("Installed to: %s", c.cfg.DataDir)
 
 	return nil
+}
+
+func (c *SelfCommand) installAppManager(ctx context.Context) error {
+	c.out.Println("")
+
+	client := appmanager.NewClient(c.cfg)
+	if err := client.Shutdown(ctx); err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
+		c.out.Verbosef("failed to stop existing app-manager before install: %v", err)
+	} else if err == nil {
+		waitForAppManagerShutdown(ctx, client)
+	}
+
+	spinner := ui.NewSpinner(c.out, "Installing app-manager...")
+	if !c.cfg.Verbose {
+		spinner.Start()
+	}
+
+	result, err := c.service.InstallAppManager(ctx)
+	if err != nil {
+		spinner.StopWithError("Failed to install app-manager")
+		return fmt.Errorf("install app-manager: %w", err)
+	}
+
+	spinner.StopWithSuccess("App-manager installed")
+	c.out.Verbosef("Installed to: %s", result.InstalledPath)
+
+	return nil
+}
+
+func waitForAppManagerShutdown(ctx context.Context, client *appmanager.Client) {
+	deadline := time.Now().Add(appManagerShutdownWait)
+	for time.Now().Before(deadline) {
+		if err := client.Health(ctx); errors.Is(err, appmanager.ErrNotRunning) {
+			return
+		}
+		time.Sleep(appManagerShutdownPoll)
+	}
 }
 
 func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {

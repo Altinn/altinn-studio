@@ -35,6 +35,10 @@ const (
 	// EnvResourcesTarball overrides resource install source with a local tarball path.
 	// Intended for development/tooling, not normal end-user flows.
 	EnvResourcesTarball = "STUDIOCTL_RESOURCES_TARBALL"
+
+	// EnvAppManagerBinary overrides app-manager install source with a local binary path.
+	// Intended for development/tooling, not normal end-user flows.
+	EnvAppManagerBinary = "STUDIOCTL_APP_MANAGER_BINARY"
 )
 
 // Sentinel errors for configuration validation.

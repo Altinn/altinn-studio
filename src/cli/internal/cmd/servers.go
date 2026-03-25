@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 
-	serversvc "altinn.studio/studioctl/internal/cmd/servers"
+	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
@@ -14,15 +14,17 @@ import (
 
 // ServersCommand implements the 'servers' subcommand.
 type ServersCommand struct {
-	out     *ui.Output
-	service *serversvc.Service
+	cfg    *config.Config
+	out    *ui.Output
+	client *appmanager.Client
 }
 
 // NewServersCommand creates a new servers command.
 func NewServersCommand(cfg *config.Config, out *ui.Output) *ServersCommand {
 	return &ServersCommand{
-		out:     out,
-		service: serversvc.NewService(cfg),
+		cfg:    cfg,
+		out:    out,
+		client: appmanager.NewClient(cfg),
 	}
 }
 
@@ -83,13 +85,14 @@ func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	result, err := c.service.Up(ctx)
-	if err != nil {
-		return fmt.Errorf("start servers: %w", err)
+	if err := c.client.Health(ctx); err == nil {
+		c.out.Println("app-manager is already running.")
+		return nil
 	}
-	for _, line := range result.MessageLines {
-		c.out.Println(line)
+	if err := appmanager.Start(ctx, c.cfg); err != nil {
+		return fmt.Errorf("start app-manager: %w", err)
 	}
+	c.out.Println("app-manager started.")
 
 	return nil
 }
@@ -103,13 +106,18 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	result, err := c.service.Status(ctx)
+	processID, appManagerVersion, dotnetVersion, err := c.client.Status(ctx)
 	if err != nil {
-		return fmt.Errorf("get server status: %w", err)
+		if errors.Is(err, appmanager.ErrNotRunning) {
+			c.out.Println("app-manager is not running.")
+			return nil
+		}
+		return fmt.Errorf("get app-manager status: %w", err)
 	}
-	for _, line := range result.MessageLines {
-		c.out.Println(line)
-	}
+	c.out.Println("app-manager is running.")
+	c.out.Printf("Process ID: %d\n", processID)
+	c.out.Println("app-manager version: " + appManagerVersion)
+	c.out.Println(".NET version: " + dotnetVersion)
 
 	return nil
 }
@@ -123,13 +131,14 @@ func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	result, err := c.service.Down(ctx)
-	if err != nil {
-		return fmt.Errorf("stop servers: %w", err)
+	if err := c.client.Shutdown(ctx); err != nil {
+		if errors.Is(err, appmanager.ErrNotRunning) {
+			c.out.Println("app-manager is not running.")
+			return nil
+		}
+		return fmt.Errorf("shutdown app-manager: %w", err)
 	}
-	for _, line := range result.MessageLines {
-		c.out.Println(line)
-	}
+	c.out.Println("app-manager shutdown requested.")
 
 	return nil
 }

@@ -472,6 +472,10 @@ func NormalizeReleaseVersion(raw string) (string, error) {
 
 // DefaultAssetName returns the default release asset name for an OS/architecture pair.
 func DefaultAssetName(goos, goarch string) (string, error) {
+	return defaultAssetName("studioctl", goos, goarch)
+}
+
+func defaultAssetName(baseName, goos, goarch string) (string, error) {
 	var osPart string
 	switch goos {
 	case osLinux:
@@ -494,7 +498,7 @@ func DefaultAssetName(goos, goarch string) (string, error) {
 		return "", fmt.Errorf("%w: %s", ErrUnsupportedArchitecture, goarch)
 	}
 
-	asset := "studioctl-" + osPart + "-" + archPart
+	asset := baseName + "-" + osPart + "-" + archPart
 	if goos == osWindows {
 		asset += exeSuffix
 	}
