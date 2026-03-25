@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -20,13 +21,23 @@ import (
 // ErrTarballMissingPath indicates a required path is missing from the tarball.
 var ErrTarballMissingPath = errors.New("required path not found in tarball")
 
+var errUnsupportedAppManagerRuntime = errors.New("unsupported app-manager runtime")
+
+const (
+	appManagerExeName = "app-manager"
+	exeSuffix         = ".exe"
+	archAMD64         = "amd64"
+	archARM64         = "arm64"
+)
+
 // StudioctlBuilder builds studioctl release artifacts.
 // It implements ComponentBuilder and wraps the detailed build steps.
 type StudioctlBuilder struct {
-	log            Logger
 	Pkg            string
 	LdflagsPattern string
 	LocaltestDir   string
+	AppManagerProj string
+	log            Logger
 	InstallScripts []string
 }
 
@@ -42,7 +53,8 @@ func NewStudioctlBuilder() *StudioctlBuilder {
 			"src/cli/cmd/studioctl/install.sh",
 			"src/cli/cmd/studioctl/install.ps1",
 		},
-		LocaltestDir: "src/Runtime/localtest",
+		AppManagerProj: "src/cli/app-manager/app-manager.csproj",
+		LocaltestDir:   "src/Runtime/localtest",
 	}
 }
 
@@ -62,6 +74,7 @@ func (b *StudioctlBuilder) Build(ctx context.Context, ver *version.Version, outp
 	buildDir := filepath.Join(root, "src/cli")
 	resourcesTarball := filepath.Join(root, "build", "localtest-resources.tar.gz")
 	localtestDir := filepath.Join(root, b.LocaltestDir)
+	appManagerProj := filepath.Join(root, b.AppManagerProj)
 	installScripts := make([]string, len(b.InstallScripts))
 	for i, script := range b.InstallScripts {
 		installScripts[i] = filepath.Join(root, script)
@@ -84,6 +97,9 @@ func (b *StudioctlBuilder) Build(ctx context.Context, ver *version.Version, outp
 	b.log.Info("Building release binaries for all platforms...")
 	if err := b.buildBinaries(ctx, ver.String(), outputDir, buildDir, b.Pkg); err != nil {
 		return nil, fmt.Errorf("build binaries: %w", err)
+	}
+	if err := b.publishAppManagerBinaries(ctx, outputDir, buildDir, appManagerProj); err != nil {
+		return nil, fmt.Errorf("publish app-manager binaries: %w", err)
 	}
 
 	b.log.Info("Copying additional assets...")
@@ -136,7 +152,7 @@ func (b *StudioctlBuilder) buildBinaries(ctx context.Context, ver, outputDir, bu
 	for _, p := range getReleasePlatforms() {
 		binaryName := fmt.Sprintf("studioctl-%s-%s", p.OS, p.Arch)
 		if p.OS == osWindows {
-			binaryName += ".exe"
+			binaryName += exeSuffix
 		}
 		outputPath := filepath.Join(outputDir, binaryName)
 
@@ -156,6 +172,88 @@ func (b *StudioctlBuilder) buildBinaries(ctx context.Context, ver, outputDir, bu
 	}
 
 	return nil
+}
+
+func (b *StudioctlBuilder) publishAppManagerBinaries(
+	ctx context.Context,
+	outputDir, buildDir, appManagerProj string,
+) error {
+	for _, p := range getReleasePlatforms() {
+		rid, err := dotnetRuntimeIdentifier(p.OS, p.Arch)
+		if err != nil {
+			return err
+		}
+
+		assetName := "app-manager-" + p.OS + "-" + p.Arch
+		if p.OS == osWindows {
+			assetName += exeSuffix
+		}
+
+		publishDir := filepath.Join(outputDir, ".app-manager-"+p.OS+"-"+p.Arch)
+		if err := EnsureCleanDir(publishDir); err != nil {
+			return fmt.Errorf("prepare publish dir for %s: %w", assetName, err)
+		}
+
+		b.log.Info("Publishing %s...", assetName)
+		args := []string{
+			"publish",
+			appManagerProj,
+			"-c", "Release",
+			"-o", publishDir,
+			"-r", rid,
+			"--self-contained", "true",
+			"-p:PublishSingleFile=true",
+			"-p:DebugType=None",
+			"-p:DebugSymbols=false",
+		}
+		//nolint:gosec // G204: command and arguments are fixed local tooling with validated project path and RID.
+		cmd := exec.CommandContext(ctx, "dotnet", args...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Dir = buildDir
+
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("publish %s: %w", assetName, err)
+		}
+
+		srcPath := filepath.Join(publishDir, appManagerExeName)
+		if p.OS == osWindows {
+			srcPath += exeSuffix
+		}
+		if err := CopyFile(srcPath, filepath.Join(outputDir, assetName)); err != nil {
+			return fmt.Errorf("copy %s: %w", assetName, err)
+		}
+	}
+
+	return nil
+}
+
+func dotnetRuntimeIdentifier(goos, goarch string) (string, error) {
+	switch goos {
+	case "linux":
+		switch goarch {
+		case archAMD64:
+			return "linux-x64", nil
+		case archARM64:
+			return "linux-arm64", nil
+		}
+	case "darwin":
+		switch goarch {
+		case archAMD64:
+			return "osx-x64", nil
+		case archARM64:
+			return "osx-arm64", nil
+		}
+	case osWindows:
+		switch goarch {
+		case archAMD64:
+			return "win-x64", nil
+		case archARM64:
+			return "win-arm64", nil
+		}
+	}
+
+	return "", fmt.Errorf("%w: %s/%s", errUnsupportedAppManagerRuntime, goos, goarch)
 }
 
 func (b *StudioctlBuilder) copyAssets(
@@ -327,12 +425,12 @@ type releasePlatform struct {
 // getReleasePlatforms returns all supported OS/arch combinations for release builds.
 func getReleasePlatforms() []releasePlatform {
 	return []releasePlatform{
-		{"linux", "amd64"},
-		{"linux", "arm64"},
-		{"darwin", "amd64"},
-		{"darwin", "arm64"},
-		{osWindows, "amd64"},
-		{osWindows, "arm64"},
+		{"linux", archAMD64},
+		{"linux", archARM64},
+		{"darwin", archAMD64},
+		{"darwin", archARM64},
+		{osWindows, archAMD64},
+		{osWindows, archARM64},
 	}
 }
 

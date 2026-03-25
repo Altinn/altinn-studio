@@ -267,6 +267,18 @@ func createStudioctlWorkflowRepo(t *testing.T, changelog string) string {
 		"src/cli/cmd/studioctl/main.go",
 		"package main\n\nimport (\n\t\"fmt\"\n\tcmd \"altinn.studio/studioctl/internal/cmd\"\n)\n\nfunc main() { fmt.Println(cmd.Version()) }\n",
 	)
+	writeRepoFile(
+		t,
+		repoDir,
+		"src/cli/app-manager/app-manager.csproj",
+		"<Project Sdk=\"Microsoft.NET.Sdk.Web\"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><AssemblyName>app-manager</AssemblyName><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>\n",
+	)
+	writeRepoFile(
+		t,
+		repoDir,
+		"src/cli/app-manager/Program.cs",
+		"var builder = WebApplication.CreateSlimBuilder(args);\nvar app = builder.Build();\napp.MapGet(\"/api/v1/healthz\", () => Results.Ok());\napp.Run();\n",
+	)
 	writeRepoFile(t, repoDir, "src/cli/cmd/studioctl/install.sh", "#!/usr/bin/env sh\necho install\n")
 	writeRepoFile(t, repoDir, "src/cli/cmd/studioctl/install.ps1", "Write-Host 'install'\n")
 	writeRepoFile(t, repoDir, "src/Runtime/localtest/testdata/data.txt", "data\n")
