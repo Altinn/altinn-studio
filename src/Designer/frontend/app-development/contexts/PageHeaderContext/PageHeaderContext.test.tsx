@@ -14,7 +14,7 @@ const UserSettingsLinkConsumer = () => {
   const allItems = profileMenuGroups?.flatMap((group) => group.items) ?? [];
   const userSettingsItem = allItems.find((item) => item.itemName === textMock('user.settings'));
   const href = userSettingsItem?.action.type === 'link' ? userSettingsItem.action.href : null;
-  return <div data-testid='user-settings-href'>{href ?? 'none'}</div>;
+  return <div data-testid=settings-href'>{href ?? 'none'}</div>;
 };
 
 const renderPageHeaderContext = () =>
@@ -66,7 +66,7 @@ describe('PageHeaderContext', () => {
 
     renderPageHeaderContext();
 
-    expect(screen.getByTestId('user-settings-href')).not.toHaveTextContent('none');
+    expect(screen.getByTestId('settings-href')).not.toHaveTextContent('none');
   });
 
   it('should not include user settings link in profile menu when studioOidc feature flag is disabled', () => {
@@ -74,6 +74,6 @@ describe('PageHeaderContext', () => {
 
     renderPageHeaderContext();
 
-    expect(screen.getByTestId('user-settings-href')).toHaveTextContent('none');
+    expect(screen.getByTestId('settings-href')).toHaveTextContent('none');
   });
 });
