@@ -45,6 +45,7 @@ var (
 	errNotRunningInWSL             = errors.New("windows-host install requires WSL")
 	errNoPathsSpecified            = errors.New("no paths specified")
 	errUnexpectedBinaryName        = errors.New("unexpected binary name")
+	errWindowsVariableEmpty        = errors.New("windows variable is empty")
 )
 
 func main() {
@@ -212,8 +213,8 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(stageDirWSL, dirPermDefault); err != nil {
-		return fmt.Errorf("create windows staging directory: %w", err)
+	if mkdirErr := os.MkdirAll(stageDirWSL, dirPermDefault); mkdirErr != nil {
+		return fmt.Errorf("create windows staging directory: %w", mkdirErr)
 	}
 
 	binaryPathWSL, err := buildStudioctl("windows", stageDirWSL)
@@ -230,8 +231,8 @@ func installWindowsHostMode() error {
 	if err != nil {
 		return err
 	}
-	if err := copyFile(tarballPath, tarballWSL); err != nil {
-		return fmt.Errorf("stage resources tarball: %w", err)
+	if copyErr := copyFile(tarballPath, tarballWSL); copyErr != nil {
+		return fmt.Errorf("stage resources tarball: %w", copyErr)
 	}
 
 	installDirWindows, err := recommendedWindowsInstallDir()
@@ -408,7 +409,7 @@ func windowsEnv(name string) (string, error) {
 		return "", fmt.Errorf("read Windows %s: %w", name, err)
 	}
 	if out == "" || out == "%"+name+"%" {
-		return "", fmt.Errorf("read Windows %s: variable is empty", name)
+		return "", fmt.Errorf("read Windows %s: %w", name, errWindowsVariableEmpty)
 	}
 	return out, nil
 }
@@ -430,10 +431,11 @@ func windowsPath(path string) (string, error) {
 }
 
 func commandOutput(name string, args ...string) (string, error) {
+	//nolint:gosec // G204: the caller provides known local tooling commands only.
 	cmd := exec.CommandContext(context.Background(), name, args...)
 	output, err := cmd.Output()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("run command %q: %w", name, err)
 	}
 	return strings.TrimSpace(string(output)), nil
 }
@@ -447,6 +449,7 @@ func runWindowsInstall(binaryPath, tarballPath, installDir string) error {
 		powerShellSingleQuoted(installDir),
 	)
 
+	//nolint:gosec // G204: script is assembled from validated local paths for the Windows install handoff.
 	cmd := exec.CommandContext(context.Background(), "powershell.exe", "-NoProfile", "-Command", script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -560,8 +563,8 @@ func addFileContentToTar(tw *tar.Writer, filePath string) (err error) {
 }
 
 func copyFile(src, dest string) (err error) {
-	if err := os.MkdirAll(filepath.Dir(dest), dirPermDefault); err != nil {
-		return fmt.Errorf("create destination directory: %w", err)
+	if mkdirErr := os.MkdirAll(filepath.Dir(dest), dirPermDefault); mkdirErr != nil {
+		return fmt.Errorf("create destination directory: %w", mkdirErr)
 	}
 
 	srcFile, err := os.Open(src) //nolint:gosec // G304: src is controlled by the dev helper.
@@ -570,7 +573,12 @@ func copyFile(src, dest string) (err error) {
 	}
 	defer func() { err = closeWithError(srcFile, "close source file", err) }()
 
-	destFile, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, filePermDefault) //nolint:gosec // G304: dest is controlled by the dev helper.
+	//nolint:gosec // G304: dest is controlled by the dev helper.
+	destFile, err := os.OpenFile(
+		dest,
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		filePermDefault,
+	)
 	if err != nil {
 		return fmt.Errorf("open destination file: %w", err)
 	}
