@@ -1,6 +1,9 @@
 .gitattributes
 .github/
 .husky/
+.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch
+.yarn/releases/yarn-4.12.0.cjs
+.yarnrc.yml
 LICENSE.md
 adr/001-component-library.md
 renovate.json
@@ -24,6 +27,7 @@ src/features/form/layout/quirks.ts
 src/features/form/layoutSets/
 src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
+src/features/formData/FormDataWrite.test.ts
 src/features/formData/LegacyRules.ts
 src/features/instantiate/useInstantiation.tsx
 src/features/language/LangDataSourcesProvider.tsx
@@ -44,4 +48,4 @@ src/utils/refs/
 src/utils/versioning/versions.ts
 test/e2e/integration/frontend-test/language.ts
 test/e2e/integration/frontend-test/process-next.ts
-src/features/formData/FormDataWrite.test.ts
+yarn.lock

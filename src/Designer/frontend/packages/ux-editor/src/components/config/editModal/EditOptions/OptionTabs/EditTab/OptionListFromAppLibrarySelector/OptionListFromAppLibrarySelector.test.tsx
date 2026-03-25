@@ -21,9 +21,7 @@ const getOptionListIdsMock = jest
 describe('OptionListFromAppLibrarySelector', () => {
   it('should render the component', async () => {
     renderOptionListSelector();
-    await waitForElementToBeRemoved(
-      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     expect(screen.getByText(textMock('ux_editor.modal_properties_code_list'))).toBeInTheDocument();
   });
@@ -32,10 +30,7 @@ describe('OptionListFromAppLibrarySelector', () => {
     renderOptionListSelector({
       getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
     });
-    await waitForElementToBeRemoved(
-      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
-    );
-
+    await waitForLoadingToFinish();
     expect(
       screen.queryByText(textMock('ux_editor.modal_properties_code_list')),
     ).not.toBeInTheDocument();
@@ -44,10 +39,7 @@ describe('OptionListFromAppLibrarySelector', () => {
   it('should call onChange when option list changes', async () => {
     const user = userEvent.setup();
     renderOptionListSelector();
-    await waitForElementToBeRemoved(
-      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
-    );
-
+    await waitForLoadingToFinish();
     await user.click(getDropdownButton());
     await user.click(getDropdownOption());
 
@@ -61,9 +53,7 @@ describe('OptionListFromAppLibrarySelector', () => {
         options: [{ label: 'option1', value: 'option1' }],
       },
     });
-    await waitForElementToBeRemoved(
-      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     await user.click(getDropdownButton());
     await user.click(getDropdownOption());
@@ -122,3 +112,9 @@ function renderOptionListSelector({
     },
   );
 }
+
+const waitForLoadingToFinish = async () => {
+  await waitForElementToBeRemoved(() =>
+    screen.queryByLabelText(textMock('ux_editor.modal_properties_loading')),
+  );
+};

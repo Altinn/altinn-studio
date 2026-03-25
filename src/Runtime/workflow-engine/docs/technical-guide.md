@@ -16,6 +16,7 @@ This document is aimed at internal developers who need to understand, integrate 
   - [Concurrency Model](#concurrency-model)
   - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
   - [Cancellation](#cancellation)
+  - [Resume](#resume)
   - [Dependency Graphs](#dependency-graphs)
   - [Telemetry \& Observability](#telemetry--observability)
   - [Dashboard](#dashboard)
@@ -126,6 +127,8 @@ await app.RunAsync();
 Additional states:
 - **DependencyFailed** — a dependency workflow failed
 - **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
+
+Terminal workflows (Failed, Canceled, DependencyFailed) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
 
 ### Processing Loop
 
@@ -264,6 +267,32 @@ POST /api/v1/workflows/{workflowId}/cancel
 4. `WorkflowHandler` catches the cancellation and marks the workflow `Canceled`
 
 Cancellation is **idempotent** — multiple calls return the original timestamp.
+
+## Resume
+
+Terminal workflows (Failed, Canceled, DependencyFailed) can be resumed for re-processing:
+
+```
+POST /api/v1/workflows/{workflowId}/resume?cascade=false
+```
+
+1. Resets the workflow to `Enqueued`, clearing `CancellationRequestedAt`, `BackoffUntil`, `HeartbeatAt`, and `ReclaimCount`
+2. Resets all non-completed steps to `Enqueued`
+3. The processor picks up the workflow on its next cycle
+
+When `cascade=true`, all transitively dependent workflows in `DependencyFailed` state are also resumed. This is useful when a parent workflow's failure cascaded to its children — resuming the parent with cascade fixes the entire chain.
+
+**Response (200 OK):**
+
+```json
+{
+  "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "resumedAt": "2026-03-19T10:02:00+00:00",
+  "cascadeResumed": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
+}
+```
+
+Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed` or `Processing`).
 
 ## Dependency Graphs
 
@@ -512,6 +541,22 @@ POST /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
   "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
   "cancellationRequestedAt": "2026-03-19T10:01:00+00:00",
   "canceledImmediately": true
+}
+```
+
+### Resume Workflow
+
+```
+POST /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "resumedAt": "2026-03-19T10:02:00+00:00",
+  "cascadeResumed": []
 }
 ```
 
