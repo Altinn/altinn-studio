@@ -150,12 +150,12 @@ public static class TelemetryExtensions
 
     extension(Counter<long> counter)
     {
-        public void Add(long value, (string tag, object? value) tag)
+        public void Add(long value, (string tag, object value) tag)
         {
             counter.Add(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
-        public void Add(long value, params (string tag, object? value)[] tags)
+        public void Add(long value, params (string tag, object value)[] tags)
         {
             counter.Add(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());
         }
@@ -163,12 +163,12 @@ public static class TelemetryExtensions
 
     extension(Histogram<double> histogram)
     {
-        public void Record(double value, (string tag, object? value) tag)
+        public void Record(double value, (string tag, object value) tag)
         {
             histogram.Record(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
-        public void Record(double value, params (string tag, object? value)[] tags)
+        public void Record(double value, params (string tag, object value)[] tags)
         {
             histogram.Record(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());
         }
