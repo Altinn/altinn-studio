@@ -79,7 +79,7 @@ public class HeartbeatServiceTests
         }
         finally
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             tracker.TryRemove(id1, out _);
             tracker.TryRemove(id2, out _);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -113,7 +113,7 @@ public class HeartbeatServiceTests
             await Task.Delay(200, TestContext.Current.CancellationToken);
 
             // Cancel the stopping token — simulates shutdown
-            cts.Cancel();
+            await cts.CancelAsync();
 
             // Reset the mock to only track calls after shutdown
             repo.Invocations.Clear();
@@ -130,7 +130,7 @@ public class HeartbeatServiceTests
         finally
         {
             // Now empty the tracker — service should exit
-            cts.Cancel(); // no-op if already cancelled, but ensures it's cancelled
+            await cts.CancelAsync(); // no-op if already cancelled, but ensures it's cancelled
             tracker.TryRemove(id, out _);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
@@ -166,7 +166,7 @@ public class HeartbeatServiceTests
         }
         finally
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
@@ -213,7 +213,7 @@ public class HeartbeatServiceTests
         }
         finally
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             tracker.TryRemove(id, out _);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);

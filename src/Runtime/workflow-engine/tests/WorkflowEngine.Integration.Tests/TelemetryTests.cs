@@ -316,7 +316,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // ───────────────────────────────────────────────────────────
         Assert.Equal(default, processWorkflow.ParentSpanId);
 
-        var link = Assert.Single(processWorkflow.Links);
+        _ = Assert.Single(processWorkflow.Links);
 
         // ───────────────────────────────────────────────────────────
         // Trace B — Processing tree (new root trace)

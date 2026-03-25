@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
 // CA1724: Type names should not match namespaces
-#pragma warning disable CA1724;
+#pragma warning disable CA1724
 
 namespace WorkflowEngine.Telemetry;
 
