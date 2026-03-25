@@ -63,7 +63,9 @@ const init = () => {
                 data
             );
         // Recent keys needed so active exit animation is skipped for workflows moving to recent
-        const recentKeys = d.recent ? new Set(d.recent.map((w) => w.idempotencyKey)) : null;
+        const recentKeys = d.recent
+            ? new Set(d.recent.map((w) => w.idempotencyKey))
+            : null;
         if (d.active !== undefined) updateLiveWorkflows(d.active, recentKeys);
         if (d.recent !== undefined) updateRecentWorkflows(d.recent);
     });

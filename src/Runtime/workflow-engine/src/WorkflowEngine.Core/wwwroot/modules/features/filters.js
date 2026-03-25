@@ -164,12 +164,9 @@ export const applyFilter = () => {
                 const st = /** @type {HTMLElement} */ (chip).dataset.status || '';
                 const label =
                     /** @type {HTMLElement} */ (chip).dataset.label ||
-                    /** @type {HTMLElement} */ (
-                        chip.dataset.label = (chip.textContent?.trim() || '').replace(
-                            /\s*\(.*\)$/,
-                            '',
-                        )
-                    );
+                    /** @type {HTMLElement} */ ((chip).dataset.label = (
+                        chip.textContent?.trim() || ''
+                    ).replace(/\s*\(.*\)$/, ''));
                 if (!st) {
                     chip.textContent = `${label} (${cards.length})`;
                 } else {
