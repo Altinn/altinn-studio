@@ -47,7 +47,7 @@ export const News = () => {
                     </Paragraph>
                   </Card.Content>
                   <Card.Content>
-                    <StudioParagraph>
+                    <StudioParagraph data-size='md'>
                       <Trans
                         i18nKey={content}
                         components={{
