@@ -195,11 +195,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         if (!await _userOrganizationService.UserIsMemberOfOrganization(org))
         {
-            _logger.LogWarning(
-                "User {Developer} was denied access to start workflow for org {Org}",
-                developer,
-                org
-            );
+            _logger.LogWarning("User {Developer} was denied access to start workflow for org {Org}", developer, org);
             throw new HubException("Access denied");
         }
     }
