@@ -58,7 +58,7 @@ public class CancellationWatcherServiceTests
         repo.Setup(r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((IReadOnlyList<Guid> ids, CancellationToken _) => ids.Where(x => x == id).ToList());
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -92,7 +92,7 @@ public class CancellationWatcherServiceTests
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -145,7 +145,7 @@ public class CancellationWatcherServiceTests
                 }
             );
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
