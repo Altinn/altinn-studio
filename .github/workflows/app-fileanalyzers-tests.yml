@@ -25,6 +25,7 @@ jobs:
             workingDir: src\App\fileanalyzers\
     name: Run dotnet build and test
     runs-on: ${{ matrix.os.id }}
+    timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:

@@ -16,6 +16,7 @@ jobs:
   dotnet-format-check:
     name: Format check
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: src/Designer/backend

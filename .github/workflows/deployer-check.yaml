@@ -16,6 +16,7 @@ jobs:
   check:
     name: Run make check
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: src/tools/deployer
