@@ -180,8 +180,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           onUnsavedValueChange={handleUnsavedValueChange('homepage')}
         />
         <AppVisibilityAndDelegationCard
-          visible={updatedAppConfig.access?.visible ?? false}
-          delegable={updatedAppConfig.access?.delegable ?? false}
+          visible={updatedAppConfig.access?.visible ?? true}
+          delegable={updatedAppConfig.access?.delegable ?? true}
           descriptionValue={updatedAppConfig.access?.rightDescription ?? defaultDescriptionValue}
           onChangeVisible={onChangeVisible}
           onChangeDelegable={onChangeDelegable}
