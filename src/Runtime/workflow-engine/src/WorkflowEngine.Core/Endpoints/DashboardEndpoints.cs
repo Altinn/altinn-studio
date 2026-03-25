@@ -42,7 +42,9 @@ internal static class DashboardEndpoints
         {
             // In dev/Docker, serve from disk so edits are picked up without a rebuild.
             // Try volume-mounted /app/wwwroot first (Docker), then relative to DLL (dotnet run).
-            var coreAssemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+            var coreAssemblyDir =
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+                ?? throw new InvalidOperationException("Could not determine executing assembly directory");
             var wwwrootOnDisk = Path.Combine(coreAssemblyDir, "wwwroot");
             if (!Directory.Exists(wwwrootOnDisk))
                 wwwrootOnDisk = Path.GetFullPath(Path.Combine(coreAssemblyDir, "..", "..", "..", "wwwroot"));
@@ -369,8 +371,7 @@ internal static class DashboardEndpoints
                                     _ => null,
                                 }
                             )
-                            .Where(s => s != null)
-                            .Select(s => s!.Value)
+                            .OfType<PersistentItemStatus>()
                             .ToArray();
 
                     bool retriedOnly = retried == true;
