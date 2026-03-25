@@ -52,6 +52,10 @@ public static class Metrics
     public static readonly Counter<long> WorkflowsCanceled = Meter.CreateCounter<long>(
         "engine.workflows.execution.canceled"
     );
+    public static readonly Counter<long> WorkflowsResumed = Meter.CreateCounter<long>(
+        "engine.workflows.execution.resumed",
+        description: "Number of terminal workflows resumed for re-processing"
+    );
     public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
         "engine.workflows.execution.reclaimed",
         description: "Number of stale workflows reclaimed from crashed workers"

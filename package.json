@@ -40,6 +40,7 @@
     "not op_mini all"
   ],
   "workspaces": [
+    "src/App/frontend",
     "src/Designer/development/azure-devops-mock",
     "src/Designer/frontend",
     "src/Designer/frontend/app-development",
@@ -62,5 +63,8 @@
     "src/Designer/frontend/packages/process-editor",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**"
-  ]
+  ],
+  "resolutions": {
+    "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"
+  }
 }

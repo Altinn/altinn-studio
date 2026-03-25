@@ -513,18 +513,18 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing or invalid workflowId");
                     }
 
-                    using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var engine = sp.GetRequiredService<IEngine>();
+                    var result = await engine.ResumeWorkflow(workflowId, cascade: false, ct);
 
-                    bool updated = await repo.ResetWorkflowForRetry(workflowId, ct);
-                    if (updated)
-                        return Results.Ok();
-
-                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
-                    if (status is null)
-                        return Results.NotFound();
-
-                    return Results.Conflict($"Workflow is in {status} state");
+                    return result switch
+                    {
+                        ResumeWorkflowResult.Resumed => Results.Ok(),
+                        ResumeWorkflowResult.NotFound => Results.NotFound(),
+                        ResumeWorkflowResult.NotResumable r => Results.Conflict(
+                            $"Workflow is in {r.CurrentStatus} state"
+                        ),
+                        _ => throw new UnreachableException(),
+                    };
                 }
             )
             .ExcludeFromDescription();

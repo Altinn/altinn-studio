@@ -21,6 +21,7 @@ jobs:
         os: [ubuntu-latest,windows-latest,macos-latest]
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
+    timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:

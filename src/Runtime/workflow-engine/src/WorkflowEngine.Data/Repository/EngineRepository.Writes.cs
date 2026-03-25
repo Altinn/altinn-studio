@@ -985,76 +985,133 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<bool> ResetWorkflowForRetry(Guid workflowId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Guid>> ResumeWorkflow(
+        Guid workflowId,
+        DateTimeOffset resumedAt,
+        bool cascade = false,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.ResetWorkflowForRetry");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.ResumeWorkflow");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            int rowsAffected = 0;
+            List<Guid> resumedIds = [];
             await ExecuteWithRetry(
                 async ct =>
                 {
+                    resumedIds.Clear();
+
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // Reset workflow to Enqueued, clear backoff — only if Failed or Requeued
-                    const string resetWorkflowSql = """
+                    // Reset the primary workflow — terminal states + Requeued (skips backoff wait)
+                    const string resetPrimarySql = """
                     UPDATE engine."Workflows"
-                    SET "Status" = @status, "BackoffUntil" = NULL, "UpdatedAt" = @now
-                    WHERE "Id" = @id AND "Status" IN (@failed, @requeued)
+                    SET "Status" = @enqueued,
+                        "CancellationRequestedAt" = NULL,
+                        "BackoffUntil" = NULL,
+                        "HeartbeatAt" = NULL,
+                        "ReclaimCount" = 0,
+                        "UpdatedAt" = @now
+                    WHERE "Id" = @id
+                      AND "Status" IN (@failed, @canceled, @depFailed, @requeued)
+                    RETURNING "Id"
                     """;
-                    await using (var cmd = new NpgsqlCommand(resetWorkflowSql, conn, tx))
+                    await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
                     {
                         cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
-                        cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Enqueued));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("canceled", (int)PersistentItemStatus.Canceled));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
+                        );
                         cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
-                        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
-                        rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
+                        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", resumedAt));
+
+                        await using var reader = await cmd.ExecuteReaderAsync(ct);
+                        if (await reader.ReadAsync(ct))
+                            resumedIds.Add(reader.GetGuid(0));
                     }
 
-                    if (rowsAffected > 0)
+                    if (resumedIds.Count == 0)
                     {
-                        // Reset non-completed steps to Enqueued
-                        const string resetStepsSql = """
-                        UPDATE engine."Steps"
-                        SET "Status" = @status, "UpdatedAt" = @now
-                        WHERE "JobId" = @id AND "Status" IN (@failed, @requeued, @canceled, @depFailed)
+                        await tx.RollbackAsync(ct);
+                        return;
+                    }
+
+                    // Cascade: resume transitively dependent DependencyFailed workflows
+                    if (cascade)
+                    {
+                        const string cascadeSql = """
+                        WITH RECURSIVE dependents AS (
+                            SELECT wd."WorkflowId" AS "Id"
+                            FROM engine."WorkflowDependency" wd
+                            JOIN engine."Workflows" w ON w."Id" = wd."WorkflowId"
+                            WHERE wd."DependsOnWorkflowId" = @id
+                              AND w."Status" = @depFailed
+                            UNION
+                            SELECT wd."WorkflowId"
+                            FROM engine."WorkflowDependency" wd
+                            JOIN engine."Workflows" w ON w."Id" = wd."WorkflowId"
+                            JOIN dependents d ON wd."DependsOnWorkflowId" = d."Id"
+                            WHERE w."Status" = @depFailed
+                        )
+                        UPDATE engine."Workflows" w
+                        SET "Status" = @enqueued,
+                            "CancellationRequestedAt" = NULL,
+                            "BackoffUntil" = NULL,
+                            "HeartbeatAt" = NULL,
+                            "ReclaimCount" = 0,
+                            "UpdatedAt" = @now
+                        FROM dependents d
+                        WHERE w."Id" = d."Id"
+                        RETURNING w."Id"
                         """;
-                        await using (var cmd = new NpgsqlCommand(resetStepsSql, conn, tx))
+                        await using (var cmd = new NpgsqlCommand(cascadeSql, conn, tx))
                         {
                             cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
-                            cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Enqueued));
-                            cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
-                            cmd.Parameters.Add(
-                                new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued)
-                            );
-                            cmd.Parameters.Add(
-                                new NpgsqlParameter<int>("canceled", (int)PersistentItemStatus.Canceled)
-                            );
                             cmd.Parameters.Add(
                                 new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
                             );
-                            cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
-                            await cmd.ExecuteNonQueryAsync(ct);
+                            cmd.Parameters.Add(
+                                new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued)
+                            );
+                            cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", resumedAt));
+
+                            await using var reader = await cmd.ExecuteReaderAsync(ct);
+                            while (await reader.ReadAsync(ct))
+                                resumedIds.Add(reader.GetGuid(0));
                         }
-
-                        await tx.CommitAsync(ct);
-
-                        await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
-                        await notifyCmd.ExecuteNonQueryAsync(ct);
                     }
-                    else
+
+                    // Reset non-completed steps for all resumed workflows
+                    const string resetStepsSql = """
+                    UPDATE engine."Steps"
+                    SET "Status" = @enqueued, "RequeueCount" = 0, "UpdatedAt" = @now
+                    WHERE "JobId" = ANY(@ids)
+                      AND "Status" != @completed
+                    """;
+                    await using (var cmd = new NpgsqlCommand(resetStepsSql, conn, tx))
                     {
-                        await tx.RollbackAsync(ct);
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", resumedIds.ToArray()));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued));
+                        cmd.Parameters.Add(new NpgsqlParameter<int>("completed", (int)PersistentItemStatus.Completed));
+                        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", resumedAt));
+                        await cmd.ExecuteNonQueryAsync(ct);
                     }
+
+                    await tx.CommitAsync(ct);
+
+                    await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
+                    await notifyCmd.ExecuteNonQueryAsync(ct);
                 },
                 cancellationToken
             );
 
-            return rowsAffected > 0;
+            return resumedIds;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -1063,7 +1120,7 @@ internal sealed partial class EngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.FailedToUpdateWorkflow("retry", workflowId, ex.Message, ex);
+            logger.FailedToUpdateWorkflow("resume", workflowId, ex.Message, ex);
             throw;
         }
     }
