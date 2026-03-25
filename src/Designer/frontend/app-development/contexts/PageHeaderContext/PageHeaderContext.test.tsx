@@ -14,7 +14,7 @@ const UserSettingsLinkConsumer = () => {
   const allItems = profileMenuGroups?.flatMap((group) => group.items) ?? [];
   const userSettingsItem = allItems.find((item) => item.itemName === textMock('user.settings'));
   const href = userSettingsItem?.action.type === 'link' ? userSettingsItem.action.href : null;
-  return <div data-testid=settings-href'>{href ?? 'none'}</div>;
+  return <div data-testid='settings-href'>{href ?? 'none'}</div>;
 };
 
 const renderPageHeaderContext = () =>
