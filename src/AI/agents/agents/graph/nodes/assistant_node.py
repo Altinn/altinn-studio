@@ -38,7 +38,6 @@ async def handle(state: AgentState) -> AgentState:
     langfuse = get_client()
     with propagate_attributes(
         user_id=state.org,
-        session_id=state.session_id,
         metadata={"developer": state.developer},
     ):
         with langfuse.start_as_current_observation(

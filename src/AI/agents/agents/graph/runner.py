@@ -97,7 +97,6 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     if langfuse:
         with propagate_attributes(
             user_id=state.org,
-            session_id=state.session_id,
             metadata={"developer": state.developer},
         ):
             with langfuse.start_as_current_observation(
