@@ -57,7 +57,7 @@ Async process orchestration for Altinn
 
 ---
 
-# How process/next Works Today
+# How _process/next_ works today
 
 `PUT /process/next` executes the entire process transition in a single HTTP request:
 
@@ -81,7 +81,7 @@ If the task after the current one is a service task (PDF, signing, payment), the
 
 ---
 
-# Where It Breaks
+# Where it breaks
 
 The entire chain runs synchronously inside one HTTP request/response cycle.
 
@@ -97,7 +97,7 @@ The common thread: **no automatic recovery**. If it fails, someone has to invest
 
 ---
 
-# What We Built
+# What we built
 
 A dedicated workflow engine that moves process execution out of the HTTP request cycle.
 
@@ -125,7 +125,7 @@ The app enqueues and returns immediately. The engine handles execution, retries,
 
 ---
 
-# How It Handles the Same Failures
+# How it handles the same failures
 
 | Failure point | Current behavior | Workflow Engine behavior |
 |---|---|---|
@@ -140,7 +140,7 @@ Every failure path ends in either **successful retry** or **explicit, visible fa
 
 ---
 
-# Tech Stack
+# Tech stack
 
 | Component | Technology |
 |---|---|
@@ -179,7 +179,7 @@ Database is the single source of truth. No in-memory queue.
 
 ---
 
-# Processing Model
+# Processing model
 
 ### How work is picked up
 - `WorkflowProcessor` (BackgroundService) polls PostgreSQL in a loop
@@ -199,7 +199,7 @@ Database is the single source of truth. No in-memory queue.
 
 ---
 
-# Retry Strategy
+# Retry strategy
 
 Per-step, configurable:
 
@@ -221,7 +221,7 @@ Error classification drives retry behavior:
 
 ---
 
-# Concurrency & Backpressure
+# Concurrency & backpressure
 
 Three independent semaphore pools prevent resource exhaustion:
 
@@ -237,6 +237,11 @@ When active workflows exceed the backpressure threshold, the engine returns **HT
 - `POST /api/v1/workflows/{id}/cancel`
 - Propagated across pods via DB polling
 - Idempotent &mdash; safe to call multiple times
+
+### Resume
+- `POST /api/v1/workflows/{id}/resume?cascade=false`
+- Resumes failed, canceled, or dependency-failed workflows
+- Optional `cascade=true` to resume transitively dependent workflows
 
 ---
 
@@ -308,5 +313,5 @@ A single enqueue request can express **fan-out / fan-in** patterns:
 | Integration tests (Testcontainers, WireMock) | Implemented |
 | Load testing (k6 scripts) | Implemented |
 | Integration with Altinn app process engine | In progress |
-| Production deployment | Not started |
+| Production deployment | In progress |
 

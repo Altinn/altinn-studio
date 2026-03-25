@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/frontend/src/**'
-      - 'src/App/frontend/yarn.lock'
+      - 'src/App/frontend/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
 
 concurrency:

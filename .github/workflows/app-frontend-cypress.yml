@@ -11,7 +11,7 @@ on:
       - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
-      - 'src/App/frontend/yarn.lock'
+      - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
       - '.github/workflows/app-frontend-cypress.yml'
   workflow_dispatch:
@@ -50,7 +50,7 @@ jobs:
       (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:
       run:
@@ -127,7 +127,7 @@ jobs:
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:
       run:

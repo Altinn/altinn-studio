@@ -10,6 +10,7 @@ from .nodes.actor_node import handle as actor_node
 from .nodes.verifier_node import handle as verifier_node
 from .nodes.reviewer_node import handle as reviewer_node
 from agents.services.events import AgentEvent, EventSink, sink
+from shared.utils.logging_utils import get_logger
 import asyncio
 
 
@@ -32,6 +33,7 @@ def _with_cancellation(fn):
     wrapper.__name__ = fn.__name__
     return wrapper
 
+log = get_logger(__name__)
 
 def should_continue_after_intake(state: AgentState) -> str:
     """Route from intake to spec (if attachments) or scan"""
@@ -186,13 +188,28 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 current_graph = build_graph()
                 final_state = await current_graph.ainvoke(state)
                 
-                root_span.update(
-                    output={
-                        "success": bool(final_state.get("tests_passed", False)),
-                        "changed_files": len(final_state.get("changed_files", [])),
-                        "next_action": str(final_state.get("next_action", ""))
-                    }
-                )
+                root_span.update(output={
+                    "success": bool(final_state.get("tests_passed", False)),
+                    "changed_files": len(final_state.get("changed_files", [])),
+                    "next_action": str(final_state.get("next_action", ""))
+                })
+
+                # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
+                async def _run_intent_match_evaluation() -> None:
+                    try:
+                        from agents.services.evaluation.intent_judge import run_intent_judge
+                        step_plan = final_state.get("step_plan") or []
+                        await run_intent_judge(
+                            user_goal=state.user_goal,
+                            agent_plan=step_plan[0] if isinstance(step_plan, list) and step_plan else None,
+                            trace_id=root_span.trace_id,
+                        )
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception:
+                        log.exception("Evaluation pipeline error")
+
+                asyncio.create_task(_run_intent_match_evaluation())
                     
             except Exception as e:
                 root_span.update(
