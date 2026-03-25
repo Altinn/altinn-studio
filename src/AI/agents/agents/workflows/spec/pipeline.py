@@ -9,7 +9,7 @@ from shared.utils.langfuse_utils import trace_span
 
 from agents.graph.state import FormSpec, FormSpecPage, FormSpecField
 from agents.services.llm import LLMClient
-from agents.prompts import get_prompt_content, render_template
+from agents.prompts import get_prompt_with_langfuse, render_template
 from shared.models import AgentAttachment
 from shared.utils.logging_utils import get_logger
 
@@ -28,7 +28,7 @@ def run_spec_pipeline(
         log.info("No attachments provided — skipping spec extraction")
         return None
 
-    system_prompt = get_prompt_content("spec_extraction")
+    system_prompt, lf_prompt = get_prompt_with_langfuse("spec_extraction")
     user_prompt = render_template("spec_extraction_user", user_goal=user_goal)
 
     client = LLMClient(role="planner")  # Vision-capable model
@@ -43,9 +43,9 @@ def run_spec_pipeline(
     ) as span:
         try:
             raw_response = client.call_sync(
-                system_prompt, user_prompt, attachments=attachments
+                system_prompt, user_prompt, attachments=attachments,
+                langfuse_prompt=lf_prompt,
             )
-            span.update(output={"response_length": len(raw_response)})
         except Exception as e:
             error_str = str(e)
             log.error(f"Spec extraction LLM call failed: {error_str}")
@@ -66,23 +66,39 @@ def run_spec_pipeline(
                         "", compact_prompt, attachments=attachments
                     )
                     log.info(f"Retry succeeded, response length: {len(raw_response)}")
-                    span.update(output={"response_length": len(raw_response), "retry": True})
                 except Exception as retry_err:
                     log.error(f"Spec extraction retry also failed: {retry_err}")
+                    span.update(output={"error": str(retry_err), "retry_failed": True})
                     return None
             else:
                 return None
 
-    # Parse the JSON response into FormSpec
-    form_spec = _parse_spec_response(raw_response)
+        # Parse inside the span so we can record the result
+        form_spec = _parse_spec_response(raw_response)
 
-    if form_spec:
-        log.info(
-            f"✅ Spec extracted: \"{form_spec.title}\" — "
-            f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
-        )
-    else:
-        log.warning("⚠️ Could not parse spec from LLM response")
+        if form_spec:
+            log.info(
+                f"✅ Spec extracted: \"{form_spec.title}\" — "
+                f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
+            )
+            span.update(output={
+                "response_length": len(raw_response),
+                "parse_success": True,
+                "spec_title": form_spec.title,
+                "spec_pages": form_spec.total_pages,
+                "spec_fields": form_spec.field_count(),
+            })
+        else:
+            log.warning(
+                f"⚠️ Could not parse spec from LLM response "
+                f"(response length: {len(raw_response)}, "
+                f"first 500 chars: {raw_response[:500]!r})"
+            )
+            span.update(output={
+                "response_length": len(raw_response),
+                "parse_success": False,
+                "response_preview": raw_response[:1000],
+            })
 
     return form_spec
 
@@ -92,8 +108,8 @@ def _try_parse_json(text: str) -> Optional[dict]:
     # 1. Direct parse
     try:
         return json.loads(text)
-    except json.JSONDecodeError:
-        pass
+    except json.JSONDecodeError as e:
+        log.debug(f"Direct JSON parse failed: {e}")
 
     # 2. Extract between first { and last }
     start = text.find("{")
@@ -101,8 +117,8 @@ def _try_parse_json(text: str) -> Optional[dict]:
     if start != -1 and end != -1 and end > start:
         try:
             return json.loads(text[start : end + 1])
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            log.debug(f"Bracket-extraction parse failed: {e}")
 
     # 3. Truncated JSON — try closing open brackets/braces
     if start != -1:
@@ -128,10 +144,13 @@ def _try_parse_json(text: str) -> Optional[dict]:
             data = json.loads(repaired)
             log.info(f"Repaired truncated JSON (closed {max(opens,0)} braces, {max(open_sq,0)} brackets)")
             return data
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            log.debug(f"Truncation repair parse failed: {e}")
 
-    log.error("All JSON parse strategies failed")
+    log.error(
+        f"All JSON parse strategies failed for text of length {len(text)} "
+        f"(starts with: {text[:200]!r})"
+    )
     return None
 
 

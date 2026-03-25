@@ -169,6 +169,7 @@ async def run_actor_pipeline(
     """Execute the full actor workflow pipeline."""
     
     # Wrap entire pipeline in a span for proper trace nesting
+    log.info(f"📋 [ACTOR PIPELINE] form_spec_summary is {'SET (' + str(len(form_spec_summary)) + ' chars)' if form_spec_summary else 'None'}")
     with trace_span(
         name="actor_pipeline",
         metadata={"span_type": "AGENT"},
@@ -176,6 +177,8 @@ async def run_actor_pipeline(
             "user_goal_length": len(user_goal),
             "has_planner_step": bool(planner_step),
             "has_attachments": bool(attachments),
+            "has_form_spec_summary": bool(form_spec_summary),
+            "form_spec_summary_length": len(form_spec_summary) if form_spec_summary else 0,
             "repo_facts_keys": list(repo_facts.keys()) if repo_facts else []
         }
     ) as pipeline_span:
@@ -263,7 +266,13 @@ async def create_general_plan(user_goal: str, planner_step: Optional[str] = None
     with trace_generation(
         "general_planning_llm",
         model=client.model,
-        input={"user_goal": user_goal, "planner_step_present": bool(planner_step)},
+        input={
+            "user_goal": user_goal,
+            "planner_step_present": bool(planner_step),
+            "has_form_spec_summary": bool(form_spec_summary),
+            "form_spec_summary_length": len(form_spec_summary) if form_spec_summary else 0,
+            "user_prompt_length": len(user_prompt),
+        },
         metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
     ) as span:
         # Don't pass image attachments — form_spec_summary has the extracted text.

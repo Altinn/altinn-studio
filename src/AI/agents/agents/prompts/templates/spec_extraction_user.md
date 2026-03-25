@@ -1,4 +1,4 @@
-USER GOAL: {user_goal}
+USER GOAL: {{user_goal}}
 
 Analyze the attached document(s) and extract a complete form specification.
 

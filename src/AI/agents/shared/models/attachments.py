@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 import logging
 
@@ -56,56 +56,45 @@ class AgentAttachment(BaseModel):
     data_base64: Optional[str] = None
     azure_file_id: Optional[str] = None
 
-    def _extract_pdf_text(self) -> Optional[str]:
-        """Extract text content from PDF file."""
-        try:
-            from pypdf import PdfReader
-            
-            reader = PdfReader(self.path)
-            text_parts = []
-            
-            for page_num, page in enumerate(reader.pages, 1):
-                page_text = page.extract_text()
-                if page_text.strip():
-                    text_parts.append(f"--- Page {page_num} ---\n{page_text}")
-            
-            if text_parts:
-                return "\n\n".join(text_parts)
-            return None
-            
-        except Exception as e:
-            logger.error(f"Failed to extract text from PDF {self.name}: {e}")
-            return None
+    def _ensure_base64(self) -> Optional[str]:
+        """Return base64-encoded file data, reading from disk if necessary."""
+        if self.data_base64:
+            return self.data_base64
+        if self.path and self.path.exists():
+            return b64encode(self.path.read_bytes()).decode("ascii")
+        return None
 
-    def to_content_block(self) -> Optional[dict]:
-        # Handle images as visual content
-        if self.mime_type.startswith("image/") and self.data_base64:
-            return {
+    def to_content_blocks(self) -> List[dict]:
+        """Convert attachment to LLM content blocks.
+
+        Prefers native file passthrough so the model receives the original
+        document.  Falls back to a text placeholder when no data is available.
+        """
+        data = self._ensure_base64()
+
+        if self.mime_type.startswith("image/") and data:
+            return [{
                 "type": "image_url",
                 "image_url": {
-                    "url": f"data:{self.mime_type};base64,{self.data_base64}"
+                    "url": f"data:{self.mime_type};base64,{data}"
                 },
-            }
-        
-        # Handle PDFs by extracting text content
-        if self.mime_type == "application/pdf":
-            pdf_text = self._extract_pdf_text()
-            if pdf_text:
-                return {
-                    "type": "text",
-                    "text": f"PDF Document: {self.name}\n\n{pdf_text}"
-                }
-            # Fallback if extraction fails
-            return {
-                "type": "text",
-                "text": f"PDF Document: {self.name} (text extraction failed, file saved to {self.path})"
-            }
-        
-        # Handle other file types
-        if self.data_base64:
-            text = f"Attachment {self.name} ({self.mime_type}) base64:\n{self.data_base64}"
-            return {"type": "text", "text": text}
-        return {"type": "text", "text": f"Attachment {self.name} saved to {self.path}"}
+            }]
+
+        if data:
+            return [{
+                "type": "file",
+                "file": {
+                    "filename": self.name,
+                    "file_data": f"data:{self.mime_type};base64,{data}",
+                },
+            }]
+
+        return [{"type": "text", "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable"}]
+
+    def to_content_block(self) -> Optional[dict]:
+        """Legacy single-block method. Returns the first content block."""
+        blocks = self.to_content_blocks()
+        return blocks[0] if blocks else None
 
 
 def get_session_dir(root: Path, session_id: str) -> Path:

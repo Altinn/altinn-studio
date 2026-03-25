@@ -115,6 +115,42 @@ graph = build_graph()
 
 from langfuse import get_client
 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client
+from agents.services.llm import parse_intent_async, suggest_goal_correction
+
+import logging as _logging
+_log = _logging.getLogger(__name__)
+
+MINIMUM_INTENT_CONFIDENCE = 0.1
+
+
+class GoalRejected(Exception):
+    """Raised when the intent parser rejects the user's goal."""
+    pass
+
+
+async def _validate_intent(state: AgentState):
+    """Parse intent and reject unsafe or unclear goals."""
+    parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
+
+    if not parsed.safe:
+        _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
+        suggestions = suggest_goal_correction(state.user_goal)
+        raise GoalRejected(
+            f"Goal rejected: {parsed.reason}|{','.join(suggestions) if suggestions else ''}"
+        )
+
+    if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
+        _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
+        suggestions = suggest_goal_correction(state.user_goal)
+        raise GoalRejected(
+            f"Goal is too unclear or ambiguous|{','.join(suggestions) if suggestions else ''}"
+        )
+
+    _log.info(
+        "Parsed intent for session %s: action=%s, component=%s, confidence=%s",
+        state.session_id, parsed.action, parsed.component, parsed.confidence,
+    )
+
 
 async def run_once(state: AgentState, event_sink: EventSink = None):
     """Run one complete workflow loop with unified tracing"""
@@ -133,7 +169,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
             as_type="span",
             name="Altinity Agent Workflow",
             input={
-                "user_goal": str(state.user_goal)[:500],  # Truncate for display
+                "user_goal": str(state.user_goal)[:500],
                 "repo_path": str(state.repo_path),
                 "session_id": str(state.session_id)
             },
@@ -144,9 +180,10 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
             },
         ) as root_span:
             try:
-                # Rebuild graph to ensure latest changes are used
+                # Intent validation runs inside the trace
+                await _validate_intent(state)
+
                 current_graph = build_graph()
-                # Run the graph workflow asynchronously - all nested operations will be under this trace
                 final_state = await current_graph.ainvoke(state)
                 
                 root_span.update(
@@ -164,7 +201,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                 )
                 raise
     else:
-        # Run without tracing if Langfuse is disabled
+        await _validate_intent(state)
         current_graph = build_graph()
         final_state = await current_graph.ainvoke(state)
 
@@ -211,13 +248,26 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
             await run_once(state, event_sink)
         except WorkflowCancelled:
             log.info(f"🛑 Workflow cancelled for session {state.session_id}")
-            # Terminal event already sent by cancel_session — nothing to do
+        except GoalRejected as e:
+            msg = str(e)
+            parts = msg.split("|", 1)
+            reason = parts[0]
+            suggestions = parts[1].split(",") if len(parts) > 1 and parts[1] else []
+            event_sink.send(AgentEvent(
+                type="error",
+                session_id=state.session_id,
+                data={
+                    "done": True,
+                    "success": False,
+                    "status": "rejected",
+                    "message": reason,
+                    "suggestions": suggestions,
+                }
+            ))
         except Exception as e:
-            # Don't send error if already cancelled (cancel_session sent terminal event)
             if event_sink.is_cancelled(state.session_id):
                 log.info(f"🛑 Workflow error after cancellation for session {state.session_id}: {e}")
                 return
-            # Send error event to frontend so it stops loading
             log.error(f"Workflow failed with exception: {e}", exc_info=True)
             event_sink.send(AgentEvent(
                 type="error",

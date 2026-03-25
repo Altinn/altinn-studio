@@ -111,7 +111,7 @@ async def handle(state: AgentState) -> AgentState:
             
             # Set outputs on main span
             main_span.update(output={
-                "response_length": len(clean_response),
+                "response": clean_response[:5000],
                 "tools_used": list(tool_results.keys()),
                 "repository_summary": repo_summary,
                 "sources_count": len(cited_sources),
@@ -727,7 +727,7 @@ REPOSITORY CONTEXT:
         )
         
         span.update(output={
-            "response_length": len(response),
+            "response": response[:5000],
             "model_used": client.model,
             "temperature_used": client.temperature
         })

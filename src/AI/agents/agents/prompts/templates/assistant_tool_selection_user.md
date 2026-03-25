@@ -1,8 +1,8 @@
 USER QUESTION:
-{query}
+{{query}}
 
 SEMANTIC SEARCH QUERY (for reference):
-{semantic_query}
+{{semantic_query}}
 
 REPOSITORY CONTEXT:
 {{repo_context}}

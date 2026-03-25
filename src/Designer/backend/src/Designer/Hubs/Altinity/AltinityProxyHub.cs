@@ -1,13 +1,18 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,16 +24,12 @@ using ApiKeyType = Altinn.Studio.Designer.Models.ApiKey.ApiKeyType;
 namespace Altinn.Studio.Designer.Hubs.Altinity;
 
 /// <summary>
-/// SignalR hub that proxies messages between the frontend and the Altinity agents service.
-/// One agents WebSocket is shared per developer across all browser tabs.
+/// SignalR Hub for proxying Altinity agent communication with user authentication
 /// </summary>
-[Authorize]
+[Authorize(Policy = AltinnPolicy.MustHaveAiAssistantPermission)]
 public class AltinityProxyHub : Hub<IAltinityClient>
 {
-    private const string ContextItemDeveloper = "developer";
-    private const string ContextItemToken = "token";
-    private const string ContextItemSessionId = "sessionId";
-
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<AltinityProxyHub> _logger;
     private readonly AltinitySettings _altinitySettings;
@@ -39,20 +40,20 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private static readonly ConcurrentDictionary<string, string> s_sessionIdToDeveloper = new();
 
-    private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToWebSocket = new();
-
     private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToSessionId = new();
 
     public AltinityProxyHub(
+        IHttpContextAccessor httpContextAccessor,
         IHttpClientFactory httpClientFactory,
         ILogger<AltinityProxyHub> logger,
         IOptions<AltinitySettings> altinitySettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
         IAltinityWebSocketService webSocketService,
-        AltinityAttachmentBuffer attachmentStore
+        AltinityAttachmentBuffer attachmentStore,
         IApiKeyService apiKeyService
     )
     {
+        _httpContextAccessor = httpContextAccessor;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
         _altinitySettings = altinitySettings.Value;
@@ -64,21 +65,17 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     public override async Task OnConnectedAsync()
     {
-        var httpContext = Context.GetHttpContext();
-        var developer = AuthenticationHelper.GetDeveloperUserName(httpContext);
-        var token = await httpContext.GetDeveloperAppTokenAsync();
-        var sessionId = Guid.NewGuid().ToString();
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string connectionId = Context.ConnectionId;
 
-        Context.Items[ContextItemDeveloper] = developer;
-        Context.Items[ContextItemToken] = token ?? string.Empty;
-        Context.Items[ContextItemSessionId] = sessionId;
+        await Groups.AddToGroupAsync(connectionId, developer);
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, developer);
+        string sessionId = Guid.NewGuid().ToString();
 
         _logger.LogInformation(
-            "Altinity hub connected: developer={Developer}, connectionId={ConnectionId}, sessionId={SessionId}",
+            "Altinity hub connection established for user: {Developer}, connectionId: {ConnectionId}, sessionId: {SessionId}",
             developer,
-            Context.ConnectionId,
+            connectionId,
             sessionId
         );
 
@@ -87,37 +84,47 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             await _webSocketService.EnsureConnectedAsync(developer);
             await _webSocketService.RegisterSessionAsync(developer, sessionId);
 
+            s_sessionIdToDeveloper.TryAdd(sessionId, developer);
+            s_signalRConnectionToSessionId.TryAdd(connectionId, sessionId);
+
             _logger.LogInformation(
                 "Registered session {SessionId} on agents WS for developer {Developer}",
                 sessionId,
                 developer
             );
+
+            await Clients.Caller.SessionCreated(sessionId);
         }
         catch (Exception ex)
         {
             _logger.LogError(
                 ex,
-                "Failed to connect to agents service for developer {Developer}, session {SessionId}.",
-                developer,
+                "Failed to establish WebSocket to Altinity for session {SessionId}. Aborting connection.",
                 sessionId
             );
+            Context.Abort();
+            return;
         }
-
-        await Clients.Caller.SessionCreated(sessionId);
 
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var developer = GetDeveloper();
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, developer);
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        string connectionId = Context.ConnectionId;
 
-        _logger.LogInformation(
-            "Altinity hub disconnected: developer={Developer}, connectionId={ConnectionId}",
-            developer,
-            Context.ConnectionId
-        );
+        await Groups.RemoveFromGroupAsync(connectionId, developer);
+
+        if (s_signalRConnectionToSessionId.TryRemove(connectionId, out string? sessionId))
+        {
+            s_sessionIdToDeveloper.TryRemove(sessionId, out _);
+        }
+
+        // Don't close the developer WS — it persists across tab reconnects.
+        // It will be cleaned up by the service when the developer has no active sessions.
+
+        _logger.LogInformation("Altinity hub disconnected for user: {Developer}", developer);
 
         await base.OnDisconnectedAsync(exception);
     }
@@ -125,35 +132,107 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     /// <summary>
     /// Proxies the start workflow request to Altinity agent with a short-lived Designer API key
     /// </summary>
+    /// <param name="request">The workflow start request</param>
+    /// <returns>Agent response</returns>
     public async Task<object> StartWorkflow(JsonElement request)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateSessionOwnership(sessionId, developer);
 
-        _logger.LogInformation("StartWorkflow: developer={Developer}, sessionId={SessionId}", developer, sessionId);
+        _logger.LogInformation(
+            "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
+            developer,
+            sessionId
+        );
 
+        // Re-register session on the agents WS before starting
         await _webSocketService.EnsureConnectedAsync(developer);
         await _webSocketService.RegisterSessionAsync(developer, sessionId);
 
         string apiKey = await CreateAltinityApiKeyAsync(developer, sessionId);
 
-        _logger.LogInformation(
-            "Re-registered session {SessionId} on agents WS before starting workflow for developer {Developer}",
-            sessionId,
-            developer
+        var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
+        var agentResponse = await ForwardRequestToAltinityAgentAsync(
+            enrichedWithAttachments,
+            developer,
+            apiKey,
+            sessionId
         );
 
-        var enriched = EnrichWithRepoUrl(request);
-        var (withAttachments, attachmentIds) = ResolveAttachments(enriched);
-        var httpRequest = BuildAgentHttpRequest(withAttachments, developer, token, sessionId);
-        try
+        // Remove attachments from buffer only after successful forwarding
+        _attachmentStore.RemoveAll(attachmentIds);
+
+        return agentResponse;
+    }
+
+    private (JsonElement Request, List<string> AttachmentIds) ResolveAttachments(JsonElement request)
+    {
+        var attachmentIds = new List<string>();
+
+        if (
+            !request.TryGetProperty("attachment_ids", out var idsElement)
+            || idsElement.ValueKind != JsonValueKind.Array
+        )
         {
-            return await SendToAgentAsync(httpRequest);
+            return (request, attachmentIds);
         }
-        finally
+
+        var attachments = new List<object>();
+        foreach (var idEl in idsElement.EnumerateArray())
         {
-            _attachmentStore.RemoveAll(attachmentIds);
+            string? id = idEl.GetString();
+            if (id == null)
+            {
+                continue;
+            }
+
+            if (!_attachmentStore.TryGet(id, out var stored) || stored == null)
+            {
+                _logger.LogWarning("Attachment {AttachmentId} not found in buffer", id);
+                continue;
+            }
+
+            attachmentIds.Add(id);
+            attachments.Add(
+                new
+                {
+                    name = stored.Name,
+                    mimeType = stored.MimeType,
+                    size = stored.Size,
+                    dataBase64 = stored.DataBase64,
+                }
+            );
+        }
+
+        var requestDict =
+            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText())
+            ?? throw new HubException("Failed to parse workflow request");
+
+        requestDict.Remove("attachment_ids");
+        if (attachments.Count > 0)
+        {
+            requestDict["attachments"] = JsonSerializer.SerializeToElement(attachments);
+        }
+
+        return (JsonSerializer.SerializeToElement(requestDict), attachmentIds);
+    }
+
+    private async Task<string> CreateAltinityApiKeyAsync(string developer, string sessionId)
+    {
+        string keyName = $"altinity-{Guid.NewGuid()}";
+        DateTimeOffset expiresAt = DateTimeOffset.UtcNow.AddMinutes(20);
+
+        var (rawKey, _) = await _apiKeyService.CreateAsync(developer, keyName, ApiKeyType.System, expiresAt);
+
+        return rawKey;
+    }
+
+    private static string ExtractSessionIdFromRequest(JsonElement request)
+    {
+        if (!request.TryGetProperty("session_id", out var sessionIdElement))
+        {
+            throw new HubException("Missing session_id in request");
         }
 
         string? sessionId = sessionIdElement.GetString();
@@ -204,132 +283,37 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     }
 
     /// <summary>
-    /// Cancels a running workflow session.
+    /// Enriches the workflow request with the repository URL built from org and app identifiers
     /// </summary>
-    public async Task<object> CancelWorkflow(string sessionId)
+    /// <param name="request">The original workflow request</param>
+    /// <returns>Enriched request with repo_url field</returns>
+    private JsonElement EnrichRequestWithRepoUrl(JsonElement request)
     {
-        ValidateSessionId(sessionId);
-        var developer = GetDeveloper();
-
-        _logger.LogInformation("CancelWorkflow: developer={Developer}, sessionId={SessionId}", developer, sessionId);
-
-        var httpClient = _httpClientFactory.CreateClient();
-        var response = await httpClient.PostAsync($"{_altinitySettings.AgentUrl}/api/agent/cancel/{sessionId}", null);
-        var body = await response.Content.ReadAsStringAsync();
-
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Cancel failed for session {SessionId}: {Status}", sessionId, response.StatusCode);
-            throw new HubException($"Cancel failed: {body}");
-        }
-
-        return JsonSerializer.Deserialize<JsonElement>(body);
-    }
-
-    private string GetDeveloper() =>
-        Context.Items.TryGetValue(ContextItemDeveloper, out var d) ? d as string ?? string.Empty : string.Empty;
-
-    private string GetToken() =>
-        Context.Items.TryGetValue(ContextItemToken, out var t) ? t as string ?? string.Empty : string.Empty;
-
-    private string GetSessionId() =>
-        Context.Items.TryGetValue(ContextItemSessionId, out var s) ? s as string ?? string.Empty : string.Empty;
-
-    private void ValidateSessionId(string callerSessionId)
-    {
-        var connectionSessionId = GetSessionId();
-        if (!string.Equals(callerSessionId, connectionSessionId, StringComparison.Ordinal))
-        {
-            throw new HubException(
-                $"Session ID mismatch: caller provided '{callerSessionId}' but connection owns '{connectionSessionId}'"
-            );
-        }
-    }
-
-    private static string ExtractSessionId(JsonElement request)
-    {
-        if (!request.TryGetProperty("session_id", out var el) || string.IsNullOrWhiteSpace(el.GetString()))
-        {
-            throw new HubException("Missing or empty session_id in request");
-        }
-
-        return el.GetString()!;
-    }
-
-    private JsonElement EnrichWithRepoUrl(JsonElement request)
-    {
-        if (!request.TryGetProperty("org", out var orgEl) || !request.TryGetProperty("app", out var appEl))
+        if (!request.TryGetProperty("org", out var orgElement) || !request.TryGetProperty("app", out var appElement))
         {
             return request;
         }
 
-        var org = orgEl.GetString();
-        var app = appEl.GetString();
+        string? org = orgElement.GetString();
+        string? app = appElement.GetString();
 
-        if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app))
+        org.ValidPathSegment(nameof(org));
+        app.ValidPathSegment(nameof(app));
+
+        string repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
+
+        var requestDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText());
+        if (requestDict == null)
         {
-            throw new HubException("org and app identifiers cannot be empty");
+            throw new HubException("Failed to parse workflow request");
         }
 
-        if (HasInvalidPathCharacters(org) || HasInvalidPathCharacters(app))
-        {
-            throw new HubException("org and app identifiers contain invalid characters");
-        }
+        requestDict["repo_url"] = JsonSerializer.SerializeToElement(repoUrl);
 
-        var repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
-        var dict =
-            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText())
-            ?? throw new HubException("Failed to parse workflow request");
-
-        dict["repo_url"] = JsonSerializer.SerializeToElement(repoUrl);
-
-        return JsonSerializer.SerializeToElement(dict);
+        return JsonSerializer.SerializeToElement(requestDict);
     }
 
-    private (JsonElement Request, IReadOnlyList<string> AttachmentIds) ResolveAttachments(JsonElement request)
-    {
-        if (!request.TryGetProperty("attachment_ids", out var idsEl))
-        {
-            return (request, Array.Empty<string>());
-        }
-
-        var ids = new List<string>();
-        foreach (var idEl in idsEl.EnumerateArray())
-        {
-            var id = idEl.GetString();
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                ids.Add(id);
-            }
-        }
-
-        var attachments = _attachmentStore.PeekAll(ids);
-
-        var dict =
-            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText())
-            ?? throw new HubException("Failed to parse workflow request");
-
-        dict.Remove("attachment_ids");
-
-        var attachmentObjects = attachments.Select(a => new
-        {
-            name = a.Name,
-            mimeType = a.MimeType,
-            size = a.Size,
-            dataBase64 = a.DataBase64,
-        });
-
-        dict["attachments"] = JsonSerializer.SerializeToElement(attachmentObjects);
-
-        _logger.LogInformation("Resolved {Count} attachment(s) for StartWorkflow", attachments.Count);
-
-        return (JsonSerializer.SerializeToElement(dict), ids);
-    }
-
-    private static bool HasInvalidPathCharacters(string value) =>
-        value.Contains("..") || value.Contains('/') || value.Contains('\\') || value.Contains('~');
-
-    private HttpRequestMessage BuildAgentHttpRequest(
+    private HttpRequestMessage CreateAltinityHttpRequest(
         JsonElement request,
         string developer,
         string apiKey,
@@ -358,18 +342,47 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         httpRequest.Headers.Add("X-Session-Id", sessionId);
     }
 
-    private async Task<JsonElement> SendRequestToAltinityAsync(HttpRequestMessage httpRequest)
+    /// <summary>
+    /// Cancels a running workflow for the given session
+    /// </summary>
+    public async Task<object> CancelWorkflow(string sessionId)
     {
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        ValidateSessionOwnership(sessionId, developer);
+
+        _logger.LogInformation("CancelWorkflow called for session {SessionId} by {Developer}", sessionId, developer);
+
         var httpClient = _httpClientFactory.CreateClient();
-        var response = await httpClient.SendAsync(httpRequest);
-        var body = await response.Content.ReadAsStringAsync();
+        var response = await httpClient.PostAsync($"{_altinitySettings.AgentUrl}/api/agent/cancel/{sessionId}", null);
+        var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError("Agent returned error {Status}: {Body}", response.StatusCode, body);
-            throw new HubException($"Agent returned {response.StatusCode}: {body}");
+            _logger.LogError(
+                "Cancel request failed for session {SessionId}: {StatusCode}",
+                sessionId,
+                response.StatusCode
+            );
+            throw new HubException($"Cancel failed: {responseContent}");
         }
 
-        return JsonSerializer.Deserialize<JsonElement>(body);
+        _logger.LogInformation("Session {SessionId} cancelled successfully", sessionId);
+        return JsonSerializer.Deserialize<JsonElement>(responseContent);
+    }
+
+    private async Task<JsonElement> SendRequestToAltinityAsync(HttpRequestMessage httpRequest)
+    {
+        var httpClient = _httpClientFactory.CreateClient();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_altinitySettings.TimeoutSeconds));
+        var response = await httpClient.SendAsync(httpRequest, cts.Token);
+        string responseContent = await response.Content.ReadAsStringAsync(cts.Token);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Altinity agent returned error: {StatusCode}", response.StatusCode);
+            throw new HubException($"Agent returned {response.StatusCode}: {responseContent}");
+        }
+
+        return JsonSerializer.Deserialize<JsonElement>(responseContent);
     }
 }

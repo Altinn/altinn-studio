@@ -6,7 +6,7 @@ from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
 from agents.graph.nodes import assistant
 from agents.services.events import sink, AgentEvent
-from agents.services.llm import parse_intent_async, ParsedIntent, IntentParsingError, suggest_goal_correction
+
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from shared.config import get_config
@@ -52,25 +52,14 @@ async def start_agent(
         session_id = req.session_id
 
         # Extract headers passed by Designer backend
-        gitea_token = request.headers.get("X-User-Token")
-        if not gitea_token:
-            log.warning("No X-User-Token header found - git operations may fail if authentication is required")
-
         developer = request.headers.get("X-Developer")
         if developer:
             sink.register_developer_session(developer, req.session_id)
             log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
         
-        # Translate Docker internal hostnames to host-accessible URLs
-        repo_url = req.repo_url
-        if "studio-repositories:3000" in repo_url:
-            # Designer sends studio-repositories:3000, but agent needs host.docker.internal:3000
-            repo_url = repo_url.replace("studio-repositories:3000", "host.docker.internal:3000")
-            log.info(f"Translated repo URL: {req.repo_url} -> {repo_url}")
-        
         # Clone the repository for this session
         repo_manager = get_repo_manager()
-        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, gitea_token=designer_api_key)
+        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, developer=developer)
 
         branch_info = f" on branch {req.branch}" if req.branch else ""
         log.info(f"Cloned repository {req.repo_url} to {repo_path} for session {req.session_id}{branch_info}")
@@ -222,31 +211,6 @@ async def start_agent(
             # Normal workflow mode - make changes
             log.info(f"🔧 Workflow mode enabled for session {req.session_id}")
             
-            # Parse intent with safety validation (only for workflow mode)
-            parsed_intent = await parse_intent_async(req.goal, attachments=saved_attachments)
-
-            if not parsed_intent.safe:
-                log.warning(f"Unsafe goal rejected for session {req.session_id}: {parsed_intent.reason}")
-                suggestions = suggest_goal_correction(req.goal)
-
-                error_detail = {
-                    "message": f"Goal rejected: {parsed_intent.reason}",
-                    "suggestions": suggestions
-                }
-                raise HTTPException(status_code=400, detail=error_detail)
-
-            if parsed_intent.confidence < 0.1:
-                log.warning(f"Low confidence goal rejected for session {req.session_id}: {parsed_intent.confidence}")
-                suggestions = suggest_goal_correction(req.goal)
-
-                error_detail = {
-                    "message": "Goal is too unclear or ambiguous",
-                    "suggestions": suggestions
-                }
-                raise HTTPException(status_code=400, detail=error_detail)
-            
-            log.info(f"Parsed intent for session {req.session_id}: action={parsed_intent.action}, component={parsed_intent.component}, confidence={parsed_intent.confidence}")
-            
             # Load conversation history from previous interactions in this session
             from agents.graph.state import ConversationMessage
             stored_history = sink.get_conversation_history(req.session_id)
@@ -255,37 +219,26 @@ async def start_agent(
                 for msg in stored_history
             ]
             
-            # Create initial state with conversation history
             state = AgentState(
                 session_id=req.session_id,
                 user_goal=req.goal,
-                repo_path=str(repo_path),  # Use cloned repo path
+                repo_path=str(repo_path),
                 attachments=saved_attachments,
                 designer_api_key=designer_api_key,
                 conversation_history=conversation_history
             )
             
-            # Store current user goal in conversation history for future context
             sink.add_to_conversation_history(req.session_id, "user", req.goal)
 
-            # Mark session as started and start workflow in background
+            # Intent validation + workflow run in background (single Langfuse trace)
             sink.mark_session_started(req.session_id)
             run_in_background(state, sink)
 
             log.info(f"Started agent workflow for session {req.session_id}, goal: {req.goal}")
-            
-            # Set parsed_intent for response
-            parsed_intent_data = {
-                "action": parsed_intent.action,
-                "component": parsed_intent.component,
-                "target": parsed_intent.target,
-                "confidence": parsed_intent.confidence,
-                "details": parsed_intent.details
-            }
 
         mode = "chat" if not req.allow_app_changes else "workflow"
         
-        response_data = {
+        return {
             "accepted": True,
             "session_id": req.session_id,
             "mode": mode,
@@ -300,14 +253,8 @@ async def start_agent(
                     "size": att.size,
                 }
                 for att in saved_attachments
-            ]
+            ],
         }
-        
-        # Only include parsed_intent for workflow mode
-        if mode == "workflow" and 'parsed_intent_data' in locals():
-            response_data["parsed_intent"] = parsed_intent_data
-        
-        return response_data
 
     except HTTPException:
         raise

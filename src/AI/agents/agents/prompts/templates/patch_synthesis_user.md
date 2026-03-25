@@ -5,7 +5,7 @@ GENERAL PLAN (high-level approach):
 {{general_plan}}
 
 FORM SPECIFICATION (authoritative source of truth for form structure):
-{form_spec}
+{{form_spec}}
 
 🚨 CRITICAL: FORM SPEC IS THE SOURCE OF TRUTH 🚨
 

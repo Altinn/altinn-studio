@@ -5,7 +5,7 @@ CURRENT PLAN STEP (if any):
 {{planner_step}}
 
 FORM SPECIFICATION (if available):
-{form_spec}
+{{form_spec}}
 
 If a FORM SPECIFICATION is provided above, it is the authoritative source of truth for the form structure. Use it to:
 

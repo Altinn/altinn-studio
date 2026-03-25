@@ -354,9 +354,8 @@ class LLMClient:
         if attachments:
             content = [{"type": "text", "text": user_prompt}]
             for attachment in attachments:
-                block = attachment.to_content_block()
-                if block:
-                    content.append(block)
+                blocks = attachment.to_content_blocks()
+                content.extend(blocks)
             return HumanMessage(content=content)
         return HumanMessage(content=user_prompt)
 
@@ -696,7 +695,7 @@ class LLMClient:
                 
                 try:
                     span.update(
-                        output={"response_length": len(response_text)},
+                        output={"response": response_text},
                         usage_details=usage_details if usage_details else None,
                         metadata={
                             "request_length": len(system_message) + len(user_message),
