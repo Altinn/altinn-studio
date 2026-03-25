@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vedtak-bevilling-v1",
+  "title": "Vedtak om bevilling – datastruktur for brevgenerering",
+  "description": "JSON-schema som styrer generering av vedtaksbrev (innvilgelse/avslag) for alle bevillingstyper i Vennesla/Kristiansand kommune.",
+  "type": "object",
+  "required": ["meta", "soker", "vedtak", "klage"],
+  "properties": {
+
+    "meta": {
+      "type": "object",
+      "description": "Metadata om saken",
+      "required": ["saksnummer", "vedtaksdato", "soknadsdato", "kommune"],
+      "properties": {
+        "saksnummer":  { "type": "string", "description": "Saksnummer i P360, f.eks. '25/01234'" },
+        "vedtaksdato": { "type": "string", "format": "date", "description": "Dato vedtaket fattes (DD.MM.YYYY i brev)" },
+        "soknadsdato": { "type": "string", "format": "date", "description": "Dato søknaden ble mottatt" },
+        "kommune":     { "type": "string", "enum": ["Vennesla", "Kristiansand"], "description": "Behandlende kommune" },
+        "saksbehandler": { "type": "string", "description": "Navn på saksbehandler / AI-agent" }
+      }
+    },
+
+    "soker": {
+      "type": "object",
+      "description": "Opplysninger om søker (bevillingshaver)",
+      "required": ["firmanavn", "organisasjonsnummer"],
+      "properties": {
+        "firmanavn":           { "type": "string" },
+        "organisasjonsnummer": { "type": "string", "pattern": "^[0-9]{9}$" },
+        "eiersammensetning":   { "type": "string", "description": "Tekstlig beskrivelse av hvem som eier selskapet" },
+        "kontaktperson":       { "type": "string" },
+        "adresse":             { "type": "string" }
+      }
+    },
+
+    "sted": {
+      "type": "object",
+      "description": "Opplysninger om serveringsstedet/salgsstedet",
+      "properties": {
+        "navn":                { "type": "string", "description": "Navn på stedet" },
+        "adresse":             { "type": "string" },
+        "personkapasitet_inne": { "type": "integer" },
+        "personkapasitet_ute":  { "type": "integer" }
+      }
+    },
+
+    "vedtak": {
+      "type": "object",
+      "description": "Selve vedtaket og dets innhold",
+      "required": ["utfall", "bevillingstype"],
+      "properties": {
+
+        "utfall": {
+          "type": "string",
+          "enum": ["innvilgelse", "avslag"],
+          "description": "Vedtakets utfall"
+        },
+
+        "bevillingstype": {
+          "type": "string",
+          "enum": [
+            "serveringsbevilling",
+            "skjenkebevilling",
+            "salgsbevilling",
+            "enkeltbevilling",
+            "utvidelse_skjenke"
+          ],
+          "description": "Type bevilling det søkes om"
+        },
+
+        "alkoholgruppe": {
+          "type": "string",
+          "enum": ["gruppe_1", "gruppe_1_2", "gruppe_1_2_3"],
+          "description": "gruppe_1 = 2,5-4,7 %, gruppe_1_2 = under 22 %, gruppe_1_2_3 = inntil 60 %"
+        },
+
+        "bevillingsperiode": {
+          "type": "object",
+          "description": "Start- og sluttdato for bevillingen",
+          "properties": {
+            "fra_dato":  { "type": "string", "format": "date" },
+            "til_dato":  { "type": "string", "format": "date" }
+          }
+        },
+
+        "skjenketider": {
+          "type": "object",
+          "description": "Innvilgede skjenketider",
+          "properties": {
+            "gruppe_1_2": { "type": "string", "description": "F.eks. '09.00–02.00'" },
+            "gruppe_3":   { "type": "string", "description": "F.eks. '13.00–02.00'" },
+            "ute":        { "type": "string", "description": "Skjenketider ute, hvis avviker" }
+          }
+        },
+
+        "apningstider": {
+          "type": "string",
+          "description": "Åpningstider (serveringsbevilling), f.eks. '06.00–02.30 alle dager'"
+        },
+
+        "salgstider": {
+          "type": "object",
+          "description": "Salgstider (salgsbevilling)",
+          "properties": {
+            "hverdager":    { "type": "string" },
+            "loerdager":    { "type": "string" },
+            "helligdager":  { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "arrangement": {
+      "type": "object",
+      "description": "Kun for enkeltbevilling og utvidelse – detaljer om arrangementet",
+      "properties": {
+        "navn":             { "type": "string" },
+        "type":             { "type": "string", "description": "Julebord, konsert, bryllup, festival osv." },
+        "fra_dato":         { "type": "string" },
+        "fra_klokkeslett":  { "type": "string" },
+        "til_dato":         { "type": "string" },
+        "til_klokkeslett":  { "type": "string" },
+        "antall_deltakere": { "type": "integer" },
+        "aapen":            { "type": "boolean", "description": "true = åpent arrangement, false = lukket/sluttet selskap" }
+      }
+    },
+
+    "styrer": {
+      "type": "object",
+      "description": "Styrer for skjenke-/salgsbevilling",
+      "properties": {
+        "navn":           { "type": "string" },
+        "fodselsnummer":  { "type": "string" }
+      }
+    },
+
+    "stedfortreder": {
+      "type": "object",
+      "description": "Stedfortreder for skjenke-/salgsbevilling",
+      "properties": {
+        "navn":           { "type": "string" },
+        "fodselsnummer":  { "type": "string" },
+        "fritak":         { "type": "boolean", "description": "true = fritak innvilget" }
+      }
+    },
+
+    "daglig_leder": {
+      "type": "object",
+      "description": "Daglig leder (serveringsbevilling)",
+      "properties": {
+        "navn":           { "type": "string" },
+        "fodselsnummer":  { "type": "string" }
+      }
+    },
+
+    "uttalelser": {
+      "type": "object",
+      "description": "Innhentede uttalelser fra høringsinstanser",
+      "properties": {
+        "politi": {
+          "type": "object",
+          "properties": {
+            "dato":      { "type": "string", "format": "date" },
+            "resultat":  { "type": "string", "enum": ["ingen_merknader", "merknader"] },
+            "beskrivelse": { "type": "string", "description": "Oppsummering av politiets funn" }
+          }
+        },
+        "skatteetaten": {
+          "type": "object",
+          "properties": {
+            "dato":      { "type": "string", "format": "date" },
+            "resultat":  { "type": "string", "enum": ["ingen_merknader", "merknader"] },
+            "beskrivelse": { "type": "string" }
+          }
+        },
+        "nav": {
+          "type": "object",
+          "description": "Påkrevd for skjenkebevilling",
+          "properties": {
+            "dato":      { "type": "string", "format": "date" },
+            "resultat":  { "type": "string", "enum": ["ingen_merknader", "merknader"] },
+            "beskrivelse": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "vurdering": {
+      "type": "object",
+      "description": "Saksbehandlers vurdering – brukes i brevets vurderingsdel",
+      "properties": {
+        "bakgrunn": {
+          "type": "string",
+          "description": "Fritekst: faktabeskrivelse av søknaden og sakens bakgrunn"
+        },
+        "vandel": {
+          "type": "string",
+          "description": "Fritekst: vandelsanalyse basert på uttalelsene"
+        },
+        "vesentlig_innflytelse": {
+          "type": "object",
+          "description": "Betinget seksjon – kun hvis relevant",
+          "properties": {
+            "inkluder": { "type": "boolean" },
+            "person":   { "type": "string", "description": "Navn på person med vesentlig innflytelse" },
+            "vurdering": { "type": "string", "description": "Fritekst: vandelsanalyse for denne personen" }
+          }
+        },
+        "lokalpolitisk": {
+          "type": "string",
+          "description": "Fritekst: vurdering opp mot kommunens retningslinjer (skjenkebevilling)"
+        },
+        "samlet_konklusjon": {
+          "type": "string",
+          "description": "Fritekst: oppsummering/konklusjon som leder til vedtaket"
+        }
+      }
+    },
+
+    "avslagshjemmel": {
+      "type": "string",
+      "description": "Lovhjemmel for avslaget, f.eks. 'serveringsloven § 6' eller 'alkoholloven § 1-7b'"
+    },
+
+    "vilkaar": {
+      "type": "array",
+      "description": "Eventuelle vilkår satt for bevillingen (innvilgelse)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tekst":   { "type": "string", "description": "Vilkårets innhold" },
+          "hjemmel": { "type": "string", "description": "Lovhjemmel for vilkåret" }
+        }
+      }
+    },
+
+    "uteservering": {
+      "type": "object",
+      "description": "Betinget seksjon – kun ved uteservering",
+      "properties": {
+        "inkluder":    { "type": "boolean" },
+        "areal":       { "type": "string", "description": "Beskrivelse av uteserveringsareal" },
+        "godkjenning": { "type": "string", "description": "Godkjenning fra plan og utbygging" }
+      }
+    },
+
+    "gebyr": {
+      "type": "object",
+      "description": "Gebyrinformasjon (innvilgelse)",
+      "properties": {
+        "bevillingsgebyr":       { "type": "number" },
+        "administrasjonsgebyr":  { "type": "number" },
+        "totalt":                { "type": "number" },
+        "krever_omsetningsoppgave": { "type": "boolean", "description": "true for større arrangement" }
+      }
+    },
+
+    "klage": {
+      "type": "object",
+      "description": "Klageinformasjon – alltid med i vedtaket",
+      "required": ["klagefrist_uker", "klageinstans"],
+      "properties": {
+        "klagefrist_uker": { "type": "integer", "default": 3 },
+        "klageinstans":    { "type": "string", "default": "Statsforvalteren i Agder" },
+        "kommune_epost":   { "type": "string", "default": "post@vennesla.kommune.no" }
+      }
+    },
+
+    "vedlegg": {
+      "type": "array",
+      "description": "Liste over vedlegg til brevet",
+      "items": { "type": "string" }
+    }
+  }
+}
