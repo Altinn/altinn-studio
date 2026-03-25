@@ -3,7 +3,7 @@ using System.Text.Json;
 using Altinn.Augmenter.Agent.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Augmenter.Agent.Services;
+namespace Altinn.Augmenter.Agent.Pipelines;
 
 public sealed class PdfGeneratorService(
     ILogger<PdfGeneratorService> logger,

@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Configuration;
-using Altinn.Augmenter.Agent.Services;
+using Altinn.Augmenter.Agent.Pipelines;
 using Altinn.Augmenter.Agent.Tests.Integration.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -43,7 +43,7 @@ public class PdfGeneratorServiceTests
         }
 
         using var data = CreateMinimalRequestInfoData();
-        var result = await _sut.GeneratePdfAsync(data, "pdf-templates/request-info/request-info.typ");
+        var result = await _sut.GeneratePdfAsync(data, "Pipelines/RequestInfo/Templates/request-info.typ");
 
         result.Should().NotBeEmpty();
         Encoding.ASCII.GetString(result, 0, 5).Should().Be("%PDF-");
@@ -58,7 +58,7 @@ public class PdfGeneratorServiceTests
         }
 
         using var data = CreateFullRequestInfoData();
-        var result = await _sut.GeneratePdfAsync(data, "pdf-templates/request-info/request-info.typ");
+        var result = await _sut.GeneratePdfAsync(data, "Pipelines/RequestInfo/Templates/request-info.typ");
 
         result.Should().NotBeEmpty();
         Encoding.ASCII.GetString(result, 0, 5).Should().Be("%PDF-");

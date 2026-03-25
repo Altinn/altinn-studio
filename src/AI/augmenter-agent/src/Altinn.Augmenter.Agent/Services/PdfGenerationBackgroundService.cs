@@ -1,6 +1,7 @@
 using System.Diagnostics.Metrics;
 using Altinn.Augmenter.Agent.Configuration;
 using Altinn.Augmenter.Agent.Endpoints;
+using Altinn.Augmenter.Agent.Pipelines;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Augmenter.Agent.Services;

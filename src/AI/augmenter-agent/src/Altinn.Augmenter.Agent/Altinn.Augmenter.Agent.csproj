@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="pdf-templates\**\*.typ" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Pipelines\**\Templates\*.typ" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 using Altinn.Augmenter.Agent.Models;
 
-namespace Altinn.Augmenter.Agent.Services;
+namespace Altinn.Augmenter.Agent.Pipelines;
 
 public interface IPdfPipeline
 {

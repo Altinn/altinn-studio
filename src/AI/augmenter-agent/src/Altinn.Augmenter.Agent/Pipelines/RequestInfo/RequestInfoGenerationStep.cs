@@ -1,17 +1,18 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Models;
+using Altinn.Augmenter.Agent.Pipelines;
 
-namespace Altinn.Augmenter.Agent.Services;
+namespace Altinn.Augmenter.Agent.Pipelines.RequestInfo;
 
-public sealed class ChecklistGenerationStep(
-    IChecklistDataMapper dataMapper,
+public sealed class RequestInfoGenerationStep(
+    IRequestInfoDataMapper dataMapper,
     IPdfGeneratorService pdfGenerator,
-    ILogger<ChecklistGenerationStep> logger) : IPdfGenerationStep
+    ILogger<RequestInfoGenerationStep> logger) : IPdfGenerationStep
 {
-    private const string TemplatePath = "pdf-templates/checklist/sjekkliste.typ";
+    private const string TemplatePath = "Pipelines/RequestInfo/Templates/request-info.typ";
 
-    public string Name => "checklist";
+    public string Name => "request-info";
 
     public async Task<GeneratedPdf?> ExecuteAsync(
         IReadOnlyList<UploadedFile> files,
@@ -31,9 +32,9 @@ public sealed class ChecklistGenerationStep(
             ? fd
             : doc.RootElement;
 
-        using var mappedData = dataMapper.MapToChecklist(flatData);
+        using var mappedData = dataMapper.MapToRequestInfo(flatData);
         var pdfBytes = await pdfGenerator.GeneratePdfAsync(mappedData, TemplatePath, cancellationToken);
 
-        return new GeneratedPdf("checklist.pdf", pdfBytes);
+        return new GeneratedPdf("request-info.pdf", pdfBytes);
     }
 }

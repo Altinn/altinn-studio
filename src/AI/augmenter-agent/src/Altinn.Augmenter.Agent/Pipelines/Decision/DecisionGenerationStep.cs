@@ -1,17 +1,18 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.Augmenter.Agent.Models;
+using Altinn.Augmenter.Agent.Pipelines;
 
-namespace Altinn.Augmenter.Agent.Services;
+namespace Altinn.Augmenter.Agent.Pipelines.Decision;
 
-public sealed class RequestInfoGenerationStep(
-    IRequestInfoDataMapper dataMapper,
+public sealed class DecisionGenerationStep(
+    IDecisionDataMapper dataMapper,
     IPdfGeneratorService pdfGenerator,
-    ILogger<RequestInfoGenerationStep> logger) : IPdfGenerationStep
+    ILogger<DecisionGenerationStep> logger) : IPdfGenerationStep
 {
-    private const string TemplatePath = "pdf-templates/request-info/request-info.typ";
+    private const string TemplatePath = "Pipelines/Decision/Templates/vedtak.typ";
 
-    public string Name => "request-info";
+    public string Name => "decision";
 
     public async Task<GeneratedPdf?> ExecuteAsync(
         IReadOnlyList<UploadedFile> files,
@@ -31,9 +32,9 @@ public sealed class RequestInfoGenerationStep(
             ? fd
             : doc.RootElement;
 
-        using var mappedData = dataMapper.MapToRequestInfo(flatData);
+        using var mappedData = dataMapper.MapToDecision(flatData);
         var pdfBytes = await pdfGenerator.GeneratePdfAsync(mappedData, TemplatePath, cancellationToken);
 
-        return new GeneratedPdf("request-info.pdf", pdfBytes);
+        return new GeneratedPdf("vedtak.pdf", pdfBytes);
     }
 }

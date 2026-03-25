@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Altinn.Augmenter.Agent.Services;
+namespace Altinn.Augmenter.Agent.Pipelines;
 
 public interface IPdfGeneratorService
 {

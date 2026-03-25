@@ -1,5 +1,6 @@
 using System.Text;
 
+using Altinn.Augmenter.Agent.Pipelines;
 using Altinn.Augmenter.Agent.Services;
 
 namespace Altinn.Augmenter.Agent.Endpoints;

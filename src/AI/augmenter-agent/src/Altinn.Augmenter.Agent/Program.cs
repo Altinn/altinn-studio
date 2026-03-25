@@ -1,5 +1,9 @@
 using Altinn.Augmenter.Agent.Configuration;
 using Altinn.Augmenter.Agent.Endpoints;
+using Altinn.Augmenter.Agent.Pipelines;
+using Altinn.Augmenter.Agent.Pipelines.Checklist;
+using Altinn.Augmenter.Agent.Pipelines.Decision;
+using Altinn.Augmenter.Agent.Pipelines.RequestInfo;
 using Altinn.Augmenter.Agent.Services;
 using Microsoft.AspNetCore.Http.Features;
 
