@@ -10,7 +10,4 @@ describe('FormDesignerNavigation', () => {
   });
 });
 
-const render = () =>
-  renderWithProviders()(
-    <FormDesignerNavigation />,
-  );
+const render = () => renderWithProviders()(<FormDesignerNavigation />);
