@@ -56,7 +56,7 @@ describe('News', () => {
     await renderNews(newsList);
 
     await screen.findByText('title');
-    await screen.findByText('News content');
+    await screen.findByText(/News content/);
     await screen.findByText(
       textMock('overview.news_date', { date: formatDateToVisualText(formatDate(publishDate)) }),
     );

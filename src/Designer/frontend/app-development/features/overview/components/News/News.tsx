@@ -5,6 +5,7 @@ import classes from './News.module.css';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 import newsData from './NewsContent/news.nb.json';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
+import { StudioParagraph } from '@studio/components';
 
 export const News = () => {
   const { t } = useTranslation();
@@ -46,16 +47,15 @@ export const News = () => {
                     </Paragraph>
                   </Card.Content>
                   <Card.Content>
-                    <Paragraph size='small'>
+                    <StudioParagraph>
                       <Trans
+                        i18nKey={content}
                         components={{
                           strong: <strong />,
                           br: <br />,
                         }}
-                      >
-                        {content}
-                      </Trans>
-                    </Paragraph>
+                      />
+                    </StudioParagraph>
                   </Card.Content>
                 </Card>
               )
