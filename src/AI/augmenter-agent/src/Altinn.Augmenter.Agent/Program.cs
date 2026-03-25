@@ -5,6 +5,7 @@ using Altinn.Augmenter.Agent.Pipelines.Checklist;
 using Altinn.Augmenter.Agent.Pipelines.Decision;
 using Altinn.Augmenter.Agent.Pipelines.RequestInfo;
 using Altinn.Augmenter.Agent.Services;
+using Altinn.Augmenter.Agent.Services.Agent;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<CallbackOptions>(builder.Configuration.GetSection(CallbackOptions.SectionName));
 builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(UploadOptions.SectionName));
 builder.Services.Configure<PdfGenerationOptions>(builder.Configuration.GetSection(PdfGenerationOptions.SectionName));
+builder.Services.Configure<AgentOptions>(builder.Configuration.GetSection(AgentOptions.SectionName));
 
 var uploadOptions = builder.Configuration.GetSection(UploadOptions.SectionName).Get<UploadOptions>() ?? new UploadOptions();
 builder.Services.Configure<FormOptions>(options =>
@@ -29,6 +31,7 @@ builder.Services.AddSingleton<IPdfGenerationQueue>(sp => sp.GetRequiredService<P
 builder.Services.AddHostedService<PdfGenerationBackgroundService>();
 
 // Services
+builder.Services.AddScoped<IAgentService, ClaudeCliAgentService>();
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 builder.Services.AddSingleton<IRequestInfoDataMapper, RequestInfoDataMapper>();
 builder.Services.AddSingleton<IChecklistDataMapper, ChecklistDataMapper>();
@@ -43,7 +46,7 @@ builder.Services.AddHttpClient<ICallbackService, CallbackService>(client =>
 // PDF generation pipeline steps (order matters — PDFs are returned in registration order)
 builder.Services.AddScoped<IPdfGenerationStep, RequestInfoGenerationStep>();
 builder.Services.AddScoped<IPdfGenerationStep, DecisionGenerationStep>();
-builder.Services.AddScoped<IPdfGenerationStep, ChecklistGenerationStep>();
+builder.Services.AddScoped<IPdfGenerationStep, ChecklistAgentStep>();
 
 // Pipeline orchestrator
 builder.Services.AddScoped<IPdfPipeline, PdfPipeline>();
