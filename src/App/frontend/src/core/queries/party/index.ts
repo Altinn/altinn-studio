@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { type QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 
 import { partiesAllowedtoInstantiateQuery, selectedPartyMutation } from 'src/core/queries/party/party.queries';
 import type { BaseQueryResult } from 'src/core/queries/types';
@@ -23,4 +23,8 @@ function useSetSelectedParty({ partyId }: { partyId: number | string }) {
   };
 }
 
-export { usePartiesAllowedToInstantiate, useSetSelectedParty };
+function prefetchPartiesAllowedToInstantiate({ queryClient }: { queryClient: QueryClient }) {
+  return queryClient.prefetchQuery(partiesAllowedtoInstantiateQuery());
+}
+
+export { prefetchPartiesAllowedToInstantiate, usePartiesAllowedToInstantiate, useSetSelectedParty };
