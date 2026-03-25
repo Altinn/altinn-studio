@@ -22,7 +22,8 @@ public static class VersionCommand
                 Assembly
                     .GetEntryAssembly()
                     ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                    ?.InformationalVersion ?? "Unknown";
+                    ?.InformationalVersion
+                ?? "Unknown";
             Console.WriteLine($"{executableName} cli v{version}");
         });
         return versionCommand;

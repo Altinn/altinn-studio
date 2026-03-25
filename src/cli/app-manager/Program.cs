@@ -1,21 +1,31 @@
-using System.CommandLine;
-using Altinn.Studio.Cli.Upgrade;
-using Altinn.Studio.Cli.Version;
+using Altinn.Studio.AppManager.Platform;
+using Altinn.Studio.AppManager.Studioctl;
+using Altinn.Studio.AppManager.Tunnel;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
-namespace Altinn.Studio.Cli;
+namespace Altinn.Studio.AppManager;
 
-internal sealed class Program
+internal static class Program
 {
-    private const string RootCommandName = "altinn-studio";
-
-    static async Task<int> Main(string[] args)
+    public static Task Main(string[] args)
     {
-        var rootCommand = new RootCommand("Command line interface for working with Altinn 3 Applications");
-        // rootCommand.Name = RootCommandName;
-        rootCommand.Subcommands.Add(UpgradeCommand.GetUpgradeCommand());
-        rootCommand.Subcommands.Add(VersionCommand.GetVersionCommand(RootCommandName));
+        var builder = WebApplication.CreateSlimBuilder(args);
 
-        var parsed = rootCommand.Parse(args);
-        return await parsed.InvokeAsync();
+        builder.WebHost.ConfigureKestrel(
+            (context, options) =>
+            {
+                IpcListener.Configure(context.Configuration, options);
+            }
+        );
+
+        var app = builder.Build();
+        var api = app.MapGroup("/api/v1");
+        api.MapGet("/healthz", () => Results.Ok(new HealthResponse("ok")));
+        api.MapStudioctlEndpoints();
+        api.MapTunnelEndpoints();
+
+        return app.RunAsync();
     }
+
+    private sealed record HealthResponse(string Status);
 }

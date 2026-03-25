@@ -266,7 +266,8 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 .Where(id => !string.IsNullOrWhiteSpace(id))
                 .Cast<string>()
                 .Distinct(StringComparer.Ordinal)
-                .ToList() ?? [];
+                .ToList()
+            ?? [];
 
         if (taskIds.Count == 0)
         {
