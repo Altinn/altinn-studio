@@ -109,7 +109,7 @@ internal sealed partial class EngineRepository
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
-                if (!reader.IsDBNull(0))
+                if (!await reader.IsDBNullAsync(0, cancellationToken))
                     results.Add(reader.GetString(0));
             }
 
