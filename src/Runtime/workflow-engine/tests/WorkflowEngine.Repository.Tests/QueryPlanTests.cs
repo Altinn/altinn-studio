@@ -196,8 +196,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             cmd.Parameters.AddWithValue("status", status);
             cmd.Parameters.AddWithValue("createdAt", createdAt);
             cmd.Parameters.AddWithValue("updatedAt", updatedAt);
-            cmd.Parameters.AddWithValue("heartbeatAt", (object?)heartbeatAt ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("backoffUntil", (object?)backoffUntil ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("heartbeatAt", heartbeatAt.HasValue ? heartbeatAt.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("backoffUntil", backoffUntil.HasValue ? backoffUntil.Value : DBNull.Value);
             await cmd.ExecuteNonQueryAsync(ct);
 
             // Add steps for each workflow
