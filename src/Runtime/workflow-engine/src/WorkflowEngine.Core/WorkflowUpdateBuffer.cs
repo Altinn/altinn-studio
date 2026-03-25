@@ -112,13 +112,20 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
                 await flushSemaphore.WaitAsync(stoppingToken);
 
-                var batchToFlush = batch;
+                _ = FlushAndRelease([.. batch]);
                 batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
 
-                // Semaphore is disposed only after all slots are re-acquired in the drain block below
-#pragma warning disable CA2025
-                _ = FlushBatch(batchToFlush, flushSemaphore, stoppingToken);
-#pragma warning restore CA2025
+                async Task FlushAndRelease(List<WorkflowUpdateRequest> batchToFlush)
+                {
+                    try
+                    {
+                        await FlushBatch(batchToFlush, stoppingToken);
+                    }
+                    finally
+                    {
+                        flushSemaphore.Release();
+                    }
+                }
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -143,7 +150,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
             if (batch.Count > 0)
             {
-                await FlushBatchCore(batch, drainCts.Token);
+                await FlushBatch(batch, drainCts.Token);
             }
 
             _logger.UpdateBufferShutdownComplete();
@@ -166,21 +173,9 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
     }
 
-    private async Task FlushBatch(List<WorkflowUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
+    private async Task FlushBatch(List<WorkflowUpdateRequest> batch, CancellationToken ct)
     {
-        try
-        {
-            await FlushBatchCore(batch, ct);
-        }
-        finally
-        {
-            semaphore.Release();
-        }
-    }
-
-    private async Task FlushBatchCore(List<WorkflowUpdateRequest> batch, CancellationToken ct)
-    {
-        // Filter out items whose callers have already cancelled
+        // Filter out items whose callers have already canceled
         for (int i = batch.Count - 1; i >= 0; i--)
         {
             if (batch[i].Completion.Task.IsCanceled)
@@ -195,7 +190,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
 
         using var activity = Metrics.Source.StartActivity(
-            "WorkflowUpdateBuffer.FlushBatchCore",
+            "WorkflowUpdateBuffer.FlushBatch",
             tags: [("batch.size", batch.Count)],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Workflow.EngineTraceContext)).ToActivityLinks()
         );
@@ -256,12 +251,3 @@ internal static partial class WorkflowUpdateBufferLogs
         Exception ex
     );
 }
-
-/// <summary>
-/// A single status update request waiting in the buffer.
-/// </summary>
-internal sealed record WorkflowUpdateRequest(
-    Workflow Workflow,
-    IReadOnlyList<Step> DirtySteps,
-    TaskCompletionSource Completion
-);
