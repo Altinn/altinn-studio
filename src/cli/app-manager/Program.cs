@@ -19,6 +19,8 @@ internal static class Program
         );
 
         var app = builder.Build();
+        RuntimeFiles.Initialize(builder.Configuration, app.Lifetime);
+
         var api = app.MapGroup("/api/v1");
         api.MapGet("/healthz", () => Results.Ok(new HealthResponse("ok")));
         api.MapStudioctlEndpoints();

@@ -10,6 +10,8 @@ internal static class IpcListener
 
     public static void Configure(IConfiguration configuration, KestrelServerOptions options)
     {
+        RuntimeFiles.PrepareIpcArtifacts(configuration);
+
         if (OperatingSystem.IsWindows())
         {
             ConfigureNamedPipe(configuration, options);

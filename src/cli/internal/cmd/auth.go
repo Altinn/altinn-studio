@@ -21,6 +21,8 @@ type authStatusFlags struct {
 	jsonOutput bool
 }
 
+const authStatusSubcommand = "status"
+
 var errLoginCancelled = errors.New("login cancelled")
 
 // AuthCommand implements the 'auth' subcommand.
@@ -50,7 +52,7 @@ func (c *AuthCommand) Usage() string {
 Manage authentication with Altinn Studio.
 
 Subcommands:
-  login     Authenticate with Altinn Studio using a Personal Access Token
+	login     Authenticate with Altinn Studio using a Personal Access Token
             (requires 'read:user' and 'repo' scopes)
   status    Show authentication status
   logout    Clear stored credentials
@@ -72,7 +74,7 @@ func (c *AuthCommand) Run(ctx context.Context, args []string) error {
 	switch subCmd {
 	case "login":
 		return c.runLogin(ctx, subArgs)
-	case "status":
+	case authStatusSubcommand:
 		return c.runStatus(ctx, subArgs)
 	case "logout":
 		return c.runLogout(ctx, subArgs)

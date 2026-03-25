@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"hash/crc32"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -198,9 +199,19 @@ func (c *Config) AppManagerSocketPath() string {
 	return filepath.Join(c.SocketDir, "app-manager.sock")
 }
 
+// AppManagerNamedPipeName returns the Windows named pipe name for app-manager.
+func (c *Config) AppManagerNamedPipeName() string {
+	return fmt.Sprintf("altinn-studio-app-manager-%08x", crc32.ChecksumIEEE([]byte(c.Home)))
+}
+
 // AppManagerPIDPath returns the path to the app-manager PID file.
 func (c *Config) AppManagerPIDPath() string {
 	return filepath.Join(c.Home, "app-manager.pid")
+}
+
+// AppManagerLogPath returns the path to the app-manager log file.
+func (c *Config) AppManagerLogPath() string {
+	return filepath.Join(c.LogDir, "app-manager.log")
 }
 
 // AppManagerBinaryPath returns the path to the app-manager binary.

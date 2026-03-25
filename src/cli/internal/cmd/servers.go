@@ -22,7 +22,7 @@ type ServersCommand struct {
 func NewServersCommand(cfg *config.Config, out *ui.Output) *ServersCommand {
 	return &ServersCommand{
 		out:     out,
-		service: serversvc.NewService(),
+		service: serversvc.NewService(cfg),
 	}
 }
 
@@ -41,6 +41,8 @@ func (c *ServersCommand) Usage() string {
 Manage %s background servers.
 
 Subcommands:
+  up      Start all servers (app-manager)
+  status  Show server status (app-manager)
   down    Stop all servers (app-manager)
 
 Run '%s servers <subcommand> --help' for more information.
@@ -58,6 +60,10 @@ func (c *ServersCommand) Run(ctx context.Context, args []string) error {
 	subArgs := args[1:]
 
 	switch subCmd {
+	case "up":
+		return c.runUp(ctx, subArgs)
+	case "status":
+		return c.runStatus(ctx, subArgs)
 	case "down":
 		return c.runDown(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
@@ -68,7 +74,47 @@ func (c *ServersCommand) Run(ctx context.Context, args []string) error {
 	}
 }
 
-func (c *ServersCommand) runDown(_ context.Context, args []string) error {
+func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("servers up", flag.ContinueOnError)
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+
+	result, err := c.service.Up(ctx)
+	if err != nil {
+		return fmt.Errorf("start servers: %w", err)
+	}
+	for _, line := range result.MessageLines {
+		c.out.Println(line)
+	}
+
+	return nil
+}
+
+func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("servers status", flag.ContinueOnError)
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+
+	result, err := c.service.Status(ctx)
+	if err != nil {
+		return fmt.Errorf("get server status: %w", err)
+	}
+	for _, line := range result.MessageLines {
+		c.out.Println(line)
+	}
+
+	return nil
+}
+
+func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("servers down", flag.ContinueOnError)
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -77,7 +123,10 @@ func (c *ServersCommand) runDown(_ context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	result := c.service.Down()
+	result, err := c.service.Down(ctx)
+	if err != nil {
+		return fmt.Errorf("stop servers: %w", err)
+	}
 	for _, line := range result.MessageLines {
 		c.out.Println(line)
 	}

@@ -456,8 +456,11 @@ func (s *Service) checkAppManagerBinaryState() DiskCheck {
 
 func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 	pidPath := s.cfg.AppManagerPIDPath()
-	socketPath := s.cfg.AppManagerSocketPath()
+	if runtime.GOOS == osWindows {
+		return checkAppManagerRuntimeStateWindows(s.cfg.Home, pidPath)
+	}
 
+	socketPath := s.cfg.AppManagerSocketPath()
 	pidInfo, pidErr := os.Stat(pidPath)
 	socketInfo, socketErr := os.Stat(socketPath)
 	if check := s.checkAppManagerPresenceState(pidPath, socketPath, pidErr, socketErr); check != nil {
@@ -499,6 +502,36 @@ func (s *Service) checkAppManagerRuntimeState() DiskCheck {
 		Level:   diskLevelOK,
 		Path:    s.cfg.Home,
 		Message: "pid and socket files are consistent",
+	}
+}
+
+func checkAppManagerRuntimeStateWindows(home, pidPath string) DiskCheck {
+	if _, err := os.Stat(pidPath); err != nil {
+		if os.IsNotExist(err) {
+			return DiskCheck{
+				ID:      "appmgr_state",
+				Level:   diskLevelInfo,
+				Path:    home,
+				Message: "pid file absent (not running)",
+			}
+		}
+		return DiskCheck{
+			ID:      "appmgr_state",
+			Level:   diskLevelWarn,
+			Path:    pidPath,
+			Message: "stat pid file failed: " + err.Error(),
+		}
+	}
+
+	if check := checkAppManagerPIDFile(pidPath); check != nil {
+		return *check
+	}
+
+	return DiskCheck{
+		ID:      "appmgr_state",
+		Level:   diskLevelOK,
+		Path:    pidPath,
+		Message: "pid file present",
 	}
 }
 
