@@ -13,7 +13,6 @@ import type { JSONSchema7 } from 'json-schema';
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
-import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
