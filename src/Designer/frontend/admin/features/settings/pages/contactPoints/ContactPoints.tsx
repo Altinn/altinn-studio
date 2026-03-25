@@ -13,16 +13,18 @@ import { PersonsList } from './components/PersonsList/PersonsList';
 import { SlackChannelsList } from './components/SlackChannelsList/SlackChannelsList';
 import classes from './ContactPoints.module.css';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { matchPath, useLocation } from 'react-router-dom';
 
 const isSlackChannel = (cp: ContactPoint): boolean =>
   cp.methods.some((m) => m.methodType === 'slack');
 
 export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();
-  const { org } = useStudioEnvironmentParams();
+  const { pathname } = useLocation();
+  const match = matchPath({ path: '/:org', caseSensitive: true, end: false }, pathname);
+  const { org } = match?.params ?? {};
 
-  const { data: contactPoints, isPending, isError } = useGetContactPointsQuery(org);
+  const { data: contactPoints, isPending, isError } = useGetContactPointsQuery(org!);
 
   if (isPending) {
     return <StudioSpinner aria-hidden spinnerTitle={t('org.settings.contact_points.loading')} />;
@@ -68,10 +70,10 @@ export const ContactPoints = (): ReactElement => {
         </div>
       </div>
       <section className={classes.section}>
-        <PersonsList org={org} persons={persons} />
+        <PersonsList org={org!} persons={persons} />
       </section>
       <section className={classes.section}>
-        <SlackChannelsList org={org} channels={channels} />
+        <SlackChannelsList org={org!} channels={channels} />
       </section>
     </div>
   );

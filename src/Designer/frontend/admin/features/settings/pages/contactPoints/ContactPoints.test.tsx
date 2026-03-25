@@ -18,10 +18,6 @@ jest.mock('./components/SlackChannelsList/SlackChannelsList', () => ({
   ),
 }));
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
-  useStudioEnvironmentParams: () => ({ org: 'ttd' }),
-}));
-
 const testOrg = 'ttd';
 
 const personContactPoint: ContactPoint = {
@@ -40,12 +36,15 @@ const slackContactPoint: ContactPoint = {
   methods: [{ id: 'method-2', methodType: 'slack', value: 'https://hooks.slack.com/test' }],
 };
 
-const renderContactPoints = (contactPoints?: ContactPoint[]) => {
+const renderContactPoints = (
+  contactPoints?: ContactPoint[],
+  initialEntries = ['/ttd/settings'],
+) => {
   const queryClient = createQueryClientMock();
   if (contactPoints !== undefined) {
     queryClient.setQueryData([QueryKey.ContactPoints, testOrg], contactPoints);
   }
-  return renderWithProviders(<ContactPoints />, { queryClient });
+  return renderWithProviders(<ContactPoints />, { queryClient, initialEntries });
 };
 
 describe('ContactPoints', () => {
@@ -60,6 +59,7 @@ describe('ContactPoints', () => {
     renderWithProviders(<ContactPoints />, {
       queries: { getContactPoints },
       queryClient,
+      initialEntries: ['/ttd/settings'],
     });
     await screen.findByText(textMock('org.settings.contact_points.error'));
     expect(screen.getByText(textMock('org.settings.contact_points.error'))).toBeInTheDocument();

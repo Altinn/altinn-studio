@@ -1,5 +1,5 @@
 import classes from './PageLayout.module.css';
-import { Outlet } from 'react-router-dom';
+import { matchPath, Outlet, useLocation } from 'react-router-dom';
 import { Menu } from '../components/Menu/Menu';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 import { useUserQuery } from 'app-shared/hooks/queries';
@@ -11,11 +11,12 @@ import {
 } from '@studio/components';
 import { NotFoundPage } from 'admin/layout/NotFoundPage';
 import { useTranslation } from 'react-i18next';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
-  const { org } = useStudioEnvironmentParams();
+  const { pathname } = useLocation();
+  const match = matchPath({ path: '/:org', caseSensitive: true, end: false }, pathname);
+  const { org } = match?.params ?? {};
   const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
   const { data: user, isPending: isUserPending } = useUserQuery();
 
