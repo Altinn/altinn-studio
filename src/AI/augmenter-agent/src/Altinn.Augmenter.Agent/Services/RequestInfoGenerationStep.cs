@@ -9,7 +9,7 @@ public sealed class RequestInfoGenerationStep(
     IPdfGeneratorService pdfGenerator,
     ILogger<RequestInfoGenerationStep> logger) : IPdfGenerationStep
 {
-    private const string TemplatePath = "pdf-templates/request-info.typ";
+    private const string TemplatePath = "pdf-templates/request-info/request-info.typ";
 
     public string Name => "request-info";
 
