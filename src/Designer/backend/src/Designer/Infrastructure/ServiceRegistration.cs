@@ -124,6 +124,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ICustomTemplateService, CustomTemplateService>();
             services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
             services.AddScoped<IApiKeyService, ApiKeyService>();
+            services.AddScoped<IBotAccountService, BotAccountService>();
+            services.AddScoped<IDeployEnvironmentAccessService, GiteaDeployEnvironmentAccessService>();
             services.RegisterSettingsSingleton<ApiKeySettings>(configuration);
             services.AddSingleton<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
             services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);

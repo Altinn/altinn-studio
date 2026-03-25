@@ -10,11 +10,11 @@ import {
 } from '@studio/components';
 import {
   type Scope,
-  isRuleDuplicateInScope,
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
-  validateForm,
+  isSaveDisabled,
+  findDuplicateRule,
 } from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
@@ -93,14 +93,14 @@ const ConfigModal = ({
   const [newConfig, setNewConfig] = useState<InternalConfigState>(
     initialConfig || getDefaultConfig(scope),
   );
-  const isFormValid = validateForm({ scope, config: initialConfig, newConfig });
+  const saveDisabled = isSaveDisabled({ scope, config: initialConfig, newConfig });
 
-  const isRuleDuplicate = isRuleDuplicateInScope({
+  const duplicateRule = findDuplicateRule({
     scope,
     newConfig,
     initialConfig,
     existingConfigs,
-    isFormValid,
+    saveDisabled,
   });
 
   const update = (updates: Partial<InternalConfigState>) => {
@@ -129,9 +129,9 @@ const ConfigModal = ({
           newConfig={newConfig}
           onChange={update}
         />
-        {isRuleDuplicate && (
+        {!!duplicateRule && (
           <StudioAlert data-color='info'>
-            {t('ux_editor.settings.navigation_validation_alert_message')}
+            {t(duplicateRule.key, { values: duplicateRule.values })}
           </StudioAlert>
         )}
       </StudioDialog.Block>
@@ -140,7 +140,7 @@ const ConfigModal = ({
           primary={{
             label: t('general.save'),
             onClick: handleSaveAndClose,
-            disabled: !isFormValid,
+            disabled: saveDisabled,
           }}
           secondary={{
             label: t('general.cancel'),

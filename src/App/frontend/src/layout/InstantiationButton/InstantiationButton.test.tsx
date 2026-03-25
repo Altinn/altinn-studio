@@ -6,6 +6,8 @@ import { userEvent } from '@testing-library/user-event';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -36,7 +38,7 @@ const render = async () => {
             element={children}
           />
           <Route
-            path='/instance/abc123'
+            path='/instance/512345/abc123'
             element={<span>You are now looking at the instance</span>}
           />
         </Routes>
@@ -52,7 +54,13 @@ const render = async () => {
 
 describe('InstantiationButton', () => {
   it('should show button and it should be possible to click and start loading', async () => {
-    const { mutations } = await render();
+    jest.mocked(InstanceApi.createWithPrefill).mockResolvedValue({
+      ...getInstanceDataMock(),
+      id: '512345/abc123',
+      process: getProcessDataMock(),
+    });
+
+    await render();
 
     expect(screen.getByText('Instantiate')).toBeInTheDocument();
 
@@ -62,14 +70,7 @@ describe('InstantiationButton', () => {
 
     await userEvent.click(screen.getByRole('button'));
 
-    expect(screen.getByLabelText('Laster innhold')).toBeInTheDocument();
-
-    expect(mutations.doInstantiateWithPrefill.mock).toHaveBeenCalledTimes(1);
-
-    mutations.doInstantiateWithPrefill.resolve({
-      ...getInstanceDataMock(),
-      id: 'abc123',
-    });
+    expect(InstanceApi.createWithPrefill).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.getByText('You are now looking at the instance')).toBeInTheDocument();

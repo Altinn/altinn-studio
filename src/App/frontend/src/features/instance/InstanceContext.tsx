@@ -2,19 +2,20 @@ import React from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { invalidateInstanceData } from 'src/core/queries/instance';
+import { instanceDataQuery, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
 import { FileScanResults } from 'src/features/attachments/types';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { fetchInstanceData } from 'src/queries/queries';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 
@@ -26,7 +27,6 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
-
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
@@ -79,39 +79,19 @@ export function useInstanceDataQueryArgs() {
   return { instanceOwnerPartyId, instanceGuid };
 }
 
-export const instanceQueries = {
-  all: () => ['instanceData'] as const,
-  instanceData: ({
-    instanceOwnerPartyId,
-    instanceGuid,
-  }: {
-    instanceOwnerPartyId: string | undefined;
-    instanceGuid: string | undefined;
-  }) =>
-    queryOptions({
-      queryKey: [...instanceQueries.all(), { instanceOwnerPartyId, instanceGuid }] as const,
-      queryFn:
-        !instanceOwnerPartyId || !instanceGuid
-          ? skipToken
-          : async () => {
-              try {
-                return await fetchInstanceData(instanceOwnerPartyId, instanceGuid);
-              } catch (error) {
-                window.logError('Fetching instance data failed:\n', error);
-                throw error;
-              }
-            },
-      refetchIntervalInBackground: false,
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    }),
-};
-
 export function useInstanceDataQuery<R = IInstance>(
   queryOptions: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
+  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const hasParams = !!instanceOwnerPartyId && !!instanceGuid;
+
   return useQuery<IInstance, Error, R>({
-    ...instanceQueries.instanceData(useInstanceDataQueryArgs()),
+    ...(hasParams
+      ? instanceDataQuery({ instanceOwnerPartyId, instanceGuid })
+      : {
+          queryKey: [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
+          queryFn: skipToken,
+        }),
     refetchOnWindowFocus: queryOptions.refetchInterval !== false,
     select: queryOptions.select, // FIXME: somehow TS complains if this is not here
     ...queryOptions,
@@ -154,9 +134,7 @@ export function useHasPendingScans(): boolean {
 export function useInvalidateInstanceDataCache() {
   const queryClient = useQueryClient();
 
-  return async () => {
-    queryClient.invalidateQueries({ queryKey: instanceQueries.all() });
-  };
+  return () => invalidateInstanceData(queryClient);
 }
 
 /*********************
@@ -170,10 +148,10 @@ const useOptimisticInstanceUpdate = () => {
   const queryKey =
     !instanceOwnerPartyId || !instanceGuid
       ? undefined
-      : instanceQueries.instanceData({
+      : instanceQueryKeys.instance({
           instanceOwnerPartyId,
           instanceGuid,
-        }).queryKey;
+        });
 
   return (updater: (oldData: IInstance) => IInstance | undefined) => {
     queryKey &&

@@ -1,18 +1,18 @@
-import React from 'react';
+import React, { type JSX } from 'react';
 import { renderHook } from '@testing-library/react';
 import { useStudioResizableLayoutFunctions } from './useStudioResizableFunctions';
 import { horizontal } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import type { StudioResizableLayoutElementProps } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
 
-type ResizableChildElement = React.ReactElement;
+type ResizableChildElement = React.ReactElement<StudioResizableLayoutElementProps>;
 type HookReturn = ReturnType<typeof useStudioResizableLayoutFunctions>;
-type ElementPropsLoose = Omit<StudioResizableLayoutElementProps, 'children'> & {
-  children?: React.ReactNode;
+type ResizableTestElementProps = Omit<StudioResizableLayoutElementProps, 'children'> & {
+  children?: StudioResizableLayoutElementProps['children'];
 };
-const ResizableTestElement: React.JSXElementConstructor<ElementPropsLoose> = () => null;
+const ResizableTestElement = (_props: ResizableTestElementProps): JSX.Element | null => null;
 
 const makeChild = (
-  overrides: Partial<StudioResizableLayoutElementProps> = {},
+  overrides: Partial<Omit<StudioResizableLayoutElementProps, 'children'>> = {},
 ): ResizableChildElement =>
   React.createElement(
     ResizableTestElement,
@@ -24,7 +24,7 @@ const makeChild = (
       ...overrides,
     },
     React.createElement('div'),
-  );
+  ) as ResizableChildElement;
 
 describe('useStudioResizableLayoutFunctions', () => {
   let setContainerSize: jest.Mock<void, [number, number]>;

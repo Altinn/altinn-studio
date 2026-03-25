@@ -1,5 +1,5 @@
 #nullable disable
-using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Helpers;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -19,7 +19,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
         string expectedPrefix
     )
     {
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         Assert.StartsWith(expectedPrefix, result);
         Assert.Matches("^[a-z_]+_[a-z0-9]{4}$", result);
@@ -31,7 +31,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
     [InlineData("   ", "   ", "dev_")]
     public void GenerateUsername_WithNoNames_FallsBackToDev(string givenName, string familyName, string expectedPrefix)
     {
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         Assert.StartsWith(expectedPrefix, result);
     }
@@ -45,7 +45,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
         string expectedPrefix
     )
     {
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         Assert.StartsWith(expectedPrefix, result);
     }
@@ -59,7 +59,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
         string expectedPrefix
     )
     {
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         Assert.StartsWith(expectedPrefix, result);
     }
@@ -70,7 +70,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
         string givenName = "DEDIKERT MUNTER FLAMME FISKEBUTIKK";
         string familyName = "LANGANSEN VESTENSEN NORDANSEN";
 
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         Assert.True(result.Length <= 40, $"Username '{result}' exceeds Gitea's 40 char limit (was {result.Length})");
         Assert.Matches("[a-z0-9]{4}$", result);
@@ -79,8 +79,8 @@ public class GiteaDbStudioOidcUsernameProviderTests
     [Fact]
     public void GenerateUsername_AlwaysEndsWithRandomSuffix()
     {
-        string result1 = GiteaDbStudioOidcUsernameProvider.GenerateUsername("Ole", "Hansen");
-        string result2 = GiteaDbStudioOidcUsernameProvider.GenerateUsername("Ole", "Hansen");
+        string result1 = GiteaUsernameGenerator.GenerateUsername("Ole", "Hansen");
+        string result2 = GiteaUsernameGenerator.GenerateUsername("Ole", "Hansen");
 
         Assert.NotEqual(result1, result2);
         Assert.Equal("ole_hansen_", result1[..11]);
@@ -96,7 +96,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
         string expectedPrefix
     )
     {
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         Assert.StartsWith(expectedPrefix, result);
     }
@@ -104,7 +104,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
     [Fact]
     public void GenerateUsername_WithMultipleSpaces_NormalizesToSingleUnderscore()
     {
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername("OLE  BJØRN", "HANSEN   BERG");
+        string result = GiteaUsernameGenerator.GenerateUsername("OLE  BJØRN", "HANSEN   BERG");
 
         Assert.StartsWith("ole_bjorn_hansen_berg_", result);
     }
@@ -116,7 +116,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
         string givenName = "abcdefghijklmnopqrstuvwxyz";
         string familyName = "abcdefghijklmnopqrstuvwxyz";
 
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         Assert.True(result.Length <= 40, $"Username '{result}' exceeds 40 chars (was {result.Length})");
     }
@@ -128,7 +128,7 @@ public class GiteaDbStudioOidcUsernameProviderTests
         string givenName = "abcdefghijklmnopqrstuvwxyzabcdefg";
         string familyName = "test";
 
-        string result = GiteaDbStudioOidcUsernameProvider.GenerateUsername(givenName, familyName);
+        string result = GiteaUsernameGenerator.GenerateUsername(givenName, familyName);
 
         // The prefix (before the last _suffix) should not end with underscore
         string prefixPart = result[..^5]; // remove _xxxx

@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPageHeader } from './index';
 import { StudioParagraph } from '../StudioParagraph';
 import { type StudioProfileMenuGroup } from './StudioPageHeaderProfileMenu';
-import { StudioAvatar } from '../StudioAvatar';
 
 const profileMenuGroups: StudioProfileMenuGroup[] = [
   {
@@ -48,7 +47,7 @@ const PreviewComponent = (args): React.ReactElement => (
             color='dark'
             variant='regular'
             profileMenuGroups={profileMenuGroups}
-            profileImage={<StudioAvatar />}
+            profileImage='dummy-url'
           />
         </div>
       </StudioPageHeader.Right>

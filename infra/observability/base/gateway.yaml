@@ -65,6 +65,17 @@ spec:
               - set(span.attributes["altinn.original_http.status_code"], span.attributes["http.status_code"]) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.status_code"] == 429
               - set(span.attributes["http.response.status_code"], 299) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.response.status_code"] == 429
               - set(span.attributes["http.status_code"], 299) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.status_code"] == 429
+      transform/azuremonitor_expected_404:
+        error_mode: ignore
+        trace_statements:
+          - context: span
+            statements:
+              # Azure Monitor derives dependency success from HTTP status, not just span status.
+              - set(span.attributes["altinn.original_http.response.status_code"], span.attributes["http.response.status_code"]) where span.attributes["azuremonitor.expected_404"] == true and span.attributes["http.response.status_code"] == 404
+              - set(span.attributes["altinn.original_http.status_code"], span.attributes["http.status_code"]) where span.attributes["azuremonitor.expected_404"] == true and span.attributes["http.status_code"] == 404
+              - set(span.attributes["http.response.status_code"], 299) where span.attributes["azuremonitor.expected_404"] == true and span.attributes["http.response.status_code"] == 404
+              - set(span.attributes["http.status_code"], 299) where span.attributes["azuremonitor.expected_404"] == true and span.attributes["http.status_code"] == 404
+              - delete_key(span.attributes, "azuremonitor.expected_404") where span.attributes["azuremonitor.expected_404"] != nil
       filter/metrics_allowlist:
         error_mode: ignore
         metrics:

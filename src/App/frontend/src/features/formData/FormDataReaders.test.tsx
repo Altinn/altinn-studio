@@ -5,10 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IData, IDataType } from 'src/types/shared';
@@ -58,7 +59,9 @@ async function render(props: TestProps) {
   });
   window.altinnAppGlobalData.textResources!.resources = props.textResources;
 
-  jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
+  jest
+    .mocked(InstanceApi.getInstance)
+    .mockImplementationOnce(async () => ({ ...instanceData, process: getProcessDataMock() }));
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {

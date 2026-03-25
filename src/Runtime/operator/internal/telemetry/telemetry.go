@@ -9,6 +9,8 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otelmetric "go.opentelemetry.io/otel/metric"
@@ -20,7 +22,9 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-const scopeName = "operator"
+const (
+	scopeName = "operator"
+)
 
 func Tracer() oteltrace.Tracer {
 	return otel.Tracer(scopeName)
@@ -28,6 +32,12 @@ func Tracer() oteltrace.Tracer {
 
 func Meter() otelmetric.Meter {
 	return otel.Meter(scopeName)
+}
+
+// WithoutSpan keeps cancellation and context values while dropping active span parentage.
+// Use this when handing a request-scoped context to long-lived background loops.
+func WithoutSpan(ctx context.Context) context.Context {
+	return oteltrace.ContextWithSpanContext(ctx, oteltrace.SpanContext{})
 }
 
 func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
@@ -77,9 +87,45 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 }
 
 func WrapTransport(config *rest.Config) {
-	config.Wrap(func(rt http.RoundTripper) http.RoundTripper {
-		return otelhttp.NewTransport(rt)
-	})
+	config.Wrap(newKubernetesTransport)
+}
+
+func newKubernetesTransport(base http.RoundTripper) http.RoundTripper {
+	return otelhttp.NewTransport(&kubernetesAPITransport{base: base})
+}
+
+type kubernetesAPITransport struct {
+	base http.RoundTripper
+}
+
+//nolint:wrapcheck // Preserve the exact transport error so callers can keep type-based handling.
+func (t *kubernetesAPITransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if t.base == nil {
+		t.base = http.DefaultTransport
+	}
+
+	res, err := t.base.RoundTrip(req)
+	if err != nil || res == nil || res.StatusCode != http.StatusNotFound || !isExpectedNotFoundKubernetesRequest(req) {
+		return res, err
+	}
+
+	const azureMonitorExpected404Attribute = "azuremonitor.expected_404"
+	span := oteltrace.SpanFromContext(req.Context())
+	span.SetAttributes(attribute.Bool(azureMonitorExpected404Attribute, true))
+	span.SetStatus(codes.Ok, "")
+
+	return res, nil
+}
+
+func isExpectedNotFoundKubernetesRequest(req *http.Request) bool {
+	const inactivityScalerOverrideConfigMapPath = "/api/v1/namespaces/runtime-operator/configmaps/" +
+		"inactivity-scaler-override"
+
+	if req == nil || req.URL == nil {
+		return false
+	}
+
+	return req.Method == http.MethodGet && req.URL.Path == inactivityScalerOverrideConfigMapPath
 }
 
 func newPropagator() propagation.TextMapPropagator {

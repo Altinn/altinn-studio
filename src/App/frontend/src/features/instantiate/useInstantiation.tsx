@@ -1,55 +1,14 @@
-import { useNavigate } from 'react-router';
+import { useMutationState } from '@tanstack/react-query';
 
-import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
-import type { MutateOptions } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
-
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import { instanceQueries } from 'src/features/instance/InstanceContext';
+import { useCreateInstance } from 'src/core/queries/instance';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import type { Instantiation } from 'src/core/api-client/instance.api';
 import type { IInstance } from 'src/types/shared';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
-
-export interface Prefill {
-  [key: string]: unknown;
-}
-
-export interface InstanceOwner {
-  partyId: string | undefined;
-}
-
-export interface Instantiation {
-  instanceOwner: InstanceOwner;
-  prefill: Prefill;
-}
-
-type InstantiationArgs = number | Instantiation;
-type Options<Vars> = MutateOptions<IInstance, AxiosError, Vars, unknown> & { force?: boolean };
 
 export function useInstantiation() {
-  const { doInstantiate, doInstantiateWithPrefill } = useAppMutations();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const currentLanguage = useCurrentLanguage();
 
-  const { mutateAsync } = useMutation({
-    mutationKey: ['instantiate'],
-    mutationFn: (args: InstantiationArgs) =>
-      typeof args === 'number' ? doInstantiate(args, currentLanguage) : doInstantiateWithPrefill(args, currentLanguage),
-    onError: (error: HttpClientError) => {
-      window.logError(`Instantiation failed:\n`, error);
-    },
-    onSuccess: (data) => {
-      const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');
-      const queryKey = instanceQueries.instanceData({
-        instanceOwnerPartyId,
-        instanceGuid,
-      }).queryKey;
-      queryClient.setQueryData(queryKey, data);
-
-      navigate(`/instance/${data.id}`);
-    },
-  });
+  const { createInstanceAsync } = useCreateInstance(currentLanguage);
 
   // Instead of using the return value above, we look up in the mutation cache. Tanstack query will keep the last
   // mutation as a local state, but that gets lost if our render context/order changes. Looking up from the cache
@@ -60,18 +19,18 @@ export function useInstantiation() {
   const lastMutation = mutations.at(-1);
 
   return {
-    instantiate: async (instanceOwnerPartyId: number, { force = false, ...options }: Options<number> = {}) => {
+    instantiate: async (instanceOwnerPartyId: number, { force = false } = {}): Promise<IInstance | undefined> => {
       if (!hasAlreadyInstantiated || force) {
-        await mutateAsync(instanceOwnerPartyId, options).catch(() => {});
+        return await createInstanceAsync(instanceOwnerPartyId).catch(() => undefined);
       }
     },
-    instantiateWithPrefill: async (value: Instantiation, { force = false, ...options }: Options<Instantiation>) => {
+    instantiateWithPrefill: async (value: Instantiation, { force = false } = {}): Promise<IInstance | undefined> => {
       if (!hasAlreadyInstantiated || force) {
-        await mutateAsync(value, options).catch(() => {});
+        return await createInstanceAsync(value).catch(() => undefined);
       }
     },
 
     error: lastMutation?.error,
-    lastResult: lastMutation?.data,
+    lastResult: lastMutation?.data as IInstance | undefined,
   };
 }
