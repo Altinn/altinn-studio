@@ -104,7 +104,10 @@ internal class WorkflowWriteBuffer : BackgroundService
                 var batchToFlush = batch;
                 batch = new List<BufferedEnqueueRequest>(_settings.WriteBuffer.MaxBatchSize);
 
+                // Semaphore is disposed only after all slots are re-acquired in the drain block below
+#pragma warning disable CA2025
                 _ = FlushBatch(batchToFlush, flushSemaphore, stoppingToken);
+#pragma warning restore CA2025
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -139,13 +142,13 @@ internal class WorkflowWriteBuffer : BackgroundService
             // Cancel any items still in the current batch
             foreach (var pending in batch)
             {
-                pending.Completion.TrySetCanceled();
+                pending.Completion.TrySetCanceled(drainCts.Token);
             }
 
             // Cancel any items still queued in the channel
             while (_channel.Reader.TryRead(out var pending))
             {
-                pending.Completion.TrySetCanceled();
+                pending.Completion.TrySetCanceled(drainCts.Token);
             }
 
             _logger.LogWarning(
