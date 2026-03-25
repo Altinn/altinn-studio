@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 import newsData from './NewsContent/news.nb.json';
@@ -46,7 +46,16 @@ export const News = () => {
                     </Paragraph>
                   </Card.Content>
                   <Card.Content>
-                    <Paragraph size='small'>{content}</Paragraph>
+                    <Paragraph size='small'>
+                      <Trans
+                        components={{
+                          strong: <strong />,
+                          br: <br />,
+                        }}
+                      >
+                        {content}
+                      </Trans>
+                    </Paragraph>
                   </Card.Content>
                 </Card>
               )

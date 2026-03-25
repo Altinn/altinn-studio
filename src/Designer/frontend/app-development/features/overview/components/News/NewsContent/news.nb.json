@@ -4,7 +4,7 @@
     {
       "date": "2026-03-24",
       "title": "Nå blir apper automatisk registrert i Altinn",
-      "content": "Når du fyller ut feltene under \"Innstillinger > Om Appen\" i Altinn Studio, blir informasjonen også lagret i Altinn (ressursregisteret) når du publiserer appen din til produksjonsmiljøet. Du må fylle ut disse feltene. Sluttbrukerne kan se informasjonen når de skal styre tilganger i Altinn."
+      "content": "Når du fyller ut feltene under <strong>Innstillinger > Om Appen</strong> i Altinn Studio, blir informasjonen også lagret i Altinn (ressursregisteret) når du publiserer appen din til produksjonsmiljøet.<br/><br/>Du må fylle ut disse feltene. Sluttbrukerne kan se informasjonen når de skal styre tilganger i Altinn."
     },
     {
       "date": "2025-12-17",
