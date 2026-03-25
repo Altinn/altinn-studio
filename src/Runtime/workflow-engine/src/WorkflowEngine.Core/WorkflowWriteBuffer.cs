@@ -236,6 +236,13 @@ internal class WorkflowWriteBuffer : BackgroundService
                 _workflowSignal.Signal();
             }
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            foreach (var item in batch)
+            {
+                item.Completion.TrySetCanceled(ct);
+            }
+        }
         catch (Exception ex)
         {
             _logger.WriteBufferFlushFailed(batch.Count, ex);

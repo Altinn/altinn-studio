@@ -209,6 +209,13 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                 request.Completion.TrySetResult();
             }
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            foreach (var request in batch)
+            {
+                request.Completion.TrySetCanceled(ct);
+            }
+        }
         catch (Exception ex)
         {
             _logger.UpdateBufferFlushFailed(batch.Count, ex);
