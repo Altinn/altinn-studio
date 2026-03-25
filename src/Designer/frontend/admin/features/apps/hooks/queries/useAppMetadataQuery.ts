@@ -2,7 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
-import { appMetadataPath } from 'admin/utils/apiPaths';
+import { appMetadataPath } from 'admin/features/apps/utils/apiPaths';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export const useAppMetadataQuery = (

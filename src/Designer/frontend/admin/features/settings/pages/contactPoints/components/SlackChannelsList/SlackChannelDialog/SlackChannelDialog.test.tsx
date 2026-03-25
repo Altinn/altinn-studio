@@ -111,7 +111,7 @@ describe('SlackChannelDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
-        name: textMock('org.settings.contact_points.dialog_add_slack_title'),
+        name: textMock('org.settings.contact_points.add_slack_channel'),
       }),
     ).toBeInTheDocument();
   });

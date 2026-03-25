@@ -10,8 +10,11 @@ import {
 } from '@studio/components';
 import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
-import type { SimpleDataElement, SimpleInstanceDetails } from 'admin/types/SimpleInstanceDetails';
+import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
+import type {
+  SimpleDataElement,
+  SimpleInstanceDetails,
+} from 'admin/features/apps/types/SimpleInstanceDetails';
 import { InstanceStatus } from 'admin/features/apps/pages/instances/components/InstanceStatus';
 import { useAppMetadataQuery } from 'admin/features/apps/hooks/queries/useAppMetadataQuery';
 import { useReduceQueries } from 'admin/features/apps/hooks/useReduceQueries';

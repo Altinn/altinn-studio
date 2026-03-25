@@ -2,8 +2,8 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
-import { instanceEventsPath } from 'admin/utils/apiPaths';
-import type { InstanceEvent } from 'admin/types/InstanceEvent';
+import { instanceEventsPath } from 'admin/features/apps/utils/apiPaths';
+import type { InstanceEvent } from 'admin/features/apps/types/InstanceEvent';
 
 export const useInstanceEventsQuery = (
   org: string,

@@ -2,8 +2,11 @@ import type { UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios, { isAxiosError } from 'axios';
-import type { InstancesResponse, SimpleInstance } from 'admin/types/InstancesResponse';
-import { instancesListPath } from 'admin/utils/apiPaths';
+import type {
+  InstancesResponse,
+  SimpleInstance,
+} from 'admin/features/apps/types/InstancesResponse';
+import { instancesListPath } from 'admin/features/apps/utils/apiPaths';
 
 export const useAppInstancesQuery = (
   org: string,

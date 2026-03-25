@@ -2,8 +2,8 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
-import { instanceProcessHistoryPath } from 'admin/utils/apiPaths';
-import type { ProcessHistoryItem } from 'admin/types/ProcessHistory';
+import { instanceProcessHistoryPath } from 'admin/features/apps/utils/apiPaths';
+import type { ProcessHistoryItem } from 'admin/features/apps/types/ProcessHistory';
 
 export const useProcessHistoryQuery = (
   org: string,

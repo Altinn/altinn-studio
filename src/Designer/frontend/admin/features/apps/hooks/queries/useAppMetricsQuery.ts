@@ -1,7 +1,7 @@
 import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import type { AppMetric } from 'admin/types/metrics/AppMetric';
-import { appMetricsPath } from 'admin/utils/apiPaths';
+import type { AppMetric } from 'admin/features/apps/types/metrics/AppMetric';
+import { appMetricsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
 

@@ -1,5 +1,5 @@
 import { Tag } from '@digdir/designsystemet-react';
-import type { SimpleInstance } from 'admin/types/InstancesResponse';
+import type { SimpleInstance } from 'admin/features/apps/types/InstancesResponse';
 
 import classes from './InstanceStatus.module.css';
 import { useTranslation } from 'react-i18next';

@@ -1,7 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import type { PublishedApplication } from 'admin/types/PublishedApplication';
-import { runningAppsPath } from 'admin/utils/apiPaths';
+import type { PublishedApplication } from 'admin/features/apps/types/PublishedApplication';
+import { runningAppsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
 

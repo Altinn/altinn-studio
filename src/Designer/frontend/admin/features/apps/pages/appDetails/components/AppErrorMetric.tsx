@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
+import type { AppMetric as Metric } from 'admin/features/apps/types/metrics/AppMetric';
 
 import { Bar } from 'react-chartjs-2';
-import { getChartOptions } from 'admin/utils/charts';
+import { getChartOptions } from 'admin/features/apps/utils/charts';
 import { Alert } from 'admin/features/apps/components/Alert/Alert';
 
 type AppErrorMetricProps = {

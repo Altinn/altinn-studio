@@ -51,7 +51,7 @@ const renderSlackChannelsList = (props: Partial<typeof defaultProps> = {}) =>
   renderWithProviders(<SlackChannelsList {...defaultProps} {...props} />);
 
 const getAddButton = () =>
-  screen.getByRole('button', { name: textMock('org.settings.contact_points.add_contact') });
+  screen.getByRole('button', { name: textMock('org.settings.contact_points.add_slack_channel') });
 
 const getEditButton = () =>
   screen.getByRole('button', {

@@ -1,25 +1,19 @@
 import { useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioTable,
-  StudioButton,
-  StudioSwitch,
-  StudioHeading,
-  StudioParagraph,
-  StudioDeleteButton,
-  StudioTag,
-} from '@studio/components';
-import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
+import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
+import { EnvironmentsCell } from '../EnvironmentsCell/EnvironmentsCell';
+import { ActionsCell } from '../ActionsCell/ActionsCell';
+import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { PersonDialog } from './PersonDialog/PersonDialog';
 import type { Person } from './PersonDialog/PersonDialog';
+import { personToPayload, contactPointToPerson } from './personUtils';
 import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
 import { useToggleContactPointActiveMutation } from 'admin/features/settings/hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from 'admin/features/settings/hooks/useDeleteContactPointMutation';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
-import { PlusIcon, StudioEditIcon } from '@studio/icons';
-import classes from './PersonsList.module.css';
+import { AddButton } from '../AddButton/AddButton';
 
 type PersonsListProps = {
   org: string;
@@ -32,24 +26,6 @@ const createEmptyPerson = (availableEnvironments: string[]): Person => ({
   phone: '',
   isActive: true,
   environments: availableEnvironments,
-});
-
-const personToPayload = (person: Person): ContactPointPayload => ({
-  name: person.name,
-  isActive: person.isActive,
-  environments: person.environments,
-  methods: [
-    ...(person.email ? [{ methodType: 'email' as const, value: person.email }] : []),
-    ...(person.phone ? [{ methodType: 'sms' as const, value: person.phone }] : []),
-  ],
-});
-
-const contactPointToPerson = (cp: ContactPoint): Person => ({
-  name: cp.name,
-  isActive: cp.isActive,
-  environments: cp.environments,
-  email: cp.methods.find((m) => m.methodType === 'email')?.value ?? '',
-  phone: cp.methods.find((m) => m.methodType === 'sms')?.value ?? '',
 });
 
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
@@ -142,40 +118,18 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
                 <StudioTable.Cell>{person.name}</StudioTable.Cell>
                 <StudioTable.Cell>{email}</StudioTable.Cell>
                 <StudioTable.Cell>{phone}</StudioTable.Cell>
-                <StudioTable.Cell>
-                  <div className={classes.environmentsWrapper}>
-                    {person.environments.map((env) => (
-                      <StudioTag key={env}>{env}</StudioTag>
-                    ))}
-                  </div>
-                </StudioTable.Cell>
-                <StudioTable.Cell className={classes.actions}>
-                  <StudioButton
-                    variant='tertiary'
-                    icon={<StudioEditIcon />}
-                    onClick={() => openEditDialog(person)}
-                    aria-label={t('org.settings.contact_points.dialog_edit_person_title')}
-                  />
-                  <StudioDeleteButton
-                    onDelete={() => deletePerson(person.id)}
-                    confirmMessage={t('org.settings.contact_points.delete_confirm')}
-                  />
-                </StudioTable.Cell>
+                <EnvironmentsCell environments={person.environments} />
+                <ActionsCell
+                  onEdit={() => openEditDialog(person)}
+                  onDelete={() => deletePerson(person.id)}
+                  editAriaLabel={t('org.settings.contact_points.dialog_edit_person_title')}
+                />
               </StudioTable.Row>
             );
           })}
         </StudioTable.Body>
       </StudioTable>
-      <div className={classes.addButtonWrapper}>
-        <StudioButton
-          variant='secondary'
-          icon={<PlusIcon />}
-          onClick={openAddDialog}
-          className={classes.addButton}
-        >
-          {t('org.settings.contact_points.add_contact')}
-        </StudioButton>
-      </div>
+      <AddButton onClick={openAddDialog}>{t('org.settings.contact_points.add_contact')}</AddButton>
       <PersonDialog
         dialogRef={dialogRef}
         person={personForm}

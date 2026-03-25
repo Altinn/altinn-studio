@@ -1,7 +1,7 @@
 import { useRunningAppsQuery } from 'admin/features/apps/hooks/queries/useRunningAppsQuery';
 import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
 import classes from './AppsTable.module.css';
-import type { PublishedApplication } from 'admin/types/PublishedApplication';
+import type { PublishedApplication } from 'admin/features/apps/types/PublishedApplication';
 import {
   StudioSpinner,
   StudioTable,
@@ -19,7 +19,7 @@ import { TimeRangeSelect } from 'admin/features/apps/components/TimeRangeSelect/
 import { Alert } from 'admin/features/apps/components/Alert/Alert';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
-import { createSearchParams, DEFAULT_SEARCH_PARAMS } from 'admin/utils/constants';
+import { createSearchParams, DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
 
 export type AppsTableProps = {
   org: string;

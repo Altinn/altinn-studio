@@ -6,7 +6,7 @@ import classes from './AppDetails.module.css';
 import { Instances } from '../instances/Instances';
 import { AppInfo } from './components/AppInfo';
 import { Breadcrumbs } from 'admin/features/apps/components/Breadcrumbs/Breadcrumbs';
-import { DEFAULT_SEARCH_PARAMS } from 'admin/utils/constants';
+import { DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
 
 export const AppsDetails = () => {
   const { org, environment, app } = useParams() as {

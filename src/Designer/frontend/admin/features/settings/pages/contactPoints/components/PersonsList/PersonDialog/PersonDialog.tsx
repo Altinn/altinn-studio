@@ -11,14 +11,15 @@ import {
   StudioFormActions,
 } from '@studio/components';
 import classes from './PersonDialog.module.css';
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\+?[\d\s\-]{8,15}$/;
-const emailPlaceholder = 'name@example.com';
-const phonePlaceholder = '+4712345678';
-const nameMaxLength = 100;
-const emailMaxLength = 254;
-const phoneMaxLength = 32;
+import {
+  emailRegex,
+  phoneRegex,
+  emailPlaceholder,
+  phonePlaceholder,
+  nameMaxLength,
+  emailMaxLength,
+  phoneMaxLength,
+} from 'admin/constants/contactPointConstants';
 
 export type Person = {
   name: string;
@@ -87,7 +88,7 @@ export const PersonDialog = ({
 
   const title = isEditing
     ? t('org.settings.contact_points.dialog_edit_person_title')
-    : t('org.settings.contact_points.dialog_add_person_title');
+    : t('org.settings.contact_points.add_contact');
 
   const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
     value: person.environments,

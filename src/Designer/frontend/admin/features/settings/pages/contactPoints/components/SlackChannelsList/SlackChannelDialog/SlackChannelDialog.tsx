@@ -74,7 +74,7 @@ export const SlackChannelDialog = ({
 
   const title = isEditing
     ? t('org.settings.contact_points.dialog_edit_slack_title')
-    : t('org.settings.contact_points.dialog_add_slack_title');
+    : t('org.settings.contact_points.add_slack_channel');
 
   const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
     value: channel.environments,

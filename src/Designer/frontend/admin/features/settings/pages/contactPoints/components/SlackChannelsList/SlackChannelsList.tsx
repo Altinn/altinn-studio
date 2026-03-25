@@ -1,25 +1,19 @@
 import { useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioTable,
-  StudioButton,
-  StudioSwitch,
-  StudioHeading,
-  StudioParagraph,
-  StudioDeleteButton,
-  StudioTag,
-} from '@studio/components';
-import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
+import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
+import { EnvironmentsCell } from '../EnvironmentsCell/EnvironmentsCell';
+import { ActionsCell } from '../ActionsCell/ActionsCell';
+import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { SlackChannelDialog } from './SlackChannelDialog/SlackChannelDialog';
 import type { SlackChannel } from './SlackChannelDialog/SlackChannelDialog';
+import { slackChannelToPayload, contactPointToSlackChannel } from './slackChannelUtils';
 import { useAddContactPointMutation } from 'admin/features/settings/hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from 'admin/features/settings/hooks/useUpdateContactPointMutation';
 import { useToggleContactPointActiveMutation } from 'admin/features/settings/hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from 'admin/features/settings/hooks/useDeleteContactPointMutation';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
-import { PlusIcon, StudioEditIcon } from '@studio/icons';
-import classes from './SlackChannelsList.module.css';
+import { AddButton } from '../AddButton/AddButton';
 
 type SlackChannelsListProps = {
   org: string;
@@ -31,20 +25,6 @@ const createEmptySlackChannel = (availableEnvironments: string[]): SlackChannel 
   webhookUrl: '',
   isActive: true,
   environments: availableEnvironments,
-});
-
-const slackChannelToPayload = (channel: SlackChannel): ContactPointPayload => ({
-  name: channel.channelName,
-  isActive: channel.isActive,
-  environments: channel.environments,
-  methods: [{ methodType: 'slack', value: channel.webhookUrl }],
-});
-
-const contactPointToSlackChannel = (cp: ContactPoint): SlackChannel => ({
-  channelName: cp.name,
-  isActive: cp.isActive,
-  environments: cp.environments,
-  webhookUrl: cp.methods.find((m) => m.methodType === 'slack')?.value ?? '',
 });
 
 export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): ReactElement => {
@@ -132,39 +112,19 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
               <StudioTable.Cell>
                 {channel.methods.find((m) => m.methodType === 'slack')?.value}
               </StudioTable.Cell>
-              <StudioTable.Cell>
-                <div className={classes.environmentsWrapper}>
-                  {channel.environments.map((env) => (
-                    <StudioTag key={env}>{env}</StudioTag>
-                  ))}
-                </div>
-              </StudioTable.Cell>
-              <StudioTable.Cell className={classes.actions}>
-                <StudioButton
-                  variant='tertiary'
-                  icon={<StudioEditIcon />}
-                  onClick={() => openEditDialog(channel)}
-                  aria-label={t('org.settings.contact_points.dialog_edit_slack_title')}
-                />
-                <StudioDeleteButton
-                  onDelete={() => deleteChannel(channel.id)}
-                  confirmMessage={t('org.settings.contact_points.delete_confirm')}
-                />
-              </StudioTable.Cell>
+              <EnvironmentsCell environments={channel.environments} />
+              <ActionsCell
+                onEdit={() => openEditDialog(channel)}
+                onDelete={() => deleteChannel(channel.id)}
+                editAriaLabel={t('org.settings.contact_points.dialog_edit_slack_title')}
+              />
             </StudioTable.Row>
           ))}
         </StudioTable.Body>
       </StudioTable>
-      <div className={classes.addButtonWrapper}>
-        <StudioButton
-          variant='secondary'
-          icon={<PlusIcon />}
-          onClick={openAddDialog}
-          className={classes.addButton}
-        >
-          {t('org.settings.contact_points.add_contact')}
-        </StudioButton>
-      </div>
+      <AddButton onClick={openAddDialog}>
+        {t('org.settings.contact_points.add_slack_channel')}
+      </AddButton>
       <SlackChannelDialog
         dialogRef={dialogRef}
         channel={channelForm}

@@ -1,11 +1,11 @@
 import { StudioSpinner, StudioError, StudioCard, StudioHeading } from '@studio/components';
 import { useAppDetailsQuery } from 'admin/features/apps/hooks/queries/useAppDetailsQuery';
-import type { PublishedApplicationDetails } from 'admin/types/PublishedApplicationDetails';
+import type { PublishedApplicationDetails } from 'admin/features/apps/types/PublishedApplicationDetails';
 import { useTranslation } from 'react-i18next';
 import { ExternalLinkIcon } from '@studio/icons';
 
 import classes from './AppInfo.module.css';
-import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
+import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
 
 type AppInfoProps = {

@@ -2,7 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
-import { processMetadataPath } from 'admin/utils/apiPaths';
+import { processMetadataPath } from 'admin/features/apps/utils/apiPaths';
 
 export type ProcessTaskMetadata = {
   id: string;

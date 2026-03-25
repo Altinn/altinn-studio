@@ -9,8 +9,8 @@ import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTit
 import classes from './InstancesTable.module.css';
 import { useTranslation } from 'react-i18next';
 import { useAppInstancesQuery } from 'admin/features/apps/hooks/queries/useAppInstancesQuery';
-import type { SimpleInstance } from 'admin/types/InstancesResponse';
-import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
+import type { SimpleInstance } from 'admin/features/apps/types/InstancesResponse';
+import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
 import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';

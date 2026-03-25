@@ -1,7 +1,7 @@
 import { StudioBreadcrumbs } from '@studio/components';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { createSearchParams } from 'admin/utils/constants';
+import { createSearchParams } from 'admin/constants/constants';
 
 type RouteInfo =
   | {

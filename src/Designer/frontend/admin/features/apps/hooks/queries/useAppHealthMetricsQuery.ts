@@ -1,7 +1,7 @@
 import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import type { AppHealthMetric } from 'admin/types/metrics/AppHealthMetric';
-import { appHealthMetricsPath } from 'admin/utils/apiPaths';
+import type { AppHealthMetric } from 'admin/features/apps/types/metrics/AppHealthMetric';
+import { appHealthMetricsPath } from 'admin/features/apps/utils/apiPaths';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import axios from 'axios';
 
