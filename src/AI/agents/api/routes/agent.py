@@ -86,12 +86,12 @@ async def start_agent(
                 log.info(f"Stored {len(saved_attachments)} attachments for session {req.session_id}")
             except Exception as e:
                 log.error(f"Failed to process attachments for session {req.session_id}: {e}")
-                raise HTTPException(status_code=400, detail=f"Invalid attachment payload: {e}")
+                raise HTTPException(status_code=400, detail=f"Invalid attachment payload: {e}") from e
 
         # Route based on allow_app_changes flag
         if not req.allow_app_changes:
             # Chat mode - skip intent validation for questions
-            log.info(f"💬 Chat mode: skipping intent validation for Q&A")
+            log.info("💬 Chat mode: skipping intent validation for Q&A")
             # Chat mode - answer questions without making changes
             log.info(f"💬 Chat mode enabled for session {req.session_id}")
             

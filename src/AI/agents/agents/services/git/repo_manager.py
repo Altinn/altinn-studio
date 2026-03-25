@@ -58,6 +58,12 @@ class RepoManager:
         if developer:
             self.session_developers[session_id] = developer
 
+        if not effective_developer:
+            raise ValueError(
+                f"No developer identity for session {session_id}. "
+                "Pass an explicit developer argument or register the session first."
+            )
+
         # Create a unique directory name based on repo URL and session
         repo_hash = hashlib.md5(repo_url.encode()).hexdigest()[:8]
         repo_name = f"{session_id}_{repo_hash}"

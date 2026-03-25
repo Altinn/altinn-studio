@@ -92,7 +92,7 @@ class MCPClient:
 
         except Exception as e:
             log.error(f"MCP server check failed: {e}")
-            raise Exception(f"MCP server check failed: {e!s}")
+            raise Exception(f"MCP server check failed: {e!s}") from e
 
     async def call_tool(self, tool_name: str, arguments: dict, designer_api_key: str = None):
         """Call an MCP tool and return the result."""
@@ -112,7 +112,7 @@ class MCPClient:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")
             return {"error": str(e)}
     
-    async def create_patch_async(self, task_context: str, repository_path: str, attachments: list = None, form_spec_summary: str = None) -> dict:
+    async def create_patch_async(self, task_context: str, repository_path: str, attachments: Optional[list] = None, form_spec_summary: Optional[str] = None) -> dict:
         """
         Main workflow: Create a patch using MCP tools and LLM.
 
@@ -340,7 +340,7 @@ async def check_mcp_server_startup(server_url: str = None, expected_version: str
         status = await client.check_server_status()
         
         if status["running"]:
-            print(f"✅ MCP server check passed")
+            print("✅ MCP server check passed")
             return status
             
     except Exception as e:

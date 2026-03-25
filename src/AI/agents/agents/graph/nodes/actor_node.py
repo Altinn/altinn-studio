@@ -333,7 +333,6 @@ def _ensure_navigation_buttons(repo_path: str):
 
         # Determine button config based on position
         is_first = idx == 0
-        is_last = idx == len(page_order) - 1
 
         nav_component = {
             "id": f"nav-buttons-{page_name}",

@@ -255,7 +255,7 @@ async def handle(state: AgentState) -> AgentState:
         
         # Store assistant response in conversation history for follow-up context
         sink.add_to_conversation_history(state.session_id, "assistant", summary)
-        log.info(f"✅ Assistant message sent and stored in conversation history")
+        log.info("✅ Assistant message sent and stored in conversation history")
         
         # Send completion event to signal frontend that workflow is done
         sink.send(

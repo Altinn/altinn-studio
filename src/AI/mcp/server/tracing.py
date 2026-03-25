@@ -174,7 +174,7 @@ def trace_tool_call(func: Callable) -> Callable:
             try:
                 client.create_event(
                     name=f"{tool_name}_error",
-                    input=input_data,
+                    input=safe_input,
                     output={"error": str(e), "error_type": type(e).__name__},
                     metadata={
                         "tool_name": tool_name,

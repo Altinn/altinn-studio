@@ -328,15 +328,15 @@ class MCPVerifier:
             if hasattr(first, 'text'):
                 try:
                     return json.loads(first.text)
-                except json.JSONDecodeError:
-                    return {}
-            return first if isinstance(first, dict) else {}
+                except json.JSONDecodeError as exc:
+                    return {"valid": False, "reason": f"Unparseable response: {exc}"}
+            return first if isinstance(first, dict) else {"valid": False, "reason": "Unexpected response format"}
         if hasattr(mcp_response, 'text'):
             try:
                 return json.loads(mcp_response.text)
-            except json.JSONDecodeError:
-                return {}
-        return mcp_response if isinstance(mcp_response, dict) else {}
+            except json.JSONDecodeError as exc:
+                return {"valid": False, "reason": f"Unparseable response: {exc}"}
+        return mcp_response if isinstance(mcp_response, dict) else {"valid": False, "reason": "Unexpected response format"}
 
 
 async def run_mcp_verification(patch: Dict, plan_step: PlanStep, repository_path: str) -> MCPVerificationResult:

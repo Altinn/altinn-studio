@@ -366,7 +366,7 @@ def _validate_against_spec(form_spec, repo_path: str) -> List[str]:
                     settings = json.loads(f.read())
                 
                 order = settings.get("pages", {}).get("order", [])
-                order_lower = [p.lower() for p in order]
+                order_lower = {p.lower() for p in order}
                 
                 for page in form_spec.pages:
                     if page.page_name.lower() not in order_lower:

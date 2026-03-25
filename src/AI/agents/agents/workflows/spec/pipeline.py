@@ -159,8 +159,11 @@ def _parse_spec_response(raw: str) -> Optional[FormSpec]:
     # Strip markdown fences if present
     text = raw.strip()
     if text.startswith("```"):
-        first_newline = text.index("\n")
-        text = text[first_newline + 1 :]
+        first_newline = text.find("\n")
+        if first_newline != -1:
+            text = text[first_newline + 1 :]
+        else:
+            text = text[3:]
     if text.endswith("```"):
         text = text[: -3]
     text = text.strip()

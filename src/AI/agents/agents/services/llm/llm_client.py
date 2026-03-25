@@ -587,10 +587,10 @@ class LLMClient:
                     import time
                     system_len = len(system_message.strip() if system_message else "")
                     user_len = len(user_message.strip())
-                    log.info(f"🔵 Anthropic API call starting")
+                    log.info("🔵 Anthropic API call starting")
                     log.info(f"   System: {system_len} chars, User: {user_len} chars")
                     log.info(f"   Model: {self.model}, Max tokens: {self.max_tokens}")
-                    log.info(f"   Client timeout: 600s (10 min)")
+                    log.info("   Client timeout: 600s (10 min)")
                     
                     call_start = time.time()
                     try:
@@ -608,14 +608,14 @@ class LLMClient:
                         log.error(f"   Error type: {type(api_error).__name__}")
                         log.error(f"   Error: {api_error}")
                         if "408" in str(api_error) or "Timeout" in str(api_error):
-                            log.error(f"   ⚠️  AZURE GATEWAY TIMEOUT DETECTED")
-                            log.error(f"   The Azure AI Foundry gateway has a ~4 minute timeout limit")
+                            log.error("   ⚠️  AZURE GATEWAY TIMEOUT DETECTED")
+                            log.error("   The Azure AI Foundry gateway has a ~4 minute timeout limit")
                             log.error(f"   Your request took {call_elapsed:.1f}s before timing out")
-                            log.error(f"   Possible solutions:")
-                            log.error(f"   1. Reduce input size (smaller PDF, fewer tool results)")
+                            log.error("   Possible solutions:")
+                            log.error("   1. Reduce input size (smaller PDF, fewer tool results)")
                             log.error(f"   2. Reduce max_tokens (currently {self.max_tokens})")
-                            log.error(f"   3. Use streaming API (not yet implemented)")
-                            log.error(f"   4. Split task into smaller subtasks")
+                            log.error("   3. Use streaming API (not yet implemented)")
+                            log.error("   4. Split task into smaller subtasks")
                         raise
                     
                     response_text = self._extract_anthropic_text(response)

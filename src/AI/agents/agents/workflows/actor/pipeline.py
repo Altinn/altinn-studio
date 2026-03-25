@@ -255,7 +255,7 @@ async def run_actor_pipeline(
 
 async def create_general_plan(user_goal: str, planner_step: Optional[str] = None, *, attachments: Optional[List[AgentAttachment]] = None, form_spec_summary: Optional[str] = None) -> Dict[str, Any]:
     client = LLMClient(role="planner")
-    system_prompt, lf_prompt = get_prompt_with_langfuse("general_planning")
+    system_prompt, _lf_prompt = get_prompt_with_langfuse("general_planning")
     user_prompt = render_template(
         "general_planning_user",
         user_goal=user_goal,
@@ -808,7 +808,7 @@ async def synthesize_patch(
         # Log request details before making the call
         system_tokens = len(system_prompt) // 4  # Rough estimate
         user_tokens = len(user_prompt) // 4
-        log.info(f"🚀 Starting patch synthesis LLM call")
+        log.info("🚀 Starting patch synthesis LLM call")
         log.info(f"   System prompt: ~{system_tokens} tokens ({len(system_prompt)} chars)")
         log.info(f"   User prompt: ~{user_tokens} tokens ({len(user_prompt)} chars)")
         log.info(f"   Total context: ~{system_tokens + user_tokens} tokens")
@@ -825,8 +825,8 @@ async def synthesize_patch(
         except Exception as e:
             elapsed = time.time() - start_time
             log.error(f"❌ Patch synthesis failed after {elapsed:.1f}s: {e}")
-            log.error(f"   This suggests the request is too large or complex for the Azure gateway timeout")
-            log.error(f"   Consider: 1) Reducing PDF size, 2) Splitting into smaller tasks, 3) Using streaming API")
+            log.error("   This suggests the request is too large or complex for the Azure gateway timeout")
+            log.error("   Consider: 1) Reducing PDF size, 2) Splitting into smaller tasks, 3) Using streaming API")
             raise
         
         span.update(output={"response": response[:5000]})

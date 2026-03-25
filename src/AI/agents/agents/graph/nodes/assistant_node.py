@@ -202,7 +202,7 @@ async def _select_relevant_tools(
     query: str,
     tool_names: List[str],
     repo_summary: Dict[str, Any],
-    conversation_history: List[Any] = None
+    conversation_history: Optional[List[Any]] = None
 ) -> List[Dict[str, Any]]:
     """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
     with trace_span("tool_selection", metadata={"span_type": "AGENT"}) as span:
@@ -608,7 +608,7 @@ def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
                 if sections_found > 0:
                     log.info(f"📖 Extracted {sections_found} sections from altinn_planning")
                 else:
-                    log.warning(f"⚠️ No numbered sections found in Documentation Search section")
+                    log.warning("⚠️ No numbered sections found in Documentation Search section")
             else:
                 log.warning(f"⚠️ No '## Documentation Search' section in altinn_planning result (length: {len(text_content)})")
         

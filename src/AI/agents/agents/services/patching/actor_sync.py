@@ -121,7 +121,7 @@ async def _sync_single_file(
         result = subprocess.run(['git', 'branch', '--show-current'], 
                               cwd=repo_path, capture_output=True, text=True)
         current_branch = result.stdout.strip() if result.returncode == 0 else "unknown"
-    except:
+    except Exception:
         current_branch = "unknown"
     
     if not check_only:

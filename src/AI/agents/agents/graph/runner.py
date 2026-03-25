@@ -293,7 +293,7 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "done": True,
                     "success": False,
                     "status": "error",
-                    "message": f"Workflow failed: {str(e)}"
+                    "message": f"Workflow failed: {e!s}"
                 }
             ))
 
