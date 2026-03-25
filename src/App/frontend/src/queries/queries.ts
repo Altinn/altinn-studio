@@ -24,7 +24,6 @@ import {
   getPdfFormatUrl,
   getProcessNextUrl,
   getProcessStateUrl,
-  getSetSelectedPartyUrl,
   getUpdateFileTagsUrl,
   getValidationUrl,
   postalCodesUrl,
@@ -47,11 +46,7 @@ import type {
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { LooseAutocomplete } from 'src/types';
 import type { IActionType, IData, IParty, IProcess, PostalCodesRegistry } from 'src/types/shared';
-
-export const doSetSelectedParty = (partyId: number | string) =>
-  putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);

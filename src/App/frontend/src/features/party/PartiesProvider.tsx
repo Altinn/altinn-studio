@@ -21,16 +21,6 @@ const partyQueryKeys = {
   allowedToInstantiate: () => [...partyQueryKeys.all, 'allowedToInstantiate'] as const,
 };
 
-// Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts
-// export function usePartiesQueryDef(enabled: boolean) {
-//   const { fetchPartiesAllowedToInstantiate } = useAppQueries();
-//   return {
-//     queryKey: partyQueryKeys.allowedToInstantiate(),
-//     queryFn: fetchPartiesAllowedToInstantiate,
-//     enabled,
-//   };
-// }
-
 const usePartiesAllowedToInstantiateQuery = () => {
   const allowAnonymous = useIsAllowAnonymous(false);
 
@@ -46,17 +36,6 @@ const usePartiesAllowedToInstantiateQuery = () => {
     enabled: allowAnonymous,
   };
 };
-
-// const useSetSelectedPartyMutation = () => {
-//   const { doSetSelectedParty } = useAppMutations();
-//   return useMutation({
-//     mutationKey: ['doSetSelectedParty'],
-//     mutationFn: (party: IParty) => doSetSelectedParty(party.partyId),
-//     onError: (error: HttpClientError) => {
-//       window.logError('Setting current party failed:\n', error);
-//     },
-//   });
-//};
 
 const { Provider: PartiesProvider, useCtx: usePartiesAllowedToInstantiateCtx } = delayedContext(() =>
   createQueryContext<IParty[] | undefined, false>({

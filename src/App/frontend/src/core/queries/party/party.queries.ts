@@ -11,14 +11,14 @@ export function partiesAllowedtoInstantiateQuery(options?: { enabled?: boolean }
   return queryOptions({
     queryKey: ['partiesAllowedToInstantiate'],
     queryFn: async () => await PartyApi.getPartiesAllowedToInstantiateHierarchical(),
-    enabled: options?.enabled,
+    ...options,
   });
 }
 
 export function selectedPartyMutation() {
   return mutationOptions({
     mutationKey: ['setSelectedParty'],
-    mutationFn: async ({ partyId }: { partyId: number | string }) => await PartyApi.setSelectedParty({ partyId }),
+    mutationFn: ({ partyId }: { partyId: number | string }) => PartyApi.setSelectedParty({ partyId }),
     onError: (error: Error) => window.logError('Setting current party failed:\n', error),
   });
 }
