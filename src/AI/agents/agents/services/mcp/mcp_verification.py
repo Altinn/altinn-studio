@@ -204,15 +204,20 @@ class MCPVerifier:
     
     async def _verify_layout_settings(self, layout_settings_files: List[Dict], result: MCPVerificationResult):
         """Validate Settings.json for correct JSON syntax and structure"""
-        with trace_span("layout_settings_validation", metadata={"span_type": "TOOL"}) as span:
+        for settings_entry in layout_settings_files:
+            await self._verify_single_layout_settings(settings_entry, result)
+
+    async def _verify_single_layout_settings(self, settings_entry: Dict, result: MCPVerificationResult):
+        """Validate a single Settings.json file."""
+        file_path = settings_entry['file']
+        with trace_span("layout_settings_validation", metadata={"span_type": "TOOL", "file_path": file_path}) as span:
             try:
-                # Read the Settings.json file content
-                settings_file_path = Path(self.repo_path) / layout_settings_files[0]['file']
+                settings_file_path = Path(self.repo_path) / file_path
                 with open(settings_file_path, 'r') as f:
                     settings_content = f.read()
                 
                 span.update(metadata={
-                    "file_path": layout_settings_files[0]['file'],
+                    "file_path": file_path,
                     "validation_type": "layout_settings_json",
                 })
                 span.update(input={

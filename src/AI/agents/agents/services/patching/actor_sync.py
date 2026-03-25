@@ -150,11 +150,18 @@ async def _sync_single_file(
         "schema_filename": schema_filename,
     }
     
-    log.debug(f"Calling altinn_datamodel_sync with: {sync_request}")
+    log.debug(
+        "Calling altinn_datamodel_sync for %s (%d bytes)",
+        schema_filename, len(schema_content),
+    )
     
     # Call MCP tool with langfuse tracking
     from shared.utils.langfuse_utils import trace_span
-    with trace_span("tool_altinn_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
+    redacted_input = {
+        "schema_filename": schema_filename,
+        "schema_size": len(schema_content),
+    }
+    with trace_span("tool_altinn_datamodel_sync", metadata={"span_type": "TOOL"}, input=redacted_input) as span:
         try:
             result = await mcp_client.call_tool("altinn_datamodel_sync", sync_request, designer_api_key=designer_api_key)
             span.update(output={"result": result})

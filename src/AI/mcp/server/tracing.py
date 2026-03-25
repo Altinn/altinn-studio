@@ -23,6 +23,34 @@ from server.config import (
 # Default organization if headers are not available
 DEFAULT_ORG = "unknown"
 
+# Keys whose values must be redacted before sending to Langfuse
+_SENSITIVE_KEYS = frozenset({
+    "api_key", "token", "password", "authorization", "auth",
+    "secret", "key", "credential", "x-api-key",
+})
+_MAX_FIELD_LENGTH = 2000
+
+
+def _sanitize_payload(obj: Any, *, depth: int = 0) -> Any:
+    """Return a copy of *obj* with sensitive keys redacted and large strings truncated."""
+    if depth > 10:
+        return "<TOO_DEEP>"
+    if isinstance(obj, dict):
+        sanitized = {}
+        for k, v in obj.items():
+            if k.lower().replace("-", "_") in _SENSITIVE_KEYS:
+                sanitized[k] = "<REDACTED>"
+            else:
+                sanitized[k] = _sanitize_payload(v, depth=depth + 1)
+        return sanitized
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_payload(item, depth=depth + 1) for item in obj[:50]]
+    if isinstance(obj, str) and len(obj) > _MAX_FIELD_LENGTH:
+        return obj[:_MAX_FIELD_LENGTH] + f"... <truncated {len(obj)} chars>"
+    if isinstance(obj, bytes):
+        return f"<bytes {len(obj)}>"
+    return obj
+
 # Context variable to store MCP request metadata (set by middleware/handler)
 _mcp_request_meta: ContextVar[Optional[Dict[str, Any]]] = ContextVar('mcp_request_meta', default=None)
 
@@ -111,6 +139,10 @@ def trace_tool_call(func: Callable) -> Callable:
                 if i < len(param_names):
                     input_data[param_names[i]] = arg
         
+        # Sanitize before sending to Langfuse
+        safe_input = _sanitize_payload(input_data)
+        safe_meta = _sanitize_payload(mcp_meta)
+
         try:
             # Build metadata
             span_metadata = {
@@ -118,13 +150,13 @@ def trace_tool_call(func: Callable) -> Callable:
                 "team_name": team_name,
                 "mcp_server": "altinn-mcp",
                 "client_reasoning": client_reasoning,
-                "mcp_meta": mcp_meta,
+                "mcp_meta": safe_meta,
             }
             
             with client.start_as_current_observation(
                 as_type="span",
                 name=tool_name,
-                input=input_data,
+                input=safe_input,
                 metadata=span_metadata,
                 level="DEFAULT"
             ) as span:

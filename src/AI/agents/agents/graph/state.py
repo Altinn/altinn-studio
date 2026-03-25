@@ -43,17 +43,26 @@ class FormSpec(BaseModel):
     def field_count(self) -> int:
         return sum(len(p.fields) for p in self.pages)
 
+    @staticmethod
+    def _sanitize(text: str, max_length: int = 200) -> str:
+        """Strip control characters and truncate to prevent prompt injection."""
+        clean = text.replace("\r", " ").replace("\n", " ").replace("\t", " ")
+        return clean[:max_length]
+
     def to_summary(self) -> str:
         """Compact summary for inclusion in prompts."""
-        lines = [f"FORM SPEC: \"{self.title}\" ({self.language}), {self.total_pages} pages, {self.field_count()} fields"]
+        safe_title = self._sanitize(self.title)
+        lines = [f"FORM SPEC: \"{safe_title}\" ({self.language}), {self.total_pages} pages, {self.field_count()} fields"]
         for page in self.pages:
-            section = f" (Section {page.section_id})" if page.section_id else ""
-            lines.append(f"\n  Page: {page.page_name}{section} — \"{page.title}\"")
+            safe_page_title = self._sanitize(page.title)
+            section = f" (Section {self._sanitize(page.section_id, 20)})" if page.section_id else ""
+            lines.append(f"\n  Page: {page.page_name}{section} — \"{safe_page_title}\"")
             for f in page.fields:
-                desc = f" — {f.description}" if f.description else ""
-                opts = f" [{', '.join(f.options)}]" if f.options else ""
+                label = self._sanitize(f.label)
+                desc = f" — {self._sanitize(f.description)}" if f.description else ""
+                opts = f" [{', '.join(self._sanitize(o, 80) for o in f.options[:20])}]" if f.options else ""
                 req = " *" if f.required else ""
-                lines.append(f"    - [{f.field_type}] \"{f.label}\"{desc}{opts}{req}")
+                lines.append(f"    - [{f.field_type}] \"{label}\"{desc}{opts}{req}")
         return "\n".join(lines)
 
 

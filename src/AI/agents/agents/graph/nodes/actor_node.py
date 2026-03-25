@@ -319,7 +319,11 @@ def _ensure_navigation_buttons(repo_path: str):
         except (json.JSONDecodeError, IOError):
             continue
 
-        components = layout.get("data", {}).get("layout", [])
+        data = layout.get("data")
+        if not isinstance(data, dict) or not isinstance(data.get("layout"), list):
+            continue
+
+        components = data["layout"]
         has_nav = any(
             c.get("type") == "NavigationButtons" for c in components
         )
@@ -338,7 +342,7 @@ def _ensure_navigation_buttons(repo_path: str):
         }
 
         components.append(nav_component)
-        layout["data"]["layout"] = components
+        data["layout"] = components
 
         with open(layout_path, "w") as f:
             json.dump(layout, f, indent=2, ensure_ascii=False)

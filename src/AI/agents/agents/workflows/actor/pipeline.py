@@ -560,7 +560,13 @@ async def execute_tool_plan(
                         error_message = result["error"]
                         tool_span.update(output={"success": False, "error": error_message})
                         log.warning(f"⚠️ MCP tool '{tool_name}' returned error: {error_message}")
-                        # Continue with other tools instead of crashing
+                        results.append({
+                            "tool": tool_name,
+                            "objective": objective,
+                            "arguments": arguments,
+                            "result": f"ERROR: {error_message}",
+                            "error": True,
+                        })
                         continue
                 except Exception as e:
                     error_message = str(e)

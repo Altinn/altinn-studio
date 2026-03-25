@@ -53,6 +53,11 @@ class RepoManager:
         Raises:
             Exception: If cloning fails
         """
+        # Resolve the effective token: prefer the new gitea_token, fall back to stored
+        token = gitea_token or self.session_tokens.get(session_id)
+        if gitea_token:
+            self.session_tokens[session_id] = gitea_token
+
         # Create a unique directory name based on repo URL and session
         repo_hash = hashlib.md5(repo_url.encode()).hexdigest()[:8]
         repo_name = f"{session_id}_{repo_hash}"
@@ -68,14 +73,14 @@ class RepoManager:
                 if branch:
                     try:
                         checkout_cmd = ["git", "checkout", branch]
-                        result = subprocess.run(checkout_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
+                        subprocess.run(checkout_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
                         log.info(f"Checked out branch {branch} for existing session {session_id}")
                     except subprocess.CalledProcessError as e:
                         log.warning(f"Failed to checkout branch {branch} for existing session: {e.stderr}")
                         # Try to create and checkout the branch
                         try:
                             create_branch_cmd = ["git", "checkout", "-b", branch]
-                            result = subprocess.run(create_branch_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
+                            subprocess.run(create_branch_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
                             log.info(f"Created and checked out new branch {branch} for existing session {session_id}")
                         except subprocess.CalledProcessError as e2:
                             log.error(f"Failed to create branch {branch}: {e2.stderr}")
@@ -91,7 +96,7 @@ class RepoManager:
         try:
             clone_url = self._apply_base_url(repo_url)
 
-            self._run_git(["clone", clone_url, str(repo_path)], token, timeout=300)
+            self._run_git(["clone", clone_url, str(repo_path)], token or "", timeout=300)
 
             log.info(f"Successfully cloned {repo_url} for session {session_id}")
 
@@ -112,10 +117,8 @@ class RepoManager:
                         log.error(f"Failed to create branch {branch}: {e.stderr}")
                         # Continue anyway - we'll work on default branch
 
-            # Store the active repo mapping and token
+            # Store the active repo mapping (token already persisted above)
             self.active_repos[session_id] = repo_path
-            if gitea_token:
-                self.session_tokens[session_id] = gitea_token
 
             return repo_path
 

@@ -1,6 +1,6 @@
 """Agent workflow API routes"""
 import re
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
@@ -44,11 +44,13 @@ class StartReq(BaseModel):
 @router.post("/api/agent/start")
 async def start_agent(
     req: StartReq,
+    request: Request,
     designer_api_key: str = Depends(get_designer_api_key),
-    x_session_id: str = Header(..., alias="X-Session-Id")
 ):
     """Start an agent workflow for a single atomic change"""
     try:
+        session_id = req.session_id
+
         # Extract headers passed by Designer backend
         gitea_token = request.headers.get("X-User-Token")
         if not gitea_token:
@@ -68,7 +70,7 @@ async def start_agent(
         
         # Clone the repository for this session
         repo_manager = get_repo_manager()
-        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, designer_api_key)
+        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, gitea_token=designer_api_key)
 
         branch_info = f" on branch {req.branch}" if req.branch else ""
         log.info(f"Cloned repository {req.repo_url} to {repo_path} for session {req.session_id}{branch_info}")
@@ -307,18 +309,26 @@ async def start_agent(
         
         return response_data
 
+    except HTTPException:
+        raise
     except Exception as e:
         log.error(f"Failed to start agent workflow: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/api/agent/cancel/{session_id}")
-async def cancel_session(session_id: str):
+async def cancel_session(session_id: str, request: Request):
     """Cancel a running session. Sends a terminal event so the frontend stops loading."""
     status = sink.get_session_status(session_id)
 
     if status is None:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    # Enforce ownership: only the developer who started the session may cancel it
+    caller = request.headers.get("X-Developer")
+    owner = sink.get_session_developer(session_id)
+    if owner and caller and caller != owner:
+        raise HTTPException(status_code=403, detail="Not the session owner")
 
     current_status = status.get("status")
     if current_status in ("done", "cancelled", "error"):

@@ -86,6 +86,11 @@ def layout_list() -> Dict[str, Any]:
             error_code="COMPONENTS_NOT_AVAILABLE",
             message=f"Layout components module could not be loaded: {str(e)}",
         ).to_dict()
+    except Exception as e:
+        return ToolError(
+            error_code="UNEXPECTED_ERROR",
+            message=f"Unexpected error in layout_list: {e}",
+        ).to_dict()
 
 
 @register_tool(
@@ -153,6 +158,11 @@ def layout_props(
         return ToolError(
             error_code="PROPS_NOT_AVAILABLE",
             message=f"Layout properties module could not be loaded: {str(e)}",
+        ).to_dict()
+    except Exception as e:
+        return ToolError(
+            error_code="UNEXPECTED_ERROR",
+            message=f"Unexpected error in layout_props: {e}",
         ).to_dict()
 
 
@@ -228,4 +238,9 @@ def layout_validate(
         return ToolError(
             error_code="VALIDATOR_NOT_AVAILABLE",
             message=f"Schema validator module could not be loaded: {str(e)}",
+        ).to_dict()
+    except Exception as e:
+        return ToolError(
+            error_code="UNEXPECTED_ERROR",
+            message=f"Unexpected error in layout_validate: {e}",
         ).to_dict()

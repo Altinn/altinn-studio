@@ -163,9 +163,9 @@ async def handle(state: AgentState) -> AgentState:
     # Check if workflow should stop
     if state.next_action == "stop":
         log.info("⏹️ Workflow stopping at reviewer - generating summary")
+        changed_files = state.changed_files or []
         # Still generate a summary even when stopping early
         try:
-            changed_files = state.changed_files or []
             summary = await generate_final_summary(
                 user_goal=state.user_goal,
                 step_plan=state.step_plan,
@@ -193,6 +193,18 @@ async def handle(state: AgentState) -> AgentState:
             log.info("✅ Early summary sent and stored in conversation history")
         except Exception as e:
             log.error(f"Failed to generate early summary: {e}")
+
+        # Send done event so the frontend stops loading
+        sink.send(
+            AgentEvent(
+                type="done",
+                session_id=state.session_id,
+                data={
+                    "success": not bool(changed_files),
+                    "changed_files": changed_files,
+                },
+            )
+        )
         
         return state
 

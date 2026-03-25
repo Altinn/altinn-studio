@@ -98,6 +98,11 @@ class EventSink:
             for buf in self._developer_buffers.values():
                 buf.set_main_loop(loop)
 
+    def get_session_developer(self, session_id: str) -> Optional[str]:
+        """Return the developer associated with *session_id*, or None."""
+        with self._buf_lock:
+            return self._session_to_developer.get(session_id)
+
     def register_developer_session(self, developer: str, session_id: str):
         """Associate a session with a developer so events fan out to the developer buffer."""
         with self._buf_lock:

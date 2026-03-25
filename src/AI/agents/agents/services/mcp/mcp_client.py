@@ -74,7 +74,7 @@ class MCPClient:
     
     async def check_server_status(self) -> dict:
         """
-        Check MCP server status by verifying connectivity.
+        Check MCP server status by verifying transport-level connectivity.
             
         Returns:
             dict with 'running' key
@@ -83,21 +83,16 @@ class MCPClient:
             Exception: If server is not running
         """
         try:
-            result = await self.call_tool("altinn_help", {"topic": "overview"})
-            
-            if isinstance(result, dict) and "error" in result:
-                raise Exception(f"MCP server not responding: {result['error']}")
-            
-            # If we got a response, server is running
+            client = await self._get_client()
+            async with client:
+                await client.ping()
+
             log.info("MCP server status: running")
-            
-            return {
-                "running": True,
-            }
+            return {"running": True}
 
         except Exception as e:
             log.error(f"MCP server check failed: {e}")
-            raise Exception(f"MCP server check failed: {str(e)}")
+            raise Exception(f"MCP server check failed: {e!s}")
 
     async def call_tool(self, tool_name: str, arguments: dict, designer_api_key: str = None):
         """Call an MCP tool and return the result."""

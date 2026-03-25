@@ -32,11 +32,17 @@ def _read_changed_file_contents(
     repo_path: str, changed_files: List[str]
 ) -> Dict[str, str]:
     """Read the actual contents of changed files so the LLM can see what to fix."""
+    from pathlib import Path
+
+    repo_root = Path(repo_path).resolve()
     contents: Dict[str, str] = {}
     for rel_path in changed_files:
-        full_path = os.path.join(repo_path, rel_path)
+        resolved = (repo_root / rel_path).resolve()
+        if not resolved.is_relative_to(repo_root):
+            log.warning("Skipping path outside repo root: %s", rel_path)
+            continue
         try:
-            with open(full_path, "r", encoding="utf-8") as f:
+            with open(resolved, "r", encoding="utf-8") as f:
                 contents[rel_path] = f.read()
         except Exception as e:
             log.warning("Could not read %s: %s", rel_path, e)
@@ -202,12 +208,9 @@ def _parse_decision_response(response: str) -> Dict[str, Any]:
 
 
 def _has_hard_errors(verify_notes: List[str]) -> bool:
-    """Check if verify_notes contain hard (non-soft-warning) errors."""
+    """Return True if any verify_note is NOT a soft warning."""
     for note in verify_notes:
-        if note.startswith("[soft warning]"):
-            continue
-        note_lower = note.lower()
-        if any(word in note_lower for word in ["error", "failed", "issue", "problem", "duplicate"]):
+        if not note.startswith("[soft warning]"):
             return True
     return False
 
