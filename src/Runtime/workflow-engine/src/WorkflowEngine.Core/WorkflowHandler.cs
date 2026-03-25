@@ -106,9 +106,11 @@ internal sealed class WorkflowHandler(
 
             Metrics.Errors.Add(
                 1,
-                ("operation", "workflowProcessing"),
-                ("target", workflow.Namespace),
-                ("operationId", workflow.OperationId)
+                [
+                    ("operation", "workflowProcessing"),
+                    ("target", workflow.Namespace),
+                    ("operationId", workflow.OperationId),
+                ]
             );
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
