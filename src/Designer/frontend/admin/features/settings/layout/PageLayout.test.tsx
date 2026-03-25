@@ -47,7 +47,9 @@ describe('PageLayout', () => {
 
   it('renders the settings heading', () => {
     renderPageLayout();
-    expect(screen.getByRole('heading', { name: textMock('org.settings') })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: textMock('org.settings.heading') }),
+    ).toBeInTheDocument();
   });
 
   it('renders the Menu', () => {
@@ -90,7 +92,7 @@ describe('PageLayout', () => {
     queryClient.setQueryData([QueryKey.CurrentUser], undefined);
     renderWithProviders(<PageLayout />, { queryClient });
     expect(
-      screen.queryByRole('heading', { name: textMock('org.settings') }),
+      screen.queryByRole('heading', { name: textMock('org.settings.heading') }),
     ).not.toBeInTheDocument();
   });
 });

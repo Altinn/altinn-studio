@@ -38,8 +38,11 @@ export const PageLayout = () => {
   return (
     <>
       <StudioHeading level={2} className={classes.settingsHeading}>
-        {t('org.settings')}
+        {t('org.settings.heading')}
       </StudioHeading>
+      <div className={classes.settingsHeadingDescription}>
+        {t('org.settings.heading.description')}
+      </div>
       <div className={classes.pageContentWrapper}>
         <div className={classes.leftNavWrapper}>
           <Menu />

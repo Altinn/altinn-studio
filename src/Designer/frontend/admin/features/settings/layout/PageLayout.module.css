@@ -5,6 +5,11 @@
   padding-block: var(--ds-size-4);
 }
 
+.settingsHeadingDescription {
+  padding: var(--ds-size-4);
+  padding-top: 0;
+}
+
 .pageContentWrapper {
   display: flex;
   flex: 1;
