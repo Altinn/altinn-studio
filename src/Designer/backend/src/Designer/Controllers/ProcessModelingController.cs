@@ -130,7 +130,7 @@ namespace Altinn.Studio.Designer.Controllers
             [FromRoute] string dataTypeId,
             [FromQuery] string taskId,
             CancellationToken cancellationToken,
-            [FromBody][CanBeNull] List<string> allowedContributors
+            [FromBody] [CanBeNull] List<string> allowedContributors
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

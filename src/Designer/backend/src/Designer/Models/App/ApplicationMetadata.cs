@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Models.App;
 
