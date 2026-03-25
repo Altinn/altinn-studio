@@ -387,7 +387,6 @@ namespace Altinn.Studio.Designer.Migrations
 
                     b.Property<string>("Org")
                         .IsRequired()
-                        .HasMaxLength(40)
                         .HasColumnType("character varying")
                         .HasColumnName("org");
 
