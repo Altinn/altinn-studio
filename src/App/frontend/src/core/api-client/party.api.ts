@@ -10,7 +10,7 @@ export class PartyApi {
     return parties;
   }
   public static async setSelectedParty({ partyId }: { partyId: number | string }): Promise<SetSelectedPartyResponse> {
-    const { data } = await axiosInstance.post<SetSelectedPartyResponse>(`/api/v1/parties/${partyId}`);
+    const { data } = await axiosInstance.put<SetSelectedPartyResponse>(`/api/v1/parties/${partyId}`);
     return data;
   }
 }

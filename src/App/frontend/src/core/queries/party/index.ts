@@ -29,4 +29,9 @@ function prefetchPartiesAllowedToInstantiate({ queryClient }: { queryClient: Que
   return queryClient.prefetchQuery(partiesAllowedtoInstantiateQuery());
 }
 
-export { prefetchPartiesAllowedToInstantiate, usePartiesAllowedToInstantiate, useSetSelectedParty };
+export {
+  partiesAllowedtoInstantiateQuery,
+  prefetchPartiesAllowedToInstantiate,
+  usePartiesAllowedToInstantiate,
+  useSetSelectedParty,
+};
