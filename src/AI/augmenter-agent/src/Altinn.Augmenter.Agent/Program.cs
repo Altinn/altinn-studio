@@ -27,6 +27,7 @@ builder.Services.AddHostedService<PdfGenerationBackgroundService>();
 // Services
 builder.Services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
 builder.Services.AddSingleton<IRequestInfoDataMapper, RequestInfoDataMapper>();
+builder.Services.AddSingleton<IChecklistDataMapper, ChecklistDataMapper>();
 builder.Services.AddScoped<IMultipartParserService, MultipartParserService>();
 var callbackOptions = builder.Configuration.GetSection(CallbackOptions.SectionName).Get<CallbackOptions>() ?? new CallbackOptions();
 builder.Services.AddHttpClient<ICallbackService, CallbackService>(client =>
@@ -41,11 +42,7 @@ builder.Services.AddScoped<IPdfGenerationStep>(sp =>
         "dummy-1",
         "pdf-templates/default.typ",
         sp.GetRequiredService<IPdfGeneratorService>()));
-builder.Services.AddScoped<IPdfGenerationStep>(sp =>
-    new DummyPdfGenerationStep(
-        "dummy-2",
-        "pdf-templates/default.typ",
-        sp.GetRequiredService<IPdfGeneratorService>()));
+builder.Services.AddScoped<IPdfGenerationStep, ChecklistGenerationStep>();
 
 // Pipeline orchestrator
 builder.Services.AddScoped<IPdfPipeline, PdfPipeline>();

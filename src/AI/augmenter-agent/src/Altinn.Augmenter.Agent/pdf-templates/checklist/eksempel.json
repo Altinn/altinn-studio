@@ -1,0 +1,300 @@
+{
+  "meta": {
+    "saksnummer": "25/01234",
+    "soknadsdato": "2026-02-15",
+    "vurderingsdato": "2026-03-25",
+    "saksbehandler": "AI-agent v1",
+    "soknadstype": "skjenkebevilling_enkelt",
+    "kommune": "Vennesla"
+  },
+  "soker": {
+    "navn": "Fest & Moro AS",
+    "organisasjonsnummer": "912345678",
+    "kontaktperson": "Sophie Salt",
+    "adresse": "Markens gate 10, 4611 Kristiansand"
+  },
+  "arrangement": {
+    "navn": "Sophie Salts Julebord 2026",
+    "type": "Julebord",
+    "fra_dato": "2026-12-12",
+    "fra_klokkeslett": "18:00",
+    "til_dato": "2026-12-12",
+    "til_klokkeslett": "23:00",
+    "antall_deltakere": 50,
+    "aapen_eller_lukket": "Lukket",
+    "innendors_utendors": "Innendørs",
+    "lokale_navn": "Festsalen Kristiansand",
+    "lokale_adresse": "Markens gate 10, 4611 Kristiansand"
+  },
+  "bevilling": {
+    "type_bevilling": "Skjenkebevilling til arrangement",
+    "alkoholgruppe": "Gruppe 1 og 2 (under 22 %)",
+    "har_eksisterende_bevilling": false
+  },
+  "styrer": {
+    "navn": "Sophie Salt",
+    "fodselsnummer": "01019012345",
+    "epost": "sophie@test.no",
+    "telefon": "91234567"
+  },
+  "stedfortreder": {
+    "navn": "Ole Hansen",
+    "fodselsnummer": "01019054321",
+    "epost": "ole.hansen@test.no",
+    "telefon": "98765432",
+    "fritak_sokt": false
+  },
+  "sjekkliste": {
+    "formelle_krav": {
+      "label": "Formelle krav",
+      "punkter": {
+        "soknad_komplett": {
+          "label": "Søknaden er komplett utfylt",
+          "status": "vurdert_ok",
+          "merknad": ""
+        },
+        "riktig_soknadstype": {
+          "label": "Riktig søknadstype valgt",
+          "status": "vurdert_ok",
+          "merknad": ""
+        },
+        "kommune_riktig": {
+          "label": "Riktig kommune valgt",
+          "status": "vurdert_ok",
+          "merknad": ""
+        },
+        "soker_identifisert": {
+          "label": "Søker er identifisert med org.nr.",
+          "status": "vurdert_ok",
+          "merknad": ""
+        }
+      }
+    },
+    "dokumentasjon": {
+      "label": "Dokumentasjon",
+      "punkter": {
+        "leiekontrakt": {
+          "label": "Leiekontrakt for lokalet",
+          "status": "ikke_vurdert",
+          "merknad": "Ikke vedlagt søknaden"
+        },
+        "personantall_beregning": {
+          "label": "Beregning av personantall fra godkjent firma",
+          "status": "ikke_vurdert",
+          "merknad": "Ikke vedlagt"
+        },
+        "plantegninger": {
+          "label": "Plantegninger over lokalet",
+          "status": "ikke_vurdert",
+          "merknad": "Ikke vedlagt"
+        },
+        "mattilsynet_registrering": {
+          "label": "Registrering hos Mattilsynet",
+          "status": "maa_undersokes",
+          "merknad": "Ukjent om lokalet er registrert"
+        },
+        "bruksgodkjenning": {
+          "label": "Bruksgodkjenning fra plan- og bygningsetaten",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "kunnskapsprove_styrer": {
+          "label": "Kunnskapsprøve bestått – styrer",
+          "status": "maa_undersokes",
+          "merknad": "Ikke dokumentert i søknaden. Sjekk P360."
+        },
+        "kunnskapsprove_stedfortreder": {
+          "label": "Kunnskapsprøve bestått – stedfortreder",
+          "status": "maa_undersokes",
+          "merknad": "Ikke dokumentert i søknaden. Sjekk P360."
+        },
+        "arbeidsavtale_styrer": {
+          "label": "Arbeidsavtale for styrer",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "arbeidsavtale_stedfortreder": {
+          "label": "Arbeidsavtale for stedfortreder",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "dokumentasjon_uteservering": {
+      "label": "Dokumentasjon – uteservering (kun ved utendørs)",
+      "relevant": false,
+      "punkter": {
+        "grunneier_tillatelse": {
+          "label": "Grunneiers tillatelse til uteservering",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "plan_utbygging_godkjenning": {
+          "label": "Godkjenning fra plan og utbygging",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "vandel": {
+      "label": "Vandelsvurdering",
+      "punkter": {
+        "politi_uttalelse": {
+          "label": "Uttalelse innhentet fra Agder politidistrikt",
+          "status": "ikke_vurdert",
+          "merknad": "Forespørsel ikke sendt"
+        },
+        "skatteetaten_uttalelse": {
+          "label": "Uttalelse innhentet fra Skatteetaten",
+          "status": "ikke_vurdert",
+          "merknad": "Forespørsel ikke sendt"
+        },
+        "nav_uttalelse": {
+          "label": "Uttalelse innhentet fra NAV (sosialtjenesten)",
+          "status": "ikke_vurdert",
+          "merknad": "Påkrevd for skjenkebevilling"
+        },
+        "vandel_bevillingshaver": {
+          "label": "Vandel OK – bevillingshaver/eier",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "vandel_styrer": {
+          "label": "Vandel OK – styrer (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "vandel_stedfortreder": {
+          "label": "Vandel OK – stedfortreder (kun alkohollovgivning)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "vandel_vesentlig_innflytelse": {
+          "label": "Vandel OK – personer med vesentlig innflytelse",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    },
+    "personkrav": {
+      "label": "Krav til styrer og stedfortreder",
+      "punkter": {
+        "styrer_alder": {
+          "label": "Styrer er over 20 år",
+          "status": "maa_undersokes",
+          "merknad": "Alder kan ikke verifiseres fra søknaden alene"
+        },
+        "stedfortreder_alder": {
+          "label": "Stedfortreder er over 20 år",
+          "status": "maa_undersokes",
+          "merknad": "Alder kan ikke verifiseres fra søknaden alene"
+        },
+        "styrer_ansatt": {
+          "label": "Styrer er ansatt på stedet / eier",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "stedfortreder_ansatt": {
+          "label": "Stedfortreder er ansatt på stedet / eier",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "styrer_kun_ett_sted": {
+          "label": "Styrer er ikke styrer/stedfortreder på annet sted",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "stedfortreder_kun_ett_sted": {
+          "label": "Stedfortreder er ikke styrer/stedfortreder på annet sted",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "fritak_stedfortreder": {
+          "label": "Fritak fra krav om stedfortreder vurdert",
+          "status": "ikke_relevant",
+          "merknad": "Stedfortreder er oppgitt"
+        }
+      }
+    },
+    "lokalpolitisk": {
+      "label": "Lokalpolitisk vurdering (kommunens retningslinjer)",
+      "punkter": {
+        "beliggenhet_ok": {
+          "label": "Beliggenhet i tråd med retningslinjer",
+          "status": "maa_undersokes",
+          "merknad": "Sjekk om lokalet ligger i nærhet av skoler, barnehager, idrettsanlegg eller boligområder"
+        },
+        "ikke_barn_unge_omraade": {
+          "label": "Ikke i område for barn/unges fritidsaktiviteter",
+          "status": "maa_undersokes",
+          "merknad": ""
+        },
+        "ikke_idrettsarrangement": {
+          "label": "Ikke idrettsarrangement eller arrangement for barn/unge",
+          "status": "vurdert_ok",
+          "merknad": "Julebord – firmaarrangement"
+        },
+        "brennevin_spisested": {
+          "label": "Brennevin kun til spisested (hvis gr. 3)",
+          "status": "ikke_relevant",
+          "merknad": "Søkt om gruppe 1 og 2"
+        },
+        "skjenketider_ok": {
+          "label": "Skjenketider innenfor kommunens rammer",
+          "status": "vurdert_ok",
+          "merknad": "18:00–23:00 er innenfor"
+        },
+        "arrangement_varighet_ok": {
+          "label": "Arrangement innenfor maks 14 dager",
+          "status": "vurdert_ok",
+          "merknad": "Én kveld"
+        }
+      }
+    },
+    "habilitet": {
+      "label": "Habilitet og saksbehandling",
+      "punkter": {
+        "habilitet_vurdert": {
+          "label": "Habilitet vurdert (fvl. § 6)",
+          "status": "vurdert_ok",
+          "merknad": "AI-agent – ingen inhabilitet"
+        },
+        "veiledningsplikt": {
+          "label": "Veiledningsplikt overholdt (fvl. § 11)",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        },
+        "saksbehandlingstid": {
+          "label": "Innenfor 90 dagers saksbehandlingsfrist",
+          "status": "vurdert_ok",
+          "merknad": "Søknad mottatt 15.02.2026"
+        }
+      }
+    },
+    "gebyr": {
+      "label": "Gebyr",
+      "punkter": {
+        "gebyr_beregnet": {
+          "label": "Bevillingsgebyr korrekt beregnet",
+          "status": "ikke_vurdert",
+          "merknad": "Lukket arrangement <500 deltakere → kr 440 + kr 100"
+        }
+      }
+    },
+    "helhetsvurdering": {
+      "label": "Helhetsvurdering",
+      "punkter": {
+        "samlet_vurdering": {
+          "label": "Samlet vurdering av søknaden",
+          "status": "ikke_vurdert",
+          "merknad": "Avventer uttalelser og dokumentasjon"
+        },
+        "anbefaling": {
+          "label": "Foreløpig anbefaling",
+          "status": "ikke_vurdert",
+          "merknad": ""
+        }
+      }
+    }
+  }
+}
