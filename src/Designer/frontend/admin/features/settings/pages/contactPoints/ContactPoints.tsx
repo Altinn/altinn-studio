@@ -56,19 +56,15 @@ export const ContactPoints = (): ReactElement => {
               {t('org.settings.contact_points.alert_heading')}
             </StudioHeading>
           </div>
-          <StudioParagraph data-size='sm'>
-            <StudioList.Unordered>
-              <StudioList.Item>
-                {t('org.settings.contact_points.alert_item_publish')}
-              </StudioList.Item>
-              <StudioList.Item>
-                {t('org.settings.contact_points.alert_item_instantiation')}
-              </StudioList.Item>
-              <StudioList.Item>
-                {t('org.settings.contact_points.alert_item_process_next')}
-              </StudioList.Item>
-            </StudioList.Unordered>
-          </StudioParagraph>
+          <StudioList.Unordered>
+            <StudioList.Item>{t('org.settings.contact_points.alert_item_publish')}</StudioList.Item>
+            <StudioList.Item>
+              {t('org.settings.contact_points.alert_item_instantiation')}
+            </StudioList.Item>
+            <StudioList.Item>
+              {t('org.settings.contact_points.alert_item_process_next')}
+            </StudioList.Item>
+          </StudioList.Unordered>
         </div>
       </div>
       <section className={classes.section}>
