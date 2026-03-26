@@ -197,6 +197,7 @@ public static class ServiceCollectionExtensions
         services.Configure<Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
         services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
+        services.Configure<PlatformFrontendSettings>(configuration.GetSection(nameof(PlatformFrontendSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
 
         services.AddRuntimeEnvironment();

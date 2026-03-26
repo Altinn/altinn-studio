@@ -2,7 +2,7 @@ name: Designer Frontend - Playwright tests on PR
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - 'src/Designer/frontend/**'
       - '!src/Designer/frontend/stats/**'
@@ -23,6 +23,7 @@ concurrency:
 
 jobs:
   playwright-tests:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     name: Playwright (${{ matrix.studio-oidc-mode && 'StudioOidc' || 'GiteaOidc' }})
     timeout-minutes: 25
     runs-on: ubuntu-latest

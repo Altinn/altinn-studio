@@ -99,8 +99,8 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   };
 
   const otherMenuItems: StudioProfileMenuItem[] = [
-    giteaMenuItem,
     ...(studioOidc ? [userSettingsMenuItem] : []),
+    giteaMenuItem,
   ];
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [

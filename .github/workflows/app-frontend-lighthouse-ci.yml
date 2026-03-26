@@ -10,6 +10,7 @@ on:
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
       - './.github/actions/**'
@@ -24,6 +25,7 @@ concurrency:
 
 jobs:
   build-frontend:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -33,6 +35,7 @@ jobs:
         uses: ./.github/actions/app-build-frontend
 
   build-localtest:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -44,6 +47,7 @@ jobs:
           docker-profile: 'test-apps'
 
   lighthouse:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     name: Lighthouse CI
     runs-on: ubuntu-latest
     timeout-minutes: 30

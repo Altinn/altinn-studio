@@ -7,7 +7,6 @@ const origin = window.location.origin;
 export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
-export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
 export const postalCodesUrl = 'https://altinncdn.no/postcodes/registry.json';

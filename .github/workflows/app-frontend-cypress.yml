@@ -2,7 +2,7 @@ name: App Frontend - Cypress
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
@@ -22,8 +22,11 @@ concurrency:
 
 jobs:
   build-frontend:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     name: Build Frontend
     runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -32,8 +35,11 @@ jobs:
         uses: ./.github/actions/app-build-frontend
 
   build-docker-images:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     name: Build Docker Images
     runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -46,10 +52,15 @@ jobs:
   cypress-run-internal:
     name: Cypress Run Internal
     if: |
+      (github.event_name != 'pull_request' || !github.event.pull_request.draft) &&
       github.repository_owner == 'Altinn' &&
-      (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+      (
+        (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+      )
     runs-on: ubuntu-latest
+   container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:
@@ -123,10 +134,13 @@ jobs:
   cypress-run-external:
     name: Cypress Run External
     if: |
+      (github.event_name != 'pull_request' || !github.event.pull_request.draft) &&
       github.repository_owner == 'Altinn' &&
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     runs-on: ubuntu-latest
+   container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:

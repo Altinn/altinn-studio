@@ -95,8 +95,8 @@ export const HeaderContextProvider = ({
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
   const otherMenuItems: NavigationMenuItem[] = [
-    giteaMenuItem,
     ...(studioOidc ? [userSettingsMenuItem] : []),
+    giteaMenuItem,
   ];
   const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];
 
