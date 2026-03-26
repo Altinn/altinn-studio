@@ -2,7 +2,7 @@ name: Designer Backend - Build and test
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   analyze:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     strategy:
       matrix:
         os: [ubuntu-latest,windows-latest,macos-latest]

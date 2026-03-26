@@ -2,7 +2,7 @@ name: Designer Frontend - Unit tests
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - 'src/Designer/frontend/**'
       - 'src/Designer/frontend/testing/cypress/**'
@@ -22,6 +22,7 @@ env:
 
 jobs:
   typecheck:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     name: 'Typechecking and linting'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -55,6 +56,7 @@ jobs:
         run: yarn run codestyle:check
 
   test:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     name: 'Testing'
     runs-on: ubuntu-latest
     timeout-minutes: 30

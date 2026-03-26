@@ -2,7 +2,7 @@ name: Gitea check local gitea locale files
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - 'src/gitea/Dockerfile'
       - 'src/gitea/files/locale/**'
@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   check-gitea-texts-file:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     name: Check Gitea texts file
     runs-on: ubuntu-latest
     timeout-minutes: 30

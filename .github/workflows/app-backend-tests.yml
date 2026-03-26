@@ -2,7 +2,7 @@ name: App Backend - Build and test
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - 'src/App/backend/**'
       - 'src/Runtime/localtest/**'
@@ -15,12 +15,14 @@ concurrency:
 
 jobs:
   build-frontend:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: ./.github/actions/app-build-frontend
   analyze:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     needs: build-frontend
     strategy:
       matrix:
