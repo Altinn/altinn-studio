@@ -40,7 +40,6 @@ src/hooks/useWaitForState.ts
 src/index.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
 src/layout/RepeatingGroup/Summary/__snapshots__/SummaryRepeatingGroup.test.tsx.snap
-src/queries/formPrefetcher.ts
 src/queries/appPrefetcher.ts
 src/queries/formPrefetcher.ts
 src/utils/formLayout.test.ts
