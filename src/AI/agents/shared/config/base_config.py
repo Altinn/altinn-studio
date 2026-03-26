@@ -39,7 +39,7 @@ class BaseConfig:
     ]
 
     # External integrations
-    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8069/sse")
+    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://host.docker.internal:8070/sse")
     MCP_SERVER_EXPECTED_VERSION = os.getenv("MCP_SERVER_EXPECTED_VERSION")  # Optional: if set, checks for exact version match
 
     # LLM configuration - Azure OpenAI preferred
