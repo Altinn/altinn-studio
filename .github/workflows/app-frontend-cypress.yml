@@ -23,7 +23,9 @@ concurrency:
 jobs:
   build-frontend:
     name: Build Frontend
-    runs-on: ubuntu-24.03
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/included:cypress-15.13.0-node-24.14.1-chrome-146.0.7680.164-1-ff-149.0-edge-146.0.3856.72-1@sha256:1048a3bac8a29e63159668a36d6dbbcf3a8a291d6f413c85edaf7e39bba9f3d9
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -33,7 +35,9 @@ jobs:
 
   build-docker-images:
     name: Build Docker Images
-    runs-on: ubuntu-24.03
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/included:cypress-15.13.0-node-24.14.1-chrome-146.0.7680.164-1-ff-149.0-edge-146.0.3856.72-1@sha256:1048a3bac8a29e63159668a36d6dbbcf3a8a291d6f413c85edaf7e39bba9f3d9
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -49,7 +53,9 @@ jobs:
       github.repository_owner == 'Altinn' &&
       (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
-    runs-on: ubuntu-24.03
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/included:cypress-15.13.0-node-24.14.1-chrome-146.0.7680.164-1-ff-149.0-edge-146.0.3856.72-1@sha256:1048a3bac8a29e63159668a36d6dbbcf3a8a291d6f413c85edaf7e39bba9f3d9
     timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:
@@ -126,7 +132,9 @@ jobs:
       github.repository_owner == 'Altinn' &&
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
-    runs-on: ubuntu-24.03
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/included:cypress-15.13.0-node-24.14.1-chrome-146.0.7680.164-1-ff-149.0-edge-146.0.3856.72-1@sha256:1048a3bac8a29e63159668a36d6dbbcf3a8a291d6f413c85edaf7e39bba9f3d9
     timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:
