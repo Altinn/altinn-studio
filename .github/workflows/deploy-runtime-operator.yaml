@@ -20,9 +20,6 @@ permissions:
   actions: write
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-rings-array:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
@@ -30,14 +27,13 @@ jobs:
 
   push-operator-artifact:
     name: Push operator as OCI artifact
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
       packages: write # Require write permission to push to GHCR.
     outputs:
-      short-sha: ${{ needs.get-short-sha.outputs.short-sha }}
+      short-sha: ${{ steps.vars.outputs.short-sha }}
       config-repo: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
@@ -63,10 +59,11 @@ jobs:
       - name: set vars
         id: vars
         run: |
-          SHA=$(git rev-parse --short HEAD)
+          SHA="${GITHUB_SHA::10}"
           GHCR_BASE="ghcr.io/altinn/altinn-studio"
           ACR_PREFIX="altinncr.azurecr.io"
 
+          echo "short-sha=$SHA" >> $GITHUB_OUTPUT
           echo "registry-name=altinncr" >> $GITHUB_OUTPUT
           echo "ghcr-image-repo=${GHCR_BASE}/runtime-operator:${SHA}" >> $GITHUB_OUTPUT
           echo "image-repo=${ACR_PREFIX}/${GHCR_BASE}/runtime-operator:${SHA}" >> $GITHUB_OUTPUT
@@ -98,7 +95,7 @@ jobs:
         working-directory: src/Runtime/operator/config/manager
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
-          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
           yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' manager.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' manager.yaml
 
