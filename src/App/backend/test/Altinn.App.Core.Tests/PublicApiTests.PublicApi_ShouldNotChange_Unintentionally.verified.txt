@@ -75,6 +75,11 @@ namespace Altinn.App.Core.Configuration
         public bool Enabled { get; set; }
         public ushort Port { get; set; }
     }
+    public class PlatformFrontendSettings
+    {
+        public PlatformFrontendSettings() { }
+        public System.Uri PostalCodesUrl { get; set; }
+    }
     public class PlatformSettings
     {
         public PlatformSettings() { }
