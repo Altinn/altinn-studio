@@ -82,6 +82,8 @@ import {
   customTemplatesPath,
   userApiKeysPath,
   contactPointsPath,
+  botAccountsPath,
+  botAccountApiKeysPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -134,6 +136,7 @@ import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
+import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -239,3 +242,7 @@ export const getPublishedResources = (org: string, path?: string): Promise<strin
 
 // User settings
 export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());
+
+// Bot accounts
+export const getBotAccounts = (org: string) => get<BotAccount[]>(botAccountsPath(org));
+export const getBotAccountApiKeys = (org: string, botAccountId: string) => get<BotAccountApiKey[]>(botAccountApiKeysPath(org, botAccountId));

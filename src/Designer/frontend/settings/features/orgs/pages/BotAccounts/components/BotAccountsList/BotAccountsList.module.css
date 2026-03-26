@@ -1,0 +1,10 @@
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+}
+
+.detailCell {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  padding: var(--fds-spacing-4);
+}

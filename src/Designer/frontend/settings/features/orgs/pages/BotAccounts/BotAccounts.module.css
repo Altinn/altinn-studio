@@ -1,0 +1,11 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-3);
+}

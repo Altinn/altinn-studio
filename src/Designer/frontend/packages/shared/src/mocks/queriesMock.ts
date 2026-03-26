@@ -266,8 +266,12 @@ export const queriesMock: ServicesContextProps = {
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
 
-  // Mutations - Org settings
+  // Queries - Org settings
   getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
+
+  // Queries - Bot accounts
+  getBotAccounts: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getBotAccountApiKeys: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -381,4 +385,12 @@ export const queriesMock: ServicesContextProps = {
   updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
   toggleContactPointActive: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Bot accounts
+  createBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
+  deactivateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  revokeBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  addBotAccountToTeam: jest.fn().mockImplementation(() => Promise.resolve()),
+  removeBotAccountFromTeam: jest.fn().mockImplementation(() => Promise.resolve()),
 };

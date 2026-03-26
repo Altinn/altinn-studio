@@ -1,0 +1,15 @@
+.heading {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.table {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.noApiKeys {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.expiredTag {
+  margin-left: var(--fds-spacing-2);
+}

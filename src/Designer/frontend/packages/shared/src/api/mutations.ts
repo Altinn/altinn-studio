@@ -73,6 +73,12 @@ import {
   contactPointPath,
   contactPointActivePath,
   validateNavigationPageSettingsPath,
+  botAccountsPath,
+  botAccountDeactivatePath,
+  botAccountApiKeysPath,
+  botAccountApiKeyPath,
+  botAccountTeamsPath,
+  botAccountTeamPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -112,6 +118,7 @@ import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
+import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
 
 const headers = {
   Accept: 'application/json',
@@ -248,3 +255,11 @@ export const addContactPoint = async (org: string, payload: ContactPointPayload)
 export const updateContactPoint = async (org: string, id: string, payload: ContactPointPayload): Promise<ContactPoint> => put(contactPointPath(org, id), payload);
 export const toggleContactPointActive = async (org: string, id: string, isActive: boolean): Promise<void> => patch(contactPointActivePath(org, id), { isActive });
 export const deleteContactPoint = async (org: string, id: string): Promise<void> => del(contactPointPath(org, id));
+
+// Bot accounts
+export const createBotAccount = (org: string, payload: CreateBotAccountRequest): Promise<CreateBotAccountResponse> => post(botAccountsPath(org), payload);
+export const deactivateBotAccount = (org: string, id: string): Promise<void> => post(botAccountDeactivatePath(org, id), {});
+export const createBotAccountApiKey = (org: string, botAccountId: string, payload: CreateBotAccountApiKeyRequest): Promise<CreateBotAccountApiKeyResponse> => post(botAccountApiKeysPath(org, botAccountId), payload);
+export const revokeBotAccountApiKey = (org: string, botAccountId: string, keyId: number): Promise<void> => del(botAccountApiKeyPath(org, botAccountId, keyId));
+export const addBotAccountToTeam = (org: string, botAccountId: string, environment: string): Promise<void> => post(botAccountTeamsPath(org, botAccountId), { environment });
+export const removeBotAccountFromTeam = (org: string, botAccountId: string, environment: string): Promise<void> => del(botAccountTeamPath(org, botAccountId, environment));
