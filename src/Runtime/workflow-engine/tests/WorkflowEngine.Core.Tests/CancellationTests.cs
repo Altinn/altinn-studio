@@ -105,7 +105,7 @@ public class CancellationTests
 
         mock.Setup(e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()))
             .Returns<Workflow, Step, CancellationToken>(
-                (_, _, ct) =>
+                async (_, _, ct) =>
                 {
                     var idx = callIndex++;
                     if (idx == cancelAtStepIndex)
@@ -116,10 +116,10 @@ public class CancellationTests
                             workflow.CancellationRequestedAt ??= DateTimeOffset.UtcNow;
                         }
 
-                        cts.Cancel();
+                        await cts.CancelAsync();
                         ct.ThrowIfCancellationRequested();
                     }
-                    return Task.FromResult(ExecutionResult.Success());
+                    return ExecutionResult.Success();
                 }
             );
 

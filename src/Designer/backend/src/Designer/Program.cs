@@ -22,7 +22,9 @@ using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Implementation.Altinity;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Azure.Identity;
 using Microsoft.AspNetCore.Builder;
@@ -208,6 +210,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
+    services.AddSingleton<AltinityAttachmentBuffer>();
     var signalRBuilder = services.AddSignalR();
     var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
     if (redisSettings.UseRedisCache)

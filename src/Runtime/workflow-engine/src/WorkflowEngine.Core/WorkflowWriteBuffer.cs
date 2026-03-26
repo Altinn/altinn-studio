@@ -76,11 +76,7 @@ internal class WorkflowWriteBuffer : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "WorkflowWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
-            _settings.WriteBuffer.MaxBatchSize,
-            _settings.WriteBuffer.FlushConcurrency
-        );
+        _logger.WriteBufferStarted(_settings.WriteBuffer.MaxBatchSize, _settings.WriteBuffer.FlushConcurrency);
 
         using var flushSemaphore = new SemaphoreSlim(_settings.WriteBuffer.FlushConcurrency);
         var batch = new List<BufferedEnqueueRequest>(_settings.WriteBuffer.MaxBatchSize);
@@ -101,10 +97,20 @@ internal class WorkflowWriteBuffer : BackgroundService
 
                 await flushSemaphore.WaitAsync(stoppingToken);
 
-                var batchToFlush = batch;
+                _ = FlushAndRelease([.. batch]);
                 batch = new List<BufferedEnqueueRequest>(_settings.WriteBuffer.MaxBatchSize);
 
-                _ = FlushBatch(batchToFlush, flushSemaphore, stoppingToken);
+                async Task FlushAndRelease(List<BufferedEnqueueRequest> batchToFlush)
+                {
+                    try
+                    {
+                        await FlushBatch(batchToFlush, stoppingToken);
+                    }
+                    finally
+                    {
+                        flushSemaphore.Release();
+                    }
+                }
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -129,64 +135,47 @@ internal class WorkflowWriteBuffer : BackgroundService
 
             if (batch.Count > 0)
             {
-                await FlushBatchCore(batch, drainCts.Token);
+                await FlushBatch(batch, drainCts.Token);
             }
 
-            _logger.LogInformation("WorkflowWriteBuffer shutdown complete");
+            _logger.WriteBufferShutdownComplete();
         }
         catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
             // Cancel any items still in the current batch
             foreach (var pending in batch)
             {
-                pending.Completion.TrySetCanceled();
+                pending.Completion.TrySetCanceled(drainCts.Token);
             }
 
             // Cancel any items still queued in the channel
             while (_channel.Reader.TryRead(out var pending))
             {
-                pending.Completion.TrySetCanceled();
+                pending.Completion.TrySetCanceled(drainCts.Token);
             }
 
-            _logger.LogWarning(
-                "WorkflowWriteBuffer drain timed out — {Count} in-flight flushes may not have completed",
-                _settings.WriteBuffer.FlushConcurrency
-            );
+            _logger.WriteBufferDrainTimedOut(_settings.WriteBuffer.FlushConcurrency);
         }
     }
 
-    private async Task FlushBatch(List<BufferedEnqueueRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
+    private async Task FlushBatch(List<BufferedEnqueueRequest> batch, CancellationToken ct)
     {
-        try
+        // Filter out items whose callers have already canceled
+        for (int i = batch.Count - 1; i >= 0; i--)
         {
-            await FlushBatchCore(batch, ct);
-        }
-        finally
-        {
-            semaphore.Release();
-        }
-    }
-
-    private async Task FlushBatchCore(List<BufferedEnqueueRequest> batch, CancellationToken ct)
-    {
-        // TODO: Get rid of the `active` alias and just mutate `batch`, since that's what's happening anyway
-        // Filter out items whose callers have already cancelled
-        var active = batch;
-        for (int i = active.Count - 1; i >= 0; i--)
-        {
-            if (active[i].Completion.Task.IsCanceled)
-                active.RemoveAt(i);
+            if (batch[i].Completion.Task.IsCanceled)
+                batch.RemoveAt(i);
         }
 
-        if (active.Count == 0)
+        if (batch.Count == 0)
         {
             return;
         }
 
         using var activity = Metrics.Source.StartActivity(
-            "WorkflowWriteBuffer.FlushBatchCore",
-            tags: [("batch.size", active.Count)],
-            links: active.Select(x => Metrics.ParseTraceContext(x.Metadata.TraceContext)).ToActivityLinks()
+            "WorkflowWriteBuffer.FlushBatch",
+            tags: [("batch.size", batch.Count)],
+            links: batch.Select(x => Metrics.ParseTraceContext(x.Metadata.TraceContext)).ToActivityLinks()
         );
 
         try
@@ -194,16 +183,16 @@ internal class WorkflowWriteBuffer : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-            var results = await repo.BatchEnqueueWorkflowsAsync(active, ct);
+            var results = await repo.BatchEnqueueWorkflowsAsync(batch, ct);
 
             // Distribute results back to each caller
             bool anyNewWorkflows = false;
             int totalWorkflowsCreated = 0;
             int totalStepsCreated = 0;
 
-            for (int i = 0; i < active.Count; i++)
+            for (int i = 0; i < batch.Count; i++)
             {
-                var item = active[i];
+                var item = batch[i];
                 var result = results[i];
 
                 switch (result.Status)
@@ -247,16 +236,52 @@ internal class WorkflowWriteBuffer : BackgroundService
                 _workflowSignal.Signal();
             }
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            foreach (var item in batch)
+            {
+                item.Completion.TrySetCanceled(ct);
+            }
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Batch flush failed for {Count} requests", active.Count);
+            _logger.WriteBufferFlushFailed(batch.Count, ex);
 
             activity?.Errored(ex);
 
-            foreach (var item in active)
+            foreach (var item in batch)
             {
                 item.Completion.TrySetException(ex);
             }
         }
     }
+}
+
+internal static partial class WorkflowWriteBufferLogs
+{
+    [LoggerMessage(
+        LogLevel.Information,
+        "WorkflowWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})"
+    )]
+    internal static partial void WriteBufferStarted(
+        this ILogger<WorkflowWriteBuffer> logger,
+        int maxBatchSize,
+        int concurrency
+    );
+
+    [LoggerMessage(LogLevel.Information, "WorkflowWriteBuffer shutdown complete")]
+    internal static partial void WriteBufferShutdownComplete(this ILogger<WorkflowWriteBuffer> logger);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "WorkflowWriteBuffer drain timed out — {Count} in-flight flushes may not have completed"
+    )]
+    internal static partial void WriteBufferDrainTimedOut(this ILogger<WorkflowWriteBuffer> logger, int count);
+
+    [LoggerMessage(LogLevel.Error, "Batch flush failed for {Count} requests")]
+    internal static partial void WriteBufferFlushFailed(
+        this ILogger<WorkflowWriteBuffer> logger,
+        int count,
+        Exception ex
+    );
 }

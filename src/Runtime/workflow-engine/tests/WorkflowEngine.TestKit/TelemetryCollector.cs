@@ -1,3 +1,5 @@
+#pragma warning disable CA1721 // Properties and methods intentionally share naming for test convenience
+
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;

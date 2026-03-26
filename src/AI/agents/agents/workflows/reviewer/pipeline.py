@@ -13,7 +13,6 @@ from agents.prompts import get_prompt_content, get_prompt_with_langfuse, render_
 from agents.workflows.shared.utils import (
     cleanup_feature_branch,
     cleanup_generated_artifacts,
-    scan_repository_directly,
 )
 from shared.utils.logging_utils import get_logger
 
@@ -29,39 +28,66 @@ def _extract_validation_errors(verification_result: MCPVerificationResult) -> Li
     return errors
 
 
+def _read_changed_file_contents(
+    repo_path: str, changed_files: List[str]
+) -> Dict[str, str]:
+    """Read the actual contents of changed files so the LLM can see what to fix."""
+    from pathlib import Path
+
+    repo_root = Path(repo_path).resolve()
+    contents: Dict[str, str] = {}
+    for rel_path in changed_files:
+        resolved = (repo_root / rel_path).resolve()
+        if not resolved.is_relative_to(repo_root):
+            log.warning("Skipping path outside repo root: %s", rel_path)
+            continue
+        try:
+            with open(resolved, "r", encoding="utf-8") as f:
+                contents[rel_path] = f.read()
+        except Exception as e:
+            log.warning("Could not read %s: %s", rel_path, e)
+    return contents
+
+
 def _generate_llm_fix_prompt(
-    error_messages: List[str], 
-    repo_context: Dict[str, Any],
-    changed_files: List[str]
+    error_messages: List[str],
+    file_contents: Dict[str, str],
+    changed_files: List[str],
 ) -> str:
     """Generate prompt for LLM to fix validation errors."""
+    files_section = ""
+    for rel_path in changed_files:
+        content = file_contents.get(rel_path)
+        if content is not None:
+            files_section += f"\n--- {rel_path} ---\n{content}\n"
+        else:
+            files_section += f"\n--- {rel_path} --- (could not read)\n"
+
     return f"""
-    FIX VALIDATION ERRORS:
-    
-    ERRORS:
-    {chr(10).join(error_messages)}
-    
-    REPOSITORY CONTEXT:
-    {json.dumps(repo_context, indent=2)}
-    
-    CHANGED FILES:
-    {chr(10).join(changed_files)}
-    
-    INSTRUCTIONS:
-    1. Analyze the validation errors
-    2. Propose specific fixes for each error
-    3. Return a JSON object with 'fixes' array containing file paths and corrected content
-    
-    RESPONSE FORMAT:
-    {{
-        "fixes": [
-            {{
-                "file": "path/to/file",
-                "content": "fixed file content"
-            }}
-        ]
-    }}
-    """.strip()
+FIX VALIDATION ERRORS:
+
+ERRORS:
+{chr(10).join(error_messages)}
+
+CHANGED FILES WITH CURRENT CONTENTS:
+{files_section}
+
+INSTRUCTIONS:
+1. Read the file contents above carefully.
+2. Identify the exact cause of each validation error.
+3. Return a JSON object with a 'fixes' array. Each entry must contain the full corrected file content.
+4. Only include files that actually need changes.
+
+RESPONSE FORMAT (respond with ONLY this JSON, no extra text):
+{{
+    "fixes": [
+        {{
+            "file": "path/to/file",
+            "content": "full corrected file content"
+        }}
+    ]
+}}
+""".strip()
 
 
 async def attempt_validation_fixes(
@@ -102,11 +128,11 @@ async def attempt_validation_fixes(
                 "notes": ["All validation errors resolved"],
             }
             
-        # Get repository context
-        repo_context = scan_repository_directly(repo_path)
+        # Read actual file contents so the LLM can see what to fix
+        file_contents = _read_changed_file_contents(repo_path, changed_files)
         
         # Generate fix prompt
-        prompt = _generate_llm_fix_prompt(errors, repo_context, changed_files)
+        prompt = _generate_llm_fix_prompt(errors, file_contents, changed_files)
         
         # Call LLM for fixes
         llm = LLMClient(role="reviewer")
@@ -181,6 +207,14 @@ def _parse_decision_response(response: str) -> Dict[str, Any]:
         raise primary_error
 
 
+def _has_hard_errors(verify_notes: List[str]) -> bool:
+    """Return True if any verify_note is NOT a soft warning."""
+    for note in verify_notes:
+        if not note.startswith("[soft warning]"):
+            return True
+    return False
+
+
 def reviewer_decision(
     user_goal: str,
     step_plan: Optional[List[str]],
@@ -192,13 +226,18 @@ def reviewer_decision(
 
     reviewer_prompt, lf_prompt = get_prompt_with_langfuse("reviewer_decision")
 
+    # Determine effective pass status: if only soft warnings failed verification,
+    # treat it as passed for decision-making purposes.
+    has_hard = _has_hard_errors(verify_notes)
+    effective_passed = tests_passed or not has_hard
+
     plan_context = step_plan[0] if step_plan else "No plan"
     user_prompt = render_template(
         "reviewer_decision_user",
         user_goal=user_goal,
         plan_context=plan_context,
         changed_files=changed_files,
-        tests_passed=tests_passed,
+        tests_passed=effective_passed,
         verify_notes=verify_notes
     )
 
@@ -207,11 +246,11 @@ def reviewer_decision(
 
     try:
         decision_data = _parse_decision_response(response)
-        decision = decision_data.get("decision", "commit" if tests_passed else "revert")  # Default to commit if tests passed
+        decision = decision_data.get("decision", "commit" if effective_passed else "revert")
 
         # Capture commit message and reasoning from LLM response
-        commit_message = decision_data.get("commit_message", "").strip()
-        reasoning = decision_data.get("reasoning", "LLM decision")
+        commit_message = (decision_data.get("commit_message") or "").strip()
+        reasoning = decision_data.get("reasoning") or "LLM decision"
 
         # If the reviewer omitted a commit message entirely, fall back to the user goal
         if not commit_message:
@@ -220,23 +259,20 @@ def reviewer_decision(
             )
             commit_message = f"{user_goal[:100]}" if user_goal else "Altinity automated change"
 
-        # Final override: If tests passed and no validation issues, force commit
-        validation_notes_lower = " ".join(verify_notes).lower() if verify_notes else ""
-        has_validation_issues = any(word in validation_notes_lower for word in ["error", "failed", "issue", "problem", "warning"])
-        
-        if tests_passed and not has_validation_issues and decision == "revert":
-            log.info("Overriding reviewer decision: tests passed with no validation issues, forcing commit")
+        # Final override: If effectively passed and reviewer still wants to revert, force commit
+        if effective_passed and decision == "revert":
+            log.info("Overriding reviewer decision: no hard validation errors, forcing commit")
             decision = "commit"
-            reasoning = "Tests passed and no validation issues found - committing successful changes"
+            reasoning = "No hard validation errors found - committing changes (soft warnings noted)"
 
         log.info(f"Final reviewer decision: {decision}, commit_message: '{commit_message[:50]}...', reasoning: '{reasoning[:50]}...'")
 
     except json.JSONDecodeError:
-        # Default to commit if tests passed, revert if failed
-        decision = "commit" if tests_passed else "revert"
+        # Default to commit if effectively passed
+        decision = "commit" if effective_passed else "revert"
         fallback_message = user_goal[:100] if user_goal else "Altinity automated change"
-        commit_message = fallback_message if tests_passed else "Altinity automated change"
-        reasoning = f"JSON parsing failed, defaulting to {'commit' if tests_passed else 'revert'} based on test results"
+        commit_message = fallback_message if effective_passed else "Altinity automated change"
+        reasoning = f"JSON parsing failed, defaulting to {'commit' if effective_passed else 'revert'}"
 
     return {
         "decision": decision,
@@ -251,6 +287,10 @@ def check_reviewer_preconditions(
 ) -> List[str]:
     """Check preconditions for reviewer workflow.
 
+    Only checks hard blockers (no files changed). Verification failures
+    are NOT hard blockers — the reviewer LLM decides whether to commit
+    or revert based on the severity of the issues.
+
     Returns:
         List of failure reasons (empty if all preconditions pass)
     """
@@ -259,10 +299,6 @@ def check_reviewer_preconditions(
     # Must have changed files
     if not changed_files or len(changed_files) == 0:
         failures.append("No files were changed")
-
-    # Must have passed verification
-    if tests_passed is not True:
-        failures.append(f"Verification failed: tests_passed={tests_passed}")
 
     return failures
 
@@ -297,12 +333,14 @@ async def execute_reviewer_workflow(
     # Check preconditions
     precondition_failures = check_reviewer_preconditions(changed_files, tests_passed)
 
-    # Attempt validation fixes if verification failed
-    if not tests_passed:
-        log.info("🤖 Reviewer attempting to fix validation errors...")
+    # Attempt validation fixes only if there are hard errors (not just soft warnings)
+    has_hard = _has_hard_errors(verify_notes)
+    if not tests_passed and has_hard:
+        log.info("🤖 Reviewer attempting to fix hard validation errors...")
         
-        # Log the specific validation errors
-        log.warning(f"Validation errors to fix: {verify_notes}")
+        # Only pass hard errors to the fixer (soft warnings are not fixable)
+        hard_notes = [n for n in verify_notes if not n.startswith("[soft warning]")]
+        log.warning(f"Hard validation errors to fix: {hard_notes}")
 
         fix_result = await attempt_validation_fixes(
             repo_path=repo_path,
@@ -310,15 +348,13 @@ async def execute_reviewer_workflow(
             plan_step={"plan": step_plan[0] if step_plan else None}
         )
 
-        # Update state with fix results
+        # Update state with fix results, preserving soft warnings
+        soft_warnings = [n for n in verify_notes if n.startswith("[soft warning]")]
         changed_files = fix_result.get("changed_files", changed_files)
         tests_passed = fix_result.get("tests_passed", tests_passed)
-        verify_notes = fix_result.get("notes", verify_notes)
-
-        # Remove verification failure from precondition failures if now passed
-        if tests_passed:
-            precondition_failures = [f for f in precondition_failures
-                                   if "Verification failed" not in f]
+        verify_notes = fix_result.get("notes", verify_notes) + soft_warnings
+    elif not tests_passed and not has_hard:
+        log.info("ℹ️ Verification failed with only soft warnings — skipping fix attempts, will commit")
 
     # If preconditions still fail, revert
     if precondition_failures:
@@ -354,7 +390,8 @@ async def execute_reviewer_workflow(
     commit_message = decision_result["commit_message"]
     reasoning = decision_result["reasoning"]
 
-    if decision == "commit" and tests_passed and len(changed_files) > 0:
+    effective_passed = tests_passed or not _has_hard_errors(verify_notes)
+    if decision == "commit" and effective_passed and len(changed_files) > 0:
         try:
             # Stage changed files
             import subprocess
