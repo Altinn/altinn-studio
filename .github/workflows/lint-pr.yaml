@@ -76,7 +76,7 @@ jobs:
               );
             }
 
-            if (!subject) {
+            if (!subject?.trim()) {
               raiseError(`No subject found in pull request title "${title}".`);
             }
 
