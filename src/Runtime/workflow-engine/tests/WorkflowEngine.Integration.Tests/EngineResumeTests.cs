@@ -65,11 +65,14 @@ public sealed class EngineResumeTests : IAsyncLifetime
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
             $"/api/v1/workflows/{workflowId}/resume?cascade=false",
-            content: null
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
         );
         Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
 
-        var body = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>();
+        var body = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(body);
         Assert.Equal(workflowId, body.WorkflowId);
         Assert.Empty(body.CascadeResumed);
@@ -100,7 +103,11 @@ public sealed class EngineResumeTests : IAsyncLifetime
         await WaitForStepProcessing(factory, workflowId);
 
         using var client = factory.CreateClient();
-        using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
+        using var cancelResponse = await client.PostAsync(
+            $"/api/v1/workflows/{workflowId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.True(cancelResponse.IsSuccessStatusCode);
 
         await WaitForTerminalStatus(workflowId, PersistentItemStatus.Canceled);
@@ -112,7 +119,8 @@ public sealed class EngineResumeTests : IAsyncLifetime
         // Resume
         using var resumeResponse = await client.PostAsync(
             $"/api/v1/workflows/{workflowId}/resume?cascade=false",
-            content: null
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
         );
         Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
 
@@ -156,10 +164,16 @@ public sealed class EngineResumeTests : IAsyncLifetime
             ],
         };
 
-        var enqueueResponse = await client.PostAsJsonAsync("/api/v1/workflows", request);
+        var enqueueResponse = await client.PostAsJsonAsync(
+            "/api/v1/workflows",
+            request,
+            TestContext.Current.CancellationToken
+        );
         enqueueResponse.EnsureSuccessStatusCode();
 
-        var enqueueBody = await enqueueResponse.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>();
+        var enqueueBody = await enqueueResponse.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(enqueueBody);
 
         var parentId = enqueueBody.Workflows.Single(w => w.Ref == "parent").DatabaseId;
@@ -176,11 +190,14 @@ public sealed class EngineResumeTests : IAsyncLifetime
         // Resume parent with cascade
         using var resumeResponse = await client.PostAsync(
             $"/api/v1/workflows/{parentId}/resume?cascade=true",
-            content: null
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
         );
         Assert.Equal(HttpStatusCode.OK, resumeResponse.StatusCode);
 
-        var resumeBody = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>();
+        var resumeBody = await resumeResponse.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(resumeBody);
         Assert.Equal(parentId, resumeBody.WorkflowId);
         Assert.Contains(childId, resumeBody.CascadeResumed);
@@ -203,7 +220,8 @@ public sealed class EngineResumeTests : IAsyncLifetime
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
             $"/api/v1/workflows/{workflowId}/resume?cascade=false",
-            content: null
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
         );
 
         Assert.Equal(HttpStatusCode.Conflict, resumeResponse.StatusCode);
@@ -218,7 +236,8 @@ public sealed class EngineResumeTests : IAsyncLifetime
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
             $"/api/v1/workflows/{fakeId}/resume?cascade=false",
-            content: null
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
         );
 
         Assert.Equal(HttpStatusCode.NotFound, resumeResponse.StatusCode);

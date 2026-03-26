@@ -18,6 +18,7 @@ public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:18").Build();
     private readonly ConcurrencyLimiter _limiter = new(50, 50, 5);
+    private readonly List<NpgsqlDataSource> _dataSources = [];
 
     private readonly IOptions<EngineSettings> _settings = Options.Create(
         new EngineSettings
@@ -54,6 +55,9 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
+        foreach (var ds in _dataSources)
+            await ds.DisposeAsync();
+        _dataSources.Clear();
         _limiter.Dispose();
         await _container.DisposeAsync();
     }
@@ -68,6 +72,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     internal EngineRepository CreateRepository()
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        _dataSources.Add(dataSource);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
         var sqlBulkInserter = new SqlBulkInserter(factory);
@@ -85,6 +90,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     internal EngineRepository CreateRepository(IOptions<EngineSettings> settings)
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        _dataSources.Add(dataSource);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
         var sqlBulkInserter = new SqlBulkInserter(factory);
@@ -106,6 +112,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     )
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        _dataSources.Add(dataSource);
         var options = new DbContextOptionsBuilder<EngineDbContext>()
             .UseNpgsql(ConnectionString)
             .AddInterceptors(interceptor)

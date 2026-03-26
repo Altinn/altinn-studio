@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
@@ -10,18 +10,33 @@ import type { AssistantTexts } from '../../../types/AssistantTexts';
 export type UserInputProps = {
   texts: AssistantTexts;
   onSubmitMessage: (message: UserMessage) => void;
+  onCancelWorkflow?: () => void;
+  cancelledMessageContent?: string | null;
+  onCancelledMessageConsumed?: () => void;
+  workflowIsActive?: boolean;
   enableCompactInterface: boolean;
 };
 
 export function UserInput({
   texts,
   onSubmitMessage,
+  onCancelWorkflow,
+  cancelledMessageContent,
+  onCancelledMessageConsumed,
+  workflowIsActive = false,
   enableCompactInterface,
 }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
   const [allowAppChanges, setAllowAppChanges] = useState<boolean>(false);
   const [attachments, setAttachments] = useState<UserAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (cancelledMessageContent) {
+      setMessageContent(cancelledMessageContent);
+      onCancelledMessageConsumed?.();
+    }
+  }, [cancelledMessageContent, onCancelledMessageConsumed]);
 
   const hasTextContent = messageContent.trim().length > 0;
   const canSubmit = hasTextContent || attachments.length > 0;
@@ -128,9 +143,15 @@ export function UserInput({
             />
           )}
         </div>
-        <StudioButton onClick={handleSubmit} disabled={!canSubmit}>
-          {texts.send} <PaperplaneFillIcon />
-        </StudioButton>
+        {workflowIsActive && onCancelWorkflow ? (
+          <StudioButton onClick={onCancelWorkflow} variant='secondary'>
+            {texts.cancel} <XMarkIcon />
+          </StudioButton>
+        ) : (
+          <StudioButton onClick={handleSubmit} disabled={!canSubmit}>
+            {texts.send} <PaperplaneFillIcon />
+          </StudioButton>
+        )}
       </div>
       {attachments.length > 0 && (
         <ul className={classes.attachmentList}>

@@ -18,6 +18,10 @@ export interface AltinityThreadState {
   createNewThread: () => void;
   deleteThread: (threadId: string) => void;
   addMessageToThread: (threadId: string, message: UserMessage | AssistantMessage) => void;
+  removeLoadingMessage: (threadId: string) => void;
+  replaceLoadingWithMessage: (threadId: string, message: AssistantMessage) => void;
+  removeLastUserMessage: (threadId: string) => string | null;
+  removeCancelledMessages: (threadId: string) => string | null;
   upsertAssistantMessage: (
     sessionId: string,
     assistantMessage: AssistantMessageData,
@@ -89,6 +93,85 @@ export const useAltinityThreads = (): AltinityThreadState => {
     [addThread, updateThread, getThread],
   );
 
+  const removeLastUserMessage = useCallback(
+    (threadId: string): string | null => {
+      const existingThread = getThread(threadId);
+      if (!existingThread) return null;
+      const lastUserIndex = existingThread.messages.reduceRight(
+        (found, msg, index) => (found === -1 && msg.author === MessageAuthor.User ? index : found),
+        -1,
+      );
+      if (lastUserIndex === -1) return null;
+      const content = existingThread.messages[lastUserIndex].content;
+      updateThread(threadId, {
+        messages: existingThread.messages.filter((_, i) => i !== lastUserIndex),
+      });
+      return content;
+    },
+    [getThread, updateThread],
+  );
+
+  const removeCancelledMessages = useCallback(
+    (threadId: string): string | null => {
+      const existingThread = getThread(threadId);
+      if (!existingThread) return null;
+
+      const messages = existingThread.messages;
+
+      const lastUserIndex = messages.reduceRight(
+        (found, msg, index) => (found === -1 && msg.author === MessageAuthor.User ? index : found),
+        -1,
+      );
+      const restoredContent = lastUserIndex !== -1 ? messages[lastUserIndex].content : null;
+
+      const filtered = messages.filter((msg, index) => {
+        const isLastLoadingAssistant =
+          msg.author === MessageAuthor.Assistant &&
+          index === messages.length - 1 &&
+          (msg as AssistantMessage).isLoading;
+        return index !== lastUserIndex && !isLastLoadingAssistant;
+      });
+
+      updateThread(threadId, { messages: filtered });
+      return restoredContent;
+    },
+    [getThread, updateThread],
+  );
+
+  const removeLoadingMessage = useCallback(
+    (threadId: string) => {
+      const existingThread = getThread(threadId);
+      if (!existingThread) return;
+      const updatedMessages = existingThread.messages.filter(
+        (msg, index) =>
+          !(
+            msg.author === MessageAuthor.Assistant &&
+            index === existingThread.messages.length - 1 &&
+            (msg as AssistantMessage).isLoading
+          ),
+      );
+      updateThread(threadId, { messages: updatedMessages });
+    },
+    [getThread, updateThread],
+  );
+
+  const replaceLoadingWithMessage = useCallback(
+    (threadId: string, message: AssistantMessage) => {
+      const existingThread = getThread(threadId);
+      if (!existingThread) return;
+      const withoutLoading = existingThread.messages.filter(
+        (msg, index) =>
+          !(
+            msg.author === MessageAuthor.Assistant &&
+            index === existingThread.messages.length - 1 &&
+            (msg as AssistantMessage).isLoading
+          ),
+      );
+      updateThread(threadId, { messages: [...withoutLoading, message] });
+    },
+    [getThread, updateThread],
+  );
+
   const upsertAssistantMessage = useCallback(
     (
       sessionId: string,
@@ -145,6 +228,10 @@ export const useAltinityThreads = (): AltinityThreadState => {
     createNewThread,
     deleteThread,
     addMessageToThread,
+    removeLoadingMessage,
+    replaceLoadingWithMessage,
+    removeLastUserMessage,
+    removeCancelledMessages,
     upsertAssistantMessage,
     updateWorkflowStatusMessage,
   };
