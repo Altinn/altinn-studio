@@ -1,6 +1,6 @@
 """Agent workflow API routes"""
 import re
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from agents.graph.state import AgentState
 from agents.graph.runner import run_in_background
@@ -32,6 +32,7 @@ class StartReq(BaseModel):
     repo_url: str  # Git repository URL to clone
     branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
     allow_app_changes: bool = True  # If False, run in chat-only mode (no modifications)
+    org: str
     attachments: List[AttachmentUpload] = Field(default_factory=list)
 
     @field_validator("session_id")
@@ -53,9 +54,11 @@ async def start_agent(
 
         # Extract headers passed by Designer backend
         developer = request.headers.get("X-Developer")
-        if developer:
-            sink.register_developer_session(developer, req.session_id)
-            log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
+        if not developer:
+            raise HTTPException(status_code=400, detail="Missing X-Developer header")
+
+        sink.register_developer_session(developer, req.session_id)
+        log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
         
         # Clone the repository for this session
         repo_manager = get_repo_manager()
@@ -99,7 +102,7 @@ async def start_agent(
             # This allows frontend to subscribe to events before they're sent
             async def _run_chat():
                 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled
-                from langfuse import get_client as get_langfuse_client
+                from langfuse import get_client as get_langfuse_client, propagate_attributes
 
                 init_langfuse()
                 langfuse = get_langfuse_client() if is_langfuse_enabled() else None
@@ -128,6 +131,8 @@ async def start_agent(
                             session_id=req.session_id,
                             user_goal=req.goal,
                             repo_path=str(repo_path),
+                            developer=developer,
+                            org=req.org,
                             attachments=saved_attachments,
                             conversation_history=conversation_history,
                         )
@@ -185,12 +190,13 @@ async def start_agent(
                                 "session_id": req.session_id,
                                 "conversation_history": history_for_trace,
                             },
-                            metadata={"span_type": "AGENT", "session_id": req.session_id},
+                            metadata={"span_type": "AGENT", "session_id": req.session_id, "developer": developer},
                         ) as root_span:
-                            result_state_ref = await _run_chat_inner()
-                            if result_state_ref is not None:
-                                reply = (result_state_ref.assistant_response or {}).get("response", "")
-                                root_span.update(output={"response": reply[:1000] if reply else ""})
+                            with propagate_attributes(user_id=req.org):
+                                result_state_ref = await _run_chat_inner()
+                                if result_state_ref is not None:
+                                    reply = (result_state_ref.assistant_response or {}).get("response", "")
+                                    root_span.update(output={"response": reply[:1000] if reply else ""})
                     else:
                         await _run_chat_inner()
                 except Exception as outer_error:
@@ -223,6 +229,8 @@ async def start_agent(
                 session_id=req.session_id,
                 user_goal=req.goal,
                 repo_path=str(repo_path),
+                developer=developer,
+                org=req.org,
                 attachments=saved_attachments,
                 designer_api_key=designer_api_key,
                 conversation_history=conversation_history

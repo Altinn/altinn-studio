@@ -6,7 +6,7 @@ import { StudioAvatar, StudioHeading, StudioPageHeader } from '@studio/component
 import { useTranslation } from 'react-i18next';
 import './PageLayout.css';
 import { Menu } from '../../components/Menu/Menu';
-import { DISPLAY_NAME, USER_SETTINGS_BASENAME } from 'app-shared/constants';
+import { DISPLAY_NAME, SETTINGS_BASENAME } from 'app-shared/constants';
 import { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
@@ -28,7 +28,7 @@ export const PageLayout = () => {
       </div>
       <div className={classes.content}>
         <StudioHeading level={2} className={classes.settingsHeading}>
-          {t('user.settings')}
+          {t('settings')}
         </StudioHeading>
         <div className={classes.pageContentWrapper}>
           <div className={classes.leftNavWrapper}>
@@ -49,13 +49,13 @@ const RightContent = (): ReactElement => {
   const { environment } = useEnvironmentConfig();
   const { mutate: logout } = useLogoutMutation();
 
-  const userSettingsMenuItem: StudioProfileMenuItem = {
+  const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: USER_SETTINGS_BASENAME,
+      href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
@@ -65,7 +65,7 @@ const RightContent = (): ReactElement => {
   const studioOidc = environment?.featureFlags?.studioOidc;
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [userSettingsMenuItem] : [] },
+    { items: studioOidc ? [settingsMenuItem] : [] },
     { items: [logOutMenuItem] },
   ];
   return (

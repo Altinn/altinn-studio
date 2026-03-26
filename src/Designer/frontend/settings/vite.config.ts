@@ -5,9 +5,9 @@ import ports from '../ports.json';
 export default mergeConfig(common, {
   base: '/settings',
   server: {
-    port: ports['user-settings'],
+    port: ports['settings'],
   },
   preview: {
-    port: ports['user-settings'],
+    port: ports['settings'],
   },
 });

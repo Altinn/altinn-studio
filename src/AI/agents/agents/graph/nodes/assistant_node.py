@@ -34,7 +34,7 @@ async def handle(state: AgentState) -> AgentState:
         AgentState with assistant_response populated
     """
     log.info(f"💬 Assistant node: handling query for session {state.session_id}")
-    
+
     with trace_span(
         "assistant_query",
         metadata={
@@ -53,7 +53,7 @@ async def handle(state: AgentState) -> AgentState:
             ]
         }
     ) as main_span:
-        
+
         try:
             from agents.services.events import sink as _sink
 
@@ -96,19 +96,19 @@ async def handle(state: AgentState) -> AgentState:
                 repo_summary,
                 tool_results,
                 state.attachments,
-                state.conversation_history  # Include conversation history for context
+                state.conversation_history
             )
-            
+
             # Step 6: Extract all available sources from tool results
             all_sources = _extract_sources(tool_results)
             log.info(f"📚 Extracted {len(all_sources)} sources available: {[s.get('title') for s in all_sources]}")
-            
+
             # Step 7: Parse which sources LLM actually cited and clean response
             # Only keep sources that have a real URL (not internal tool instructions)
             linkable_sources = [s for s in all_sources if s.get("url")]
             clean_response, cited_sources = _extract_cited_sources_from_response(response, linkable_sources)
             log.info(f"✅ LLM cited {len(cited_sources)}/{len(linkable_sources)} sources: {[s.get('title') for s in cited_sources]}")
-            
+
             # Set outputs on main span
             main_span.update(output={
                 "response": clean_response[:5000],
@@ -117,7 +117,7 @@ async def handle(state: AgentState) -> AgentState:
                 "sources_count": len(cited_sources),
                 "cited_sources": [s.get('title') for s in cited_sources]
             })
-            
+
             # Store result in state
             state.assistant_response = {
                 "response": clean_response,
@@ -126,7 +126,7 @@ async def handle(state: AgentState) -> AgentState:
                 "sources": cited_sources,  # Only sources that were actually cited
                 "mode": "chat"
             }
-            
+
             # Add this Q&A to conversation history for future context
             from agents.graph.state import ConversationMessage
             state.conversation_history.append(
@@ -140,16 +140,16 @@ async def handle(state: AgentState) -> AgentState:
                 )
             )
             log.info(f"✅ Assistant query completed for session {state.session_id} (history: {len(state.conversation_history)} messages)")
-            
+
             # Send event with response
             sink.send(AgentEvent(
                 type="assistant_message",
                 session_id=state.session_id,
                 data=state.assistant_response
             ))
-            
+
             return state
-            
+
         except InterruptedError:
             log.info(f"🛑 Assistant query cancelled for session {state.session_id}")
             state.assistant_response = {"cancelled": True}
