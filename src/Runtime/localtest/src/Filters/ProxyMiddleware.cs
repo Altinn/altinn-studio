@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using LocalTest.Configuration;
 using LocalTest.Services.AppRegistry;
+using LocalTest.Tunnel;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Transforms;
@@ -20,6 +21,7 @@ public class ProxyMiddleware
     private readonly IHttpForwarder _forwarder;
     private readonly AppRegistryService _appRegistryService;
     private readonly ILogger<ProxyMiddleware> _logger;
+    private readonly AppTunnelProxy _appTunnelProxy;
 
     // Cookie name for frontend version override (URL-encoded URL)
     private const string FrontendVersionCookie = "frontendVersion";
@@ -29,7 +31,8 @@ public class ProxyMiddleware
         IOptions<LocalPlatformSettings> localPlatformSettings,
         IHttpForwarder forwarder,
         ILogger<ProxyMiddleware> logger,
-        AppRegistryService appRegistryService
+        AppRegistryService appRegistryService,
+        AppTunnelProxy appTunnelProxy
     )
     {
         _nextMiddleware = nextMiddleware;
@@ -37,6 +40,7 @@ public class ProxyMiddleware
         _forwarder = forwarder;
         _logger = logger;
         _appRegistryService = appRegistryService;
+        _appTunnelProxy = appTunnelProxy;
     }
 
     // Path prefixes handled directly by localtest (not proxied to apps)
@@ -55,6 +59,7 @@ public class ProxyMiddleware
         "/storage/",
         "/notifications/",
         "/health",
+        "/internal/",
     ];
 
     public async Task Invoke(HttpContext context)
@@ -88,6 +93,13 @@ public class ProxyMiddleware
                 await ProxyRequest(context, targetUrl);
                 return;
             }
+        }
+
+        // Prefer the host-initiated tunnel when it is connected, but preserve the old direct fallback.
+        if (_appTunnelProxy.IsConnected)
+        {
+            await _appTunnelProxy.ProxyAsync(context, context.RequestAborted);
+            return;
         }
 
         // App not registered - fallback to LocalAppUrl (port 5005)

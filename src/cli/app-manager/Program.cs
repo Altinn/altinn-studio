@@ -10,6 +10,7 @@ internal static class Program
     public static Task Main(string[] args)
     {
         var builder = WebApplication.CreateSlimBuilder(args);
+        builder.Services.AddTunnelServices(builder.Configuration);
 
         builder.WebHost.ConfigureKestrel(
             (context, options) =>

@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../Shared/AppTunnel/**/*.cs" LinkBase="AppTunnel" />
     <Compile Remove="Studioctl/Upgrade/**/*.cs" />
     <Compile Remove="Studioctl/Version/**/*.cs" />
   </ItemGroup>

@@ -12,6 +12,7 @@ using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.TestData;
 using LocalTest.Services.AppRegistry;
 using LocalTest.Helpers;
+using LocalTest.Tunnel;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
@@ -34,8 +35,9 @@ namespace LocalTest.Services.LocalApp.Implementation
         private readonly IMemoryCache _cache;
         private readonly ILogger<LocalAppHttp> _logger;
         private readonly AppRegistryService _appRegistryService;
+        private readonly AppTunnelClient _appTunnelClient;
 
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger, AppRegistryService appRegistryService)
+        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger, AppRegistryService appRegistryService, AppTunnelClient appTunnelClient)
         {
             _generalSettings = generalSettings.Value;
             _httpClientFactory = httpClientFactory;
@@ -43,26 +45,54 @@ namespace LocalTest.Services.LocalApp.Implementation
             _cache = cache;
             _logger = logger;
             _appRegistryService = appRegistryService;
+            _appTunnelClient = appTunnelClient;
         }
 
-        private HttpClient CreateClient(string? appId = null)
+        private HttpClient CreateClient(string baseAddress)
         {
             var client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(baseAddress);
+            return client;
+        }
 
-            // Try to get registered app first
-            if (appId != null)
+        private async Task<string> GetStringAsync(string requestUri, string? appId, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            using var response = await SendAsync(request, appId, cancellationToken);
+            return await response.Content.ReadAsStringAsync(cancellationToken);
+        }
+
+        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, string? appId, CancellationToken cancellationToken)
+        {
+            var registeredAppUrl = appId is null ? null : _appRegistryService.GetUrl(appId);
+            if (registeredAppUrl is not null)
             {
-                var appUrl = _appRegistryService.GetUrl(appId);
-                if (appUrl != null)
-                {
-                    client.BaseAddress = new Uri(appUrl);
-                    return client;
-                }
+                return await SendDirectAsync(request, registeredAppUrl, cancellationToken);
             }
 
-            // Fallback to default URL (port 5005)
-            client.BaseAddress = new Uri(_defaultAppUrl);
-            return client;
+            if (_appTunnelClient.IsConnected)
+            {
+                return await _appTunnelClient.SendAsync(request, cancellationToken);
+            }
+
+            return await SendDirectAsync(request, _defaultAppUrl, cancellationToken);
+        }
+
+        private async Task<HttpResponseMessage> SendDirectAsync(HttpRequestMessage request, string baseAddress, CancellationToken cancellationToken)
+        {
+            var client = CreateClient(baseAddress);
+
+            if (request.RequestUri is null)
+            {
+                throw new InvalidOperationException("local app request is missing uri");
+            }
+
+            if (!request.RequestUri.IsAbsoluteUri)
+            {
+                request.RequestUri = new Uri(client.BaseAddress!, request.RequestUri);
+            }
+
+            return await client.SendAsync(request, cancellationToken);
         }
 
         public async Task<string?> GetXACMLPolicy(string appId, CancellationToken cancellationToken = default)
@@ -71,8 +101,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy", cancellationToken);
+                return await GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy", appId, cancellationToken);
             });
         }
         public async Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
@@ -96,8 +125,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false", cancellationToken);
+                return await GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false", appId, cancellationToken);
             });
 
             return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
@@ -109,8 +137,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
             {
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/texts/{language}", cancellationToken);
+                return await GetStringAsync($"{appId}/api/v1/texts/{language}", appId, cancellationToken);
             });
 
             var textResource = JsonSerializer.Deserialize<TextResource>(content!, JSON_OPTIONS);
@@ -177,11 +204,10 @@ namespace LocalTest.Services.LocalApp.Implementation
                 content.Add(new StringContent(xmlPrefill, System.Text.Encoding.UTF8, "application/xml"), xmlDataId);
             }
 
-            using var client = CreateClient(appId);
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
             message.Headers.Authorization = new ("Bearer", token);
-            var response = await client.SendAsync(message, cancellationToken);
+            using var response = await SendAsync(message, appId, cancellationToken);
             var stringResponse = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
@@ -268,8 +294,8 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             try
             {
-                using var client = CreateClient(appId);
-                var response = await client.GetAsync(requestUri, cancellationToken);
+                using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                using var response = await SendAsync(request, appId, cancellationToken);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return new FetchResult(merged, AppWasReachable: true, AppHadData: false);

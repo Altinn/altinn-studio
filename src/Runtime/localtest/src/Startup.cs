@@ -46,6 +46,7 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
+using LocalTest.Tunnel;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
@@ -205,7 +206,7 @@ namespace LocalTest
 
             services.AddSingleton<AppRegistryService>();
 
-            // Access local app details depending on LocalAppMode ("file" or "http")
+            // The tunnel is opportunistic on top of HTTP mode, so the existing LocalAppHttp path stays in place.
             if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
                 services.AddTransient<ILocalApp, LocalAppHttp>();
@@ -216,6 +217,8 @@ namespace LocalTest
             }
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
+            services.AddSingleton<AppTunnelClient>();
+            services.AddSingleton<AppTunnelProxy>();
 
             services.AddHttpForwarder();
 
@@ -251,6 +254,7 @@ namespace LocalTest
 
             app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
+            app.UseWebSockets();
 
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
             if (!storagePath.Exists)
@@ -278,6 +282,12 @@ namespace LocalTest
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.Map(Altinn.Studio.AppTunnel.TunnelDefaults.EndpointPath, async context =>
+                {
+                    var appTunnelClient = context.RequestServices.GetRequiredService<AppTunnelClient>();
+                    await appTunnelClient.AcceptAsync(context, context.RequestAborted);
+                });
+
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
