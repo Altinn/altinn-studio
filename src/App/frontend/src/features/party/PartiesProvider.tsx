@@ -16,11 +16,6 @@ import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { GlobalData } from 'src/GlobalData';
 import type { IParty } from 'src/types/shared';
 
-const partyQueryKeys = {
-  all: ['parties'] as const,
-  allowedToInstantiate: () => [...partyQueryKeys.all, 'allowedToInstantiate'] as const,
-};
-
 const usePartiesAllowedToInstantiateQuery = () => {
   const allowAnonymous = useIsAllowAnonymous(false);
 

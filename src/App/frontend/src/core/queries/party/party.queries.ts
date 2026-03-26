@@ -10,7 +10,7 @@ export const partyQueryKeys = {
 export function partiesAllowedToInstantiateQuery(options?: { enabled?: boolean }) {
   return queryOptions({
     queryKey: partyQueryKeys.partiesAllowedToInstantiate(),
-    queryFn: async () => await PartyApi.getPartiesAllowedToInstantiateHierarchical(),
+    queryFn: () => PartyApi.getPartiesAllowedToInstantiateHierarchical(),
     ...options,
   });
 }
