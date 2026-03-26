@@ -201,7 +201,7 @@ describe('Party selection', () => {
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
 
     /** We need to wait for the instantiation to be cleared before we can instantiate again.
-     * @see InstantiateContainer */
+     * @see instanceSelectionLoader */
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500);
 
