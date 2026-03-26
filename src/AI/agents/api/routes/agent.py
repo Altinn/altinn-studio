@@ -131,7 +131,6 @@ async def start_agent(
                             repo_path=str(repo_path),
                             developer=developer,
                             org=req.org,
-                            designer_api_key=designer_api_key,
                             attachments=saved_attachments,
                             conversation_history=conversation_history,
                         )

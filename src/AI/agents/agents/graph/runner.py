@@ -162,7 +162,8 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     init_langfuse()
     langfuse = get_client() if is_langfuse_enabled() else None
 
-    # Create single root trace for entire workflow
+    # Use start_as_current_observation as the root - this creates a trace and sets context
+    # so all nested observations will be children of this root
     if langfuse:
         with propagate_attributes(
             user_id=state.org,
