@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Telemetry;
@@ -143,18 +145,11 @@ public static class StudioOidcAuthenticationExtensions
                         {
                             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             context.HandleResponse();
-                            IProblemDetailsService problemDetailsService =
-                                context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
-                            await problemDetailsService.WriteAsync(
-                                new ProblemDetailsContext
-                                {
-                                    HttpContext = context.HttpContext,
-                                    ProblemDetails =
-                                    {
-                                        Status = StatusCodes.Status401Unauthorized,
-                                        Extensions = { ["errorCode"] = StudioOidcErrorCodes.SessionExpired },
-                                    },
-                                }
+                            await context.Response.WriteAsJsonAsync(
+                                ProblemDetailsUtils.GenerateProblemDetails(
+                                    StudioOidcErrorCodes.SessionExpired,
+                                    HttpStatusCode.Unauthorized
+                                )
                             );
                             return;
                         }

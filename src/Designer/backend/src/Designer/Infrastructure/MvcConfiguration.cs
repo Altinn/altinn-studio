@@ -24,8 +24,6 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         public static IServiceCollection ConfigureMvc(this IServiceCollection services)
         {
-            services.AddProblemDetails();
-
             services
                 .AddControllers()
                 .AddMvcOptions(options =>
