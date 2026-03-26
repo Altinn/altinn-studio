@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { useIsMutating, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -104,9 +104,8 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-  const processNextRunning = useIsMutating({ mutationKey: processNextMutationKeyPrefix }) > 0;
 
-  if (processNextRunning || !process) {
+  if (!process) {
     return <Loader reason='process-wrapper' />;
   }
 
