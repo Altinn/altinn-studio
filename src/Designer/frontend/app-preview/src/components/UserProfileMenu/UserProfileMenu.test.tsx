@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { UserProfileMenu, type UserProfileMenuProps } from './UserProfileMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useMediaQuery } from '@studio/components-legacy';
@@ -8,8 +9,12 @@ import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
 import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
 
+const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
+  environment: null,
+};
+
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+  useEnvironmentConfig: () => mockEnvironment,
 }));
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
@@ -43,6 +48,10 @@ const defaultProps: UserProfileMenuProps = {
 };
 
 describe('UserProfileMenu', () => {
+  beforeEach(() => {
+    mockEnvironment.environment = null;
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -75,6 +84,30 @@ describe('UserProfileMenu', () => {
     renderUserProfileMenu();
 
     expect(screen.getByAltText(textMock('general.profile_icon'))).toBeInTheDocument();
+  });
+
+  it('should include user settings link in profile menu when studioOidc is enabled', async () => {
+    const user = userEvent.setup();
+    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
+
+    renderUserProfileMenu();
+
+    await user.click(screen.getByRole('button'));
+
+    expect(screen.getByRole('menuitem', { name: textMock('user.settings') })).toBeInTheDocument();
+  });
+
+  it('should not include user settings link in profile menu when studioOidc is disabled', async () => {
+    const user = userEvent.setup();
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+
+    renderUserProfileMenu();
+
+    await user.click(screen.getByRole('button'));
+
+    expect(
+      screen.queryByRole('menuitem', { name: textMock('user.settings') }),
+    ).not.toBeInTheDocument();
   });
 });
 
