@@ -54,9 +54,11 @@ async def start_agent(
 
         # Extract headers passed by Designer backend
         developer = request.headers.get("X-Developer")
-        if developer:
-            sink.register_developer_session(developer, req.session_id)
-            log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
+        if not developer:
+            raise HTTPException(status_code=400, detail="Missing X-Developer header")
+
+        sink.register_developer_session(developer, req.session_id)
+        log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
         
         # Clone the repository for this session
         repo_manager = get_repo_manager()
