@@ -86,6 +86,21 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     }
 
     /// <summary>
+    /// Requests resume of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false) =>
+        _client.PostAsync($"{BasePath}/{workflowId}/resume?cascade={cascade}", content: null);
+
+    /// <summary>
+    /// Requests resume of a workflow and asserts a 2xx response. Throws on failure.
+    /// </summary>
+    public async Task<ResumeWorkflowResponse> ResumeWorkflow(Guid workflowId, bool cascade = false)
+    {
+        using var response = await ResumeWorkflowRaw(workflowId, cascade);
+        return await AssertSuccessAndDeserialize<ResumeWorkflowResponse>(response);
+    }
+
+    /// <summary>
     /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)

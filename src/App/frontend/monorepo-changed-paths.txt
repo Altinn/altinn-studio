@@ -1,6 +1,9 @@
 .gitattributes
 .github/
 .husky/
+.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch
+.yarn/releases/yarn-4.12.0.cjs
+.yarnrc.yml
 LICENSE.md
 adr/001-component-library.md
 renovate.json
@@ -18,6 +21,7 @@ src/core/errorHandling/DisplayErrorProvider.tsx
 src/core/queries/useQueryWithStaleData.ts
 src/features/applicationMetadata/
 src/features/applicationSettings/ApplicationSettingsProvider.tsx
+src/features/entrypoint/Entrypoint.tsx
 src/features/form/dynamics/
 src/features/form/layout/quirks.ts
 src/features/form/layoutSets/
@@ -25,6 +29,7 @@ src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
 src/features/formData/FormDataWrite.test.ts
 src/features/formData/LegacyRules.ts
+src/features/instantiate/useInstantiation.tsx
 src/features/language/LangDataSourcesProvider.tsx
 src/features/language/LangToolsStore.tsx
 src/features/language/LanguageProvider.tsx
@@ -35,9 +40,12 @@ src/hooks/useWaitForState.ts
 src/index.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
 src/layout/RepeatingGroup/Summary/__snapshots__/SummaryRepeatingGroup.test.tsx.snap
+src/queries/appPrefetcher.ts
+src/queries/formPrefetcher.ts
 src/utils/formLayout.test.ts
 src/utils/formLayout.ts
 src/utils/refs/
 src/utils/versioning/versions.ts
 test/e2e/integration/frontend-test/language.ts
 test/e2e/integration/frontend-test/process-next.ts
+yarn.lock

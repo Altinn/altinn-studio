@@ -10,12 +10,10 @@ import { translationKey } from 'src/AppComponentsBridge';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { parseInstanceId, useActiveInstances } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import {
-  ActiveInstancesProvider,
-  useActiveInstances,
-} from 'src/features/instantiate/selection/ActiveInstancesProvider';
+import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
@@ -25,6 +23,7 @@ import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
+import { buildInstanceUrl } from 'src/routesBuilder';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -42,16 +41,22 @@ function getDateDisplayString(timeStamp: string) {
   });
 }
 
-export const InstanceSelectionWrapper = () => (
-  <ActiveInstancesProvider>
+export const InstanceSelectionWrapper = () => {
+  const { instances, isLoading } = useActiveInstances(String(useSelectedParty()?.partyId ?? -1));
+  if (isLoading) {
+    return null;
+  }
+  if (!instances || instances.length === 0) {
+    return <InstantiateContainer />;
+  }
+  return (
     <PresentationComponent showNavigation={false}>
-      <InstanceSelection />
+      <InstanceSelection instances={instances} />
     </PresentationComponent>
-  </ActiveInstancesProvider>
-);
+  );
+};
 
-function InstanceSelection() {
-  const _instances = useActiveInstances();
+function InstanceSelection({ instances: _instances }: { instances: ISimpleInstance[] }) {
   const applicationMetadata = getApplicationMetadata();
   const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
@@ -262,15 +267,17 @@ function InstanceSelection() {
               onClick={() =>
                 performProcess(async () => {
                   if (selectedParty) {
-                    await instantiation.instantiate(selectedParty.partyId, {
-                      force: true,
-                      onSuccess: (data) =>
-                        setNavigationEffect({
-                          targetLocation: `/instance/${data.id}`,
-                          matchStart: true,
-                          callback: focusMainContent,
-                        }),
-                    });
+                    const data = await instantiation.instantiate(selectedParty.partyId, { force: true });
+                    if (data) {
+                      const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
+                      const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
+                      setNavigationEffect({
+                        targetLocation: url,
+                        matchStart: true,
+                        callback: focusMainContent,
+                      });
+                      navigate(url);
+                    }
                   }
                 })
               }
@@ -326,10 +333,12 @@ const openInstance = (
     return;
   }
 
+  const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instanceId);
+  const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
   setNavigationEffect({
-    targetLocation: `/instance/${instanceId}`,
+    targetLocation: url,
     matchStart: true,
     callback: focusMainContent,
   });
-  navigate(`/instance/${instanceId}`);
+  navigate(url);
 };

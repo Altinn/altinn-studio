@@ -8,6 +8,10 @@ on:
       - '.github/workflows/app-codelists-tests.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     strategy:
@@ -21,6 +25,7 @@ jobs:
             workingDir: src\App\codelists\
     name: Run dotnet build and test
     runs-on: ${{ matrix.os.id }}
+    timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:

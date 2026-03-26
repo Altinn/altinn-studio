@@ -258,7 +258,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         var request = _testHelpers.CreateEnqueueRequest(wfRequest);
         var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        _ = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         using var client = fixture.CreateEngineClient();
 

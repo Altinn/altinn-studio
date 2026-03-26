@@ -12,10 +12,14 @@ public class EngineHealthCheckTests
     private const EngineHealthStatus DegradedMask =
         EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull | EngineHealthStatus.DatabaseUnavailable;
 
-    private static EngineHealthLevel DeriveHealthLevel(EngineHealthStatus status) =>
-        (status & UnhealthyMask) != 0 ? EngineHealthLevel.Unhealthy
-        : (status & DegradedMask) != 0 ? EngineHealthLevel.Degraded
-        : EngineHealthLevel.Healthy;
+    private static EngineHealthLevel DeriveHealthLevel(EngineHealthStatus status)
+    {
+        if ((status & UnhealthyMask) != 0)
+            return EngineHealthLevel.Unhealthy;
+        if ((status & DegradedMask) != 0)
+            return EngineHealthLevel.Degraded;
+        return EngineHealthLevel.Healthy;
+    }
 
     private static (EngineHealthCheck HealthCheck, Mock<IEngineStatus> StatusMock) CreateHealthCheck(
         EngineHealthStatus status,

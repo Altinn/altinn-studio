@@ -335,7 +335,10 @@ public partial class EngineTests
 
         // Act
         var response = await _client.Enqueue(request);
-        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+        var ids = response.Workflows.ToDictionary(
+            w => w.Ref ?? throw new InvalidOperationException("Workflow Ref was null"),
+            w => w.DatabaseId
+        );
 
         var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
         var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
@@ -380,7 +383,10 @@ public partial class EngineTests
 
         // Act
         var response = await _client.Enqueue(request);
-        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+        var ids = response.Workflows.ToDictionary(
+            w => w.Ref ?? throw new InvalidOperationException("Workflow Ref was null"),
+            w => w.DatabaseId
+        );
 
         var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
         var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
@@ -413,7 +419,10 @@ public partial class EngineTests
 
         // Act
         var response = await _client.Enqueue(request);
-        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+        var ids = response.Workflows.ToDictionary(
+            w => w.Ref ?? throw new InvalidOperationException("Workflow Ref was null"),
+            w => w.DatabaseId
+        );
 
         var statusA1 = await _client.WaitForWorkflowStatus(ids["a1"], PersistentItemStatus.Completed);
         var statusA2 = await _client.WaitForWorkflowStatus(ids["a2"], PersistentItemStatus.Failed);
@@ -446,7 +455,10 @@ public partial class EngineTests
 
         // Act
         var response = await _client.Enqueue(request);
-        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+        var ids = response.Workflows.ToDictionary(
+            w => w.Ref ?? throw new InvalidOperationException("Workflow Ref was null"),
+            w => w.DatabaseId
+        );
 
         var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
         var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);

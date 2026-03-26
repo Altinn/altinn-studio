@@ -12,10 +12,15 @@ on:
       - '.github/workflows/runtime-workflow-engine-tests.yaml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     name: Build and test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: src/Runtime/workflow-engine/
@@ -40,4 +45,4 @@ jobs:
           CI: true
 
       - name: Test
-        run: dotnet test --no-build
+        run: dotnet test --no-build --blame-hang --blame-hang-timeout 5m

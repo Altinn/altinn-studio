@@ -1,7 +1,7 @@
 import { RoutePaths } from 'admin/enums/RoutePaths';
-import { AppsDetails } from 'admin/features/appDetails/AppDetails';
-import { Apps } from 'admin/features/apps/Apps';
-import { InstanceDetails } from 'admin/features/instanceDetails/InstanceDetails';
+import { AppsDetails } from 'admin/features/apps/pages/appDetails/AppDetails';
+import { Apps } from 'admin/features/apps/pages/apps/Apps';
+import { InstanceDetails } from 'admin/features/apps/pages/instanceDetails/InstanceDetails';
 import type { ComponentType } from 'react';
 import { Navigate } from 'react-router-dom';
 

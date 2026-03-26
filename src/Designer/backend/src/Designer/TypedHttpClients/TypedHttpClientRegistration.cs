@@ -8,6 +8,8 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
@@ -89,6 +91,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 services.AddTransient<GiteaTokenDelegatingHandler>();
             }
 
+            services.AddGiteaUserProvisioningTypedHttpClient(config);
             services.AddTransient<GitOpsBotTokenDelegatingHandler>();
             services.AddTransient<PlatformSubscriptionAuthDelegatingHandler>();
             services.AddMaskinportenHttpClient();
@@ -216,6 +219,25 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             );
 
             return builder;
+        }
+
+        private static IHttpClientBuilder AddGiteaUserProvisioningTypedHttpClient(
+            this IServiceCollection services,
+            IConfiguration config
+        )
+        {
+            return services
+                .AddHttpClient<IUserProvisioningService, GiteaUserProvisioningService>(
+                    (_, httpClient) =>
+                    {
+                        ServiceRepositorySettings serviceRepoSettings = config
+                            .GetSection(nameof(ServiceRepositorySettings))
+                            .Get<ServiceRepositorySettings>();
+                        Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
+                        httpClient.BaseAddress = uri;
+                    }
+                )
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
         }
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(

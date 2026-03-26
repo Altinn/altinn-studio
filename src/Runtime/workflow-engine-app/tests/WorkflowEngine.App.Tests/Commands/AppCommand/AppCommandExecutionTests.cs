@@ -304,7 +304,6 @@ public class AppCommandExecutionTests
         using var fixture = AppCommandTestFixture.Create();
         var command = GetAppCommand(fixture);
         var data = CreateCommandData("test-command");
-        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
 
         var contextWithoutLock = new AppWorkflowContext
         {
@@ -315,22 +314,6 @@ public class AppCommandExecutionTests
             InstanceOwnerPartyId = 12345,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
         };
-        var workflow = new Workflow
-        {
-            OperationId = "test-operation",
-            IdempotencyKey = "test-wf-key",
-            Namespace = "test-namespace",
-            Context = JsonSerializer.SerializeToElement(contextWithoutLock),
-            Steps = [step],
-        };
-
-        var context = AppCommandTestFixture.CreateExecutionContext(
-            workflow,
-            step,
-            data,
-            workflowContext: contextWithoutLock
-        );
-
         // Validate should catch the missing lock token before execution
         var validationResult = command.Validate(data, contextWithoutLock);
         Assert.IsType<CommandValidationResult.Invalid>(validationResult);

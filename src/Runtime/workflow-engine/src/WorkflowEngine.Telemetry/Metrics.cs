@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
+// CA1724: Type names should not match namespaces
+#pragma warning disable CA1724
+
 namespace WorkflowEngine.Telemetry;
 
 public static class Metrics
@@ -51,6 +54,10 @@ public static class Metrics
     );
     public static readonly Counter<long> WorkflowsCanceled = Meter.CreateCounter<long>(
         "engine.workflows.execution.canceled"
+    );
+    public static readonly Counter<long> WorkflowsResumed = Meter.CreateCounter<long>(
+        "engine.workflows.execution.resumed",
+        description: "Number of terminal workflows resumed for re-processing"
     );
     public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
         "engine.workflows.execution.reclaimed",
