@@ -407,7 +407,9 @@ public class WorkflowWriteBufferTests
     }
 
     [Fact]
+#pragma warning disable S2699 // Implicit assertion: signal.Wait throws if not signaled within timeout
     public async Task Enqueue_Success_SignalsAsyncSignal()
+#pragma warning restore S2699
     {
         var (buffer, repo, signal) = CreateBuffer();
         SetupMockCreated(repo);

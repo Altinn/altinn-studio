@@ -81,7 +81,7 @@ public partial class EngineTests
             """;
 
         var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.Enqueue(request));
-        Assert.Contains("BadRequest", ex.Message);
+        Assert.Contains("BadRequest", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public partial class EngineTests
             """;
 
         var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.Enqueue(request));
-        Assert.Contains("BadRequest", ex.Message);
+        Assert.Contains("BadRequest", ex.Message, StringComparison.Ordinal);
     }
 
     // ── Multi-step webhook workflow ─────────────────────────────────────────

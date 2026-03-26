@@ -3,9 +3,10 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
+import { InstanceApi } from 'src/core/api-client/instance.api';
+import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
-import { activeInstancesQueryOptions, doInstantiate } from 'src/queries/queries';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
@@ -51,16 +52,14 @@ export function indexLoader(queryClient: QueryClient) {
 }
 
 async function handleSelectInstance(queryClient: QueryClient): Promise<Response> {
-  const activeInstances = await queryClient.ensureQueryData(
-    activeInstancesQueryOptions(GlobalData.getSelectedParty()!.partyId),
-  );
+  const activeInstances = await prefetchActiveInstances(queryClient, String(GlobalData.getSelectedParty()!.partyId));
 
   if (activeInstances.length === 0) {
     return await createInstanceAndRedirect();
   }
 
   if (activeInstances.length === 1) {
-    const [instanceOwnerPartyId, instanceGuid] = activeInstances[0].id.split('/');
+    const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(activeInstances[0].id);
     return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
   }
 
@@ -68,8 +67,8 @@ async function handleSelectInstance(queryClient: QueryClient): Promise<Response>
 }
 
 async function createInstanceAndRedirect(): Promise<Response> {
-  const instance = await doInstantiate(GlobalData.getSelectedParty()!.partyId);
-  const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
+  const instance = await InstanceApi.create({ instanceOwnerPartyId: GlobalData.getSelectedParty()!.partyId });
+  const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instance.id);
   return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
 }
 

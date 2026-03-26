@@ -4,6 +4,6 @@ services:
     image: altinity-mcp
     container_name: altinity-mcp
     ports:
-      - "8069:8069"
+      - "8070:8070"
     env_file:
       - .env

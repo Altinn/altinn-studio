@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers;
 public class StudioOidcController(
     IStudioOidcUsernameProvider usernameProvider,
     DeveloperMappingSettings mappingSettings,
-    IGiteaClient giteaClient
+    IUserProvisioningService userProvisioningService
 ) : ControllerBase
 {
     [Authorize]
@@ -45,7 +45,16 @@ public class StudioOidcController(
         string? givenName = User.FindFirst("given_name")?.Value;
         string? familyName = User.FindFirst("family_name")?.Value;
         PidHash pidHash = PidHash.FromPid(pid, mappingSettings);
-        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pidHash, givenName, familyName);
+
+        string computedUsername;
+        try
+        {
+            computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pidHash, givenName, familyName);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
 
         AuthenticateResult authenticateResult = await HttpContext.AuthenticateAsync();
         AuthenticationProperties? properties = authenticateResult.Properties;
@@ -77,23 +86,11 @@ public class StudioOidcController(
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
 
-        string afterCallbackUrl = Url.Action(nameof(AfterCallback), new { redirect_to = redirectTo })!;
-        return LocalRedirect(afterCallbackUrl);
-    }
-
-    [Authorize]
-    [HttpGet("after-callback")]
-    public async Task<IActionResult> AfterCallback([FromQuery(Name = "redirect_to")] string redirectTo)
-    {
-        if (!Url.IsLocalUrl(redirectTo))
-        {
-            return Forbid();
-        }
-
-        // Ensures user generation in Gitea via reverse proxy auto-registration.
-        // DeveloperContextMiddleware has set the context at this point, so the Gitea API call
-        // includes X-WEBAUTH-USER header which triggers Gitea to create the user if it doesn't exist.
-        await giteaClient.GetCurrentUser();
+        string? fullName = $"{givenName} {familyName}".Trim();
+        await userProvisioningService.EnsureUserExistsAsync(
+            computedUsername,
+            string.IsNullOrEmpty(fullName) ? null : fullName
+        );
 
         return LocalRedirect(redirectTo);
     }

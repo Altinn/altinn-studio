@@ -58,7 +58,7 @@ public class CancellationWatcherServiceTests
         repo.Setup(r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((IReadOnlyList<Guid> ids, CancellationToken _) => ids.Where(x => x == id).ToList());
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -78,7 +78,7 @@ public class CancellationWatcherServiceTests
         }
         finally
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             tracker.TryRemove(id, out _);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
@@ -92,7 +92,7 @@ public class CancellationWatcherServiceTests
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -114,7 +114,7 @@ public class CancellationWatcherServiceTests
         }
         finally
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
@@ -145,7 +145,7 @@ public class CancellationWatcherServiceTests
                 }
             );
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -165,7 +165,7 @@ public class CancellationWatcherServiceTests
         }
         finally
         {
-            cts.Cancel();
+            await cts.CancelAsync();
             tracker.TryRemove(id, out _);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);

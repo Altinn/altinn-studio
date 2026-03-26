@@ -229,7 +229,7 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         using var limiter = new ConcurrencyLimiter(10, 10, 5);
-        var service = new DbMaintenanceService(
+        using var service = new DbMaintenanceService(
             NullLogger<DbMaintenanceService>.Instance,
             TimeProvider.System,
             dataSource,

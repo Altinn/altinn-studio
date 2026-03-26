@@ -10,6 +10,9 @@ using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
+// S3878: This is required to avoid nullability mismatch in call to Metrics.Errors.Add()
+#pragma warning disable S3878
+
 namespace WorkflowEngine.Core;
 
 /// <summary>
@@ -106,9 +109,11 @@ internal sealed class WorkflowHandler(
 
             Metrics.Errors.Add(
                 1,
-                ("operation", "workflowProcessing"),
-                ("target", workflow.Namespace),
-                ("operationId", workflow.OperationId)
+                [
+                    ("operation", "workflowProcessing"),
+                    ("target", workflow.Namespace),
+                    ("operationId", workflow.OperationId),
+                ]
             );
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);

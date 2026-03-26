@@ -1,4 +1,5 @@
 using System.Net;
+using WorkflowEngine.App.Tests.Fixtures;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.App.Tests.Integration;
@@ -10,8 +11,8 @@ public sealed partial class AppCommandIntegrationTests
     [Fact]
     public async Task Response_Enqueue_SingleAppCommandWorkflow_ReturnsAcceptedShape()
     {
-        var step = _testHelpers.CreateAppCommandStep("/enqueue-shape");
-        var request = _testHelpers.CreateEnqueueRequest(
+        var step = AppTestHelpers.CreateAppCommandStep("/enqueue-shape");
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", [step]),
             lockToken: InstanceLockToken
         );
@@ -27,8 +28,8 @@ public sealed partial class AppCommandIntegrationTests
     [Fact]
     public async Task Response_Enqueue_AppCommandWithoutLockToken_Returns400WithProblemDetails()
     {
-        var step = _testHelpers.CreateAppCommandStep("/no-lock");
-        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", [step]), lockToken: null);
+        var step = AppTestHelpers.CreateAppCommandStep("/no-lock");
+        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", [step]), lockToken: null);
 
         using var response = await _client.EnqueueRaw(request);
 
@@ -43,8 +44,8 @@ public sealed partial class AppCommandIntegrationTests
     [Fact]
     public async Task Response_GetWorkflow_CompletedAppCommand_ReturnsFullDetailsShape()
     {
-        var step = _testHelpers.CreateAppCommandStep("/details-shape");
-        var request = _testHelpers.CreateEnqueueRequest(
+        var step = AppTestHelpers.CreateAppCommandStep("/details-shape");
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", [step]),
             lockToken: InstanceLockToken
         );
@@ -66,11 +67,11 @@ public sealed partial class AppCommandIntegrationTests
     {
         var steps = new[]
         {
-            _testHelpers.CreateAppCommandStep("/multi-step-1"),
-            _testHelpers.CreateAppCommandStep("/multi-step-2"),
-            _testHelpers.CreateAppCommandStep("/multi-step-3"),
+            AppTestHelpers.CreateAppCommandStep("/multi-step-1"),
+            AppTestHelpers.CreateAppCommandStep("/multi-step-2"),
+            AppTestHelpers.CreateAppCommandStep("/multi-step-3"),
         };
-        var request = _testHelpers.CreateEnqueueRequest(
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", steps),
             lockToken: InstanceLockToken
         );
@@ -92,8 +93,8 @@ public sealed partial class AppCommandIntegrationTests
     [Fact]
     public async Task Response_AppCommandCallback_PayloadShape()
     {
-        var step = _testHelpers.CreateAppCommandStep("/snapshot-callback", payload: "test-payload");
-        var request = _testHelpers.CreateEnqueueRequest(
+        var step = AppTestHelpers.CreateAppCommandStep("/snapshot-callback", payload: "test-payload");
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", [step]),
             lockToken: InstanceLockToken
         );
