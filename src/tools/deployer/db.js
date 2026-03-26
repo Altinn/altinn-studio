@@ -35,7 +35,8 @@ function initDb(dbPath = DB_PATH) {
       job_conclusion TEXT,
       run_created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
-      can_approve INTEGER
+      can_approve INTEGER,
+      pr_number INTEGER
     );
     CREATE INDEX IF NOT EXISTS idx_jobs_workflow_env ON jobs (workflow, env);
     CREATE INDEX IF NOT EXISTS idx_jobs_run_id ON jobs (run_id);
@@ -45,6 +46,10 @@ function initDb(dbPath = DB_PATH) {
       value TEXT NOT NULL
     );
   `);
+
+  // Migration for existing databases
+  try { db.exec('ALTER TABLE jobs ADD COLUMN pr_number INTEGER'); } catch { /* column already exists */ }
+
   return prepareStatements(db);
 }
 
@@ -84,8 +89,8 @@ function latestPendingRunsQuery(statuses) {
 function prepareStatements(db) {
   return {
     upsertJob: db.prepare(`
-      INSERT INTO jobs (job_id, run_id, workflow, env, sha, full_sha, title, run_url, job_status, job_conclusion, run_created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO jobs (job_id, run_id, workflow, env, sha, full_sha, title, run_url, job_status, job_conclusion, run_created_at, updated_at, pr_number)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(job_id) DO UPDATE SET
         run_id = excluded.run_id,
         workflow = excluded.workflow,
@@ -97,7 +102,8 @@ function prepareStatements(db) {
         job_status = excluded.job_status,
         job_conclusion = excluded.job_conclusion,
         run_created_at = excluded.run_created_at,
-        updated_at = excluded.updated_at
+        updated_at = excluded.updated_at,
+        pr_number = excluded.pr_number
       WHERE excluded.updated_at >= jobs.updated_at
     `),
     getState: db.prepare('SELECT value FROM sync_state WHERE key = ?'),
@@ -106,13 +112,13 @@ function prepareStatements(db) {
       ON CONFLICT(key) DO UPDATE SET value = excluded.value
     `),
     getCurrent: db.prepare(`
-      SELECT sha, full_sha, title, run_url, run_id, job_status, job_conclusion, updated_at
+      SELECT sha, full_sha, title, run_url, run_id, job_status, job_conclusion, updated_at, pr_number
       FROM jobs
       WHERE workflow = ? AND env = ? AND job_status = 'completed' AND job_conclusion = 'success'
       ORDER BY run_id DESC LIMIT 1
     `),
     getNext: db.prepare(`
-      SELECT sha, full_sha, title, run_url, run_id, job_status, job_conclusion, updated_at, can_approve
+      SELECT sha, full_sha, title, run_url, run_id, job_status, job_conclusion, updated_at, can_approve, pr_number
       FROM jobs
       WHERE workflow = ? AND env = ?
         AND (
