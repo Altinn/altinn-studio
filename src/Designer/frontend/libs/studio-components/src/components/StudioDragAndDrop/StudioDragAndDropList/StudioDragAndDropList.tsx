@@ -47,7 +47,9 @@ export function StudioDragAndDropList<T>({ children }: StudioDragAndDropListProp
       className={classes.root + ' ' + domSelectors.list.className}
       data-testid={droppableListId}
       id={domSelectors.list.id}
-      ref={drop}
+      ref={(element) => {
+        drop(element);
+      }}
       style={{ backgroundColor }}
     >
       {children}

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent
 from agents.services.events import sink
@@ -17,6 +17,11 @@ async def handle(state: AgentState) -> AgentState:
     import time
     log.info(f"⏱️ [PLANNER NODE] Starting at {time.time()}")
     log.info("🎯 Planner node executing")
+    sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={"message": "Planning implementation..."},
+    ))
     guidance = getattr(state, "planning_guidance", None)
     log.info(
         f"📥 Planner received planning guidance: "
@@ -27,8 +32,7 @@ async def handle(state: AgentState) -> AgentState:
 
         client = get_mcp_client()
 
-        langfuse = get_client()
-        with langfuse.start_as_current_observation(
+        with trace_span(
             name="detailed_planning_phase",
             metadata={
                 "implementation_plan_length": len(state.implementation_plan) if state.implementation_plan else 0,
@@ -63,10 +67,17 @@ async def handle(state: AgentState) -> AgentState:
             if state.attachments:
                 log.info(f"📎 Planner passing {len(state.attachments)} attachment(s) to patch generation")
             
+            # Generate form spec summary for downstream agents
+            form_spec_summary = None
+            if state.form_spec:
+                form_spec_summary = state.form_spec.to_summary()
+                log.info(f"📋 Passing FormSpec to patch generation: {state.form_spec.field_count()} fields, {state.form_spec.total_pages} pages")
+            
             patch_data = await client.create_patch_async(
                 task_context=task_context,
                 repository_path=state.repo_path,
                 attachments=state.attachments,
+                form_spec_summary=form_spec_summary,
             )
 
             log.info(f"📋 Planner created patch_data with {len(patch_data.get('changes', []))} changes")

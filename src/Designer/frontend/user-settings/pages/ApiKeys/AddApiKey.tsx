@@ -12,8 +12,8 @@ import {
 import { StudioCloseIcon } from '@studio/icons';
 import { ClipboardIcon, PlusIcon } from '@navikt/aksel-icons';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useAddUserApiKeyMutation } from '../hooks/mutations/useAddUserApiKeyMutation';
-import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
+import { useAddUserApiKeyMutation } from '../../hooks/mutations/useAddUserApiKeyMutation';
+import { useUserApiKeysQuery } from '../../hooks/queries/useUserApiKeysQuery';
 import classes from './AddApiKey.module.css';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import { useQueryClient } from '@tanstack/react-query';
@@ -138,7 +138,7 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
         />
         <StudioButton
           type='submit'
-          data-color='success'
+          variant='secondary'
           icon={<PlusIcon />}
           onClick={handleAdd}
           disabled={isPending}

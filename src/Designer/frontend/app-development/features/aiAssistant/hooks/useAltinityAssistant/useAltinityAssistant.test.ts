@@ -27,6 +27,9 @@ describe('useAltinityAssistant', () => {
       workflowStatus: { isActive: false },
       onSubmitMessage: jest.fn(),
       resetWorkflowStatus,
+      cancelCurrentWorkflow: jest.fn(),
+      cancelledMessageContent: null,
+      clearCancelledMessageContent: jest.fn(),
     });
 
     const { result } = renderUseAltinityAssistant();
@@ -51,6 +54,10 @@ const createThreadState = (): AltinityThreadState => ({
   createNewThread: jest.fn(),
   deleteThread: jest.fn(),
   addMessageToThread: jest.fn(),
+  removeLoadingMessage: jest.fn(),
+  replaceLoadingWithMessage: jest.fn(),
+  removeLastUserMessage: jest.fn(),
+  removeCancelledMessages: jest.fn(),
   upsertAssistantMessage: jest.fn(),
   updateWorkflowStatusMessage: jest.fn(),
 });

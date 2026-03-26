@@ -292,6 +292,7 @@ func (r *SecretSyncReconciler) findMapping(name, namespace string) *SecretSyncMa
 // SetupWithManager registers the controller with the manager.
 func (r *SecretSyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := ctrl.NewControllerManagedBy(mgr).
+		Named("secretsync").
 		For(&corev1.Secret{}, builder.WithPredicates(r.secretPredicate())).
 		Complete(r); err != nil {
 		return fmt.Errorf("complete SecretSync controller builder: %w", err)

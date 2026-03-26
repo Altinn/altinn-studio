@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 import newsData from './NewsContent/news.nb.json';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
+import { StudioParagraph } from '@studio/components';
 
 export const News = () => {
   const { t } = useTranslation();
@@ -46,7 +47,15 @@ export const News = () => {
                     </Paragraph>
                   </Card.Content>
                   <Card.Content>
-                    <Paragraph size='small'>{content}</Paragraph>
+                    <StudioParagraph data-size='md'>
+                      <Trans
+                        i18nKey={content}
+                        components={{
+                          strong: <strong />,
+                          br: <br />,
+                        }}
+                      />
+                    </StudioParagraph>
                   </Card.Content>
                 </Card>
               )

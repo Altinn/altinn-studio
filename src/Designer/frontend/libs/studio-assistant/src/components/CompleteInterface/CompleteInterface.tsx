@@ -20,8 +20,12 @@ export function CompleteInterface({
   texts,
   chatThreads,
   onSubmitMessage,
+  onCancelWorkflow,
+  cancelledMessageContent,
+  onCancelledMessageConsumed,
   activeThreadId,
   connectionStatus,
+  workflowStatus,
   onSelectThread,
   onDeleteThread,
   onCreateThread,
@@ -95,6 +99,10 @@ export function CompleteInterface({
             texts={texts}
             messages={currentThread?.messages ?? []}
             onSubmitMessage={onSubmitMessage}
+            onCancelWorkflow={onCancelWorkflow}
+            cancelledMessageContent={cancelledMessageContent}
+            onCancelledMessageConsumed={onCancelledMessageConsumed}
+            workflowIsActive={workflowStatus?.isActive}
             enableCompactInterface={false}
             currentUser={currentUser}
           />

@@ -33,7 +33,7 @@ async def sync_generated_artifacts(
     Args:
         plan: The plan step that was executed
         repo_path: Repository root path
-        mcp_client: MCP client for calling datamodel_sync tool
+        mcp_client: MCP client for calling altinn_datamodel_sync tool
         check_only: Only check if sync needed, don't generate
         
     Returns:
@@ -121,7 +121,7 @@ async def _sync_single_file(
         result = subprocess.run(['git', 'branch', '--show-current'], 
                               cwd=repo_path, capture_output=True, text=True)
         current_branch = result.stdout.strip() if result.returncode == 0 else "unknown"
-    except:
+    except Exception:
         current_branch = "unknown"
     
     if not check_only:
@@ -150,14 +150,20 @@ async def _sync_single_file(
         "schema_filename": schema_filename,
     }
     
-    log.debug(f"Calling datamodel_sync with: {sync_request}")
+    log.debug(
+        "Calling altinn_datamodel_sync for %s (%d bytes)",
+        schema_filename, len(schema_content),
+    )
     
     # Call MCP tool with langfuse tracking
-    from langfuse import get_client
-    langfuse = get_client()
-    with langfuse.start_as_current_observation(name="tool_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
+    from shared.utils.langfuse_utils import trace_span
+    redacted_input = {
+        "schema_filename": schema_filename,
+        "schema_size": len(schema_content),
+    }
+    with trace_span("tool_altinn_datamodel_sync", metadata={"span_type": "TOOL"}, input=redacted_input) as span:
         try:
-            result = await mcp_client.call_tool("datamodel_sync", sync_request, designer_api_key=designer_api_key)
+            result = await mcp_client.call_tool("altinn_datamodel_sync", sync_request, designer_api_key=designer_api_key)
             span.update(output={"result": result})
             
             # Handle CallToolResult objects with structured_content

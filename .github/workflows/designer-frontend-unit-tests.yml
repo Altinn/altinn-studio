@@ -24,6 +24,7 @@ jobs:
   typecheck:
     name: 'Typechecking and linting'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       actions: read
       contents: read
@@ -56,6 +57,7 @@ jobs:
   test:
     name: 'Testing'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -71,7 +73,7 @@ jobs:
           yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
