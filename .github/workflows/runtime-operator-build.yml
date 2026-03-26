@@ -2,7 +2,7 @@ name: operator - Build
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Runtime/operator/**'
       - 'src/Runtime/devenv/**'
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   test:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -51,7 +51,7 @@ jobs:
         run: make test
 
   test-e2e:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test - e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
