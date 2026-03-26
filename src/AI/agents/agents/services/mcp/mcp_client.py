@@ -2,6 +2,7 @@
 Version: 2025-10-29-debug-v2
 """
 
+import asyncio
 import json
 import os
 import time
@@ -18,15 +19,48 @@ from shared.utils.langfuse_utils import score_validation
 
 log = get_logger(__name__)
 
+INITIAL_RETRY_DELAY_SECONDS = 2
+MAX_RETRY_DELAY_SECONDS = 30
+RETRY_BACKOFF_FACTOR = 2
+
 
 class MCPClient:
-    """Client for interacting with MCP (Model Context Protocol) servers."""
+    """Client for interacting with MCP (Model Context Protocol) servers.
     
-    def __init__(self, server_url: str = "http://localhost:8070"): # TODO: Make this configurable
+    Supports lazy connection — the agent service can start without MCP being
+    available.  Call ``start_connection_loop()`` to begin a background task
+    that retries until the server responds, then caches the tool list.
+    """
+    
+    def __init__(self, server_url: str = "http://localhost:8070"):
         self.server_url = server_url
         self._client = None
-        self._available_tools = []
-        self._current_designer_api_key = None  # Store key separately from tool arguments
+        self._available_tools: list = []
+        self._current_designer_api_key: str | None = None
+        self._connected = False
+        self._last_error: str | None = None
+        self._connection_task: asyncio.Task | None = None
+        self._docs_ready = False
+        self._docs_indexing = False
+
+    @property
+    def is_ready(self) -> bool:
+        """True when the MCP server has been reached at least once."""
+        return self._connected
+
+    @property
+    def is_docs_ready(self) -> bool:
+        """True when the MCP server's documentation index is fully built."""
+        return self._docs_ready
+
+    @property
+    def is_docs_indexing(self) -> bool:
+        """True while the MCP server is still indexing documentation."""
+        return self._docs_indexing
+
+    @property
+    def last_error(self) -> str | None:
+        return self._last_error
 
     async def _get_client(self, designer_api_key: str = None):
         """Get or create FastMCP client with Authorization header (MCP spec compliant)"""
@@ -68,9 +102,98 @@ class MCPClient:
                 await client.ping()
                 tools = await client.list_tools()
                 self._available_tools = [{"name": tool.name, "description": tool.description} for tool in tools]
+                self._connected = True
+                self._last_error = None
                 log.info(f"Available MCP tools: {len(self._available_tools)}")
         except Exception as e:
+            self._connected = False
+            self._last_error = str(e)
             log.warning(f"Could not list MCP tools: {e}")
+            raise
+
+        # Check docs readiness on every successful connect (best-effort)
+        await self._check_docs_status()
+
+    async def _check_docs_status(self):
+        """Probe ``altinn_status`` to update docs readiness flags.
+
+        Best-effort — failures are logged but never propagated.
+        """
+        try:
+            result = await self.call_tool("altinn_status", {})
+            status = self._extract_status_dict(result)
+            if status:
+                self._docs_ready = status.get("docs_ready", False)
+                self._docs_indexing = status.get("docs_indexing", False)
+                if self._docs_ready:
+                    log.info("✅ MCP documentation index is ready")
+                elif self._docs_indexing:
+                    log.info("⏳ MCP documentation is still indexing")
+        except Exception as e:
+            log.debug(f"Could not check MCP docs status: {e}")
+
+    @staticmethod
+    def _extract_status_dict(result) -> dict | None:
+        """Extract a dict from a call_tool result regardless of shape.
+
+        Handles plain dicts, CallToolResult with structured_content,
+        and CallToolResult with JSON text content.
+        """
+        if isinstance(result, dict):
+            return result
+        # CallToolResult with text content blocks
+        if hasattr(result, "content"):
+            import json as _json
+            for block in (result.content if isinstance(result.content, list) else [result.content]):
+                text = getattr(block, "text", None)
+                if text:
+                    try:
+                        return _json.loads(text)
+                    except (ValueError, TypeError):
+                        continue
+        return None
+
+    async def _connection_loop(self):
+        """Background loop that retries connecting until successful."""
+        delay = INITIAL_RETRY_DELAY_SECONDS
+        while not self._connected:
+            try:
+                await self.connect()
+                log.info("✅ MCP server connection established (background loop)")
+                return
+            except Exception:
+                log.info(
+                    f"⏳ MCP server not available yet, retrying in {delay}s... "
+                    f"({self.server_url})"
+                )
+                await asyncio.sleep(delay)
+                delay = min(delay * RETRY_BACKOFF_FACTOR, MAX_RETRY_DELAY_SECONDS)
+
+    def start_connection_loop(self) -> asyncio.Task:
+        """Start a non-blocking background task that connects when the server is ready.
+
+        Safe to call multiple times — only one loop runs at a time.
+        Returns the ``asyncio.Task`` so the caller can cancel it on shutdown.
+        """
+        if self._connected:
+            return None
+        if self._connection_task is not None and not self._connection_task.done():
+            return self._connection_task
+        self._connection_task = asyncio.create_task(self._connection_loop())
+        return self._connection_task
+
+    async def ensure_connected(self):
+        """Block until the MCP server is reachable.
+
+        If the background loop is running it waits for it to finish.
+        Otherwise it starts a fresh connection attempt.
+        """
+        if self._connected:
+            return
+        if self._connection_task and not self._connection_task.done():
+            await self._connection_task
+        else:
+            await self.connect()
     
     async def check_server_status(self) -> dict:
         """
@@ -168,8 +291,8 @@ class MCPClient:
 
                 scan_span.update(output={"repo_facts": repo_facts})
 
-            # Step 2: Connect to MCP server
-            await self.connect()
+            # Step 2: Ensure MCP server connection (waits for background loop if needed)
+            await self.ensure_connected()
 
             # Step 3: Extract planning guidance from task_context
             # Planning guidance MUST be present - it should come from planning_tool_node
@@ -314,38 +437,12 @@ def get_mcp_client(server_url: str = None) -> MCPClient:
     return _mcp_client_instance
 
 
-async def check_mcp_server_startup(server_url: str = None, expected_version: str = None):
+def start_mcp_connection_loop() -> asyncio.Task | None:
+    """Start the background MCP reconnection loop on the singleton client.
+
+    Returns the ``asyncio.Task`` (or ``None`` if already connected) so the
+    caller can cancel it during shutdown.
     """
-    Check MCP server status and version at startup.
-
-    Args:
-        server_url: MCP server URL. If None, uses config default.
-        expected_version: Expected version string. If None, uses config default.
-
-    Exits the application with code 1 if MCP server check fails.
-    """
-    from shared.config import get_config
-
-    config = get_config()
-    if server_url is None:
-        server_url = config.MCP_SERVER_URL
-    if expected_version is None:
-        expected_version = config.MCP_SERVER_EXPECTED_VERSION
-
-    print(f"🔍 Checking MCP server at startup: {server_url}")
-
-    try:
-        # Create client and check status
-        client = MCPClient(server_url)
-        status = await client.check_server_status()
-        
-        if status["running"]:
-            print("✅ MCP server check passed")
-            return status
-            
-    except Exception as e:
-        error_msg = f"Cannot connect to MCP server: {str(e)}"
-        print(f"❌ {error_msg}")
-        print("\n🚫 Altinity startup failed: MCP server not running")
-        print("💡 Start the MCP server first before starting Altinity")
-        os._exit(1)
+    client = get_mcp_client()
+    log.info(f"🔍 Starting background MCP connection loop ({client.server_url})")
+    return client.start_connection_loop()

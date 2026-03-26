@@ -71,6 +71,19 @@ async def handle(state: AgentState) -> AgentState:
             _check_cancelled()
             tool_names = await _get_available_tools()
 
+            # Notify user if MCP docs are still indexing (may slow first tool calls)
+            mcp = get_mcp_client()
+            if mcp.is_ready and not mcp.is_docs_ready:
+                log.info(f"⏳ MCP docs still indexing — notifying session {state.session_id}")
+                sink.send(AgentEvent(
+                    type="status",
+                    session_id=state.session_id,
+                    data={
+                        "message": "MCP documentation is still being indexed — first request may take a bit longer.",
+                        "status": "docs_indexing",
+                    },
+                ))
+
             # Step 3: Plan tool execution (LLM-based, always includes planning_tool)
             log.info("🎯 Planning tool execution...")
             _check_cancelled()
