@@ -24,7 +24,6 @@ data:
         "PostalCodesUrl": "https://altinncdn.no/postcodes/registry.json"
       }
     }
-  PlatformFrontendSettings__PostalCodesUrl: "https://altinncdn.no/postcodes/registry.json"
 ---
 apiVersion: v1
 kind: Secret
