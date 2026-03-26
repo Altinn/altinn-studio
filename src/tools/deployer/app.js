@@ -166,7 +166,10 @@ function getPlaneServices(status, planeName) {
 
 function renderGrid(containerId, services, envs) {
   const grid = document.getElementById(containerId);
-  grid.style.gridTemplateColumns = `140px repeat(${envs.length}, 1fr)`;
+  const envMinWidth = 220;
+  const serviceColWidth = 150;
+  grid.style.gridTemplateColumns = `${serviceColWidth}px repeat(${envs.length}, minmax(${envMinWidth}px, 1fr))`;
+  grid.style.minWidth = `${serviceColWidth + envs.length * envMinWidth + (envs.length) * 8}px`;
   grid.innerHTML = '';
 
   grid.appendChild(el('div', 'cell cell-header', 'Service'));

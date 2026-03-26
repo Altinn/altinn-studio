@@ -49,15 +49,25 @@ button:hover { background: #30363d; }
 
 /* Pipeline grid */
 
+.grid-scroll {
+  overflow-x: auto;
+  margin: 0 20px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #484f58 transparent;
+}
+.grid-scroll::-webkit-scrollbar { height: 8px; }
+.grid-scroll::-webkit-scrollbar-track { background: transparent; }
+.grid-scroll::-webkit-scrollbar-thumb { background: #484f58; border-radius: 4px; }
+.grid-scroll::-webkit-scrollbar-thumb:hover { background: #6e7681; }
+
 .pipeline-grid {
   display: grid;
   row-gap: 1px;
   column-gap: 8px;
   background: #484f58;
-  margin: 0 20px 16px;
   border: 2px solid #30363d;
   border-radius: 6px;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .cell {
