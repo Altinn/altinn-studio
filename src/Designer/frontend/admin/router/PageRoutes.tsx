@@ -4,9 +4,14 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
   Route,
+  Navigate,
 } from 'react-router-dom';
 import { App } from 'admin/layout/App';
 import { PageLayout } from 'admin/layout/PageLayout';
+import { PageLayout as AppsLayout } from 'admin/features/apps/layout/PageLayout';
+import { PageLayout as SettingsLayout } from 'admin/features/settings/layout/PageLayout';
+import { ContactPoints } from 'admin/features/settings/pages/contactPoints/ContactPoints';
+import { RoutePaths } from 'admin/enums/RoutePaths';
 import { ADMIN_BASENAME } from 'app-shared/constants';
 import { NotFoundPage } from 'admin/layout/NotFoundPage';
 import {
@@ -22,14 +27,28 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<App />} errorElement={<AppRouteErrorBoundary />}>
       <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
-        {routerRoutes.map((route) => (
+        <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
+          {routerRoutes.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={<route.page />}
+              errorElement={<RouteErrorBoundary />}
+            />
+          ))}
+        </Route>
+        <Route
+          path={RoutePaths.Settings}
+          element={<SettingsLayout />}
+          errorElement={<RouteErrorBoundary />}
+        >
+          <Route index element={<Navigate to={RoutePaths.ContactPoints} replace />} />
           <Route
-            key={route.path}
-            path={route.path}
-            element={<route.page />}
+            path={RoutePaths.ContactPoints}
+            element={<ContactPoints />}
             errorElement={<RouteErrorBoundary />}
           />
-        ))}
+        </Route>
         <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
       <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
