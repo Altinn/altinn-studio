@@ -77,7 +77,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         var interceptor = new SqlCapturingInterceptor();
         var repo = fixture.CreateRepositoryWithInterceptor(interceptor, timeProvider: _timeProvider);
 
-        await repo.GetScheduledWorkflows(ct);
+        await repo.GetScheduledWorkflows(cancellationToken: ct);
 
         var query = interceptor.Queries.LastOrDefault(q =>
             q.Sql.Contains("\"Workflows\"", StringComparison.Ordinal)

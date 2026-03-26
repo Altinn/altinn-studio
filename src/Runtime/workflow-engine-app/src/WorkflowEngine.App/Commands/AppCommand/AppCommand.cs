@@ -112,11 +112,15 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
-        using var jsonPayload = JsonContent.Create(payload);
 
         _logger.SendingAppCommand(endpoint, payload);
 
-        using var response = await httpClient.PostAsync(endpoint, jsonPayload, cancellationToken);
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = JsonContent.Create(payload),
+        };
+        AddOutboundHeaders(httpRequest, context);
+        using var response = await httpClient.SendAsync(httpRequest, cancellationToken);
 
         if (response.IsSuccessStatusCode)
         {
@@ -154,6 +158,16 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         return ExecutionResult.RetryableError(
             $"AppCommand execution failed with status code {response.StatusCode}: {errorBody}"
         );
+    }
+
+    private static void AddOutboundHeaders(HttpRequestMessage request, CommandExecutionContext context)
+    {
+        request.Headers.Add("Idempotency-Key", context.Step.IdempotencyKey);
+        request.Headers.Add("Workflow-Id", context.Workflow.DatabaseId.ToString());
+        request.Headers.Add("Step-Operation-Id", context.Step.OperationId);
+        request.Headers.Add("Workflow-Namespace", context.Workflow.Namespace);
+        if (context.Workflow.CorrelationId is { } cid)
+            request.Headers.Add("Correlation-Id", cid.ToString());
     }
 
     private HttpClient CreateAuthorizedClient(AppWorkflowContext workflowContext)

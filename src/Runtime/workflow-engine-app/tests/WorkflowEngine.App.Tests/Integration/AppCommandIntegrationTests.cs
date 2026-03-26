@@ -92,8 +92,6 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
     {
         var request = new WorkflowEnqueueRequest
         {
-            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = JsonSerializer.SerializeToElement(
                 new
                 {

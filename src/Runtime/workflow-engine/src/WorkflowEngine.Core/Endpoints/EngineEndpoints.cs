@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -58,17 +59,22 @@ internal static class EngineRequestHandlers
         [FromBody] WorkflowEnqueueRequest request,
         [FromServices] IEngine engine,
         [FromServices] TimeProvider timeProvider,
+        HttpContext httpContext,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
 
-        Activity.Current?.SetTag("workflow.correlation.id", request.CorrelationId);
-        Activity.Current?.SetTag("workflow.idempotency.key", request.IdempotencyKey);
-        Activity.Current?.SetTag("workflow.namespace", request.Namespace);
+        var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext);
+
+        Activity.Current?.SetTag("workflow.correlation.id", inbound.CorrelationId);
+        Activity.Current?.SetTag("workflow.idempotency.key", inbound.IdempotencyKey);
+        Activity.Current?.SetTag("workflow.namespace", inbound.Namespace);
 
         var metadata = new WorkflowRequestMetadata(
-            request.CorrelationId,
+            inbound.Namespace,
+            inbound.IdempotencyKey!,
+            inbound.CorrelationId,
             timeProvider.GetUtcNow(),
             Activity.Current?.Id
         );
@@ -103,20 +109,20 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
-        [FromQuery(Name = "namespace")] string? ns,
         [FromQuery] Guid? correlationId,
         [FromQuery(Name = "label")] string[]? labels,
         [FromServices] IEngineRepository repository,
+        HttpContext httpContext,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var normalizedNs = string.IsNullOrWhiteSpace(ns) ? null : WorkflowNamespace.Normalize(ns);
+        var ns = MetadataExtractor.ExtractNamespace(httpContext);
         var labelFilters = ParseLabelFilters(labels);
         var workflows = await repository.GetActiveWorkflowsByCorrelationId(
             correlationId,
-            normalizedNs,
+            ns,
             labelFilters,
             cancellationToken
         );
@@ -130,31 +136,38 @@ internal static class EngineRequestHandlers
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [FromRoute] Guid workflowId,
         [FromServices] IEngineRepository repository,
+        HttpContext httpContext,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get"));
 
+        var ns = MetadataExtractor.ExtractNamespace(httpContext);
         var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
 
         if (workflow is null)
             return TypedResults.NotFound();
 
-        // TODO: Decide how we want to deal with the namespace boundary
         // Prevent cross-namespace information disclosure — always enforce namespace check
-        // if (workflow.Namespace != WorkflowNamespace.Normalize(ns))
-        //     return TypedResults.NotFound();
+        if (workflow.Namespace != ns)
+            return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
     }
 
     public static async Task<
         Results<Ok<CancelWorkflowResponse>, Accepted<CancelWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
-    > CancelWorkflow([FromRoute] Guid workflowId, [FromServices] IEngine engine, CancellationToken cancellationToken)
+    > CancelWorkflow(
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngine engine,
+        HttpContext httpContext,
+        CancellationToken cancellationToken
+    )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
 
-        var result = await engine.CancelWorkflow(workflowId, cancellationToken);
+        var ns = MetadataExtractor.ExtractNamespace(httpContext);
+        var result = await engine.CancelWorkflow(workflowId, ns, cancellationToken);
 
         return result switch
         {
@@ -182,12 +195,14 @@ internal static class EngineRequestHandlers
         [FromRoute] Guid workflowId,
         [FromQuery] bool cascade,
         [FromServices] IEngine engine,
+        HttpContext httpContext,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
 
-        var result = await engine.ResumeWorkflow(workflowId, cascade, cancellationToken);
+        var ns = MetadataExtractor.ExtractNamespace(httpContext);
+        var result = await engine.ResumeWorkflow(workflowId, ns, cascade, cancellationToken);
 
         return result switch
         {

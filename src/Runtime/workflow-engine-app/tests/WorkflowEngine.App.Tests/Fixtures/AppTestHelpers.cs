@@ -53,8 +53,6 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
     public static WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow, string? lockToken = null) =>
         new()
         {
-            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = CreateAppContext(lockToken),
             Labels = new Dictionary<string, string>
             {
@@ -71,8 +69,6 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
     ) =>
         new()
         {
-            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = CreateAppContext(lockToken),
             Labels = new Dictionary<string, string>
             {

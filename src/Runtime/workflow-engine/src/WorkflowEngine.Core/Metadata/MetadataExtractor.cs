@@ -1,0 +1,106 @@
+using Microsoft.AspNetCore.Http;
+using WorkflowEngine.Data.Constants;
+
+namespace WorkflowEngine.Core.Metadata;
+
+/// <summary>
+/// Extracts workflow metadata from HTTP headers and query parameters.
+/// For each field, accepts either a header or a query parameter — returns 400 if both are supplied.
+/// </summary>
+internal static class MetadataExtractor
+{
+    /// <summary>
+    /// Extracts all metadata fields needed for workflow enqueue: namespace, idempotency key, and correlation ID.
+    /// Returns 400 if idempotency key is missing, if both header and query param are supplied for any field,
+    /// or if correlation ID is present but not a valid GUID.
+    /// </summary>
+    public static InboundMetadata ExtractEnqueueMetadata(HttpContext httpContext)
+    {
+        var ns = ExtractNamespace(httpContext);
+        var idempotencyKey = ExtractSingleValue(
+            httpContext,
+            WorkflowMetadataConstants.Headers.IdempotencyKey,
+            WorkflowMetadataConstants.QueryParams.IdempotencyKey
+        );
+
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            throw new BadHttpRequestException(
+                $"Idempotency key is required. Supply it via the '{WorkflowMetadataConstants.Headers.IdempotencyKey}' header "
+                    + $"or '{WorkflowMetadataConstants.QueryParams.IdempotencyKey}' query parameter.",
+                StatusCodes.Status400BadRequest
+            );
+        }
+
+        var correlationId = ExtractCorrelationId(httpContext);
+
+        return new InboundMetadata(ns, idempotencyKey, correlationId);
+    }
+
+    /// <summary>
+    /// Extracts only the namespace from headers/query params. Defaults to "default" if not supplied.
+    /// Returns 400 if both header and query param are supplied.
+    /// </summary>
+    public static string ExtractNamespace(HttpContext httpContext)
+    {
+        var raw = ExtractSingleValue(
+            httpContext,
+            WorkflowMetadataConstants.Headers.Namespace,
+            WorkflowMetadataConstants.QueryParams.Namespace
+        );
+        return WorkflowNamespace.Normalize(raw);
+    }
+
+    private static Guid? ExtractCorrelationId(HttpContext httpContext)
+    {
+        var raw = ExtractSingleValue(
+            httpContext,
+            WorkflowMetadataConstants.Headers.CorrelationId,
+            WorkflowMetadataConstants.QueryParams.CorrelationId
+        );
+
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+
+        if (!Guid.TryParse(raw, out var parsed))
+        {
+            throw new BadHttpRequestException(
+                $"Correlation ID '{raw}' is not a valid GUID.",
+                StatusCodes.Status400BadRequest
+            );
+        }
+
+        return parsed;
+    }
+
+    /// <summary>
+    /// Reads a value from either a header or a query parameter.
+    /// Throws 400 if both are present.
+    /// </summary>
+    private static string? ExtractSingleValue(HttpContext httpContext, string headerName, string queryParamName)
+    {
+        var fromHeader = httpContext.Request.Headers.TryGetValue(headerName, out var headerValues)
+            ? headerValues.ToString()
+            : null;
+
+        var fromQuery = httpContext.Request.Query.TryGetValue(queryParamName, out var queryValues)
+            ? queryValues.ToString()
+            : null;
+
+        // Treat empty strings as absent
+        if (string.IsNullOrWhiteSpace(fromHeader))
+            fromHeader = null;
+        if (string.IsNullOrWhiteSpace(fromQuery))
+            fromQuery = null;
+
+        if (fromHeader is not null && fromQuery is not null)
+        {
+            throw new BadHttpRequestException(
+                $"'{headerName}' was supplied as both a header and a query parameter ('{queryParamName}'). Supply only one.",
+                StatusCodes.Status400BadRequest
+            );
+        }
+
+        return fromHeader ?? fromQuery;
+    }
+}

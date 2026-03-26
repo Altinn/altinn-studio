@@ -64,7 +64,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
         // Resume via the API
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
+            $"/api/v1/workflows/{workflowId}/resume?cascade=false&namespace={TestNamespace}",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -104,7 +104,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel",
+            $"/api/v1/workflows/{workflowId}/cancel?namespace={TestNamespace}",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -118,7 +118,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         // Resume
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
+            $"/api/v1/workflows/{workflowId}/resume?cascade=false&namespace={TestNamespace}",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -142,9 +142,6 @@ public sealed class EngineResumeTests : IAsyncLifetime
         using var client = factory.CreateClient();
         var request = new WorkflowEnqueueRequest
         {
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            Namespace = TestNamespace,
-            CorrelationId = Guid.NewGuid(),
             Context = JsonSerializer.SerializeToElement(new { test = "cascade-resume" }),
             Workflows =
             [
@@ -164,11 +161,14 @@ public sealed class EngineResumeTests : IAsyncLifetime
             ],
         };
 
-        var enqueueResponse = await client.PostAsJsonAsync(
-            "/api/v1/workflows",
-            request,
-            TestContext.Current.CancellationToken
-        );
+        using var enqueueMsg = new HttpRequestMessage(HttpMethod.Post, "/api/v1/workflows")
+        {
+            Content = JsonContent.Create(request),
+        };
+        enqueueMsg.Headers.Add("Idempotency-Key", $"idem-{Guid.NewGuid()}");
+        enqueueMsg.Headers.Add("Workflow-Namespace", TestNamespace);
+
+        var enqueueResponse = await client.SendAsync(enqueueMsg, TestContext.Current.CancellationToken);
         enqueueResponse.EnsureSuccessStatusCode();
 
         var enqueueBody = await enqueueResponse.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(
@@ -189,7 +189,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         // Resume parent with cascade
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{parentId}/resume?cascade=true",
+            $"/api/v1/workflows/{parentId}/resume?cascade=true&namespace={TestNamespace}",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -219,7 +219,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
+            $"/api/v1/workflows/{workflowId}/resume?cascade=false&namespace={TestNamespace}",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -235,7 +235,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{fakeId}/resume?cascade=false",
+            $"/api/v1/workflows/{fakeId}/resume?cascade=false&namespace={TestNamespace}",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -276,14 +276,18 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         var request = new WorkflowEnqueueRequest
         {
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            Namespace = TestNamespace,
-            CorrelationId = Guid.NewGuid(),
             Context = JsonSerializer.SerializeToElement(new { test = "resume" }),
             Workflows = [new WorkflowRequest { OperationId = "resume-test", Steps = steps }],
         };
 
-        var response = await client.PostAsJsonAsync("/api/v1/workflows", request);
+        using var msg = new HttpRequestMessage(HttpMethod.Post, "/api/v1/workflows")
+        {
+            Content = JsonContent.Create(request),
+        };
+        msg.Headers.Add("Idempotency-Key", $"idem-{Guid.NewGuid()}");
+        msg.Headers.Add("Workflow-Namespace", TestNamespace);
+
+        var response = await client.SendAsync(msg);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>();

@@ -15,7 +15,6 @@ public partial class EngineTests
         var port = fixture.WireMock.Port;
         var request = $$"""
             {
-                "idempotencyKey": "no-namespace-test",
                 "workflows": [
                     {
                         "ref": "wf-no-ns",
@@ -26,7 +25,7 @@ public partial class EngineTests
             }
             """;
 
-        var response = await _client.Enqueue(request);
+        var response = await _client.Enqueue(request, ns: "default", idempotencyKey: "no-namespace-test");
 
         await Verify(response);
         Assert.Single(response.Workflows);
@@ -39,8 +38,6 @@ public partial class EngineTests
         var port = fixture.WireMock.Port;
         var request = $$"""
             {
-                "namespace": "custom:namespace",
-                "idempotencyKey": "with-namespace-test",
                 "workflows": [
                     {
                         "ref": "wf-with-ns",
@@ -51,7 +48,7 @@ public partial class EngineTests
             }
             """;
 
-        var response = await _client.Enqueue(request);
+        var response = await _client.Enqueue(request, ns: "custom:namespace", idempotencyKey: "with-namespace-test");
 
         await Verify(response);
         Assert.Single(response.Workflows);

@@ -147,14 +147,18 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
 
         var request = new WorkflowEnqueueRequest
         {
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            Namespace = TestNamespace,
-            CorrelationId = Guid.NewGuid(),
             Context = JsonSerializer.SerializeToElement(new { test = "shutdown" }),
             Workflows = [new WorkflowRequest { OperationId = "shutdown-test", Steps = steps }],
         };
 
-        var response = await client.PostAsJsonAsync("/api/v1/workflows", request);
+        using var msg = new HttpRequestMessage(HttpMethod.Post, "/api/v1/workflows")
+        {
+            Content = JsonContent.Create(request),
+        };
+        msg.Headers.Add("Idempotency-Key", $"idem-{Guid.NewGuid()}");
+        msg.Headers.Add("Workflow-Namespace", TestNamespace);
+
+        var response = await client.SendAsync(msg);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>();

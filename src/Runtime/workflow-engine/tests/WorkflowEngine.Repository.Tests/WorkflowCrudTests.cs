@@ -346,7 +346,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+        var scheduled = await queryRepo.GetScheduledWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Single(scheduled);
         Assert.Equal(futureWorkflow.DatabaseId, scheduled[0].DatabaseId);
@@ -386,7 +386,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+        var scheduled = await queryRepo.GetScheduledWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(scheduled, w => w.DatabaseId == workflowB.DatabaseId);
     }
@@ -417,7 +417,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+        var scheduled = await queryRepo.GetScheduledWorkflows(cancellationToken: TestContext.Current.CancellationToken);
         var active = await queryRepo.GetActiveWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.DoesNotContain(scheduled, w => w.DatabaseId == workflowB.DatabaseId);
@@ -535,7 +535,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata1 = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata1 = new WorkflowRequestMetadata(
+            "test-namespace",
+            Guid.NewGuid().ToString("N"),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
         var workflow1 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request1, metadata1);
 
         var request2 = new WorkflowRequest
@@ -550,7 +556,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata2 = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata2 = new WorkflowRequestMetadata(
+            "test-namespace",
+            Guid.NewGuid().ToString("N"),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
         var workflow2 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request2, metadata2);
 
         // Act: mutate in-memory state and call the new batch method
@@ -682,7 +694,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata = new WorkflowRequestMetadata(
+            "test-namespace",
+            Guid.NewGuid().ToString("N"),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
 
         var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
