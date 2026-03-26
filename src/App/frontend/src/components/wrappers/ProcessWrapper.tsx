@@ -13,7 +13,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
+import { getProcessNextMutationKey } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -72,28 +72,27 @@ function NavigationError({ label }: NavigationErrorProps) {
   );
 }
 
-export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTask?: boolean }) {
+/**
+ * Fallback component used only in Form.tsx when the URL contains an invalid or missing page ID.
+ * This can't move to a route loader because it depends on hidden page filtering, which requires
+ * React context (layout data, form data, expression evaluation).
+ *
+ * To remove this: move hidden-page awareness into the page route loader so it can redirect
+ * before rendering, then replace the Form.tsx usage with a loader-level redirect.
+ */
+export function NavigateToStartUrl() {
   const navigate = useNavigate();
-  const currentTaskId = getTargetTaskFromProcess(useProcessQuery().data);
-  const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
+  const startUrl = useStartUrl();
   const location = useLocation();
-
-  const processNextKey = getProcessNextMutationKey();
-  const queryClient = useQueryClient();
-  const isRunningProcessNext = queryClient.isMutating({ mutationKey: processNextKey });
   const isNavigating = useIsNavigating();
 
   const currentLocation = location.pathname + location.search;
 
   useEffect(() => {
-    if (currentLocation !== startUrl && !isRunningProcessNext && !isNavigating) {
+    if (currentLocation !== startUrl && !isNavigating) {
       navigate(startUrl, { replace: true });
     }
-  }, [currentLocation, isRunningProcessNext, navigate, startUrl, isNavigating]);
-
-  if (isRunningProcessNext) {
-    return <Loader reason='navigate-to-start-process-next' />;
-  }
+  }, [currentLocation, navigate, startUrl, isNavigating]);
 
   return <Loader reason='navigate-to-start' />;
 }

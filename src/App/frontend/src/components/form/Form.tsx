@@ -77,7 +77,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useSetExpandedWidth();
 
   if (!currentPageId || !isValidPageId(currentPageId)) {
-    return <NavigateToStartUrl forceCurrentTask={false} />;
+    return <NavigateToStartUrl />;
   }
 
   const hasSetCurrentPageId = currentPageId in textResources;
