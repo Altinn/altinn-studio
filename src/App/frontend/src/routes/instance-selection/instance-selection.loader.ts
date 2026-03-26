@@ -4,9 +4,9 @@ import type { QueryClient } from '@tanstack/react-query';
 
 import { InstanceApi } from 'src/core/api-client/instance.api';
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
+import { prefetchPartiesAllowedToInstantiate } from 'src/core/queries/party';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
-import { fetchPartiesAllowedToInstantiate } from 'src/queries/queries';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
@@ -20,10 +20,7 @@ export type InstanceSelectionLoaderResult = null | InstanceSelectionLoaderError;
 
 export function instanceSelectionLoader(queryClient: QueryClient) {
   return async function loader(): Promise<InstanceSelectionLoaderResult | Response> {
-    queryClient.prefetchQuery({
-      queryKey: ['parties', 'allowedToInstantiate'],
-      queryFn: fetchPartiesAllowedToInstantiate,
-    });
+    prefetchPartiesAllowedToInstantiate({ queryClient });
 
     const party = GlobalData.getSelectedParty();
     if (!party) {

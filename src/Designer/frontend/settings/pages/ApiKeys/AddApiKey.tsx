@@ -79,29 +79,27 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
           aria-label={t('general.close')}
           className={classes.newApiKeyAlertCloseButton}
         />
-        <StudioHeading level={3}>
-          {t('user.settings.api_keys.new_api_key_dialog_title')}
-        </StudioHeading>
-        <StudioParagraph>{t('user.settings.api_keys.new_api_key_dialog_warning')}</StudioParagraph>
-        <StudioTextfield readOnly value={newApiKey} label={t('user.settings.api_keys.api_key')} />
+        <StudioHeading level={3}>{t('settings.api_keys.new_api_key_dialog_title')}</StudioHeading>
+        <StudioParagraph>{t('settings.api_keys.new_api_key_dialog_warning')}</StudioParagraph>
+        <StudioTextfield readOnly value={newApiKey} label={t('settings.api_keys.api_key')} />
         <StudioButton
           icon={<ClipboardIcon />}
           onClick={() => {
             navigator.clipboard.writeText(newApiKey).then(
               () => {
-                toast.success(t('user.settings.api_keys.copy_success'), {
-                  toastId: 'user.settings.api_keys.copy_success',
+                toast.success(t('settings.api_keys.copy_success'), {
+                  toastId: 'settings.api_keys.copy_success',
                 });
               },
               () => {
-                toast.error(t('user.settings.api_keys.copy_error'), {
-                  toastId: 'user.settings.api_keys.copy_error',
+                toast.error(t('settings.api_keys.copy_error'), {
+                  toastId: 'settings.api_keys.copy_error',
                 });
               },
             );
           }}
         >
-          {t('user.settings.api_keys.copy')}
+          {t('settings.api_keys.copy')}
         </StudioButton>
       </StudioAlert>
     );
@@ -110,9 +108,9 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
   return (
     <StudioCard className={classes.card}>
       <StudioCard.Block className={classes.addForm}>
-        <StudioHeading level={3}>{t('user.settings.api_keys.add.header')}</StudioHeading>
+        <StudioHeading level={3}>{t('settings.api_keys.add.header')}</StudioHeading>
         <StudioTextfield
-          label={t('user.settings.api_keys.name')}
+          label={t('settings.api_keys.name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -120,12 +118,12 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
           error={
             submitted &&
             ((!name ? t('validation_errors.required') : undefined) ??
-              (isDuplicateName ? t('user.settings.api_keys.error_duplicate_name') : undefined))
+              (isDuplicateName ? t('settings.api_keys.error_duplicate_name') : undefined))
           }
           maxLength={100}
         />
         <StudioTextfield
-          label={t('user.settings.api_keys.expires_at')}
+          label={t('settings.api_keys.expires_at')}
           type='date'
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
@@ -143,7 +141,7 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
           onClick={handleAdd}
           disabled={isPending}
         >
-          {t('user.settings.api_keys.add')}
+          {t('settings.api_keys.add')}
         </StudioButton>
       </StudioCard.Block>
     </StudioCard>

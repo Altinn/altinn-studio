@@ -11,7 +11,7 @@ export function Menu(): ReactElement {
   const menuTabs = [
     {
       tabId: RoutePaths.ApiKeys,
-      tabName: t('user.settings.api_keys.api_keys'),
+      tabName: t('settings.api_keys.api_keys'),
       icon: <ShieldLockIcon />,
     },
   ];

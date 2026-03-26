@@ -51,15 +51,14 @@ const renderAddApiKey = (queries: Parameters<typeof renderWithProviders>[1]['que
 };
 
 const getNameInput = () =>
-  screen.getByLabelText(textMock('user.settings.api_keys.name'), { exact: false });
+  screen.getByLabelText(textMock('settings.api_keys.name'), { exact: false });
 
 const getExpiryInput = () =>
-  screen.getByLabelText(textMock('user.settings.api_keys.expires_at'), {
+  screen.getByLabelText(textMock('settings.api_keys.expires_at'), {
     exact: false,
   });
 
-const getAddButton = () =>
-  screen.getByRole('button', { name: textMock('user.settings.api_keys.add') });
+const getAddButton = () => screen.getByRole('button', { name: textMock('settings.api_keys.add') });
 
 const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, date: string) => {
   await user.type(getNameInput(), name);
@@ -128,7 +127,7 @@ describe('AddApiKey', () => {
     await fillForm(user, 'Existing api key', validExpiresAt);
     await user.click(getAddButton());
     expect(
-      screen.getByText(textMock('user.settings.api_keys.error_duplicate_name')),
+      screen.getByText(textMock('settings.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
   });
 
@@ -141,7 +140,7 @@ describe('AddApiKey', () => {
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     expect(
-      await screen.findByText(textMock('user.settings.api_keys.error_duplicate_name')),
+      await screen.findByText(textMock('settings.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
   });
 
@@ -198,13 +197,13 @@ describe('AddApiKey', () => {
     await screen.findByDisplayValue('secret-key-value');
     await user.click(
       screen.getByRole('button', {
-        name: textMock('user.settings.api_keys.copy'),
+        name: textMock('settings.api_keys.copy'),
       }),
     );
     expect(writeText).toHaveBeenCalledWith('secret-key-value');
     expect(toast.success).toHaveBeenCalledWith(
-      textMock('user.settings.api_keys.copy_success'),
-      expect.objectContaining({ toastId: 'user.settings.api_keys.copy_success' }),
+      textMock('settings.api_keys.copy_success'),
+      expect.objectContaining({ toastId: 'settings.api_keys.copy_success' }),
     );
   });
 
@@ -218,12 +217,12 @@ describe('AddApiKey', () => {
     await screen.findByDisplayValue('secret-key-value');
     await user.click(
       screen.getByRole('button', {
-        name: textMock('user.settings.api_keys.copy'),
+        name: textMock('settings.api_keys.copy'),
       }),
     );
     expect(toast.error).toHaveBeenCalledWith(
-      textMock('user.settings.api_keys.copy_error'),
-      expect.objectContaining({ toastId: 'user.settings.api_keys.copy_error' }),
+      textMock('settings.api_keys.copy_error'),
+      expect.objectContaining({ toastId: 'settings.api_keys.copy_error' }),
     );
   });
 });
