@@ -152,3 +152,10 @@ jest.mock('src/core/api-client/instance.api', () => ({
     createWithPrefill: jest.fn(),
   },
 }));
+
+jest.mock('src/core/api-client/party.api', () => ({
+  PartyApi: {
+    getPartiesAllowedToInstantiateHierarchical: jest.fn(async () => [getPartyMock()]),
+    setSelectedParty: jest.fn(async () => 'Party successfully updated'),
+  },
+}));

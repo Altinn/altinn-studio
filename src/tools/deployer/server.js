@@ -92,6 +92,7 @@ const RUNTIME_SERVICE_DEFS = [
   ['deploy-runtime-observability.yaml', RUNTIME_ENVS],
   ['deploy-runtime-flux-config.yaml', RUNTIME_ENVS],
   ['deploy-runtime-grafana-manifests.yaml', RUNTIME_ENVS.slice(2)],
+  ['deploy-runtime-workflow-engine-app.yaml', RUNTIME_ENVS],
   ['deploy-runtime-apps-config.yaml', RUNTIME_ENVS],
 ];
 
@@ -154,13 +155,17 @@ function storeRunJobs(run, jobs, workflowOverride = null) {
   if (!service) return [];
 
   const normalizedJobs = normalizeRunJobsForService(service, jobs);
+  const commitFirstLine = (run.head_commit?.message || '').split('\n')[0];
+  const title = commitFirstLine || run.display_title || '';
+  const prMatch = title.match(/\(#(\d+)\)/);
+  const prNumber = prMatch ? parseInt(prMatch[1], 10) : null;
   for (const job of normalizedJobs) {
     stmts.upsertJob.run(
       job.id, run.id, service.workflow, job.env,
       run.head_sha.slice(0, 7), run.head_sha,
-      run.display_title || '', run.html_url,
+      title, run.html_url,
       job.status, job.conclusion,
-      run.created_at, run.updated_at,
+      run.created_at, run.updated_at, prNumber,
     );
   }
   return normalizedJobs;
@@ -329,10 +334,15 @@ async function syncWorkflowBootstrap(service) {
   }
 
   const missing = getMissingCoverage(planes, coverageByPlane);
-  const details = missing.length > 0 ? missing.join(', ') : 'unknown';
-  throw new FatalSyncError(
-    `[sync][workflow] ${workflow}: bootstrap failed within ${SYNC_MAX_PAGES_BOOTSTRAP} pages; missing env(s): ${details}`,
-  );
+  if (missing.length > 0) {
+    const details = missing.join(', ');
+    console.warn(
+      `[sync][workflow] ${workflow}: no runs found for env(s): ${details} (within ${SYNC_MAX_PAGES_BOOTSTRAP} pages)`,
+    );
+  }
+  const nextStopAtRunId = computeSafeWatermark(0, runResults);
+  if (nextStopAtRunId > 0) setWorkflowStopAtRunId(stmts, workflow, nextStopAtRunId);
+  return { totalRuns, jobFetches };
 }
 
 async function syncWorkflowIncremental(service, stopAtRunId) {
@@ -549,6 +559,8 @@ function buildStatus() {
       status: row.job_status,
       conclusion: row.job_conclusion,
       updatedAt: row.updated_at,
+      prNumber: row.pr_number ?? null,
+      prUrl: row.pr_number ? `https://github.com/${REPO}/pull/${row.pr_number}` : null,
     };
     if (includeCanApprove) {
       deployment.canApprove = mapCanApprove(row.can_approve);

@@ -106,7 +106,7 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [userSettingsMenuItem, docsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

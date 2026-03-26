@@ -31,17 +31,66 @@ async def generate_final_summary(
     # Get all the context from the workflow
     plan_context = step_plan[0] if step_plan else "No plan"
     files_summary = "\n".join(f"• {file}" for file in changed_files) if changed_files else "No files changed"
-    status = "✅ Successful" if decision == "commit" and tests_passed else "❌ Failed/Reverted" if decision == "revert" else "ℹ️ No Changes Needed" if decision == "no_changes" else "❓ Unknown"
 
-    # Handle verification status and notes properly
+    # Determine status based on decision (not tests_passed, since soft warnings don't block)
+    if decision == "commit":
+        status = "✅ Successful — changes committed"
+    elif decision == "no_changes":
+        status = "ℹ️ No Changes Needed"
+    elif decision == "revert":
+        status = "⚠️ Changes reverted due to validation errors"
+    else:
+        status = "❓ Unknown"
+
+    # Separate hard errors from soft warnings in verification notes
+    hard_notes = [n for n in verify_notes if not n.startswith("[soft warning]")]
+    soft_notes = [n.replace("[soft warning] ", "") for n in verify_notes if n.startswith("[soft warning]")]
+
     if decision == "no_changes":
         verification_status = "⏭️ Skipped (no changes to verify)"
         verification_notes = "No verification needed - no changes were made"
     else:
-        verification_status = "✅ Passed" if tests_passed else "❌ Failed"
-        verification_notes = "\n".join(verify_notes) if verify_notes else "No issues found"
+        has_hard_issues = any(
+            word in " ".join(hard_notes).lower()
+            for word in ["error", "failed", "duplicate"]
+        ) if hard_notes else False
+        verification_status = "⚠️ Minor issues found" if has_hard_issues else "✅ Passed"
+        verification_notes = "\n".join(hard_notes) if hard_notes else "No issues found"
+        if soft_notes:
+            verification_notes += "\n\nSoft warnings (non-blocking):\n" + "\n".join(f"• {n}" for n in soft_notes[:5])
+            if len(soft_notes) > 5:
+                verification_notes += f"\n• ... and {len(soft_notes) - 5} more"
 
-    prompt = f"""
+    if decision == "revert":
+        prompt = f"""
+You are the Altinity assistant. The user asked you to make changes, but the changes had to be reverted due to validation errors.
+
+ORIGINAL REQUEST: {user_goal}
+
+WHAT WAS ATTEMPTED: {plan_context}
+
+FILES THAT WERE CHANGED (now reverted): {files_summary}
+
+VALIDATION ERRORS THAT CAUSED THE REVERT:
+{verification_notes}
+
+REASONING: {reasoning}
+
+Write a short, helpful response (under 150 words). Structure it as:
+1. One sentence: what you tried to do.
+2. The specific validation error(s) that blocked it — be concrete, quote the error.
+3. A brief suggestion for how the user could rephrase their request or what to check.
+
+CRITICAL RULES:
+- Be direct and specific about the error. Do NOT restate the plan as a checklist.
+- Do NOT list "changes made" when they were all reverted — that is misleading.
+- Do NOT promise future action — you are a one-shot agent.
+- Do NOT use headings like "Summary" or "Outcome" or "Changes made".
+- Keep it conversational and concise.
+- Respond in the same language as the user's goal.
+"""
+    else:
+        prompt = f"""
 You are the Altinity assistant summarizing the completed work for the user.
 
 ORIGINAL REQUEST: {user_goal}
@@ -56,22 +105,23 @@ VERIFICATION NOTES: {verification_notes}
 FINAL DECISION: {status}
 REASONING: {reasoning}
 
-Write a short, natural update for the user (under 200 words).
+Write a short, natural update for the user (under 150 words).
 Be professional but conversational — like giving a teammate a quick status update.
 
 Focus on:
-1. What was actually changed
-2. Whether it worked (success/failure)
-3. Any important details or caveats
+1. What was actually changed (be specific about file names and what was added/modified)
+2. Whether verification passed
+3. Any soft warnings worth noting
 
-Keep it concise. Avoid titles like "Summary" or "Outcome."
-Use short sentences, bullet points, or light markdown if it helps clarity.
-Respond in the same language as the user's goal unless explicitly instructed otherwise.
+CRITICAL RULES:
+- NEVER promise future action — you are a one-shot agent.
+- NEVER say the work "failed" if the decision was "commit" — the changes were committed.
+- If there are soft warnings, mention them briefly but make clear they did NOT block the commit.
+- If decision is "no_changes", explain why no changes were needed.
+- Be honest about what was done and what the result is.
+- Respond in the same language as the user's goal.
 
-Style guidance:
-- Speak directly: e.g. "The field X was added after Y" instead of generic placeholders.
-- Use bullets or short paragraphs for clarity.
-- End with the verification result in a simple, friendly tone.
+Style: direct, short sentences or bullets. No headings like "Summary".
 """
 
     try:
@@ -104,21 +154,26 @@ async def handle(state: AgentState) -> AgentState:
         Updated agent state
     """
     log.info("👨‍⚖️ Reviewer node executing - starting workflow")
+    sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={"message": "Reviewing and finalizing changes..."},
+    ))
 
     # Check if workflow should stop
     if state.next_action == "stop":
         log.info("⏹️ Workflow stopping at reviewer - generating summary")
+        changed_files = state.changed_files or []
         # Still generate a summary even when stopping early
         try:
-            changed_files = state.changed_files or []
             summary = await generate_final_summary(
                 user_goal=state.user_goal,
                 step_plan=state.step_plan,
                 changed_files=changed_files,
                 tests_passed=state.tests_passed,
                 verify_notes=state.verify_notes or [],
-                decision="no_changes",  # Since we're stopping, no changes were made
-                reasoning="Workflow stopped early - no changes were needed",
+                decision="no_changes" if not state.changed_files else "revert",
+                reasoning="Workflow stopped early — no changes were needed" if not state.changed_files else "Workflow stopped early due to an error",
                 session_id=state.session_id,
             )
             
@@ -129,14 +184,27 @@ async def handle(state: AgentState) -> AgentState:
                     data={
                         "author": "assistant",
                         "content": summary,
-                        "timestamp": state.session_start_time.isoformat() if hasattr(state, 'session_start_time') else None,
                         "filesChanged": changed_files,
                     },
                 )
             )
-            log.info("✅ Early summary sent successfully")
+            # Store in conversation history for follow-up context
+            sink.add_to_conversation_history(state.session_id, "assistant", summary)
+            log.info("✅ Early summary sent and stored in conversation history")
         except Exception as e:
             log.error(f"Failed to generate early summary: {e}")
+
+        # Send done event so the frontend stops loading
+        sink.send(
+            AgentEvent(
+                type="done",
+                session_id=state.session_id,
+                data={
+                    "success": not bool(changed_files),
+                    "changed_files": changed_files,
+                },
+            )
+        )
         
         return state
 
@@ -180,12 +248,14 @@ async def handle(state: AgentState) -> AgentState:
                 data={
                     "author": "assistant",
                     "content": summary,
-                    "timestamp": state.session_start_time.isoformat() if hasattr(state, 'session_start_time') else None,
                     "filesChanged": changed_files,
                 },
             )
         )
-        log.info(f"✅ Assistant message sent successfully")
+        
+        # Store assistant response in conversation history for follow-up context
+        sink.add_to_conversation_history(state.session_id, "assistant", summary)
+        log.info("✅ Assistant message sent and stored in conversation history")
         
         # Send completion event to signal frontend that workflow is done
         sink.send(
@@ -213,7 +283,6 @@ async def handle(state: AgentState) -> AgentState:
                 data={
                     "author": "assistant",
                     "content": f"## Error\n\nAn error occurred during processing: {str(e)}",
-                    "timestamp": state.session_start_time.isoformat() if hasattr(state, 'session_start_time') else None,
                     "filesChanged": [],
                 },
             )

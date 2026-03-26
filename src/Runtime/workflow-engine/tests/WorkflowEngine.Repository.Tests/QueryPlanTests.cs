@@ -37,7 +37,7 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await repo.FetchAndLockWorkflows(count: 5, staleThreshold: TimeSpan.FromSeconds(15), maxReclaimCount: 3, ct);
 
         // The FetchAndLock CTE is the largest captured query — find it by the "ready" CTE keyword
-        var fetchQuery = interceptor.Queries.FirstOrDefault(q => q.Sql.Contains("ready"));
+        var fetchQuery = interceptor.Queries.FirstOrDefault(q => q.Sql.Contains("ready", StringComparison.Ordinal));
         Assert.NotNull(fetchQuery);
 
         await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
@@ -58,7 +58,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
 
         // The active workflows query filters on Status with Incomplete statuses
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("\"Workflows\"") && q.Sql.Contains("\"Status\"")
+            q.Sql.Contains("\"Workflows\"", StringComparison.Ordinal)
+            && q.Sql.Contains("\"Status\"", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
@@ -79,7 +80,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await repo.GetScheduledWorkflows(ct);
 
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("\"Workflows\"") && q.Sql.Contains("\"Status\"")
+            q.Sql.Contains("\"Workflows\"", StringComparison.Ordinal)
+            && q.Sql.Contains("\"Status\"", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
@@ -100,7 +102,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
         await repo.GetFinishedWorkflows(cancellationToken: ct);
 
         var query = interceptor.Queries.LastOrDefault(q =>
-            q.Sql.Contains("\"Workflows\"") && q.Sql.Contains("\"Status\"")
+            q.Sql.Contains("\"Workflows\"", StringComparison.Ordinal)
+            && q.Sql.Contains("\"Status\"", StringComparison.Ordinal)
         );
         Assert.NotNull(query);
 
@@ -193,8 +196,8 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
             cmd.Parameters.AddWithValue("status", status);
             cmd.Parameters.AddWithValue("createdAt", createdAt);
             cmd.Parameters.AddWithValue("updatedAt", updatedAt);
-            cmd.Parameters.AddWithValue("heartbeatAt", (object?)heartbeatAt ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("backoffUntil", (object?)backoffUntil ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("heartbeatAt", heartbeatAt.HasValue ? heartbeatAt.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("backoffUntil", backoffUntil.HasValue ? backoffUntil.Value : DBNull.Value);
             await cmd.ExecuteNonQueryAsync(ct);
 
             // Add steps for each workflow

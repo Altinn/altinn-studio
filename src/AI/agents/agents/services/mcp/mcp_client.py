@@ -21,7 +21,8 @@ log = get_logger(__name__)
 
 class MCPClient:
     """Client for interacting with MCP (Model Context Protocol) servers."""
-    def __init__(self, server_url: str = "http://localhost:8069"): # TODO: Make this configurable
+    
+    def __init__(self, server_url: str = "http://localhost:8070"): # TODO: Make this configurable
         self.server_url = server_url
         self._client = None
         self._available_tools = []
@@ -37,6 +38,7 @@ class MCPClient:
         if self._client is None:
             try:
                 from fastmcp import Client
+                # Server URL should already include /sse if needed
                 log.info(f"Connecting to FastMCP server at: {self.server_url}")
 
                 # Set X-Api-Key header for Gitea proxy authentication
@@ -51,12 +53,17 @@ class MCPClient:
                 log.error("FastMCP library not available, install with: pip install fastmcp")
                 raise Exception("FastMCP library not installed")
         return self._client
-
-    async def connect(self, designer_api_key: str = None):
-        """Connect to the MCP server."""
+    
+    async def connect(self):
+        """Connect to the MCP server and cache available tools."""
+        # Skip if already connected and tools are cached
+        if self._available_tools:
+            log.debug(f"MCP client already connected with {len(self._available_tools)} tools cached")
+            return
+            
         # List available tools
         try:
-            client = await self._get_client(designer_api_key)
+            client = await self._get_client()
             async with client:
                 await client.ping()
                 tools = await client.list_tools()
@@ -64,111 +71,28 @@ class MCPClient:
                 log.info(f"Available MCP tools: {len(self._available_tools)}")
         except Exception as e:
             log.warning(f"Could not list MCP tools: {e}")
-
-    async def check_server_status(self, expected_version: str = None) -> dict:
+    
+    async def check_server_status(self) -> dict:
         """
-        Check MCP server status and version.
-
-        Args:
-            expected_version: Expected version string (e.g., "1.0.0"). If None, just checks connectivity.
-
+        Check MCP server status by verifying transport-level connectivity.
+            
         Returns:
-            dict with 'running', 'version', 'version_match' keys
-
+            dict with 'running' key
+            
         Raises:
-            Exception: If server is not running or version doesn't match
+            Exception: If server is not running
         """
         try:
-            # Try to call server_info tool
-            result = await self.call_tool("server_info", {})
+            client = await self._get_client()
+            async with client:
+                await client.ping()
 
-            if isinstance(result, dict) and "error" in result:
-                raise Exception(f"MCP server not responding: {result['error']}")
-
-            # Extract server info from result
-            if hasattr(result, 'content'):
-                # CallToolResult object (newer MCP versions)
-                content = result.content
-                if isinstance(content, str):
-                    # JSON string - parse it
-                    try:
-                        server_info = json.loads(content)
-                    except json.JSONDecodeError:
-                        raise Exception(f"Invalid JSON in CallToolResult content: {content}")
-                elif isinstance(content, list) and len(content) > 0:
-                    # List of response objects
-                    first_item = content[0]
-                    if hasattr(first_item, 'text'):
-                        # Parse JSON from text attribute
-                        try:
-                            server_info = json.loads(first_item.text)
-                        except json.JSONDecodeError:
-                            raise Exception(f"Invalid JSON in CallToolResult list item: {first_item.text}")
-                    else:
-                        # Plain object
-                        server_info = first_item
-                else:
-                    # Content is already a dict or other object
-                    server_info = content
-            elif isinstance(result, list) and len(result) > 0:
-                # Legacy list format (older MCP versions)
-                if hasattr(result[0], 'text'):
-                    # Parse JSON response
-                    try:
-                        server_info = json.loads(result[0].text)
-                    except json.JSONDecodeError:
-                        raise Exception("Invalid server_info response format")
-                else:
-                    server_info = result[0]
-            else:
-                # Direct dict response (fallback)
-                server_info = result
-
-            # Extract version (required for this MCP server)
-            if isinstance(server_info, dict):
-                # Check if version is directly available
-                version = server_info.get("version")
-                if not version:
-                    # Check if it's nested under 'result' key
-                    result_data = server_info.get("result")
-                    if isinstance(result_data, dict):
-                        version = result_data.get("version")
-                        # Update server_info to point to the result data for consistency
-                        server_info = result_data
-
-                if not version:
-                    # Try other possible keys
-                    version = server_info.get("server_version") or server_info.get("mcp_version")
-                    if not version:
-                        log.error(f"server_info dict keys: {list(server_info.keys())}")
-                        if "result" in server_info and isinstance(server_info["result"], dict):
-                            log.error(f"result dict keys: {list(server_info['result'].keys())}")
-                        raise Exception(f"Server did not return version information. Available keys: {list(server_info.keys())}")
-            else:
-                log.error(f"server_info is not a dict, it's: {type(server_info)} - {server_info}")
-                raise Exception(f"Server returned unexpected format: {type(server_info)}")
-
-            # Check version format (should be x.x.x)
-            import re
-            if not re.match(r'^\d+\.\d+\.\d+$', version):
-                raise Exception(f"Invalid version format: {version} (expected x.x.x)")
-
-            # Check version match if expected version provided
-            version_match = True
-            if expected_version:
-                version_match = version == expected_version
-
-            log.info(f"MCP server status: running, version: {version}")
-
-            return {
-                "running": True,
-                "version": version,
-                "version_match": version_match
-            }
+            log.info("MCP server status: running")
+            return {"running": True}
 
         except Exception as e:
             log.error(f"MCP server check failed: {e}")
-            raise Exception(f"MCP server check failed: {str(e)}")
+            raise Exception(f"MCP server check failed: {e!s}") from e
 
     async def call_tool(self, tool_name: str, arguments: dict, designer_api_key: str = None):
         """Call an MCP tool and return the result."""
@@ -178,17 +102,17 @@ class MCPClient:
 
             async with client:
                 result = await client.call_tool(tool_name, arguments)
-
+                
                 # Handle CallToolResult objects with structured content
                 if hasattr(result, 'structured_content') and result.structured_content:
                     return result.structured_content
-
+                
                 return result
         except Exception as e:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")
             return {"error": str(e)}
-
-    async def create_patch_async(self, task_context: str, repository_path: str, attachments: list = None) -> dict:
+    
+    async def create_patch_async(self, task_context: str, repository_path: str, attachments: Optional[list] = None, form_spec_summary: Optional[str] = None) -> dict:
         """
         Main workflow: Create a patch using MCP tools and LLM.
 
@@ -196,22 +120,20 @@ class MCPClient:
             task_context: The user goal and high-level plan
             repository_path: Path to the repository
             attachments: Optional list of attachments (images, files) for vision analysis
-
+            form_spec_summary: Optional structured form spec summary from spec agent
+        
         Returns:
             Patch data with files and changes arrays
         """
 
         start_time = time.time()
-
-        # Get Langfuse client for tracing
-        from langfuse import get_client
-        langfuse = get_client()
-
+        
         # This will be nested under the main workflow trace
+        from shared.utils.langfuse_utils import trace_span
         patch_data = None  # Initialize to avoid UnboundLocalError
         try:
             # Step 1: Scan repository - FIRST to understand what files exist
-            with langfuse.start_as_current_observation(name="repository_scanning", metadata={"span_type": "TOOL"}) as scan_span:
+            with trace_span("repository_scanning", metadata={"span_type": "TOOL"}) as scan_span:
                 scan_span.update(metadata={
                     "repository_path": repository_path,
                     "tool": "repository_scanner"
@@ -304,6 +226,7 @@ class MCPClient:
                     repo_facts_with_context,
                     planner_step=planning_guidance,
                     attachments=attachments,
+                    form_spec_summary=form_spec_summary,
                 )
 
                 if not patch_data:
@@ -319,7 +242,7 @@ class MCPClient:
                 raise
 
             # Step 5: Normalize patch structure
-            with langfuse.start_as_current_observation(name="patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
+            with trace_span("patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
                 patch_data = normalize_patch_structure(patch_data)
                 norm_span.update(output={
                     "files_count": len(patch_data.get('files', [])),
@@ -332,8 +255,8 @@ class MCPClient:
             validator = PatchValidator(self, repository_path)
 
             log.info(f"Starting validation for {len(patch_data.get('changes', []))} changes")
-
-            with langfuse.start_as_current_observation(name="patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
+            
+            with trace_span("patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
                 is_valid, errors, warnings = await validator.validate_patch(patch_data)
 
                 validation_span.update(output={
@@ -414,18 +337,12 @@ async def check_mcp_server_startup(server_url: str = None, expected_version: str
     try:
         # Create client and check status
         client = MCPClient(server_url)
-        status = await client.check_server_status(expected_version)
-
-        if status["running"] and status["version_match"]:
-            print(f"✅ MCP server check passed - Version: {status['version']}")
+        status = await client.check_server_status()
+        
+        if status["running"]:
+            print("✅ MCP server check passed")
             return status
-        else:
-            error_msg = f"MCP server version mismatch. Expected: {expected_version}, Got: {status.get('version', 'unknown')}"
-            print(f"❌ {error_msg}")
-            print("\n🚫 Altinity startup failed: MCP server version mismatch")
-            print("💡 Start the MCP server with the correct version first")
-            os._exit(1)
-
+            
     except Exception as e:
         error_msg = f"Cannot connect to MCP server: {str(e)}"
         print(f"❌ {error_msg}")

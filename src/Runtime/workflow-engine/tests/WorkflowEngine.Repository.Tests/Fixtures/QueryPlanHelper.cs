@@ -1,3 +1,5 @@
+#pragma warning disable CA2100 // Test-only SQL from trusted source
+
 using System.Text.Json;
 using Npgsql;
 

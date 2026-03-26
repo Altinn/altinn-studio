@@ -9,7 +9,10 @@ public sealed class MockHttpHandler : HttpMessageHandler
 {
     public HttpStatusCode ResponseStatusCode { get; set; } = HttpStatusCode.OK;
     public string? ResponseContent { get; set; }
+
+#pragma warning disable CA1002 // Test helper, not a public API
     public List<CapturedRequest> Requests { get; } = [];
+#pragma warning restore CA1002
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,

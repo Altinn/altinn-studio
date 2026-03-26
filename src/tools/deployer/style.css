@@ -49,15 +49,25 @@ button:hover { background: #30363d; }
 
 /* Pipeline grid */
 
+.grid-scroll {
+  overflow-x: auto;
+  margin: 0 20px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #484f58 transparent;
+}
+.grid-scroll::-webkit-scrollbar { height: 8px; }
+.grid-scroll::-webkit-scrollbar-track { background: transparent; }
+.grid-scroll::-webkit-scrollbar-thumb { background: #484f58; border-radius: 4px; }
+.grid-scroll::-webkit-scrollbar-thumb:hover { background: #6e7681; }
+
 .pipeline-grid {
   display: grid;
   row-gap: 1px;
   column-gap: 8px;
   background: #484f58;
-  margin: 0 20px 16px;
   border: 2px solid #30363d;
   border-radius: 6px;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .cell {
@@ -98,7 +108,7 @@ button:hover { background: #30363d; }
 .cell-half {
   flex: 1;
   min-width: 0;
-  padding: 5px 6px;
+  padding: 6px 7px;
   border-left: 3px solid transparent;
 }
 
@@ -107,12 +117,33 @@ button:hover { background: #30363d; }
   border-right: 1px dashed #484f58;
 }
 
-.cell-half a {
-  color: inherit;
-  text-decoration: none;
-  display: block;
+.cell-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
 }
-.cell-half a:hover { text-decoration: underline; }
+
+.cell-links {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.cell-link {
+  font-size: 10px;
+  color: #8b949e;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #21262d;
+}
+.cell-link:hover { color: #e6edf3; background: #30363d; }
+.cell-link::before { content: '\2197\00a0'; }
+.cell-link-pr {
+  font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, monospace;
+}
 
 .empty-dash { color: #484f58; }
 
@@ -166,16 +197,16 @@ button:hover { background: #30363d; }
 
 .dot-success     { background: #2da44e; }
 .dot-in_progress { background: #d4a72c; }
-.dot-waiting     { background: #d18616; }
-.dot-queued      { background: #d18616; border: 1px solid #8b6a1e; }
+.dot-waiting     { background: #538dd7; }
+.dot-queued      { background: #8957b3; }
 .dot-failure     { background: #cf222e; }
 .dot-none        { background: #30363d; }
 
 /* Status colors on cell halves via left border */
 .half-success     { border-left-color: #2da44e; }
 .half-in_progress { border-left-color: #d4a72c; background: #1a1e24; }
-.half-waiting     { border-left-color: #d18616; background: #1a1e24; }
-.half-queued      { border-left-color: #d18616; }
+.half-waiting     { border-left-color: #538dd7; background: #161d28; }
+.half-queued      { border-left-color: #8957b3; background: #1c1824; }
 .half-failure     { border-left-color: #cf222e; }
 .half-none        { border-left-color: #21262d; color: #484f58; }
 
@@ -222,15 +253,6 @@ button:hover { background: #30363d; }
   flex-direction: column;
 }
 
-.gh-ext-link {
-  flex-shrink: 0;
-  color: #484f58;
-  text-decoration: none;
-  font-size: 11px;
-  line-height: 1;
-  padding: 1px 2px;
-}
-.gh-ext-link:hover { color: #8b949e; }
 
 /* Approve action bar */
 

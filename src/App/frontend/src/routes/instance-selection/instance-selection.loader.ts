@@ -1,13 +1,10 @@
 import type { QueryClient } from '@tanstack/react-query';
 
-import { fetchPartiesAllowedToInstantiate } from 'src/queries/queries';
+import { prefetchPartiesAllowedToInstantiate } from 'src/core/queries/party';
 
 export function instanceSelectionLoader(queryClient: QueryClient) {
   return function loader() {
-    queryClient.prefetchQuery({
-      queryKey: ['parties', 'allowedToInstantiate'],
-      queryFn: fetchPartiesAllowedToInstantiate,
-    });
+    prefetchPartiesAllowedToInstantiate({ queryClient });
     return null;
   };
 }

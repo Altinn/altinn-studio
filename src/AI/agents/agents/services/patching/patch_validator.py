@@ -79,12 +79,11 @@ class PatchValidator:
                 }
             }
             
-            # Call schema validator
+            # Call layout validator
             raw_result = await self.mcp_client.call_tool(
-                'schema_validator_tool',
+                'altinn_layout_validate',
                 {
-                    'json_obj': json.dumps(wrapped_component),
-                    'schema_path': "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
+                    'json_content': json.dumps(wrapped_component),
                 }
             )
             
@@ -180,11 +179,10 @@ class PatchValidator:
         try:
             # Call resource validator if available
             raw_result = await self.mcp_client.call_tool(
-                'resource_validator_tool',
+                'altinn_resource_validate',
                 {
-                    'resource_id': resource_id,
-                    'resource_value': resource_value,
-                    'repo_path': self.repository_path
+                    'resource_json': json.dumps([{'id': resource_id, 'value': resource_value}]),
+                    'language': 'nb'
                 }
             )
             

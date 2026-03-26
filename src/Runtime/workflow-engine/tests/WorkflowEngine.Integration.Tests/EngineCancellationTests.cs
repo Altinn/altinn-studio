@@ -59,10 +59,16 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         // Cancel via the API
         using var client = factory.CreateClient();
-        using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
+        using var cancelResponse = await client.PostAsync(
+            $"/api/v1/workflows/{workflowId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
 
-        var cancelBody = await cancelResponse.Content.ReadFromJsonAsync<CancelWorkflowResponse>();
+        var cancelBody = await cancelResponse.Content.ReadFromJsonAsync<CancelWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(cancelBody);
         Assert.Equal(workflowId, cancelBody.WorkflowId);
         Assert.True(cancelBody.CanceledImmediately);
@@ -105,7 +111,11 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         // Cancel via the API
         using var client = factory.CreateClient();
-        using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
+        using var cancelResponse = await client.PostAsync(
+            $"/api/v1/workflows/{workflowId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.True(cancelResponse.IsSuccessStatusCode);
 
         await WaitForTerminalStatus(workflowId);
@@ -139,7 +149,11 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         // Try to cancel it — should get 409 Conflict
         using var client = factory.CreateClient();
-        using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
+        using var cancelResponse = await client.PostAsync(
+            $"/api/v1/workflows/{workflowId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(HttpStatusCode.Conflict, cancelResponse.StatusCode);
     }
@@ -160,17 +174,27 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         using var client = factory.CreateClient();
 
         // First cancel — should succeed
-        using var firstResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
+        using var firstResponse = await client.PostAsync(
+            $"/api/v1/workflows/{workflowId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
 
-        var firstBody = await firstResponse.Content.ReadFromJsonAsync<CancelWorkflowResponse>();
+        var firstBody = await firstResponse.Content.ReadFromJsonAsync<CancelWorkflowResponse>(
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(firstBody);
 
         // Wait for the engine to persist the cancellation
         await WaitForTerminalStatus(workflowId);
 
         // Second cancel — returns 202 (already cancelling) or 409 (already terminal)
-        using var secondResponse = await client.PostAsync($"/api/v1/workflows/{workflowId}/cancel", content: null);
+        using var secondResponse = await client.PostAsync(
+            $"/api/v1/workflows/{workflowId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
         Assert.NotEqual(HttpStatusCode.OK, secondResponse.StatusCode);
         Assert.True(
@@ -186,7 +210,11 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         var fakeId = Guid.NewGuid();
 
         using var client = factory.CreateClient();
-        using var cancelResponse = await client.PostAsync($"/api/v1/workflows/{fakeId}/cancel", content: null);
+        using var cancelResponse = await client.PostAsync(
+            $"/api/v1/workflows/{fakeId}/cancel",
+            content: null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(HttpStatusCode.NotFound, cancelResponse.StatusCode);
     }

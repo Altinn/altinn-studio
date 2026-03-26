@@ -24,6 +24,8 @@ jobs:
   build-frontend:
     name: Build Frontend
     runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -34,6 +36,8 @@ jobs:
   build-docker-images:
     name: Build Docker Images
     runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -50,6 +54,8 @@ jobs:
       (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     runs-on: ubuntu-latest
+   container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:
@@ -127,6 +133,8 @@ jobs:
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     runs-on: ubuntu-latest
+   container:
+      image: cypress/browsers:node-22.13.1-chrome-133.0.6943.53-1-ff-135.0-edge-132.0.2957.140-1@sha256:914c9814a9567f32660203db7ecd610b8f8fede6e9103885728b3bd3f6dca4ff
     timeout-minutes: 120
     needs: [build-frontend, build-docker-images]
     defaults:

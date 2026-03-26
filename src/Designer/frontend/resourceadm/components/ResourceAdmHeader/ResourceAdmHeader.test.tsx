@@ -33,8 +33,12 @@ const testUser = {
 
 const resourceId = 'res-id';
 
+const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } | null } = {
+  environment: null,
+};
+
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+  useEnvironmentConfig: () => mockEnvironment,
 }));
 
 const navigateMock = jest.fn();
@@ -48,6 +52,10 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('ResourceAdmHeader', () => {
+  beforeEach(() => {
+    mockEnvironment.environment = null;
+  });
+
   afterEach(jest.clearAllMocks);
 
   it('should show org name and resource id in header', () => {
@@ -74,6 +82,44 @@ describe('ResourceAdmHeader', () => {
     await user.click(otherOrgButton);
 
     expect(navigateMock).toHaveBeenCalled();
+  });
+
+  it('should include user settings link in profile menu when studioOidc is enabled', async () => {
+    const user = userEvent.setup();
+    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
+
+    renderResourceAdmHeader();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('shared.header_user_for_org', {
+          user: testUser.full_name,
+          org: mainOrganization.full_name,
+        }),
+      }),
+    );
+
+    expect(screen.getByRole('menuitem', { name: textMock('user.settings') })).toBeInTheDocument();
+  });
+
+  it('should not include user settings link in profile menu when studioOidc is disabled', async () => {
+    const user = userEvent.setup();
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+
+    renderResourceAdmHeader();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('shared.header_user_for_org', {
+          user: testUser.full_name,
+          org: mainOrganization.full_name,
+        }),
+      }),
+    );
+
+    expect(
+      screen.queryByRole('menuitem', { name: textMock('user.settings') }),
+    ).not.toBeInTheDocument();
   });
 });
 
