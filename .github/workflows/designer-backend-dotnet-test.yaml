@@ -10,6 +10,10 @@ on:
       - '.github/workflows/designer-backend-dotnet-test.yaml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     strategy:
@@ -17,6 +21,7 @@ jobs:
         os: [ubuntu-latest,windows-latest,macos-latest]
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
+    timeout-minutes: 30
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:

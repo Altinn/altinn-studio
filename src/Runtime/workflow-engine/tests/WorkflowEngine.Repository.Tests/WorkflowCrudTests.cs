@@ -653,7 +653,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
-        var ns = Guid.NewGuid().ToString("N");
         var retryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(2),
             maxRetries: 5,

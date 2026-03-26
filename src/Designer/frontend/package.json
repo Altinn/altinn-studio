@@ -74,7 +74,7 @@
   "packageManager": "yarn@4.12.0",
   "private": true,
   "scripts": {
-    "build": "yarn workspaces foreach -A -p run build",
+    "build": "yarn workspaces foreach -A -p --include 'src/Designer/**' run build",
     "lint": "eslint \"**/*.ts*\"",
     "lint:fix": "yarn run lint --fix",
     "codestyle:check": "prettier . --check",

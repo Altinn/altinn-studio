@@ -34,18 +34,6 @@ public class WorkflowExecutorStateTests
         }
     }
 
-    private static (IWorkflowExecutor Executor, StateCapturingCommand Command) CreateExecutor()
-    {
-        var command = new StateCapturingCommand();
-        using var fixture = WorkflowEngineTestFixture.Create(services =>
-        {
-            services.AddSingleton<ICommand>(command);
-        });
-
-        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        return (executor, command);
-    }
-
     private static Step CreateStep(int order, string? stateOut = null) =>
         new()
         {

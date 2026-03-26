@@ -26,24 +26,6 @@ internal sealed partial class EngineRepository
         );
     }
 
-    private async Task<T> ExecuteWithRetry<T>(
-        Func<CancellationToken, Task<T>> operation,
-        CancellationToken cancellationToken = default,
-        [CallerMemberName] string operationName = ""
-    )
-    {
-        using CancellationTokenSource dbTokenSource = CreateDbTokenSource(cancellationToken);
-        return await settings.Value.DatabaseRetryStrategy.Execute(
-            operation,
-            (_) => Metrics.DbOperationsSucceeded.Add(1),
-            RetryErrorHandler,
-            timeProvider,
-            logger,
-            dbTokenSource.Token,
-            operationName
-        );
-    }
-
     internal static RetryDecision RetryErrorHandler(Exception exception)
     {
         var decision = exception switch

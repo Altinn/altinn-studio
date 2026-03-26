@@ -94,6 +94,7 @@ public abstract class EngineAppFixture : IAsyncLifetime
     /// </summary>
     public async ValueTask DisposeAsync()
     {
+        GC.SuppressFinalize(this);
         WireMock.Stop();
         WireMock.Dispose();
         await _factory.DisposeAsync();

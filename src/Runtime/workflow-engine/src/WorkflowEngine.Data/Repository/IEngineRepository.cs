@@ -171,11 +171,19 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Resets a failed/requeued workflow and its steps back to Enqueued for re-processing.
-    /// Clears BackoffUntil so the workflow is immediately eligible for pickup.
-    /// Returns true if the workflow was found and in a retryable state (Failed or Requeued).
+    /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed) or a Requeued workflow by resetting it and
+    /// its non-completed steps back to Enqueued. Clears CancellationRequestedAt, BackoffUntil,
+    /// HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
+    /// any transitively dependent workflows that are in DependencyFailed state.
+    /// Returns the list of all resumed workflow IDs (primary + cascaded), or empty if
+    /// the target workflow was not in a resumable state.
     /// </summary>
-    Task<bool> ResetWorkflowForRetry(Guid workflowId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Guid>> ResumeWorkflow(
+        Guid workflowId,
+        DateTimeOffset resumedAt,
+        bool cascade = false,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Clears BackoffUntil on a requeued workflow so it resumes retrying immediately.

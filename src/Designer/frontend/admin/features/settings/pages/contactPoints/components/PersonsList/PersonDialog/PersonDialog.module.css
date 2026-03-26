@@ -1,0 +1,26 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
+.environments {
+  display: flex;
+  flex-direction: column;
+}
+
+.environmentOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-4);
+}
+
+.dialogBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
+.actionsWrapper {
+  margin-top: var(--ds-size-4);
+}

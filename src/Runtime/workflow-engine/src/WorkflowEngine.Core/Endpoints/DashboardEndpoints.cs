@@ -42,7 +42,9 @@ internal static class DashboardEndpoints
         {
             // In dev/Docker, serve from disk so edits are picked up without a rebuild.
             // Try volume-mounted /app/wwwroot first (Docker), then relative to DLL (dotnet run).
-            var coreAssemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+            var coreAssemblyDir =
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+                ?? throw new InvalidOperationException("Could not determine executing assembly directory");
             var wwwrootOnDisk = Path.Combine(coreAssemblyDir, "wwwroot");
             if (!Directory.Exists(wwwrootOnDisk))
                 wwwrootOnDisk = Path.GetFullPath(Path.Combine(coreAssemblyDir, "..", "..", "..", "wwwroot"));
@@ -369,8 +371,7 @@ internal static class DashboardEndpoints
                                     _ => null,
                                 }
                             )
-                            .Where(s => s != null)
-                            .Select(s => s!.Value)
+                            .OfType<PersistentItemStatus>()
                             .ToArray();
 
                     bool retriedOnly = retried == true;
@@ -513,18 +514,18 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing or invalid workflowId");
                     }
 
-                    using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var engine = sp.GetRequiredService<IEngine>();
+                    var result = await engine.ResumeWorkflow(workflowId, cascade: false, ct);
 
-                    bool updated = await repo.ResetWorkflowForRetry(workflowId, ct);
-                    if (updated)
-                        return Results.Ok();
-
-                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
-                    if (status is null)
-                        return Results.NotFound();
-
-                    return Results.Conflict($"Workflow is in {status} state");
+                    return result switch
+                    {
+                        ResumeWorkflowResult.Resumed => Results.Ok(),
+                        ResumeWorkflowResult.NotFound => Results.NotFound(),
+                        ResumeWorkflowResult.NotResumable r => Results.Conflict(
+                            $"Workflow is in {r.CurrentStatus} state"
+                        ),
+                        _ => throw new UnreachableException(),
+                    };
                 }
             )
             .ExcludeFromDescription();
