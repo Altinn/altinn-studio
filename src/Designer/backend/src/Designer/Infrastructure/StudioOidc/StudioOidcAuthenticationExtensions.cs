@@ -137,13 +137,26 @@ public static class StudioOidcAuthenticationExtensions
                     options.ClaimActions.MapJsonKey("given_name", "given_name");
                     options.ClaimActions.MapJsonKey("family_name", "family_name");
 
-                    options.Events.OnRedirectToIdentityProvider = context =>
+                    options.Events.OnRedirectToIdentityProvider = async context =>
                     {
                         if (!context.Request.Path.StartsWithSegments(LoginPath))
                         {
                             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             context.HandleResponse();
-                            return Task.CompletedTask;
+                            IProblemDetailsService problemDetailsService =
+                                context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
+                            await problemDetailsService.WriteAsync(
+                                new ProblemDetailsContext
+                                {
+                                    HttpContext = context.HttpContext,
+                                    ProblemDetails =
+                                    {
+                                        Status = StatusCodes.Status401Unauthorized,
+                                        Extensions = { ["errorCode"] = StudioOidcErrorCodes.SessionExpired },
+                                    },
+                                }
+                            );
+                            return;
                         }
 
                         var parameters = new NameValueCollection();
@@ -164,8 +177,6 @@ public static class StudioOidcAuthenticationExtensions
                         {
                             context.ProtocolMessage.SetParameters(parameters);
                         }
-
-                        return Task.CompletedTask;
                     };
 
                     // Temporarily using client_secret_basic (Authorization header) instead of client_secret_post to support the same client that Gitea uses
