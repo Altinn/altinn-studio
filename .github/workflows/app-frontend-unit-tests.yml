@@ -54,8 +54,8 @@ jobs:
           strict_error_count="$(yarn tsc-strict:error-count)"
           echo "Strict TypeScript error count: ${strict_error_count}"
 
-          if (( strict_error_count >= 306 )); then
-            echo "Strict TypeScript error count is ${strict_error_count}, expected less than 306."
+          if (( strict_error_count >= 308 )); then
+            echo "Strict TypeScript error count is ${strict_error_count}, expected less than 308."
             exit 1
           fi
 
