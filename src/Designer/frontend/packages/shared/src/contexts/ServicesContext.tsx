@@ -72,7 +72,8 @@ const handleError = (
   const errorCode = error?.response?.data?.errorCode;
   const detail = error?.response?.data?.detail;
   const isSessionExpiredError =
-    error?.response?.status === ServerCodes.Unauthorized && errorCode === ApiErrorCodes.SessionExpired;
+    error?.response?.status === ServerCodes.Unauthorized &&
+    errorCode === ApiErrorCodes.SessionExpired;
 
   if (isSessionExpiredError) {
     return renderToast(errorCode || 'Unauthorized', detail, {
