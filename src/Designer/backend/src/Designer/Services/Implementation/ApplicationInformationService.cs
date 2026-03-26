@@ -123,9 +123,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Org orgListOrg = await _orgService.GetOrg(org);
                 if (org == "ttd")
                 {
-                    // Ensure we have the correct org number for ttd, which is needed for the 
-                    // competent authority information in the service resource sent to Resource Registry. 
-                    // We get this from the environments service which has the established logic for handling 
+                    // Ensure we have the correct org number for ttd, which is needed for the
+                    // competent authority information in the service resource sent to Resource Registry.
+                    // We get this from the environments service which has the established logic for handling
                     // ttd's org number situation (see EnvironmentsService.GetAltinnOrgNumber and related comments).
                     orgListOrg.Orgnr = await _environmentsService.GetAltinnOrgNumber(org);
                 }
