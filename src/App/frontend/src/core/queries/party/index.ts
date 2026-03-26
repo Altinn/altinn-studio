@@ -1,6 +1,6 @@
 import { type QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 
-import { partiesAllowedtoInstantiateQuery, selectedPartyMutation } from 'src/core/queries/party/party.queries';
+import { partiesAllowedToInstantiateQuery, selectedPartyMutation } from 'src/core/queries/party/party.queries';
 import type { BaseQueryResult } from 'src/core/queries/types';
 import type { IParty } from 'src/types/shared';
 
@@ -10,7 +10,7 @@ interface UsePartiesAllowedToInstantiateResult extends BaseQueryResult {
 }
 
 function usePartiesAllowedToInstantiate(options?: { enabled?: boolean }): UsePartiesAllowedToInstantiateResult {
-  const query = useQuery(partiesAllowedtoInstantiateQuery(options));
+  const query = useQuery(partiesAllowedToInstantiateQuery(options));
   return { parties: query.data, isLoading: query.isLoading, error: query.error, isPending: query.isPending };
 }
 
@@ -26,11 +26,11 @@ function useSetSelectedParty() {
 }
 
 function prefetchPartiesAllowedToInstantiate({ queryClient }: { queryClient: QueryClient }) {
-  return queryClient.prefetchQuery(partiesAllowedtoInstantiateQuery());
+  return queryClient.prefetchQuery(partiesAllowedToInstantiateQuery());
 }
 
 export {
-  partiesAllowedtoInstantiateQuery,
+  partiesAllowedToInstantiateQuery,
   prefetchPartiesAllowedToInstantiate,
   usePartiesAllowedToInstantiate,
   useSetSelectedParty,
