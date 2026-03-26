@@ -38,6 +38,11 @@ namespace Designer.Tests.Controllers.ApiTests
         protected override void ConfigureTestServices(IServiceCollection services)
         {
             services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<SharedContentClientSettings>(c =>
+            {
+                c.StorageAccountUrl = "http://test.no";
+                c.StorageContainerName = "storageAccountName";
+            });
             services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton<IDistributedLockProvider>(_ =>
             {

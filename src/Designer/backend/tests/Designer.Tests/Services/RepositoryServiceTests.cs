@@ -668,9 +668,11 @@ namespace Designer.Tests.Services
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
             Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
+            Mock<ISharedContentClient> sharedContentClientMock = new();
             IOptionsService optionsService = new OptionsService(
                 altinnGitRepositoryFactory,
-                new GiteaContentLibraryService(giteaClientMock, loggerMock.Object)
+                new GiteaContentLibraryService(giteaClientMock, loggerMock.Object),
+                sharedContentClientMock.Object
             );
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);

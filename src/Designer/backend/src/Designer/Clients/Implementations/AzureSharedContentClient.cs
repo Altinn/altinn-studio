@@ -99,6 +99,50 @@ public class AzureSharedContentClient : ISharedContentClient
         return CurrentVersion;
     }
 
+    public async Task<CodeList?> GetPublishedCodeListForOrg(
+        string orgName,
+        string codeListId,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        version ??= LatestCodeListFileName;
+        string url = CombineWithDelimiter(
+            _sharedContentBaseUri,
+            orgName,
+            CodeListsSegment,
+            codeListId,
+            JsonFileName(version)
+        );
+
+        try
+        {
+            var response = await _httpClient.GetAsync(url, cancellationToken);
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new HttpRequestException(
+                    $"Unexpected response from blob storage. Organisation name: {orgName}. CodeListId: {codeListId}. Version: {version}. Status code: {response.StatusCode}"
+                );
+            }
+
+            var responseContent = await response.Content.ReadAsStreamAsync(cancellationToken);
+
+            return await JsonSerializer.DeserializeAsync<CodeList?>(
+                responseContent,
+                cancellationToken: cancellationToken
+            );
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error fetching blobs from Altinn3Library in {Class}",
+                nameof(AzureSharedContentClient)
+            );
+            throw new SharedContentRequestException("Error fetching blobs from Altinn3Library", ex);
+        }
+    }
+
     internal async Task PrepareOrganisationIndexFile(string orgName, CancellationToken cancellationToken = default)
     {
         string url = CombineWithDelimiter(_sharedContentBaseUri, IndexFileName);

@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.SharedContent;
 using Microsoft.Extensions.Logging;
 using Quartz.Util;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Clients.Implementations;
 
@@ -70,6 +71,19 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
 
         await UploadFiles(cancellationToken);
         return CurrentVersion;
+    }
+
+    public async Task<CodeList?> GetPublishedCodeListForOrg(
+        string orgName,
+        string codeListId,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        version ??= LatestCodeListFileName;
+        string url = CombineWithDelimiter(orgName, CodeListsSegment, codeListId, JsonFileName(version));
+        string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
+        return jsonString is not null ? JsonSerializer.Deserialize<CodeList?>(jsonString) : null;
     }
 
     private async Task PrepareOrganisationIndexFile(string content, CancellationToken cancellationToken = default)

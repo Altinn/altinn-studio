@@ -28,14 +28,14 @@ public interface IOptionsService
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
-    /// <param name="optionsListId">Name of the options list to fetch</param>
+    /// <param name="optionsListIdOrLibraryRef">Name of the options list or library ref to fetch</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The options list</returns>
     public Task<List<Option>> GetOptionsList(
         string org,
         string repo,
         string developer,
-        string optionsListId,
+        string optionsListIdOrLibraryRef,
         CancellationToken cancellationToken = default
     );
 

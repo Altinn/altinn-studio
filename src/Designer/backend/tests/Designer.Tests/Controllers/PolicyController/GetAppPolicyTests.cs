@@ -31,7 +31,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
                 HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
-                resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(
+                resourcePolicy = JsonSerializer.Deserialize<ResourcePolicy>(
                     responseBody,
                     new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
                 );

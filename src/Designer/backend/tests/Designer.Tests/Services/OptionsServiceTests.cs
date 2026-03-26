@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Helpers;
@@ -410,7 +411,13 @@ public class OptionsServiceTests : IDisposable
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
-        OptionsService optionsService = new(altinnGitRepositoryFactory, _giteaContentLibraryServiceMock.Object);
+        Mock<ISharedContentClient> sharedContentClientMock = new();
+
+        OptionsService optionsService = new(
+            altinnGitRepositoryFactory,
+            _giteaContentLibraryServiceMock.Object,
+            sharedContentClientMock.Object
+        );
 
         return optionsService;
     }
