@@ -91,13 +91,13 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
     itemName: t('sync_header.documentation'),
   };
 
-  const userSettingsMenuItem = {
+  const settingsMenuItem = {
     action: {
       type: 'link' as const,
       href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem = {
@@ -106,7 +106,7 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [userSettingsMenuItem, docsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [settingsMenuItem, docsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

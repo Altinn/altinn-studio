@@ -18,6 +18,6 @@ const renderPageLayout = (initialEntries: string[] = ['/']) =>
 describe('PageLayout', () => {
   it('renders the user settings heading', () => {
     renderPageLayout();
-    expect(screen.getByText(textMock('user.settings'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings'))).toBeInTheDocument();
   });
 });

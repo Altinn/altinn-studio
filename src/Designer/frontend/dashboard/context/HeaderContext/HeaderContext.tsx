@@ -73,13 +73,13 @@ export const HeaderContextProvider = ({
     itemName: t('shared.header_go_to_gitea'),
   };
 
-  const userSettingsMenuItem: NavigationMenuItem = {
+  const settingsMenuItem: NavigationMenuItem = {
     action: {
       type: 'link',
       href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: NavigationMenuItem = {
@@ -95,7 +95,7 @@ export const HeaderContextProvider = ({
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
   const otherMenuItems: NavigationMenuItem[] = [
-    ...(studioOidc ? [userSettingsMenuItem] : []),
+    ...(studioOidc ? [settingsMenuItem] : []),
     giteaMenuItem,
   ];
   const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];

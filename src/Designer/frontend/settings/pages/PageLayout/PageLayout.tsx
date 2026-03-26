@@ -28,7 +28,7 @@ export const PageLayout = () => {
       </div>
       <div className={classes.content}>
         <StudioHeading level={2} className={classes.settingsHeading}>
-          {t('user.settings')}
+          {t('settings')}
         </StudioHeading>
         <div className={classes.pageContentWrapper}>
           <div className={classes.leftNavWrapper}>
@@ -49,13 +49,13 @@ const RightContent = (): ReactElement => {
   const { environment } = useEnvironmentConfig();
   const { mutate: logout } = useLogoutMutation();
 
-  const userSettingsMenuItem: StudioProfileMenuItem = {
+  const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
       href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
@@ -65,7 +65,7 @@ const RightContent = (): ReactElement => {
   const studioOidc = environment?.featureFlags?.studioOidc;
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [userSettingsMenuItem] : [] },
+    { items: studioOidc ? [settingsMenuItem] : [] },
     { items: [logOutMenuItem] },
   ];
   return (

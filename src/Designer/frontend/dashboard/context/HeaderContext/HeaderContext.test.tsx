@@ -9,18 +9,18 @@ jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => mockEnvironment,
 }));
 
-const UserSettingsLinkConsumer = () => {
+const SettingsLinkConsumer = () => {
   const { profileMenuGroups } = useHeaderContext();
   const allItems = profileMenuGroups?.flatMap((group) => group.items) ?? [];
-  const userSettingsItem = allItems.find((item) => item.itemName === textMock('user.settings'));
-  const href = userSettingsItem?.action.type === 'link' ? userSettingsItem.action.href : null;
+  const settingsItem = allItems.find((item) => item.itemName === textMock('settings'));
+  const href = settingsItem?.action.type === 'link' ? settingsItem.action.href : null;
   return <div data-testid='settings-href'>{href ?? 'none'}</div>;
 };
 
 const renderHeaderContext = () =>
   renderWithProviders(
     <HeaderContextProvider>
-      <UserSettingsLinkConsumer />
+      <SettingsLinkConsumer />
     </HeaderContextProvider>,
   );
 

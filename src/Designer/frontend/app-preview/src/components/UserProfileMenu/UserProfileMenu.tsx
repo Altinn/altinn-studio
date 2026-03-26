@@ -34,13 +34,13 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
     itemName: t('sync_header.documentation'),
   };
 
-  const userSettingsMenuItem: StudioProfileMenuItem = {
+  const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
       href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
@@ -49,7 +49,7 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [userSettingsMenuItem, docsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [settingsMenuItem, docsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

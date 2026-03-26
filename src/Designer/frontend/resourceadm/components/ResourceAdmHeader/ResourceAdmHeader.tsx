@@ -84,13 +84,13 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
     itemName: t('shared.header_go_to_gitea'),
   };
 
-  const userSettingsMenuItem: StudioProfileMenuItem = {
+  const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
       href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
@@ -99,7 +99,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   };
 
   const otherMenuItems: StudioProfileMenuItem[] = [
-    ...(studioOidc ? [userSettingsMenuItem] : []),
+    ...(studioOidc ? [settingsMenuItem] : []),
     giteaMenuItem,
   ];
 
