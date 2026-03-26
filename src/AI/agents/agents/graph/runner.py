@@ -165,24 +165,22 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     # Use start_as_current_observation as the root - this creates a trace and sets context
     # so all nested observations will be children of this root
     if langfuse:
-        with propagate_attributes(
-            user_id=state.org,
-            metadata={"developer": state.developer},
-        ):
-            with langfuse.start_as_current_observation(
-                as_type="span",
-                name="Altinity Agent Workflow",
-                input={
-                    "user_goal": str(state.user_goal)[:500],
-                    "repo_path": str(state.repo_path),
-                    "session_id": str(state.session_id)
-                },
-                metadata={
-                    "span_type": "AGENT",
-                    "full_goal_length": len(str(state.user_goal)),
-                    "session_id": str(state.session_id)
-                },
-            ) as root_span:
+        with langfuse.start_as_current_observation(
+            as_type="span",
+            name="Altinity Agent Workflow",
+            input={
+                "user_goal": str(state.user_goal)[:500],
+                "repo_path": str(state.repo_path),
+                "session_id": str(state.session_id)
+            },
+            metadata={
+                "span_type": "AGENT",
+                "full_goal_length": len(str(state.user_goal)),
+                "session_id": str(state.session_id),
+                "developer": state.developer,
+            },
+        ) as root_span:
+            with propagate_attributes(user_id=state.org):
                 try:
                     await _validate_intent(state)
 

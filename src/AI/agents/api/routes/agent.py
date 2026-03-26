@@ -102,7 +102,7 @@ async def start_agent(
             # This allows frontend to subscribe to events before they're sent
             async def _run_chat():
                 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled
-                from langfuse import get_client as get_langfuse_client
+                from langfuse import get_client as get_langfuse_client, propagate_attributes
 
                 init_langfuse()
                 langfuse = get_langfuse_client() if is_langfuse_enabled() else None
@@ -190,12 +190,13 @@ async def start_agent(
                                 "session_id": req.session_id,
                                 "conversation_history": history_for_trace,
                             },
-                            metadata={"span_type": "AGENT", "session_id": req.session_id},
+                            metadata={"span_type": "AGENT", "session_id": req.session_id, "developer": developer},
                         ) as root_span:
-                            result_state_ref = await _run_chat_inner()
-                            if result_state_ref is not None:
-                                reply = (result_state_ref.assistant_response or {}).get("response", "")
-                                root_span.update(output={"response": reply[:1000] if reply else ""})
+                            with propagate_attributes(user_id=req.org):
+                                result_state_ref = await _run_chat_inner()
+                                if result_state_ref is not None:
+                                    reply = (result_state_ref.assistant_response or {}).get("response", "")
+                                    root_span.update(output={"response": reply[:1000] if reply else ""})
                     else:
                         await _run_chat_inner()
                 except Exception as outer_error:
