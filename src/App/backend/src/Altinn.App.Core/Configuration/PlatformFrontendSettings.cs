@@ -4,7 +4,7 @@ namespace Altinn.App.Core.Configuration;
 /// Platform-controlled configuration values exposed to the frontend via the bootstrap global data.
 /// Populated from Kubernetes ConfigMaps/environment variables using the section name "PlatformFrontendSettings".
 /// </summary>
-public class PlatformFrontendSettings
+internal class PlatformFrontendSettings
 {
     /// <summary>
     /// URL for the postal codes registry.
