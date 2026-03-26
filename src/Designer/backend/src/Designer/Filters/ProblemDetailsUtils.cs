@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Filters
         {
             string exceptionType = ex.GetType().Name;
             ProblemDetails details = GenerateProblemDetails(customErrorCode, statusCode);
-            details.Title = $"{exceptionType} occured.";
+            details.Title = $"{exceptionType} occurred.";
             details.Detail = ex.Message;
             details.Type = exceptionType;
 
