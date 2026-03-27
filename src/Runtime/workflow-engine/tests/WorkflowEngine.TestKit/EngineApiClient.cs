@@ -15,9 +15,14 @@ public sealed class EngineApiClient : IDisposable
 {
     private const string BasePath = "/api/v1/workflows";
     private readonly HttpClient _client;
+    private readonly string _defaultNamespace;
 
     public EngineApiClient(EngineAppFixture fixture, params DelegatingHandler[] handlers)
+        : this(fixture, DefaultNamespace, handlers) { }
+
+    public EngineApiClient(EngineAppFixture fixture, string defaultNamespace, params DelegatingHandler[] handlers)
     {
+        _defaultNamespace = defaultNamespace;
         _client = handlers.Length > 0 ? fixture.CreateEngineClient(handlers) : fixture.CreateEngineClient();
     }
 
@@ -25,7 +30,8 @@ public sealed class EngineApiClient : IDisposable
 
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
-    /// Automatically generates an idempotency key and sets default namespace/correlation ID headers.
+    /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
+    /// Pass an explicit <paramref name="idempotencyKey"/> when testing idempotent resubmission.
     /// </summary>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         WorkflowEnqueueRequest request,
@@ -40,6 +46,8 @@ public sealed class EngineApiClient : IDisposable
 
     /// <summary>
     /// Enqueues a batch from raw JSON and asserts a 2xx response. Throws on failure.
+    /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
+    /// Pass an explicit <paramref name="idempotencyKey"/> when testing idempotent resubmission.
     /// </summary>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         string jsonRequest,
@@ -60,6 +68,7 @@ public sealed class EngineApiClient : IDisposable
 
     /// <summary>
     /// Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.
+    /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// </summary>
     public Task<HttpResponseMessage> EnqueueRaw(
         WorkflowEnqueueRequest request,
@@ -141,7 +150,7 @@ public sealed class EngineApiClient : IDisposable
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
-        ns ??= DefaultNamespace;
+        ns ??= _defaultNamespace;
         var path = $"{BasePath}?namespace={Uri.EscapeDataString(ns)}";
         using var response = await _client.GetAsync(path);
 
@@ -189,14 +198,9 @@ public sealed class EngineApiClient : IDisposable
         return [.. await Task.WhenAll(tasks)];
     }
 
-    private static void AddMetadataHeaders(
-        HttpRequestHeaders headers,
-        string? ns,
-        string? idempotencyKey,
-        Guid? correlationId
-    )
+    private void AddMetadataHeaders(HttpRequestHeaders headers, string? ns, string? idempotencyKey, Guid? correlationId)
     {
-        headers.Add(WorkflowMetadataConstants.Headers.Namespace, ns ?? DefaultNamespace);
+        headers.Add(WorkflowMetadataConstants.Headers.Namespace, ns ?? _defaultNamespace);
         headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey ?? $"idem-{Guid.NewGuid()}");
         if (correlationId.HasValue)
             headers.Add(WorkflowMetadataConstants.Headers.CorrelationId, correlationId.Value.ToString());
