@@ -8,6 +8,8 @@ on:
       - 'src/Designer/testdata/**'
       - 'src/App/template/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
+  schedule:
+    - cron: '45 2 * * 0'
   workflow_dispatch:
 
 concurrency:
@@ -19,7 +21,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
       matrix:
-        os: [ubuntu-latest,windows-latest,macos-latest]
+        os: ${{ fromJSON(github.event_name == 'schedule' && '["ubuntu-latest","windows-latest"]' || '["ubuntu-latest"]') }}
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     timeout-minutes: 30

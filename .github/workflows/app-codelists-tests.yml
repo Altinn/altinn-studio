@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/App/codelists/**'
       - '.github/workflows/app-codelists-tests.yml'
+  schedule:
+    - cron: '15 2 * * 0'
   workflow_dispatch:
 
 concurrency:
@@ -17,13 +19,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
       matrix:
-        os:
-          - id: ubuntu-latest
-            workingDir: src/App/codelists/
-          - id: macos-latest
-            workingDir: src/App/codelists/
-          - id: windows-latest
-            workingDir: src\App\codelists\
+        os: ${{ fromJSON(github.event_name == 'schedule' && '[{"id":"ubuntu-latest","workingDir":"src/App/codelists/"},{"id":"windows-latest","workingDir":"src\\App\\codelists\\"}]' || '[{"id":"ubuntu-latest","workingDir":"src/App/codelists/"}]') }}
     name: Run dotnet build and test
     runs-on: ${{ matrix.os.id }}
     timeout-minutes: 30

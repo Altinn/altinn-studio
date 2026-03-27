@@ -7,6 +7,8 @@ on:
       - 'src/App/backend/**'
       - 'src/Runtime/localtest/**'
       - '.github/workflows/app-backend-tests.yml'
+  schedule:
+    - cron: '5 2 * * 0'
   workflow_dispatch:
 
 concurrency:
@@ -26,13 +28,7 @@ jobs:
     needs: build-frontend
     strategy:
       matrix:
-        os:
-          - id: ubuntu-latest
-            workingDir: src/App/backend/
-          - id: macos-latest
-            workingDir: src/App/backend/
-          - id: windows-latest
-            workingDir: src\App\backend\
+        os: ${{ fromJSON(github.event_name == 'schedule' && '[{"id":"ubuntu-latest","workingDir":"src/App/backend/"},{"id":"windows-latest","workingDir":"src\\App\\backend\\"}]' || '[{"id":"ubuntu-latest","workingDir":"src/App/backend/"}]') }}
     name: Build and test
     runs-on: ${{ matrix.os.id }}
     timeout-minutes: 15
