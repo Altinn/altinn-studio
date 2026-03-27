@@ -7,7 +7,7 @@ import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/Condit
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { LabelContent } from 'src/components/label/LabelContent';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';

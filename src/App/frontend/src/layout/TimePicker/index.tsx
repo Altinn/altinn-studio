@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FrontendValidationSource } from 'src/features/validation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TimePickerDef } from 'src/layout/TimePicker/config.def.generated';

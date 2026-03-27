@@ -6,7 +6,7 @@ import { render } from '@testing-library/react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { CompInternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
@@ -18,7 +18,7 @@ jest.mock('src/layout/SigneeList/api');
 jest.mock('react-router');
 jest.mock('src/utils/layout/useNodeItem');
 jest.mock('src/features/language/Lang');
-jest.mock('src/features/formBootstrap/FormBootstrapProvider');
+jest.mock('src/features/formBootstrap/FormBootstrap');
 jest.mock('src/utils/layout/hidden');
 jest.mock('src/core/contexts/TaskOverrides');
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useComponentIdMutator, useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout/layout';

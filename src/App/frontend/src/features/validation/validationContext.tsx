@@ -9,7 +9,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { hasPendingAttachments } from 'src/features/attachments/utils';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {

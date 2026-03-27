@@ -4,7 +4,7 @@ import dot from 'dot-object';
 
 import { FrontendValidationSource, ValidationMask } from '..';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Validation } from 'src/features/validation/validationContext';
 

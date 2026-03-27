@@ -4,7 +4,7 @@ import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';

@@ -7,7 +7,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { DynamicForm } from 'src/app-components/DynamicForm/DynamicForm';
 import { translationKey } from 'src/AppComponentsBridge';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';

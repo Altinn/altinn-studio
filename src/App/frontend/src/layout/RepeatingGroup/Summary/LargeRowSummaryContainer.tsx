@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';

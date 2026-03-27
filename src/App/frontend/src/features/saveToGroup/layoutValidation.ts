@@ -1,5 +1,5 @@
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import {
   validateDataModelBindingsAny,
   validateDataModelBindingsSimple,

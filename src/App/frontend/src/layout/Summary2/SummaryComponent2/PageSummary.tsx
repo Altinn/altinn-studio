@@ -2,7 +2,7 @@ import React from 'react';
 import type { CSSProperties } from 'react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { ComponentSummary, HideWhenAllChildrenEmpty } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverridesForPage, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIsHiddenPage } from 'src/utils/layout/hidden';

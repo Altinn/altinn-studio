@@ -5,7 +5,7 @@ import type { FieldValidations, IExpressionValidation } from '..';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Validation } from 'src/features/validation/validationContext';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';

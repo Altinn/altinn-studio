@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ExprVal } from 'src/features/expressions/types';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';

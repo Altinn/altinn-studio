@@ -4,7 +4,7 @@ import { FrontendValidationSource } from '..';
 import type { FieldValidations } from '..';
 
 import { pointerToDotNotation } from 'src/features/datamodel/notations';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import {
   getErrorCategory,

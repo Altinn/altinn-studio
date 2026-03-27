@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';
 import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';

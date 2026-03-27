@@ -1,4 +1,4 @@
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { isDataModelBindingsRequired } from 'src/layout';
 import {
   validateDataModelBindingsList,

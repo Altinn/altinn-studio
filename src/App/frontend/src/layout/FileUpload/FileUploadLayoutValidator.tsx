@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { JSX } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { NodesInternal } from 'src/utils/layout/NodesContext';

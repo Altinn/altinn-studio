@@ -1,4 +1,4 @@
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { useExternalItem } from 'src/utils/layout/hooks';

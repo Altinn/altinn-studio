@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { selectValidations } from 'src/features/validation/utils';
 import { nodesProduce } from 'src/utils/layout/NodesContext';

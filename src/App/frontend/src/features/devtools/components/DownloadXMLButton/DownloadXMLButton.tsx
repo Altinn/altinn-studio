@@ -7,8 +7,8 @@ import axios from 'axios';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { useIsInFormContext } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormProviderHooks } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import comboboxClasses from 'src/styles/combobox.module.css';
@@ -16,7 +16,7 @@ import { optionFilter } from 'src/utils/options';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 
 export function DownloadXMLButton() {
-  const isInForm = useIsInFormContext();
+  const isInForm = FormProviderHooks.useIsInContext();
   const isStateless = useIsStateless();
   if (!isInForm || isStateless) {
     return null;

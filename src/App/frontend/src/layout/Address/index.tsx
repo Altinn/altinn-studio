@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { AddressSummary } from 'src/layout/Address/AddressSummary/AddressSummary';
 import { AddressDef } from 'src/layout/Address/config.def.generated';

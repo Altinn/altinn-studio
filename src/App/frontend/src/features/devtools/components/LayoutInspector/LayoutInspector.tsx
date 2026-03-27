@@ -11,7 +11,7 @@ import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInsp
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 
@@ -54,11 +54,25 @@ export const LayoutInspector = () => {
   function handleSave() {
     if (selectedComponent) {
       try {
-        const _updatedComponent = JSON.parse(componentProperties ?? '');
+        const updatedComponent = JSON.parse(componentProperties ?? '');
 
         if (currentView) {
-          // TODO: Support replacing the layouts in FormBoostrap
-          throw new Error('Not implemented yet');
+          if (updatedComponent.type === 'LikertItem') {
+            throw new Error('LikertItem is generated and cannot be edited directly');
+          }
+
+          window.changeLayouts((existingLayouts) => {
+            const nextLayouts = structuredClone(existingLayouts);
+            const page = nextLayouts[currentView];
+            const idx = page?.data.layout.findIndex((component) => component.id === selectedComponent);
+
+            if (!page || idx === undefined || idx < 0) {
+              throw new Error(`Could not find component '${selectedComponent}' on page '${currentView}'`);
+            }
+
+            page.data.layout[idx] = updatedComponent;
+            return nextLayouts;
+          });
         }
 
         setPropertiesHaveChanged(false);

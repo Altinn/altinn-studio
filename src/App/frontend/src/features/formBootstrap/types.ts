@@ -36,14 +36,16 @@ export interface ProcessedDataModelInfo extends Omit<RawDataModelInfo, 'expressi
   schemaResult: DataModelSchemaResult;
 }
 
-export interface FormBootstrapContextValue {
+export interface FormBootstrapBase {
   uiFolder: string;
+  dataModels: Record<string, ProcessedDataModelInfo>;
+  staticOptions: Record<string, StaticOptionSet>;
+  validationIssues?: BackendValidationIssue[] | null;
+}
+
+export interface FormBootstrapContextValue extends FormBootstrapBase {
   layouts: ILayouts;
   layoutLookups: LayoutLookups;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
   expandedWidthLayouts: IExpandedWidthLayouts;
-  dataModels: Record<string, ProcessedDataModelInfo>;
-  allDataTypes: string[];
-  staticOptions: Record<string, StaticOptionSet>;
-  initialValidationIssues?: BackendValidationIssue[] | null;
 }

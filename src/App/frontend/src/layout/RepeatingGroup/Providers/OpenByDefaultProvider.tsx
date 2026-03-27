@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { SearchParams } from 'src/core/routing/types';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useAsRef } from 'src/hooks/useAsRef';
 import {
   RepGroupContext,

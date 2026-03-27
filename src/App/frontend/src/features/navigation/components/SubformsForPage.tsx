@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { ExprVal } from 'src/features/expressions/types';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';

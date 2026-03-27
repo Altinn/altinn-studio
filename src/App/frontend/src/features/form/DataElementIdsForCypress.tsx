@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 
 export function UpdateDataElementIdsForCypress() {
   const dataElementIds = FormBootstrap.useDataElementIds();

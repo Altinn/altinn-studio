@@ -13,7 +13,7 @@ import { NodeInspectorContextProvider } from 'src/features/devtools/components/N
 import { ValidationInspector } from 'src/features/devtools/components/NodeInspector/ValidationInspector';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';

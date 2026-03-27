@@ -1,4 +1,4 @@
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Validation } from 'src/features/validation/validationContext';
 import {
   type CompDef,

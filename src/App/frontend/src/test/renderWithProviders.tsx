@@ -19,7 +19,7 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
-import { FormProvider } from 'src/features/form/FormContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { FormBootstrapResponse } from 'src/features/formBootstrap/types';

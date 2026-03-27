@@ -7,7 +7,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsIsChildHidden } from 'src/layout';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';

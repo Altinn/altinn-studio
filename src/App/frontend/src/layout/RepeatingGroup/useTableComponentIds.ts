@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
 import type { CompTypes } from 'src/layout/layout';

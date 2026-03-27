@@ -5,7 +5,7 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
 import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import {
   RepGroupContext,

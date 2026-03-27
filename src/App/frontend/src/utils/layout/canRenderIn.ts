@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentCapabilities } from 'src/layout';
 import type { CompCapabilities } from 'src/codegen/Config';
 

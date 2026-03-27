@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertGeneratorChildren } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';

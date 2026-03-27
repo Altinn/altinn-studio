@@ -6,7 +6,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import * as UseBindingSchema from 'src/features/datamodel/useBindingSchema';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';

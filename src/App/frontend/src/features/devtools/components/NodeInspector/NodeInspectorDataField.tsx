@@ -8,7 +8,7 @@ import { useNodeInspectorContext } from 'src/features/devtools/components/NodeIn
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
 import { splitDashedKey } from 'src/utils/splitDashedKey';

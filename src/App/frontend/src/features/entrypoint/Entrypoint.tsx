@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router';
 
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
-import { FormProvider } from 'src/features/form/FormContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
