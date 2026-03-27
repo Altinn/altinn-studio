@@ -52,7 +52,7 @@ describe('PageLayout', () => {
       screen.queryByRole('heading', { name: textMock('settings.user.heading') }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: textMock('settings.user.heading.description') }),
+      screen.queryByText(textMock('settings.user.heading.description')),
     ).not.toBeInTheDocument();
   });
 });
