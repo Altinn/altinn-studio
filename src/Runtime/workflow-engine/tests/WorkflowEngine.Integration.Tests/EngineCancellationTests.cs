@@ -60,7 +60,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         // Cancel via the API
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel?namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -112,7 +112,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         // Cancel via the API
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel?namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -150,7 +150,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         // Try to cancel it — should get 409 Conflict
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel?namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -175,7 +175,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         // First cancel — should succeed
         using var firstResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel?namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -191,7 +191,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         // Second cancel — returns 202 (already cancelling) or 409 (already terminal)
         using var secondResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel?namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -211,7 +211,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"/api/v1/workflows/{fakeId}/cancel?namespace=default",
+            $"/api/v1/workflows/{fakeId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );

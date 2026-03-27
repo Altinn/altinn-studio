@@ -72,11 +72,7 @@ public sealed partial class AppCommandIntegrationTests
             correlationId: correlationId
         );
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await client.WaitForWorkflowStatus(
-            workflowId,
-            PersistentItemStatus.Completed,
-            ns: "chatter-app-test"
-        );
+        var status = await client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Capture outbound requests (from WireMock) and inbound exchanges (from recorder)
         var logs = fixture

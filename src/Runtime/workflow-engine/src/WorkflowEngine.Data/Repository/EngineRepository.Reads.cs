@@ -433,21 +433,17 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<WorkflowCancellationInfo?> GetCancellationInfo(
         Guid workflowId,
-        string ns,
         CancellationToken cancellationToken
     )
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetCancellationInfo");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        var normalizedNs = WorkflowNamespace.Normalize(ns);
-
         try
         {
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var entity = await context
                 .GetWorkflowById(workflowId, includeSteps: false, includeDependencies: false, includeLinks: false)
-                .Where(w => w.Namespace == normalizedNs)
                 .Select(w => new { w.Status, w.CancellationRequestedAt })
                 .SingleOrDefaultAsync(cancellationToken);
 

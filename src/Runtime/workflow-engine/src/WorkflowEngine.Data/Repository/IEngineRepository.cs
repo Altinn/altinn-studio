@@ -147,22 +147,13 @@ internal interface IEngineRepository
     /// Only affects workflows that are not already in a terminal state and not already flagged for cancellation.
     /// Returns true if the workflow was found and updated.
     /// </summary>
-    Task<bool> RequestCancellation(
-        Guid workflowId,
-        string ns,
-        DateTimeOffset requestedAt,
-        CancellationToken cancellationToken
-    );
+    Task<bool> RequestCancellation(Guid workflowId, DateTimeOffset requestedAt, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns the status and cancellation timestamp for a workflow, or null if the workflow does not exist.
     /// Used by the cancel endpoint to distinguish "already cancelling" from "already terminal" and "not found".
     /// </summary>
-    Task<WorkflowCancellationInfo?> GetCancellationInfo(
-        Guid workflowId,
-        string ns,
-        CancellationToken cancellationToken
-    );
+    Task<WorkflowCancellationInfo?> GetCancellationInfo(Guid workflowId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns the subset of <paramref name="inFlightIds"/> that have a non-null <c>CancellationRequestedAt</c>.
@@ -197,7 +188,6 @@ internal interface IEngineRepository
     /// </summary>
     Task<IReadOnlyList<Guid>> ResumeWorkflow(
         Guid workflowId,
-        string ns,
         DateTimeOffset resumedAt,
         bool cascade = false,
         CancellationToken cancellationToken = default

@@ -17,7 +17,7 @@ internal static class MetadataExtractor
     /// </summary>
     public static InboundMetadata ExtractEnqueueMetadata(HttpContext httpContext)
     {
-        var ns = ExtractNamespace(httpContext);
+        var ns = ExtractRequiredNamespace(httpContext);
         var idempotencyKey = ExtractSingleValue(
             httpContext,
             WorkflowMetadataConstants.Headers.IdempotencyKey,
@@ -39,16 +39,26 @@ internal static class MetadataExtractor
     }
 
     /// <summary>
-    /// Extracts only the namespace from headers/query params. Defaults to "default" if not supplied.
+    /// Extracts the namespace from headers/query params. Required — returns 400 if not supplied.
     /// Returns 400 if both header and query param are supplied.
     /// </summary>
-    public static string ExtractNamespace(HttpContext httpContext)
+    public static string ExtractRequiredNamespace(HttpContext httpContext)
     {
         var raw = ExtractSingleValue(
             httpContext,
             WorkflowMetadataConstants.Headers.Namespace,
             WorkflowMetadataConstants.QueryParams.Namespace
         );
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            throw new BadHttpRequestException(
+                $"Namespace is required. Supply it via the '{WorkflowMetadataConstants.Headers.Namespace}' header "
+                    + $"or '{WorkflowMetadataConstants.QueryParams.Namespace}' query parameter.",
+                StatusCodes.Status400BadRequest
+            );
+        }
+
         return WorkflowNamespace.Normalize(raw);
     }
 

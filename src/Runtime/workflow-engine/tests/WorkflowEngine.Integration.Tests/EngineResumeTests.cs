@@ -64,7 +64,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
         // Resume via the API
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false&namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -104,7 +104,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel?namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -118,7 +118,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         // Resume
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false&namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -189,7 +189,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         // Resume parent with cascade
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{parentId}/resume?cascade=true&namespace={TestNamespace}",
+            $"/api/v1/workflows/{parentId}/resume?cascade=true",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -219,7 +219,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false&namespace={TestNamespace}",
+            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -235,7 +235,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{fakeId}/resume?cascade=false&namespace={TestNamespace}",
+            $"/api/v1/workflows/{fakeId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );

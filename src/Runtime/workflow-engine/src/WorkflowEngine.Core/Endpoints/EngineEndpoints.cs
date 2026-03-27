@@ -118,7 +118,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var ns = MetadataExtractor.ExtractNamespace(httpContext);
+        var ns = MetadataExtractor.ExtractRequiredNamespace(httpContext);
         var labelFilters = ParseLabelFilters(labels);
         var workflows = await repository.GetActiveWorkflowsByCorrelationId(
             correlationId,
@@ -136,20 +136,14 @@ internal static class EngineRequestHandlers
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [FromRoute] Guid workflowId,
         [FromServices] IEngineRepository repository,
-        HttpContext httpContext,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get"));
 
-        var ns = MetadataExtractor.ExtractNamespace(httpContext);
         var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
 
         if (workflow is null)
-            return TypedResults.NotFound();
-
-        // Prevent cross-namespace information disclosure — always enforce namespace check
-        if (workflow.Namespace != ns)
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
@@ -157,17 +151,11 @@ internal static class EngineRequestHandlers
 
     public static async Task<
         Results<Ok<CancelWorkflowResponse>, Accepted<CancelWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
-    > CancelWorkflow(
-        [FromRoute] Guid workflowId,
-        [FromServices] IEngine engine,
-        HttpContext httpContext,
-        CancellationToken cancellationToken
-    )
+    > CancelWorkflow([FromRoute] Guid workflowId, [FromServices] IEngine engine, CancellationToken cancellationToken)
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
 
-        var ns = MetadataExtractor.ExtractNamespace(httpContext);
-        var result = await engine.CancelWorkflow(workflowId, ns, cancellationToken);
+        var result = await engine.CancelWorkflow(workflowId, cancellationToken);
 
         return result switch
         {
@@ -195,14 +183,12 @@ internal static class EngineRequestHandlers
         [FromRoute] Guid workflowId,
         [FromQuery] bool cascade,
         [FromServices] IEngine engine,
-        HttpContext httpContext,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
 
-        var ns = MetadataExtractor.ExtractNamespace(httpContext);
-        var result = await engine.ResumeWorkflow(workflowId, ns, cascade, cancellationToken);
+        var result = await engine.ResumeWorkflow(workflowId, cascade, cancellationToken);
 
         return result switch
         {

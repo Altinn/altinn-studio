@@ -146,7 +146,7 @@ Content-Type: application/json
 ### 4. Client → Engine: Get completed workflow
 ###
 
-GET /api/v1/workflows/Guid_3?namespace=chatter-app-test HTTP/1.1
+GET /api/v1/workflows/Guid_3 HTTP/1.1
 
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8

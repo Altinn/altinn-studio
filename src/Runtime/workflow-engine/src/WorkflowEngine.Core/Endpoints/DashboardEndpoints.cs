@@ -551,15 +551,8 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing or invalid workflowId");
                     }
 
-                    // Dashboard is cross-namespace by design — fetch the workflow's namespace first
-                    using IServiceScope retryScope = sp.CreateScope();
-                    var retryRepo = retryScope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    var workflow = await retryRepo.GetWorkflow(workflowId, ct);
-                    if (workflow is null)
-                        return Results.NotFound();
-
                     var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, workflow.Namespace, cascade: false, ct);
+                    var result = await engine.ResumeWorkflow(workflowId, cascade: false, ct);
 
                     return result switch
                     {

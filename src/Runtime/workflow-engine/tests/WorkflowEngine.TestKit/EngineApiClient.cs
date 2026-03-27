@@ -80,15 +80,15 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId, string? ns = null) =>
-        _client.GetAsync(GetWorkflowPath(workflowId, ns), CancellationToken.None);
+    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId) =>
+        _client.GetAsync($"{BasePath}/{workflowId}", CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId, string? ns = null)
+    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId)
     {
-        using var response = await GetWorkflowRaw(workflowId, ns);
+        using var response = await GetWorkflowRaw(workflowId);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -109,37 +109,30 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Requests cancellation of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> CancelWorkflowRaw(Guid workflowId, string? ns = null)
-    {
-        var path = $"{BasePath}/{workflowId}/cancel?namespace={Uri.EscapeDataString(ns ?? DefaultNamespace)}";
-        return _client.PostAsync(path, content: null);
-    }
+    public Task<HttpResponseMessage> CancelWorkflowRaw(Guid workflowId) =>
+        _client.PostAsync($"{BasePath}/{workflowId}/cancel", content: null);
 
     /// <summary>
     /// Requests cancellation of a workflow and asserts a 2xx response. Throws on failure.
     /// </summary>
-    public async Task<CancelWorkflowResponse> CancelWorkflow(Guid workflowId, string? ns = null)
+    public async Task<CancelWorkflowResponse> CancelWorkflow(Guid workflowId)
     {
-        using var response = await CancelWorkflowRaw(workflowId, ns);
+        using var response = await CancelWorkflowRaw(workflowId);
         return await AssertSuccessAndDeserialize<CancelWorkflowResponse>(response);
     }
 
     /// <summary>
     /// Requests resume of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false, string? ns = null)
-    {
-        var path =
-            $"{BasePath}/{workflowId}/resume?cascade={cascade}&namespace={Uri.EscapeDataString(ns ?? DefaultNamespace)}";
-        return _client.PostAsync(path, content: null);
-    }
+    public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false) =>
+        _client.PostAsync($"{BasePath}/{workflowId}/resume?cascade={cascade}", content: null);
 
     /// <summary>
     /// Requests resume of a workflow and asserts a 2xx response. Throws on failure.
     /// </summary>
-    public async Task<ResumeWorkflowResponse> ResumeWorkflow(Guid workflowId, bool cascade = false, string? ns = null)
+    public async Task<ResumeWorkflowResponse> ResumeWorkflow(Guid workflowId, bool cascade = false)
     {
-        using var response = await ResumeWorkflowRaw(workflowId, cascade, ns);
+        using var response = await ResumeWorkflowRaw(workflowId, cascade);
         return await AssertSuccessAndDeserialize<ResumeWorkflowResponse>(response);
     }
 
@@ -165,8 +158,7 @@ public sealed class EngineApiClient : IDisposable
     public async Task<WorkflowStatusResponse> WaitForWorkflowStatus(
         Guid workflowId,
         PersistentItemStatus expectedStatus,
-        TimeSpan? timeout = null,
-        string? ns = null
+        TimeSpan? timeout = null
     )
     {
         using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
@@ -175,7 +167,7 @@ public sealed class EngineApiClient : IDisposable
         {
             cts.Token.ThrowIfCancellationRequested();
 
-            var workflow = await GetWorkflow(workflowId, ns);
+            var workflow = await GetWorkflow(workflowId);
             if (workflow?.OverallStatus == expectedStatus)
                 return workflow;
 
@@ -190,16 +182,12 @@ public sealed class EngineApiClient : IDisposable
     public async Task<List<WorkflowStatusResponse>> WaitForWorkflowStatus(
         IEnumerable<Guid> workflowIds,
         PersistentItemStatus expectedStatus,
-        TimeSpan? timeout = null,
-        string? ns = null
+        TimeSpan? timeout = null
     )
     {
-        var tasks = workflowIds.Select(id => WaitForWorkflowStatus(id, expectedStatus, timeout, ns));
+        var tasks = workflowIds.Select(id => WaitForWorkflowStatus(id, expectedStatus, timeout));
         return [.. await Task.WhenAll(tasks)];
     }
-
-    private static string GetWorkflowPath(Guid workflowId, string? ns) =>
-        $"{BasePath}/{workflowId}?namespace={Uri.EscapeDataString(ns ?? DefaultNamespace)}";
 
     private static void AddMetadataHeaders(
         HttpRequestHeaders headers,
