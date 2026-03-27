@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Controllers.Admin;
 
 [ApiController]
 [Authorize]
-[Route("designer/api/v1/admin/contact-points/{org}")]
+[Route("designer/api/v1/orgs/{org}/contact-points")]
 public class ContactPointsController(IContactPointsService service) : ControllerBase
 {
     [HttpGet]
