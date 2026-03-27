@@ -44,7 +44,7 @@ public partial class EngineTests
         var enqueueExchange = recorder.Exchanges.First(e => e.Request.Method == HttpMethod.Post);
         var getExchange = recorder.Exchanges.Last(e =>
             e.Request.Method == HttpMethod.Get
-            && e.Request.RequestUri?.PathAndQuery.Contains($"/workflows/{workflowId}") == true
+            && e.Request.RequestUri?.PathAndQuery.Contains($"/workflows/{workflowId}", StringComparison.Ordinal) == true
         );
 
         // --- Serialize as raw HTTP ---

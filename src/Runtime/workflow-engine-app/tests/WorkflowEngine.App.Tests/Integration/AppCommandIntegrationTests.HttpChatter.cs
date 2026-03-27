@@ -1,3 +1,6 @@
+// CA1305: StringBuilder interpolation locale — plaintext HTTP output, not locale-sensitive
+#pragma warning disable CA1305
+
 using System.Text;
 using System.Text.Json;
 using WireMock.RequestBuilders;
@@ -84,7 +87,7 @@ public sealed partial class AppCommandIntegrationTests
         var enqueueExchange = recorder.Exchanges.First(e => e.Request.Method == HttpMethod.Post);
         var getExchange = recorder.Exchanges.Last(e =>
             e.Request.Method == HttpMethod.Get
-            && e.Request.RequestUri?.PathAndQuery.Contains($"/workflows/{workflowId}") == true
+            && e.Request.RequestUri?.PathAndQuery.Contains($"/workflows/{workflowId}", StringComparison.Ordinal) == true
         );
 
         // --- Serialize as raw HTTP ---
