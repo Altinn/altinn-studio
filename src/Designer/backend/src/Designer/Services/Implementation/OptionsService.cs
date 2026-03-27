@@ -2,20 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 
@@ -24,27 +20,23 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <summary>
 /// Service for handling options lists (code lists).
 /// </summary>
-public partial class OptionsService : IOptionsService
+public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGiteaContentLibraryService _giteaContentLibraryService;
-    private readonly ISharedContentClient _sharedContentClient;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="giteaContentLibraryService">IGiteaContentLibraryService</param>
-    /// <param name="sharedContentClient">ISharedContentClient</param>
     public OptionsService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IGiteaContentLibraryService giteaContentLibraryService,
-        ISharedContentClient sharedContentClient
+        IGiteaContentLibraryService giteaContentLibraryService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _giteaContentLibraryService = giteaContentLibraryService;
-        _sharedContentClient = sharedContentClient;
     }
 
     /// <inheritdoc />
@@ -68,98 +60,29 @@ public partial class OptionsService : IOptionsService
         string org,
         string repo,
         string developer,
-        string optionsListIdOrLibraryRef,
+        string optionsListId,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
         List<Option> optionsList;
-        var libRefMatch = LibraryRefRegex().Match(optionsListIdOrLibraryRef);
-        if (libRefMatch.Success)
-        {
-            var codeList = await _sharedContentClient.GetPublishedCodeListForOrg(
-                libRefMatch.Groups["org"].Value,
-                libRefMatch.Groups["codeListId"].Value,
-                libRefMatch.Groups["version"].Value,
-                cancellationToken
-            );
-            optionsList = MapToOptions(codeList);
-        }
-        else
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            string optionsListString = await altinnAppGitRepository.GetOptionsList(
-                optionsListIdOrLibraryRef,
-                cancellationToken
-            );
-            try
-            {
-                optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
-            }
-            catch (Exception ex) when (ex is JsonException)
-            {
-                throw new InvalidOptionsFormatException(
-                    $"Unable to deserialize option list: {optionsListIdOrLibraryRef}."
-                );
-            }
-        }
-
+        string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
         try
         {
+            optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
             optionsList.ForEach(ValidateOption);
         }
-        catch (Exception ex) when (ex is ValidationException)
+        catch (Exception ex) when (ex is ValidationException || ex is JsonException)
         {
             throw new InvalidOptionsFormatException(
-                $"One or more of the options have an invalid format in option list: {optionsListIdOrLibraryRef}."
+                $"One or more of the options have an invalid format in option list: {optionsListId}."
             );
         }
 
         return optionsList;
-    }
-
-    private List<Option> MapToOptions(CodeList libraryCodeListResponse)
-    {
-        return libraryCodeListResponse
-            .Codes.Select(code =>
-            {
-                return new Option
-                {
-                    Value = code.Value,
-                    Label = GetValueWithLanguageFallback(code.Label),
-                    Description = GetValueWithLanguageFallback(code.Description),
-                    HelpText = GetValueWithLanguageFallback(code.HelpText),
-                };
-            })
-            .ToList();
-    }
-
-    /// <summary>
-    /// Gets a value from a language collection.
-    /// Attempts to find a value in this order: Nb, Nn, En, then first available (alphabetically by key).
-    /// </summary>
-    [return: NotNullIfNotNull(nameof(languageCollection))]
-    private static string GetValueWithLanguageFallback(Dictionary<string, string> languageCollection)
-    {
-        if (languageCollection == null)
-        {
-            return null;
-        }
-        if (languageCollection.Count == 0)
-        {
-            return string.Empty;
-        }
-        if (
-            languageCollection.TryGetValue(LanguageConst.Nb, out string value)
-            || languageCollection.TryGetValue(LanguageConst.Nn, out value)
-            || languageCollection.TryGetValue(LanguageConst.En, out value)
-        )
-        {
-            return value;
-        }
-
-        return languageCollection.OrderBy(x => x.Key).First().Value;
     }
 
     public async Task<List<OptionListData>> GetOptionLists(
@@ -541,7 +464,4 @@ public partial class OptionsService : IOptionsService
     {
         return $"{org}-content";
     }
-
-    [GeneratedRegex(@"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$")]
-    private static partial Regex LibraryRefRegex();
 }

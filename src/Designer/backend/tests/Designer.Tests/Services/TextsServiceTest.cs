@@ -370,11 +370,9 @@ public class TextsServiceTest : IDisposable
             giteaClientMock
         );
         Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
-        Mock<ISharedContentClient> sharedContentClientMock = new();
         OptionsService optionsService = new(
             altinnGitRepositoryFactory,
-            new GiteaContentLibraryService(giteaClientMock, loggerMock.Object),
-            sharedContentClientMock.Object
+            new GiteaContentLibraryService(giteaClientMock, loggerMock.Object)
         );
         TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService, optionsService);
 
