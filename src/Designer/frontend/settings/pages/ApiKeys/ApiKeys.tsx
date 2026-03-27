@@ -11,7 +11,7 @@ export const ApiKeys = (): React.ReactElement => {
 
   return (
     <div className={classes.container}>
-      <StudioHeading level={2}>{t('user.settings.api_keys.api_keys')}</StudioHeading>
+      <StudioHeading level={2}>{t('settings.api_keys.api_keys')}</StudioHeading>
       <AddApiKey onApiKeyCreated={setNewApiKeyId} />
       <ApiKeysList newApiKeyId={newApiKeyId} />
     </div>

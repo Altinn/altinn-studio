@@ -51,14 +51,14 @@ describe('ApiKeysList', () => {
         getUserApiKeys: jest.fn().mockRejectedValue(new Error('fetch error')),
       },
     });
-    expect(await screen.findByText(textMock('user.settings.api_keys.error'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('settings.api_keys.error'))).toBeInTheDocument();
   });
 
   it('renders empty state message when there are no api keys', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.UserApiKeys], []);
     renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
-    expect(screen.getByText(textMock('user.settings.api_keys.no_api_keys'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings.api_keys.no_api_keys'))).toBeInTheDocument();
   });
 
   it('renders the list of api keys', () => {
@@ -69,14 +69,14 @@ describe('ApiKeysList', () => {
 
   it('shows expired tag for api keys past their expiry date', () => {
     renderApiKeysList();
-    expect(screen.getByText(textMock('user.settings.api_keys.expired'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings.api_keys.expired'))).toBeInTheDocument();
   });
 
   it('does not show expired tag for valid api keys', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.UserApiKeys], [mockApiKeys[0]]);
     renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
-    expect(screen.queryByText(textMock('user.settings.api_keys.expired'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('settings.api_keys.expired'))).not.toBeInTheDocument();
   });
 
   it('does not show expired tag when expiry date is today', () => {
@@ -90,7 +90,7 @@ describe('ApiKeysList', () => {
       },
     ] as UserApiKey[]);
     renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
-    expect(screen.queryByText(textMock('user.settings.api_keys.expired'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('settings.api_keys.expired'))).not.toBeInTheDocument();
   });
 
   it('calls deleteUserApiKey when delete button is clicked and confirmed', async () => {
@@ -99,7 +99,7 @@ describe('ApiKeysList', () => {
     renderApiKeysList();
 
     const deleteButtons = screen.getAllByRole('button', {
-      name: textMock('user.settings.api_keys.delete'),
+      name: textMock('settings.api_keys.delete'),
     });
     await user.click(deleteButtons[0]);
 
@@ -115,7 +115,7 @@ describe('ApiKeysList', () => {
     });
 
     const deleteButtons = screen.getAllByRole('button', {
-      name: textMock('user.settings.api_keys.delete'),
+      name: textMock('settings.api_keys.delete'),
     });
     await user.click(deleteButtons[0]);
 

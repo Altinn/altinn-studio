@@ -38,15 +38,15 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
   );
 
   if (isPending) {
-    return <StudioSpinner aria-hidden spinnerTitle={t('user.settings.api_keys.loading')} />;
+    return <StudioSpinner aria-hidden spinnerTitle={t('settings.api_keys.loading')} />;
   }
 
   if (isError) {
-    return <StudioError>{t('user.settings.api_keys.error')}</StudioError>;
+    return <StudioError>{t('settings.api_keys.error')}</StudioError>;
   }
 
   if (sortedApiKeys.length === 0) {
-    return <StudioParagraph>{t('user.settings.api_keys.no_api_keys')}</StudioParagraph>;
+    return <StudioParagraph>{t('settings.api_keys.no_api_keys')}</StudioParagraph>;
   }
 
   const now = new Date();
@@ -55,9 +55,9 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
     <StudioTable>
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.HeaderCell>{t('user.settings.api_keys.name')}</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>{t('user.settings.api_keys.expires_at')}</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>{t('user.settings.api_keys.created_at')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('settings.api_keys.name')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('settings.api_keys.expires_at')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('settings.api_keys.created_at')}</StudioTable.HeaderCell>
           <StudioTable.HeaderCell className={classes.deleteCell}></StudioTable.HeaderCell>
         </StudioTable.Row>
       </StudioTable.Head>
@@ -72,7 +72,7 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
               {new Date(apiKey.expiresAt).toLocaleDateString()}
               {new Date(apiKey.expiresAt) < now && (
                 <StudioTag data-color='danger' className={classes.expiredTag}>
-                  {t('user.settings.api_keys.expired')}
+                  {t('settings.api_keys.expired')}
                 </StudioTag>
               )}
             </StudioTable.Cell>
@@ -82,10 +82,10 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
             <StudioTable.Cell className={classes.deleteCell}>
               <StudioDeleteButton
                 onDelete={() => deleteUserApiKey(apiKey.id)}
-                confirmMessage={t('user.settings.api_keys.delete_confirm')}
+                confirmMessage={t('settings.api_keys.delete_confirm')}
                 disabled={pendingDeleteApiKey && deletingApiKeyId === apiKey.id}
               >
-                {t('user.settings.api_keys.delete')}
+                {t('settings.api_keys.delete')}
               </StudioDeleteButton>
             </StudioTable.Cell>
           </StudioTable.Row>
