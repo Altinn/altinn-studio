@@ -144,7 +144,7 @@ describe('PartySelection', () => {
     it.each(testCases)(
       'should be possible to click on ($partyName)',
       async ({ parties, expectedPartyId, partyName, expandSubunit }) => {
-        const setSelectedPartyMock = jest.fn(() => Promise.resolve('Party successfully updated' as const));
+        const setSelectedPartyMock = jest.fn(async () => 'Party successfully updated' as const);
         const user = userEvent.setup({ delay: null });
         await render(parties, setSelectedPartyMock);
 

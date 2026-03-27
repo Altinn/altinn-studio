@@ -145,7 +145,7 @@ const defaultQueryMocks: AppQueries = {
 const defaultApiMocks: ApiClients = {
   partyApi: {
     getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
-    setSelectedParty: async () => Promise.resolve('Party successfully updated'),
+    setSelectedParty: async () => 'Party successfully updated',
   },
 };
 
