@@ -284,8 +284,8 @@ public sealed class EngineResumeTests : IAsyncLifetime
         {
             Content = JsonContent.Create(request),
         };
-        msg.Headers.Add("Idempotency-Key", $"idem-{Guid.NewGuid()}");
-        msg.Headers.Add("Workflow-Namespace", TestNamespace);
+        msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
+        msg.Headers.Add(WorkflowMetadataConstants.Headers.Namespace, TestNamespace);
 
         var response = await client.SendAsync(msg);
         response.EnsureSuccessStatusCode();

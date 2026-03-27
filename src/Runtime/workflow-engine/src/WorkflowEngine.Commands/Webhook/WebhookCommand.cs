@@ -110,7 +110,7 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     )
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        AddOutboundHeaders(request, context);
+        request.AddWorkflowMetadataHeaders(context);
 
         request.Content = new StringContent(payload);
         request.Content.Headers.ContentType = contentType is not null ? new MediaTypeHeaderValue(contentType) : null;
@@ -127,20 +127,10 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     )
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-        AddOutboundHeaders(request, context);
+        request.AddWorkflowMetadataHeaders(context);
 
         _logger.SendingWebhookGet(endpoint);
         return await httpClient.SendAsync(request, cancellationToken);
-    }
-
-    private static void AddOutboundHeaders(HttpRequestMessage request, CommandExecutionContext context)
-    {
-        request.Headers.Add("Idempotency-Key", context.Step.IdempotencyKey);
-        request.Headers.Add("Workflow-Id", context.Workflow.DatabaseId.ToString());
-        request.Headers.Add("Operation-Id", context.Step.OperationId);
-        request.Headers.Add("Workflow-Namespace", context.Workflow.Namespace);
-        if (context.Workflow.CorrelationId is { } cid)
-            request.Headers.Add("Correlation-Id", cid.ToString());
     }
 }
 

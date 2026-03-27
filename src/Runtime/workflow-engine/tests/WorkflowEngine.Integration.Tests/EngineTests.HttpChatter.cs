@@ -1,13 +1,11 @@
 using System.Text;
-using System.Text.Json;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 public partial class EngineTests
 {
-    private static readonly JsonSerializerOptions s_indentedJson = new() { WriteIndented = true };
-
     /// <summary>
     /// Documents the full HTTP exchange for a multi-step WebhookCommand workflow.
     /// Captures both inbound (enqueue) and outbound (webhook) requests, serializes
@@ -27,52 +25,40 @@ public partial class EngineTests
             includeContext: false
         );
 
+        // Use a recording client to capture the actual inbound HTTP exchange
+        var recorder = new HttpExchangeRecorder();
+        using var client = new EngineApiClient(fixture, recorder);
+
         // Act
-        var response = await _client.Enqueue(
+        var response = await client.Enqueue(
             request,
             ns: "chatter-test",
             idempotencyKey: "chatter-idem-key",
             correlationId: correlationId
         );
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(
-            workflowId,
-            PersistentItemStatus.Completed,
-            ns: "chatter-test"
-        );
+        var status = await client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, ns: "chatter-test");
 
-        // Capture outbound requests
+        // Capture outbound requests (from WireMock) and inbound exchanges (from recorder)
         var logs = fixture.WireMock.LogEntries;
+        var enqueueExchange = recorder.Exchanges.First();
+        var getExchange = recorder.Exchanges.Last();
 
         // --- Serialize as raw HTTP ---
 
         var http = new StringBuilder();
 
-        // Inbound request
+        // 1. Inbound enqueue request/response (captured from the wire)
         http.AppendLine("###");
         http.AppendLine("### 1. Client → Engine: Enqueue workflow");
         http.AppendLine("###");
         http.AppendLine();
-        http.AppendLine("POST /api/v1/workflows HTTP/1.1");
-        http.AppendLine("Content-Type: application/json");
-        http.AppendLine("Idempotency-Key: chatter-idem-key");
-        http.AppendLine("Workflow-Namespace: chatter-test");
-        http.AppendLine($"Correlation-Id: {correlationId}");
-        http.AppendLine();
-        http.AppendLine(JsonSerializer.Serialize(request, s_indentedJson));
-        http.AppendLine();
+        HttpChatterHelpers.WriteExchange(http, enqueueExchange);
 
-        // Inbound response
-        http.AppendLine("HTTP/1.1 201 Created");
-        http.AppendLine("Content-Type: application/json");
-        http.AppendLine();
-        http.AppendLine(JsonSerializer.Serialize(response, s_indentedJson));
-
-        // Outbound requests
+        // 2+3. Outbound webhook requests (captured by WireMock)
         for (int i = 0; i < logs.Count; i++)
         {
             var log = logs[i];
-            var headers = log.RequestMessage.Headers;
             var stepNumber = i + 1;
 
             http.AppendLine();
@@ -83,51 +69,18 @@ public partial class EngineTests
             http.AppendLine("###");
             http.AppendLine();
 
-            // Request
-            http.AppendLine($"{log.RequestMessage.Method} {log.RequestMessage.AbsolutePath} HTTP/1.1");
-            http.AppendLine($"Host: {log.RequestMessage.Host}");
-            http.AppendLine($"Idempotency-Key: {GetHeader(headers, "Idempotency-Key")}");
-            http.AppendLine($"Workflow-Id: {GetHeader(headers, "Workflow-Id")}");
-            http.AppendLine($"Operation-Id: {GetHeader(headers, "Operation-Id")}");
-            http.AppendLine($"Workflow-Namespace: {GetHeader(headers, "Workflow-Namespace")}");
-            http.AppendLine($"Correlation-Id: {GetHeader(headers, "Correlation-Id")}");
-
-            if (log.RequestMessage.Body is { } body)
-            {
-                var ct = GetHeader(headers, "Content-Type");
-                if (ct != "(missing)")
-                    http.AppendLine($"Content-Type: {ct}");
-                http.AppendLine();
-                http.AppendLine(FormatJsonOrRaw(body));
-            }
-            else
-            {
-                http.AppendLine();
-            }
-
-            // Response
+            HttpChatterHelpers.WriteRequest(http, log);
             http.AppendLine();
-            http.AppendLine($"HTTP/1.1 {log.ResponseMessage.StatusCode}");
-
-            if (log.ResponseMessage.BodyData?.BodyAsString is { } responseBody)
-            {
-                http.AppendLine();
-                http.AppendLine(FormatJsonOrRaw(responseBody));
-            }
+            HttpChatterHelpers.WriteResponse(http, log);
         }
 
-        // Final workflow status
+        // 4. Final workflow status (captured from the wire)
         http.AppendLine();
         http.AppendLine("###");
         http.AppendLine($"### {logs.Count + 2}. Client → Engine: Get completed workflow");
         http.AppendLine("###");
         http.AppendLine();
-        http.AppendLine($"GET /api/v1/workflows/{workflowId}?namespace=chatter-test HTTP/1.1");
-        http.AppendLine();
-        http.AppendLine("HTTP/1.1 200 OK");
-        http.AppendLine("Content-Type: application/json");
-        http.AppendLine();
-        http.AppendLine(JsonSerializer.Serialize(status, s_indentedJson));
+        HttpChatterHelpers.WriteExchange(http, getExchange);
 
         var httpText = http.ToString();
         output.WriteLine(httpText);
@@ -163,46 +116,27 @@ public partial class EngineTests
             var headers = log.RequestMessage.Headers;
             Assert.NotNull(headers);
 
-            var workflowIdHeader = GetHeader(headers, "Workflow-Id");
+            var workflowIdHeader = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.WorkflowId);
             Assert.True(
                 Guid.TryParse(workflowIdHeader, out var parsedWorkflowId),
-                "Workflow-Id should be a valid GUID"
+                $"{WorkflowMetadataConstants.Headers.WorkflowId} should be a valid GUID"
             );
             Assert.Equal(workflowId, parsedWorkflowId);
 
-            var stepOpId = GetHeader(headers, "Operation-Id");
+            var stepOpId = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.OperationId);
             Assert.NotEmpty(stepOpId);
 
-            var idemKey = GetHeader(headers, "Idempotency-Key");
+            var idemKey = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.IdempotencyKey);
             Assert.Equal($"chatter-idem-key/{stepOpId}", idemKey);
 
-            Assert.Equal("chatter-test", GetHeader(headers, "Workflow-Namespace"));
-            Assert.Equal(correlationId.ToString(), GetHeader(headers, "Correlation-Id"));
-        }
-    }
-
-    private static string GetHeader(IDictionary<string, WireMock.Types.WireMockList<string>>? headers, string name)
-    {
-        if (headers is null)
-            return "(missing)";
-
-        if (headers.TryGetValue(name, out var values))
-            return values.FirstOrDefault() ?? "(missing)";
-
-        var match = headers.FirstOrDefault(kvp => string.Equals(kvp.Key, name, StringComparison.OrdinalIgnoreCase));
-        return match.Value?.FirstOrDefault() ?? "(missing)";
-    }
-
-    private static string FormatJsonOrRaw(string content)
-    {
-        try
-        {
-            using var doc = JsonDocument.Parse(content);
-            return JsonSerializer.Serialize(doc, s_indentedJson);
-        }
-        catch
-        {
-            return content;
+            Assert.Equal(
+                "chatter-test",
+                HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.Namespace)
+            );
+            Assert.Equal(
+                correlationId.ToString(),
+                HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.CorrelationId)
+            );
         }
     }
 }

@@ -1,13 +1,11 @@
-namespace WorkflowEngine.Core.Metadata;
+namespace WorkflowEngine.Models;
 
 /// <summary>
 /// Header and query parameter names for workflow metadata.
 /// Used for both inbound extraction and outbound header injection.
 /// </summary>
-internal static class WorkflowMetadataConstants
+public static class WorkflowMetadataConstants
 {
-    // --- Bidirectional (inbound + outbound) ---
-
     public static class Headers
     {
         public const string Namespace = "Workflow-Namespace";

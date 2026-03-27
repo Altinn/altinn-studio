@@ -11,15 +11,20 @@ namespace WorkflowEngine.TestKit;
 /// Typed wrapper around <see cref="HttpClient"/> for the workflow-engine REST API.
 /// Handles serialization, path building, and status-polling.
 /// </summary>
-public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
+public sealed class EngineApiClient : IDisposable
 {
     private const string BasePath = "/api/v1/workflows";
-    private readonly HttpClient _client = fixture.CreateEngineClient();
+    private readonly HttpClient _client;
 
-    // Header/query param names (must match WorkflowMetadataConstants in Core)
-    private const string NamespaceHeader = "Workflow-Namespace";
-    private const string IdempotencyKeyHeader = "Idempotency-Key";
-    private const string CorrelationIdHeader = "Correlation-Id";
+    public EngineApiClient(EngineAppFixture fixture)
+    {
+        _client = fixture.CreateEngineClient();
+    }
+
+    public EngineApiClient(EngineAppFixture fixture, params DelegatingHandler[] handlers)
+    {
+        _client = fixture.CreateEngineClient(handlers);
+    }
 
     public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";
 
@@ -208,10 +213,10 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         Guid? correlationId
     )
     {
-        headers.Add(NamespaceHeader, ns ?? DefaultNamespace);
-        headers.Add(IdempotencyKeyHeader, idempotencyKey ?? $"idem-{Guid.NewGuid()}");
+        headers.Add(WorkflowMetadataConstants.Headers.Namespace, ns ?? DefaultNamespace);
+        headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey ?? $"idem-{Guid.NewGuid()}");
         if (correlationId.HasValue)
-            headers.Add(CorrelationIdHeader, correlationId.Value.ToString());
+            headers.Add(WorkflowMetadataConstants.Headers.CorrelationId, correlationId.Value.ToString());
     }
 
     public static async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)

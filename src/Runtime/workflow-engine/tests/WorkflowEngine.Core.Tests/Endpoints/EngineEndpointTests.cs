@@ -39,8 +39,8 @@ public class EngineEndpointTests
     )
     {
         var httpContext = new DefaultHttpContext();
-        httpContext.Request.Headers["Workflow-Namespace"] = ns;
-        httpContext.Request.Headers["Idempotency-Key"] = idempotencyKey;
+        httpContext.Request.Headers[WorkflowMetadataConstants.Headers.Namespace] = ns;
+        httpContext.Request.Headers[WorkflowMetadataConstants.Headers.IdempotencyKey] = idempotencyKey;
         return httpContext;
     }
 
