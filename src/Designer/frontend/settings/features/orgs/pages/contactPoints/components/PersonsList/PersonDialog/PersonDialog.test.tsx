@@ -85,14 +85,14 @@ function PersonDialogStatefulWrapper({
 }
 
 const getSaveButton = () =>
-  screen.getByRole('button', { name: textMock('settings.org.contact_points.save') });
+  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.save') });
 
 const getCancelButton = () =>
-  screen.getByRole('button', { name: textMock('settings.org.contact_points.cancel') });
+  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.cancel') });
 
 const getNameInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.org.contact_points.field_name')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_name')} ${textMock('general.required')}`,
   });
 
 const renderPersonDialog = (props: TestWrapperProps = {}) => {
@@ -108,7 +108,7 @@ describe('PersonDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.org.contact_points.add_contact'),
+        name: textMock('settings.orgs.contact_points.add_contact'),
       }),
     ).toBeInTheDocument();
   });
@@ -119,7 +119,7 @@ describe('PersonDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.org.contact_points.dialog_edit_person_title'),
+        name: textMock('settings.orgs.contact_points.dialog_edit_person_title'),
       }),
     ).toBeInTheDocument();
   });
@@ -131,12 +131,12 @@ describe('PersonDialog', () => {
     expect(getNameInput()).toBeInTheDocument();
     expect(
       screen.getByRole('textbox', {
-        name: textMock('settings.org.contact_points.field_email'),
+        name: textMock('settings.orgs.contact_points.field_email'),
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('textbox', {
-        name: textMock('settings.org.contact_points.field_phone'),
+        name: textMock('settings.orgs.contact_points.field_phone'),
       }),
     ).toBeInTheDocument();
   });
@@ -156,7 +156,7 @@ describe('PersonDialog', () => {
     renderPersonDialog({ onFieldChange });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.type(
-      screen.getByRole('textbox', { name: textMock('settings.org.contact_points.field_email') }),
+      screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_email') }),
       'test@example.com',
     );
     expect(onFieldChange).toHaveBeenCalledWith('email', expect.any(String));
@@ -168,7 +168,7 @@ describe('PersonDialog', () => {
     renderPersonDialog({ onFieldChange });
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.type(
-      screen.getByRole('textbox', { name: textMock('settings.org.contact_points.field_phone') }),
+      screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_phone') }),
       '12345678',
     );
     expect(onFieldChange).toHaveBeenCalledWith('phone', expect.any(String));
@@ -234,7 +234,7 @@ describe('PersonDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     await user.click(getSaveButton());
     expect(
-      screen.getAllByText(textMock('settings.org.contact_points.error_contact_method_required'))
+      screen.getAllByText(textMock('settings.orgs.contact_points.error_contact_method_required'))
         .length,
     ).toBeGreaterThan(0);
   });
@@ -249,7 +249,7 @@ describe('PersonDialog', () => {
 
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
     expect(
-      screen.getAllByText(textMock('settings.org.contact_points.error_contact_method_required'))
+      screen.getAllByText(textMock('settings.orgs.contact_points.error_contact_method_required'))
         .length,
     ).toBeGreaterThan(0);
 
@@ -257,7 +257,7 @@ describe('PersonDialog', () => {
 
     expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
     expect(
-      screen.getAllByText(textMock('settings.org.contact_points.error_contact_method_required'))
+      screen.getAllByText(textMock('settings.orgs.contact_points.error_contact_method_required'))
         .length,
     ).toBeGreaterThan(0);
   });

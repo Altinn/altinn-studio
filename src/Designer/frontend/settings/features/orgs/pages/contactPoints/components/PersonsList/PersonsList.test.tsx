@@ -54,11 +54,11 @@ const renderPersonsList = (props: Partial<typeof defaultProps> = {}) =>
   renderWithProviders(<PersonsList {...defaultProps} {...props} />);
 
 const getAddButton = () =>
-  screen.getByRole('button', { name: textMock('settings.org.contact_points.add_contact') });
+  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.add_contact') });
 
 const getEditButton = () =>
   screen.getByRole('button', {
-    name: textMock('settings.org.contact_points.dialog_edit_person_title'),
+    name: textMock('settings.orgs.contact_points.dialog_edit_person_title'),
   });
 
 describe('PersonsList', () => {
@@ -68,7 +68,7 @@ describe('PersonsList', () => {
     renderPersonsList();
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.org.contact_points.persons_heading'),
+        name: textMock('settings.orgs.contact_points.persons_heading'),
       }),
     ).toBeInTheDocument();
   });

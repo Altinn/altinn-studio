@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 export const PageLayout = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const match = matchPath({ path: 'org/:org', caseSensitive: true, end: false }, pathname);
+  const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
   const { org } = match?.params ?? {};
   const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
   const { data: user, isPending: isUserPending } = useUserQuery();
@@ -39,10 +39,10 @@ export const PageLayout = () => {
   return (
     <>
       <StudioHeading level={2} className={classes.settingsHeading}>
-        {t('settings.org.heading')}
+        {t('settings.orgs.heading')}
       </StudioHeading>
       <div className={classes.settingsHeadingDescription}>
-        {t('settings.org.heading.description')}
+        {t('settings.orgs.heading.description')}
       </div>
       <div className={classes.pageContentWrapper}>
         <div className={classes.leftNavWrapper}>

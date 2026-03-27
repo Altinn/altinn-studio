@@ -61,15 +61,15 @@ describe('ContactPoints', () => {
       queryClient,
       initialEntries: ['/ttd/settings'],
     });
-    await screen.findByText(textMock('settings.org.contact_points.error'));
-    expect(screen.getByText(textMock('settings.org.contact_points.error'))).toBeInTheDocument();
+    await screen.findByText(textMock('settings.orgs.contact_points.error'));
+    expect(screen.getByText(textMock('settings.orgs.contact_points.error'))).toBeInTheDocument();
   });
 
   it('renders the contact points heading when data is loaded', () => {
     renderContactPoints([]);
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.org.contact_points.contact_points'),
+        name: textMock('settings.orgs.contact_points.contact_points'),
       }),
     ).toBeInTheDocument();
   });

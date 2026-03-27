@@ -51,11 +51,11 @@ const renderSlackChannelsList = (props: Partial<typeof defaultProps> = {}) =>
   renderWithProviders(<SlackChannelsList {...defaultProps} {...props} />);
 
 const getAddButton = () =>
-  screen.getByRole('button', { name: textMock('settings.org.contact_points.add_slack_channel') });
+  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.add_slack_channel') });
 
 const getEditButton = () =>
   screen.getByRole('button', {
-    name: textMock('settings.org.contact_points.dialog_edit_slack_title'),
+    name: textMock('settings.orgs.contact_points.dialog_edit_slack_title'),
   });
 
 describe('SlackChannelsList', () => {
@@ -65,7 +65,7 @@ describe('SlackChannelsList', () => {
     renderSlackChannelsList();
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.org.contact_points.slack_heading'),
+        name: textMock('settings.orgs.contact_points.slack_heading'),
       }),
     ).toBeInTheDocument();
   });

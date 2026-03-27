@@ -78,22 +78,22 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
 
   return (
     <>
-      <StudioHeading level={3}>{t('settings.org.contact_points.slack_heading')}</StudioHeading>
-      <StudioParagraph>{t('settings.org.contact_points.slack_description')}</StudioParagraph>
+      <StudioHeading level={3}>{t('settings.orgs.contact_points.slack_heading')}</StudioHeading>
+      <StudioParagraph>{t('settings.orgs.contact_points.slack_description')}</StudioParagraph>
       <StudioTable>
         <StudioTable.Head>
           <StudioTable.Row>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_active')}
+              {t('settings.orgs.contact_points.col_active')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_channel_name')}
+              {t('settings.orgs.contact_points.col_channel_name')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_webhook_url')}
+              {t('settings.orgs.contact_points.col_webhook_url')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_environments')}
+              {t('settings.orgs.contact_points.col_environments')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell />
           </StudioTable.Row>
@@ -116,14 +116,14 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
               <ActionsCell
                 onEdit={() => openEditDialog(channel)}
                 onDelete={() => deleteChannel(channel.id)}
-                editAriaLabel={t('settings.org.contact_points.dialog_edit_slack_title')}
+                editAriaLabel={t('settings.orgs.contact_points.dialog_edit_slack_title')}
               />
             </StudioTable.Row>
           ))}
         </StudioTable.Body>
       </StudioTable>
       <AddButton onClick={openAddDialog}>
-        {t('settings.org.contact_points.add_slack_channel')}
+        {t('settings.orgs.contact_points.add_slack_channel')}
       </AddButton>
       <SlackChannelDialog
         dialogRef={dialogRef}

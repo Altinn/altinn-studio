@@ -73,8 +73,8 @@ export const SlackChannelDialog = ({
   };
 
   const title = isEditing
-    ? t('settings.org.contact_points.dialog_edit_slack_title')
-    : t('settings.org.contact_points.add_slack_channel');
+    ? t('settings.orgs.contact_points.dialog_edit_slack_title')
+    : t('settings.orgs.contact_points.add_slack_channel');
 
   const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
     value: channel.environments,
@@ -90,10 +90,10 @@ export const SlackChannelDialog = ({
     <StudioDialog ref={dialogRef} onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
         <StudioHeading level={2}>{title}</StudioHeading>
-        <StudioParagraph>{t('settings.org.contact_points.dialog_subtitle')}</StudioParagraph>
+        <StudioParagraph>{t('settings.orgs.contact_points.dialog_subtitle')}</StudioParagraph>
         <div className={classes.fields}>
           <StudioTextfield
-            label={t('settings.org.contact_points.field_channel_name')}
+            label={t('settings.orgs.contact_points.field_channel_name')}
             value={channel.channelName}
             onChange={(e) => onFieldChange('channelName', e.target.value)}
             maxLength={channelNameMaxLength}
@@ -102,7 +102,7 @@ export const SlackChannelDialog = ({
             tagText={t('general.required')}
           />
           <StudioTextfield
-            label={t('settings.org.contact_points.field_webhook_url')}
+            label={t('settings.orgs.contact_points.field_webhook_url')}
             value={channel.webhookUrl}
             onChange={(e) => onFieldChange('webhookUrl', e.target.value)}
             maxLength={webhookUrlMaxLength}
@@ -112,7 +112,7 @@ export const SlackChannelDialog = ({
             tagText={t('general.required')}
           />
           <StudioCheckboxGroup
-            legend={t('settings.org.contact_points.field_environments')}
+            legend={t('settings.orgs.contact_points.field_environments')}
             className={classes.environments}
           >
             <div className={classes.environmentOptions}>
@@ -127,8 +127,8 @@ export const SlackChannelDialog = ({
           </StudioCheckboxGroup>
         </div>
         <StudioFormActions
-          primary={{ label: t('settings.org.contact_points.save'), onClick: handleSave }}
-          secondary={{ label: t('settings.org.contact_points.cancel'), onClick: handleClose }}
+          primary={{ label: t('settings.orgs.contact_points.save'), onClick: handleSave }}
+          secondary={{ label: t('settings.orgs.contact_points.cancel'), onClick: handleClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />

@@ -79,25 +79,25 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
 
   return (
     <>
-      <StudioHeading level={3}>{t('settings.org.contact_points.persons_heading')}</StudioHeading>
-      <StudioParagraph>{t('settings.org.contact_points.persons_description')}</StudioParagraph>
+      <StudioHeading level={3}>{t('settings.orgs.contact_points.persons_heading')}</StudioHeading>
+      <StudioParagraph>{t('settings.orgs.contact_points.persons_description')}</StudioParagraph>
       <StudioTable>
         <StudioTable.Head>
           <StudioTable.Row>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_active')}
+              {t('settings.orgs.contact_points.col_active')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_name')}
+              {t('settings.orgs.contact_points.col_name')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_email')}
+              {t('settings.orgs.contact_points.col_email')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_sms')}
+              {t('settings.orgs.contact_points.col_sms')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell>
-              {t('settings.org.contact_points.col_environments')}
+              {t('settings.orgs.contact_points.col_environments')}
             </StudioTable.HeaderCell>
             <StudioTable.HeaderCell />
           </StudioTable.Row>
@@ -122,14 +122,14 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
                 <ActionsCell
                   onEdit={() => openEditDialog(person)}
                   onDelete={() => deletePerson(person.id)}
-                  editAriaLabel={t('settings.org.contact_points.dialog_edit_person_title')}
+                  editAriaLabel={t('settings.orgs.contact_points.dialog_edit_person_title')}
                 />
               </StudioTable.Row>
             );
           })}
         </StudioTable.Body>
       </StudioTable>
-      <AddButton onClick={openAddDialog}>{t('settings.org.contact_points.add_contact')}</AddButton>
+      <AddButton onClick={openAddDialog}>{t('settings.orgs.contact_points.add_contact')}</AddButton>
       <PersonDialog
         dialogRef={dialogRef}
         person={personForm}

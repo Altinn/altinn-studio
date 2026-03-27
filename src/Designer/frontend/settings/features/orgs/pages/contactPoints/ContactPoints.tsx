@@ -21,17 +21,17 @@ const isSlackChannel = (cp: ContactPoint): boolean =>
 export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const match = matchPath({ path: 'org/:org', caseSensitive: true, end: false }, pathname);
+  const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
   const { org } = match?.params ?? {};
 
   const { data: contactPoints, isPending, isError } = useGetContactPointsQuery(org!);
 
   if (isPending) {
-    return <StudioSpinner aria-hidden spinnerTitle={t('settings.org.contact_points.loading')} />;
+    return <StudioSpinner aria-hidden spinnerTitle={t('settings.orgs.contact_points.loading')} />;
   }
 
   if (isError) {
-    return <StudioError>{t('settings.org.contact_points.error')}</StudioError>;
+    return <StudioError>{t('settings.orgs.contact_points.error')}</StudioError>;
   }
 
   const persons = (contactPoints ?? []).filter((cp) => !isSlackChannel(cp));
@@ -40,31 +40,33 @@ export const ContactPoints = (): ReactElement => {
   return (
     <div className={classes.container}>
       <StudioHeading level={2} data-size='md'>
-        {t('settings.org.contact_points.contact_points')}
+        {t('settings.orgs.contact_points.contact_points')}
       </StudioHeading>
       <div className={classes.description}>
         <div>
           <StudioHeading level={3} spacing>
-            {t('settings.org.contact_points.description_heading')}
+            {t('settings.orgs.contact_points.description_heading')}
           </StudioHeading>
           <StudioParagraph data-size='md' className={classes.descriptionText}>
-            {t('settings.org.contact_points.description_body')}
+            {t('settings.orgs.contact_points.description_body')}
           </StudioParagraph>
         </div>
         <div className={classes.alertBox}>
           <div className={classes.alertBoxHeading}>
             <BellIcon aria-hidden data-size='lg' />
             <StudioHeading level={3}>
-              {t('settings.org.contact_points.alert_heading')}
+              {t('settings.orgs.contact_points.alert_heading')}
             </StudioHeading>
           </div>
           <StudioList.Unordered>
-            <StudioList.Item>{t('settings.org.contact_points.alert_item_publish')}</StudioList.Item>
             <StudioList.Item>
-              {t('settings.org.contact_points.alert_item_instantiation')}
+              {t('settings.orgs.contact_points.alert_item_publish')}
             </StudioList.Item>
             <StudioList.Item>
-              {t('settings.org.contact_points.alert_item_process_next')}
+              {t('settings.orgs.contact_points.alert_item_instantiation')}
+            </StudioList.Item>
+            <StudioList.Item>
+              {t('settings.orgs.contact_points.alert_item_process_next')}
             </StudioList.Item>
           </StudioList.Unordered>
         </div>

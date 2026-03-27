@@ -9,7 +9,7 @@ import {
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import { AppRouteErrorBoundary, NotFoundRouteErrorBoundary } from './PageRouterErrorBoundary';
 import { routes as userRoutes } from '../features/user/routes/routes';
-import { routes as orgRoutes } from '../features/org/routes/routes';
+import { routes as orgRoutes } from '../features/orgs/routes/routes';
 import { NotFound } from '../pages/NotFound/NotFound';
 import { PageLayout } from '../layout/PageLayout';
 import { RoutePaths } from 'settings/features/user/routes/RoutePaths';

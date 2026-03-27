@@ -16,7 +16,7 @@ const renderMenu = (initialEntries: string[] = ['/api-keys']) =>
 
 const getTab = () =>
   screen.getByRole('tab', {
-    name: textMock('settings.org.contact_points.menu.contact_points'),
+    name: textMock('settings.orgs.contact_points.menu.contact_points'),
   });
 
 describe('Menu', () => {

@@ -83,19 +83,19 @@ function SlackChannelDialogStatefulWrapper({
 }
 
 const getSaveButton = () =>
-  screen.getByRole('button', { name: textMock('settings.org.contact_points.save') });
+  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.save') });
 
 const getCancelButton = () =>
-  screen.getByRole('button', { name: textMock('settings.org.contact_points.cancel') });
+  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.cancel') });
 
 const getChannelNameInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.org.contact_points.field_channel_name')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_channel_name')} ${textMock('general.required')}`,
   });
 
 const getWebhookUrlInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.org.contact_points.field_webhook_url')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_webhook_url')} ${textMock('general.required')}`,
   });
 
 const renderSlackChannelDialog = (props: TestWrapperProps = {}) => {
@@ -111,7 +111,7 @@ describe('SlackChannelDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.org.contact_points.add_slack_channel'),
+        name: textMock('settings.orgs.contact_points.add_slack_channel'),
       }),
     ).toBeInTheDocument();
   });
@@ -122,7 +122,7 @@ describe('SlackChannelDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Open' }));
     expect(
       screen.getByRole('heading', {
-        name: textMock('settings.org.contact_points.dialog_edit_slack_title'),
+        name: textMock('settings.orgs.contact_points.dialog_edit_slack_title'),
       }),
     ).toBeInTheDocument();
   });

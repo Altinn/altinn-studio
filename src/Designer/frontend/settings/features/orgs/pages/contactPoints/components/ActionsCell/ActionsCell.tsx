@@ -26,7 +26,7 @@ export const ActionsCell = ({
       />
       <StudioDeleteButton
         onDelete={onDelete}
-        confirmMessage={t('settings.org.contact_points.delete_confirm')}
+        confirmMessage={t('settings.orgs.contact_points.delete_confirm')}
       />
     </StudioTable.Cell>
   );

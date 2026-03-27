@@ -19,7 +19,7 @@ import {
   nameMaxLength,
   emailMaxLength,
   phoneMaxLength,
-} from 'settings/features/org/constants/contactPointConstants';
+} from 'settings/features/orgs/constants/contactPointConstants';
 
 export type Person = {
   name: string;
@@ -67,7 +67,7 @@ export const PersonDialog = ({
 
   const contactMethodError =
     submitted && !person.email && !person.phone
-      ? t('settings.org.contact_points.error_contact_method_required')
+      ? t('settings.orgs.contact_points.error_contact_method_required')
       : undefined;
 
   const isValid =
@@ -87,8 +87,8 @@ export const PersonDialog = ({
   };
 
   const title = isEditing
-    ? t('settings.org.contact_points.dialog_edit_person_title')
-    : t('settings.org.contact_points.add_contact');
+    ? t('settings.orgs.contact_points.dialog_edit_person_title')
+    : t('settings.orgs.contact_points.add_contact');
 
   const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
     value: person.environments,
@@ -104,10 +104,10 @@ export const PersonDialog = ({
     <StudioDialog ref={dialogRef} onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
         <StudioHeading level={2}>{title}</StudioHeading>
-        <StudioParagraph>{t('settings.org.contact_points.dialog_subtitle')}</StudioParagraph>
+        <StudioParagraph>{t('settings.orgs.contact_points.dialog_subtitle')}</StudioParagraph>
         <div className={classes.fields}>
           <StudioTextfield
-            label={t('settings.org.contact_points.field_name')}
+            label={t('settings.orgs.contact_points.field_name')}
             value={person.name}
             onChange={(e) => onFieldChange('name', e.target.value)}
             maxLength={nameMaxLength}
@@ -116,7 +116,7 @@ export const PersonDialog = ({
             tagText={t('general.required')}
           />
           <StudioTextfield
-            label={t('settings.org.contact_points.field_email')}
+            label={t('settings.orgs.contact_points.field_email')}
             value={person.email}
             onChange={(e) => onFieldChange('email', e.target.value)}
             maxLength={emailMaxLength}
@@ -124,7 +124,7 @@ export const PersonDialog = ({
             error={emailError ?? contactMethodError}
           />
           <StudioTextfield
-            label={t('settings.org.contact_points.field_phone')}
+            label={t('settings.orgs.contact_points.field_phone')}
             value={person.phone}
             onChange={(e) => onFieldChange('phone', e.target.value)}
             maxLength={phoneMaxLength}
@@ -132,7 +132,7 @@ export const PersonDialog = ({
             error={phoneError ?? contactMethodError}
           />
           <StudioCheckboxGroup
-            legend={t('settings.org.contact_points.field_environments')}
+            legend={t('settings.orgs.contact_points.field_environments')}
             className={classes.environments}
           >
             <div className={classes.environmentOptions}>
@@ -147,8 +147,8 @@ export const PersonDialog = ({
           </StudioCheckboxGroup>
         </div>
         <StudioFormActions
-          primary={{ label: t('settings.org.contact_points.save'), onClick: handleSave }}
-          secondary={{ label: t('settings.org.contact_points.cancel'), onClick: handleClose }}
+          primary={{ label: t('settings.orgs.contact_points.save'), onClick: handleSave }}
+          secondary={{ label: t('settings.orgs.contact_points.cancel'), onClick: handleClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />

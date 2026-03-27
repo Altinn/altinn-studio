@@ -39,7 +39,7 @@ describe('PageLayout', () => {
   it('renders the settings heading', () => {
     renderPageLayout();
     expect(
-      screen.getByRole('heading', { name: textMock('settings.org.heading') }),
+      screen.getByRole('heading', { name: textMock('settings.orgs.heading') }),
     ).toBeInTheDocument();
   });
 
@@ -81,7 +81,7 @@ describe('PageLayout', () => {
     queryClient.setQueryData([QueryKey.CurrentUser], undefined);
     renderWithProviders(<PageLayout />, { queryClient, initialEntries: ['/ttd/settings'] });
     expect(
-      screen.queryByRole('heading', { name: textMock('settings.org.heading') }),
+      screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
     ).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
 export enum RoutePaths {
-  Org = 'org/:org',
+  Org = 'orgs/:org',
   ContactPoints = 'contact-points',
 }
