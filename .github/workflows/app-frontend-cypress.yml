@@ -101,7 +101,7 @@ jobs:
           base_command='npx cypress run --record --parallel --group altinn-app-frontend --tag altinn-app-frontend --browser chrome --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}" --spec test/e2e/integration --env environment=docker'
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            container_command="percy exec --parallel -- ${base_command}"
+            container_command="npx percy exec --parallel -- ${base_command}"
           else
             container_command="${base_command}"
           fi
