@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type JSX } from 'react';
 import classes from './DeploymentStatus.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Trans, useTranslation } from 'react-i18next';

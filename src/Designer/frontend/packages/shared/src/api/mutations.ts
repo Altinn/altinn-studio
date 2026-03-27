@@ -69,6 +69,9 @@ import {
   userApiKeyPath,
   userApiKeysPath,
   validateNavigationLayoutSettingsPath,
+  contactPointsPath,
+  contactPointPath,
+  contactPointActivePath,
   validateNavigationPageSettingsPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -108,6 +111,7 @@ import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeLis
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
+import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 
 const headers = {
   Accept: 'application/json',
@@ -238,3 +242,9 @@ export const discardChanges = async (org: string, app: string): Promise<RepoStat
 // User settings
 export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);
 export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));
+
+// Org settings
+export const addContactPoint = async (org: string, payload: ContactPointPayload): Promise<ContactPoint> => post(contactPointsPath(org), payload);
+export const updateContactPoint = async (org: string, id: string, payload: ContactPointPayload): Promise<ContactPoint> => put(contactPointPath(org, id), payload);
+export const toggleContactPointActive = async (org: string, id: string, isActive: boolean): Promise<void> => patch(contactPointActivePath(org, id), { isActive });
+export const deleteContactPoint = async (org: string, id: string): Promise<void> => del(contactPointPath(org, id));

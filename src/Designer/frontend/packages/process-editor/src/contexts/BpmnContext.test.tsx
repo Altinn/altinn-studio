@@ -31,8 +31,6 @@ describe('BpmnContext', () => {
   });
 
   it('should throw an error when useBpmnContext is used outside of a BpmnContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useBpmnContext();
       return <div data-testid='context'>Test</div>;
@@ -41,7 +39,6 @@ describe('BpmnContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useBpmnContext must be used within a BpmnContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should throw an error when modelerRef.current is undefined', async () => {

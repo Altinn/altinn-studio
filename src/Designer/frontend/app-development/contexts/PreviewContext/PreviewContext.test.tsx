@@ -28,8 +28,6 @@ describe('PreviewContext', () => {
   });
 
   it('should throw an error when usePreviewContext is used outside of a PreviewContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       usePreviewContext();
       return <div data-testid='context'>Test</div>;
@@ -38,7 +36,6 @@ describe('PreviewContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'usePreviewContext must be used within a PreviewContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should toggle the shouldReloadPreview between true and false when doReload and hasReloaded is invoked', async () => {

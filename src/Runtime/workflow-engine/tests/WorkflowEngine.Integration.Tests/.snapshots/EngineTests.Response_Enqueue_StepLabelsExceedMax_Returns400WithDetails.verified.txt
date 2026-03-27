@@ -1,0 +1,7 @@
+﻿{
+  type: https://tools.ietf.org/html/rfc9110#section-15.5.1,
+  title: Bad Request,
+  status: 400,
+  detail: Step '/ping' in workflow 'wf' contains 51 labels, maximum is 50.,
+  traceId: {Scrubbed}
+}

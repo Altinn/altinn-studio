@@ -4,8 +4,9 @@ import { screen } from '@testing-library/react';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
-import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('Confirm', () => {
@@ -27,7 +28,9 @@ describe('Confirm', () => {
       subunitParty.orgNumber,
       subunitParty,
     );
-    jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instance);
+    jest
+      .mocked(InstanceApi.getInstance)
+      .mockImplementationOnce(async () => ({ ...instance, process: getProcessDataMock() }));
 
     await renderWithInstanceAndLayout({
       renderer: () => <Confirm />,
