@@ -45,20 +45,21 @@ function TestWrapper(props: PropsWithChildren) {
 }
 
 describe('PartySelection', () => {
-  function render(_parties = parties) {
-    jest.mocked(PartyApi.getPartiesAllowedToInstantiateHierarchical).mockResolvedValue(_parties);
+  function render(_parties = parties, setPartiesMock?: PartyApi['setSelectedParty']) {
     return renderWithDefaultProviders({
       renderer: (
         <TestWrapper>
           <PartySelection />
         </TestWrapper>
       ),
+      apis: {
+        partyApi: {
+          getPartiesAllowedToInstantiateHierarchical: async () => _parties,
+          ...(setPartiesMock ? { setSelectedParty: setPartiesMock } : {}),
+        },
+      },
     });
   }
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('should have working pagination', async () => {
     const user = userEvent.setup({ delay: null });
@@ -143,9 +144,9 @@ describe('PartySelection', () => {
     it.each(testCases)(
       'should be possible to click on ($partyName)',
       async ({ parties, expectedPartyId, partyName, expandSubunit }) => {
-        const setSelectedPartyMock = jest.mocked(PartyApi.setSelectedParty);
+        const setSelectedPartyMock = jest.fn(() => Promise.resolve('Party successfully updated' as const));
         const user = userEvent.setup({ delay: null });
-        await render(parties);
+        await render(parties, setSelectedPartyMock);
 
         expect(screen.getByTestId('valid-party')).toHaveTextContent('false');
 
