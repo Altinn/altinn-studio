@@ -6,7 +6,7 @@ POST /api/v1/workflows HTTP/1.1
 Content-Type: application/json
 Idempotency-Key: app-chatter-idem
 Workflow-Namespace: chatter-app-test
-Correlation-Id: 44a8475f-91fe-4331-9918-2c2714ad67dc
+Correlation-Id: 09d0f2f6-745d-4757-98b9-50f44adc6c70
 
 {
   "labels": {
@@ -71,7 +71,7 @@ Content-Type: application/json
   "workflows": [
     {
       "ref": "chatter-wf",
-      "databaseId": "019d2b33-ad5e-775f-89c8-9f7e6a59271c",
+      "databaseId": "019d2e0e-4943-71a6-a79f-343499d660a5",
       "namespace": "chatter-app-test"
     }
   ]
@@ -84,10 +84,10 @@ Content-Type: application/json
 POST /ttd/e2e-tests/instances/50001/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/chatter-step-1 HTTP/1.1
 Host: localhost
 Idempotency-Key: app-chatter-idem/chatter-step-1
-Workflow-Id: 019d2b33-ad5e-775f-89c8-9f7e6a59271c
-Step-Operation-Id: chatter-step-1
+Workflow-Id: 019d2e0e-4943-71a6-a79f-343499d660a5
+Operation-Id: chatter-step-1
 Workflow-Namespace: chatter-app-test
-Correlation-Id: 44a8475f-91fe-4331-9918-2c2714ad67dc
+Correlation-Id: 09d0f2f6-745d-4757-98b9-50f44adc6c70
 X-Api-Key: outgoing-app-lib-api-key
 Content-Type: application/json; charset=utf-8
 
@@ -99,7 +99,7 @@ Content-Type: application/json; charset=utf-8
   },
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-1-payload",
-  "workflowId": "019d2b33-ad5e-775f-89c8-9f7e6a59271c",
+  "workflowId": "019d2e0e-4943-71a6-a79f-343499d660a5",
   "state": "initial-workflow-state"
 }
 
@@ -117,10 +117,10 @@ Content-Type: application/json
 POST /ttd/e2e-tests/instances/50001/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/chatter-step-2 HTTP/1.1
 Host: localhost
 Idempotency-Key: app-chatter-idem/chatter-step-2
-Workflow-Id: 019d2b33-ad5e-775f-89c8-9f7e6a59271c
-Step-Operation-Id: chatter-step-2
+Workflow-Id: 019d2e0e-4943-71a6-a79f-343499d660a5
+Operation-Id: chatter-step-2
 Workflow-Namespace: chatter-app-test
-Correlation-Id: 44a8475f-91fe-4331-9918-2c2714ad67dc
+Correlation-Id: 09d0f2f6-745d-4757-98b9-50f44adc6c70
 X-Api-Key: outgoing-app-lib-api-key
 Content-Type: application/json; charset=utf-8
 
@@ -132,7 +132,7 @@ Content-Type: application/json; charset=utf-8
   },
   "lockToken": "e2e-lock-token-abc123",
   "payload": "step-2-payload",
-  "workflowId": "019d2b33-ad5e-775f-89c8-9f7e6a59271c",
+  "workflowId": "019d2e0e-4943-71a6-a79f-343499d660a5",
   "state": "step-1-result"
 }
 
@@ -147,19 +147,19 @@ Content-Type: application/json
 ### 4. Client → Engine: Get completed workflow
 ###
 
-GET /api/v1/workflows/019d2b33-ad5e-775f-89c8-9f7e6a59271c?namespace=chatter-app-test HTTP/1.1
+GET /api/v1/workflows/019d2e0e-4943-71a6-a79f-343499d660a5?namespace=chatter-app-test HTTP/1.1
 
 HTTP/1.1 200 OK
 Content-Type: application/json
 
 {
-  "databaseId": "019d2b33-ad5e-775f-89c8-9f7e6a59271c",
-  "correlationId": "44a8475f-91fe-4331-9918-2c2714ad67dc",
+  "databaseId": "019d2e0e-4943-71a6-a79f-343499d660a5",
+  "correlationId": "09d0f2f6-745d-4757-98b9-50f44adc6c70",
   "operationId": "op-chatter-wf",
   "idempotencyKey": "app-chatter-idem",
   "namespace": "chatter-app-test",
-  "createdAt": "2026-03-26T17:31:40.244299+00:00",
-  "updatedAt": "2026-03-26T17:31:40.908135+00:00",
+  "createdAt": "2026-03-27T06:49:41.432761+00:00",
+  "updatedAt": "2026-03-27T06:49:42.563837+00:00",
   "labels": {
     "app": "e2e-tests",
     "org": "ttd"
@@ -170,7 +170,7 @@ Content-Type: application/json
   "initialState": "initial-workflow-state",
   "steps": [
     {
-      "databaseId": "019d2b33-ad5f-7327-be4e-0601adb35424",
+      "databaseId": "019d2e0e-4943-76c5-ad27-5d2f5b42b02b",
       "idempotencyKey": "app-chatter-idem/chatter-step-1",
       "operationId": "chatter-step-1",
       "processingOrder": 0,
@@ -182,7 +182,7 @@ Content-Type: application/json
       "stateOut": "step-1-result"
     },
     {
-      "databaseId": "019d2b33-ad5f-7642-9f58-c601dd008ff5",
+      "databaseId": "019d2e0e-4943-7a2b-bbed-8ba14a305a16",
       "idempotencyKey": "app-chatter-idem/chatter-step-2",
       "operationId": "chatter-step-2",
       "processingOrder": 1,

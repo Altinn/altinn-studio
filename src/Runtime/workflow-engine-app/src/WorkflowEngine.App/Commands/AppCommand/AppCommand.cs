@@ -164,7 +164,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     {
         request.Headers.Add("Idempotency-Key", context.Step.IdempotencyKey);
         request.Headers.Add("Workflow-Id", context.Workflow.DatabaseId.ToString());
-        request.Headers.Add("Step-Operation-Id", context.Step.OperationId);
+        request.Headers.Add("Operation-Id", context.Step.OperationId);
         request.Headers.Add("Workflow-Namespace", context.Workflow.Namespace);
         if (context.Workflow.CorrelationId is { } cid)
             request.Headers.Add("Correlation-Id", cid.ToString());

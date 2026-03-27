@@ -14,7 +14,7 @@ internal static class WorkflowMetadataConstants
         public const string IdempotencyKey = "Idempotency-Key";
         public const string CorrelationId = "Correlation-Id";
         public const string WorkflowId = "Workflow-Id";
-        public const string StepOperationId = "Step-Operation-Id";
+        public const string OperationId = "Operation-Id";
     }
 
     public static class QueryParams

@@ -129,7 +129,7 @@ public sealed partial class AppCommandIntegrationTests
             http.AppendLine($"Host: {log.RequestMessage.Host}");
             http.AppendLine($"Idempotency-Key: {GetHeader(headers, "Idempotency-Key")}");
             http.AppendLine($"Workflow-Id: {GetHeader(headers, "Workflow-Id")}");
-            http.AppendLine($"Step-Operation-Id: {GetHeader(headers, "Step-Operation-Id")}");
+            http.AppendLine($"Operation-Id: {GetHeader(headers, "Operation-Id")}");
             http.AppendLine($"Workflow-Namespace: {GetHeader(headers, "Workflow-Namespace")}");
             http.AppendLine($"Correlation-Id: {GetHeader(headers, "Correlation-Id")}");
             http.AppendLine($"X-Api-Key: {GetHeader(headers, "X-Api-Key")}");
@@ -219,7 +219,7 @@ public sealed partial class AppCommandIntegrationTests
             );
             Assert.Equal(workflowId, parsedWorkflowId);
 
-            var stepOpId = GetHeader(headers, "Step-Operation-Id");
+            var stepOpId = GetHeader(headers, "Operation-Id");
             Assert.NotEmpty(stepOpId);
 
             var idemKey = GetHeader(headers, "Idempotency-Key");
