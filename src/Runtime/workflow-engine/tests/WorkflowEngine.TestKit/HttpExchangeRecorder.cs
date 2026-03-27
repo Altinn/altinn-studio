@@ -43,10 +43,13 @@ public sealed class HttpExchangeRecorder : DelegatingHandler
         if (response.Content is not null)
         {
             responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            var newContent = new StringContent(responseBody, Encoding.UTF8);
 
-            // Preserve original content headers
-            foreach (var header in response.Content.Headers)
+            // Replace content with a buffered copy so downstream consumers can still read it.
+            // Use parameterless constructor to avoid StringContent's default text/plain Content-Type,
+            // then copy the original content headers exactly.
+            var originalHeaders = response.Content.Headers.ToList();
+            var newContent = new ByteArrayContent(Encoding.UTF8.GetBytes(responseBody));
+            foreach (var header in originalHeaders)
                 newContent.Headers.TryAddWithoutValidation(header.Key, header.Value);
 
             response.Content = newContent;

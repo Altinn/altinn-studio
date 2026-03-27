@@ -226,4 +226,19 @@ public static class HttpChatterHelpers
 
         return result;
     }
+
+    /// <summary>
+    /// Scrubs and persists HTTP chatter text to a .http snapshot file in the test project's .snapshots/ directory.
+    /// </summary>
+    public static async Task PersistSnapshot(
+        string httpText,
+        string snapshotFileName,
+        CancellationToken cancellationToken
+    )
+    {
+        var scrubbed = Scrub(httpText);
+        var snapshotDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".snapshots");
+        Directory.CreateDirectory(snapshotDir);
+        await File.WriteAllTextAsync(Path.Combine(snapshotDir, snapshotFileName), scrubbed, cancellationToken);
+    }
 }

@@ -56,7 +56,7 @@ Content-Type: application/json; charset=utf-8
   ]
 }
 HTTP/1.1 201 Created
-Content-Type: text/plain; charset=utf-8, application/json; charset=utf-8
+Content-Type: application/json; charset=utf-8
 
 {
   "workflows": [
@@ -107,7 +107,7 @@ HTTP/1.1 200
 GET /api/v1/workflows/Guid_2?namespace=chatter-test HTTP/1.1
 
 HTTP/1.1 200 OK
-Content-Type: text/plain; charset=utf-8, application/json; charset=utf-8
+Content-Type: application/json; charset=utf-8
 
 {
   "databaseId": "Guid_2",

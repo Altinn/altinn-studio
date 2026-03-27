@@ -16,14 +16,9 @@ public sealed class EngineApiClient : IDisposable
     private const string BasePath = "/api/v1/workflows";
     private readonly HttpClient _client;
 
-    public EngineApiClient(EngineAppFixture fixture)
-    {
-        _client = fixture.CreateEngineClient();
-    }
-
     public EngineApiClient(EngineAppFixture fixture, params DelegatingHandler[] handlers)
     {
-        _client = fixture.CreateEngineClient(handlers);
+        _client = handlers.Length > 0 ? fixture.CreateEngineClient(handlers) : fixture.CreateEngineClient();
     }
 
     public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";

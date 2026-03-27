@@ -43,7 +43,8 @@ public partial class EngineTests
         var logs = fixture.WireMock.LogEntries;
         var enqueueExchange = recorder.Exchanges.First(e => e.Request.Method == HttpMethod.Post);
         var getExchange = recorder.Exchanges.Last(e =>
-            e.Request.Method == HttpMethod.Get && e.Response.IsSuccessStatusCode
+            e.Request.Method == HttpMethod.Get
+            && e.Request.RequestUri?.PathAndQuery.Contains($"/workflows/{workflowId}") == true
         );
 
         // --- Serialize as raw HTTP ---
@@ -85,15 +86,11 @@ public partial class EngineTests
         HttpChatterHelpers.WriteExchange(http, getExchange);
 
         var httpText = http.ToString();
-        var scrubbedText = HttpChatterHelpers.Scrub(httpText);
-        output.WriteLine(scrubbedText);
+        output.WriteLine(HttpChatterHelpers.Scrub(httpText));
 
-        // Persist scrubbed snapshot to .snapshots/ alongside other verified snapshot files
-        var snapshotDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".snapshots");
-        Directory.CreateDirectory(snapshotDir);
-        await File.WriteAllTextAsync(
-            Path.Combine(snapshotDir, "EngineTests.WebhookCommand_FullHttpChatter_DocumentsExchange.http"),
-            scrubbedText,
+        await HttpChatterHelpers.PersistSnapshot(
+            httpText,
+            "EngineTests.WebhookCommand_FullHttpChatter_DocumentsExchange.http",
             TestContext.Current.CancellationToken
         );
 
