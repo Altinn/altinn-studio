@@ -1,6 +1,6 @@
-using System.Net.Http;
+using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Models;
+namespace WorkflowEngine.Commands.Extensions;
 
 /// <summary>
 /// Extension method for adding standard workflow metadata headers to outbound HTTP requests.
