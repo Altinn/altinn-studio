@@ -116,10 +116,11 @@ DEVELOP_DASHBOARD=0
 DEVELOP_PREVIEW=0
 DEVELOP_ADMIN=0
 DEVELOP_STUDIO_ROOT=0
-DEVELOP_USER_SETTINGS=0
+DEVELOP_SETTINGS=0
 ```
 
 ## Developing Backend
+
 Navigate to the designer backend folder `cd src/Designer/backend/src/Designer`. The first time running, or after any package changes,
 get the latest packages.
 

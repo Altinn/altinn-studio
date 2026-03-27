@@ -15,7 +15,7 @@ const renderMenu = () => renderWithProviders(<Menu />, { initialEntries: ['/sett
 
 const getTab = () =>
   screen.getByRole('tab', {
-    name: textMock('user.settings.api_keys.api_keys'),
+    name: textMock('settings.api_keys.api_keys'),
   });
 
 describe('Menu', () => {

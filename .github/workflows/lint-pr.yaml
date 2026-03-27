@@ -16,6 +16,72 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const defaultTypes = {
+              feat: 'A new feature',
+              fix: 'A bug fix',
+              docs: 'Documentation only changes',
+              style: 'Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)',
+              refactor: 'A code change that neither fixes a bug nor adds a feature',
+              perf: 'A code change that improves performance',
+              test: 'Adding missing tests or correcting existing tests',
+              build: 'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)',
+              ci: 'Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)',
+              chore: "Other changes that don't modify src or test files",
+              revert: 'Reverts a previous commit',
+            };
+
+            const headerPattern = /^(\w*)(?:\((.*)\))?!?: (.*)$/;
+
+            const contextPullRequest = context.payload.pull_request;
+            if (!contextPullRequest) {
+              throw new Error(
+                "This action can only be invoked in `pull_request` events. Otherwise the pull request can't be inferred."
+              );
+            }
+
+            const owner = contextPullRequest.base.user.login;
+            const repo = contextPullRequest.base.repo.name;
+
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: contextPullRequest.number,
+            });
+
+            const title = pullRequest.title;
+            const match = title.match(headerPattern);
+            const type = match?.[1];
+            const scope = match?.[2];
+            const subject = match?.[3];
+
+            core.setOutput('type', type);
+            core.setOutput('scope', scope);
+            core.setOutput('subject', subject);
+
+            const formatAvailableTypes = () =>
+              `Available types:\n${Object.entries(defaultTypes)
+                .map(([name, description]) => ` - ${name}: ${description}`)
+                .join('\n')}`;
+            const raiseError = (message) => {
+              core.setOutput('error_message', message);
+              throw new Error(message);
+            };
+
+            if (!type) {
+              raiseError(
+                `No release type found in pull request title "${title}". Add a prefix to indicate what kind of release this pull request corresponds to. For reference, see https://www.conventionalcommits.org/\n\n${formatAvailableTypes()}`
+              );
+            }
+
+            if (!subject?.trim()) {
+              raiseError(`No subject found in pull request title "${title}".`);
+            }
+
+            if (!Object.hasOwn(defaultTypes, type)) {
+              raiseError(
+                `Unknown release type "${type}" found in pull request title "${title}".\n\n${formatAvailableTypes()}`
+              );
+            }
