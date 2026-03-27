@@ -167,6 +167,9 @@ public static class HttpChatterHelpers
 
         var resp = exchange.Response;
 
+        // Blank line between request and response
+        http.AppendLine();
+
         // Response status line
         http.AppendLine($"HTTP/1.1 {(int)resp.StatusCode} {resp.ReasonPhrase}");
 
