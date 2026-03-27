@@ -3,10 +3,9 @@
 ###
 
 POST /api/v1/workflows HTTP/1.1
-Correlation-Id: 277e6ad3-2b1f-4c71-8106-b47c06456a76
+Correlation-Id: Guid_1
 Idempotency-Key: chatter-idem-key
 Workflow-Namespace: chatter-test
-Content-Length: 597
 Content-Type: application/json; charset=utf-8
 
 {
@@ -26,7 +25,7 @@ Content-Type: application/json; charset=utf-8
             "type": "webhook",
             "maxExecutionTime": null,
             "data": {
-              "uri": "http://localhost:59822/step-1",
+              "uri": "http://localhost:{PORT}/step-1",
               "payload": "step-1-data",
               "contentType": "text/plain"
             }
@@ -40,7 +39,7 @@ Content-Type: application/json; charset=utf-8
             "type": "webhook",
             "maxExecutionTime": null,
             "data": {
-              "uri": "http://localhost:59822/step-2",
+              "uri": "http://localhost:{PORT}/step-2",
               "payload": null,
               "contentType": null
             }
@@ -57,14 +56,13 @@ Content-Type: application/json; charset=utf-8
   ]
 }
 HTTP/1.1 201 Created
-Content-Length: 115
 Content-Type: text/plain; charset=utf-8, application/json; charset=utf-8
 
 {
   "workflows": [
     {
       "ref": "chatter-wf",
-      "databaseId": "019d2eeb-3877-7667-8425-f8f163b90f9a",
+      "databaseId": "Guid_2",
       "namespace": "chatter-test"
     }
   ]
@@ -77,10 +75,10 @@ Content-Type: text/plain; charset=utf-8, application/json; charset=utf-8
 POST /step-1 HTTP/1.1
 Host: localhost
 Content-Type: text/plain
-Correlation-Id: 277e6ad3-2b1f-4c71-8106-b47c06456a76
+Correlation-Id: Guid_1
 Idempotency-Key: chatter-idem-key//step-1
 Operation-Id: /step-1
-Workflow-Id: 019d2eeb-3877-7667-8425-f8f163b90f9a
+Workflow-Id: Guid_2
 Workflow-Namespace: chatter-test
 
 step-1-data
@@ -93,10 +91,10 @@ HTTP/1.1 200
 
 GET /step-2 HTTP/1.1
 Host: localhost
-Correlation-Id: 277e6ad3-2b1f-4c71-8106-b47c06456a76
+Correlation-Id: Guid_1
 Idempotency-Key: chatter-idem-key//step-2
 Operation-Id: /step-2
-Workflow-Id: 019d2eeb-3877-7667-8425-f8f163b90f9a
+Workflow-Id: Guid_2
 Workflow-Namespace: chatter-test
 
 
@@ -106,20 +104,19 @@ HTTP/1.1 200
 ### 4. Client → Engine: Get completed workflow
 ###
 
-GET /api/v1/workflows/019d2eeb-3877-7667-8425-f8f163b90f9a?namespace=chatter-test HTTP/1.1
+GET /api/v1/workflows/Guid_2?namespace=chatter-test HTTP/1.1
 
 HTTP/1.1 200 OK
-Content-Length: 911
 Content-Type: text/plain; charset=utf-8, application/json; charset=utf-8
 
 {
-  "databaseId": "019d2eeb-3877-7667-8425-f8f163b90f9a",
-  "correlationId": "277e6ad3-2b1f-4c71-8106-b47c06456a76",
+  "databaseId": "Guid_2",
+  "correlationId": "Guid_1",
   "operationId": "op-chatter-wf",
   "idempotencyKey": "chatter-idem-key",
   "namespace": "chatter-test",
-  "createdAt": "2026-03-27T10:51:00.591169\u002B00:00",
-  "updatedAt": "2026-03-27T10:51:01.220189\u002B00:00",
+  "createdAt": "{Scrubbed}",
+  "updatedAt": "{Scrubbed}",
   "labels": {
     "app": "e2e-tests",
     "org": "ttd"
@@ -129,11 +126,11 @@ Content-Type: text/plain; charset=utf-8, application/json; charset=utf-8
   "links": {},
   "steps": [
     {
-      "databaseId": "019d2eeb-3877-75fa-b064-e6c2b9f14fdc",
+      "databaseId": "Guid_3",
       "idempotencyKey": "chatter-idem-key//step-1",
       "operationId": "/step-1",
       "processingOrder": 0,
-      "updatedAt": "2026-03-27T10:51:01.210672\u002B00:00",
+      "updatedAt": "{Scrubbed}",
       "command": {
         "type": "webhook"
       },
@@ -141,11 +138,11 @@ Content-Type: text/plain; charset=utf-8, application/json; charset=utf-8
       "retryCount": 0
     },
     {
-      "databaseId": "019d2eeb-3877-78ab-836c-d5eed1b6c1ae",
+      "databaseId": "Guid_4",
       "idempotencyKey": "chatter-idem-key//step-2",
       "operationId": "/step-2",
       "processingOrder": 1,
-      "updatedAt": "2026-03-27T10:51:01.217538\u002B00:00",
+      "updatedAt": "{Scrubbed}",
       "command": {
         "type": "webhook"
       },

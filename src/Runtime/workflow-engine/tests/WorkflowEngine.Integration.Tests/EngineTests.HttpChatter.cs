@@ -85,14 +85,15 @@ public partial class EngineTests
         HttpChatterHelpers.WriteExchange(http, getExchange);
 
         var httpText = http.ToString();
-        output.WriteLine(httpText);
+        var scrubbedText = HttpChatterHelpers.Scrub(httpText);
+        output.WriteLine(scrubbedText);
 
-        // Persist to .snapshots/ alongside other verified snapshot files
+        // Persist scrubbed snapshot to .snapshots/ alongside other verified snapshot files
         var snapshotDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".snapshots");
         Directory.CreateDirectory(snapshotDir);
         await File.WriteAllTextAsync(
             Path.Combine(snapshotDir, "EngineTests.WebhookCommand_FullHttpChatter_DocumentsExchange.http"),
-            httpText,
+            scrubbedText,
             TestContext.Current.CancellationToken
         );
 

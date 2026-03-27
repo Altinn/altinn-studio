@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using WireMock.Logging;
 using WireMock.Types;
 using WorkflowEngine.Models;
@@ -27,6 +28,20 @@ public static class HttpChatterHelpers
         "traceparent",
         "tracestate",
     };
+
+    // Standard GUID: 8-4-4-4-12 hex digits
+    private static readonly Regex GuidPattern = new(
+        @"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        RegexOptions.IgnoreCase
+    );
+
+    // ISO 8601 timestamps (with or without JSON-escaped '+')
+    private static readonly Regex TimestampPattern = new(
+        @"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(\\u002B|\+)\d{2}:\d{2}"
+    );
+
+    // localhost:{port} — dynamic port numbers from WireMock / test servers
+    private static readonly Regex LocalhostPortPattern = new(@"localhost:\d+");
 
     /// <summary>
     /// Extracts a single header value from a WireMock headers dictionary (case-insensitive).
@@ -138,7 +153,11 @@ public static class HttpChatterHelpers
         if (req.Content is not null)
         {
             foreach (var header in req.Content.Headers.OrderBy(h => h.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                if (ExcludedHeaders.Contains(header.Key))
+                    continue;
                 http.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
+            }
         }
 
         // Request body
@@ -162,12 +181,49 @@ public static class HttpChatterHelpers
         if (resp.Content is not null)
         {
             foreach (var header in resp.Content.Headers.OrderBy(h => h.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                if (ExcludedHeaders.Contains(header.Key))
+                    continue;
                 http.AppendLine($"{header.Key}: {string.Join(", ", header.Value)}");
+            }
         }
 
         // Response body
         http.AppendLine();
         if (exchange.ResponseBody is { Length: > 0 })
             http.AppendLine(FormatJsonOrRaw(exchange.ResponseBody));
+    }
+
+    /// <summary>
+    /// Scrubs volatile values from HTTP chatter text to produce deterministic output.
+    /// Replaces GUIDs with sequential tokens (Guid_1, Guid_2, ...) like Verify does,
+    /// timestamps with {Scrubbed}, and dynamic port numbers with {PORT}.
+    /// Content-Length headers are already excluded at serialization time.
+    /// </summary>
+    public static string Scrub(string httpText)
+    {
+        // 1. Replace GUIDs with stable sequential tokens (same GUID → same token)
+        var guidMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var result = GuidPattern.Replace(
+            httpText,
+            match =>
+            {
+                var raw = match.Value;
+                if (!guidMap.TryGetValue(raw, out var token))
+                {
+                    token = $"Guid_{guidMap.Count + 1}";
+                    guidMap[raw] = token;
+                }
+                return token;
+            }
+        );
+
+        // 2. Replace ISO 8601 timestamps
+        result = TimestampPattern.Replace(result, "{Scrubbed}");
+
+        // 3. Replace dynamic port numbers
+        result = LocalhostPortPattern.Replace(result, "localhost:{PORT}");
+
+        return result;
     }
 }
