@@ -1,3 +1,6 @@
+// CA1305: StringBuilder interpolation locale — plaintext HTTP output, not locale-sensitive
+#pragma warning disable CA1305
+
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;

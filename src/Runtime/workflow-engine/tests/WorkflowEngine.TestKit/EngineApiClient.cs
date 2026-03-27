@@ -70,20 +70,20 @@ public sealed class EngineApiClient : IDisposable
     /// Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.
     /// Uses <see cref="DefaultNamespace"/> and a unique idempotency key if not specified.
     /// </summary>
-    public Task<HttpResponseMessage> EnqueueRaw(
+    public async Task<HttpResponseMessage> EnqueueRaw(
         WorkflowEnqueueRequest request,
         string? ns = null,
         string? idempotencyKey = null,
         Guid? correlationId = null
     )
     {
-        var httpRequest = new HttpRequestMessage(HttpMethod.Post, BasePath)
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, BasePath)
         {
             Content = new StringContent(JsonSerializer.Serialize(request), new UTF8Encoding(), "application/json"),
         };
         AddMetadataHeaders(httpRequest.Headers, ns, idempotencyKey, correlationId);
 
-        return _client.SendAsync(httpRequest);
+        return await _client.SendAsync(httpRequest);
     }
 
     /// <summary>
