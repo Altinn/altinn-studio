@@ -210,12 +210,18 @@ export type InstanceDataSelector = <T>(selector: (instance: IInstance) => T) => 
 
 export const useSelectFromInstanceData = (): InstanceDataSelector => {
   const queryClient = useQueryClient();
-  const args = useInstanceDataQueryArgs();
-  const instanceQueryKey = useMemo(() => instanceQueries.instanceData(args).queryKey, [args]);
+  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const instanceQueryKey = useMemo(
+    () =>
+      instanceOwnerPartyId && instanceGuid
+        ? instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid })
+        : undefined,
+    [instanceOwnerPartyId, instanceGuid],
+  );
 
   return useCallback(
     <T,>(selector: (instance: IInstance) => T): T | undefined => {
-      const instance = queryClient.getQueryData<IInstance>(instanceQueryKey);
+      const instance = instanceQueryKey ? queryClient.getQueryData<IInstance>(instanceQueryKey) : undefined;
       return instance ? selector(instance) : undefined;
     },
     [instanceQueryKey, queryClient],
