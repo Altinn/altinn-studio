@@ -1,3 +1,6 @@
+// CA1724: Type names should not match namespaces
+#pragma warning disable CA1724
+
 namespace WorkflowEngine.Models;
 
 /// <summary>

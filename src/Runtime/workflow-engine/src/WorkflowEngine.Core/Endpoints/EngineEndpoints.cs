@@ -73,7 +73,7 @@ internal static class EngineRequestHandlers
 
         var metadata = new WorkflowRequestMetadata(
             inbound.Namespace,
-            inbound.IdempotencyKey!,
+            inbound.IdempotencyKey,
             inbound.CorrelationId,
             timeProvider.GetUtcNow(),
             Activity.Current?.Id
@@ -118,7 +118,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var ns = MetadataExtractor.ExtractRequiredNamespace(httpContext);
+        var ns = MetadataExtractor.ExtractNamespace(httpContext);
         var labelFilters = ParseLabelFilters(labels);
         var workflows = await repository.GetActiveWorkflowsByCorrelationId(
             correlationId,

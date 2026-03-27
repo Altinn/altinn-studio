@@ -17,52 +17,56 @@ internal static class MetadataExtractor
     /// </summary>
     public static InboundMetadata ExtractEnqueueMetadata(HttpContext httpContext)
     {
-        var ns = ExtractRequiredNamespace(httpContext);
-        var idempotencyKey = ExtractSingleValue(
+        var ns = ExtractNamespace(httpContext);
+        var correlationId = ExtractCorrelationId(httpContext);
+        var idempotencyKey = ExtractIdempotencyKey(httpContext);
+
+        return new InboundMetadata(ns, idempotencyKey, correlationId);
+    }
+
+    public static string ExtractIdempotencyKey(HttpContext httpContext)
+    {
+        var value = ExtractSingleValue(
             httpContext,
             WorkflowMetadataConstants.Headers.IdempotencyKey,
             WorkflowMetadataConstants.QueryParams.IdempotencyKey
         );
 
-        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        if (string.IsNullOrWhiteSpace(value))
         {
             throw new BadHttpRequestException(
                 $"Idempotency key is required. Supply it via the '{WorkflowMetadataConstants.Headers.IdempotencyKey}' header "
-                    + $"or '{WorkflowMetadataConstants.QueryParams.IdempotencyKey}' query parameter.",
-                StatusCodes.Status400BadRequest
+                    + $"or '{WorkflowMetadataConstants.QueryParams.IdempotencyKey}' query parameter."
             );
         }
 
-        var correlationId = ExtractCorrelationId(httpContext);
-
-        return new InboundMetadata(ns, idempotencyKey, correlationId);
+        return value;
     }
 
     /// <summary>
     /// Extracts the namespace from headers/query params. Required — returns 400 if not supplied.
     /// Returns 400 if both header and query param are supplied.
     /// </summary>
-    public static string ExtractRequiredNamespace(HttpContext httpContext)
+    public static string ExtractNamespace(HttpContext httpContext)
     {
-        var raw = ExtractSingleValue(
+        var value = ExtractSingleValue(
             httpContext,
             WorkflowMetadataConstants.Headers.Namespace,
             WorkflowMetadataConstants.QueryParams.Namespace
         );
 
-        if (string.IsNullOrWhiteSpace(raw))
+        if (string.IsNullOrWhiteSpace(value))
         {
             throw new BadHttpRequestException(
                 $"Namespace is required. Supply it via the '{WorkflowMetadataConstants.Headers.Namespace}' header "
-                    + $"or '{WorkflowMetadataConstants.QueryParams.Namespace}' query parameter.",
-                StatusCodes.Status400BadRequest
+                    + $"or '{WorkflowMetadataConstants.QueryParams.Namespace}' query parameter."
             );
         }
 
-        return WorkflowNamespace.Normalize(raw);
+        return WorkflowNamespace.Normalize(value);
     }
 
-    private static Guid? ExtractCorrelationId(HttpContext httpContext)
+    public static Guid? ExtractCorrelationId(HttpContext httpContext)
     {
         var raw = ExtractSingleValue(
             httpContext,
@@ -75,10 +79,7 @@ internal static class MetadataExtractor
 
         if (!Guid.TryParse(raw, out var parsed))
         {
-            throw new BadHttpRequestException(
-                $"Correlation ID '{raw}' is not a valid GUID.",
-                StatusCodes.Status400BadRequest
-            );
+            throw new BadHttpRequestException($"Correlation ID '{raw}' is not a valid GUID.");
         }
 
         return parsed;
@@ -107,8 +108,7 @@ internal static class MetadataExtractor
         if (fromHeader is not null && fromQuery is not null)
         {
             throw new BadHttpRequestException(
-                $"'{headerName}' was supplied as both a header and a query parameter ('{queryParamName}'). Supply only one.",
-                StatusCodes.Status400BadRequest
+                $"'{headerName}' was supplied as both a header and a query parameter ('{queryParamName}'). Supply only one."
             );
         }
 
