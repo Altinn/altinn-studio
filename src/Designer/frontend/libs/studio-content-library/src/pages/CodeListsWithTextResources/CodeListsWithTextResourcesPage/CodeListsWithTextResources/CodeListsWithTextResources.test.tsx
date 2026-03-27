@@ -47,19 +47,18 @@ const codeListMultipleUsagesMock: CodeListReference[] = [
 describe('CodeListsWithTextResources', () => {
   afterEach(jest.clearAllMocks);
 
+  // TODO - This test is redundant as your are testing native functionality of details/summary. Consider removing it.
   it('renders the code list details closed by default', () => {
     renderCodeLists();
-    const isExpanded = false;
-    const codeListDetails = getButton(codeListName, isExpanded);
-    expect(codeListDetails).toBeInTheDocument();
-    expect(codeListDetails).toHaveAttribute('aria-expanded', 'false');
+    const details = getDetails(codeListName);
+
+    expect(details).not.toHaveAttribute('open');
   });
 
   it('renders the code list details open by default if code list title is equal to codeListInEditMode', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
-    const isExpanded = true;
-    const codeListDetails = getButton(codeListName, isExpanded);
-    expect(codeListDetails).toHaveAttribute('aria-expanded', 'true');
+    const details = getDetails(codeListName);
+    expect(details).toHaveAttribute('open');
   });
 
   it('renders the details header title without usage information if not in use', () => {
@@ -367,5 +366,17 @@ describe('updateCodeListWithMetadata', () => {
 
 const getButton = (name: string, expanded?: boolean): HTMLElement =>
   screen.getByRole('button', { name, expanded });
+
+/**
+ * Since the summary element does not have a role, we need to traverse up the DOM to get the details element. This is a helper function to do that.
+ * https://github.com/testing-library/dom-testing-library/issues/1252
+ */
+function getDetails(summary: string | RegExp) {
+  const elem = screen.getByText(
+    (_content, element) =>
+      element.nodeName === 'SUMMARY' && element.textContent?.trim() === summary,
+  );
+  return elem?.parentElement instanceof HTMLDetailsElement ? elem.parentElement : null;
+}
 
 const queryButton = (name: string): HTMLElement | null => screen.queryByRole('button', { name });
