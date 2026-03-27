@@ -1,5 +1,4 @@
 import React, { createContext, useContext } from 'react';
-import classes from './PageLayout.module.css';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useUserQuery } from 'app-shared/hooks/queries';
@@ -57,9 +56,7 @@ export const PageLayout = (): React.ReactNode => {
     <OrgContext.Provider value={orgs[org]}>
       <UserContext.Provider value={user}>
         <PageHeader />
-        <div className={classes.pageWrapper}>
-          <Outlet />
-        </div>
+        <Outlet />
       </UserContext.Provider>
     </OrgContext.Provider>
   );

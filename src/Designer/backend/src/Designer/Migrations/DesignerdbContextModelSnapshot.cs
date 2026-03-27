@@ -321,6 +321,85 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("chat_threads", "designer");
                 });
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactMethodDbModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ContactPointId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_point_id");
+
+                    b.Property<int>("MethodType")
+                        .HasColumnType("integer")
+                        .HasColumnName("method_type");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("contact_methods_pkey");
+
+                    b.HasIndex(new[] { "ContactPointId", "MethodType" }, "idx_contact_methods_contact_point_id_method_type")
+                        .IsUnique();
+
+                    b.ToTable("contact_methods", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactPointDbModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.PrimitiveCollection<List<string>>("Environments")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasColumnName("environments")
+                        .HasDefaultValueSql("'{}'::text[]");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.HasKey("Id")
+                        .HasName("contact_points_pkey");
+
+                    b.HasIndex(new[] { "Org" }, "idx_contact_points_org");
+
+                    b.HasIndex(new[] { "Org", "IsActive" }, "idx_contact_points_org_active");
+
+                    b.ToTable("contact_points", "designer");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeployEventDbModel", b =>
                 {
                     b.Property<long>("Id")
@@ -567,6 +646,18 @@ namespace Altinn.Studio.Designer.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactMethodDbModel", b =>
+                {
+                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactPointDbModel", "ContactPoint")
+                        .WithMany("Methods")
+                        .HasForeignKey("ContactPointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_contact_methods_contact_point_id");
+
+                    b.Navigation("ContactPoint");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeployEventDbModel", b =>
                 {
                     b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", "Deployment")
@@ -597,6 +688,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("CreatedByUserAccount");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ContactPointDbModel", b =>
+                {
+                    b.Navigation("Methods");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>

@@ -266,6 +266,9 @@ export const queriesMock: ServicesContextProps = {
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
 
+  // Mutations - Org settings
+  getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
+
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -372,4 +375,10 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - User settings
   addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Org settings
+  addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  toggleContactPointActive: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
 };

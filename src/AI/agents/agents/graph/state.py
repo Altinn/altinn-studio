@@ -70,6 +70,8 @@ class AgentState(BaseModel):
     session_id: str
     user_goal: str
     repo_path: str
+    developer: str
+    org: str
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
     attachments: List[AgentAttachment] = Field(default_factory=list)
     conversation_history: List[ConversationMessage] = Field(default_factory=list)  # Previous Q&A pairs

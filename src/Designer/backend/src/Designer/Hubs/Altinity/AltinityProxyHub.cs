@@ -37,6 +37,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly IAltinityWebSocketService _webSocketService;
     private readonly AltinityAttachmentBuffer _attachmentStore;
     private readonly IApiKeyService _apiKeyService;
+    private readonly IUserOrganizationService _userOrganizationService;
 
     private static readonly ConcurrentDictionary<string, string> s_sessionIdToDeveloper = new();
 
@@ -49,6 +50,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         IOptions<AltinitySettings> altinitySettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
         IAltinityWebSocketService webSocketService,
+        IUserOrganizationService userOrganizationService,
         AltinityAttachmentBuffer attachmentStore,
         IApiKeyService apiKeyService
     )
@@ -59,6 +61,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         _altinitySettings = altinitySettings.Value;
         _serviceRepositorySettings = serviceRepositorySettings.Value;
         _webSocketService = webSocketService;
+        _userOrganizationService = userOrganizationService;
         _attachmentStore = attachmentStore;
         _apiKeyService = apiKeyService;
     }
@@ -139,6 +142,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateSessionOwnership(sessionId, developer);
+        await ValidateOrgMembershipAsync(request, developer);
 
         _logger.LogInformation(
             "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
@@ -242,6 +246,22 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
 
         return sessionId;
+    }
+
+    private async Task ValidateOrgMembershipAsync(JsonElement request, string developer)
+    {
+        string? org = request.TryGetProperty("org", out var orgElement) ? orgElement.GetString() : null;
+
+        if (string.IsNullOrWhiteSpace(org))
+        {
+            throw new HubException("Missing org in request");
+        }
+
+        if (!await _userOrganizationService.UserIsMemberOfOrganization(org))
+        {
+            _logger.LogWarning("User {Developer} was denied access to start workflow for org {Org}", developer, org);
+            throw new HubException("Access denied");
+        }
     }
 
     private void ValidateSessionOwnership(string sessionId, string developer)
