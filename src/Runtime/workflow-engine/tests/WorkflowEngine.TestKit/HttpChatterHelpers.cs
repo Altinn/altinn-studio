@@ -105,10 +105,13 @@ public static class HttpChatterHelpers
             }
         }
 
-        // Body
+        // Body (blank line separates headers from body per HTTP spec)
         http.AppendLine();
         if (req.Body is { } body)
+        {
             http.AppendLine(FormatJsonOrRaw(body));
+            http.AppendLine();
+        }
     }
 
     /// <summary>
@@ -160,15 +163,15 @@ public static class HttpChatterHelpers
             }
         }
 
-        // Request body
+        // Request body (blank line separates headers from body per HTTP spec)
         http.AppendLine();
         if (exchange.RequestBody is { Length: > 0 })
+        {
             http.AppendLine(FormatJsonOrRaw(exchange.RequestBody));
+            http.AppendLine();
+        }
 
         var resp = exchange.Response;
-
-        // Blank line between request and response
-        http.AppendLine();
 
         // Response status line
         http.AppendLine($"HTTP/1.1 {(int)resp.StatusCode} {resp.ReasonPhrase}");

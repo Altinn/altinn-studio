@@ -73,7 +73,6 @@ public partial class EngineTests
             http.AppendLine();
 
             HttpChatterHelpers.WriteRequest(http, log);
-            http.AppendLine();
             HttpChatterHelpers.WriteResponse(http, log);
         }
 

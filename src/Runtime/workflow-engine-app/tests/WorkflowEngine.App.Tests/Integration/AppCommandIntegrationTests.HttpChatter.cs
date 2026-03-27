@@ -113,7 +113,6 @@ public sealed partial class AppCommandIntegrationTests
             http.AppendLine();
 
             HttpChatterHelpers.WriteRequest(http, log);
-            http.AppendLine();
             HttpChatterHelpers.WriteResponse(http, log);
         }
 

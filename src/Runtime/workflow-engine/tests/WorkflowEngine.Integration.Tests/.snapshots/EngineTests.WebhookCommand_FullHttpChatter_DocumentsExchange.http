@@ -98,7 +98,6 @@ Operation-Id: /step-2
 Workflow-Id: Guid_2
 Workflow-Namespace: chatter-test
 
-
 HTTP/1.1 200
 
 ###
@@ -106,7 +105,6 @@ HTTP/1.1 200
 ###
 
 GET /api/v1/workflows/Guid_2 HTTP/1.1
-
 
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
