@@ -2,6 +2,9 @@ using System.Text;
 using WorkflowEngine.Models;
 using WorkflowEngine.TestKit;
 
+// CA1305: StringBuilder interpolation locale — plaintext HTTP output, not locale-sensitive
+#pragma warning disable CA1305
+
 namespace WorkflowEngine.Integration.Tests;
 
 public partial class EngineTests
