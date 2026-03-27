@@ -85,8 +85,10 @@ public sealed partial class AppCommandIntegrationTests
             )
             .OrderBy(l => l.RequestMessage.DateTime)
             .ToList();
-        var enqueueExchange = recorder.Exchanges.First();
-        var getExchange = recorder.Exchanges.Last();
+        var enqueueExchange = recorder.Exchanges.First(e => e.Request.Method == HttpMethod.Post);
+        var getExchange = recorder.Exchanges.Last(e =>
+            e.Request.Method == HttpMethod.Get && e.Response.IsSuccessStatusCode
+        );
 
         // --- Serialize as raw HTTP ---
 

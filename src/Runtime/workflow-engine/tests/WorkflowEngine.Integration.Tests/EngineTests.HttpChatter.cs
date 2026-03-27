@@ -41,8 +41,10 @@ public partial class EngineTests
 
         // Capture outbound requests (from WireMock) and inbound exchanges (from recorder)
         var logs = fixture.WireMock.LogEntries;
-        var enqueueExchange = recorder.Exchanges.First();
-        var getExchange = recorder.Exchanges.Last();
+        var enqueueExchange = recorder.Exchanges.First(e => e.Request.Method == HttpMethod.Post);
+        var getExchange = recorder.Exchanges.Last(e =>
+            e.Request.Method == HttpMethod.Get && e.Response.IsSuccessStatusCode
+        );
 
         // --- Serialize as raw HTTP ---
 

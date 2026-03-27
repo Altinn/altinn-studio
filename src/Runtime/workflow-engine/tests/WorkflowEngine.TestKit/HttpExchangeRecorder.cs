@@ -19,10 +19,10 @@ public sealed record HttpExchange(
 /// </summary>
 public sealed class HttpExchangeRecorder : DelegatingHandler
 {
-    private readonly ConcurrentBag<HttpExchange> _exchanges = [];
+    private readonly ConcurrentQueue<HttpExchange> _exchanges = [];
 
     /// <summary>
-    /// All captured exchanges, in no guaranteed order.
+    /// All captured exchanges, in insertion order.
     /// </summary>
     public IReadOnlyCollection<HttpExchange> Exchanges => _exchanges;
 
@@ -52,7 +52,7 @@ public sealed class HttpExchangeRecorder : DelegatingHandler
             response.Content = newContent;
         }
 
-        _exchanges.Add(new HttpExchange(request, requestBody, response, responseBody));
+        _exchanges.Enqueue(new HttpExchange(request, requestBody, response, responseBody));
         return response;
     }
 
