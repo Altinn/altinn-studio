@@ -85,9 +85,16 @@ jobs:
             echo "ENABLE_PERCY=true" >> "$GITHUB_ENV"
           fi
 
+      - name: Install Cypress binary
+        shell: bash
+        env:
+          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
+        run: npx cypress install
+
       - name: Cypress run
         shell: bash
         env:
+          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
           CYPRESS_PROJECT_ID: o7mikf
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,6 +117,7 @@ jobs:
             --user "$(id -u):$(id -g)" \
             -e HOME=/tmp \
             -e CI=1 \
+            -e CYPRESS_CACHE_FOLDER \
             -e CYPRESS_PROJECT_ID \
             -e CYPRESS_RECORD_KEY \
             -e GITHUB_TOKEN \
@@ -158,13 +166,22 @@ jobs:
           run-localtest: true
           docker-profile: test-apps
 
+      - name: Install Cypress binary
+        shell: bash
+        env:
+          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
+        run: npx cypress install
+
       - name: Cypress run
         shell: bash
+        env:
+          CYPRESS_CACHE_FOLDER: ${{ github.workspace }}/.cache/Cypress
         run: |
           docker run --rm --network host \
             --user "$(id -u):$(id -g)" \
             -e HOME=/tmp \
             -e CI=1 \
+            -e CYPRESS_CACHE_FOLDER \
             -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
             -w "${GITHUB_WORKSPACE}/src/App/frontend" \
             "${CYPRESS_BROWSER_IMAGE}" \
