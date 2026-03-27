@@ -15,6 +15,7 @@ import { useRefetchInitialValidations } from 'src/features/validation/backendVal
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
@@ -25,11 +26,6 @@ export interface NavigateToPageOptions {
   skipAutoSave?: boolean;
   resetReturnToView?: boolean;
   searchParams?: URLSearchParams;
-}
-
-export enum TaskKeys {
-  ProcessEnd = 'ProcessEnd',
-  CustomReceipt = 'CustomReceipt',
 }
 
 /**

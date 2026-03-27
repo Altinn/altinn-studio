@@ -5,11 +5,12 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchProcessState } from 'src/queries/queries';
+import { TaskKeys } from 'src/routesBuilder';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -97,7 +98,9 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
     }),
   );
 
-  jest.mocked(fetchInstanceData).mockImplementation(async () => buildInstance(hasPdf));
+  jest
+    .mocked(InstanceApi.getInstance)
+    .mockImplementation(async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }));
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => (

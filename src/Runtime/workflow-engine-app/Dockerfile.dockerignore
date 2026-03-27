@@ -1,0 +1,27 @@
+# Keep src/ build context minimal for workflow-engine-app image.
+
+**
+!common/**
+!Runtime/workflow-engine/**
+!Runtime/workflow-engine-app/**
+**/bin
+**/obj
+
+# EFCore buggy outputs (literal backslash directory names on macOS)
+**bin\\Debug
+**bin\\Release
+
+**/README.md
+**/readme.*
+**/README.*
+**/docs/
+**/tests/
+*.sln.DotSettings*
+*.slnx
+**/.DS_Store
+**/.csharpier*
+
+Directory.*.props
+**/Directory.*.props
+!Directory.Packages.props
+!**/Directory.Packages.props

@@ -1,4 +1,4 @@
-import type { ChangeEvent, MouseEvent } from 'react';
+import type { ChangeEvent, MouseEvent, InputEvent } from 'react';
 import React, { useEffect, useState, useId } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
@@ -73,8 +73,8 @@ export const StudioGridSelector = ({
     return parseInt(value) as GridSize;
   };
 
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const newValue = parseInt(event.target.value);
+  const handleInputChange = (event: InputEvent<HTMLInputElement>): void => {
+    const newValue = parseInt(event.currentTarget.value);
     setSelectedValue(newValue);
     setHoverValue(0);
   };

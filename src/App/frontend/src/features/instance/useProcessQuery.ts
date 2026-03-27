@@ -3,8 +3,8 @@ import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/rea
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { getUiConfig } from 'src/features/form/ui';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
+import { TaskKeys } from 'src/routesBuilder';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import type { LooseAutocomplete } from 'src/types';
 import type { IActionType, IProcess } from 'src/types/shared';

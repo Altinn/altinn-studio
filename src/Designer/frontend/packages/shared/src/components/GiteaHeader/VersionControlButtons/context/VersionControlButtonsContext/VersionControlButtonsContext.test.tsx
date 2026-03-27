@@ -44,8 +44,6 @@ describe('VersionControlButtonsContext', () => {
   });
 
   it('should throw an error when useVersionControlButtonsContext is used outside of a VersionControlButtonsContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useVersionControlButtonsContext();
       return <div data-testid={contextTestId}>Test</div>;
@@ -54,7 +52,6 @@ describe('VersionControlButtonsContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useVersionControlButtonsContext must be used within a VersionControlButtonsContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should provide initial values to the context', () => {

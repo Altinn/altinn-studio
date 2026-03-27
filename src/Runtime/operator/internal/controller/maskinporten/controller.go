@@ -949,6 +949,7 @@ func setSkippedResult(b *maskinporten.CommandResultBuilder, data any) {
 // SetupWithManager sets up the controller with the Manager.
 func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := ctrl.NewControllerManagedBy(mgr).
+		Named("maskinporten").
 		For(&resourcesv1alpha1.MaskinportenClient{}).
 		WithEventFilter(predicate.Or(
 			predicate.GenerationChangedPredicate{},

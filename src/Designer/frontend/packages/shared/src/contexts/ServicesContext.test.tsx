@@ -6,6 +6,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const unknownErrorCode = 'unknownErrorCode';
@@ -58,19 +59,19 @@ describe('ServicesContext', () => {
     mockConsoleError.mockRestore();
   });
 
-  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
+  it('logs the user out after displaying a toast when the api returns 401 with SessionExpired error code', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(global, 'setTimeout');
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
     renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(401)),
+          queryFn: () => Promise.reject(createApiErrorMock(401, ApiErrorCodes.SessionExpired)),
           retry: false,
         }),
       {
         wrapper: ({ children }) => {
-          return wrapper({ children });
+          return wrapper({ children, queries: { logout } });
         },
       },
     );
@@ -78,25 +79,24 @@ describe('ServicesContext', () => {
     const progressBar = await screen.findByRole('progressbar');
     fireEvent.animationEnd(progressBar);
 
-    const container = await screen.findByText(textMock('api_errors.Unauthorized'));
+    const container = await screen.findByText(textMock('api_errors.SessionExpired'));
     expect(container).toBeInTheDocument();
     fireEvent.animationEnd(container);
 
     await waitFor(() => {
-      expect(queriesMock.logout).toHaveBeenCalled();
+      expect(logout).toHaveBeenCalled();
     });
 
-    expect(mockConsoleError).toHaveBeenCalled();
+    mockConsoleError.mockRestore();
   });
 
-  it('displays the api error when the session is invalid or expired', async () => {
+  it('does not log the user out when the api returns a plain 401 with no error code', async () => {
     const logout = jest.fn().mockImplementation(() => Promise.resolve());
-
     const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(401, 'GT_03')),
+          queryFn: () => Promise.reject(createApiErrorMock(401)),
           retry: false,
         }),
       {
@@ -107,8 +107,31 @@ describe('ServicesContext', () => {
     );
 
     await waitFor(() => expect(result.current.isError).toBe(true));
-    const errorMessage = await screen.findByText(textMock('api_errors.GT_03'));
+    expect(logout).not.toHaveBeenCalled();
+  });
+
+  it('displays the api error when the session is invalid or expired', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, ApiErrorCodes.SessionExpired)),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.SessionExpired'));
     expect(errorMessage).toBeInTheDocument();
+    mockConsoleError.mockRestore();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {

@@ -32,7 +32,6 @@ describe('StudioCheckboxTableContext', () => {
   });
 
   it('should throw an error when useCheckboxTableContext is used outside of a StudioCheckboxTableContextProvider', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = (): ReactElement => {
       useCheckboxTableContext();
       return <div data-testid='context'>Test</div>;
@@ -41,6 +40,5 @@ describe('StudioCheckboxTableContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useCheckboxTableContext must be used within a StudioCheckboxTableContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 });

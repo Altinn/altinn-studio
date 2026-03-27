@@ -8,6 +8,8 @@ import { StudioSelect, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import cn from 'classnames';
 
+import type { JSX } from 'react';
+
 type ImageComponentProps = IGenericEditComponent<ComponentType.Image> & {
   className?: string;
 };

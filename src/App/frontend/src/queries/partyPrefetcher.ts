@@ -1,5 +1,5 @@
+import { partiesAllowedToInstantiateQuery } from 'src/core/queries/party';
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
-import { usePartiesQueryDef } from 'src/features/party/PartiesProvider';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 
 /**
@@ -7,6 +7,6 @@ import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
  */
 export function PartyPrefetcher() {
   const allowAnonymous = useIsAllowAnonymous(false);
-  usePrefetchQuery(usePartiesQueryDef(true), allowAnonymous);
+  usePrefetchQuery(partiesAllowedToInstantiateQuery({ enabled: allowAnonymous }));
   return null;
 }

@@ -2,6 +2,7 @@
   max-height: 70vh;
   overflow-y: scroll;
   padding-top: 24px;
+  padding-bottom: var(--ds-size-2);
   border-top: #efefef solid 1px;
 }
 

@@ -6,7 +6,7 @@ import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';
 import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';
 import { useIsPdf } from 'src/hooks/useIsPdf';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { TaskKeys } from 'src/routesBuilder';
 import type { TextReference } from 'src/features/language/useLanguage';
 import type {
   BackendFieldValidatorGroups,
