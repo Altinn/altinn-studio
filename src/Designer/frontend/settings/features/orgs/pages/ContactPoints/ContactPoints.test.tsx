@@ -38,7 +38,7 @@ const slackContactPoint: ContactPoint = {
 
 const renderContactPoints = (
   contactPoints?: ContactPoint[],
-  initialEntries = ['/ttd/settings'],
+  initialEntries = ['/orgs/ttd/contact-points'],
 ) => {
   const queryClient = createQueryClientMock();
   if (contactPoints !== undefined) {
@@ -59,7 +59,7 @@ describe('ContactPoints', () => {
     renderWithProviders(<ContactPoints />, {
       queries: { getContactPoints },
       queryClient,
-      initialEntries: ['/ttd/settings'],
+      initialEntries: ['/orgs/ttd/contact-points'],
     });
     await screen.findByText(textMock('settings.orgs.contact_points.error'));
     expect(screen.getByText(textMock('settings.orgs.contact_points.error'))).toBeInTheDocument();

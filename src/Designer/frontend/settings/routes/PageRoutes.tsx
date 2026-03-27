@@ -12,7 +12,7 @@ import { routes as userRoutes } from '../features/user/routes/routes';
 import { routes as orgRoutes } from '../features/orgs/routes/routes';
 import { NotFound } from '../pages/NotFound/NotFound';
 import { PageLayout } from '../layout/PageLayout';
-import { RoutePaths } from 'settings/features/user/routes/RoutePaths';
+import { RoutePaths } from '../features/user/routes/RoutePaths';
 
 const router = createBrowserRouter(
   createRoutesFromElements(

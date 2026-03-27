@@ -28,7 +28,7 @@ const orgsMock: KeyValuePairs<Org> = {
   },
 };
 
-const renderPageLayout = (initialEntries = ['/ttd/settings']) => {
+const renderPageLayout = (initialEntries = ['/orgs/ttd/contact-points']) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OrgList], orgsMock);
   queryClient.setQueryData([QueryKey.CurrentUser], userMock);
@@ -38,9 +38,8 @@ const renderPageLayout = (initialEntries = ['/ttd/settings']) => {
 describe('PageLayout', () => {
   it('renders the settings heading', () => {
     renderPageLayout();
-    expect(
-      screen.getByRole('heading', { name: textMock('settings.orgs.heading') }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings.orgs.heading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('settings.orgs.heading.description'))).toBeInTheDocument();
   });
 
   it('renders the Menu', () => {
@@ -55,7 +54,10 @@ describe('PageLayout', () => {
 
   it('renders the loading spinner while data is pending', () => {
     const queryClient = createQueryClientMock();
-    renderWithProviders(<PageLayout />, { queryClient, initialEntries: ['/ttd/settings'] });
+    renderWithProviders(<PageLayout />, {
+      queryClient,
+      initialEntries: ['/orgs/ttd/contact-points'],
+    });
     expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
   });
 
@@ -63,7 +65,10 @@ describe('PageLayout', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgList], orgsMock);
     queryClient.setQueryData([QueryKey.CurrentUser], userMock);
-    renderWithProviders(<PageLayout />, { queryClient, initialEntries: ['/unknown-org/settings'] });
+    renderWithProviders(<PageLayout />, {
+      queryClient,
+      initialEntries: ['/orgs/unknown-org/contact-points'],
+    });
     expect(screen.getByText(textMock('not_found_page.heading'))).toBeInTheDocument();
   });
 
@@ -79,9 +84,15 @@ describe('PageLayout', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgList], orgsMock);
     queryClient.setQueryData([QueryKey.CurrentUser], undefined);
-    renderWithProviders(<PageLayout />, { queryClient, initialEntries: ['/ttd/settings'] });
+    renderWithProviders(<PageLayout />, {
+      queryClient,
+      initialEntries: ['/orgs/ttd/contact-points'],
+    });
     expect(
       screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: textMock('settings.orgs.heading.description') }),
     ).not.toBeInTheDocument();
   });
 });

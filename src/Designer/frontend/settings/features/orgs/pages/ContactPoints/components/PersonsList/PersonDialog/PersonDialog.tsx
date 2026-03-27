@@ -19,7 +19,7 @@ import {
   nameMaxLength,
   emailMaxLength,
   phoneMaxLength,
-} from 'settings/features/orgs/constants/contactPointConstants';
+} from '../../../../../constants/contactPointConstants';
 
 export type Person = {
   name: string;
