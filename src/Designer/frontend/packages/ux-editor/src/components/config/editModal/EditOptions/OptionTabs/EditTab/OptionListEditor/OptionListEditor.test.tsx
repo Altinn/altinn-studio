@@ -88,7 +88,7 @@ describe('OptionListEditor', () => {
     const user = userEvent.setup();
     renderOptionListEditorWithPublishedCodeList();
     await user.click(getEditButton());
-    const formLegend = textMock('ux_editor.options.published_code_list.choose');
+    const formLegend = `${textMock('ux_editor.options.published_code_list.choose')} ${textMock('ux_editor.options.published_code_list.latest_or_fixed_description')}`;
     expect(screen.getByRole('group', { name: formLegend })).toBeInTheDocument();
   });
 
