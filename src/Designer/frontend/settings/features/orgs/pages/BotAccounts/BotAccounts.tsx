@@ -10,7 +10,7 @@ import classes from './BotAccounts.module.css';
 export const BotAccounts = (): ReactElement => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const match = matchPath({ path: '/:org', caseSensitive: true, end: false }, pathname);
+  const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
   const { org } = match?.params ?? {};
 
   const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org!);
