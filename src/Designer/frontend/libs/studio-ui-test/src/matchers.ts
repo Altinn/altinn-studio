@@ -8,12 +8,12 @@ export function getFieldsetByLegend(legend: string) {
  * Since the summary element does not have a role, we need to traverse up the DOM to get the details element. This is a helper function to do that.
  * https://github.com/testing-library/dom-testing-library/issues/1252
  */
-export function getDetailsBySummary(summary: string | RegExp) {
-  const summaryEl = getSummaryByText(summary);
+export function queryDetailsBySummary(summary: string | RegExp) {
+  const summaryEl = querySummaryByText(summary);
   return summaryEl?.parentElement instanceof HTMLDetailsElement ? summaryEl.parentElement : null;
 }
 
-export function getSummaryByText(summary: string | RegExp) {
+export function querySummaryByText(summary: string | RegExp) {
   return screen.queryByText(
     (_content, element) =>
       element?.nodeName === 'SUMMARY' && element.textContent?.trim() === summary,

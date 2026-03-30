@@ -13,7 +13,7 @@ import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import { textResourcesNb } from '../../../../test-data/textResources';
 import { Guard } from '@studio/guard';
-import { getDetailsBySummary } from '@studio/ui-test';
+import { queryDetailsBySummary } from '@studio/ui-test';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -51,14 +51,14 @@ describe('CodeListsWithTextResources', () => {
   // TODO - This test is redundant as your are testing native functionality of details/summary. Consider removing it.
   it('renders the code list details closed by default', () => {
     renderCodeLists();
-    const details = getDetailsBySummary(codeListName);
+    const details = queryDetailsBySummary(codeListName);
 
     expect(details).not.toHaveAttribute('open');
   });
 
   it('renders the code list details open by default if code list title is equal to codeListInEditMode', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
-    const details = getDetailsBySummary(codeListName);
+    const details = queryDetailsBySummary(codeListName);
     expect(details).toHaveAttribute('open');
   });
 
