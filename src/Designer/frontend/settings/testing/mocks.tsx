@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { render } from '@testing-library/react';
+import { render, renderHook } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { MemoryRouterProps } from 'react-router-dom';
@@ -28,4 +28,19 @@ export function renderWithProviders(
     ),
   };
   return render(component, renderOptions);
+}
+
+export function renderHookWithProviders<T>(
+  hook: () => T,
+  { queries = {}, queryClient = createQueryClientMock(), initialEntries }: ProviderData = {},
+) {
+  return renderHook(hook, {
+    wrapper: ({ children }) => (
+      <MemoryRouter initialEntries={initialEntries}>
+        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+          {children}
+        </ServicesContextProvider>
+      </MemoryRouter>
+    ),
+  });
 }
