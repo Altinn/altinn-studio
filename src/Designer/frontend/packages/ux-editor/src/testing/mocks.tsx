@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import type { RenderOptions } from '@testing-library/react';
-import { renderHook } from '@testing-library/react';
+import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
@@ -26,7 +26,6 @@ import {
   layoutSet as testLayoutSet,
   org as testOrg,
 } from '@studio/testing/testids';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -176,7 +175,7 @@ export const renderWithProviders = (
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
   return {
-    ...renderAndRunTimers(component, {
+    ...render(component, {
       wrapper: ({ children }) =>
         wrapper({
           queries,

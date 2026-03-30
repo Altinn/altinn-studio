@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { AvailableForTypeCheckboxGroup } from './AvailableForTypeCheckboxGroup';
 import type { AvailableForTypeCheckboxGroupProps } from './AvailableForTypeCheckboxGroup';
@@ -6,7 +6,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { LabelAndValue } from 'app-development/features/appSettings/types/LabelAndValue';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import { getAvailableForTypeOptions } from '../../utils/appConfigAvailableForTypeUtils';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('AvailableForTypeCheckboxGroup', () => {
   afterEach(jest.clearAllMocks);
@@ -79,7 +78,7 @@ const defaultProps: AvailableForTypeCheckboxGroupProps = {
 function renderAvailableForTypeCheckboxGroup(
   props: Partial<AvailableForTypeCheckboxGroupProps> = {},
 ) {
-  return renderAndRunTimers(<AvailableForTypeCheckboxGroup {...defaultProps} {...props} />);
+  return render(<AvailableForTypeCheckboxGroup {...defaultProps} {...props} />);
 }
 
 const getText = (name: string): HTMLParagraphElement => screen.getByText(name);

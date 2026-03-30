@@ -1,12 +1,11 @@
 import type { Ref } from 'react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioRadio } from './StudioRadio';
 import type { StudioRadioProps } from './StudioRadio';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
-import { renderAndRunTimers } from '@studio/ui-test/src/renderAndRunTimers';
 
 const label: string = 'Radio';
 const ariaLabel = `aria label`;
@@ -41,7 +40,7 @@ describe('StudioRadio', () => {
 });
 
 function renderStudioRadio(props: StudioRadioProps, ref?: Ref<HTMLInputElement>): RenderResult {
-  return renderAndRunTimers(<StudioRadio {...props} ref={ref} />);
+  return render(<StudioRadio {...props} ref={ref} />);
 }
 
 function getRadio(): HTMLInputElement {

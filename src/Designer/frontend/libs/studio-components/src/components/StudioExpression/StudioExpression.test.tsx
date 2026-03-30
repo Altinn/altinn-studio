@@ -1,5 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, within, waitFor } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';
 import { dataLookupOptions } from './test-data/dataLookupOptions';
 import { texts } from './test-data/texts';
@@ -15,7 +15,6 @@ import { GeneralRelationOperator } from './enums/GeneralRelationOperator';
 import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 import { expressionToString } from '../StudioManualExpression/converters';
 import { LogicalTupleOperator } from './enums/LogicalTupleOperator';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 const onChange = jest.fn();
 
@@ -228,11 +227,9 @@ describe('StudioExpression', () => {
     await user.type(input, 'tru');
     await user.click(screen.getByRole('tab', { name: texts.simplified }));
     expect(onChange).not.toHaveBeenCalled();
-    await waitFor(() =>
-      expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
-        'aria-selected',
-        'true',
-      ),
+    expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
+      'aria-selected',
+      'true',
     );
   });
 
@@ -305,7 +302,7 @@ describe('StudioExpression', () => {
 });
 
 const renderExpression = (expression: Expression): RenderResult => {
-  return renderAndRunTimers(
+  return render(
     <StudioExpression
       expression={expression}
       onChange={onChange}

@@ -47,7 +47,7 @@ const render = (ChildComponent: React.ElementType) => {
   );
 };
 
-describe.skip('FormItemContext', () => {
+describe('FormItemContext', () => {
   afterEach(jest.clearAllMocks);
 
   it('should update the form item when calling handleUpdate', async () => {

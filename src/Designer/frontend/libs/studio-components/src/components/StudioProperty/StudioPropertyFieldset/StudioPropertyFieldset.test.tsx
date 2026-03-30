@@ -1,9 +1,8 @@
-import { screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { StudioPropertyFieldset } from './StudioPropertyFieldset';
 import { testRootClassNameAppending } from '../../../test-utils/testRootClassNameAppending';
 import { testRefForwarding } from '../../../test-utils/testRefForwarding';
 import { FieldsetContent } from './test-data/FieldsetContent';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 jest.mock('./StudioPropertyFieldset.module.css', () => ({
   propertyFieldset: 'propertyFieldset',
@@ -15,14 +14,14 @@ jest.mock('./StudioPropertyFieldset.module.css', () => ({
 describe('StudioPropertyFieldset', () => {
   it('Renders a group component with the given legend', () => {
     const legend = 'Test legend';
-    renderAndRunTimers(<StudioPropertyFieldset legend={legend} />);
+    render(<StudioPropertyFieldset legend={legend} />);
     getGroupByName(legend);
   });
 
   it('Renders the menubar', () => {
     const menubarTestId = 'menubar';
     const menubarComponent = <div data-testid={menubarTestId} />;
-    renderAndRunTimers(<StudioPropertyFieldset legend='Test' menubar={menubarComponent} />);
+    render(<StudioPropertyFieldset legend='Test' menubar={menubarComponent} />);
     const group = screen.getByRole('group');
     const menubar = within(group).getByRole('menubar');
     within(menubar).getByTestId(menubarTestId);
@@ -30,24 +29,24 @@ describe('StudioPropertyFieldset', () => {
 
   it('Appends the given class name to the default one', () => {
     testRootClassNameAppending(function (className) {
-      return renderAndRunTimers(<StudioPropertyFieldset legend='Test' className={className} />);
+      return render(<StudioPropertyFieldset legend='Test' className={className} />);
     });
   });
 
   it('Forwards the ref object to the fieldset element if given', () => {
     testRefForwarding<HTMLFieldSetElement>(
-      (ref) => renderAndRunTimers(<StudioPropertyFieldset legend='Test' ref={ref} />),
+      (ref) => render(<StudioPropertyFieldset legend='Test' ref={ref} />),
       getGroup,
     );
   });
 
   it('Renders a compact fieldset when the compact prop is true', () => {
-    renderAndRunTimers(<StudioPropertyFieldset legend='Test' compact />);
+    render(<StudioPropertyFieldset legend='Test' compact />);
     expect(getGroup()).toHaveClass('compact');
   });
 
   it('Renders children', () => {
-    renderAndRunTimers(
+    render(
       <StudioPropertyFieldset legend='Test'>
         <FieldsetContent />
       </StudioPropertyFieldset>,

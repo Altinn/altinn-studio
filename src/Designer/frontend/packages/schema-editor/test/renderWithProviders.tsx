@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { renderAndRunTimers } from '@studio/ui-test';
+import { render } from '@testing-library/react';
 import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
@@ -29,7 +29,7 @@ export const renderWithProviders =
       ...appContextProps,
     };
 
-    const result = renderAndRunTimers(
+    const result = render(
       <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
         {element}
       </SchemaEditorAppContext.Provider>,

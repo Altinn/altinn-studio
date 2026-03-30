@@ -1,5 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
@@ -15,7 +15,6 @@ import userEvent from '@testing-library/user-event';
 import { InstanceContext } from '../../../../enums/InstanceContext';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import { PredefinedGatewayAction } from '../../../../enums/PredefinedGatewayAction';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('SubexpressionValueSelector', () => {
   it('Renders with the given legend in edit mode', () => {
@@ -304,7 +303,7 @@ const defaultProps: SubexpressionValueSelectorProps = {
 const renderSubexpressionValueSelector = (
   props: Partial<SubexpressionValueSelectorProps> = {},
 ): RenderResult =>
-  renderAndRunTimers(
+  render(
     <StudioExpressionContextProvider
       value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
     >

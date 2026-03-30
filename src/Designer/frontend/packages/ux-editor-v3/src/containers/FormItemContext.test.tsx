@@ -13,7 +13,8 @@ import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import type { IAppState } from '../types/global';
-import { studioTest } from '@studio/ui-test';
+
+jest.useFakeTimers({ advanceTimers: true });
 
 jest.mock('../hooks/mutations/useUpdateFormContainerMutation');
 const mockUpdateFormContainer = jest.fn();
@@ -245,7 +246,7 @@ describe('FormItemContext', () => {
   });
 
   it('should save the container when calling debounceSave', async () => {
-    const user = userEvent.setup({ advanceTimers: studioTest.advanceTimersByTime });
+    const user = userEvent.setup();
     const mockFormItem: FormContainer = {
       id: 'id',
       itemType: 'CONTAINER',
@@ -260,10 +261,9 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    studioTest.useFakeTimers();
     await user.click(button);
-    studioTest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
-    studioTest.useRealTimers();
+
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
@@ -320,7 +320,7 @@ describe('FormItemContext', () => {
   });
 
   it('should save the component when calling debounceSave', async () => {
-    const user = userEvent.setup({ advanceTimers: studioTest.advanceTimersByTime });
+    const user = userEvent.setup();
     const mockFormItem: FormComponent = {
       id: 'id',
       itemType: 'COMPONENT',
@@ -334,11 +334,10 @@ describe('FormItemContext', () => {
       );
     });
 
-    studioTest.useFakeTimers();
     const button = screen.getByTestId('button');
     await user.click(button);
-    studioTest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
-    studioTest.useRealTimers();
+
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });

@@ -1,11 +1,10 @@
-import { screen } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioTextarea } from './StudioTextarea';
 import type { StudioTextareaProps } from './StudioTextarea';
 import userEvent from '@testing-library/user-event';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 const label: string = 'My label';
 
@@ -103,5 +102,5 @@ const defaultProps: StudioTextareaProps = {
 };
 
 const renderStudioTextarea = (props: Partial<StudioTextareaProps> = {}): RenderResult => {
-  return renderAndRunTimers(<StudioTextarea {...defaultProps} {...props} />);
+  return render(<StudioTextarea {...defaultProps} {...props} />);
 };

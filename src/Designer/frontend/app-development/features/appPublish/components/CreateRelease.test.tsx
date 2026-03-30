@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { CreateRelease } from './CreateRelease';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -12,7 +12,6 @@ import { app, org } from '@studio/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -20,7 +19,7 @@ const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
     ...queries,
   };
 
-  renderAndRunTimers(
+  render(
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <TestAppRouter>
         <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>

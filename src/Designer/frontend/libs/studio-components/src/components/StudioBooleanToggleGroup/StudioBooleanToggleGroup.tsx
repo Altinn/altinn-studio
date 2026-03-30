@@ -29,13 +29,7 @@ const StudioBooleanToggleGroup = forwardRef<HTMLFieldSetElement, StudioBooleanTo
     };
 
     return (
-      <ToggleGroup
-        data-toggle-group=' '
-        {...rest}
-        onChange={handleChange}
-        value={value ? 'true' : 'false'}
-        ref={ref}
-      >
+      <ToggleGroup {...rest} onChange={handleChange} value={value ? 'true' : 'false'} ref={ref}>
         <ToggleGroup.Item value='true'>{trueLabel}</ToggleGroup.Item>
         <ToggleGroup.Item value='false'>{falseLabel}</ToggleGroup.Item>
       </ToggleGroup>

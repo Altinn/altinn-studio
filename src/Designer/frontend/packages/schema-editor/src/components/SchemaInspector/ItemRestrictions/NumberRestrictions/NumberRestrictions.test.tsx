@@ -1,9 +1,8 @@
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { IntRestrictionKey } from '@altinn/schema-model';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('NumberRestrictions component', () => {
   it('Should render checkbox for minimum', () => {
@@ -14,7 +13,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getByLabelText(textMock('schema_editor.minimum_inclusive'));
     expect(checkbox).toBeInTheDocument();
   });
@@ -27,7 +26,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getByLabelText(textMock('schema_editor.maximum_inclusive'));
     expect(checkbox).toBeInTheDocument();
   });
@@ -40,7 +39,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(textMock('schema_editor.minimum_inclusive'));
     expect(textfield).toBeInTheDocument();
   });
@@ -53,7 +52,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(textMock('schema_editor.maximum_inclusive'));
     expect(textfield).toBeInTheDocument();
   });
@@ -66,7 +65,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const textfield = screen.getByLabelText(textMock('schema_editor.multipleOf'));
     expect(textfield).toBeInTheDocument();
   });
@@ -81,7 +80,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getAllByLabelText(textMock('schema_editor.format_date_inclusive'))[0];
     await user.click(checkbox);
     expect(onChangeRestrictions).toHaveBeenCalled();
@@ -97,7 +96,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const textBoxMinimum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
@@ -126,7 +125,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const textBoxMaximum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.maximum_inclusive'),
     });
@@ -155,7 +154,7 @@ describe('NumberRestrictions component', () => {
       onChangeRestrictionValue: jest.fn(),
       isInteger: false,
     };
-    renderAndRunTimers(<NumberRestrictions readonly={false} {...props} />);
+    render(<NumberRestrictions readonly={false} {...props} />);
     const textBoxMinimum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.minimum_inclusive'),
     });

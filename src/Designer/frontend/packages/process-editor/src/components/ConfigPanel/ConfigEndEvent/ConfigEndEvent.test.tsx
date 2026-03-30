@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import userEvent from '@testing-library/user-event';
@@ -9,7 +9,6 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('ConfigEndEvent', () => {
   afterEach(() => jest.clearAllMocks());
@@ -62,7 +61,7 @@ type RenderProps = {
 const renderConfigEndEventPanel = (props: Partial<RenderProps> = {}) => {
   const { bpmnApiContextProps, rootContextProps } = props;
 
-  return renderAndRunTimers(
+  return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>

@@ -1,10 +1,9 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 // Test data
 const path = '#/properties/testpath';
@@ -21,7 +20,7 @@ const defaultProps: RestrictionItemProps = {
 const user = userEvent.setup();
 
 const renderStringRestrictions = (props?: Partial<RestrictionItemProps>) =>
-  renderAndRunTimers(<StringRestrictions {...defaultProps} {...props} />);
+  render(<StringRestrictions {...defaultProps} {...props} />);
 
 describe('StringRestrictions', () => {
   afterEach(jest.clearAllMocks);

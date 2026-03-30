@@ -19,7 +19,7 @@ export const BreadcrumbsTaskNavigation = () => {
 
   return (
     <div className={classes.container}>
-      <StudioBreadcrumbs aria-label=' '>
+      <StudioBreadcrumbs aria-label='du er her'>
         <StudioBreadcrumbs.List>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link

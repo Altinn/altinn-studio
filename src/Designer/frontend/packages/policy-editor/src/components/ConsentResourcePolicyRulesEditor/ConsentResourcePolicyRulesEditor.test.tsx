@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
@@ -13,7 +13,6 @@ import {
   CONSENT_ACTION,
   REQUEST_CONSENT_ACTION,
 } from '@altinn/policy-editor/constants';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 const accessListSubject = {
   id: 'test-liste',
@@ -177,7 +176,7 @@ describe('ConsentResourcePolicyRulesEditor', () => {
 const renderConsentResourcePolicyRulesEditor = (
   policyEditorContextProps: Partial<PolicyEditorContextProps> = {},
 ) => {
-  return renderAndRunTimers(
+  return render(
     <PolicyEditorContext.Provider
       value={{
         ...mockPolicyEditorContextValue,

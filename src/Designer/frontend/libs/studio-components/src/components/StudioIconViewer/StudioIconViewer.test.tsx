@@ -1,8 +1,7 @@
 import type { RenderResult } from '@testing-library/react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioIconViewer } from './StudioIconViewer';
 import userEvent from '@testing-library/user-event';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 describe('StudioIconViewer', () => {
   it('should render the component', () => {
@@ -63,5 +62,5 @@ describe('StudioIconViewer', () => {
 });
 
 function renderStudioIconViewer(): RenderResult {
-  return renderAndRunTimers(<StudioIconViewer />);
+  return render(<StudioIconViewer />);
 }

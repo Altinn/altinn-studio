@@ -1,6 +1,6 @@
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { PredefinedActions } from './PredefinedActions';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
@@ -10,7 +10,6 @@ import {
   BpmnActionModeler,
 } from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../../contexts/BpmnConfigPanelContext';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 jest.mock('../hooks/useOnActionChange');
 jest.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
@@ -96,7 +95,7 @@ type RenderPredefinedActionsProps = {
   actionElement?: Action;
 };
 const renderPredefinedActions = (props?: RenderPredefinedActionsProps) => {
-  return renderAndRunTimers(
+  return render(
     <BpmnContext.Provider value={mockBpmnContextValue}>
       <BpmnConfigPanelFormContextProvider>
         <PredefinedActions actionElement={props?.actionElement || actionElementMock} />

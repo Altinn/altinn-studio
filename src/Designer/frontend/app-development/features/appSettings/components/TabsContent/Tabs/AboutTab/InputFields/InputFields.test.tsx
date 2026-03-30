@@ -1,10 +1,9 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { InputFieldsProps } from './InputFields';
 import { InputFields } from './InputFields';
 import { mockAppConfig } from 'app-development/features/appSettings/mocks/appConfigMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 const mockNewText: string = 'test';
 
@@ -19,7 +18,7 @@ describe('InputFields', () => {
   afterEach(jest.clearAllMocks);
 
   it('displays the "repo" input as readonly', async () => {
-    renderAndRunTimers(<InputFields {...defaultProps} />);
+    render(<InputFields {...defaultProps} />);
 
     const repoNameInput = screen.getByLabelText(textMock('app_settings.about_tab_repo_label'));
     expect(repoNameInput).toHaveValue(mockAppConfig.repositoryName);
@@ -89,5 +88,5 @@ describe('InputFields', () => {
 });
 
 const renderInputFields = (props: Partial<InputFieldsProps> = {}) => {
-  return renderAndRunTimers(<InputFields {...defaultProps} {...props} />);
+  return render(<InputFields {...defaultProps} {...props} />);
 };

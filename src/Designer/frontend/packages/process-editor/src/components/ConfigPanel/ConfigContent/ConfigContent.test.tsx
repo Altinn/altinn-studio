@@ -1,5 +1,5 @@
 import { ConfigContent } from './ConfigContent';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
@@ -14,7 +14,6 @@ import {
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 const tasks = [
   {
@@ -247,7 +246,7 @@ const renderConfigContent = (
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
   rootContextProps: Partial<BpmnContextProps> = {},
 ) => {
-  return renderAndRunTimers(
+  return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>

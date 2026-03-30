@@ -301,22 +301,11 @@ function ModeToggle({
 }: InputModeToggleProps): ReactElement {
   const className = cn(givenClass, classes.toggle);
   return (
-    <ToggleGroup
-      data-toggle-group=' '
-      onChange={onToggle}
-      value={inputMode}
-      data-size='sm'
-      className={className}
-    >
-      <ToggleGroup.Item
-        aria-label={texts.editValue}
-        icon
-        title={texts.editValue}
-        value={Mode.EditValue}
-      >
+    <ToggleGroup onChange={onToggle} value={inputMode} data-size='sm' className={className}>
+      <ToggleGroup.Item aria-label={texts.editValue} value={Mode.EditValue}>
         <PencilIcon />
       </ToggleGroup.Item>
-      <ToggleGroup.Item icon value={Mode.Search} title={texts.search} aria-label={texts.search}>
+      <ToggleGroup.Item value={Mode.Search} aria-label={texts.search}>
         <MagnifyingGlassIcon />
       </ToggleGroup.Item>
     </ToggleGroup>

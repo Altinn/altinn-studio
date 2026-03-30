@@ -5,8 +5,7 @@ import {
   DEFAULT_MIN_HEIGHT_PX_TEXTAREA,
   useAutoSizeTextArea,
 } from './useAutoSizeTextArea';
-import { screen } from '@testing-library/react';
-import { renderAndRunTimers } from '@studio/ui-test';
+import { render, screen } from '@testing-library/react';
 
 describe('useAutoSizeTextArea', () => {
   it('should set a default min height of the textarea where the scroll is not visible', () => {
@@ -18,7 +17,7 @@ describe('useAutoSizeTextArea', () => {
       );
     };
 
-    renderAndRunTimers(<TestComponent value={'A text'} />);
+    render(<TestComponent value={'A text'} />);
 
     const textarea = screen.getByRole('textbox', { name: testLabel });
 
@@ -43,7 +42,7 @@ describe('useAutoSizeTextArea', () => {
       );
     };
 
-    renderAndRunTimers(<TestComponent value='A text' />);
+    render(<TestComponent value='A text' />);
 
     const textarea = screen.getByRole('textbox', { name: testLabel });
 
@@ -68,7 +67,7 @@ describe('useAutoSizeTextArea', () => {
       );
     };
 
-    renderAndRunTimers(<TestComponent value='A text' />);
+    render(<TestComponent value='A text' />);
 
     const textarea = screen.getByRole('textbox', { name: testLabel });
 
@@ -92,7 +91,7 @@ describe('useAutoSizeTextArea', () => {
       );
     };
 
-    renderAndRunTimers(<TestComponent value='A text' />);
+    render(<TestComponent value='A text' />);
 
     const textarea = screen.getByRole('textbox', { name: testLabel });
 
@@ -115,7 +114,7 @@ describe('useAutoSizeTextArea', () => {
       );
     };
 
-    renderAndRunTimers(<TestComponent value='A text' />);
+    render(<TestComponent value='A text' />);
 
     const textarea = screen.getByRole('textbox', { name: testLabel });
 

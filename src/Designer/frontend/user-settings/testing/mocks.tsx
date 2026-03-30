@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { renderAndRunTimers } from '@studio/ui-test';
+import { render } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { MemoryRouterProps } from 'react-router-dom';
@@ -27,5 +27,5 @@ export function renderWithProviders(
       </MemoryRouter>
     ),
   };
-  return renderAndRunTimers(component, renderOptions);
+  return render(component, renderOptions);
 }

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   RemoveChangesPopoverContent,
@@ -13,7 +13,6 @@ import {
   type ServicesContextProps,
 } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
 
@@ -109,7 +108,7 @@ const renderRemoveChangesPopoverContent = (
     ...queries,
   };
 
-  return renderAndRunTimers(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <RemoveChangesPopoverContent {...defaultProps} />

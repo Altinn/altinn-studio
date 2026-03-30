@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CreateBranchDialogProps } from './CreateBranchDialog';
 import { CreateBranchDialog } from './CreateBranchDialog';
@@ -6,7 +6,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 const onClose = jest.fn();
 const onCreateBranch = jest.fn();
@@ -116,7 +115,7 @@ const defaultProps: CreateBranchDialogProps = {
 };
 
 const renderCreateBranchDialog = (props?: Partial<CreateBranchDialogProps>) => {
-  return renderAndRunTimers(
+  return render(
     <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
       <CreateBranchDialog {...defaultProps} {...props} />
     </ServicesContextProvider>,

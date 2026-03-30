@@ -5,7 +5,7 @@ import configureStore from 'redux-mock-store';
 import type { IAppState } from '../types/global';
 import { Provider } from 'react-redux';
 import type { PreloadedState } from '@reduxjs/toolkit';
-import { renderHook } from '@testing-library/react';
+import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
@@ -84,7 +84,7 @@ export const renderWithMockStore =
       state,
       storeCreator,
     });
-    const renderResult = renderAndRunTimers(renderComponent(component));
+    const renderResult = render(renderComponent(component));
     const rerender = (rerenderedComponent) =>
       renderResult.rerender(renderComponent(rerenderedComponent));
     return { renderResult: { ...renderResult, rerender }, store };
@@ -147,7 +147,7 @@ export const renderWithProviders = (
 
   return {
     store,
-    ...renderAndRunTimers(component, {
+    ...render(component, {
       wrapper: Wrapper,
       ...renderOptions,
     }),
