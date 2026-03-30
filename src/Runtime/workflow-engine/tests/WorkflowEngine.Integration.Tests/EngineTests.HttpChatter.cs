@@ -33,7 +33,7 @@ public partial class EngineTests
         using var client = new EngineApiClient(fixture, recorder);
 
         // Act
-        var response = await client.Enqueue(
+        var response = await client.EnqueueWithQueryParams(
             request,
             ns: "chatter-test",
             idempotencyKey: "chatter-idem-key",

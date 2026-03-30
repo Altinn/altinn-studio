@@ -87,6 +87,42 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Enqueues a batch using query parameters (instead of headers) for metadata.
+    /// Produces more copy-pastable HTTP exchanges for developer documentation.
+    /// </summary>
+    public async Task<WorkflowEnqueueResponse.Accepted> EnqueueWithQueryParams(
+        WorkflowEnqueueRequest request,
+        string? ns = null,
+        string? idempotencyKey = null,
+        Guid? correlationId = null
+    )
+    {
+        using var response = await EnqueueRawWithQueryParams(request, ns, idempotencyKey, correlationId);
+        return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
+    }
+
+    /// <summary>
+    /// Enqueues a batch using query parameters (instead of headers) for metadata.
+    /// Returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
+    public async Task<HttpResponseMessage> EnqueueRawWithQueryParams(
+        WorkflowEnqueueRequest request,
+        string? ns = null,
+        string? idempotencyKey = null,
+        Guid? correlationId = null
+    )
+    {
+        var path = BuildMetadataQueryString(ns, idempotencyKey, correlationId);
+
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{BasePath}?{path}")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(request), new UTF8Encoding(), "application/json"),
+        };
+
+        return await _client.SendAsync(httpRequest);
+    }
+
+    /// <summary>
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
     public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId) =>
@@ -204,6 +240,18 @@ public sealed class EngineApiClient : IDisposable
         headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey ?? $"idem-{Guid.NewGuid()}");
         if (correlationId.HasValue)
             headers.Add(WorkflowMetadataConstants.Headers.CorrelationId, correlationId.Value.ToString());
+    }
+
+    private string BuildMetadataQueryString(string? ns, string? idempotencyKey, Guid? correlationId)
+    {
+        var qs = new List<string>
+        {
+            $"{WorkflowMetadataConstants.QueryParams.Namespace}={Uri.EscapeDataString(ns ?? _defaultNamespace)}",
+            $"{WorkflowMetadataConstants.QueryParams.IdempotencyKey}={Uri.EscapeDataString(idempotencyKey ?? $"idem-{Guid.NewGuid()}")}",
+        };
+        if (correlationId.HasValue)
+            qs.Add($"{WorkflowMetadataConstants.QueryParams.CorrelationId}={correlationId.Value}");
+        return string.Join("&", qs);
     }
 
     public static async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)

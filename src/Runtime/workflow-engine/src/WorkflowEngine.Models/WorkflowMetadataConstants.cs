@@ -11,7 +11,7 @@ public static class WorkflowMetadataConstants
 {
     public static class Headers
     {
-        public const string Namespace = "Workflow-Namespace";
+        public const string Namespace = "Namespace";
         public const string IdempotencyKey = "Idempotency-Key";
         public const string CorrelationId = "Correlation-Id";
         public const string WorkflowId = "Workflow-Id";
