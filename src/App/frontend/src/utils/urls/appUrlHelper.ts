@@ -18,8 +18,6 @@ export const getInstantiateUrl = (language?: string) => {
 
 export const getSetSelectedPartyUrl = (partyId: string | number) => `${appPath}/api/v1/parties/${partyId}`;
 
-export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
-
 export const getPaymentInformationUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${origin}/${org}/${app}/instances/${instanceId}/payment${queryString}`;
