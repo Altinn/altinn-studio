@@ -47,7 +47,8 @@ describe('BreadcrumbsTaskNavigation', () => {
 
   it('renders breadcrumb items correctly', () => {
     renderBreadcrumbsTaskNavigation();
-    const breadcrumbList = screen.getByRole('navigation');
+    // const breadcrumbList = screen.getByRole('navigation'); // ds-breadcrumbs adds and removes navigation role based on screen size, so getting the list role directly is more stable for testing
+    const breadcrumbList = screen.getByRole('list'); //
     const breadcrumbItems = within(breadcrumbList).getAllByRole('listitem');
     expect(breadcrumbItems).toHaveLength(2);
     expect(breadcrumbItems[0]).toHaveTextContent('ux_editor.breadcrumbs.front_page');
