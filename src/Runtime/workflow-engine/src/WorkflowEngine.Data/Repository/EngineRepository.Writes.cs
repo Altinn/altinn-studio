@@ -713,6 +713,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<bool> RequestCancellation(
         Guid workflowId,
+        string ns,
         DateTimeOffset requestedAt,
         CancellationToken cancellationToken
     )
@@ -734,6 +735,7 @@ internal sealed partial class EngineRepository
                     UPDATE "engine"."Workflows"
                     SET "CancellationRequestedAt" = @requestedAt, "UpdatedAt" = @now
                     WHERE "Id" = @id
+                      AND "Namespace" = @ns
                       AND "Status" != ALL(@terminalStatuses)
                       AND "CancellationRequestedAt" IS NULL
                     """;
@@ -742,6 +744,7 @@ internal sealed partial class EngineRepository
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("requestedAt", requestedAt));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int[]>("terminalStatuses", terminalStatuses));
                     rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
                 },
@@ -987,6 +990,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Guid>> ResumeWorkflow(
         Guid workflowId,
+        string ns,
         DateTimeOffset resumedAt,
         bool cascade = false,
         CancellationToken cancellationToken = default
@@ -1016,12 +1020,14 @@ internal sealed partial class EngineRepository
                         "ReclaimCount" = 0,
                         "UpdatedAt" = @now
                     WHERE "Id" = @id
+                      AND "Namespace" = @ns
                       AND "Status" IN (@failed, @canceled, @depFailed, @requeued)
                     RETURNING "Id"
                     """;
                     await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
                     {
                         cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                        cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("canceled", (int)PersistentItemStatus.Canceled));
@@ -1126,7 +1132,7 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<bool> SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default)
+    public async Task<bool> SkipBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.SkipBackoff");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -1142,10 +1148,11 @@ internal sealed partial class EngineRepository
                     const string sql = """
                     UPDATE engine."Workflows"
                     SET "BackoffUntil" = NULL, "UpdatedAt" = @now
-                    WHERE "Id" = @id AND "Status" = @requeued AND "BackoffUntil" IS NOT NULL
+                    WHERE "Id" = @id AND "Namespace" = @ns AND "Status" = @requeued AND "BackoffUntil" IS NOT NULL
                     """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
+                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
                     rowsAffected = await cmd.ExecuteNonQueryAsync(ct);

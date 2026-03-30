@@ -70,9 +70,9 @@ window.copyPre = async (e) => {
  * Fetch and render the state trail.
  * @param {string} wfId - workflow databaseId
  */
-const fetchAndRender = async (wfId) => {
+const fetchAndRender = async (wfId, wfNamespace) => {
     try {
-        const url = `/dashboard/state?wf=${encodeURIComponent(wfId)}`;
+        const url = `/dashboard/state?wf=${encodeURIComponent(wfId)}&ns=${encodeURIComponent(wfNamespace)}`;
         const res = await fetch(url);
         if (_openWfId !== wfId) return; // modal changed while fetching
         if (!res.ok) throw new Error('State not found');
@@ -85,12 +85,12 @@ const fetchAndRender = async (wfId) => {
     }
 };
 
-window.openStateModal = async (wfId) => {
+window.openStateModal = async (wfId, wfNamespace) => {
     _openWfId = wfId;
     dom.stateTitle.textContent = 'State Trail';
     dom.stateBody.innerHTML = '<div class="modal-loading">Loading...</div>';
     dom.stateModal.classList.add('open');
-    await fetchAndRender(wfId);
+    await fetchAndRender(wfId, wfNamespace);
 };
 
 window.closeStateModal = () => {

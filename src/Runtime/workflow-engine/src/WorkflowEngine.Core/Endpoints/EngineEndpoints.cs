@@ -158,9 +158,10 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get"));
 
-        var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
+        var ns = WorkflowNamespace.Normalize(@namespace);
+        var workflow = await repository.GetWorkflow(workflowId, ns, cancellationToken);
 
-        if (workflow is null || !IsNamespaceMatch(workflow.Namespace, @namespace))
+        if (workflow is null)
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
@@ -172,17 +173,13 @@ internal static class EngineRequestHandlers
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
         [FromServices] IEngine engine,
-        [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
 
-        var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
-        if (workflow is null || !IsNamespaceMatch(workflow.Namespace, @namespace))
-            return TypedResults.NotFound();
-
-        var result = await engine.CancelWorkflow(workflowId, cancellationToken);
+        var ns = WorkflowNamespace.Normalize(@namespace);
+        var result = await engine.CancelWorkflow(workflowId, ns, cancellationToken);
 
         return result switch
         {
@@ -211,17 +208,13 @@ internal static class EngineRequestHandlers
         [FromRoute] Guid workflowId,
         [FromQuery] bool cascade,
         [FromServices] IEngine engine,
-        [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
 
-        var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
-        if (workflow is null || !IsNamespaceMatch(workflow.Namespace, @namespace))
-            return TypedResults.NotFound();
-
-        var result = await engine.ResumeWorkflow(workflowId, cascade, cancellationToken);
+        var ns = WorkflowNamespace.Normalize(@namespace);
+        var result = await engine.ResumeWorkflow(workflowId, ns, cascade, cancellationToken);
 
         return result switch
         {
@@ -240,13 +233,6 @@ internal static class EngineRequestHandlers
             _ => throw new UnreachableException(),
         };
     }
-
-    private static bool IsNamespaceMatch(string workflowNamespace, string routeNamespace) =>
-        string.Equals(
-            workflowNamespace,
-            WorkflowNamespace.Normalize(routeNamespace),
-            StringComparison.OrdinalIgnoreCase
-        );
 
     /// <summary>
     /// Parses repeated <c>?label=key:value</c> query params into a dictionary.

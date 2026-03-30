@@ -402,6 +402,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<PersistentItemStatus?> GetWorkflowStatus(
         Guid workflowId,
+        string ns,
         CancellationToken cancellationToken = default
     )
     {
@@ -413,6 +414,7 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var entity = await context
                 .GetWorkflowById(workflowId, includeSteps: false, includeDependencies: false, includeLinks: false)
+                .Where(wf => wf.Namespace == ns)
                 .Select(w => new { w.Status })
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -433,6 +435,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<WorkflowCancellationInfo?> GetCancellationInfo(
         Guid workflowId,
+        string ns,
         CancellationToken cancellationToken
     )
     {
@@ -444,6 +447,7 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var entity = await context
                 .GetWorkflowById(workflowId, includeSteps: false, includeDependencies: false, includeLinks: false)
+                .Where(wf => wf.Namespace == ns)
                 .Select(w => new { w.Status, w.CancellationRequestedAt })
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -554,7 +558,7 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow?> GetWorkflow(Guid workflowId, CancellationToken cancellationToken = default)
+    public async Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflow");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -564,7 +568,10 @@ internal sealed partial class EngineRepository
             logger.FetchingWorkflowById(workflowId);
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var entity = await context.GetWorkflowById(workflowId).SingleOrDefaultAsync(cancellationToken);
+            var entity = await context
+                .GetWorkflowById(workflowId)
+                .Where(wf => wf.Namespace == ns)
+                .SingleOrDefaultAsync(cancellationToken);
 
             if (entity is null)
             {

@@ -449,11 +449,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/step",
-                async (IServiceProvider sp, Guid wf, string step, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wf, string ns, string step, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    Workflow? workflow = await repo.GetWorkflow(wf, ct);
+                    Workflow? workflow = await repo.GetWorkflow(wf, ns, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -506,11 +506,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/state",
-                async (IServiceProvider sp, Guid wf, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    Workflow? workflow = await repo.GetWorkflow(wf, ct);
+                    Workflow? workflow = await repo.GetWorkflow(wf, ns, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -551,8 +551,16 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing or invalid workflowId");
                     }
 
+                    if (
+                        !doc.RootElement.TryGetProperty("namespace", out var nsProp)
+                        || string.IsNullOrWhiteSpace(nsProp.GetString())
+                    )
+                    {
+                        return Results.BadRequest("Missing namespace");
+                    }
+
                     var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, cascade: false, ct);
+                    var result = await engine.ResumeWorkflow(workflowId, nsProp.GetString()!, cascade: false, ct);
 
                     return result switch
                     {
@@ -580,14 +588,23 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing or invalid workflowId");
                     }
 
+                    if (
+                        !doc.RootElement.TryGetProperty("namespace", out var nsProp2)
+                        || string.IsNullOrWhiteSpace(nsProp2.GetString())
+                    )
+                    {
+                        return Results.BadRequest("Missing namespace");
+                    }
+
+                    string ns = nsProp2.GetString()!;
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-                    bool updated = await repo.SkipBackoff(workflowId, ct);
+                    bool updated = await repo.SkipBackoff(workflowId, ns, ct);
                     if (updated)
                         return Results.Ok();
 
-                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
+                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ns, ct);
                     if (status is null)
                         return Results.NotFound();
 
