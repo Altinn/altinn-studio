@@ -154,6 +154,44 @@ async def _validate_intent(state: AgentState):
         state.session_id, parsed.action, parsed.component, parsed.confidence,
     )
 
+async def _evaluate_intent_match(user_goal: str, final_state: dict, trace_id: str) -> None:
+    try:
+        from agents.services.evaluation.intent_judge import run_intent_judge
+        step_plan = final_state.get("step_plan") or []
+        await run_intent_judge(
+            user_goal=user_goal,
+            agent_plan=step_plan[0] if isinstance(step_plan, list) and step_plan else None,
+            trace_id=trace_id,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        log.exception("Evaluation pipeline error (intent_match)")
+
+
+async def _evaluate_no_hallucination(user_goal: str, final_state: dict, trace_id: str) -> None:
+    try:
+        from agents.services.evaluation.hallucination_judge import format_sources, run_hallucination_judge
+        step_plan = final_state.get("step_plan") or []
+        implementation_plan = final_state.get("implementation_plan")
+        agent_response = (
+            step_plan[0] if isinstance(step_plan, list) and step_plan
+            else json.dumps(implementation_plan, ensure_ascii=False) if isinstance(implementation_plan, dict) and implementation_plan
+            else str(implementation_plan or "")
+        )
+        sources = str(final_state.get("planning_guidance") or "")
+        await run_hallucination_judge(
+            user_goal=user_goal,
+            agent_response=agent_response,
+            sources=sources,
+            trace_id=trace_id,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        log.exception("Evaluation pipeline error (no_hallucination)")
+
+
 async def run_once(state: AgentState, event_sink: EventSink = None):
     """Run one complete workflow loop with unified tracing"""
     if event_sink is None:
@@ -195,48 +233,8 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     })
 
                     # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
-                    async def _run_intent_match_evaluation() -> None:
-                        try:
-                            from agents.services.evaluation.intent_judge import run_intent_judge
-                            step_plan = final_state.get("step_plan") or []
-                            await run_intent_judge(
-                                user_goal=state.user_goal,
-                                agent_plan=step_plan[0] if isinstance(step_plan, list) and step_plan else None,
-                                trace_id=root_span.trace_id,
-                            )
-                        except asyncio.CancelledError:
-                            raise
-                        except Exception:
-                            log.exception("Evaluation pipeline error")
-
-                    asyncio.create_task(_run_intent_match_evaluation())
-
-                    async def _run_no_hallucination_evaluation() -> None:
-                        try:
-                            from agents.services.evaluation.hallucination_judge import (
-                                format_sources,
-                                run_hallucination_judge,
-                            )
-                            step_plan = final_state.get("step_plan") or []
-                            implementation_plan = final_state.get("implementation_plan")
-                            agent_response = (
-                                step_plan[0] if isinstance(step_plan, list) and step_plan
-                                else json.dumps(implementation_plan, ensure_ascii=False) if isinstance(implementation_plan, dict) and implementation_plan
-                                else str(implementation_plan or "")
-                            )
-                            sources = str(final_state.get("planning_guidance") or "")
-                            await run_hallucination_judge(
-                                user_goal=state.user_goal,
-                                agent_response=agent_response,
-                                sources=sources,
-                                trace_id=root_span.trace_id,
-                            )
-                        except asyncio.CancelledError:
-                            raise
-                        except Exception:
-                            log.exception("Evaluation pipeline error (no_hallucination)")
-
-                    asyncio.create_task(_run_no_hallucination_evaluation())
+                    asyncio.create_task(_evaluate_intent_match(state.user_goal, final_state, root_span.trace_id))
+                    asyncio.create_task(_evaluate_no_hallucination(state.user_goal, final_state, root_span.trace_id))
 
                 except Exception as e:
                     root_span.update(
