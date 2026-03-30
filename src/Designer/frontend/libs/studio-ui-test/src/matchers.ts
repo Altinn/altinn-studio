@@ -9,7 +9,7 @@ export function getFieldsetByLegend(legend: string) {
  * https://github.com/testing-library/dom-testing-library/issues/1252
  */
 export function getDetailsBySummary(summary: string | RegExp) {
-  const elem = screen.getByText(
+  const elem = screen.queryByText(
     (_content, element) =>
       element?.nodeName === 'SUMMARY' && element.textContent?.trim() === summary,
   );
