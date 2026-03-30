@@ -1,10 +1,15 @@
 #nullable enable
 
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.WebSockets;
+using System.Threading.Channels;
 using Altinn.Studio.AppTunnel;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Net.Http.Headers;
 
 namespace LocalTest.Tunnel;
 
@@ -14,9 +19,13 @@ public sealed class AppTunnelClient
     private readonly object _sessionLock = new();
     private TunnelSession? _session;
 
-    public AppTunnelClient(ILogger<AppTunnelClient> logger)
+    public AppTunnelClient(
+        ILogger<AppTunnelClient> logger,
+        IHostApplicationLifetime applicationLifetime
+    )
     {
         _logger = logger;
+        applicationLifetime.ApplicationStopping.Register(Stop);
     }
 
     public bool IsConnected
@@ -30,7 +39,7 @@ public sealed class AppTunnelClient
         }
     }
 
-    public async Task AcceptAsync(HttpContext context, CancellationToken cancellationToken)
+    public async Task Accept(HttpContext context, CancellationToken cancellationToken)
     {
         if (!context.WebSockets.IsWebSocketRequest)
         {
@@ -38,8 +47,7 @@ public sealed class AppTunnelClient
             return;
         }
 
-        using var socket = await context.WebSockets.AcceptWebSocketAsync();
-        var session = new TunnelSession(socket, _logger);
+        var session = new TunnelSession(await context.WebSockets.AcceptWebSocketAsync(), _logger);
         TunnelSession? previousSession;
         lock (_sessionLock)
         {
@@ -48,52 +56,89 @@ public sealed class AppTunnelClient
         }
 
         if (previousSession is not null)
-        {
-            await previousSession.DisposeAsync();
-        }
+            await previousSession.CloseAsync();
 
         _logger.LogInformation("App tunnel connected");
 
         try
         {
-            await session.RunReceiveLoopAsync(cancellationToken);
+            await session.RunReceiveLoop(cancellationToken);
         }
         finally
         {
             lock (_sessionLock)
             {
                 if (ReferenceEquals(_session, session))
-                {
                     _session = null;
-                }
             }
 
+            await session.CloseAsync();
             _logger.LogInformation("App tunnel disconnected");
         }
     }
 
-    public async Task<HttpResponseMessage> SendAsync(
+    public async Task<HttpResponseMessage> Send(
         HttpRequestMessage request,
+        string? appId,
         CancellationToken cancellationToken
     )
     {
-        TunnelSession session;
-        lock (_sessionLock)
-        {
-            session =
-                _session ?? throw new InvalidOperationException("app tunnel is not connected");
-        }
-
-        return await session.SendAsync(request, cancellationToken);
+        var session = GetSession();
+        return await session.Send(request, appId, cancellationToken);
     }
 
-    private sealed class TunnelSession : IAsyncDisposable
+    public async Task Proxy(
+        HttpRequestMessage request,
+        string? appId,
+        HttpContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        var session = GetSession();
+        await session.Proxy(request, appId, context, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TunnelDiscoveredApp>> GetDiscoveredApps(CancellationToken cancellationToken)
+    {
+        if (!IsConnected)
+            return [];
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, TunnelDefaults.DiscoveredAppsPath);
+        using var response = await Send(request, appId: null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
+        return (await TunnelProtocol.Deserialize<TunnelDiscoveredAppsResponse>(content, cancellationToken)).Apps;
+    }
+
+    private void Stop()
+    {
+        TunnelSession? session;
+        lock (_sessionLock)
+        {
+            session = _session;
+            _session = null;
+        }
+
+        session?.Abort();
+    }
+
+    private TunnelSession GetSession()
+    {
+        lock (_sessionLock)
+        {
+            return _session ?? throw new InvalidOperationException("app tunnel is not connected");
+        }
+    }
+
+    private sealed class TunnelSession
     {
         private readonly WebSocket _socket;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _sendLock = new(1, 1);
         private readonly ConcurrentDictionary<long, PendingResponse> _pending = new();
         private long _nextRequestId;
+        private int _disposed;
 
         public TunnelSession(WebSocket socket, ILogger logger)
         {
@@ -101,19 +146,19 @@ public sealed class AppTunnelClient
             _logger = logger;
         }
 
-        public async Task RunReceiveLoopAsync(CancellationToken cancellationToken)
+        public async Task RunReceiveLoop(CancellationToken cancellationToken)
         {
+            var receiveBuffer = new byte[8192];
+            var messageBuffer = new ArrayBufferWriter<byte>(8192);
+
             try
             {
                 while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
                 {
-                    var message = await TunnelProtocol.ReadMessageAsync(_socket, cancellationToken);
-                    if (message is null)
-                    {
+                    if (!await TunnelProtocol.ReadMessage(_socket, receiveBuffer, messageBuffer, cancellationToken))
                         break;
-                    }
 
-                    HandleMessage(message);
+                    await HandleMessage(messageBuffer.WrittenMemory, cancellationToken);
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -127,59 +172,32 @@ public sealed class AppTunnelClient
             {
                 var error = new HttpRequestException("app tunnel disconnected");
                 foreach (var entry in _pending)
-                {
                     entry.Value.TrySetException(error);
-                }
             }
         }
 
-        public async Task<HttpResponseMessage> SendAsync(
+        public async Task<HttpResponseMessage> Send(
             HttpRequestMessage request,
+            string? appId,
             CancellationToken cancellationToken
         )
         {
             var requestId = Interlocked.Increment(ref _nextRequestId);
             var pending = new PendingResponse();
             if (!_pending.TryAdd(requestId, pending))
-            {
                 throw new InvalidOperationException("duplicate app tunnel request id");
-            }
 
-            using var registration = cancellationToken.Register(
-                static state =>
-                {
-                    var tuple = ((TunnelSession Session, long RequestId))state!;
-                    _ = tuple.Session.SendCancelAsync(tuple.RequestId);
-                },
-                (this, requestId)
-            );
+            using var registration = RegisterCancellation(cancellationToken, requestId);
 
             try
             {
-                var requestBody = await ReadRequestBodyAsync(request, cancellationToken);
-                var requestStart = new RequestStartFrame(
-                    requestId,
-                    request.Method.Method,
-                    GetPathAndQuery(request.RequestUri),
-                    CollectHeaders(request)
-                );
+                await SendRequest(request, appId, requestId, cancellationToken);
 
-                await SendFrameAsync(
-                    TunnelProtocol.WriteJsonFrame(TunnelFrameKind.RequestStart, requestStart),
-                    cancellationToken
-                );
-                await SendFrameAsync(
-                    TunnelProtocol.WriteBodyFrame(
-                        TunnelFrameKind.RequestBody,
-                        requestId,
-                        isFinal: true,
-                        requestBody
-                    ),
-                    cancellationToken
-                );
-
-                var response = await pending.Task.WaitAsync(cancellationToken);
-                return BuildResponseMessage(response);
+                var start = await pending.Start.WaitAsync(cancellationToken);
+                var body = await ReadBufferedBody(pending, cancellationToken);
+                var trailers = await pending.Trailers.WaitAsync(cancellationToken);
+                _pending.TryRemove(requestId, out _);
+                return BuildResponseMessage(start, body, trailers);
             }
             catch
             {
@@ -188,8 +206,47 @@ public sealed class AppTunnelClient
             }
         }
 
-        public async ValueTask DisposeAsync()
+        public async Task Proxy(
+            HttpRequestMessage request,
+            string? appId,
+            HttpContext context,
+            CancellationToken cancellationToken
+        )
         {
+            var requestId = Interlocked.Increment(ref _nextRequestId);
+            var pending = new PendingResponse();
+            if (!_pending.TryAdd(requestId, pending))
+                throw new InvalidOperationException("duplicate app tunnel request id");
+
+            using var registration = RegisterCancellation(cancellationToken, requestId);
+
+            try
+            {
+                await SendRequest(request, appId, requestId, cancellationToken);
+
+                var start = await pending.Start.WaitAsync(cancellationToken);
+                context.Response.StatusCode = start.StatusCode;
+                CopyResponseHeaders(context, start);
+
+                await foreach (var chunk in pending.Body.ReadAllAsync(cancellationToken))
+                    await context.Response.Body.WriteAsync(chunk, cancellationToken);
+
+                var trailers = await pending.Trailers.WaitAsync(cancellationToken);
+                AppendResponseTrailers(context, trailers);
+                _pending.TryRemove(requestId, out _);
+            }
+            catch
+            {
+                _pending.TryRemove(requestId, out _);
+                throw;
+            }
+        }
+
+        public async Task CloseAsync()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
+
             try
             {
                 if (_socket.State == WebSocketState.Open || _socket.State == WebSocketState.CloseReceived)
@@ -201,50 +258,75 @@ public sealed class AppTunnelClient
                     );
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to close app tunnel session gracefully");
+            }
+            finally
+            {
+                DisposeResources();
+            }
+        }
+
+        public void Abort()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
+
+            try
+            {
+                _socket.Abort();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to abort app tunnel session");
             }
 
+            DisposeResources();
+        }
+
+        private void DisposeResources()
+        {
             _socket.Dispose();
             _sendLock.Dispose();
         }
 
-        private void HandleMessage(byte[] message)
+        private async Task HandleMessage(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
         {
-            switch (TunnelProtocol.ReadKind(message))
+            switch (TunnelProtocol.ReadKind(message.Span))
             {
                 case TunnelFrameKind.ResponseStart:
                 {
                     var frame = TunnelProtocol.ReadJsonFrame<ResponseStartFrame>(
                         TunnelFrameKind.ResponseStart,
-                        message
+                        message.Span
                     );
                     if (_pending.TryGetValue(frame.RequestId, out var pending))
-                    {
                         pending.SetStart(frame);
-                    }
                     break;
                 }
                 case TunnelFrameKind.ResponseBody:
                 {
-                    var frame = TunnelProtocol.ReadBodyFrame(TunnelFrameKind.ResponseBody, message);
+                    var frame = TunnelProtocol.ReadBodyFrame(TunnelFrameKind.ResponseBody, message.Span);
                     if (_pending.TryGetValue(frame.RequestId, out var pending))
-                    {
-                        var completed = pending.AppendBody(frame.Payload, frame.IsFinal);
-                        if (completed)
-                        {
-                            _pending.TryRemove(frame.RequestId, out _);
-                        }
-                    }
+                        await pending.AppendBody(frame.Payload, frame.IsFinal, cancellationToken);
+                    break;
+                }
+                case TunnelFrameKind.ResponseTrailers:
+                {
+                    var frame = TunnelProtocol.ReadJsonFrame<HeadersFrame>(
+                        TunnelFrameKind.ResponseTrailers,
+                        message.Span
+                    );
+                    if (_pending.TryGetValue(frame.RequestId, out var pending))
+                        pending.SetTrailers(frame.Headers);
                     break;
                 }
                 case TunnelFrameKind.Error:
                 {
-                    var frame = TunnelProtocol.ReadJsonFrame<ErrorFrame>(TunnelFrameKind.Error, message);
+                    var frame = TunnelProtocol.ReadJsonFrame<ErrorFrame>(TunnelFrameKind.Error, message.Span);
                     if (_pending.TryRemove(frame.RequestId, out var pending))
-                    {
                         pending.TrySetException(new HttpRequestException(frame.Message));
-                    }
                     break;
                 }
                 default:
@@ -252,14 +334,94 @@ public sealed class AppTunnelClient
             }
         }
 
-        private async Task SendCancelAsync(long requestId)
+        private IDisposable RegisterCancellation(CancellationToken cancellationToken, long requestId)
+        {
+            return cancellationToken.Register(
+                static state =>
+                {
+                    var tuple = ((TunnelSession Session, long RequestId))state!;
+                    _ = tuple.Session.SendCancel(tuple.RequestId);
+                },
+                (this, requestId)
+            );
+        }
+
+        private async Task SendRequest(
+            HttpRequestMessage request,
+            string? appId,
+            long requestId,
+            CancellationToken cancellationToken
+        )
+        {
+            var requestStart = new RequestStartFrame(
+                requestId,
+                appId,
+                request.Method.Method,
+                GetPathAndQuery(request.RequestUri),
+                CollectHeaders(request)
+            );
+
+            await SendFrame(
+                TunnelProtocol.WriteJsonFrame(TunnelFrameKind.RequestStart, requestStart),
+                cancellationToken
+            );
+            await SendBodyFrames(request.Content, TunnelFrameKind.RequestBody, requestId, cancellationToken);
+        }
+
+        private async Task SendBodyFrames(
+            HttpContent? content,
+            TunnelFrameKind kind,
+            long requestId,
+            CancellationToken cancellationToken
+        )
+        {
+            if (content is null)
+            {
+                await SendFrame(
+                    TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
+                    cancellationToken
+                );
+                return;
+            }
+
+            await using var body = await content.ReadAsStreamAsync(cancellationToken);
+            var buffer = ArrayPool<byte>.Shared.Rent(TunnelDefaults.MaxFramePayloadBytes);
+            try
+            {
+                while (true)
+                {
+                    var bytesRead = await body.ReadAsync(
+                        buffer.AsMemory(0, TunnelDefaults.MaxFramePayloadBytes),
+                        cancellationToken
+                    );
+                    if (bytesRead == 0)
+                        break;
+
+                    await SendFrame(
+                        TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: false, buffer.AsSpan(0, bytesRead)),
+                        cancellationToken
+                    );
+                }
+
+                await SendFrame(
+                    TunnelProtocol.WriteBodyFrame(kind, requestId, isFinal: true, []),
+                    cancellationToken
+                );
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
+        private async Task SendCancel(long requestId)
         {
             if (_pending.TryRemove(requestId, out var pending))
             {
                 pending.TrySetException(new OperationCanceledException());
                 try
                 {
-                    await SendFrameAsync(
+                    await SendFrame(
                         TunnelProtocol.WriteJsonFrame(
                             TunnelFrameKind.Cancel,
                             new ErrorFrame(requestId, "cancelled")
@@ -267,18 +429,19 @@ public sealed class AppTunnelClient
                         CancellationToken.None
                     );
                 }
-                catch
+                catch (Exception ex)
                 {
+                    _logger.LogWarning(ex, "Failed to send app tunnel cancel frame for request {RequestId}", requestId);
                 }
             }
         }
 
-        private async Task SendFrameAsync(byte[] frame, CancellationToken cancellationToken)
+        private async Task SendFrame(byte[] frame, CancellationToken cancellationToken)
         {
             await _sendLock.WaitAsync(cancellationToken);
             try
             {
-                await TunnelProtocol.SendFrameAsync(_socket, frame, cancellationToken);
+                await TunnelProtocol.SendFrame(_socket, frame, cancellationToken);
             }
             finally
             {
@@ -286,27 +449,21 @@ public sealed class AppTunnelClient
             }
         }
 
-        private static async Task<byte[]> ReadRequestBodyAsync(
-            HttpRequestMessage request,
+        private static async Task<byte[]> ReadBufferedBody(
+            PendingResponse pending,
             CancellationToken cancellationToken
         )
         {
-            if (request.Content is null)
-            {
-                return [];
-            }
-
-            var body = await request.Content.ReadAsByteArrayAsync(cancellationToken);
-            TunnelProtocol.EnsureBodyWithinLimit(body.Length);
-            return body;
+            using var buffer = new MemoryStream();
+            await foreach (var chunk in pending.Body.ReadAllAsync(cancellationToken))
+                await buffer.WriteAsync(chunk, cancellationToken);
+            return buffer.ToArray();
         }
 
         private static string GetPathAndQuery(Uri? requestUri)
         {
             if (requestUri is null)
-            {
                 throw new InvalidOperationException("tunnel request is missing uri");
-            }
 
             return requestUri.IsAbsoluteUri ? requestUri.PathAndQuery : requestUri.OriginalString;
         }
@@ -316,82 +473,133 @@ public sealed class AppTunnelClient
             var headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
             foreach (var header in request.Headers)
             {
-                headers[header.Key] = [.. header.Value];
+                if (!TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
+                    headers[header.Key] = [.. header.Value];
             }
 
             if (request.Content is not null)
             {
                 foreach (var header in request.Content.Headers)
                 {
-                    headers[header.Key] = [.. header.Value];
+                    if (!TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
+                        headers[header.Key] = [.. header.Value];
                 }
             }
 
             return headers;
         }
 
-        private static HttpResponseMessage BuildResponseMessage(BufferedResponse response)
+        private static HttpResponseMessage BuildResponseMessage(
+            ResponseStartFrame response,
+            byte[] body,
+            Dictionary<string, string[]> trailers
+        )
         {
             var message = new HttpResponseMessage((HttpStatusCode)response.StatusCode)
             {
-                Content = new ByteArrayContent(response.Body),
+                Content = new ByteArrayContent(body),
             };
 
             foreach (var header in response.Headers)
             {
                 if (!message.Headers.TryAddWithoutValidation(header.Key, header.Value))
-                {
                     message.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                }
             }
 
+            foreach (var trailer in trailers)
+                message.TrailingHeaders.TryAddWithoutValidation(trailer.Key, trailer.Value);
+
             return message;
+        }
+
+        private static void CopyResponseHeaders(HttpContext context, ResponseStartFrame response)
+        {
+            var hasTransferEncoding = false;
+            var hasContentLength = false;
+
+            foreach (var header in response.Headers)
+            {
+                if (TunnelHttpHeaders.ShouldSkipResponseHeader(header.Key))
+                    continue;
+
+                context.Response.Headers[header.Key] = header.Value;
+                hasTransferEncoding |= string.Equals(header.Key, HeaderNames.TransferEncoding, StringComparison.OrdinalIgnoreCase);
+                hasContentLength |= string.Equals(header.Key, HeaderNames.ContentLength, StringComparison.OrdinalIgnoreCase);
+            }
+
+            context.Response.Headers.Remove(HeaderNames.TransferEncoding);
+
+            if (hasTransferEncoding && hasContentLength)
+                context.Response.Headers.Remove(HeaderNames.ContentLength);
+
+            if (
+                TunnelHttpHeaders.IsBodylessStatusCode(response.StatusCode)
+                && context.Response.Headers[HeaderNames.ContentLength] == "0"
+            )
+            {
+                context.Response.Headers.Remove(HeaderNames.ContentLength);
+            }
+        }
+
+        private static void AppendResponseTrailers(
+            HttpContext context,
+            Dictionary<string, string[]> trailers
+        )
+        {
+            if (!context.Response.SupportsTrailers() || trailers.Count == 0)
+                return;
+
+            foreach (var trailer in trailers)
+                context.Response.AppendTrailer(trailer.Key, trailer.Value);
         }
     }
 
     private sealed class PendingResponse
     {
-        private readonly TaskCompletionSource<BufferedResponse> _tcs =
+        private readonly TaskCompletionSource<ResponseStartFrame> _start =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly MemoryStream _body = new();
-        private ResponseStartFrame? _start;
+        private readonly TaskCompletionSource<Dictionary<string, string[]>> _trailers =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly Channel<byte[]> _body = Channel.CreateBounded<byte[]>(
+            new BoundedChannelOptions(TunnelDefaults.BodyChannelCapacity)
+            {
+                SingleReader = true,
+                SingleWriter = true,
+                FullMode = BoundedChannelFullMode.Wait,
+            }
+        );
 
-        public Task<BufferedResponse> Task => _tcs.Task;
+        public Task<ResponseStartFrame> Start => _start.Task;
+        public ChannelReader<byte[]> Body => _body.Reader;
+        public Task<Dictionary<string, string[]>> Trailers => _trailers.Task;
 
         public void SetStart(ResponseStartFrame start)
         {
-            _start = start;
+            _start.TrySetResult(start);
         }
 
-        public bool AppendBody(byte[] payload, bool isFinal)
+        public async Task AppendBody(byte[] payload, bool isFinal, CancellationToken cancellationToken)
         {
-            TunnelProtocol.EnsureBodyWithinLimit(checked((int)(_body.Length + payload.Length)));
-            _body.Write(payload, 0, payload.Length);
-
-            if (!isFinal)
+            if (payload.Length > 0)
             {
-                return false;
+                TunnelProtocol.EnsureFrameWithinLimit(payload.Length);
+                await _body.Writer.WriteAsync(payload, cancellationToken);
             }
 
-            if (_start is null)
-            {
-                _tcs.TrySetException(new InvalidDataException("response body arrived before response start"));
-                return true;
-            }
+            if (isFinal)
+                _body.Writer.TryComplete();
+        }
 
-            _tcs.TrySetResult(new BufferedResponse(_start.StatusCode, _start.Headers, _body.ToArray()));
-            return true;
+        public void SetTrailers(Dictionary<string, string[]> trailers)
+        {
+            _trailers.TrySetResult(trailers);
         }
 
         public void TrySetException(Exception error)
         {
-            _tcs.TrySetException(error);
+            _start.TrySetException(error);
+            _body.Writer.TryComplete(error);
+            _trailers.TrySetException(error);
         }
     }
-
-    private sealed record BufferedResponse(
-        int StatusCode,
-        Dictionary<string, string[]> Headers,
-        byte[] Body
-    );
 }

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/appmanager"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
@@ -72,6 +74,10 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return err
 	}
 	e.out.Verbosef("Host gateway IP: %s", runtimeCfg.HostGateway)
+
+	if ensureErr := e.ensureAppManager(ctx, runtimeCfg); ensureErr != nil {
+		return ensureErr
+	}
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, opts.Monitoring)
 	if err != nil {
@@ -162,6 +168,18 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 // Logs streams localtest environment logs.
 func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
 	return e.logs.Stream(ctx, opts.Component, opts.Follow)
+}
+
+func (e *Env) ensureAppManager(ctx context.Context, runtimeCfg RuntimeConfig) error {
+	if err := appmanager.EnsureStarted(
+		ctx,
+		e.cfg,
+		runtimeCfg.LoadBalancerPort,
+		runtimeCfg.LocalAppURL,
+	); err != nil {
+		return fmt.Errorf("ensure app-manager: %w", err)
+	}
+	return nil
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
@@ -395,7 +413,14 @@ func (e *Env) buildResourceOptions(
 		return ResourceBuildOptions{}, fmt.Errorf("get working directory: %w", err)
 	}
 
-	imageMode, devConfig := detectImageMode(ctx, cwd)
+	imageMode, devConfig, note := detectImageMode(ctx, cwd)
+	if note != "" {
+		if imageMode == DevMode {
+			e.out.Verbosef("%s", note)
+		} else {
+			e.out.Warning(note)
+		}
+	}
 
 	return ResourceBuildOptions{
 		DataDir:           e.cfg.DataDir,
@@ -407,23 +432,35 @@ func (e *Env) buildResourceOptions(
 	}, nil
 }
 
-func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig) {
-	devModeEnv := os.Getenv(config.EnvInternalDevMode)
-	if devModeEnv != "true" && devModeEnv != "1" {
-		return ReleaseMode, nil
+func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig, string) {
+	if !isTruthyEnv(os.Getenv(config.EnvInternalDevMode)) {
+		return ReleaseMode, nil, ""
 	}
 
 	detection, err := repocontext.Detect(ctx, cwd, "")
-	if err != nil || !detection.InStudioRepo {
-		return ReleaseMode, nil
+	if err == nil && detection.InStudioRepo {
+		return resolveDevImageMode(detection.StudioRoot)
 	}
 
-	devCfg := DevImageConfig{RepoRoot: detection.StudioRoot}
+	return ReleaseMode, nil,
+		"STUDIOCTL_INTERNAL_DEV is set, but studioctl could not detect a Studio repo from the current directory; using release images"
+}
+
+func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string) {
+	devCfg := DevImageConfig{RepoRoot: studioRoot}
 	if _, err := os.Stat(devCfg.LocaltestDockerfile()); err != nil {
-		return ReleaseMode, nil
+		return ReleaseMode, nil,
+			fmt.Sprintf(
+				"STUDIOCTL_INTERNAL_DEV is set, but %s was not found; using release images",
+				devCfg.LocaltestDockerfile(),
+			)
 	}
 
-	return DevMode, &devCfg
+	return DevMode, &devCfg, ""
+}
+
+func isTruthyEnv(value string) bool {
+	return value == "1" || strings.EqualFold(value, "true")
 }
 
 // FormatLocaltestURL returns the localtest URL, omitting port 80 since browsers default to it.

@@ -324,24 +324,20 @@ func copyFile(src, dst string) (err error) {
 		return cleanupTempFile(tmpPath, err)
 	}
 
-	if err := replaceFile(tmpPath, dst); err != nil {
+	if err := replacePath(tmpPath, dst); err != nil {
 		return cleanupTempFile(tmpPath, err)
 	}
 
 	return nil
 }
 
-func replaceFile(src, dst string) error {
+func replacePath(src, dst string) error {
 	initialRenameErr := os.Rename(src, dst)
 	if initialRenameErr == nil {
 		return nil
 	}
 
 	renameErr := fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, initialRenameErr)
-
-	if runtime.GOOS != osWindows {
-		return renameErr
-	}
 
 	backupPath, err := reserveBackupPath(dst)
 	if err != nil {
@@ -375,7 +371,7 @@ func replaceFile(src, dst string) error {
 		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err)
 	}
 
-	if removeErr := os.Remove(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+	if removeErr := os.RemoveAll(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
 		return fmt.Errorf("replace destination: remove backup %q: %w", backupPath, removeErr)
 	}
 

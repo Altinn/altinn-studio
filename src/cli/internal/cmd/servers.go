@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"altinn.studio/studioctl/internal/appmanager"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
@@ -89,7 +90,12 @@ func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 		c.out.Println("app-manager is already running.")
 		return nil
 	}
-	if err := appmanager.Start(ctx, c.cfg); err != nil {
+	if err := appmanager.EnsureStarted(
+		ctx,
+		c.cfg,
+		envlocaltest.DefaultLoadBalancerPortString(),
+		envlocaltest.ResolveLocalAppURL(),
+	); err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
 	c.out.Println("app-manager started.")
@@ -106,7 +112,7 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	processID, appManagerVersion, dotnetVersion, err := c.client.Status(ctx)
+	status, err := c.client.Status(ctx)
 	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
 			c.out.Println("app-manager is not running.")
@@ -115,9 +121,21 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
 	c.out.Println("app-manager is running.")
-	c.out.Printf("Process ID: %d\n", processID)
-	c.out.Println("app-manager version: " + appManagerVersion)
-	c.out.Println(".NET version: " + dotnetVersion)
+	c.out.Printf("Process ID: %d\n", status.ProcessID)
+	c.out.Println("app-manager version: " + status.AppManagerVersion)
+	c.out.Println(".NET version: " + status.DotnetVersion)
+	if status.Tunnel.Enabled {
+		state := "disconnected"
+		if status.Tunnel.Connected {
+			state = "connected"
+		}
+		c.out.Println("tunnel: " + state)
+		c.out.Println("tunnel url: " + status.Tunnel.URL)
+		c.out.Println("upstream url: " + status.Tunnel.UpstreamURL)
+	} else {
+		c.out.Println("tunnel: disabled")
+	}
+	c.out.Printf("discovered apps: %d\n", len(status.Apps))
 
 	return nil
 }

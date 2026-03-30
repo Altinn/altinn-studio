@@ -1,0 +1,7 @@
+# Keep src/ build context minimal for localtest image.
+**
+!Runtime/localtest/src/**
+!Runtime/localtest/testdata/**
+!Shared/AppTunnel/**
+**/bin
+**/obj

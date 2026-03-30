@@ -3,29 +3,6 @@ namespace Altinn.Studio.AppManager.Platform;
 internal static class RuntimeFiles
 {
     private const string UnixSocketPathKey = "APP_MANAGER_UNIX_SOCKET_PATH";
-    private const string PidPathKey = "APP_MANAGER_PID_PATH";
-
-    public static void Initialize(IConfiguration configuration, IHostApplicationLifetime lifetime)
-    {
-        var pidPath = configuration[PidPathKey];
-        if (string.IsNullOrWhiteSpace(pidPath))
-        {
-            throw new InvalidOperationException($"Missing required configuration value {PidPathKey} for app-manager.");
-        }
-
-        EnsureParentDirectory(pidPath, PidPathKey);
-        File.WriteAllText(pidPath, $"{Environment.ProcessId}\n");
-
-        lifetime.ApplicationStopping.Register(() =>
-        {
-            TryDelete(pidPath);
-
-            if (!OperatingSystem.IsWindows())
-            {
-                TryDelete(configuration[UnixSocketPathKey]);
-            }
-        });
-    }
 
     public static void PrepareIpcArtifacts(IConfiguration configuration)
     {
@@ -44,6 +21,17 @@ internal static class RuntimeFiles
 
         EnsureParentDirectory(unixSocketPath, UnixSocketPathKey);
         TryDelete(unixSocketPath);
+    }
+
+    public static void RegisterCleanup(IConfiguration configuration, IHostApplicationLifetime lifetime)
+    {
+        lifetime.ApplicationStopping.Register(() =>
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                TryDelete(configuration[UnixSocketPathKey]);
+            }
+        });
     }
 
     private static void EnsureParentDirectory(string path, string configKey)

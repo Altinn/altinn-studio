@@ -476,6 +476,17 @@ func DefaultAssetName(goos, goarch string) (string, error) {
 }
 
 func defaultAssetName(baseName, goos, goarch string) (string, error) {
+	asset, err := baseAssetName(baseName, goos, goarch)
+	if err != nil {
+		return "", err
+	}
+	if goos == osWindows {
+		asset += exeSuffix
+	}
+	return asset, nil
+}
+
+func baseAssetName(baseName, goos, goarch string) (string, error) {
 	var osPart string
 	switch goos {
 	case osLinux:
@@ -498,11 +509,7 @@ func defaultAssetName(baseName, goos, goarch string) (string, error) {
 		return "", fmt.Errorf("%w: %s", ErrUnsupportedArchitecture, goarch)
 	}
 
-	asset := baseName + "-" + osPart + "-" + archPart
-	if goos == osWindows {
-		asset += exeSuffix
-	}
-	return asset, nil
+	return baseName + "-" + osPart + "-" + archPart, nil
 }
 
 // ReleaseURLs returns binary and checksum URLs for the given repository and release.

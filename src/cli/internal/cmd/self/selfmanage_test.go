@@ -83,8 +83,8 @@ func TestAppManagerAssetName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AppManagerAssetName() unexpected error: %v", err)
 	}
-	if got != "app-manager-windows-amd64.exe" {
-		t.Fatalf("AppManagerAssetName() = %q, want %q", got, "app-manager-windows-amd64.exe")
+	if got != "app-manager-windows-amd64.tar.gz" {
+		t.Fatalf("AppManagerAssetName() = %q, want %q", got, "app-manager-windows-amd64.tar.gz")
 	}
 }
 

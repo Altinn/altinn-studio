@@ -2,12 +2,11 @@ package doctor
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strconv"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -411,6 +410,16 @@ func (s *Service) resourceStateFromInstallReadErrors(status install.Status) *Dis
 }
 
 func (s *Service) checkAppManagerBinaryState() DiskCheck {
+	installDir := s.cfg.AppManagerInstallDir()
+	if info, err := os.Stat(installDir); err == nil && !info.IsDir() {
+		return DiskCheck{
+			ID:      "appmgr_binary",
+			Level:   diskLevelError,
+			Path:    installDir,
+			Message: "install path exists but is not a directory",
+		}
+	}
+
 	path := s.cfg.AppManagerBinaryPath()
 	info, err := os.Stat(path)
 	if err != nil {
@@ -682,13 +691,15 @@ func checkAppManagerPIDFile(pidPath string) *DiskCheck {
 		}
 		return &check
 	}
-	pid := strings.TrimSpace(string(pidRaw))
-	if _, err := strconv.Atoi(pid); err != nil {
+	var state struct {
+		PID int `json:"pid"`
+	}
+	if err := json.Unmarshal(pidRaw, &state); err != nil || state.PID <= 0 {
 		check := DiskCheck{
 			ID:      "appmgr_state",
 			Level:   diskLevelWarn,
 			Path:    pidPath,
-			Message: "pid file is not a valid integer",
+			Message: "pid file is not valid runtime state",
 		}
 		return &check
 	}

@@ -38,6 +38,12 @@ const (
 	maxFileSize = 10 * 1024 * 1024
 )
 
+// ExtractTarGzOptions configures tar.gz extraction limits.
+type ExtractTarGzOptions struct {
+	MaxArchiveSize int64
+	MaxFileSize    int64
+}
+
 // Sentinel errors for install operations.
 var (
 	// ErrAlreadyInstalled is returned when resources are already installed.
@@ -63,6 +69,9 @@ var (
 
 	// ErrInvalidArchiveFileSize is returned when an archive entry has an invalid size.
 	ErrInvalidArchiveFileSize = errors.New("invalid archive file size")
+
+	// ErrArchiveTooLarge is returned when an archive exceeds the configured maximum size.
+	ErrArchiveTooLarge = errors.New("archive exceeds maximum size")
 )
 
 // Options configures the install operation.
@@ -272,26 +281,19 @@ func Install(ctx context.Context, opts Options) error {
 }
 
 func installFromLocalTarball(tarballPath string, opts Options) (err error) {
-	validatedPath, err := validateTarballPath(tarballPath)
+	validatedPath, err := ValidateTarballPath(tarballPath)
 	if err != nil {
 		return err
 	}
 
-	//nolint:gosec // G304: path validated by validateTarballPath
-	f, err := os.Open(validatedPath)
-	if err != nil {
-		return fmt.Errorf("open tarball: %w", err)
-	}
-	defer func() { err = closeWithError(f, "close tarball", err) }()
-
-	if err := extractTarGz(f, opts.DataDir); err != nil {
+	if err := ExtractTarGzFile(validatedPath, opts.DataDir, localtestResourcesExtractOptions()); err != nil {
 		return fmt.Errorf("extract tarball: %w", err)
 	}
 
 	return finishInstall(opts)
 }
 
-func validateTarballPath(path string) (string, error) {
+func ValidateTarballPath(path string) (string, error) {
 	trimmed := strings.TrimSpace(path)
 	if trimmed == "" {
 		return "", fmt.Errorf("%w: empty path", ErrInvalidTarballPath)
@@ -321,6 +323,10 @@ func validateTarballPath(path string) (string, error) {
 	}
 
 	return cleaned, nil
+}
+
+func validateTarballPath(path string) (string, error) {
+	return ValidateTarballPath(path)
 }
 
 func normalizeVersionForURL(version string) string {
@@ -383,6 +389,34 @@ func finishInstall(opts Options) error {
 }
 
 func extractTarGz(r io.Reader, dst string) (err error) {
+	return extractTarGzWithOptions(r, dst, localtestResourcesExtractOptions())
+}
+
+func ExtractTarGzFile(path, dst string, opts ExtractTarGzOptions) (err error) {
+	validatedPath, err := ValidateTarballPath(path)
+	if err != nil {
+		return err
+	}
+
+	info, err := os.Stat(validatedPath)
+	if err != nil {
+		return fmt.Errorf("stat tarball: %w", err)
+	}
+	if opts.MaxArchiveSize > 0 && info.Size() > opts.MaxArchiveSize {
+		return fmt.Errorf("%w: %s", ErrArchiveTooLarge, validatedPath)
+	}
+
+	//nolint:gosec // G304: path validated by ValidateTarballPath
+	f, err := os.Open(validatedPath)
+	if err != nil {
+		return fmt.Errorf("open tarball: %w", err)
+	}
+	defer func() { err = closeWithError(f, "close tarball", err) }()
+
+	return extractTarGzWithOptions(f, dst, opts)
+}
+
+func extractTarGzWithOptions(r io.Reader, dst string, opts ExtractTarGzOptions) (err error) {
 	gzr, err := gzip.NewReader(r)
 	if err != nil {
 		return fmt.Errorf("create gzip reader: %w", err)
@@ -400,7 +434,7 @@ func extractTarGz(r io.Reader, dst string) (err error) {
 			return fmt.Errorf("read tar header: %w", err)
 		}
 
-		if err := extractTarEntry(tr, header, dst); err != nil {
+		if err := extractTarEntry(tr, header, dst, opts.MaxFileSize); err != nil {
 			return err
 		}
 	}
@@ -408,7 +442,7 @@ func extractTarGz(r io.Reader, dst string) (err error) {
 	return nil
 }
 
-func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string) error {
+func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string, maxEntryFileSize int64) error {
 	// Validate and sanitize path to prevent path traversal
 	cleanName := filepath.Clean(header.Name)
 	if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
@@ -441,7 +475,7 @@ func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string) error {
 		}
 
 	case tar.TypeReg:
-		if err := extractRegularFile(tr, header, target); err != nil {
+		if err := extractRegularFileWithLimit(tr, header, target, maxEntryFileSize); err != nil {
 			return err
 		}
 	}
@@ -450,11 +484,15 @@ func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string) error {
 }
 
 func extractRegularFile(tr *tar.Reader, header *tar.Header, target string) (err error) {
+	return extractRegularFileWithLimit(tr, header, target, maxFileSize)
+}
+
+func extractRegularFileWithLimit(tr *tar.Reader, header *tar.Header, target string, maxEntryFileSize int64) (err error) {
 	if header.Size < 0 {
 		return fmt.Errorf("%w: %s (%d)", ErrInvalidArchiveFileSize, header.Name, header.Size)
 	}
 
-	if header.Size > maxFileSize {
+	if maxEntryFileSize > 0 && header.Size > maxEntryFileSize {
 		return fmt.Errorf("%w: %s", ErrFileTooLarge, header.Name)
 	}
 
@@ -485,6 +523,13 @@ func extractRegularFile(tr *tar.Reader, header *tar.Header, target string) (err 
 	return nil
 }
 
+func localtestResourcesExtractOptions() ExtractTarGzOptions {
+	return ExtractTarGzOptions{
+		MaxArchiveSize: maxArchiveSize,
+		MaxFileSize:    maxFileSize,
+	}
+}
+
 func writeVersionFile(dataDir, version string) error {
 	versionPath := filepath.Join(dataDir, versionFile)
 	if err := os.WriteFile(versionPath, []byte(version+"\n"), osutil.FilePermDefault); err != nil {
@@ -509,7 +554,7 @@ func writeSourceMarker(dataDir, version string) error {
 func expectedSourceMarker(version string) (string, error) {
 	tarballPath := os.Getenv(config.EnvResourcesTarball)
 	if tarballPath != "" {
-		validatedPath, err := validateTarballPath(tarballPath)
+		validatedPath, err := ValidateTarballPath(tarballPath)
 		if err != nil {
 			return "", err
 		}

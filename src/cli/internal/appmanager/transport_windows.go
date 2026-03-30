@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os/exec"
+	"syscall"
 
 	"github.com/Microsoft/go-winio"
 
@@ -22,4 +23,6 @@ func transportForConfig(cfg *config.Config) *http.Transport {
 	}
 }
 
-func applyProcessAttrs(_ *exec.Cmd) {}
+func applyProcessAttrs(cmd *exec.Cmd) {
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+}

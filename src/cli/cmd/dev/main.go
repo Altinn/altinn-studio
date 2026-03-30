@@ -394,7 +394,6 @@ func publishAppManager(goos, goarch, outputDir string) (string, error) {
 		"-o", publishDir,
 		"-r", rid,
 		"--self-contained", "true",
-		"-p:PublishSingleFile=true",
 		"-p:DebugType=None",
 		"-p:DebugSymbols=false",
 	}
@@ -409,7 +408,7 @@ func publishAppManager(goos, goarch, outputDir string) (string, error) {
 		return "", fmt.Errorf("dotnet publish failed: %w", err)
 	}
 
-	return filepath.Join(publishDir, binaryNameWithExt("app-manager", goos)), nil
+	return publishDir, nil
 }
 
 func dotnetRuntimeIdentifier(goos, goarch string) (string, error) {

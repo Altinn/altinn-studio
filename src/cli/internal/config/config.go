@@ -36,7 +36,8 @@ const (
 	// Intended for development/tooling, not normal end-user flows.
 	EnvResourcesTarball = "STUDIOCTL_RESOURCES_TARBALL"
 
-	// EnvAppManagerBinary overrides app-manager install source with a local binary path.
+	// EnvAppManagerBinary overrides app-manager install source with a local payload path.
+	// The payload may be a published directory, a tar.gz archive, or a legacy single binary.
 	// Intended for development/tooling, not normal end-user flows.
 	EnvAppManagerBinary = "STUDIOCTL_APP_MANAGER_BINARY"
 )
@@ -56,7 +57,7 @@ type Config struct {
 	SocketDir string       // Directory for Unix domain sockets
 	LogDir    string       // Directory for log files
 	DataDir   string       // Directory for container volumes
-	BinDir    string       // Directory for binaries (app-manager)
+	BinDir    string       // Directory for binaries and installed payloads
 	Images    ImagesConfig // Container image configuration
 	Version   string       // Build version (embedded at build time)
 	Verbose   bool         // Verbose output (-v)
@@ -208,7 +209,7 @@ func (c *Config) AppManagerNamedPipeName() string {
 	return fmt.Sprintf("altinn-studio-app-manager-%08x", crc32.ChecksumIEEE([]byte(c.Home)))
 }
 
-// AppManagerPIDPath returns the path to the app-manager PID file.
+// AppManagerPIDPath returns the path to the persisted app-manager runtime state file.
 func (c *Config) AppManagerPIDPath() string {
 	return filepath.Join(c.Home, "app-manager.pid")
 }
@@ -225,7 +226,12 @@ func (c *Config) AppManagerBinaryPath() string {
 	if runtime.GOOS == "windows" {
 		name += ".exe"
 	}
-	return filepath.Join(c.BinDir, name)
+	return filepath.Join(c.AppManagerInstallDir(), name)
+}
+
+// AppManagerInstallDir returns the directory containing the installed app-manager payload.
+func (c *Config) AppManagerInstallDir() string {
+	return filepath.Join(c.BinDir, "app-manager")
 }
 
 // persistedConfigPath returns the path to the optional user override file.

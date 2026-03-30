@@ -1,25 +1,12 @@
 #nullable enable
 
-using System.IO;
+using Altinn.Studio.AppTunnel;
 using Microsoft.Net.Http.Headers;
 
 namespace LocalTest.Tunnel;
 
 public sealed class AppTunnelProxy
 {
-    private static readonly HashSet<string> SkippedRequestHeaders =
-    [
-        HeaderNames.Connection,
-        HeaderNames.Upgrade,
-        "Proxy-Connection",
-    ];
-
-    private static readonly HashSet<string> SkippedResponseHeaders =
-    [
-        HeaderNames.Connection,
-        HeaderNames.TransferEncoding,
-    ];
-
     private readonly AppTunnelClient _client;
 
     public AppTunnelProxy(AppTunnelClient client)
@@ -29,14 +16,14 @@ public sealed class AppTunnelProxy
 
     public bool IsConnected => _client.IsConnected;
 
-    public async Task ProxyAsync(HttpContext context, CancellationToken cancellationToken)
+    public async Task ProxyAsync(
+        HttpContext context,
+        string? appId,
+        CancellationToken cancellationToken
+    )
     {
         using var request = await CreateRequestAsync(context, cancellationToken);
-        using var response = await _client.SendAsync(request, cancellationToken);
-
-        context.Response.StatusCode = (int)response.StatusCode;
-        CopyResponseHeaders(context, response);
-        await response.Content.CopyToAsync(context.Response.Body, cancellationToken);
+        await _client.Proxy(request, appId, context, cancellationToken);
     }
 
     private static async Task<HttpRequestMessage> CreateRequestAsync(
@@ -44,19 +31,16 @@ public sealed class AppTunnelProxy
         CancellationToken cancellationToken
     )
     {
+        if (RequestRequiresUpgrade(context.Request))
+            throw new InvalidOperationException("upgrade requests are not supported by the app tunnel");
+
         var request = new HttpRequestMessage(
             new HttpMethod(context.Request.Method),
             context.Request.PathBase + context.Request.Path + context.Request.QueryString
         );
 
-        if (context.Request.ContentLength is > 0)
-        {
-            var body = await ReadBodyAsync(context.Request, cancellationToken);
-            if (body.Length > 0)
-            {
-                request.Content = new ByteArrayContent(body);
-            }
-        }
+        if (RequestMayHaveBody(context.Request))
+            request.Content = new StreamContent(context.Request.Body);
 
         foreach (var header in context.Request.Headers)
         {
@@ -66,10 +50,8 @@ public sealed class AppTunnelProxy
                 continue;
             }
 
-            if (SkippedRequestHeaders.Contains(header.Key))
-            {
+            if (TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
                 continue;
-            }
 
             if (!request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray()))
             {
@@ -77,39 +59,23 @@ public sealed class AppTunnelProxy
                 request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
             }
         }
+        if (
+            request.Content is not null
+            && request.Headers.TransferEncodingChunked == true
+            && request.Content.Headers.ContentLength is not null
+        )
+        {
+            request.Content.Headers.ContentLength = null;
+        }
 
         return request;
     }
 
-    private static async Task<byte[]> ReadBodyAsync(
-        HttpRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        using var buffer = new MemoryStream();
-        await request.Body.CopyToAsync(buffer, cancellationToken);
-        Altinn.Studio.AppTunnel.TunnelProtocol.EnsureBodyWithinLimit((int)buffer.Length);
-        return buffer.ToArray();
-    }
+    private static bool RequestMayHaveBody(HttpRequest request) =>
+        request.ContentLength is > 0 || request.Headers.ContainsKey(HeaderNames.TransferEncoding);
 
-    private static void CopyResponseHeaders(HttpContext context, HttpResponseMessage response)
-    {
-        foreach (var header in response.Headers)
-        {
-            if (!SkippedResponseHeaders.Contains(header.Key))
-            {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
-            }
-        }
-
-        foreach (var header in response.Content.Headers)
-        {
-            if (!SkippedResponseHeaders.Contains(header.Key))
-            {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
-            }
-        }
-
-        context.Response.Headers.Remove(HeaderNames.TransferEncoding);
-    }
+    private static bool RequestRequiresUpgrade(HttpRequest request) =>
+        request.Headers.ContainsKey(HeaderNames.Upgrade)
+        || request.Headers.TryGetValue(HeaderNames.Connection, out var connection)
+            && connection.Any(value => value?.Contains("upgrade", StringComparison.OrdinalIgnoreCase) == true);
 }

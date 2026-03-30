@@ -40,6 +40,8 @@ var ErrInvalidResourceLayout = errors.New("invalid localtest resource layout")
 type RuntimeConfig struct {
 	HostGateway      string                      // resolved host gateway IP (e.g., "172.17.0.1")
 	LoadBalancerPort string                      // port for localtest (default: "8000")
+	LocalAppURL      string                      // localtest-side default app URL
+	AppManagerURL    string                      // host-side upstream URL for app-manager
 	User             string                      // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Platform         container.ContainerPlatform // selected container platform
 }
@@ -135,9 +137,10 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				newPort("5101", "5101"),               // Internal port
 			},
 			map[string]string{
-				"DOTNET_ENVIRONMENT":        dotnetEnv,
-				"GeneralSettings__BaseUrl":  "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
-				"GeneralSettings__HostName": networking.LocalDomain,
+				"DOTNET_ENVIRONMENT":                 dotnetEnv,
+				"GeneralSettings__BaseUrl":           "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
+				"GeneralSettings__HostName":          networking.LocalDomain,
+				"LocalPlatformSettings__LocalAppUrl": cfg.LocalAppURL,
 			},
 			[]types.VolumeMount{
 				newVolume(filepath.Join(dataDir, "testdata"), "/testdata"),
@@ -319,6 +322,8 @@ func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
 		Platform:         opts.Platform,
 		HostGateway:      "", // not used for destroy
 		LoadBalancerPort: "", // not used for destroy
+		LocalAppURL:      "", // not used for destroy
+		AppManagerURL:    "", // not used for destroy
 		User:             "", // not used for destroy
 	}
 

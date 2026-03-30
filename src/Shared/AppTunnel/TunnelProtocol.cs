@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Buffers;
 using System.Buffers.Binary;
 using System.IO;
 using System.Net.WebSockets;
@@ -13,12 +14,14 @@ public enum TunnelFrameKind : byte
     RequestBody = 2,
     ResponseStart = 3,
     ResponseBody = 4,
-    Cancel = 5,
-    Error = 6,
+    ResponseTrailers = 5,
+    Cancel = 6,
+    Error = 7,
 }
 
 public sealed record RequestStartFrame(
     long RequestId,
+    string? AppId,
     string Method,
     string PathAndQuery,
     Dictionary<string, string[]> Headers
@@ -30,21 +33,35 @@ public sealed record ResponseStartFrame(
     Dictionary<string, string[]> Headers
 );
 
+public sealed record HeadersFrame(long RequestId, Dictionary<string, string[]> Headers);
+
 public sealed record ErrorFrame(long RequestId, string Message);
 
 public readonly record struct BodyFrame(long RequestId, bool IsFinal, byte[] Payload);
 
+public sealed record TunnelDiscoveredApp(
+    string AppId,
+    string BaseUrl,
+    string Source,
+    int? ProcessId,
+    string Description
+);
+
+public sealed record TunnelDiscoveredAppsResponse(IReadOnlyList<TunnelDiscoveredApp> Apps);
+
 public static class TunnelDefaults
 {
     public const string EndpointPath = "/internal/tunnel/app";
+    public const string DiscoveredAppsPath = "/internal/tunnel/apps";
 
-    // The first cut is buffered. This keeps the protocol simple while we validate the topology end-to-end.
-    public const int MaxBufferedBodyBytes = 32 * 1024 * 1024;
+    // 64 KiB keeps websocket messages reasonably sized while still amortizing framing overhead.
+    public const int MaxFramePayloadBytes = 64 * 1024;
+    public const int BodyChannelCapacity = 8;
 }
 
 public static class TunnelProtocol
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
     public static TunnelFrameKind ReadKind(ReadOnlySpan<byte> message)
     {
@@ -58,7 +75,7 @@ public static class TunnelProtocol
 
     public static byte[] WriteJsonFrame<T>(TunnelFrameKind kind, T payload)
     {
-        var json = JsonSerializer.SerializeToUtf8Bytes(payload, JsonOptions);
+        var json = JsonSerializer.SerializeToUtf8Bytes(payload, _jsonOptions);
         var frame = new byte[json.Length + 1];
         frame[0] = (byte)kind;
         json.CopyTo(frame.AsSpan(1));
@@ -73,8 +90,16 @@ public static class TunnelProtocol
             throw new InvalidDataException($"unexpected tunnel frame kind {kind}, expected {expectedKind}");
         }
 
-        return JsonSerializer.Deserialize<T>(message[1..], JsonOptions)
+        return JsonSerializer.Deserialize<T>(message[1..], _jsonOptions)
             ?? throw new InvalidDataException("invalid tunnel json frame");
+    }
+
+    public static byte[] Serialize<T>(T payload) => JsonSerializer.SerializeToUtf8Bytes(payload, _jsonOptions);
+
+    public static async Task<T> Deserialize<T>(Stream json, CancellationToken cancellationToken)
+    {
+        return await JsonSerializer.DeserializeAsync<T>(json, _jsonOptions, cancellationToken)
+            ?? throw new InvalidDataException("invalid tunnel json payload");
     }
 
     public static byte[] WriteBodyFrame(
@@ -110,36 +135,36 @@ public static class TunnelProtocol
         return new BodyFrame(requestId, isFinal, message[10..].ToArray());
     }
 
-    public static async Task<byte[]?> ReadMessageAsync(
+    public static async Task<bool> ReadMessage(
         WebSocket socket,
+        Memory<byte> receiveBuffer,
+        ArrayBufferWriter<byte> messageBuffer,
         CancellationToken cancellationToken
     )
     {
-        var buffer = new byte[8192];
-        using var content = new MemoryStream();
+        messageBuffer.Clear();
 
         while (true)
         {
-            var result = await socket.ReceiveAsync(buffer, cancellationToken);
+            var result = await socket.ReceiveAsync(receiveBuffer, cancellationToken);
             if (result.MessageType == WebSocketMessageType.Close)
-            {
-                return null;
-            }
+                return false;
 
             if (result.MessageType != WebSocketMessageType.Binary)
-            {
                 throw new InvalidDataException("app tunnel only supports binary websocket messages");
+
+            if (result.Count > 0)
+            {
+                receiveBuffer[..result.Count].CopyTo(messageBuffer.GetMemory(result.Count));
+                messageBuffer.Advance(result.Count);
             }
 
-            await content.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
             if (result.EndOfMessage)
-            {
-                return content.ToArray();
-            }
+                return true;
         }
     }
 
-    public static Task SendFrameAsync(
+    public static Task SendFrame(
         WebSocket socket,
         byte[] payload,
         CancellationToken cancellationToken
@@ -148,12 +173,12 @@ public static class TunnelProtocol
         return socket.SendAsync(payload, WebSocketMessageType.Binary, true, cancellationToken);
     }
 
-    public static void EnsureBodyWithinLimit(int bodyLength)
+    public static void EnsureFrameWithinLimit(int bodyLength)
     {
-        if (bodyLength > TunnelDefaults.MaxBufferedBodyBytes)
+        if (bodyLength > TunnelDefaults.MaxFramePayloadBytes)
         {
             throw new InvalidDataException(
-                $"tunnel body exceeds limit of {TunnelDefaults.MaxBufferedBodyBytes} bytes"
+                $"tunnel frame exceeds limit of {TunnelDefaults.MaxFramePayloadBytes} bytes"
             );
         }
     }

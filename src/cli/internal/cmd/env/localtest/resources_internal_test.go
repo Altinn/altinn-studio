@@ -71,6 +71,8 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 	containers := coreContainers(t.TempDir(), RuntimeConfig{
 		HostGateway:      "127.0.0.1",
 		LoadBalancerPort: "8000",
+		LocalAppURL:      "http://host.docker.internal:5005",
+		AppManagerURL:    "http://127.0.0.1:5005",
 		Platform:         container.PlatformColima,
 	})
 
@@ -100,6 +102,8 @@ func newResourceBuildOptions(dataDir string, includeMonitoring bool) ResourceBui
 		RuntimeConfig: RuntimeConfig{
 			HostGateway:      "127.0.0.1",
 			LoadBalancerPort: "8000",
+			LocalAppURL:      "http://host.docker.internal:5005",
+			AppManagerURL:    "http://127.0.0.1:5005",
 			Platform:         container.PlatformDocker,
 		},
 		IncludeMonitoring: includeMonitoring,

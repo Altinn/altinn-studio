@@ -6,9 +6,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using LocalTest.Configuration;
-using LocalTest.Services.AppRegistry;
 using LocalTest.Tunnel;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Transforms;
 
@@ -19,7 +19,6 @@ public class ProxyMiddleware
     private readonly RequestDelegate _nextMiddleware;
     private readonly LocalPlatformSettings _settings;
     private readonly IHttpForwarder _forwarder;
-    private readonly AppRegistryService _appRegistryService;
     private readonly ILogger<ProxyMiddleware> _logger;
     private readonly AppTunnelProxy _appTunnelProxy;
 
@@ -31,7 +30,6 @@ public class ProxyMiddleware
         IOptions<LocalPlatformSettings> localPlatformSettings,
         IHttpForwarder forwarder,
         ILogger<ProxyMiddleware> logger,
-        AppRegistryService appRegistryService,
         AppTunnelProxy appTunnelProxy
     )
     {
@@ -39,7 +37,6 @@ public class ProxyMiddleware
         _settings = localPlatformSettings.Value;
         _forwarder = forwarder;
         _logger = logger;
-        _appRegistryService = appRegistryService;
         _appTunnelProxy = appTunnelProxy;
     }
 
@@ -82,27 +79,39 @@ public class ProxyMiddleware
             return;
         }
 
-        // Try to route to registered app first
         var appId = ExtractAppIdFromPath(path);
-        if (appId != null)
+        if (appId != null && _appTunnelProxy.IsConnected)
         {
-            var targetUrl = _appRegistryService.GetUrl(appId);
-            if (targetUrl != null)
+            try
             {
-                _logger.LogDebug("Proxying request for registered app {AppId} to {TargetUrl}", appId, targetUrl);
-                await ProxyRequest(context, targetUrl);
+                await _appTunnelProxy.ProxyAsync(context, appId, context.RequestAborted);
                 return;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
+            {
+                if (!CanFallbackToLocalAppUrl(context))
+                    throw;
+
+                _logger.LogDebug(ex, "Tunnel proxy failed for app {AppId}, falling back to LocalAppUrl", appId);
             }
         }
 
-        // Prefer the host-initiated tunnel when it is connected, but preserve the old direct fallback.
         if (_appTunnelProxy.IsConnected)
         {
-            await _appTunnelProxy.ProxyAsync(context, context.RequestAborted);
-            return;
+            try
+            {
+                await _appTunnelProxy.ProxyAsync(context, appId: null, context.RequestAborted);
+                return;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
+            {
+                if (!CanFallbackToLocalAppUrl(context))
+                    throw;
+
+                _logger.LogDebug(ex, "Tunnel proxy failed for default app, falling back to LocalAppUrl");
+            }
         }
 
-        // App not registered - fallback to LocalAppUrl (port 5005)
         if (!string.IsNullOrEmpty(_settings.LocalAppUrl))
         {
             await ProxyRequest(context, _settings.LocalAppUrl);
@@ -180,6 +189,12 @@ public class ProxyMiddleware
         }
         return null;
     }
+
+    private static bool CanFallbackToLocalAppUrl(HttpContext context) =>
+        !context.Response.HasStarted && !RequestMayHaveBody(context.Request);
+
+    private static bool RequestMayHaveBody(HttpRequest request) =>
+        request.ContentLength is > 0 || request.Headers.ContainsKey(HeaderNames.TransferEncoding);
 
     private static readonly HttpMessageInvoker _httpClient = new(
         new SocketsHttpHandler

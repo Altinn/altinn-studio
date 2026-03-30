@@ -184,10 +184,7 @@ func (b *StudioctlBuilder) publishAppManagerBinaries(
 			return err
 		}
 
-		assetName := "app-manager-" + p.OS + "-" + p.Arch
-		if p.OS == osWindows {
-			assetName += exeSuffix
-		}
+		assetName := "app-manager-" + p.OS + "-" + p.Arch + ".tar.gz"
 
 		publishDir := filepath.Join(outputDir, ".app-manager-"+p.OS+"-"+p.Arch)
 		if err := EnsureCleanDir(publishDir); err != nil {
@@ -202,7 +199,6 @@ func (b *StudioctlBuilder) publishAppManagerBinaries(
 			"-o", publishDir,
 			"-r", rid,
 			"--self-contained", "true",
-			"-p:PublishSingleFile=true",
 			"-p:DebugType=None",
 			"-p:DebugSymbols=false",
 		}
@@ -216,12 +212,16 @@ func (b *StudioctlBuilder) publishAppManagerBinaries(
 			return fmt.Errorf("publish %s: %w", assetName, err)
 		}
 
-		srcPath := filepath.Join(publishDir, appManagerExeName)
-		if p.OS == osWindows {
-			srcPath += exeSuffix
+		entries, err := os.ReadDir(publishDir)
+		if err != nil {
+			return fmt.Errorf("read publish dir for %s: %w", assetName, err)
 		}
-		if err := CopyFile(srcPath, filepath.Join(outputDir, assetName)); err != nil {
-			return fmt.Errorf("copy %s: %w", assetName, err)
+		paths := make([]string, 0, len(entries))
+		for _, entry := range entries {
+			paths = append(paths, entry.Name())
+		}
+		if err := CreateTarGz(filepath.Join(outputDir, assetName), publishDir, paths...); err != nil {
+			return fmt.Errorf("archive %s: %w", assetName, err)
 		}
 	}
 

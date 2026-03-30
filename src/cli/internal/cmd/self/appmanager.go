@@ -7,22 +7,31 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"altinn.studio/studioctl/internal/config"
+	installpkg "altinn.studio/studioctl/internal/install"
 )
 
 const appManagerAssetBaseName = "app-manager"
 
+const (
+	// Self-contained app-manager payloads are large enough that the resource installer limits are too small.
+	appManagerMaxArchiveSize = 512 * 1024 * 1024
+	appManagerMaxFileSize    = 256 * 1024 * 1024
+)
+
 var errAppManagerVersionRequired = errors.New("version required for app-manager install")
+var errAppManagerPayloadRequired = errors.New("app-manager local source must be a payload directory or .tar.gz archive")
 
 // InstallAppManagerResult describes the installed app-manager binary path.
 type InstallAppManagerResult struct {
 	InstalledPath string
 }
 
-// InstallAppManager installs the matching app-manager binary into the configured bin directory.
+// InstallAppManager installs the matching app-manager payload into the configured runtime directory.
 func (s *Service) InstallAppManager(ctx context.Context) (result InstallAppManagerResult, err error) {
-	installedPath, err := s.installAppManagerBinary(ctx)
+	installedPath, err := s.installAppManagerPayload(ctx)
 	if err != nil {
 		return InstallAppManagerResult{}, err
 	}
@@ -30,9 +39,9 @@ func (s *Service) InstallAppManager(ctx context.Context) (result InstallAppManag
 	return InstallAppManagerResult{InstalledPath: installedPath}, nil
 }
 
-func (s *Service) installAppManagerBinary(ctx context.Context) (installedPath string, err error) {
-	if localBinaryPath := os.Getenv(config.EnvAppManagerBinary); localBinaryPath != "" {
-		return s.installAppManagerFromLocalBinary(localBinaryPath)
+func (s *Service) installAppManagerPayload(ctx context.Context) (installedPath string, err error) {
+	if localSourcePath := os.Getenv(config.EnvAppManagerBinary); localSourcePath != "" {
+		return s.installAppManagerFromLocalSource(localSourcePath)
 	}
 
 	if s.cfg.Version == "" || s.cfg.Version == "dev" {
@@ -69,22 +78,67 @@ func (s *Service) installAppManagerBinary(ctx context.Context) (installedPath st
 		return "", fmt.Errorf("verify app-manager checksum: %w", verifyErr)
 	}
 
-	installedPath, err = InstallFile(tmpPath, s.cfg.AppManagerBinaryPath())
+	_, err = InstallTarGz(tmpPath, s.cfg.AppManagerInstallDir(), appManagerExtractOptions(), s.validatePayloadDir)
 	if err != nil {
 		return "", fmt.Errorf("install app-manager: %w", err)
 	}
-	return installedPath, nil
+	return s.cfg.AppManagerBinaryPath(), nil
 }
 
-func (s *Service) installAppManagerFromLocalBinary(localBinaryPath string) (string, error) {
-	installedPath, err := InstallFile(localBinaryPath, s.cfg.AppManagerBinaryPath())
+func (s *Service) installAppManagerFromLocalSource(localSourcePath string) (string, error) {
+	info, err := os.Stat(localSourcePath)
 	if err != nil {
-		return "", fmt.Errorf("install app-manager from local binary: %w", err)
+		return "", fmt.Errorf("stat app-manager local source: %w", err)
 	}
-	return installedPath, nil
+
+	switch {
+	case info.IsDir():
+		if _, err := InstallDir(localSourcePath, s.cfg.AppManagerInstallDir(), s.validatePayloadDir); err != nil {
+			return "", fmt.Errorf("install app-manager from local directory: %w", err)
+		}
+	case strings.HasSuffix(strings.ToLower(localSourcePath), ".tar.gz"):
+		if _, err := InstallTarGz(
+			localSourcePath,
+			s.cfg.AppManagerInstallDir(),
+			appManagerExtractOptions(),
+			s.validatePayloadDir,
+		); err != nil {
+			return "", fmt.Errorf("install app-manager from local archive: %w", err)
+		}
+	default:
+		return "", fmt.Errorf("%w: %s", errAppManagerPayloadRequired, localSourcePath)
+	}
+
+	return s.cfg.AppManagerBinaryPath(), nil
+}
+
+func (s *Service) validatePayloadDir(payloadDir string) error {
+	binaryPath := filepath.Join(payloadDir, filepath.Base(s.cfg.AppManagerBinaryPath()))
+	info, err := os.Stat(binaryPath)
+	if err != nil {
+		return fmt.Errorf("validate app-manager payload: missing executable %q: %w", binaryPath, err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("validate app-manager payload: executable path is a directory: %s", binaryPath)
+	}
+	if runtime.GOOS != "windows" && info.Mode()&0o111 == 0 {
+		return fmt.Errorf("validate app-manager payload: executable is not marked executable: %s", binaryPath)
+	}
+	return nil
+}
+
+func appManagerExtractOptions() installpkg.ExtractTarGzOptions {
+	return installpkg.ExtractTarGzOptions{
+		MaxArchiveSize: appManagerMaxArchiveSize,
+		MaxFileSize:    appManagerMaxFileSize,
+	}
 }
 
 // AppManagerAssetName returns the release asset name for app-manager on the given platform.
 func AppManagerAssetName(goos, goarch string) (string, error) {
-	return defaultAssetName(appManagerAssetBaseName, goos, goarch)
+	assetName, err := baseAssetName(appManagerAssetBaseName, goos, goarch)
+	if err != nil {
+		return "", err
+	}
+	return assetName + ".tar.gz", nil
 }
