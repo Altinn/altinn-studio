@@ -5,10 +5,10 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getPartyMock, getPartyWithSubunitMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
-import { PartyApi } from 'src/core/api-client/party.api';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { useSelectedParty, useSelectedPartyIsValid } from 'src/features/party/PartiesProvider';
 import { renderWithDefaultProviders } from 'src/test/renderWithProviders';
+import type { PartyApi } from 'src/core/api-client/party.api';
 
 const deletedParty = getPartyMock({
   ssn: '01017512347',
