@@ -174,7 +174,7 @@ async def _evaluate_intent_match(user_goal: str, final_state: dict, trace_id: st
 
 async def _evaluate_no_hallucination(user_goal: str, final_state: dict, trace_id: str) -> None:
     try:
-        from agents.services.evaluation.hallucination_judge import format_sources, run_hallucination_judge
+        from agents.services.evaluation.hallucination_judge import run_hallucination_judge
         step_plan = final_state.get("step_plan") or []
         implementation_plan = final_state.get("implementation_plan")
         agent_response = (

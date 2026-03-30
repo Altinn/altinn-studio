@@ -23,17 +23,6 @@ Your task is to evaluate whether the assistant's response is grounded in the pro
 - Altinn-specific claims (API routes, schema structure, platform behavior, component names) MUST be supported by the context to count as grounded.
 - If the assistant explicitly states uncertainty (e.g., "I'm not sure, but..." or "you may want to verify..."), this is a mitigating factor but does NOT excuse fabricated specifics.
 
-## Evaluation input
-
-**User query:**
-{{user_query}}
-
-**Retrieved context (sources):**
-{{context}}
-
-**Assistant response:**
-{{assistant_response}}
-
 ## Your task
 
 1. Identify each factual claim in the assistant's response.

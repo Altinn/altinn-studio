@@ -10,9 +10,7 @@ from agents.services.events import sink, AgentEvent
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from shared.config import get_config
-from shared.utils.langfuse_utils import is_langfuse_enabled
 from shared.utils.logging_utils import get_logger
-from langfuse import get_client
 from pathlib import Path
 from typing import Optional, List
 from shared.models import AttachmentUpload, AgentAttachment

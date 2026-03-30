@@ -34,7 +34,7 @@ def _parse_judge_response(response: str) -> tuple[bool | None, str]:
 def format_sources(sources: list[dict[str, Any]]) -> str:
     """Format a list of source dicts (title/url/preview) into readable text for the judge."""
     if not sources:
-        return "(no sources provided)"
+        return ""
     parts = []
     for s in sources:
         title = s.get("title", "Untitled")
