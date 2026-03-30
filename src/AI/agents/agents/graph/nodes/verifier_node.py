@@ -42,7 +42,11 @@ async def handle(state: AgentState) -> AgentState:
             log.info("⏭️ Skipping verification - no files were changed")
             state.tests_passed = True  # No changes means no failures
             state.verify_notes = ["No verification needed - no changes were made"]
-            state.next_action = "stop"  # Stop the workflow since no changes were made
+            if state.mcp_degraded:
+                # Let reviewer run so it can append the degraded warning
+                state.next_action = "review"
+            else:
+                state.next_action = "stop"
             return state
 
         # Use MCP verification with auto-fix loop

@@ -268,15 +268,19 @@ async def handle(state: AgentState) -> AgentState:
 
     except Exception as exc:
         log.error(f"Actor node failed: {exc}", exc_info=True)
-        state.next_action = "stop"
-        sink.send(
-            AgentEvent(
-                type="error",
-                session_id=state.session_id,
-                data={"message": f"Actor failed: {exc}"},
+        if state.mcp_degraded:
+            # MCP was down — don't send error event, reviewer will append the warning
+            log.info("MCP degraded — skipping actor error event, reviewer will handle")
+            state.next_action = "review"
+        else:
+            state.next_action = "stop"
+            sink.send(
+                AgentEvent(
+                    type="error",
+                    session_id=state.session_id,
+                    data={"message": f"Actor failed: {exc}"},
+                )
             )
-        )
-        state.next_action = "stop"
 
     return state
 

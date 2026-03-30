@@ -88,28 +88,18 @@ async def start_agent(
                 log.error(f"Failed to process attachments for session {req.session_id}: {e}")
                 raise HTTPException(status_code=400, detail=f"Invalid attachment payload: {e}") from e
 
-        # MCP readiness checks (apply to all modes)
+        # MCP readiness check — live ping to verify MCP is actually reachable
         from agents.services.mcp import get_mcp_client
         mcp = get_mcp_client()
-
-        if req.allow_app_changes and not mcp.is_ready:
-            # Workflow mode requires MCP — reject early with a clear error
+        try:
+            await mcp.check_server_status()
+        except Exception as ping_err:
+            log.warning(f"🔌 MCP health ping failed: {ping_err}")
+            mcp._mark_disconnected()
             raise HTTPException(
                 status_code=503,
-                detail="MCP server is not available yet. The agent is still connecting — please retry shortly.",
+                detail="MCP server is not available. Please retry shortly.",
             )
-
-        # Warn (but allow) when docs are still being indexed — applies to both chat and workflow
-        if mcp.is_ready and not mcp.is_docs_ready:
-            log.info(f"⏳ MCP docs still indexing for session {req.session_id}")
-            sink.send(AgentEvent(
-                type="status",
-                session_id=req.session_id,
-                data={
-                    "message": "MCP documentation is still being indexed — first request may take a bit longer.",
-                    "status": "docs_indexing",
-                },
-            ))
 
         # Route based on allow_app_changes flag
         if not req.allow_app_changes:

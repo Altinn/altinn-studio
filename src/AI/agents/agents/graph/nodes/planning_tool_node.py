@@ -97,6 +97,31 @@ async def handle(state: AgentState) -> AgentState:
             
             client = get_mcp_client()
             await client.connect()
+
+            # Wait for docs if still indexing (user sees status message)
+            if client.is_ready and not client.is_docs_ready:
+                log.info(f"⏳ MCP docs still indexing — waiting before planning (session {state.session_id})")
+                sink.send(AgentEvent(
+                    type="status",
+                    session_id=state.session_id,
+                    data={
+                        "message": "Venter på at dokumentasjonsindeksen skal bli klar...",
+                        "status": "docs_indexing",
+                    },
+                ))
+                docs_ready = await client.wait_for_docs_ready()
+                if docs_ready:
+                    log.info(f"✅ MCP docs ready — proceeding with planning (session {state.session_id})")
+                else:
+                    log.warning(f"⚠️ MCP docs not available — proceeding anyway (session {state.session_id})")
+                    sink.send(AgentEvent(
+                        type="status",
+                        session_id=state.session_id,
+                        data={
+                            "message": "MCP-serveren mistet tilkoblingen. Resultatet kan være ufullstendig — prøv igjen om det ikke ser riktig ut.",
+                            "status": "mcp_degraded",
+                        },
+                    ))
             
             with trace_span(
                 "altinn_route_mcp_call",
@@ -140,7 +165,8 @@ async def handle(state: AgentState) -> AgentState:
                 if isinstance(planning_result, dict):
                     # Check if it's an error response
                     if "error" in planning_result:
-                        log.error(f"❌ altinn_route returned error: {planning_result['error']}")
+                        log.warning(f"⚠️ altinn_route returned error: {planning_result['error']}")
+                        state.mcp_degraded = True
                         planning_guidance = ""
                     else:
                         # Serialize dict to JSON string so downstream consumers can treat it uniformly
@@ -219,19 +245,12 @@ async def handle(state: AgentState) -> AgentState:
             state.next_action = "plan"
             
         except Exception as exc:
-            log.error(f"❌ altinn_route node failed: {exc}", exc_info=True)
+            log.warning(f"⚠️ altinn_route node failed: {exc}", exc_info=True)
             node_span.update(metadata={"error": str(exc)})
-            # Ensure planning_guidance is at least empty string, not None
+            # Mark degraded and continue — actor fallback can still produce a result
+            state.mcp_degraded = True
             if not hasattr(state, 'planning_guidance') or state.planning_guidance is None:
                 state.planning_guidance = ""
-                log.error("Set planning_guidance to empty string after error")
-            state.next_action = "stop"
-            sink.send(
-                AgentEvent(
-                    type="error",
-                    session_id=state.session_id,
-                    data={"message": f"Planning tool call failed: {exc}"},
-                )
-            )
+            log.info("MCP degraded — continuing workflow without planning guidance")
     
     return state

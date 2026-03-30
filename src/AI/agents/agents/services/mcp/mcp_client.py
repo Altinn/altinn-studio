@@ -22,6 +22,10 @@ log = get_logger(__name__)
 INITIAL_RETRY_DELAY_SECONDS = 2
 MAX_RETRY_DELAY_SECONDS = 30
 RETRY_BACKOFF_FACTOR = 2
+DOCS_READY_TIMEOUT_SECONDS = 120
+DOCS_READY_POLL_INTERVAL_SECONDS = 3
+DOCS_MAX_CONSECUTIVE_FAILURES = 3
+RECONNECT_MAX_RETRIES = 5
 
 
 class MCPClient:
@@ -61,6 +65,18 @@ class MCPClient:
     @property
     def last_error(self) -> str | None:
         return self._last_error
+
+    def _mark_disconnected(self):
+        """Reset connection state and restart a limited reconnection loop."""
+        if not self._connected:
+            return  # Already disconnected — avoid duplicate loops
+        self._connected = False
+        self._available_tools = []
+        self._client = None
+        self._docs_ready = False
+        self._docs_indexing = False
+        log.warning("🔌 MCP marked as disconnected — starting limited reconnection loop")
+        self._start_reconnect_loop()
 
     async def _get_client(self, designer_api_key: str = None):
         """Get or create FastMCP client with Authorization header (MCP spec compliant)"""
@@ -114,23 +130,62 @@ class MCPClient:
         # Check docs readiness on every successful connect (best-effort)
         await self._check_docs_status()
 
-    async def _check_docs_status(self):
+    async def _check_docs_status(self) -> bool:
         """Probe ``altinn_status`` to update docs readiness flags.
 
-        Best-effort — failures are logged but never propagated.
+        Returns True if the check succeeded, False if MCP was unreachable
+        or returned an error.
         """
         try:
             result = await self.call_tool("altinn_status", {})
             status = self._extract_status_dict(result)
-            if status:
+            if status and "error" not in status:
                 self._docs_ready = status.get("docs_ready", False)
                 self._docs_indexing = status.get("docs_indexing", False)
-                if self._docs_ready:
-                    log.info("✅ MCP documentation index is ready")
-                elif self._docs_indexing:
-                    log.info("⏳ MCP documentation is still indexing")
+                log.info(
+                    f"📋 MCP docs status: ready={self._docs_ready}, indexing={self._docs_indexing}"
+                )
+                return True
+            else:
+                log.warning(f"📋 altinn_status returned error or unexpected data: {result!r}")
+                return False
         except Exception as e:
-            log.debug(f"Could not check MCP docs status: {e}")
+            log.warning(f"Could not check MCP docs status: {e}")
+            return False
+
+    async def wait_for_docs_ready(self) -> bool:
+        """Poll ``altinn_status`` until docs are ready or timeout.
+
+        Returns True if docs became ready, False on timeout or if MCP
+        becomes unreachable.  When MCP goes down, resets the connection
+        state and restarts the background reconnection loop.
+        """
+        if self._docs_ready:
+            return True
+
+        consecutive_failures = 0
+        start = time.time()
+        while time.time() - start < DOCS_READY_TIMEOUT_SECONDS:
+            success = await self._check_docs_status()
+            if self._docs_ready:
+                return True
+            if success:
+                consecutive_failures = 0
+            else:
+                consecutive_failures += 1
+                if consecutive_failures >= DOCS_MAX_CONSECUTIVE_FAILURES:
+                    log.warning(
+                        "MCP became unreachable while waiting for docs "
+                        "— proceeding without documentation"
+                    )
+                    self._mark_disconnected()
+                    return False
+            await asyncio.sleep(DOCS_READY_POLL_INTERVAL_SECONDS)
+
+        log.warning(
+            f"MCP docs did not become ready within {DOCS_READY_TIMEOUT_SECONDS}s — proceeding anyway"
+        )
+        return False
 
     @staticmethod
     def _extract_status_dict(result) -> dict | None:
@@ -153,15 +208,28 @@ class MCPClient:
                         continue
         return None
 
-    async def _connection_loop(self):
-        """Background loop that retries connecting until successful."""
+    async def _connection_loop(self, max_retries: int | None = None):
+        """Background loop that retries connecting until successful.
+
+        Args:
+            max_retries: If set, give up after this many failed attempts.
+                         None means retry indefinitely (used at startup).
+        """
         delay = INITIAL_RETRY_DELAY_SECONDS
+        attempts = 0
         while not self._connected:
             try:
                 await self.connect()
                 log.info("✅ MCP server connection established (background loop)")
                 return
             except Exception:
+                attempts += 1
+                if max_retries is not None and attempts >= max_retries:
+                    log.warning(
+                        f"MCP reconnection failed after {attempts} attempts — giving up. "
+                        f"Will retry when a new request triggers a connection check."
+                    )
+                    return
                 log.info(
                     f"⏳ MCP server not available yet, retrying in {delay}s... "
                     f"({self.server_url})"
@@ -169,10 +237,23 @@ class MCPClient:
                 await asyncio.sleep(delay)
                 delay = min(delay * RETRY_BACKOFF_FACTOR, MAX_RETRY_DELAY_SECONDS)
 
+    def _start_reconnect_loop(self):
+        """Start a limited reconnection loop after MCP goes down.
+
+        Unlike ``start_connection_loop`` (used at startup), this gives up
+        after ``RECONNECT_MAX_RETRIES`` attempts to avoid retrying forever.
+        """
+        if self._connection_task is not None and not self._connection_task.done():
+            return  # A loop is already running
+        self._connection_task = asyncio.create_task(
+            self._connection_loop(max_retries=RECONNECT_MAX_RETRIES)
+        )
+
     def start_connection_loop(self) -> asyncio.Task:
         """Start a non-blocking background task that connects when the server is ready.
 
         Safe to call multiple times — only one loop runs at a time.
+        Retries indefinitely — intended for initial startup.
         Returns the ``asyncio.Task`` so the caller can cancel it on shutdown.
         """
         if self._connected:
@@ -233,7 +314,20 @@ class MCPClient:
                 return result
         except Exception as e:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")
+            if self._is_connection_error(e):
+                self._mark_disconnected()
             return {"error": str(e)}
+
+    @staticmethod
+    def _is_connection_error(exc: Exception) -> bool:
+        """Check if an exception indicates MCP server is unreachable."""
+        msg = str(exc).lower()
+        return any(phrase in msg for phrase in [
+            "failed to connect",
+            "connection refused",
+            "connection reset",
+            "all connection attempts failed",
+        ])
     
     async def create_patch_async(self, task_context: str, repository_path: str, attachments: Optional[list] = None, form_spec_summary: Optional[str] = None) -> dict:
         """
@@ -292,30 +386,39 @@ class MCPClient:
                 scan_span.update(output={"repo_facts": repo_facts})
 
             # Step 2: Ensure MCP server connection (waits for background loop if needed)
-            await self.ensure_connected()
+            try:
+                await self.ensure_connected()
+            except Exception as conn_err:
+                log.warning(f"⚠️ MCP connection unavailable — proceeding without MCP: {conn_err}")
 
             # Step 3: Extract planning guidance from task_context
-            # Planning guidance MUST be present - it should come from planning_tool_node
+            # Planning guidance should come from planning_tool_node
             planning_guidance = None
             if "PLANNING GUIDANCE:" not in task_context:
-                log.error("❌ CRITICAL: Planning guidance missing from task_context!")
-                log.error("The planning_tool_node must run successfully before create_patch_async is called.")
-                log.error("Planning guidance is a REQUIRED part of the workflow.")
-                raise Exception(
-                    "Planning guidance missing from task_context. "
-                    "Ensure planning_tool_node executes successfully before planner_node. "
-                    "This is a required step in the workflow."
-                )
+                if self._connected:
+                    log.error("❌ CRITICAL: Planning guidance missing from task_context!")
+                    log.error("The planning_tool_node must run successfully before create_patch_async is called.")
+                    raise Exception(
+                        "Planning guidance missing from task_context. "
+                        "Ensure planning_tool_node executes successfully before planner_node. "
+                        "This is a required step in the workflow."
+                    )
+                else:
+                    log.warning(
+                        "⚠️ Planning guidance missing (MCP disconnected) "
+                        "— proceeding with LLM-only patch generation"
+                    )
+                    planning_guidance = ""
+            else:
+                # Extract the planning guidance from task_context
+                log.info("✅ Planning guidance found in task_context (from planning_tool_node)")
+                parts = task_context.split("PLANNING GUIDANCE:")
+                if len(parts) > 1:
+                    planning_guidance = parts[1].strip()
 
-            # Extract the planning guidance from task_context
-            log.info("✅ Planning guidance found in task_context (from planning_tool_node)")
-            parts = task_context.split("PLANNING GUIDANCE:")
-            if len(parts) > 1:
-                planning_guidance = parts[1].strip()
-
-            if not planning_guidance:
-                log.error("❌ Planning guidance section exists but is empty!")
-                raise Exception("Planning guidance section is empty - planning_tool_node may have failed")
+                if not planning_guidance:
+                    log.warning("⚠️ Planning guidance section exists but is empty — proceeding anyway")
+                    planning_guidance = ""
 
             log.info(f"ℹ️ Using planning guidance ({len(planning_guidance)} chars)")
             log.info(

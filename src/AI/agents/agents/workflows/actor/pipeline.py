@@ -112,7 +112,10 @@ async def ensure_component_schemas_looked_up(
     missing_types = needed_types - looked_up_types
     
     if not missing_types:
-        log.info("✅ All component types have been looked up")
+        if needed_types:
+            log.info(f"✅ All {len(needed_types)} component types have been looked up")
+        else:
+            log.info("ℹ️ No component types found in tool results — skipping schema lookup")
         return tool_results
     
     log.warning(f"🚨 Missing schema lookups for component types: {missing_types}")
@@ -184,7 +187,12 @@ async def run_actor_pipeline(
     ) as pipeline_span:
         # Ensure MCP client is connected and has available tools populated
         if not hasattr(mcp_client, '_available_tools') or not mcp_client._available_tools:
-            await mcp_client.connect()
+            try:
+                await mcp_client.connect()
+            except Exception as conn_err:
+                log.warning(f"⚠️ MCP connection failed — proceeding without MCP tools: {conn_err}")
+                if not hasattr(mcp_client, '_available_tools'):
+                    mcp_client._available_tools = []
 
         attachments = attachments or repo_facts.get("attachments")
         general_plan = general_plan_override or await create_general_plan(user_goal, planner_step, attachments=attachments, form_spec_summary=form_spec_summary)
