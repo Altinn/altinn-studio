@@ -13,6 +13,7 @@ import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import { textResourcesNb } from '../../../../test-data/textResources';
 import { Guard } from '@studio/guard';
+import { getDetailsBySummary } from '@studio/ui-test';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -50,14 +51,14 @@ describe('CodeListsWithTextResources', () => {
   // TODO - This test is redundant as your are testing native functionality of details/summary. Consider removing it.
   it('renders the code list details closed by default', () => {
     renderCodeLists();
-    const details = getDetails(codeListName);
+    const details = getDetailsBySummary(codeListName);
 
     expect(details).not.toHaveAttribute('open');
   });
 
   it('renders the code list details open by default if code list title is equal to codeListInEditMode', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
-    const details = getDetails(codeListName);
+    const details = getDetailsBySummary(codeListName);
     expect(details).toHaveAttribute('open');
   });
 
@@ -366,17 +367,5 @@ describe('updateCodeListWithMetadata', () => {
 
 const getButton = (name: string, expanded?: boolean): HTMLElement =>
   screen.getByRole('button', { name, expanded });
-
-/**
- * Since the summary element does not have a role, we need to traverse up the DOM to get the details element. This is a helper function to do that.
- * https://github.com/testing-library/dom-testing-library/issues/1252
- */
-function getDetails(summary: string | RegExp) {
-  const elem = screen.getByText(
-    (_content, element) =>
-      element.nodeName === 'SUMMARY' && element.textContent?.trim() === summary,
-  );
-  return elem?.parentElement instanceof HTMLDetailsElement ? elem.parentElement : null;
-}
 
 const queryButton = (name: string): HTMLElement | null => screen.queryByRole('button', { name });
