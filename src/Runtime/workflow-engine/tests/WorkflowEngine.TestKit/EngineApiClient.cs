@@ -13,7 +13,6 @@ namespace WorkflowEngine.TestKit;
 /// </summary>
 public sealed class EngineApiClient : IDisposable
 {
-    private const string BasePath = "/api/v1/workflows";
     private readonly HttpClient _client;
     private readonly string _defaultNamespace;
 
@@ -27,6 +26,9 @@ public sealed class EngineApiClient : IDisposable
     }
 
     public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";
+
+    private string GetBasePath(string? ns = null) =>
+        $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/workflows";
 
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
@@ -56,11 +58,11 @@ public sealed class EngineApiClient : IDisposable
         Guid? correlationId = null
     )
     {
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, BasePath)
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
             Content = new StringContent(jsonRequest, new UTF8Encoding(), "application/json"),
         };
-        AddMetadataHeaders(httpRequest.Headers, ns, idempotencyKey, correlationId);
+        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
 
         using var response = await _client.SendAsync(httpRequest);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
@@ -77,11 +79,11 @@ public sealed class EngineApiClient : IDisposable
         Guid? correlationId = null
     )
     {
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, BasePath)
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
             Content = new StringContent(JsonSerializer.Serialize(request), new UTF8Encoding(), "application/json"),
         };
-        AddMetadataHeaders(httpRequest.Headers, ns, idempotencyKey, correlationId);
+        AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
 
         return await _client.SendAsync(httpRequest);
     }
@@ -112,9 +114,10 @@ public sealed class EngineApiClient : IDisposable
         Guid? correlationId = null
     )
     {
-        var path = BuildMetadataQueryString(ns, idempotencyKey, correlationId);
+        var qs = BuildMetadataQueryString(idempotencyKey, correlationId);
+        var path = string.IsNullOrEmpty(qs) ? GetBasePath(ns) : $"{GetBasePath(ns)}?{qs}";
 
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{BasePath}?{path}")
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = new StringContent(JsonSerializer.Serialize(request), new UTF8Encoding(), "application/json"),
         };
@@ -126,7 +129,7 @@ public sealed class EngineApiClient : IDisposable
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
     public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId) =>
-        _client.GetAsync($"{BasePath}/{workflowId}", CancellationToken.None);
+        _client.GetAsync($"{GetBasePath()}/{workflowId}", CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
@@ -155,7 +158,7 @@ public sealed class EngineApiClient : IDisposable
     /// Requests cancellation of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
     public Task<HttpResponseMessage> CancelWorkflowRaw(Guid workflowId) =>
-        _client.PostAsync($"{BasePath}/{workflowId}/cancel", content: null);
+        _client.PostAsync($"{GetBasePath()}/{workflowId}/cancel", content: null);
 
     /// <summary>
     /// Requests cancellation of a workflow and asserts a 2xx response. Throws on failure.
@@ -170,7 +173,7 @@ public sealed class EngineApiClient : IDisposable
     /// Requests resume of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
     public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false) =>
-        _client.PostAsync($"{BasePath}/{workflowId}/resume?cascade={cascade}", content: null);
+        _client.PostAsync($"{GetBasePath()}/{workflowId}/resume?cascade={cascade}", content: null);
 
     /// <summary>
     /// Requests resume of a workflow and asserts a 2xx response. Throws on failure.
@@ -186,9 +189,7 @@ public sealed class EngineApiClient : IDisposable
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
-        ns ??= _defaultNamespace;
-        var path = $"{BasePath}?namespace={Uri.EscapeDataString(ns)}";
-        using var response = await _client.GetAsync(path);
+        using var response = await _client.GetAsync(GetBasePath(ns));
 
         if (response.StatusCode == HttpStatusCode.NoContent)
             return [];
@@ -197,7 +198,7 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Polls <see cref="GetWorkflow(Guid, string?)"/> every 100 ms until the workflow reaches
+    /// Polls <see cref="GetWorkflow(Guid)"/> every 100 ms until the workflow reaches
     /// <paramref name="expectedStatus"/> or the <paramref name="timeout"/> expires.
     /// </summary>
     public async Task<WorkflowStatusResponse> WaitForWorkflowStatus(
@@ -234,19 +235,17 @@ public sealed class EngineApiClient : IDisposable
         return [.. await Task.WhenAll(tasks)];
     }
 
-    private void AddMetadataHeaders(HttpRequestHeaders headers, string? ns, string? idempotencyKey, Guid? correlationId)
+    private static void AddMetadataHeaders(HttpRequestHeaders headers, string? idempotencyKey, Guid? correlationId)
     {
-        headers.Add(WorkflowMetadataConstants.Headers.Namespace, ns ?? _defaultNamespace);
         headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, idempotencyKey ?? $"idem-{Guid.NewGuid()}");
         if (correlationId.HasValue)
             headers.Add(WorkflowMetadataConstants.Headers.CorrelationId, correlationId.Value.ToString());
     }
 
-    private string BuildMetadataQueryString(string? ns, string? idempotencyKey, Guid? correlationId)
+    private static string BuildMetadataQueryString(string? idempotencyKey, Guid? correlationId)
     {
         var qs = new List<string>
         {
-            $"{WorkflowMetadataConstants.QueryParams.Namespace}={Uri.EscapeDataString(ns ?? _defaultNamespace)}",
             $"{WorkflowMetadataConstants.QueryParams.IdempotencyKey}={Uri.EscapeDataString(idempotencyKey ?? $"idem-{Guid.NewGuid()}")}",
         };
         if (correlationId.HasValue)

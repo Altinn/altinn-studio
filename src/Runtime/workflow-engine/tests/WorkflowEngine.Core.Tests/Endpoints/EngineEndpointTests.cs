@@ -33,13 +33,9 @@ public class EngineEndpointTests
             ],
         };
 
-    private static DefaultHttpContext CreateHttpContext(
-        string ns = DefaultNamespace,
-        string idempotencyKey = "default-idempotency-key"
-    )
+    private static DefaultHttpContext CreateHttpContext(string idempotencyKey = "default-idempotency-key")
     {
         var httpContext = new DefaultHttpContext();
-        httpContext.Request.Headers[WorkflowMetadataConstants.Headers.Namespace] = ns;
         httpContext.Request.Headers[WorkflowMetadataConstants.Headers.IdempotencyKey] = idempotencyKey;
         return httpContext;
     }
@@ -75,6 +71,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -120,6 +117,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -153,6 +151,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -182,6 +181,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -232,6 +232,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             request,
             engineMock.Object,
             TimeProvider.System,
@@ -274,6 +275,7 @@ public class EngineEndpointTests
 
         // Act
         await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -309,10 +311,10 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultNamespace,
             null,
             null,
             repositoryMock.Object,
-            CreateHttpContext(),
             CancellationToken.None
         );
 
@@ -342,10 +344,10 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultNamespace,
             null,
             null,
             repositoryMock.Object,
-            CreateHttpContext(),
             CancellationToken.None
         );
 
@@ -354,7 +356,7 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task ListWorkflows_UsesNamespaceFromHttpContext()
+    public async Task ListWorkflows_UsesNamespaceFromRoute()
     {
         // Arrange
         string? capturedNamespace = null;
@@ -375,14 +377,14 @@ public class EngineEndpointTests
 
         // Act
         await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultNamespace,
             null,
             null,
             repositoryMock.Object,
-            CreateHttpContext(),
             CancellationToken.None
         );
 
-        // Assert — handler passes namespace from HttpContext to repository
+        // Assert — handler passes namespace from route to repository
         Assert.Equal(DefaultNamespace, capturedNamespace);
     }
 
@@ -407,6 +409,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
+            DefaultNamespace,
             workflowGuid,
             repositoryMock.Object,
             CancellationToken.None
@@ -430,6 +433,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
+            DefaultNamespace,
             Guid.NewGuid(),
             repositoryMock.Object,
             CancellationToken.None
@@ -452,8 +456,27 @@ public class EngineEndpointTests
             .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CancelWorkflowResult.Requested(workflowId, now, CanceledImmediately: true));
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new Workflow
+                {
+                    OperationId = "op",
+                    IdempotencyKey = "key",
+                    Namespace = DefaultNamespace,
+                    Steps = [],
+                }
+            );
+
         // Act
-        var result = await EngineRequestHandlers.CancelWorkflow(workflowId, engine.Object, CancellationToken.None);
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
         // Assert
         var ok = Assert.IsType<Ok<CancelWorkflowResponse>>(result.Result);
@@ -473,8 +496,27 @@ public class EngineEndpointTests
             .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CancelWorkflowResult.Requested(workflowId, now, CanceledImmediately: false));
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new Workflow
+                {
+                    OperationId = "op",
+                    IdempotencyKey = "key",
+                    Namespace = DefaultNamespace,
+                    Steps = [],
+                }
+            );
+
         // Act
-        var result = await EngineRequestHandlers.CancelWorkflow(workflowId, engine.Object, CancellationToken.None);
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
         // Assert
         var ok = Assert.IsType<Ok<CancelWorkflowResponse>>(result.Result);
@@ -492,8 +534,27 @@ public class EngineEndpointTests
             .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CancelWorkflowResult.TerminalState());
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new Workflow
+                {
+                    OperationId = "op",
+                    IdempotencyKey = "key",
+                    Namespace = DefaultNamespace,
+                    Steps = [],
+                }
+            );
+
         // Act
-        var result = await EngineRequestHandlers.CancelWorkflow(workflowId, engine.Object, CancellationToken.None);
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
         // Assert
         var conflict = Assert.IsType<Conflict<ProblemDetails>>(result.Result);
@@ -511,8 +572,19 @@ public class EngineEndpointTests
             .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CancelWorkflowResult.NotFound());
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Workflow?)null);
+
         // Act
-        var result = await EngineRequestHandlers.CancelWorkflow(workflowId, engine.Object, CancellationToken.None);
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<NotFound>(result.Result);
@@ -529,8 +601,27 @@ public class EngineEndpointTests
             .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CancelWorkflowResult.AlreadyRequested(workflowId, originalTimestamp));
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new Workflow
+                {
+                    OperationId = "op",
+                    IdempotencyKey = "key",
+                    Namespace = DefaultNamespace,
+                    Steps = [],
+                }
+            );
+
         // Act
-        var result = await EngineRequestHandlers.CancelWorkflow(workflowId, engine.Object, CancellationToken.None);
+        var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
+            workflowId,
+            engine.Object,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
         // Assert
         var accepted = Assert.IsType<Accepted<CancelWorkflowResponse>>(result.Result);
@@ -553,11 +644,26 @@ public class EngineEndpointTests
             .Setup(e => e.ResumeWorkflow(workflowId, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResult.Resumed(workflowId, now, []));
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new Workflow
+                {
+                    OperationId = "op",
+                    IdempotencyKey = "key",
+                    Namespace = DefaultNamespace,
+                    Steps = [],
+                }
+            );
+
         // Act
         var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
             workflowId,
             cascade: false,
             engine.Object,
+            repositoryMock.Object,
             TestContext.Current.CancellationToken
         );
 
@@ -581,11 +687,26 @@ public class EngineEndpointTests
             .Setup(e => e.ResumeWorkflow(workflowId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResult.Resumed(workflowId, now, [cascadeId]));
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new Workflow
+                {
+                    OperationId = "op",
+                    IdempotencyKey = "key",
+                    Namespace = DefaultNamespace,
+                    Steps = [],
+                }
+            );
+
         // Act
         var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
             workflowId,
             cascade: true,
             engine.Object,
+            repositoryMock.Object,
             TestContext.Current.CancellationToken
         );
 
@@ -606,11 +727,18 @@ public class EngineEndpointTests
             .Setup(e => e.ResumeWorkflow(workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResult.NotFound());
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Workflow?)null);
+
         // Act
         var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
             workflowId,
             cascade: false,
             engine.Object,
+            repositoryMock.Object,
             TestContext.Current.CancellationToken
         );
 
@@ -628,11 +756,26 @@ public class EngineEndpointTests
             .Setup(e => e.ResumeWorkflow(workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResult.NotResumable(PersistentItemStatus.Completed));
 
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new Workflow
+                {
+                    OperationId = "op",
+                    IdempotencyKey = "key",
+                    Namespace = DefaultNamespace,
+                    Steps = [],
+                }
+            );
+
         // Act
         var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
             workflowId,
             cascade: false,
             engine.Object,
+            repositoryMock.Object,
             TestContext.Current.CancellationToken
         );
 

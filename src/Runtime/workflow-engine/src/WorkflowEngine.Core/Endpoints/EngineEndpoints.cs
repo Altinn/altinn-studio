@@ -16,7 +16,12 @@ internal static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/workflows").WithTags("Workflows");
+        app.MapGet("/api/v1/namespaces", EngineRequestHandlers.ListNamespaces)
+            .WithTags("Namespaces")
+            .WithName("ListNamespaces")
+            .WithDescription("Lists all distinct namespaces");
+
+        var group = app.MapGroup("/api/v1/{namespace}/workflows").WithTags("Workflows");
 
         group
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)
@@ -26,7 +31,7 @@ internal static class EngineEndpoints
         group
             .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
             .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows, optionally filtered by namespace and/or correlation ID");
+            .WithDescription("Lists all active workflows, optionally filtered by correlation ID");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
@@ -49,6 +54,15 @@ internal static class EngineEndpoints
 
 internal static class EngineRequestHandlers
 {
+    public static async Task<Results<Ok<IReadOnlyList<string>>, NoContent>> ListNamespaces(
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        var namespaces = await repository.GetDistinctNamespaces(cancellationToken);
+        return namespaces.Count == 0 ? TypedResults.NoContent() : TypedResults.Ok(namespaces);
+    }
+
     public static async Task<
         Results<
             Created<WorkflowEnqueueResponse.Accepted.Created>,
@@ -56,6 +70,7 @@ internal static class EngineRequestHandlers
             ProblemHttpResult
         >
     > EnqueueWorkflows(
+        [FromRoute] string @namespace,
         [FromBody] WorkflowEnqueueRequest request,
         [FromServices] IEngine engine,
         [FromServices] TimeProvider timeProvider,
@@ -65,7 +80,8 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
 
-        var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext);
+        var ns = WorkflowNamespace.Normalize(@namespace);
+        var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext, ns);
 
         Activity.Current?.SetTag("workflow.correlation.id", inbound.CorrelationId);
         Activity.Current?.SetTag("workflow.idempotency.key", inbound.IdempotencyKey);
@@ -109,16 +125,16 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+        [FromRoute] string @namespace,
         [FromQuery] Guid? correlationId,
         [FromQuery(Name = "label")] string[]? labels,
         [FromServices] IEngineRepository repository,
-        HttpContext httpContext,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var ns = MetadataExtractor.ExtractNamespace(httpContext);
+        var ns = WorkflowNamespace.Normalize(@namespace);
         var labelFilters = ParseLabelFilters(labels);
         var workflows = await repository.GetActiveWorkflowsByCorrelationId(
             correlationId,
@@ -134,6 +150,7 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
+        [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
@@ -143,7 +160,7 @@ internal static class EngineRequestHandlers
 
         var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
 
-        if (workflow is null)
+        if (workflow is null || !IsNamespaceMatch(workflow.Namespace, @namespace))
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
@@ -151,9 +168,19 @@ internal static class EngineRequestHandlers
 
     public static async Task<
         Results<Ok<CancelWorkflowResponse>, Accepted<CancelWorkflowResponse>, NotFound, Conflict<ProblemDetails>>
-    > CancelWorkflow([FromRoute] Guid workflowId, [FromServices] IEngine engine, CancellationToken cancellationToken)
+    > CancelWorkflow(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngine engine,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
+
+        var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
+        if (workflow is null || !IsNamespaceMatch(workflow.Namespace, @namespace))
+            return TypedResults.NotFound();
 
         var result = await engine.CancelWorkflow(workflowId, cancellationToken);
 
@@ -180,13 +207,19 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<ResumeWorkflowResponse>, NotFound, Conflict<ProblemDetails>>> ResumeWorkflow(
+        [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
         [FromQuery] bool cascade,
         [FromServices] IEngine engine,
+        [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
+
+        var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
+        if (workflow is null || !IsNamespaceMatch(workflow.Namespace, @namespace))
+            return TypedResults.NotFound();
 
         var result = await engine.ResumeWorkflow(workflowId, cascade, cancellationToken);
 
@@ -207,6 +240,13 @@ internal static class EngineRequestHandlers
             _ => throw new UnreachableException(),
         };
     }
+
+    private static bool IsNamespaceMatch(string workflowNamespace, string routeNamespace) =>
+        string.Equals(
+            workflowNamespace,
+            WorkflowNamespace.Normalize(routeNamespace),
+            StringComparison.OrdinalIgnoreCase
+        );
 
     /// <summary>
     /// Parses repeated <c>?label=key:value</c> query params into a dictionary.

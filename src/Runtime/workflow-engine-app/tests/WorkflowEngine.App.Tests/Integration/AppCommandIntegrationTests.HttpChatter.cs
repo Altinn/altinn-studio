@@ -64,13 +64,13 @@ public sealed partial class AppCommandIntegrationTests
         var request = AppTestHelpers.CreateEnqueueRequest(workflow, lockToken: InstanceLockToken);
 
         // Use a recording client to capture the actual inbound HTTP exchange
+        const string testNamespace = "chatter-app-test";
         var recorder = new HttpExchangeRecorder();
-        using var client = new EngineApiClient(fixture, recorder);
+        using var client = new EngineApiClient(fixture, testNamespace, recorder);
 
         // Act
         var response = await client.EnqueueWithQueryParams(
             request,
-            ns: "chatter-app-test",
             idempotencyKey: "app-chatter-idem",
             correlationId: correlationId
         );

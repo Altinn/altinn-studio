@@ -29,13 +29,13 @@ public partial class EngineTests
         );
 
         // Use a recording client to capture the actual inbound HTTP exchange
+        const string testNamespace = "chatter-test";
         var recorder = new HttpExchangeRecorder();
-        using var client = new EngineApiClient(fixture, recorder);
+        using var client = new EngineApiClient(fixture, testNamespace, recorder);
 
         // Act
         var response = await client.EnqueueWithQueryParams(
             request,
-            ns: "chatter-test",
             idempotencyKey: "chatter-idem-key",
             correlationId: correlationId
         );

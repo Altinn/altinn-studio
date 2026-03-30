@@ -25,6 +25,8 @@ public sealed class EngineResumeTests : IAsyncLifetime
 {
     private const string TestNamespace = "ttd:resume-tests";
 
+    private static string WorkflowsPath => $"/api/v1/{Uri.EscapeDataString(TestNamespace)}/workflows";
+
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private WireMockServer _wireMock = null!;
 
@@ -64,7 +66,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
         // Resume via the API
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
+            $"{WorkflowsPath}/{workflowId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -104,7 +106,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/cancel",
+            $"{WorkflowsPath}/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -118,7 +120,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         // Resume
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
+            $"{WorkflowsPath}/{workflowId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -161,12 +163,11 @@ public sealed class EngineResumeTests : IAsyncLifetime
             ],
         };
 
-        using var enqueueMsg = new HttpRequestMessage(HttpMethod.Post, "/api/v1/workflows")
+        using var enqueueMsg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
         {
             Content = JsonContent.Create(request),
         };
         enqueueMsg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
-        enqueueMsg.Headers.Add(WorkflowMetadataConstants.Headers.Namespace, TestNamespace);
 
         var enqueueResponse = await client.SendAsync(enqueueMsg, TestContext.Current.CancellationToken);
         enqueueResponse.EnsureSuccessStatusCode();
@@ -189,7 +190,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         // Resume parent with cascade
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{parentId}/resume?cascade=true",
+            $"{WorkflowsPath}/{parentId}/resume?cascade=true",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -219,7 +220,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{workflowId}/resume?cascade=false",
+            $"{WorkflowsPath}/{workflowId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -235,7 +236,7 @@ public sealed class EngineResumeTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var resumeResponse = await client.PostAsync(
-            $"/api/v1/workflows/{fakeId}/resume?cascade=false",
+            $"{WorkflowsPath}/{fakeId}/resume?cascade=false",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -280,12 +281,11 @@ public sealed class EngineResumeTests : IAsyncLifetime
             Workflows = [new WorkflowRequest { OperationId = "resume-test", Steps = steps }],
         };
 
-        using var msg = new HttpRequestMessage(HttpMethod.Post, "/api/v1/workflows")
+        using var msg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
         {
             Content = JsonContent.Create(request),
         };
         msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
-        msg.Headers.Add(WorkflowMetadataConstants.Headers.Namespace, TestNamespace);
 
         var response = await client.SendAsync(msg);
         response.EnsureSuccessStatusCode();

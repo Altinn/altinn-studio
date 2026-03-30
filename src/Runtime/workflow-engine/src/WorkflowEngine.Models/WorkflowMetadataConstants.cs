@@ -20,7 +20,6 @@ public static class WorkflowMetadataConstants
 
     public static class QueryParams
     {
-        public const string Namespace = "namespace";
         public const string IdempotencyKey = "idempotencyKey";
         public const string CorrelationId = "correlationId";
     }

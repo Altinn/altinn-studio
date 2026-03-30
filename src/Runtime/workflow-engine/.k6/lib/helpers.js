@@ -3,26 +3,31 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 
 // --- Configuration ---
-export const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api/v1/workflows';
+const NAMESPACE = __ENV.NAMESPACE || 'default';
+export const BASE_URL =
+    __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
 export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
-export const requestParams = {
-    headers: {
-        'Content-Type': 'application/json',
-    },
-};
+/**
+ * Builds request params with unique metadata headers for each request.
+ * Returns a k6 params object with Content-Type, Idempotency-Key, and Correlation-Id headers.
+ */
+export function buildRequestParams() {
+    const guid = uuidv4();
+    return {
+        headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': `k6-${guid}`,
+            'Correlation-Id': guid,
+        },
+    };
+}
 
 /**
- * Deep-clones the payload template and replaces placeholder fields with unique values.
+ * Deep-clones the payload template.
  * Returns the serialized JSON string ready for POST.
  */
 export function buildPayload(template) {
-    const guid = uuidv4();
-    const payload = JSON.parse(JSON.stringify(template));
-    payload.idempotencyKey = `k6-${guid}`;
-    if (!payload.correlationId) {
-        payload.correlationId = guid;
-    }
-    return JSON.stringify(payload);
+    return JSON.stringify(JSON.parse(JSON.stringify(template)));
 }
 
 /**

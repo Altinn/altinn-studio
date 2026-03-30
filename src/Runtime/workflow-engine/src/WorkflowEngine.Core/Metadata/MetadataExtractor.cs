@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Core.Metadata;
@@ -11,17 +10,17 @@ namespace WorkflowEngine.Core.Metadata;
 internal static class MetadataExtractor
 {
     /// <summary>
-    /// Extracts all metadata fields needed for workflow enqueue: namespace, idempotency key, and correlation ID.
+    /// Extracts metadata fields needed for workflow enqueue: idempotency key and correlation ID.
+    /// Namespace is provided from the URL route parameter.
     /// Returns 400 if idempotency key is missing, if both header and query param are supplied for any field,
     /// or if correlation ID is present but not a valid GUID.
     /// </summary>
-    public static InboundMetadata ExtractEnqueueMetadata(HttpContext httpContext)
+    public static InboundMetadata ExtractEnqueueMetadata(HttpContext httpContext, string @namespace)
     {
-        var ns = ExtractNamespace(httpContext);
         var correlationId = ExtractCorrelationId(httpContext);
         var idempotencyKey = ExtractIdempotencyKey(httpContext);
 
-        return new InboundMetadata(ns, idempotencyKey, correlationId);
+        return new InboundMetadata(@namespace, idempotencyKey, correlationId);
     }
 
     public static string ExtractIdempotencyKey(HttpContext httpContext)
@@ -41,29 +40,6 @@ internal static class MetadataExtractor
         }
 
         return value;
-    }
-
-    /// <summary>
-    /// Extracts the namespace from headers/query params. Required — returns 400 if not supplied.
-    /// Returns 400 if both header and query param are supplied.
-    /// </summary>
-    public static string ExtractNamespace(HttpContext httpContext)
-    {
-        var value = ExtractSingleValue(
-            httpContext,
-            WorkflowMetadataConstants.Headers.Namespace,
-            WorkflowMetadataConstants.QueryParams.Namespace
-        );
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new BadHttpRequestException(
-                $"Namespace is required. Supply it via the '{WorkflowMetadataConstants.Headers.Namespace}' header "
-                    + $"or '{WorkflowMetadataConstants.QueryParams.Namespace}' query parameter."
-            );
-        }
-
-        return WorkflowNamespace.Normalize(value);
     }
 
     public static Guid? ExtractCorrelationId(HttpContext httpContext)
