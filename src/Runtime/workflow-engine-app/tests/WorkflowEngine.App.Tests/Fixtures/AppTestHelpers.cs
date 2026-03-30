@@ -86,10 +86,10 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
 
     private static JsonElement CreateAppContext(string? lockToken = null) =>
         JsonSerializer.SerializeToElement(
-            new
+            new AppWorkflowContext
             {
                 Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-                LockToken = lockToken,
+                LockToken = lockToken!,
                 Org = EngineAppFixture.DefaultOrg,
                 App = EngineAppFixture.DefaultApp,
                 InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId, NumberFormatInfo.InvariantInfo),

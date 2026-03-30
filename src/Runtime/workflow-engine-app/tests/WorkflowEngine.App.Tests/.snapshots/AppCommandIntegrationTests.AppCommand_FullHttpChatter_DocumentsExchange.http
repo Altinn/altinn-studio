@@ -11,15 +11,15 @@ Content-Type: application/json; charset=utf-8
     "app": "e2e-tests"
   },
   "context": {
-    "Actor": {
+    "actor": {
       "userIdOrOrgNumber": "test-user",
       "language": null
     },
-    "LockToken": "e2e-lock-token-abc123",
-    "Org": "ttd",
-    "App": "e2e-tests",
-    "InstanceOwnerPartyId": 50001,
-    "InstanceGuid": "Guid_2"
+    "lockToken": "e2e-lock-token-abc123",
+    "org": "ttd",
+    "app": "e2e-tests",
+    "instanceOwnerPartyId": 50001,
+    "instanceGuid": "Guid_2"
   },
   "workflows": [
     {
