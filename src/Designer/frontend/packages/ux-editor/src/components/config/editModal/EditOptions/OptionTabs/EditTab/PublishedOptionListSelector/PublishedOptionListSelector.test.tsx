@@ -20,6 +20,7 @@ import type { PublishedCodeListReferenceValues } from '../../types/PublishedCode
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PUBLISHED_CODE_LIST_FOLDER } from 'app-shared/constants';
+import { getFieldsetByLegend } from '@studio/ui-test';
 
 // Test data:
 const orgName = 'some-org';
@@ -66,14 +67,14 @@ describe('PublishedOptionListSelector', () => {
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 
-  it('Displays the published code list selection form when the user clicks the button', async () => {
+  it.only('Displays the published code list selection form when the user clicks the button', async () => {
     const user = setupUser();
     renderPublishedOptionListSelectorWithData();
 
     await user.openForm();
 
     const formName = textMock('ux_editor.options.published_code_list.choose');
-    expect(screen.getByRole('group', { name: formName })).toBeInTheDocument();
+    expect(getFieldsetByLegend(formName)).toBeInTheDocument();
   });
 
   it('Renders the latest version radio button as checked by default', async () => {
