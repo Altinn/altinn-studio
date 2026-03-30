@@ -51,7 +51,10 @@ public static class WorkflowEngineBuilderExtensions
             builder.Services.AddTelemetry(emitQueryParameters: isDev);
 
             // OpenAPI
-            builder.Services.AddOpenApi();
+            builder.Services.AddOpenApi(options =>
+            {
+                options.AddOperationTransformer<Endpoints.WorkflowMetadataOperationTransformer>();
+            });
 
             return builder;
         }
