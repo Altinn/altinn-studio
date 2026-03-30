@@ -10,7 +10,9 @@ from agents.services.events import sink, AgentEvent
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from shared.config import get_config
+from shared.utils.langfuse_utils import is_langfuse_enabled
 from shared.utils.logging_utils import get_logger
+from langfuse import get_client
 from pathlib import Path
 from typing import Optional, List
 from shared.models import AttachmentUpload, AgentAttachment
@@ -195,8 +197,30 @@ async def start_agent(
                             with propagate_attributes(user_id=req.org):
                                 result_state_ref = await _run_chat_inner()
                                 if result_state_ref is not None:
-                                    reply = (result_state_ref.assistant_response or {}).get("response", "")
+                                    ar = result_state_ref.assistant_response or {}
+                                    reply = ar.get("response", "")
                                     root_span.update(output={"response": reply[:1000] if reply else ""})
+
+                                    async def _run_no_hallucination_chat() -> None:
+                                        import asyncio as _asyncio
+                                        try:
+                                            from agents.services.evaluation.hallucination_judge import (
+                                                format_sources,
+                                                run_hallucination_judge,
+                                            )
+                                            await run_hallucination_judge(
+                                                user_goal=req.goal,
+                                                agent_response=ar.get("response", ""),
+                                                sources=format_sources(ar.get("sources") or []),
+                                                trace_id=root_span.trace_id,
+                                            )
+                                        except _asyncio.CancelledError:
+                                            raise
+                                        except Exception:
+                                            log.exception("Evaluation pipeline error (no_hallucination, chat mode)")
+
+                                    import asyncio as _asyncio
+                                    _asyncio.create_task(_run_no_hallucination_chat())
                     else:
                         await _run_chat_inner()
                 except Exception as outer_error:

@@ -12,6 +12,7 @@ from .nodes.reviewer_node import handle as reviewer_node
 from agents.services.events import AgentEvent, EventSink, sink
 from shared.utils.logging_utils import get_logger
 import asyncio
+import json
 
 
 class WorkflowCancelled(Exception):
@@ -210,6 +211,33 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 
                     asyncio.create_task(_run_intent_match_evaluation())
 
+                    async def _run_no_hallucination_evaluation() -> None:
+                        try:
+                            from agents.services.evaluation.hallucination_judge import (
+                                format_sources,
+                                run_hallucination_judge,
+                            )
+                            step_plan = final_state.get("step_plan") or []
+                            implementation_plan = final_state.get("implementation_plan")
+                            agent_response = (
+                                step_plan[0] if isinstance(step_plan, list) and step_plan
+                                else json.dumps(implementation_plan, ensure_ascii=False) if isinstance(implementation_plan, dict) and implementation_plan
+                                else str(implementation_plan or "")
+                            )
+                            sources = str(final_state.get("planning_guidance") or "")
+                            await run_hallucination_judge(
+                                user_goal=state.user_goal,
+                                agent_response=agent_response,
+                                sources=sources,
+                                trace_id=root_span.trace_id,
+                            )
+                        except asyncio.CancelledError:
+                            raise
+                        except Exception:
+                            log.exception("Evaluation pipeline error (no_hallucination)")
+
+                    asyncio.create_task(_run_no_hallucination_evaluation())
+
                 except Exception as e:
                     root_span.update(
                         output={"error": str(e)},
@@ -299,3 +327,4 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
     # Create background task
     task = asyncio.create_task(_run())
     return task
+
