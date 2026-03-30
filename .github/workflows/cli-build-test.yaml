@@ -2,7 +2,7 @@ name: CLI - Build and test
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - "src/cli/**"
       - "src/tools/releaser/**"
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   detect-changelog-change:
     name: Detect changelog changes
-    if: github.event_name == 'pull_request' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -37,7 +37,7 @@ jobs:
 
   validate-changelog:
     name: Validate changelog
-    if: (github.event_name != 'pull_request' || !github.event.pull_request.draft) && needs.detect-changelog-change.outputs.changed == 'true'
+    if: (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft)) && needs.detect-changelog-change.outputs.changed == 'true'
     needs: detect-changelog-change
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -59,7 +59,7 @@ jobs:
           go run . validate-changelog -component studioctl -base "${{ github.event.pull_request.base.sha }}" -head "${{ github.event.pull_request.head.sha }}"
 
   verify-release-artifacts:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Verify studioctl release artifacts
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -91,7 +91,7 @@ jobs:
           retention-days: 1
 
   analyze:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
       matrix:
         os: [macos-latest,windows-latest,ubuntu-latest]

@@ -14,12 +14,8 @@ permissions:
   packages: write
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   push-localtest:
     name: Push localtest image to GHCR
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     defaults:
@@ -44,7 +40,7 @@ jobs:
       - name: Set vars
         id: vars
         run: |
-          SHA=${{ needs.get-short-sha.outputs.short-sha }}
+          SHA="${GITHUB_SHA::10}"
           GHCR_BASE="ghcr.io/altinn/altinn-studio"
           echo "image=${GHCR_BASE}/runtime-localtest:${SHA}" >> $GITHUB_OUTPUT
 

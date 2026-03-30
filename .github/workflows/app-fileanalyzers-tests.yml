@@ -2,7 +2,7 @@ name: App Fileanalyzers - Build and test
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/fileanalyzers/**'
       - '.github/workflows/app-fileanalyzers-tests.yml'
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   analyze:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     strategy:
       matrix:
         os:

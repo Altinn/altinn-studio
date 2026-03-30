@@ -7,7 +7,6 @@ on:
       - '.github/workflows/template-docker-push.yaml'
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
-      - '.github/workflows/template-short-sha.yaml'
       - 'src/gitea/**'
       - 'src/gitea-proxy/**'
       - 'charts/altinn-repositories/**'
@@ -25,16 +24,12 @@ permissions:
       contents: read
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
 
   determine-tag:
-    needs: get-short-sha
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.determine-tag.outputs.tag }}
@@ -42,15 +37,16 @@ jobs:
       - name: Determine tag
         id: determine-tag
         run: |
+          SHORT_SHA="${GITHUB_SHA::10}"
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "tag=${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+            echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           else
             sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
-            echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+            echo "tag=${sanitized_branch_name}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
   docker-build-push:
-    needs: [get-short-sha, determine-tag]
+    needs: determine-tag
     uses: ./.github/workflows/template-docker-push.yaml
     with:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
@@ -65,7 +61,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   docker-build-push-gitea-proxy:
-    needs: [get-short-sha, determine-tag]
+    needs: determine-tag
     uses: ./.github/workflows/template-docker-push.yaml
     with:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
@@ -80,7 +76,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   helm-push:
-    needs: [get-short-sha, determine-tag]
+    needs: determine-tag
     uses: ./.github/workflows/template-helm-push.yaml
     with:
       tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid semantic version
@@ -93,7 +89,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: [construct-environments-array, get-short-sha, determine-tag, docker-build-push, docker-build-push-gitea-proxy, helm-push]
+    needs: [construct-environments-array, determine-tag, docker-build-push, docker-build-push-gitea-proxy, helm-push]
     strategy:
       matrix:
         include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}

@@ -2,19 +2,19 @@ name: Resource admin playwright tests on pr
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/resourceadm/**'
       - '.github/workflows/run-playwright-resourceadm-on-pr.yaml'
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   playwright-tests:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Playwright (${{ matrix.studio-oidc-mode && 'StudioOidc' || 'GiteaOidc' }})
     timeout-minutes: 25
     runs-on: ubuntu-latest
