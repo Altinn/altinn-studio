@@ -281,10 +281,21 @@ dom.querySearchInput.addEventListener('keydown', (e) => {
     }
 });
 
-/** Merge label values discovered from SSE workflow cards. */
+/** Check for new namespaces from workflow data and re-fetch if found. */
 export const mergeDiscoveredLabels = () => {
-    // Labels are now stored on cards as data-labels="key:value,key:value"
-    // No dynamic dropdown to update — label filter chips are click-driven from card segments
+    const known = state.allNamespaces;
+    for (const wf of Object.values(state.previousWorkflows)) {
+        if (wf.namespace && !known.has(wf.namespace)) {
+            fetchNamespaces();
+            return;
+        }
+    }
+    for (const wf of state.recentWorkflows) {
+        if (wf.namespace && !known.has(wf.namespace)) {
+            fetchNamespaces();
+            return;
+        }
+    }
 };
 
 for (const bar of document.querySelectorAll('.section-chips')) {
