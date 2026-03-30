@@ -11,11 +11,11 @@ import {
   codeList2Data,
   codeListDataList,
 } from '../../../test-data/codeListDataList';
-import { Guard } from '@studio/guard';
 import { ArrayUtils } from '@studio/pure-functions';
 import { label1ResourceNb, textResources } from '../../../test-data/textResources';
 import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';
+import { getDetailsBySummary, getSummaryByText } from '@studio/ui-test';
 
 const onCreateCodeList = jest.fn();
 const onCreateTextResource = jest.fn();
@@ -100,7 +100,7 @@ describe('CodeListsWithTextResourcesPage', () => {
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
     expect(getCodeListHeading(codeList2Data.title)).toBeInTheDocument();
-    expect(queryCodeListHeading(codeList1Data.title)).not.toBeInTheDocument();
+    expect(getDetailsBySummary(codeList1Data.title)).not.toBeInTheDocument();
   });
 
   it('opens the new code list details when the user has uploaded a code list', async () => {
@@ -123,8 +123,8 @@ describe('CodeListsWithTextResourcesPage', () => {
       />,
     );
 
-    const openItem = screen.getByRole('button', { name: newCodeListData.title, expanded: true });
-    expect(openItem).toBeInTheDocument();
+    const openItem = getDetailsBySummary(newCodeListData.title);
+    expect(openItem).toHaveAttribute('open');
   });
 
   it('calls onUpdateCodeListId when Id is changed', async () => {
@@ -334,19 +334,10 @@ const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
   return within(area).getByRole('textbox', { name: descriptionFieldLabel });
 };
 
-const getCodeListDetails = (codeListTitle: string): HTMLElement => {
-  // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the details element.
-  // Todo: Use getByRole('group') when the role becomes correctly assigned to the component: https://github.com/digdir/designsystemet/issues/3941
-  const { parentElement } = getCodeListHeading(codeListTitle); // eslint-disable-line testing-library/no-node-access
-  Guard.againstNull(parentElement);
-  return parentElement;
-};
+const getCodeListDetails = (codeListTitle: string): HTMLElement =>
+  getDetailsBySummary(codeListTitle);
 
-const getCodeListHeading = (codeListTitle: string): HTMLElement =>
-  screen.getByRole('button', { name: codeListTitle });
-
-const queryCodeListHeading = (codeListTitle: string): HTMLElement | null =>
-  screen.queryByRole('button', { name: codeListTitle });
+const getCodeListHeading = (codeListTitle: string): HTMLElement => getSummaryByText(codeListTitle);
 
 const renderCodeListsWithTextResourcesPage = (
   props: Partial<CodeListsWithTextResourcesPageProps> = {},
