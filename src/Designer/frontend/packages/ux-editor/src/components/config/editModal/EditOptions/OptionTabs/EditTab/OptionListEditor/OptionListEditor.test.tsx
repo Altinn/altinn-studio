@@ -23,6 +23,7 @@ import {
   latestVersionString,
 } from '../../utils/published-code-list-reference-utils';
 import { FeatureFlag } from '@studio/feature-flags';
+import { getFieldsetByLegend } from '@studio/ui-test';
 
 // Mocks:
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
@@ -88,8 +89,8 @@ describe('OptionListEditor', () => {
     const user = userEvent.setup();
     renderOptionListEditorWithPublishedCodeList();
     await user.click(getEditButton());
-    const formLegend = `${textMock('ux_editor.options.published_code_list.choose')} ${textMock('ux_editor.options.published_code_list.latest_or_fixed_description')}`;
-    expect(screen.getByRole('group', { name: formLegend })).toBeInTheDocument();
+    const formLegend = textMock('ux_editor.options.published_code_list.choose');
+    expect(getFieldsetByLegend(formLegend)).toBeInTheDocument();
   });
 
   it('Removes the optionsId setting when it refers to a published code list and the user clicks the delete button', async () => {
