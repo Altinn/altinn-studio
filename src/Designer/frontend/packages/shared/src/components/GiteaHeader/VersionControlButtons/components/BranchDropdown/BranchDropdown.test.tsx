@@ -185,6 +185,43 @@ describe('BranchDropdown', () => {
 
     expect(clearUncommittedChangesError).toHaveBeenCalled();
   });
+
+  it('Should show delete button for non-current, non-default branches', async () => {
+    const user = userEvent.setup();
+    renderBranchDropdown();
+    await user.click(getDropdownTrigger());
+
+    const deleteButtons = screen.getAllByRole('button', {
+      name: textMock('branching.delete_branch_button'),
+    });
+    expect(deleteButtons).toHaveLength(1);
+  });
+
+  it('Should not show delete button for the current branch', async () => {
+    const user = userEvent.setup();
+    mockBranchData({ currentBranch: 'feature-branch' });
+    renderBranchDropdown();
+    await user.click(getDropdownTrigger());
+
+    const deleteButtons = screen.queryAllByRole('button', {
+      name: textMock('branching.delete_branch_button'),
+    });
+    expect(deleteButtons).toHaveLength(0);
+  });
+
+  it('Should open delete confirmation dialog when clicking delete button', async () => {
+    const user = userEvent.setup();
+    renderBranchDropdown();
+    await user.click(getDropdownTrigger());
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('branching.delete_branch_button'),
+    });
+    await user.click(deleteButton);
+
+    const deleteDialog = screen.getByRole('dialog');
+    expect(deleteDialog).toBeInTheDocument();
+  });
 });
 
 const renderBranchDropdown = () => {

@@ -125,6 +125,7 @@ export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/val
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
+export const branchPath = (org, app, branchName) => `${apiBasePath}/repos/repo/${org}/${app}/branches/${branchName}`; // Delete
 export const branchesPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/branches`; // Get, Post
 export const checkoutBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/checkout`; // Post
 export const currentBranchPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/current-branch`; // Get

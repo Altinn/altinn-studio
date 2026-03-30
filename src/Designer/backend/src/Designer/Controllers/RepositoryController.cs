@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Helpers;
@@ -531,6 +532,60 @@ namespace Altinn.Studio.Designer.Controllers
             );
             var branch = await _sourceControl.CreateBranch(editingContext, request.BranchName);
             return Ok(branch);
+        }
+
+        /// <summary>
+        /// Deletes a branch from the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branchName">The name of the branch to delete</param>
+        [HttpDelete]
+        [Route(
+            "repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/{**branchName}"
+        )]
+        public async Task<ActionResult> DeleteBranch(string org, string repository, [FromRoute] string branchName)
+        {
+            if (string.IsNullOrWhiteSpace(branchName))
+            {
+                return BadRequest("Branch name is required");
+            }
+
+            try
+            {
+                Guard.AssertValidRepoBranchName(branchName);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{branchName} is an invalid branch name.");
+            }
+
+            if (branchName == General.DefaultBranch)
+            {
+                return BadRequest("Cannot delete the default branch.");
+            }
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repository,
+                developer
+            );
+
+            var currentBranch = _sourceControl.GetCurrentBranch(editingContext);
+            if (currentBranch.BranchName == branchName)
+            {
+                return BadRequest("Cannot delete the currently checked out branch.");
+            }
+
+            string token = await HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+
+            _sourceControl.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
+            _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+
+            return NoContent();
         }
 
         /// <summary>
