@@ -13,7 +13,7 @@ public static class WorkflowMetadataConstants
     {
         public const string Namespace = "Namespace";
         public const string IdempotencyKey = "Idempotency-Key";
-        public const string CorrelationId = "Correlation-Id";
+        public const string CollectionKey = "Collection-Key";
         public const string WorkflowId = "Workflow-Id";
         public const string OperationId = "Operation-Id";
     }
@@ -21,6 +21,6 @@ public static class WorkflowMetadataConstants
     public static class QueryParams
     {
         public const string IdempotencyKey = "idempotencyKey";
-        public const string CorrelationId = "correlationId";
+        public const string CollectionKey = "collectionKey";
     }
 }

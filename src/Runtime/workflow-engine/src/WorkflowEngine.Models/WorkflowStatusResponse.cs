@@ -14,11 +14,11 @@ public sealed record WorkflowStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
-    /// The correlation ID for this workflow, if one was provided.
+    /// The collection key for this workflow, if one was provided.
     /// </summary>
-    [JsonPropertyName("correlationId")]
+    [JsonPropertyName("collectionKey")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Guid? CorrelationId { get; init; }
+    public string? CollectionKey { get; init; }
 
     /// <summary>
     /// An identifier for this operation.
@@ -117,7 +117,7 @@ public sealed record WorkflowStatusResponse
         new()
         {
             DatabaseId = workflow.DatabaseId,
-            CorrelationId = workflow.CorrelationId,
+            CollectionKey = workflow.CollectionKey,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,
             OperationId = workflow.OperationId,

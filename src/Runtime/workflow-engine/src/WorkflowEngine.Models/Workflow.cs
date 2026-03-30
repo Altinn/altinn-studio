@@ -5,10 +5,10 @@ namespace WorkflowEngine.Models;
 public sealed record Workflow : PersistentItem
 {
     /// <summary>
-    /// Optional correlation ID shared by all workflows in a batch.
+    /// Optional collection key shared by all workflows in a batch.
     /// Used for grouping and looking up related workflows.
     /// </summary>
-    public Guid? CorrelationId { get; init; }
+    public string? CollectionKey { get; init; }
 
     /// <summary>
     /// The idempotency key for this workflow, unique within a namespace.

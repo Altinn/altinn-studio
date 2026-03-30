@@ -569,7 +569,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata1 = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );
@@ -590,7 +590,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata2 = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );
@@ -733,7 +733,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var metadata = new WorkflowRequestMetadata(
             "test-namespace",
             Guid.NewGuid().ToString("N"),
-            Guid.NewGuid(),
+            null,
             DateTimeOffset.UtcNow,
             null
         );

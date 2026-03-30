@@ -3,7 +3,6 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data;
-using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -212,7 +211,7 @@ internal sealed class Engine(
         );
 
         // Validate input size limits before expensive graph validation or command deserialization
-        var sizeResult = ValidateInputSizeLimits(request);
+        var sizeResult = ValidateInputSizeLimits(request, metadata);
         if (sizeResult is SizeLimitValidationResult.Invalid sizeError)
         {
             activity?.Errored(errorMessage: sizeError.Message);
@@ -437,7 +436,10 @@ internal sealed class Engine(
     /// <summary>
     /// Validates that the request does not exceed input size limits.
     /// </summary>
-    private SizeLimitValidationResult ValidateInputSizeLimits(WorkflowEnqueueRequest request)
+    private SizeLimitValidationResult ValidateInputSizeLimits(
+        WorkflowEnqueueRequest request,
+        WorkflowRequestMetadata metadata
+    )
     {
         if (request.Workflows.Count > _settings.MaxWorkflowsPerRequest)
             return new SizeLimitValidationResult.Invalid(
@@ -448,6 +450,18 @@ internal sealed class Engine(
             return new SizeLimitValidationResult.Invalid(
                 $"Request contains {request.Labels.Count} labels, maximum is {_settings.MaxLabels}."
             );
+
+        // Validate collection key extracted from headers/query params when present.
+        if (metadata.CollectionKey is not null)
+        {
+            if (string.IsNullOrWhiteSpace(metadata.CollectionKey))
+                return new SizeLimitValidationResult.Invalid("CollectionKey cannot be empty or whitespace.");
+
+            if (metadata.CollectionKey.Length > 200)
+                return new SizeLimitValidationResult.Invalid(
+                    $"CollectionKey '{metadata.CollectionKey[..50]}...' is {metadata.CollectionKey.Length} characters, maximum is 200."
+                );
+        }
 
         for (int i = 0; i < request.Workflows.Count; i++)
         {

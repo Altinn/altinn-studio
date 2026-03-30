@@ -372,7 +372,7 @@ internal static class DashboardEndpoints
                     DateTimeOffset? since,
                     bool? retried,
                     string? labels,
-                    string? correlationId,
+                    string? collectionKey,
                     string? @namespace,
                     CancellationToken ct
                 ) =>
@@ -417,7 +417,7 @@ internal static class DashboardEndpoints
                         retriedOnly: retriedOnly,
                         labelFilters: labelFilters,
                         namespaceFilter: nsFilter,
-                        correlationId: correlationId,
+                        collectionKey: collectionKey,
                         cancellationToken: ct
                     );
 

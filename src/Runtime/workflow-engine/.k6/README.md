@@ -55,7 +55,7 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 
 ## Payload
 
-Scripts use `payloads/webhook.json` — a single webhook step targeting WireMock at `http://localhost:6060/webhook-callback`. The `idempotencyKey` and `correlationId` are replaced with unique values per request at runtime.
+Scripts use `payloads/webhook.json` — a single webhook step targeting WireMock at `http://localhost:6060/webhook-callback`. The `idempotencyKey` and `collectionKey` are replaced with unique values per request at runtime.
 
 ## Shared Library
 

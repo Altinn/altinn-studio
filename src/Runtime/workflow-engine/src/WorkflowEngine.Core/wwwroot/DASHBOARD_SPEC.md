@@ -104,7 +104,7 @@ Paginated workflow search.
 | `since`         | datetime | Start of time range                                  |
 | `retried`       | bool     | Only workflows with step retries                     |
 | `labels`        | string   | Comma-separated key:value pairs                      |
-| `correlationId` | string   | Correlation ID filter                                |
+| `collectionKey` | string   | Collection key filter                                |
 
 Response: `{ totalCount: int, workflows: Workflow[] }`
 
@@ -197,7 +197,7 @@ Each workflow renders as a card with a header row and a pipeline of step nodes.
 
 Left to right:
 
-1. **Label segments** — Clickable spans for namespace, correlationId, and labels. Clicking toggles a label filter. CSS class `seg key` for namespace/correlationId (bold cyan), `seg` for label values.
+1. **Label segments** — Clickable spans for namespace, collectionKey, and labels. Clicking toggles a label filter. CSS class `seg key` for namespace/collectionKey (bold cyan), `seg` for label values.
 2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`.
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
@@ -259,7 +259,7 @@ data-wfkey="{databaseId}"
 data-filter="{searchable text: namespace, operationId, idempotencyKey, labels, step commands}"
 data-status="{space-separated status tags}"
 data-namespace="{namespace lowercase}"
-data-correlationid="{correlationId lowercase}"
+data-collectionKey="{collectionKey lowercase}"
 data-labels="{key:value,key:value lowercase}"
 ```
 
@@ -380,7 +380,7 @@ Each block shows syntax-highlighted JSON (pre-processed with `expandJsonStrings(
 - Clicking a chip removes that filter
 - Active label filters apply to ALL sections (live, recent, query)
 - For query tab: label filters are sent to backend as `labels=key:value,key:value` parameter
-- Special keys: `namespace` matches `data-namespace`, `correlationId` matches `data-correlationid`, others match against `data-labels`
+- Special keys: `namespace` matches `data-namespace`, `collectionKey` matches `data-collectionKey`, others match against `data-labels`
 
 ### Status Filters
 
@@ -459,7 +459,7 @@ interface Workflow {
     status: string;
     traceId: string | null;
     namespace: string;
-    correlationId: string | null;
+    collectionKey: string | null;
     labels: Record<string, string> | null;
     backoffUntil: string | null;
     createdAt: string;
