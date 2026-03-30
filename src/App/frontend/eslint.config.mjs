@@ -218,4 +218,56 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/core/**', 'src/routes/**', 'src/test/**', 'src/queries/**'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'warn',
+        {
+          paths: [
+            {
+              name: '@tanstack/react-query',
+              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/routes/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'warn',
+        {
+          paths: [
+            {
+              name: '@tanstack/react-query',
+              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/core/**'],
+    rules: {
+      'no-restricted-imports': [
+        'warn',
+        {
+          patterns: [
+            {
+              regex: 'src/core/queries/[^/]+/(?!index$)',
+              message:
+                'Only import from the index.ts of each src/core/queries/ module. Do not import internal files directly.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

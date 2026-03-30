@@ -34,10 +34,6 @@ permissions:
   packages: write
 
 jobs:
-
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-rings-array:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
@@ -46,21 +42,26 @@ jobs:
 
   push-workflow-engine-app-artifact:
     name: Push workflow-engine-app as OCI artifact
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     env:
       REGISTRY_NAME: altinncr
-      IMAGE_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app:${{ needs.get-short-sha.outputs.short-sha }}
-      CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
-      GHCR_IMAGE: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:${{ needs.get-short-sha.outputs.short-sha }}
     outputs:
-      config-repo: altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${{ needs.get-short-sha.outputs.short-sha }}
+      config-repo: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
         working-directory: src/Runtime/workflow-engine-app
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${GITHUB_SHA::10}"
+          echo "short-sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "image-repo=altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "config-repo=altinncr.azurecr.io/studio-apps/runtime-workflow-engine-app-repo:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "ghcr-image=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:${SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
@@ -94,18 +95,18 @@ jobs:
       - name: docker build
         working-directory: src
         run: |
-          TAGS="-t ${{ env.IMAGE_REPO }} -t ${{ env.GHCR_IMAGE }}"
+          TAGS="-t ${{ steps.vars.outputs.image-repo }} -t ${{ steps.vars.outputs.ghcr-image }}"
           if [ "${{ inputs.tag-latest }}" = "true" ]; then
             TAGS="$TAGS -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest"
           fi
           docker build --platform linux/amd64,linux/arm64 $TAGS -f Runtime/workflow-engine-app/Dockerfile .
 
       - name: push image
-        run: docker push ${{ env.IMAGE_REPO }}
+        run: docker push ${{ steps.vars.outputs.image-repo }}
 
       - name: push GHCR image
         run: |
-          docker push ${{ env.GHCR_IMAGE }}
+          docker push ${{ steps.vars.outputs.ghcr-image }}
           if [ "${{ inputs.tag-latest }}" = "true" ]; then
             docker push ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:latest
           fi
@@ -113,15 +114,15 @@ jobs:
       - name: patch base with image tag
         working-directory: src/Runtime/workflow-engine-app/infra/kustomize/base
         run: |
-          export IMAGE="${{ env.IMAGE_REPO }}"
-          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          export IMAGE="${{ steps.vars.outputs.image-repo }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
           yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
         working-directory: src/Runtime/workflow-engine-app/infra/kustomize
         run: |
-          flux push artifact oci://${{ env.CONFIG_REPO }} \
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \
             --reproducible \
             --path="." \

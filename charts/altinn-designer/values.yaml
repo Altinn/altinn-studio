@@ -10,7 +10,6 @@ serviceAccount:
 image:
   repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
   containerPort: 5000
-  imagePullSecret: acrsecret
 
 dbMigrationsJob:
   image:

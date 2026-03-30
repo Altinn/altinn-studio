@@ -91,11 +91,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "WorkflowUpdateBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
-            _settings.UpdateBuffer.MaxBatchSize,
-            _settings.UpdateBuffer.FlushConcurrency
-        );
+        _logger.UpdateBufferStarted(_settings.UpdateBuffer.MaxBatchSize, _settings.UpdateBuffer.FlushConcurrency);
 
         using var flushSemaphore = new SemaphoreSlim(_settings.UpdateBuffer.FlushConcurrency);
         var batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
@@ -116,10 +112,20 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
                 await flushSemaphore.WaitAsync(stoppingToken);
 
-                var batchToFlush = batch;
+                _ = FlushAndRelease([.. batch]);
                 batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
 
-                _ = FlushBatch(batchToFlush, flushSemaphore, stoppingToken);
+                async Task FlushAndRelease(List<WorkflowUpdateRequest> batchToFlush)
+                {
+                    try
+                    {
+                        await FlushBatch(batchToFlush, stoppingToken);
+                    }
+                    finally
+                    {
+                        flushSemaphore.Release();
+                    }
+                }
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -127,41 +133,49 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             // Expected on shutdown
         }
 
-        // Wait for all in-flight flushes to complete
-        for (int i = 0; i < _settings.UpdateBuffer.FlushConcurrency; i++)
-        {
-            await flushSemaphore.WaitAsync(CancellationToken.None);
-        }
-
-        // batch may still hold items from an interrupted iteration — append remaining channel items
-        while (_channel.Reader.TryRead(out var remaining))
-        {
-            batch.Add(remaining);
-        }
-
-        if (batch.Count > 0)
-        {
-            await FlushBatchCore(batch, CancellationToken.None);
-        }
-
-        _logger.LogInformation("WorkflowUpdateBuffer shutdown complete");
-    }
-
-    private async Task FlushBatch(List<WorkflowUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
-    {
+        // Wait for all in-flight flushes to complete (bounded to prevent indefinite hangs)
+        using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         try
         {
-            await FlushBatchCore(batch, ct);
+            for (int i = 0; i < _settings.UpdateBuffer.FlushConcurrency; i++)
+            {
+                await flushSemaphore.WaitAsync(drainCts.Token);
+            }
+
+            // batch may still hold items from an interrupted iteration — append remaining channel items
+            while (_channel.Reader.TryRead(out var remaining))
+            {
+                batch.Add(remaining);
+            }
+
+            if (batch.Count > 0)
+            {
+                await FlushBatch(batch, drainCts.Token);
+            }
+
+            _logger.UpdateBufferShutdownComplete();
         }
-        finally
+        catch (OperationCanceledException) when (drainCts.IsCancellationRequested)
         {
-            semaphore.Release();
+            // Cancel any items still in the current batch
+            foreach (var pending in batch)
+            {
+                pending.Completion.TrySetCanceled(drainCts.Token);
+            }
+
+            // Cancel any items still queued in the channel
+            while (_channel.Reader.TryRead(out var pending))
+            {
+                pending.Completion.TrySetCanceled(drainCts.Token);
+            }
+
+            _logger.UpdateBufferDrainTimedOut(_settings.UpdateBuffer.FlushConcurrency);
         }
     }
 
-    private async Task FlushBatchCore(List<WorkflowUpdateRequest> batch, CancellationToken ct)
+    private async Task FlushBatch(List<WorkflowUpdateRequest> batch, CancellationToken ct)
     {
-        // Filter out items whose callers have already cancelled
+        // Filter out items whose callers have already canceled
         for (int i = batch.Count - 1; i >= 0; i--)
         {
             if (batch[i].Completion.Task.IsCanceled)
@@ -176,7 +190,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
 
         using var activity = Metrics.Source.StartActivity(
-            "WorkflowUpdateBuffer.FlushBatchCore",
+            "WorkflowUpdateBuffer.FlushBatch",
             tags: [("batch.size", batch.Count)],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Workflow.EngineTraceContext)).ToActivityLinks()
         );
@@ -195,9 +209,16 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                 request.Completion.TrySetResult();
             }
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            foreach (var request in batch)
+            {
+                request.Completion.TrySetCanceled(ct);
+            }
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Update flush failed for {Count} requests", batch.Count);
+            _logger.UpdateBufferFlushFailed(batch.Count, ex);
             activity?.Errored(ex);
 
             // Fault all waiting callers
@@ -209,11 +230,31 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     }
 }
 
-/// <summary>
-/// A single status update request waiting in the buffer.
-/// </summary>
-internal sealed record WorkflowUpdateRequest(
-    Workflow Workflow,
-    IReadOnlyList<Step> DirtySteps,
-    TaskCompletionSource Completion
-);
+internal static partial class WorkflowUpdateBufferLogs
+{
+    [LoggerMessage(
+        LogLevel.Information,
+        "WorkflowUpdateBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})"
+    )]
+    internal static partial void UpdateBufferStarted(
+        this ILogger<WorkflowUpdateBuffer> logger,
+        int maxBatchSize,
+        int concurrency
+    );
+
+    [LoggerMessage(LogLevel.Information, "WorkflowUpdateBuffer shutdown complete")]
+    internal static partial void UpdateBufferShutdownComplete(this ILogger<WorkflowUpdateBuffer> logger);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "WorkflowUpdateBuffer drain timed out — {Count} in-flight flushes may not have completed"
+    )]
+    internal static partial void UpdateBufferDrainTimedOut(this ILogger<WorkflowUpdateBuffer> logger, int count);
+
+    [LoggerMessage(LogLevel.Error, "Update flush failed for {Count} requests")]
+    internal static partial void UpdateBufferFlushFailed(
+        this ILogger<WorkflowUpdateBuffer> logger,
+        int count,
+        Exception ex
+    );
+}

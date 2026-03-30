@@ -390,17 +390,22 @@ public class WorkflowUpdateBufferTests
         using var serviceCts = new CancellationTokenSource();
         await buffer.StartAsync(serviceCts.Token);
 
-        var tasks = Enumerable
-            .Range(1, 5)
-            .Select(i => buffer.Submit(CreateTestWorkflow($"drain-{i}"), TestContext.Current.CancellationToken))
-            .ToList();
+        try
+        {
+            var tasks = Enumerable
+                .Range(1, 5)
+                .Select(i => buffer.Submit(CreateTestWorkflow($"drain-{i}"), TestContext.Current.CancellationToken))
+                .ToList();
 
-        // Stop should drain all pending items
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await buffer.StopAsync(stopCts.Token);
+            // Wait for all items to be flushed
+            await Task.WhenAll(tasks);
 
-        await Task.WhenAll(tasks);
-
-        Assert.Equal(5, flushCount);
+            Assert.Equal(5, flushCount);
+        }
+        finally
+        {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
     }
 }

@@ -3,6 +3,9 @@ import React from 'react';
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -10,29 +13,34 @@ import type { ISimpleInstance } from 'src/types';
 
 const mockActiveInstances: ISimpleInstance[] = [
   {
-    id: 'some-id',
+    id: '512345/some-guid',
     lastChanged: '2021-10-05T07:51:57.8795258Z',
     lastChangedBy: 'Navn Navnesen',
   },
   {
-    id: 'some-other-id',
+    id: '512345/some-other-guid',
     lastChanged: '2021-05-13T07:51:57.8795258Z',
     lastChangedBy: 'Kåre Nordmannsen',
   },
 ];
 
-const render = async (instances = mockActiveInstances) =>
-  await renderWithInstanceAndLayout({
-    renderer: () => <InstanceSelectionWrapper />,
-    queries: {
-      fetchActiveInstances: () => Promise.resolve(instances || []),
-    },
+const render = async (instances = mockActiveInstances) => {
+  jest.mocked(InstanceApi.getActiveInstances).mockResolvedValue(instances || []);
+  jest.mocked(InstanceApi.create).mockResolvedValue({
+    ...getInstanceDataMock(),
+    id: '512345/new-instance-guid',
+    process: getProcessDataMock(),
   });
+  return await renderWithInstanceAndLayout({
+    renderer: () => <InstanceSelectionWrapper />,
+  });
+};
 
 const { setScreenWidth } = mockMediaQuery(992);
 
 describe('InstanceSelection', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     // Set screen size to desktop
     setScreenWidth(1200);
   });
@@ -70,13 +78,13 @@ describe('InstanceSelection', () => {
   });
 
   it('pressing "Start på nytt" should trigger callback', async () => {
-    const { mutations } = await render();
+    await render();
     await userEvent.click(screen.getByText(/start på nytt/i));
-    expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(1);
+    expect(InstanceApi.create).toHaveBeenCalledTimes(1);
   });
 
   it('should trigger openInstance on editButton click', async () => {
-    const { mutations, routerRef } = await render();
+    const { routerRef } = await render();
     const row = screen.getByRole('row', {
       name: /10\/05\/2021 navn navnesen fortsett her/i,
     });
@@ -86,14 +94,14 @@ describe('InstanceSelection', () => {
     });
 
     await userEvent.click(button);
-    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-id');
-    expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
+    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/512345/some-guid');
+    expect(InstanceApi.create).toHaveBeenCalledTimes(0);
   });
 
   it('should trigger openInstance on editButton click during mobile view', async () => {
     // Set screen size to mobile
     setScreenWidth(600);
-    const { mutations, routerRef } = await render();
+    const { routerRef } = await render();
 
     const row = screen.getByRole('row', {
       name: /Sist endret: 05\/13\/2021 Endret av: Kåre Nordmannsen/i,
@@ -104,7 +112,7 @@ describe('InstanceSelection', () => {
     });
 
     await userEvent.click(button);
-    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-other-id');
-    expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
+    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/512345/some-other-guid');
+    expect(InstanceApi.create).toHaveBeenCalledTimes(0);
   });
 });

@@ -58,7 +58,7 @@ public class CancellationWatcherServiceTests
         repo.Setup(r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((IReadOnlyList<Guid> ids, CancellationToken _) => ids.Where(x => x == id).ToList());
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -68,16 +68,21 @@ public class CancellationWatcherServiceTests
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
 
-        // Wait for at least one poll cycle
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        try
+        {
+            // Wait for at least one poll cycle
+            await Task.Delay(200, TestContext.Current.CancellationToken);
 
-        Assert.True(workflowCts.IsCancellationRequested);
-        Assert.NotNull(workflow.CancellationRequestedAt);
-
-        cts.Cancel();
-        tracker.TryRemove(id, out _);
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await service.StopAsync(stopCts.Token);
+            Assert.True(workflowCts.IsCancellationRequested);
+            Assert.NotNull(workflow.CancellationRequestedAt);
+        }
+        finally
+        {
+            await cts.CancelAsync();
+            tracker.TryRemove(id, out _);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
     }
 
     [Fact]
@@ -87,7 +92,7 @@ public class CancellationWatcherServiceTests
         var repo = new Mock<IEngineRepository>();
         var settings = Options.Create(DefaultSettings());
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -97,17 +102,22 @@ public class CancellationWatcherServiceTests
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
 
-        // Wait for several poll cycles
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        try
+        {
+            // Wait for several poll cycles
+            await Task.Delay(200, TestContext.Current.CancellationToken);
 
-        repo.Verify(
-            r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-
-        cts.Cancel();
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await service.StopAsync(stopCts.Token);
+            repo.Verify(
+                r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
+                Times.Never
+            );
+        }
+        finally
+        {
+            await cts.CancelAsync();
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
     }
 
     [Fact]
@@ -135,7 +145,7 @@ public class CancellationWatcherServiceTests
                 }
             );
 
-        var service = new CancellationWatcherService(
+        using var service = new CancellationWatcherService(
             tracker,
             repo.Object,
             settings,
@@ -145,15 +155,20 @@ public class CancellationWatcherServiceTests
         using var cts = new CancellationTokenSource();
         _ = service.StartAsync(cts.Token);
 
-        // Wait for multiple poll cycles
-        await Task.Delay(300, TestContext.Current.CancellationToken);
+        try
+        {
+            // Wait for multiple poll cycles
+            await Task.Delay(300, TestContext.Current.CancellationToken);
 
-        Assert.True(callCount >= 2, $"Expected at least 2 calls but got {callCount}");
-        Assert.True(workflowCts.IsCancellationRequested);
-
-        cts.Cancel();
-        tracker.TryRemove(id, out _);
-        using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        await service.StopAsync(stopCts.Token);
+            Assert.True(callCount >= 2, $"Expected at least 2 calls but got {callCount}");
+            Assert.True(workflowCts.IsCancellationRequested);
+        }
+        finally
+        {
+            await cts.CancelAsync();
+            tracker.TryRemove(id, out _);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
     }
 }

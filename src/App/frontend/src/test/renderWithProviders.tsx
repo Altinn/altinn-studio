@@ -13,7 +13,6 @@ import type { JSONSchema7 } from 'json-schema';
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
-import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
@@ -98,9 +97,6 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
   doAttachmentUpload: makeMock('doAttachmentUpload'),
   doPatchMultipleFormData: makeMock('doPatchMultipleFormData'),
   doPostStatelessFormData: makeMock('doPostStatelessFormData'),
-  doSetSelectedParty: makeMock('doSetSelectedParty'),
-  doInstantiate: makeMock('doInstantiate'),
-  doInstantiateWithPrefill: makeMock('doInstantiateWithPrefill'),
   doPerformAction: makeMock('doPerformAction'),
   doSubformEntryAdd: makeMock('doSubformEntryAdd'),
   doSubformEntryDelete: makeMock('doSubformEntryDelete'),
@@ -121,9 +117,7 @@ const defaultPostalCodesMock = (() => {
 
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
-  fetchActiveInstances: async () => [],
   fetchDataModelSchema: async () => ({}),
-  fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
   fetchRefreshJwtToken: async () => ({}),
   fetchCustomValidationConfig: async () => null,
   fetchFormData: async () => ({}),

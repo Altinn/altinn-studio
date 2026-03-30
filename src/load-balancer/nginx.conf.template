@@ -52,7 +52,7 @@ http {
   }
 
   upstream settings {
-    server ${USER_SETTINGS_HOST};
+    server ${SETTINGS_HOST};
   }
 
   upstream repositories {

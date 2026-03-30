@@ -122,10 +122,10 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Wait for the last span in the processing pipeline
-        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCore");
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatch");
 
         // === Enqueue phase ===
-        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCore"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
 
@@ -164,7 +164,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
         // === Status write phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.Submit"));
-        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCore"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
@@ -304,7 +304,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Wait for the last span in the processing pipeline
-        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatchCore");
+        await collector.WaitForActivities("WorkflowUpdateBuffer.FlushBatch");
 
         // Resolve key span instances — filter by workflow ID tag to avoid
         // picking up activities from concurrent tests in other collections
@@ -316,7 +316,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // ───────────────────────────────────────────────────────────
         Assert.Equal(default, processWorkflow.ParentSpanId);
 
-        var link = Assert.Single(processWorkflow.Links);
+        _ = Assert.Single(processWorkflow.Links);
 
         // ───────────────────────────────────────────────────────────
         // Trace B — Processing tree (new root trace)
@@ -346,9 +346,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
-        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCore"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
-        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCore"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
