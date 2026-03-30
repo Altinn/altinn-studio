@@ -125,12 +125,11 @@ public class AzureSharedContentClient : ISharedContentClient
                 );
             }
 
-            var responseContent = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            return await JsonSerializer.DeserializeAsync<CodeList?>(
-                responseContent,
-                cancellationToken: cancellationToken
-            );
+            return !string.IsNullOrWhiteSpace(responseContent)
+                ? JsonSerializer.Deserialize<CodeList?>(responseContent)
+                : null;
         }
         catch (HttpRequestException ex)
         {

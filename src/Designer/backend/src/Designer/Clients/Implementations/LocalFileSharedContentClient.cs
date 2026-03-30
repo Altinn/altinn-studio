@@ -83,7 +83,9 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         version ??= LatestCodeListFileName;
         string url = CombineWithDelimiter(orgName, CodeListsSegment, codeListId, JsonFileName(version));
         string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
-        return jsonString is not null ? JsonSerializer.Deserialize<CodeList?>(jsonString) : null;
+        return !string.IsNullOrWhiteSpace(jsonString)
+            ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)
+            : null;
     }
 
     private async Task PrepareOrganisationIndexFile(string content, CancellationToken cancellationToken = default)
