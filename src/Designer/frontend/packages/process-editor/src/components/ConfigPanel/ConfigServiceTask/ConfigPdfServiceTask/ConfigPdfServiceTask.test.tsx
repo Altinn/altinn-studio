@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { createPdfBpmnDetails, renderWithProviders } from './testUtils';
+import { getFieldsetByLegend } from '@studio/ui-test';
 
 jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
@@ -119,9 +120,7 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       expect(
-        screen.getByRole('group', {
-          name: `${textMock('process_editor.configuration_panel_pdf_mode')} ${textMock('process_editor.configuration_panel_pdf_mode_description')}`,
-        }),
+        getFieldsetByLegend(textMock('process_editor.configuration_panel_pdf_mode')),
       ).toBeInTheDocument();
 
       expect(
