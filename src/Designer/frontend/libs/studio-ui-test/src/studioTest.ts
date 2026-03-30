@@ -4,6 +4,7 @@ export type StudioTest = typeof jest & {
   areTimersFake(): boolean;
   restoreTimers(): void;
   runWithFakeTimers<T>(fun: () => T): T;
+  mockNextConfirmDialog(returnValue: boolean): void;
 };
 
 export const studioTest: StudioTest = {
@@ -21,5 +22,8 @@ export const studioTest: StudioTest = {
   restoreTimers() {
     act(() => this.runOnlyPendingTimers());
     this.useRealTimers();
+  },
+  mockNextConfirmDialog(returnValue: boolean) {
+    this.spyOn(window, 'confirm').mockReturnValueOnce(returnValue);
   },
 };
