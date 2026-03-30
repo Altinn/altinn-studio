@@ -15,6 +15,9 @@ import asyncio
 import json
 
 
+_active_tasks: set = set()
+
+
 class WorkflowCancelled(Exception):
     """Raised when a workflow is cancelled by the user."""
     pass
@@ -233,8 +236,13 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     })
 
                     # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
-                    asyncio.create_task(_evaluate_intent_match(state.user_goal, final_state, root_span.trace_id))
-                    asyncio.create_task(_evaluate_no_hallucination(state.user_goal, final_state, root_span.trace_id))
+                    for coro in (
+                        _evaluate_intent_match(state.user_goal, final_state, root_span.trace_id),
+                        _evaluate_no_hallucination(state.user_goal, final_state, root_span.trace_id),
+                    ):
+                        task = asyncio.create_task(coro)
+                        _active_tasks.add(task)
+                        task.add_done_callback(_active_tasks.discard)
 
                 except Exception as e:
                     root_span.update(

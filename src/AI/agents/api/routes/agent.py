@@ -220,7 +220,9 @@ async def start_agent(
                                             log.exception("Evaluation pipeline error (no_hallucination, chat mode)")
 
                                     import asyncio as _asyncio
-                                    _asyncio.create_task(_run_no_hallucination_chat())
+                                    eval_task = _asyncio.create_task(_run_no_hallucination_chat())
+                                    _active_tasks.add(eval_task)
+                                    eval_task.add_done_callback(_active_tasks.discard)
                     else:
                         await _run_chat_inner()
                 except Exception as outer_error:

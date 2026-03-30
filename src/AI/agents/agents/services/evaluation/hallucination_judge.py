@@ -12,12 +12,12 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-_JUDGE_PROMPT_NAME = "no_hallucination"
+_JUDGE_PROMPT_NAME = "llm-as-a-judge/no_hallucination_judge"
 _MAX_SOURCE_CHARS = 8000
 _MAX_RESPONSE_CHARS = 4000
 
 
-def _parse_judge_response(response: str) -> tuple[bool, str]:
+def _parse_judge_response(response: str) -> tuple[bool | None, str]:
     """Extract (passed, reasoning) from the judge's JSON response."""
     try:
         match = re.search(r"\{.*\}", response.strip(), re.DOTALL)
@@ -28,7 +28,7 @@ def _parse_judge_response(response: str) -> tuple[bool, str]:
             return passed, reasoning
     except Exception as e:
         log.warning("Failed to parse no_hallucination judge response: %s | raw: %.200s", e, response)
-    return False, f"Parse error — raw response: {response[:200]}"
+    return None, f"Parse error — raw response: {response[:200]}"
 
 
 def format_sources(sources: list[dict[str, Any]]) -> str:
@@ -98,6 +98,9 @@ async def run_hallucination_judge(
         return
 
     passed, reasoning = _parse_judge_response(response)
+    if passed is None:
+        log.warning("no_hallucination: unparsable judge output — skipping score")
+        return
 
     score_validation(
         name="no_hallucination",
