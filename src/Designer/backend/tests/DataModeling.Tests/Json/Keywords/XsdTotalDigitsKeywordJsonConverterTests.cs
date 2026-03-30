@@ -1,16 +1,19 @@
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using Altinn.Studio.DataModeling.Utils;
+using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords
 {
     public class XsdTotalDigitsKeywordJsonConverterTests
-        : ValueKeywordConverterTestBase<XsdTotalDigitsKeywordJsonConverterTests, XsdTotalDigitsKeyword, uint>
     {
         private const string KeywordPlaceholder = "totalDigits";
 
-        protected override XsdTotalDigitsKeyword CreateKeywordWithValue(uint value) => new(value);
+        public XsdTotalDigitsKeywordJsonConverterTests()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+        }
 
         [Theory]
         [InlineData(1)]
@@ -22,9 +25,10 @@ namespace DataModeling.Tests.Json.Keywords
                 ""{KeywordPlaceholder}"": {value}
             }}";
 
-            Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
-
-            Assert.Equal(Keyword.Value, value);
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var kd = schema.FindKeywordByHandler<XsdTotalDigitsKeyword>();
+            Assert.NotNull(kd);
+            Assert.Equal(value, kd.Value);
         }
 
         [Theory]
@@ -32,10 +36,14 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(100)]
         public void Write_ValidStructure_ShouldWriteToJson(uint value)
         {
-            Given
-                .That.KeywordCreatedWithValue(value)
-                .When.KeywordSerializedAsJson()
-                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value}}}");
+            var jsonSchema =
+                @$"{{
+                ""{KeywordPlaceholder}"": {value}
+            }}";
+
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var serialized = JsonSerializer.Serialize(schema);
+            Assert.Equal($@"{{""{KeywordPlaceholder}"":{value}}}", serialized);
         }
 
         [Theory]
@@ -48,8 +56,9 @@ namespace DataModeling.Tests.Json.Keywords
                         ""value"": ""{value}""
                 }}";
 
-            var ex = Assert.Throws<JsonException>(() => Given.That.JsonSchemaLoaded(jsonSchema));
-            Assert.Equal("Expected number", ex.Message);
+            Assert.ThrowsAny<JsonException>(() =>
+                JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions())
+            );
         }
     }
 }

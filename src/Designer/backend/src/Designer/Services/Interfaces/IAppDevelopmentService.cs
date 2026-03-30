@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
-using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -131,8 +130,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <returns>The model metadata for a given layout set.</returns>
         public Task<ModelMetadata> GetModelMetadata(
             AltinnRepoEditingContext altinnRepoEditingContext,
-            [CanBeNull] string layoutSetName,
-            [CanBeNull] string dataModelName,
+            string layoutSetName,
+            string dataModelName,
             CancellationToken cancellationToken = default
         );
 

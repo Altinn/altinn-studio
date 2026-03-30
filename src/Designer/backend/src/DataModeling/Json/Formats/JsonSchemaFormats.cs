@@ -1,3 +1,5 @@
+using Json.Schema;
+
 namespace Altinn.Studio.DataModeling.Json.Formats
 {
     /// <summary>
@@ -21,8 +23,8 @@ namespace Altinn.Studio.DataModeling.Json.Formats
                 {
                     if (!s_formatsRegistered)
                     {
-                        global::Json.Schema.Formats.Register(CustomFormats.Year);
-                        global::Json.Schema.Formats.Register(CustomFormats.YearMonth);
+                        FormatRegistry.Global.Register(CustomFormats.Year);
+                        FormatRegistry.Global.Register(CustomFormats.YearMonth);
 
                         s_formatsRegistered = true;
                     }

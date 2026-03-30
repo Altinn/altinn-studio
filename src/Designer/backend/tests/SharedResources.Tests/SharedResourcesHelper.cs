@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
 
 namespace SharedResources.Tests;
@@ -30,7 +31,7 @@ public static class SharedResourcesHelper
     public static JsonSchema LoadJsonSchemaTestData(string resourceName)
     {
         var jsonString = LoadTestDataAsString(resourceName);
-        return JsonSchema.FromText(jsonString);
+        return JsonSchema.FromText(jsonString, JsonSchemaKeywords.GetBuildOptions());
     }
 
     public static XmlSchema LoadXmlSchemaTestData(string resourceName)

@@ -126,7 +126,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 altinnRepoEditingContext.Developer
             );
             var schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
-            var jsonSchema = JsonSchema.FromText(jsonContent);
+            var jsonSchema = JsonSchema.FromText(
+                jsonContent,
+                Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.GetBuildOptions()
+            );
             var serializedJsonContent = SerializeJson(jsonSchema);
 
             await altinnAppGitRepository.SaveJsonSchema(serializedJsonContent, schemaFileName);
@@ -200,7 +203,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 relativeFilePath,
                 cancellationToken
             );
-            var jsonSchema = JsonSchema.FromText(jsonContent);
+            var jsonSchema = JsonSchema.FromText(
+                jsonContent,
+                Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.GetBuildOptions()
+            );
             return GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
         }
 

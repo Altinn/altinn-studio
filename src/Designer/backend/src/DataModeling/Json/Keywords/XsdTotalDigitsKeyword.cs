@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Json.More;
 using Json.Schema;
 using static Altinn.Studio.DataModeling.Utils.RestrictionsHelper;
 
@@ -13,116 +9,51 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// <summary>
 /// Equivalent of totalDigits restriction in json schema
 /// </summary>
-[SchemaKeyword(Name)]
-[SchemaSpecVersion(SpecVersion.Draft6)]
-[SchemaSpecVersion(SpecVersion.Draft7)]
-[SchemaSpecVersion(SpecVersion.Draft201909)]
-[SchemaSpecVersion(SpecVersion.Draft202012)]
-[SchemaSpecVersion(SpecVersion.DraftNext)]
-[JsonConverter(typeof(XsdTotalDigitsKeywordJsonConverter))]
-public sealed class XsdTotalDigitsKeyword : IJsonSchemaKeyword, IEquatable<XsdTotalDigitsKeyword>
+public sealed class XsdTotalDigitsKeyword : IKeywordHandler
 {
-    /// <summary>
-    /// The name of the keyword
-    /// </summary>
-    private const string Name = "totalDigits";
+    public static readonly XsdTotalDigitsKeyword Instance = new();
 
-    /// <summary>
-    /// Content
-    /// </summary>
-    public uint Value { get; }
+    public string Name => "totalDigits";
 
-    /// <summary>
-    /// Creates instance with provided value
-    /// </summary>
-    /// <param name="value">totalDigits</param>
-    public XsdTotalDigitsKeyword(uint value)
+    public object ValidateKeywordValue(JsonElement value)
     {
-        Value = value;
+        return (uint)value.GetUInt32();
     }
 
-    public KeywordConstraint GetConstraint(
-        SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
-        EvaluationContext context
-    )
-    {
-        return new KeywordConstraint(Name, Evaluator);
-    }
+    public void BuildSubschemas(KeywordData keyword, BuildContext context) { }
 
-    private void Evaluator(KeywordEvaluation evaluation, EvaluationContext context)
+    public KeywordEvaluation Evaluate(KeywordData keyword, EvaluationContext context)
     {
-        var schemaValueType = evaluation.LocalInstance.GetSchemaValueType();
-        if (schemaValueType is not (SchemaValueType.Number or SchemaValueType.Integer))
+        var instance = context.Instance;
+
+        if (instance.ValueKind is not JsonValueKind.Number)
         {
-            return;
+            return KeywordEvaluation.Ignore;
         }
 
-        decimal? number = evaluation.LocalInstance!.AsValue().GetNumber();
-
-        if (number is null)
+        if (!instance.TryGetDecimal(out var number))
         {
-            evaluation.Results.Fail();
-            return;
-        }
-
-        if (
-            !new Regex(TotalDigitsDecimalRegexString(Value)).IsMatch(
-                number.Value.ToString("G", NumberFormatInfo.InvariantInfo)
-            )
-        )
-        {
-            evaluation.Results.Fail(Name, "Invalid value for regex");
-        }
-    }
-
-    /// <inheritdoc />
-    public bool Equals(XsdTotalDigitsKeyword other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        return ReferenceEquals(this, other) || Equals(Value, other.Value);
-    }
-
-    /// <inheritdoc />
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as XsdTotalDigitsKeyword);
-    }
-
-    /// <inheritdoc />
-    public override int GetHashCode()
-    {
-        return Value.GetHashCode();
-    }
-
-    /// <summary>
-    /// Serializer for the XsdTotalDigitsKeyword keyword
-    /// </summary>
-    internal class XsdTotalDigitsKeywordJsonConverter : JsonConverter<XsdTotalDigitsKeyword>
-    {
-        /// <inheritdoc />
-        public override XsdTotalDigitsKeyword Read(
-            ref Utf8JsonReader reader,
-            Type typeToConvert,
-            JsonSerializerOptions options
-        )
-        {
-            if (reader.TokenType != JsonTokenType.Number)
+            return new KeywordEvaluation
             {
-                throw new JsonException("Expected number");
-            }
-
-            return new XsdTotalDigitsKeyword(reader.GetUInt32());
+                Keyword = Name,
+                IsValid = false,
+                Error = "Value is not a valid number",
+            };
         }
 
-        /// <inheritdoc />
-        public override void Write(Utf8JsonWriter writer, XsdTotalDigitsKeyword value, JsonSerializerOptions options)
+        var totalDigits = (uint)keyword.Value;
+        var numberString = number.ToString("G", NumberFormatInfo.InvariantInfo);
+
+        if (!new Regex(TotalDigitsDecimalRegexString(totalDigits)).IsMatch(numberString))
         {
-            writer.WriteNumber(Name, value.Value);
+            return new KeywordEvaluation
+            {
+                Keyword = Name,
+                IsValid = false,
+                Error = $"Number has more than {totalDigits} total digits",
+            };
         }
+
+        return new KeywordEvaluation { Keyword = Name, IsValid = true };
     }
 }

@@ -1,17 +1,28 @@
-﻿using Json.Schema;
+using System.Text.Json;
+using Json.Schema;
+using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 
-public abstract class ValueKeywordTestsBase<TTestType, TKeywordType, TValueType>
-    : KeywordTestsBase<TTestType, TKeywordType>
-    where TTestType : KeywordTestsBase<TTestType, TKeywordType>
-    where TKeywordType : IJsonSchemaKeyword
+public abstract class ValueKeywordTestsBase<TTestType, TKeywordHandler, TValueType>
+    : KeywordTestsBase<TTestType, TKeywordHandler>
+    where TTestType : KeywordTestsBase<TTestType, TKeywordHandler>
+    where TKeywordHandler : IKeywordHandler
 {
-    protected abstract TKeywordType CreateKeywordWithValue(TValueType value);
+    protected TValueType ParsedValue { get; set; }
 
-    protected TTestType KeywordCreatedWithValue(TValueType value)
+    protected abstract JsonElement CreateJsonElement(TValueType value);
+
+    protected TTestType ValueParsedFromJson(TValueType value)
     {
-        Keyword = CreateKeywordWithValue(value);
+        var element = CreateJsonElement(value);
+        ParsedValue = (TValueType)Handler.ValidateKeywordValue(element);
+        return this as TTestType;
+    }
+
+    protected TTestType ParsedValueShouldEqual(TValueType expected)
+    {
+        Assert.Equal(expected, ParsedValue);
         return this as TTestType;
     }
 }

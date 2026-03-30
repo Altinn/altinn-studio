@@ -7,6 +7,7 @@ using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
+using Json.Schema.Keywords;
 using Xunit;
 
 namespace DataModeling.Tests.Templates
@@ -25,12 +26,15 @@ namespace DataModeling.Tests.Templates
             var actualJsonTemplate = new SeresJsonTemplate(new Uri(expectedId), "melding");
 
             // Assert
-            JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
-            var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
-            Assert.Equal(expectedId, idKeyword.Id.ToString());
+            JsonSchema jsonSchema = JsonSchema.FromText(
+                actualJsonTemplate.GetJsonString(),
+                JsonSchemaKeywords.GetBuildOptions()
+            );
+            var idKd = jsonSchema.FindKeywordByHandler<IdKeyword>();
+            Assert.Equal(expectedId, ((Uri)idKd.Value).ToString());
 
-            var infoKeyword = jsonSchema.GetKeywordOrNull<InfoKeyword>();
-            var value = infoKeyword.Value;
+            var infoKd = jsonSchema.FindKeywordByHandler<InfoKeyword>();
+            var value = infoKd.RawValue;
 
             Assert.Equal("melding", value.GetProperty("meldingsnavn").GetString());
             Assert.Equal("melding-modell", value.GetProperty("modellnavn").GetString());
@@ -45,7 +49,10 @@ namespace DataModeling.Tests.Templates
 
             var id = "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
             var jsonSeresTemplate = new SeresJsonTemplate(new Uri(id), "melding");
-            JsonSchema jsonSchema = JsonSchema.FromText(jsonSeresTemplate.GetJsonString());
+            JsonSchema jsonSchema = JsonSchema.FromText(
+                jsonSeresTemplate.GetJsonString(),
+                JsonSchemaKeywords.GetBuildOptions()
+            );
 
             XmlSchema xsd = ConvertJsonSchema(jsonSchema);
 

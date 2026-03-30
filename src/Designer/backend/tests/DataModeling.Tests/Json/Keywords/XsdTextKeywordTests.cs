@@ -1,31 +1,30 @@
-﻿using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using System.Text.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdTextKeywordTests : ValueKeywordTestsBase<XsdTextKeywordTests, XsdTextKeyword, bool>
+public class XsdTextKeywordTests
 {
-    protected override XsdTextKeyword CreateKeywordWithValue(bool value) => new(value);
+    public XsdTextKeywordTests()
+    {
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
 
     [Fact]
-    public void DefaultValue_ShouldBe_False()
+    public void Handler_Name_ShouldBe_XsdText()
     {
-        Keyword = new XsdTextKeyword();
-        Assert.False(Keyword.Value);
+        Assert.Equal("@xsdText", XsdTextKeyword.Instance.Name);
     }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void SameKeywords_Should_BeEqual(bool value)
+    public void ValidateKeywordValue_ShouldParseBool(bool value)
     {
-        var expectedKeyword = new XsdTextKeyword(value);
-        object expectedKeywordObject = new XsdTextKeyword(value);
-        Given
-            .That.KeywordCreatedWithValue(value)
-            .Then.KeywordShouldEqual(expectedKeyword)
-            .And.KeywordShouldEqualObject(expectedKeywordObject)
-            .But.KeywordShouldNotEqual(null);
+        var json = JsonSerializer.Serialize(value);
+        var element = JsonDocument.Parse(json).RootElement;
+        var result = XsdTextKeyword.Instance.ValidateKeywordValue(element);
+        Assert.Equal(value, result);
     }
 }

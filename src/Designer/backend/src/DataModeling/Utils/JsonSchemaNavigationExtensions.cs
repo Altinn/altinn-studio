@@ -1,3 +1,4 @@
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Pointer;
 using Json.Schema;
 
@@ -17,7 +18,19 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <returns>The JSON Schema found by following the pointer</returns>
         public static JsonSchema FollowReference(this JsonSchema schema, JsonPointer path)
         {
-            return (schema as IBaseDocument).FindSubschema(path, new EvaluationOptions());
+            var buildOptions = JsonSchemaKeywords.GetBuildOptions();
+            var buildContext = new BuildContext
+            {
+                Dialect = buildOptions.Dialect ?? Dialect.Default,
+                LocalSchema = schema.Root.Source,
+            };
+            var node = (schema as IBaseDocument).FindSubschema(path, buildContext);
+            if (node == null)
+            {
+                return null;
+            }
+
+            return JsonSchema.Build(node.Source, buildOptions);
         }
     }
 }

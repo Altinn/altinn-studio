@@ -178,7 +178,7 @@ public class PutDatamodelTests
         {
             var pointerObject = JsonPointer.Parse(pointer);
             Assert.Single(errorResponse.Errors.Keys, p => JsonPointer.Parse(p) == pointerObject);
-            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)]);
+            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToString()]);
         }
     }
 
@@ -250,7 +250,10 @@ public class PutDatamodelTests
             return sw.ToString();
         }
 
-        var jsonSchema = JsonSchema.FromText(MinimumValidJsonSchema);
+        var jsonSchema = JsonSchema.FromText(
+            MinimumValidJsonSchema,
+            Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.GetBuildOptions()
+        );
         var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
         var xsd = converter.Convert(jsonSchema);
         var xsdContent = await SerializeXml(xsd);
@@ -260,7 +263,10 @@ public class PutDatamodelTests
     private static void VerifyMetadataContent(string path)
     {
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(
-            JsonSchema.FromText(MinimumValidJsonSchema)
+            JsonSchema.FromText(
+                MinimumValidJsonSchema,
+                Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.GetBuildOptions()
+            )
         );
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
         var modelMetadata = metamodelConverter.Convert(MinimumValidJsonSchema);

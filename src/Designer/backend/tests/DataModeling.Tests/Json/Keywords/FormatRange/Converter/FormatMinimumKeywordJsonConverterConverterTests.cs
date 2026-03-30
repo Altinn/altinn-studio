@@ -1,25 +1,28 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using Altinn.Studio.DataModeling.Utils;
+using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
 public class FormatMinimumKeywordJsonConverterConverterTests
-    : ValueKeywordConverterTestBase<FormatMinimumKeywordJsonConverterConverterTests, FormatMinimumKeyword, string>
 {
     private const string KeywordPlaceholder = "formatMinimum";
 
-    protected override FormatMinimumKeyword CreateKeywordWithValue(string value) => new(value);
+    public FormatMinimumKeywordJsonConverterConverterTests()
+    {
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
 
     [Theory]
     [InlineData("2022-10-17")]
     public void Write_ValidStructure_ShouldWriteToJson(string value)
     {
-        Given
-            .That.KeywordCreatedWithValue(value)
-            .When.KeywordSerializedAsJson()
-            .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
+        var jsonSchema = @$"{{""{KeywordPlaceholder}"":""{value}""}}";
+        var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+        var serialized = JsonSerializer.Serialize(schema);
+        Assert.Equal(jsonSchema, serialized);
     }
 
     [Theory]
@@ -31,9 +34,10 @@ public class FormatMinimumKeywordJsonConverterConverterTests
                 ""{KeywordPlaceholder}"": ""{value}""
             }}";
 
-        Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
-
-        Assert.Equal(Keyword.Value, value);
+        var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+        var kd = schema.FindKeywordByHandler<FormatMinimumKeyword>();
+        Assert.NotNull(kd);
+        Assert.Equal(value, kd.Value);
     }
 
     [Theory]
@@ -46,8 +50,6 @@ public class FormatMinimumKeywordJsonConverterConverterTests
                         ""value"": ""{value}""
                 }}";
 
-        var ex = Assert.Throws<JsonException>(() => Given.That.JsonSchemaLoaded(jsonSchema));
-
-        Assert.Equal("Expected string", ex.Message);
+        Assert.ThrowsAny<JsonException>(() => JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions()));
     }
 }

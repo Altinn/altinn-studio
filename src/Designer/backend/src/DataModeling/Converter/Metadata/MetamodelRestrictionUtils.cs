@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -7,6 +7,7 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Schema;
+using Json.Schema.Keywords;
 
 namespace Altinn.Studio.DataModeling.Converter.Metadata;
 
@@ -33,20 +34,7 @@ public static class MetamodelRestrictionUtils
 
     /// <summary>
     /// Getting restriction for given type from provided json Subschema.
-    /// Currently calculating Restrictions only for following types:
-    /// <see cref="BaseValueType.String"/>,
-    /// <see cref="BaseValueType.PositiveInteger"/>,
-    /// <see cref="BaseValueType.Decimal"/>,
-    /// <see cref="BaseValueType.Integer"/>,
-    /// <see cref="BaseValueType.NonNegativeInteger"/>,
-    /// <see cref="BaseValueType.Long"/>,
-    /// <see cref="BaseValueType.Double"/>,
-    /// <see cref="BaseValueType.Int"/>,
-    /// <see cref="BaseValueType.Short"/>
     /// </summary>
-    /// <param name="xsdValueType">A <see cref="BaseValueType"/></param>
-    /// <param name="subSchema">A <see cref="JsonSchema"/> holding restrictions in json schema</param>
-    /// <param name="restrictions">Restrictions dictionary</param>
     public static void EnrichRestrictions(
         BaseValueType? xsdValueType,
         JsonSchema subSchema,
@@ -78,169 +66,146 @@ public static class MetamodelRestrictionUtils
     }
 
     /// <summary>
-    /// Populates restrictions from subschemas
+    /// Populates restrictions from subschemas of an allOf keyword.
     /// </summary>
-    /// <param name="allOfKeyword">Composition keyword.</param>
-    /// <param name="restrictions">Restrictions dictionary to populate.</param>
-    public static void PopulateRestrictions(AllOfKeyword allOfKeyword, Dictionary<string, Restriction> restrictions)
+    public static void PopulateRestrictions(KeywordData allOfKeywordData, Dictionary<string, Restriction> restrictions)
     {
+        var subSchemas = allOfKeywordData.GetSubSchemas();
         foreach (var restrictionKeywordType in AllSupportedRestrictions)
         {
-            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
+            if (TryGetKeywordFromSubSchemas(subSchemas, restrictionKeywordType, out var kd))
             {
-                restrictions.AddRestrictionFromKeyword(keyword);
+                restrictions.AddRestrictionFromKeyword(kd);
             }
         }
     }
 
-    /// <summary>
-    /// Adding restrictions for string type.
-    /// </summary>
     private static void AddStringRestrictions(JsonSchema subSchema, IDictionary<string, Restriction> restrictions)
     {
-        var enumKeyword = subSchema.GetKeywordOrNull<EnumKeyword>();
-        if (enumKeyword != null)
+        var enumKd = subSchema.FindKeywordByHandler<EnumKeyword>();
+        if (enumKd != null)
         {
-            AddEnumRestrictions(enumKeyword, restrictions);
+            AddEnumRestrictions(enumKd, restrictions);
         }
 
-        if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+        if (subSchema.TryGetKeyword<AllOfKeyword>(out var allOfKd))
         {
-            AddNestedStringRestrictions(allOfKeyword, restrictions);
+            AddNestedStringRestrictions(allOfKd, restrictions);
             return;
         }
 
         foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
-            if (subSchema.TryGetKeywordByType(restrictionKeywordType, out var keyword))
+            if (TryGetKeywordByHandlerType(subSchema, restrictionKeywordType, out var kd))
             {
-                restrictions.AddRestrictionFromKeyword(keyword);
+                restrictions.AddRestrictionFromKeyword(kd);
             }
         }
     }
 
-    private static void AddNestedStringRestrictions(
-        AllOfKeyword allOfKeyword,
-        IDictionary<string, Restriction> restrictions
-    )
+    private static void AddNestedStringRestrictions(KeywordData allOfKd, IDictionary<string, Restriction> restrictions)
     {
+        var subSchemas = allOfKd.GetSubSchemas();
         foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
-            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
+            if (TryGetKeywordFromSubSchemas(subSchemas, restrictionKeywordType, out var kd))
             {
-                restrictions.AddRestrictionFromKeyword(keyword);
+                restrictions.AddRestrictionFromKeyword(kd);
             }
         }
     }
 
-    private static void AddEnumRestrictions(EnumKeyword enumKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddEnumRestrictions(KeywordData enumKd, IDictionary<string, Restriction> restrictions)
     {
-        if (enumKeyword == null)
-        {
-            return;
-        }
-
         var valueBuilder = new StringBuilder();
-        foreach (var @enum in enumKeyword.Values)
+        foreach (var item in enumKd.RawValue.EnumerateArray())
         {
             if (valueBuilder.Length > 0)
             {
                 valueBuilder.Append(';');
             }
 
-            valueBuilder.Append(@enum?.ToString() ?? string.Empty);
+            valueBuilder.Append(item.ToString());
         }
 
         restrictions.TryAdd("enumeration", new Restriction() { Value = valueBuilder.ToString() });
     }
 
-    /// <summary>
-    /// Adding restrictions for number types.
-    /// </summary>
     private static void AddNumberRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
     {
-        if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+        if (subSchema.TryGetKeyword<AllOfKeyword>(out var allOfKd))
         {
-            AddNestedNumberRestrictions(allOfKeyword, restrictions);
+            AddNestedNumberRestrictions(allOfKd, restrictions);
             return;
         }
 
         foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
-            if (subSchema.TryGetKeywordByType(restrictionKeywordType, out var keyword))
+            if (TryGetKeywordByHandlerType(subSchema, restrictionKeywordType, out var kd))
             {
-                restrictions.AddRestrictionFromKeyword(keyword);
+                restrictions.AddRestrictionFromKeyword(kd);
             }
         }
     }
 
-    private static void AddNestedNumberRestrictions(
-        AllOfKeyword allOfKeyword,
-        IDictionary<string, Restriction> restrictions
-    )
+    private static void AddNestedNumberRestrictions(KeywordData allOfKd, IDictionary<string, Restriction> restrictions)
     {
+        var subSchemas = allOfKd.GetSubSchemas();
         foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
-            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
+            if (TryGetKeywordFromSubSchemas(subSchemas, restrictionKeywordType, out var kd))
             {
-                restrictions.AddRestrictionFromKeyword(keyword);
+                restrictions.AddRestrictionFromKeyword(kd);
             }
         }
     }
 
     private static bool TryGetKeywordFromSubSchemas(
-        this AllOfKeyword allOfKeyword,
-        Type type,
-        out IJsonSchemaKeyword keyword
+        IReadOnlyList<JsonSchema> subSchemas,
+        Type handlerType,
+        out KeywordData keyword
     )
     {
-        keyword = default;
-        return allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword(type))?.TryGetKeywordByType(type, out keyword)
-            ?? false;
+        keyword = null;
+        foreach (var s in subSchemas)
+        {
+            if (HasKeywordOfHandlerType(s, handlerType))
+            {
+                if (TryGetKeywordByHandlerType(s, handlerType, out keyword))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
-    /// <summary>
-    /// Supported types for keywords are:
-    /// <see cref="MaxLengthKeyword"/>,
-    /// <see cref="PatternKeyword"/>,
-    /// <see cref="MinLengthKeyword"/>,
-    /// <see cref="MaximumKeyword"/>,
-    /// <see cref="MinimumKeyword"/>,
-    /// <see cref="ExclusiveMaximumKeyword"/>,
-    /// <see cref="ExclusiveMinimumKeyword"/>
-    /// </summary>
-    private static void AddRestrictionFromKeyword<T>(this IDictionary<string, Restriction> restrictions, T keyword)
-        where T : IJsonSchemaKeyword
+    private static void AddRestrictionFromKeyword(this IDictionary<string, Restriction> restrictions, KeywordData kd)
     {
-        var valueString = keyword switch
+        var valueString = kd.Handler switch
         {
-            MaxLengthKeyword kw => kw.Value.ToString(),
-            PatternKeyword kw => kw.Value.ToString(),
-            MinLengthKeyword kw => kw.Value.ToString(),
-            MaximumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
-            MinimumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
-            ExclusiveMaximumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
-            ExclusiveMinimumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
-            XsdTotalDigitsKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
+            MaxLengthKeyword => kd.GetLongValue().ToString(),
+            PatternKeyword => ((System.Text.RegularExpressions.Regex)kd.Value).ToString(),
+            MinLengthKeyword => kd.GetLongValue().ToString(),
+            MaximumKeyword => kd.GetDecimalValue().ToString(CultureInfo.InvariantCulture),
+            MinimumKeyword => kd.GetDecimalValue().ToString(CultureInfo.InvariantCulture),
+            ExclusiveMaximumKeyword => kd.GetDecimalValue().ToString(CultureInfo.InvariantCulture),
+            ExclusiveMinimumKeyword => kd.GetDecimalValue().ToString(CultureInfo.InvariantCulture),
+            XsdTotalDigitsKeyword => ((uint)kd.Value).ToString(CultureInfo.InvariantCulture),
             _ => throw new Exception("Not supported keyword type"),
         };
-        restrictions.TryAdd(keyword.Keyword(), new Restriction { Value = valueString });
+        restrictions.TryAdd(kd.Handler.Name, new Restriction { Value = valueString });
     }
 
-    private static bool TryGetKeywordByType(this JsonSchema schema, Type type, out IJsonSchemaKeyword keyword)
+    private static bool TryGetKeywordByHandlerType(this JsonSchema schema, Type handlerType, out KeywordData keyword)
     {
-        keyword = schema?.Keywords?.SingleOrDefault(k => k.GetType() == type);
-
+        keyword = schema.GetKeywords()?.SingleOrDefault(k => k.Handler.GetType() == handlerType);
         return keyword != null;
     }
 
-    private static bool HasKeyword(this JsonSchema schema, Type type)
+    private static bool HasKeywordOfHandlerType(this JsonSchema schema, Type handlerType)
     {
-        if (schema?.Keywords == null)
-        {
-            return false;
-        }
-
-        return schema.Keywords.Any(keyword => keyword.GetType() == type);
+        return schema.GetKeywords()?.Any(k => k.Handler.GetType() == handlerType) ?? false;
     }
 }

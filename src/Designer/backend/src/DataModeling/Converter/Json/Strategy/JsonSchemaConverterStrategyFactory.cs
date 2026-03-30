@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -19,9 +20,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <returns>An implementation of <see cref="IJsonSchemaConverterStrategy"/> to be used when analyzing and/or converting Json Schemas to XSD.</returns>
         public static IJsonSchemaConverterStrategy SelectStrategy(JsonSchema jsonSchema)
         {
-            if (jsonSchema.TryGetKeyword(out XsdNamespacesKeyword namespaces))
+            if (jsonSchema.TryGetKeyword<XsdNamespacesKeyword>(out var namespacesKd))
             {
-                foreach ((_, string ns) in namespaces.Namespaces)
+                var namespaces = (List<(string Prefix, string Ns)>)namespacesKd.Value;
+                foreach ((_, string ns) in namespaces)
                 {
                     if (ns.Equals(KnownXmlNamespaces.SERES, StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -35,9 +37,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
             }
 
-            if (jsonSchema.TryGetKeyword(out InfoKeyword info))
+            if (jsonSchema.TryGetKeyword<InfoKeyword>(out var infoKd))
             {
-                JsonElement value = info.Value;
+                JsonElement value = (JsonElement)infoKd.Value;
                 if (value.ValueKind == JsonValueKind.Object)
                 {
                     JsonElement generatorScriptName = value

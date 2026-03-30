@@ -1,4 +1,5 @@
 using Altinn.Studio.DataModeling.Json.Keywords;
+using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
 
@@ -20,8 +21,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             Metadata = new JsonSchemaXsdMetadata
             {
                 SchemaOrigin = "Standard",
-                MessageName = JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword)
-                    ? rootElementKeyword.Value
+                MessageName = JsonSchema.TryGetKeyword<XsdRootElementKeyword>(out var rootElementKd)
+                    ? (string)rootElementKd.Value
                     : "root",
                 MessageTypeName = string.Empty,
             };

@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
+using Json.Schema.Keywords;
 
 namespace Altinn.Studio.DataModeling.Validator.Json
 {
@@ -22,7 +25,7 @@ namespace Altinn.Studio.DataModeling.Validator.Json
 
         public JsonSchemaValidationResult Validate(JsonNode jsonSchema)
         {
-            var schema = JsonSchema.FromText(jsonSchema.ToString());
+            var schema = JsonSchema.FromText(jsonSchema.ToString(), JsonSchemaKeywords.GetBuildOptions());
             var validationContext = new ValidationContext(schema);
 
             var rootPath = JsonPointer.Parse("#");
@@ -34,41 +37,42 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             {
                 validationContext.Issues.Add(
                     new JsonSchemaValidationIssue(
-                        rootPath.ToString(JsonPointerStyle.UriEncoded),
+                        rootPath.ToString(),
                         JsonSchemaValidationErrorCodes.BothPropertiesAndCompositionSchema
                     )
                 );
             }
 
-            foreach (var keyword in schema.Keywords!)
+            foreach (var kd in schema.GetKeywords()!)
             {
-                var keywordPath = rootPath.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
-                ValidateKeyword(keywordPath, keyword, validationContext);
+                var keywordPath = rootPath.Combine(JsonPointer.Parse($"/{kd.Handler.Name}"));
+                ValidateKeyword(keywordPath, kd, validationContext);
             }
 
             return new JsonSchemaValidationResult(validationContext.Issues);
         }
 
-        private void ValidateKeyword(JsonPointer path, IJsonSchemaKeyword keyword, ValidationContext validationContext)
+        private void ValidateKeyword(JsonPointer path, KeywordData kd, ValidationContext validationContext)
         {
-            switch (keyword)
+            switch (kd.Handler)
             {
-                case PropertiesKeyword propertiesKeyword:
-                    ValidatePropertiesKeyword(path, propertiesKeyword, validationContext);
+                case PropertiesKeyword:
+                    ValidatePropertiesKeyword(path, kd, validationContext);
                     break;
-                case OneOfKeyword oneOfKeyword:
-                    ValidateOneOfKeyword(path, oneOfKeyword, validationContext);
+                case OneOfKeyword:
+                    ValidateOneOfKeyword(path, kd, validationContext);
                     break;
             }
         }
 
         private void ValidatePropertiesKeyword(
             JsonPointer path,
-            PropertiesKeyword propertiesKeyword,
+            KeywordData propertiesKd,
             ValidationContext validationContext
         )
         {
-            foreach ((string name, JsonSchema propertyNode) in propertiesKeyword.Properties)
+            var properties = propertiesKd.GetPropertiesDictionary();
+            foreach ((string name, JsonSchema propertyNode) in properties)
             {
                 var propertyPath = path.Combine(JsonPointer.Parse($"/{name}"));
                 ValidateSubSchema(propertyPath, propertyNode, validationContext);
@@ -79,18 +83,17 @@ namespace Altinn.Studio.DataModeling.Validator.Json
         {
             if (IsRefType(subSchema))
             {
-                ValidateRefKeyword(path, subSchema.GetKeyword<RefKeyword>(), validationContext);
+                var refKd = subSchema.FindKeywordByHandler<RefKeyword>();
+                ValidateRefKeyword(path, refKd, validationContext);
                 return;
             }
 
-            // if object type validate
             if (SchemaHasType(subSchema, SchemaValueType.Object))
             {
                 ValidateObjectTypeSchema(path, subSchema, validationContext);
                 return;
             }
 
-            // if array type validate
             if (SchemaHasType(subSchema, SchemaValueType.Array))
             {
                 ValidateArrayTypeSchema(path, subSchema, validationContext);
@@ -103,39 +106,36 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             {
                 validationContext.Issues.Add(
                     new JsonSchemaValidationIssue(
-                        path.ToString(JsonPointerStyle.UriEncoded),
+                        path.ToString(),
                         JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties
                     )
                 );
             }
 
-            foreach (var keyword in schema.Keywords!)
+            foreach (var kd in schema.GetKeywords()!)
             {
-                var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
-                ValidateKeyword(keywordPath, keyword, validationContext);
+                var keywordPath = path.Combine(JsonPointer.Parse($"/{kd.Handler.Name}"));
+                ValidateKeyword(keywordPath, kd, validationContext);
             }
         }
 
         private void ValidateArrayTypeSchema(JsonPointer path, JsonSchema schema, ValidationContext validationContext)
         {
-            if (schema.TryGetKeyword(out ItemsKeyword itemsKeyword) && itemsKeyword.SingleSchema is not null)
+            if (schema.TryGetKeyword<ItemsKeyword>(out var itemsKd))
             {
-                ValidateSubSchema(
-                    path.Combine(JsonPointer.Parse("/items")),
-                    itemsKeyword.SingleSchema,
-                    validationContext
-                );
+                var singleSchema = itemsKd.GetSingleSubSchema();
+                if (singleSchema is not null)
+                {
+                    ValidateSubSchema(path.Combine(JsonPointer.Parse("/items")), singleSchema, validationContext);
+                }
             }
         }
 
-        private void ValidateOneOfKeyword(
-            JsonPointer path,
-            OneOfKeyword oneOfKeyword,
-            ValidationContext validationContext
-        )
+        private void ValidateOneOfKeyword(JsonPointer path, KeywordData oneOfKd, ValidationContext validationContext)
         {
+            var subSchemas = oneOfKd.GetSubSchemas();
             int subSchemaIndex = 0;
-            foreach (var subSchema in oneOfKeyword.Schemas)
+            foreach (var subSchema in subSchemas)
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
                 ValidateSubSchema(subSchemaPath, subSchema, validationContext);
@@ -143,18 +143,15 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             }
         }
 
-        private void ValidateRefKeyword(JsonPointer path, RefKeyword refKeyword, ValidationContext validationContext)
+        private void ValidateRefKeyword(JsonPointer path, KeywordData refKd, ValidationContext validationContext)
         {
-            var refPath = JsonPointer.Parse(refKeyword.Reference.ToString());
+            var refPath = JsonPointer.Parse(refKd.GetRefString());
             var refSchema = validationContext.RootSchema.FollowReference(refPath);
 
             if (refSchema is null)
             {
                 validationContext.Issues.Add(
-                    new JsonSchemaValidationIssue(
-                        path.ToString(JsonPointerStyle.UriEncoded),
-                        JsonSchemaValidationErrorCodes.InvalidReference
-                    )
+                    new JsonSchemaValidationIssue(path.ToString(), JsonSchemaValidationErrorCodes.InvalidReference)
                 );
                 return;
             }
@@ -164,11 +161,8 @@ namespace Altinn.Studio.DataModeling.Validator.Json
 
         private static bool SchemaHasType(JsonSchema subSchema, SchemaValueType type)
         {
-            if (subSchema.TryGetKeyword(out TypeKeyword typeKeyword))
-            {
-                return typeKeyword.Type == type;
-            }
-            return false;
+            var typeValue = subSchema.GetSchemaType();
+            return typeValue.HasValue && typeValue.Value == type;
         }
 
         private static bool IsRefType(JsonSchema subSchema)

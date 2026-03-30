@@ -1,4 +1,4 @@
-﻿using System.Text.Encodings.Web;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -9,13 +9,13 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 
-public abstract class ConverterTestBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
-    where TTestType : ConverterTestBase<TTestType, TKeywordType>
-    where TKeywordType : IJsonSchemaKeyword
+public abstract class ConverterTestBase<TTestType, TKeywordHandler> : FluentTestsBase<TTestType>
+    where TTestType : ConverterTestBase<TTestType, TKeywordHandler>
+    where TKeywordHandler : IKeywordHandler
 {
     protected JsonSchema JsonSchema { get; set; }
 
-    protected TKeywordType Keyword { get; set; }
+    protected KeywordData KeywordData { get; set; }
 
     protected string KeywordNodeJson { get; set; }
 
@@ -26,11 +26,8 @@ public abstract class ConverterTestBase<TTestType, TKeywordType> : FluentTestsBa
 
     protected TTestType KeywordSerializedAsJson()
     {
-        var builder = new JsonSchemaBuilder();
-        builder.Add(Keyword);
-        var keywordNodeSchema = builder.Build();
         KeywordNodeJson = JsonSerializer.Serialize(
-            keywordNodeSchema,
+            JsonSchema,
             new JsonSerializerOptions()
             {
                 Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
@@ -41,13 +38,13 @@ public abstract class ConverterTestBase<TTestType, TKeywordType> : FluentTestsBa
 
     protected TTestType JsonSchemaLoaded(string json)
     {
-        JsonSchema = JsonSchema.FromText(json);
+        JsonSchema = JsonSchema.FromText(json, JsonSchemaKeywords.GetBuildOptions());
         return this as TTestType;
     }
 
     protected TTestType KeywordReadFromSchema()
     {
-        Keyword = JsonSchema.GetKeywordOrNull<TKeywordType>();
+        KeywordData = JsonSchema.FindKeywordByHandler<TKeywordHandler>();
         return this as TTestType;
     }
 
@@ -59,7 +56,7 @@ public abstract class ConverterTestBase<TTestType, TKeywordType> : FluentTestsBa
 
     protected TTestType KeywordShouldNotBeNull()
     {
-        Assert.NotNull(Keyword);
+        Assert.NotNull(KeywordData);
         return this as TTestType;
     }
 }

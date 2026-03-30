@@ -17,6 +17,6 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         /// <summary>
         /// The keyword that was processed.
         /// </summary>
-        public IJsonSchemaKeyword Keyword { get; set; }
+        public KeywordData Keyword { get; set; }
     }
 }
