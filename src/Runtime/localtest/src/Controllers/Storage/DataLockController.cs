@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Authorization;
-using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +24,7 @@ public class DataLockController : ControllerBase
     private readonly IInstanceRepository _instanceRepository;
     private readonly IDataRepository _dataRepository;
     private readonly IAuthorization _authorizationService;
+    private readonly IProcessAuthorizer _processAuthorizer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataLockController"/> class
@@ -32,15 +32,18 @@ public class DataLockController : ControllerBase
     /// <param name="instanceRepository">the instance repository</param>
     /// <param name="dataRepository">the data repository handler</param>
     /// <param name="authorizationService">the authorization service.</param>
+    /// <param name="processAuthorizer">the process authorizer.</param>
     public DataLockController(
         IInstanceRepository instanceRepository,
         IDataRepository dataRepository,
-        IAuthorization authorizationService
+        IAuthorization authorizationService,
+        IProcessAuthorizer processAuthorizer
     )
     {
         _instanceRepository = instanceRepository;
         _dataRepository = dataRepository;
         _authorizationService = authorizationService;
+        _processAuthorizer = processAuthorizer;
     }
 
     /// <summary>
@@ -51,12 +54,13 @@ public class DataLockController : ControllerBase
     /// <param name="dataGuid">The id of the data element to delete.</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>DataElement that was locked</returns>
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+    [Authorize]
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [Produces("application/json")]
     public async Task<ActionResult<DataElement>> Lock(
         int instanceOwnerPartyId,
@@ -74,6 +78,11 @@ public class DataLockController : ControllerBase
         if (instance == null)
         {
             return instanceError!;
+        }
+
+        if (!await _processAuthorizer.AuthorizeDataElementLock(instance))
+        {
+            return Forbid();
         }
 
         DataElement? dataElement = instance.Data.Find(d => d.Id == dataGuid.ToString());
