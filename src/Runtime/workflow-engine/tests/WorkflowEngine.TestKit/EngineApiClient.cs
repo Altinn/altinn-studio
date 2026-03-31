@@ -215,13 +215,24 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
-    /// Convenience wrapper around <see cref="ListActiveWorkflowsPaginated"/> that returns just the data.
+    /// Lists all active workflows by iterating through every page.
+    /// Convenience wrapper around <see cref="ListActiveWorkflowsPaginated"/> that returns the full dataset.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
-        var result = await ListActiveWorkflowsPaginated(ns: ns);
-        return [.. result.Data];
+        var all = new List<WorkflowStatusResponse>();
+        var page = 1;
+
+        while (true)
+        {
+            var result = await ListActiveWorkflowsPaginated(page: page, ns: ns);
+            all.AddRange(result.Data);
+
+            if (result.TotalPages == 0 || page >= result.TotalPages)
+                return all;
+
+            page++;
+        }
     }
 
     /// <summary>

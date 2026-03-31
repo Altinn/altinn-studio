@@ -417,6 +417,139 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(0, totalCount);
     }
 
+    // ── GetActiveWorkflowsPaginated ──────────────────────────────────────
+
+    [Fact]
+    public async Task GetActiveWorkflowsPaginated_ReturnsCorrectTotalCount()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+
+        for (var i = 0; i < 7; i++)
+            await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: ns);
+
+        var (workflows, totalCount) = await repo.GetActiveWorkflowsPaginated(
+            page: 1,
+            pageSize: 3,
+            ns: ns,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(7, totalCount);
+        Assert.Equal(3, workflows.Count);
+    }
+
+    [Fact]
+    public async Task GetActiveWorkflowsPaginated_IteratingAllPages_ReturnsCompleteNonOverlappingSet()
+    {
+        // Arrange — insert 13 workflows, page size 5 → 3 pages (5, 5, 3)
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+        const int totalWorkflows = 13;
+        const int pageSize = 5;
+
+        var insertedIds = new HashSet<Guid>();
+        for (var i = 0; i < totalWorkflows; i++)
+        {
+            var wf = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: ns);
+            insertedIds.Add(wf.DatabaseId);
+        }
+
+        // Act — iterate through all pages
+        var collectedIds = new List<Guid>();
+        var page = 1;
+        int reportedTotal;
+
+        while (true)
+        {
+            var (workflows, totalCount) = await repo.GetActiveWorkflowsPaginated(
+                page: page,
+                pageSize: pageSize,
+                ns: ns,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+            reportedTotal = totalCount;
+            collectedIds.AddRange(workflows.Select(w => w.DatabaseId));
+
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            if (page >= totalPages)
+                break;
+
+            page++;
+        }
+
+        // Assert
+        Assert.Equal(totalWorkflows, reportedTotal);
+        Assert.Equal(totalWorkflows, collectedIds.Count);
+        Assert.Equal(totalWorkflows, collectedIds.Distinct().Count()); // no duplicates
+        Assert.True(insertedIds.SetEquals(collectedIds)); // complete set
+    }
+
+    [Fact]
+    public async Task GetActiveWorkflowsPaginated_EmptyResult_ReturnsZeroTotalCount()
+    {
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+
+        var (workflows, totalCount) = await repo.GetActiveWorkflowsPaginated(
+            page: 1,
+            pageSize: 10,
+            ns: ns,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Empty(workflows);
+        Assert.Equal(0, totalCount);
+    }
+
+    [Fact]
+    public async Task GetActiveWorkflowsPaginated_PageBeyondLastPage_ReturnsEmptyDataWithCorrectTotal()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+
+        for (var i = 0; i < 3; i++)
+            await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: ns);
+
+        var (workflows, totalCount) = await repo.GetActiveWorkflowsPaginated(
+            page: 99,
+            pageSize: 10,
+            ns: ns,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Empty(workflows);
+        Assert.Equal(3, totalCount);
+    }
+
+    [Fact]
+    public async Task GetActiveWorkflowsPaginated_ExcludesTerminalWorkflows()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: ns);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: ns);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed, ns: ns);
+
+        var (workflows, totalCount) = await repo.GetActiveWorkflowsPaginated(
+            page: 1,
+            pageSize: 25,
+            ns: ns,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(2, totalCount);
+        Assert.Equal(2, workflows.Count);
+        Assert.All(workflows, wf => Assert.Equal(PersistentItemStatus.Enqueued, wf.Status));
+    }
+
     // ── Helpers ─────────────────────────────────────────────────────────
 
     private static async Task SetUpdatedAt(
