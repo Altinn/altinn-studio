@@ -37,7 +37,7 @@ dependencies = [
     "certifi==2025.11.12",
     "colorlog==6.10.1",
     "langchain==1.2.10",
-    "langchain-core==1.2.17",
+    "langchain-core==1.2.22",
     "langchain-openai==1.1.10",
     "numpy>=1.25.0",
     "langgraph",
