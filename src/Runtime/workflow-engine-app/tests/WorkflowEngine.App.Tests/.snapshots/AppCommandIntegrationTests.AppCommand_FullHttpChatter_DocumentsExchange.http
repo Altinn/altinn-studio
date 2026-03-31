@@ -78,7 +78,7 @@ Content-Type: application/json; charset=utf-8
 ### 2. Engine → App: Step 1 callback (/ttd/e2e-tests/instances/50001/Guid_2/chatter-step-1)
 ###
 
-POST /ttd/e2e-tests/instances/50001/Guid_2/chatter-step-1 HTTP/1.1
+POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/chatter-step-1 HTTP/1.1
 Host: localhost
 Content-Type: application/json; charset=utf-8
 Correlation-Id: Guid_1
@@ -111,7 +111,7 @@ Content-Type: application/json
 ### 3. Engine → App: Step 2 callback (/ttd/e2e-tests/instances/50001/Guid_2/chatter-step-2)
 ###
 
-POST /ttd/e2e-tests/instances/50001/Guid_2/chatter-step-2 HTTP/1.1
+POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/chatter-step-2 HTTP/1.1
 Host: localhost
 Content-Type: application/json; charset=utf-8
 Correlation-Id: Guid_1

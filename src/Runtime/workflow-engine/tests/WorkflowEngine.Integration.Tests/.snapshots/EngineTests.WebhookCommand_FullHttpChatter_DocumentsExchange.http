@@ -70,7 +70,7 @@ Content-Type: application/json; charset=utf-8
 ### 2. Engine → Webhook: Step 1 (POST /step-1)
 ###
 
-POST /step-1 HTTP/1.1
+POST http://localhost:{PORT}/step-1 HTTP/1.1
 Host: localhost
 Content-Type: text/plain
 Correlation-Id: Guid_1
@@ -87,7 +87,7 @@ HTTP/1.1 200
 ### 3. Engine → Webhook: Step 2 (GET /step-2)
 ###
 
-GET /step-2 HTTP/1.1
+GET http://localhost:{PORT}/step-2 HTTP/1.1
 Host: localhost
 Correlation-Id: Guid_1
 Idempotency-Key: chatter-idem-key//step-2
