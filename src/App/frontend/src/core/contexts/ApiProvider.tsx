@@ -11,17 +11,22 @@ export interface ApiClients {
 }
 
 interface ApiProviderProps extends PropsWithChildren {
-  apis: ApiClients;
+  apis?: Partial<ApiClients>;
 }
+
+const defaultApis: ApiClients = {
+  partyApi,
+  textResourcesApi,
+};
 
 const { Provider, useCtx } = createContext<ApiClients>({
   name: 'ApiProvider',
   required: false,
-  default: { partyApi, textResourcesApi },
+  default: defaultApis,
 });
 
 export function ApiProvider({ children, apis }: ApiProviderProps) {
-  return <Provider value={apis}>{children}</Provider>;
+  return <Provider value={{ ...defaultApis, ...apis }}>{children}</Provider>;
 }
 
 export const usePartyApi = () => useCtx().partyApi;
