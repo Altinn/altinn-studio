@@ -9,7 +9,7 @@ on:
       - '.github/codeql/**'
       - '.github/workflows/app-backend-codeql.yml'
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/backend/**'
       - '.github/actions/codeql-config/**'
@@ -19,10 +19,16 @@ on:
   schedule:
     - cron: '5 1 * * 0'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: src/App/backend/
@@ -51,7 +57,7 @@ jobs:
           language: ${{ matrix.language }}
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
+        uses: github/codeql-action/init@603b797f8b14b413fe025cd935a91c16c4782713 # v3
         with:
           languages: ${{ matrix.language }}
           build-mode: manual
@@ -62,6 +68,6 @@ jobs:
         run: dotnet build solutions/Src.sln -v m
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
+        uses: github/codeql-action/analyze@603b797f8b14b413fe025cd935a91c16c4782713 # v3
         with:
           category: '/codeql/app/backend/${{ matrix.language }}'

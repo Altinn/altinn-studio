@@ -311,6 +311,43 @@ namespace Designer.Tests.Mocks
             return Task.FromResult("baseCommitSha");
         }
 
+        public Task<List<Team>> GetOrgTeamsAsync(string org, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                new List<Team>
+                {
+                    new()
+                    {
+                        Id = 1,
+                        Name = "Owners",
+                        Organization = new Organization { Username = org },
+                    },
+                    new()
+                    {
+                        Id = 2,
+                        Name = "Deploy-TT02",
+                        Organization = new Organization { Username = org },
+                    },
+                    new()
+                    {
+                        Id = 3,
+                        Name = "Devs",
+                        Organization = new Organization { Username = org },
+                    },
+                }
+            );
+        }
+
+        public Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
         public Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(
             string org,
             string app,

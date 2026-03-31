@@ -2,7 +2,7 @@ name: App Frontend - K6 Browser Tests
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
@@ -11,18 +11,20 @@ on:
       - 'src/Runtime/pdf3/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
-      - 'src/App/frontend/yarn.lock'
+      - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 jobs:
   build-frontend:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Frontend
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -30,8 +32,10 @@ jobs:
         uses: ./.github/actions/app-build-frontend
 
   build-localtest:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Localtest
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -41,8 +45,10 @@ jobs:
           docker-profile: 'test-apps'
 
   k6-browser:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: K6 Browser
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     needs: [build-frontend, build-localtest]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6

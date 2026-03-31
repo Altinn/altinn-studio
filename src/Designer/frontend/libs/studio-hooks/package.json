@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@studio/pure-functions": "workspace:^",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "uuid": "13.0.0"
   },
   "devDependencies": {

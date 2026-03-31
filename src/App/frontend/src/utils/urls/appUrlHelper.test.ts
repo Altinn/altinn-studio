@@ -13,16 +13,10 @@ import {
   getValidationUrl,
   redirectToUpgrade,
   textResourcesUrl,
-  validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
   describe('constants', () => {
-    it('should return the expected url for validPartiesUrl', () => {
-      expect(validPartiesUrl).toBe(
-        'https://local.altinn.cloud/ttd/test/api/v1/parties?allowedtoinstantiatefilter=true',
-      );
-    });
     it('should return the expected url for getSetSelectedPartyUrl', () => {
       expect(getSetSelectedPartyUrl(12345)).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
     });

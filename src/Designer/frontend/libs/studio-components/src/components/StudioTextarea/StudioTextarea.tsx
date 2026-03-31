@@ -1,6 +1,6 @@
-import { forwardRef, useId } from 'react';
+import { forwardRef } from 'react';
 import type { Ref, ReactElement } from 'react';
-import { Paragraph, Textarea } from '@digdir/designsystemet-react';
+import { Textarea } from '@digdir/designsystemet-react';
 import type { TextareaProps } from '@digdir/designsystemet-react';
 import { StudioLabelWrapper } from '../StudioLabelWrapper';
 import { StudioLabel } from '../StudioLabel';
@@ -18,8 +18,6 @@ function StudioTextarea(
   { children, tagText, className, label, description, error, ...rest }: StudioTextareaProps,
   ref: Ref<HTMLTextAreaElement>,
 ): ReactElement {
-  const id: string = useId();
-  const descriptionId: string | undefined = description ? `${id}-description` : undefined;
   const hasError: boolean = !!error;
 
   return (
@@ -31,8 +29,8 @@ function StudioTextarea(
           </StudioLabelWrapper>
         </StudioLabel>
       )}
-      {description && <Paragraph id={descriptionId}>{description}</Paragraph>}
-      <Textarea ref={ref} aria-describedby={descriptionId} aria-invalid={hasError} {...rest} />
+      {description && <StudioField.Description>{description}</StudioField.Description>}
+      <Textarea ref={ref} aria-invalid={hasError} {...rest} />
       {hasError && <StudioValidationMessage>{error}</StudioValidationMessage>}
     </StudioField>
   );

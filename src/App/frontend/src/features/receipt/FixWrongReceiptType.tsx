@@ -5,7 +5,8 @@ import { Loader } from 'src/core/loading/Loader';
 import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBindingSchema';
 import { getUiConfig } from 'src/features/form/ui';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { TaskKeys } from 'src/routesBuilder';
 
 /**
  * Wrap this around any components rendered in a receipt route. This will check if you were actually supposed to

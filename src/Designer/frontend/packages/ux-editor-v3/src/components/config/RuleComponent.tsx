@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type JSX } from 'react';
 import { v1 as uuidv1 } from 'uuid';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type { IRuleModelFieldElement } from '../../types/global';
@@ -22,7 +22,7 @@ interface IRuleComponentState {
   selectedFunctionNr: number | null;
   connectionId: string | null;
   ruleConnection: RuleConnection;
-  dialogRef: React.RefObject<HTMLDialogElement>;
+  dialogRef: React.RefObject<HTMLDialogElement | null>;
 }
 
 class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
