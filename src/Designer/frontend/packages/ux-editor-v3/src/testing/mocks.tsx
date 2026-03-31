@@ -21,7 +21,6 @@ import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { AppStore, RootState } from '../store';
 import { setupStore } from '../store';
-import { renderAndRunTimers } from '@studio/ui-test';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
