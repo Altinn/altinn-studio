@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
@@ -131,13 +132,15 @@ internal static class EngineRequestHandlers
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
+        [FromServices] IOptions<EngineSettings> settings,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
+        var pagination = settings.Value.Pagination;
         var effectivePage = Math.Max(page ?? 1, 1);
-        var effectivePageSize = Math.Clamp(pageSize ?? 25, 1, 100);
+        var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
 
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);

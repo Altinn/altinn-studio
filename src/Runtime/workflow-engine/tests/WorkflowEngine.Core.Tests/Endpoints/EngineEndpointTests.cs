@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Endpoints;
@@ -16,6 +17,23 @@ namespace WorkflowEngine.Core.Tests.Endpoints;
 public class EngineEndpointTests
 {
     private const string DefaultNamespace = "test-namespace";
+
+    private static readonly IOptions<EngineSettings> _defaultSettings = Options.Create(
+        new EngineSettings
+        {
+            MaxWorkflowsPerRequest = 100,
+            MaxStepsPerWorkflow = 50,
+            MaxLabels = 10,
+            MetricsCollectionInterval = TimeSpan.FromSeconds(10),
+            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            DefaultStepRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(5) },
+            DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
+            DatabaseRetryStrategy = new() { MaxDelay = TimeSpan.FromMinutes(1) },
+            HeartbeatInterval = TimeSpan.FromSeconds(10),
+            StaleWorkflowThreshold = TimeSpan.FromMinutes(1),
+            MaxReclaimCount = 3,
+        }
+    );
 
     private static CommandDefinition CreateWebhookCommand(string uri) =>
         WebhookCommand.Create(new WebhookCommandData { Uri = uri });
@@ -319,6 +337,7 @@ public class EngineEndpointTests
             null,
             null,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 
@@ -359,6 +378,7 @@ public class EngineEndpointTests
             null,
             null,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 
@@ -396,6 +416,7 @@ public class EngineEndpointTests
             null,
             null,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 
@@ -433,10 +454,11 @@ public class EngineEndpointTests
             1,
             999,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 
-        // Assert
+        // Assert — default MaxPageSize is 100
         Assert.Equal(100, capturedPageSize);
     }
 
@@ -475,6 +497,7 @@ public class EngineEndpointTests
             3,
             50,
             repositoryMock.Object,
+            _defaultSettings,
             CancellationToken.None
         );
 

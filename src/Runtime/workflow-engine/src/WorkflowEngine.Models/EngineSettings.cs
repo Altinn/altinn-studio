@@ -106,6 +106,12 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("retention")]
     public RetentionSettings Retention { get; set; } = new();
+
+    /// <summary>
+    /// Pagination settings for list endpoints.
+    /// </summary>
+    [JsonPropertyName("pagination")]
+    public PaginationSettings Pagination { get; set; } = new();
 }
 
 public sealed record BufferSettings
@@ -148,6 +154,21 @@ public sealed record RetentionSettings
     /// </summary>
     [JsonPropertyName("interval")]
     public TimeSpan Interval { get; set; }
+}
+
+public sealed record PaginationSettings
+{
+    /// <summary>
+    /// Default number of items per page when not specified by the caller.
+    /// </summary>
+    [JsonPropertyName("defaultPageSize")]
+    public int DefaultPageSize { get; set; } = 25;
+
+    /// <summary>
+    /// Maximum allowed page size. Requests above this value are clamped.
+    /// </summary>
+    [JsonPropertyName("maxPageSize")]
+    public int MaxPageSize { get; set; } = 100;
 }
 
 public sealed record ConcurrencySettings
