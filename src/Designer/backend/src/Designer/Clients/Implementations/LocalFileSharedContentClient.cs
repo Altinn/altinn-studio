@@ -24,6 +24,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     private const string CodeListsSegment = "code_lists";
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
+    private const string JsonExtension = ".json";
     private readonly string _basePath = Path.Join(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "altinn",
@@ -85,14 +86,14 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
             orgName,
             CodeListsSegment,
             codeListId,
-            version.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
+            version.EndsWith(JsonExtension, StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
         );
         try
         {
-           string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
-           return !string.IsNullOrWhiteSpace(jsonString)
-                    ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)
-                    : null;
+            string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
+            return !string.IsNullOrWhiteSpace(jsonString)
+                ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)
+                : null;
         }
         catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
         {
@@ -303,7 +304,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
-    internal static string JsonFileName(string filename) => $"{filename}.json";
+    internal static string JsonFileName(string filename) => $"{filename}{JsonExtension}";
 
     internal void SetCurrentVersion(List<string> versionPrefixes)
     {

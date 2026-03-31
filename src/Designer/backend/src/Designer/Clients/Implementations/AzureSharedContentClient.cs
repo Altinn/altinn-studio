@@ -34,6 +34,7 @@ public class AzureSharedContentClient : ISharedContentClient
     private const string CodeListsSegment = "code_lists";
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
+    private const string JsonExtension = ".json";
 
     internal string CurrentVersion = InitialVersion;
     internal readonly ConcurrentDictionary<string, string> FileNamesAndContent = [];
@@ -376,7 +377,7 @@ public class AzureSharedContentClient : ISharedContentClient
         return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
-    internal static string JsonFileName(string filename) => $"{filename}.json";
+    internal static string JsonFileName(string filename) => $"{filename}{JsonExtension}";
 
     internal void SetCurrentVersion(List<string> versionPrefixes)
     {
