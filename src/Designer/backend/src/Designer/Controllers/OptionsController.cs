@@ -104,17 +104,17 @@ public class OptionsController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
-    /// <param name="optionsListIdOrLibraryRef">Name of the option list or a library reference.</param>
+    /// <param name="optionsListId">Name of the option list.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [Route("{optionsListIdOrLibraryRef}")]
+    [Route("{optionsListId}")]
     public async Task<ActionResult<List<Option>>> GetOptionsList(
         string org,
         string repo,
-        [FromRoute] string optionsListIdOrLibraryRef,
+        [FromRoute] string optionsListId,
         CancellationToken cancellationToken = default
     )
     {
@@ -127,7 +127,7 @@ public class OptionsController : ControllerBase
                 org,
                 repo,
                 developer,
-                optionsListIdOrLibraryRef,
+                optionsListId,
                 cancellationToken
             );
             return Ok(optionsList);
