@@ -900,14 +900,26 @@ public class DataController : ControllerBase
         DataElement dataElement
     )
     {
-        Stream dataStream = await _dataClient.GetBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid);
+        Stream dataStream = await _dataClient.GetBinaryData(
+            instanceOwnerPartyId,
+            instanceGuid,
+            dataGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         if (dataStream is not null)
         {
             string? userOrgClaim = User.GetOrg();
             if (userOrgClaim is null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
-                await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
+                await _instanceClient.UpdateReadStatus(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    "read",
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
             }
 
             return File(dataStream, dataElement.ContentType, dataElement.Filename);
@@ -940,7 +952,12 @@ public class DataController : ControllerBase
     )
     {
         // Get Form Data from data service. Assumes that the data element is form data.
-        object appModel = await _dataClient.GetFormData(instance, dataElement);
+        object appModel = await _dataClient.GetFormData(
+            instance,
+            dataElement,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         if (appModel is null)
         {
@@ -971,7 +988,13 @@ public class DataController : ControllerBase
         {
             try
             {
-                await _dataClient.UpdateFormData(instance, appModel, dataElement);
+                await _dataClient.UpdateFormData(
+                    instance,
+                    appModel,
+                    dataElement,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
             }
             catch (PlatformHttpException e) when (e.Response.StatusCode is HttpStatusCode.Forbidden)
             {
@@ -989,7 +1012,13 @@ public class DataController : ControllerBase
         string? userOrgClaim = User.GetOrg();
         if (userOrgClaim is null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
         {
-            await _instanceClient.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
+            await _instanceClient.UpdateReadStatus(
+                instanceOwnerId,
+                instanceGuid,
+                "read",
+                authenticationMethod: null,
+                CancellationToken.None
+            );
         }
 
         return Ok(appModel);
@@ -1051,7 +1080,9 @@ public class DataController : ControllerBase
             Request.ContentType,
             contentDispositionHeader.FileName.ToString(),
             dataGuid,
-            new MemoryAsStream(bytes)
+            new MemoryAsStream(bytes),
+            authenticationMethod: null,
+            CancellationToken.None
         );
 
         SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
@@ -1166,7 +1197,14 @@ public class DataController : ControllerBase
     {
         try
         {
-            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            var instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             if (instance is null)
             {
                 return new ProblemDetails()
@@ -1228,7 +1266,14 @@ public class DataController : ControllerBase
         try
         {
             var application = await _appMetadata.GetApplicationMetadata();
-            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            var instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             if (instance is null)
             {
                 return new ProblemDetails()
@@ -1292,7 +1337,14 @@ public class DataController : ControllerBase
     {
         try
         {
-            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            var instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             if (instance is null)
             {
                 return new ProblemDetails()

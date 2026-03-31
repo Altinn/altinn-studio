@@ -68,7 +68,14 @@ public partial class DataTagsController : ControllerBase
         [FromRoute] Guid dataGuid
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance is null)
         {
             return Problem(
@@ -127,7 +134,14 @@ public partial class DataTagsController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance is null)
         {
             return Problem(
@@ -153,7 +167,12 @@ public partial class DataTagsController : ControllerBase
         if (!dataElement.Tags.Contains(tag))
         {
             dataElement.Tags.Add(tag);
-            dataElement = await _dataClient.Update(instance, dataElement);
+            dataElement = await _dataClient.Update(
+                instance,
+                dataElement,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
         }
 
         TagsList tagsList = new() { Tags = dataElement.Tags };
@@ -191,7 +210,14 @@ public partial class DataTagsController : ControllerBase
         [FromRoute] string tag
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance is null)
         {
             return Problem(
@@ -216,7 +242,7 @@ public partial class DataTagsController : ControllerBase
 
         if (dataElement.Tags.Remove(tag))
         {
-            await _dataClient.Update(instance, dataElement);
+            await _dataClient.Update(instance, dataElement, authenticationMethod: null, CancellationToken.None);
         }
 
         return NoContent();
@@ -260,7 +286,14 @@ public partial class DataTagsController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance is null)
         {
             return Problem(
@@ -285,7 +318,12 @@ public partial class DataTagsController : ControllerBase
 
         // Set dataElement tags to be the new tags
         dataElement.Tags = [.. tags.Distinct(StringComparer.Ordinal)];
-        var updatedElement = await _dataClient.Update(instance, dataElement);
+        var updatedElement = await _dataClient.Update(
+            instance,
+            dataElement,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (updatedElement is null)
         {
             return Problem(

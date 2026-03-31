@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Internal.Expressions;
 /// <summary>
 /// Static class used to evaluate expressions. Holds the implementation for all expression functions.
 /// </summary>
-public static class ExpressionEvaluator
+public static partial class ExpressionEvaluator
 {
     /// <summary>
     /// Shortcut for evaluating a boolean expression on a given property on a <see cref="Models.Layout.Components.Base.BaseComponent" />
@@ -127,6 +127,10 @@ public static class ExpressionEvaluator
             ExpressionFunction.argv => Argv(args, positionalArguments),
             ExpressionFunction.gatewayAction => state.GetGatewayAction(),
             ExpressionFunction.language => state.GetLanguage(),
+            ExpressionFunction.plus => Plus(args),
+            ExpressionFunction.minus => Minus(args),
+            ExpressionFunction.multiply => Multiply(args),
+            ExpressionFunction.divide => Divide(args),
             ExpressionFunction.INVALID => throw new ExpressionEvaluatorTypeErrorException(
                 $"Function {expr.Args.FirstOrDefault()} not implemented in backend {expr}"
             ),
@@ -256,7 +260,7 @@ public static class ExpressionEvaluator
             throw new ArgumentException("The component expression requires a component context");
         }
 
-        var targetContext = await state.GetComponentContext(context.Component?.PageId, componentId, context.RowIndices);
+        var targetContext = await state.GetComponentContext(componentId, relativeContext: context);
 
         if (targetContext is null)
         {
@@ -810,7 +814,7 @@ public static class ExpressionEvaluator
     {
         if (args.Length != 2)
         {
-            throw new ExpressionEvaluatorTypeErrorException("Invalid number of args for compare");
+            throw new ExpressionEvaluatorTypeErrorException("Invalid number of args");
         }
 
         var a = PrepareNumericArg(args[0]);
@@ -861,11 +865,12 @@ public static class ExpressionEvaluator
         );
     }
 
-    private static readonly Regex _numberRegex = new Regex(@"^-?\d+(\.\d+)?$");
-
+    /// <summary>
+    /// Parses a number from a string representation.
+    /// </summary>
     internal static double? ParseNumber(string s, bool throwException = true)
     {
-        if (_numberRegex.IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+        if (NumberRegex().IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
         {
             return d;
         }
@@ -886,6 +891,30 @@ public static class ExpressionEvaluator
             return false; // error handeling
         }
         return a < b; // Actual implementation
+    }
+
+    private static double? Plus(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x + y);
+    }
+
+    private static double? Minus(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x - y);
+    }
+
+    private static double? Multiply(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x * y);
+    }
+
+    private static double? Divide(ExpressionValue[] args)
+    {
+        var (a, b) = PrepareNumericArgs(args);
+        return PerformArithmetic(a, b, (x, y) => x / y);
     }
 
     private static bool LessThanEq(ExpressionValue[] args)
@@ -960,4 +989,41 @@ public static class ExpressionEvaluator
 
         return positionalArguments[index.Value];
     }
+
+    /// <summary>
+    /// Performs arithmetic operation using decimal precision to avoid floating point precision issues.
+    /// Converts doubles to decimal, performs the operation, and converts back to double.
+    /// </summary>
+    /// <param name="a">First operand</param>
+    /// <param name="b">Second operand</param>
+    /// <param name="operation">Function that performs the arithmetic operation on two decimals</param>
+    /// <returns>Result of the operation as double, or null if any operand is null</returns>
+    private static double? PerformArithmetic(double? a, double? b, Func<decimal, decimal, decimal> operation)
+    {
+        if (a.HasValue is false || b.HasValue is false)
+        {
+            return null;
+        }
+
+        try
+        {
+            var aDecimal = (decimal)a.Value;
+            var bDecimal = (decimal)b.Value;
+            var result = operation(aDecimal, bDecimal);
+            return (double)result;
+        }
+        catch (OverflowException)
+        {
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Arithmetic overflow: {a.Value} and {b.Value} or operation on them exceeds the supported range"
+            );
+        }
+        catch (DivideByZeroException)
+        {
+            throw new ExpressionEvaluatorTypeErrorException("The second argument is 0, cannot divide by 0");
+        }
+    }
+
+    [GeneratedRegex(@"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$")]
+    private static partial Regex NumberRegex();
 }

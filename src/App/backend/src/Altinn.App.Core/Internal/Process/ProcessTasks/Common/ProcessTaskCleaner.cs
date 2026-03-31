@@ -42,7 +42,9 @@ internal sealed class ProcessTaskCleaner : IProcessTaskCleaner
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
                 Guid.Parse(dataElement.Id),
-                false
+                false,
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             instance.Data?.Remove(dataElement);

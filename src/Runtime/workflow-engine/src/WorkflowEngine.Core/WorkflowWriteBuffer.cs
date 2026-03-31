@@ -211,7 +211,7 @@ internal class WorkflowWriteBuffer : BackgroundService
                         break;
 
                     case BatchEnqueueResultStatus.Conflict:
-                        item.Completion.TrySetException(new IdempotencyConflictException(item.Request.IdempotencyKey));
+                        item.Completion.TrySetException(new IdempotencyConflictException(item.Metadata.IdempotencyKey));
                         break;
 
                     case BatchEnqueueResultStatus.InvalidReference:

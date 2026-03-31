@@ -7,6 +7,7 @@ import { AppLayout } from 'src/AppLayout';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting, NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
+import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
 import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
@@ -82,11 +83,11 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient),
+            loader: instanceSelectionLoader(queryClient, partyApi),
           },
           {
             path: routes.partySelection,
-            loader: partySelectionLoader(queryClient),
+            loader: partySelectionLoader(queryClient, partyApi),
             children: [
               { index: true, Component: PartySelectionRoute },
               { path: '*', Component: PartySelectionRoute },

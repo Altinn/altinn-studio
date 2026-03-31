@@ -27,7 +27,11 @@ internal interface IEngine
     /// <summary>
     /// Requests cancellation of a workflow. Coordinates DB flagging with in-memory CTS cancellation.
     /// </summary>
-    Task<CancelWorkflowResult> CancelWorkflow(Guid workflowId, CancellationToken cancellationToken = default);
+    Task<CancelWorkflowResult> CancelWorkflow(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Resumes a terminal workflow for re-processing. Optionally cascades to dependent
@@ -35,6 +39,7 @@ internal interface IEngine
     /// </summary>
     Task<ResumeWorkflowResult> ResumeWorkflow(
         Guid workflowId,
+        string ns,
         bool cascade = false,
         CancellationToken cancellationToken = default
     );
@@ -203,11 +208,7 @@ internal sealed class Engine(
     {
         using var activity = Metrics.Source.StartActivity(
             "Engine.EnqueueWorkflow",
-            tags:
-            [
-                ("request.namespace", WorkflowNamespace.Normalize(request.Namespace)),
-                ("request.workflows.count", request.Workflows.Count),
-            ]
+            tags: [("request.namespace", metadata.Namespace), ("request.workflows.count", request.Workflows.Count)]
         );
 
         // Validate input size limits before expensive graph validation or command deserialization
@@ -259,7 +260,7 @@ internal sealed class Engine(
                         {
                             Ref = req.Ref,
                             DatabaseId = id,
-                            Namespace = WorkflowNamespace.Normalize(request.Namespace),
+                            Namespace = metadata.Namespace,
                         }
                 )
                 .ToList();
@@ -273,9 +274,9 @@ internal sealed class Engine(
         }
         catch (IdempotencyConflictException)
         {
-            activity?.Errored(errorMessage: $"Idempotency conflict for key '{request.IdempotencyKey}'");
+            activity?.Errored(errorMessage: $"Idempotency conflict for key '{metadata.IdempotencyKey}'");
             return new WorkflowEnqueueResponse.Rejected.Duplicate(
-                $"Idempotency conflict: the key '{request.IdempotencyKey}' was already used with a different request body."
+                $"Idempotency conflict: the key '{metadata.IdempotencyKey}' was already used with a different request body."
             );
         }
         catch (InvalidWorkflowReferenceException ex)
@@ -288,11 +289,12 @@ internal sealed class Engine(
     /// <inheritdoc/>
     public async Task<CancelWorkflowResult> CancelWorkflow(
         Guid workflowId,
+        string ns,
         CancellationToken cancellationToken = default
     )
     {
         var now = timeProvider.GetUtcNow();
-        var updated = await repository.RequestCancellation(workflowId, now, cancellationToken);
+        var updated = await repository.RequestCancellation(workflowId, ns, now, cancellationToken);
 
         if (updated)
         {
@@ -302,7 +304,7 @@ internal sealed class Engine(
         }
 
         // Not updated — either not found, already canceling, or already terminal
-        var info = await repository.GetCancellationInfo(workflowId, cancellationToken);
+        var info = await repository.GetCancellationInfo(workflowId, ns, cancellationToken);
 
         if (info is null)
             return new CancelWorkflowResult.NotFound();
@@ -316,12 +318,13 @@ internal sealed class Engine(
     /// <inheritdoc/>
     public async Task<ResumeWorkflowResult> ResumeWorkflow(
         Guid workflowId,
+        string ns,
         bool cascade = false,
         CancellationToken cancellationToken = default
     )
     {
         var now = timeProvider.GetUtcNow();
-        var resumedIds = await repository.ResumeWorkflow(workflowId, now, cascade, cancellationToken);
+        var resumedIds = await repository.ResumeWorkflow(workflowId, ns, now, cascade, cancellationToken);
 
         if (resumedIds.Count > 0)
         {
@@ -332,7 +335,7 @@ internal sealed class Engine(
             return new ResumeWorkflowResult.Resumed(workflowId, now, cascadeResumed);
         }
 
-        var status = await repository.GetWorkflowStatus(workflowId, cancellationToken);
+        var status = await repository.GetWorkflowStatus(workflowId, ns, cancellationToken);
         if (status is null)
             return new ResumeWorkflowResult.NotFound();
 

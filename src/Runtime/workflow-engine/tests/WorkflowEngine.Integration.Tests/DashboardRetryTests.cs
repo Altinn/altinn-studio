@@ -55,7 +55,7 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         // Act — retry via dashboard endpoint
         using var retryResponse = await client.PostAsJsonAsync(
             "/dashboard/retry",
-            new { workflowId },
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
             TestContext.Current.CancellationToken
         );
 
@@ -83,7 +83,7 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         // Act
         using var retryResponse = await client.PostAsJsonAsync(
             "/dashboard/retry",
-            new { workflowId },
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
             TestContext.Current.CancellationToken
         );
 
@@ -99,7 +99,7 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         // Act
         using var retryResponse = await client.PostAsJsonAsync(
             "/dashboard/retry",
-            new { workflowId = Guid.NewGuid() },
+            new { workflowId = Guid.NewGuid(), @namespace = "nonexistent-ns" },
             TestContext.Current.CancellationToken
         );
 
@@ -133,7 +133,7 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         // Act
         using var response = await client.PostAsJsonAsync(
             "/dashboard/skip-backoff",
-            new { workflowId = Guid.NewGuid() },
+            new { workflowId = Guid.NewGuid(), @namespace = "nonexistent-ns" },
             TestContext.Current.CancellationToken
         );
 
@@ -157,7 +157,7 @@ public sealed class DashboardRetryTests(EngineAppFixture<Program> fixture) : IAs
         // Act
         using var response = await client.PostAsJsonAsync(
             "/dashboard/skip-backoff",
-            new { workflowId },
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
             TestContext.Current.CancellationToken
         );
 

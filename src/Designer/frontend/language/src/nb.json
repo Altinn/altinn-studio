@@ -1496,7 +1496,7 @@
   "settings.orgs.contact_points.col_name": "Navn",
   "settings.orgs.contact_points.col_sms": "SMS",
   "settings.orgs.contact_points.col_webhook_url": "Webhook URL",
-  "settings.orgs.contact_points.contact_points": "Varslinger for valideringsfeil av kjørende apper",
+  "settings.orgs.contact_points.contact_points": "Varslinger for feil av kjørende apper",
   "settings.orgs.contact_points.delete_confirm": "Er du sikker på at du vil slette denne kontakten?",
   "settings.orgs.contact_points.description_body": "Vi sender varsler ved tre typer hendelser. Disse hendelsene er kritiske og bør rettes så raskt som mulig. Andre, mindre kritiske hendelser blir ikke varslet, men kan finnes i loggene under oversikten Publiserte apper",
   "settings.orgs.contact_points.description_heading": "Hva blir du varslet om?",

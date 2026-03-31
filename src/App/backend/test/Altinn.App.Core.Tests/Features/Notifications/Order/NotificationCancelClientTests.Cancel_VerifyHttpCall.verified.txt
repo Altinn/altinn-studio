@@ -1,0 +1,30 @@
+﻿{
+  Activities: [
+    {
+      Name: Notifications.Order.Cancel,
+      IdFormat: W3C,
+      Tags: [
+        {
+          notification.order.id: Guid_1
+        }
+      ],
+      HasParent: false
+    }
+  ],
+  Metrics: [
+    {
+      Name: altinn_app_lib_notification_order_cancellations,
+      MeterName: test,
+      Measurements: [
+        {
+          Value: 1.0,
+          Tags: [
+            {
+              result: success
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
