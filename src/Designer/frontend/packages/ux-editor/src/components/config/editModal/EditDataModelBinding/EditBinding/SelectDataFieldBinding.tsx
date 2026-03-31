@@ -61,11 +61,11 @@ export const SelectDataFieldBinding = ({
       value={isBindingError ? '' : currentDataModelField}
       propertyPath={propertyPath}
       helpText={componentPropertyHelpText(`data_model_bindings.${bindingKey}`)}
+      label={t('ux_editor.modal_properties_data_model_field_binding')}
       renderField={({ fieldProps }) => (
         <StudioSelect
           className={classes.selectedDatafieldBinding}
           {...fieldProps}
-          label={t('ux_editor.modal_properties_data_model_field_binding')}
           id={`selectDataModelField-${bindingKey}`}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
