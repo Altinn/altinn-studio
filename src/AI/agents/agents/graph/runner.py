@@ -177,11 +177,16 @@ async def _evaluate_no_hallucination(user_goal: str, final_state: dict, trace_id
         from agents.services.evaluation.hallucination_judge import run_hallucination_judge
         step_plan = final_state.get("step_plan") or []
         implementation_plan = final_state.get("implementation_plan")
-        agent_response = (
-            step_plan[0] if isinstance(step_plan, list) and step_plan
-            else json.dumps(implementation_plan, ensure_ascii=False) if isinstance(implementation_plan, dict) and implementation_plan
-            else str(implementation_plan or "")
-        )
+        response_parts = []
+        if isinstance(step_plan, list) and step_plan:
+            response_parts.append("\n".join(str(step) for step in step_plan))
+        if implementation_plan:
+            response_parts.append(
+                json.dumps(implementation_plan, ensure_ascii=False)
+                if isinstance(implementation_plan, (dict, list))
+                else str(implementation_plan)
+            )
+        agent_response = "\n\n".join(response_parts)
         sources = str(final_state.get("planning_guidance") or "")
         await run_hallucination_judge(
             user_goal=user_goal,

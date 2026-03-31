@@ -23,7 +23,13 @@ def _parse_judge_response(response: str) -> tuple[bool | None, str]:
         match = re.search(r"\{.*\}", response.strip(), re.DOTALL)
         if match:
             data = json.loads(match.group())
-            passed = int(data.get("score", 0)) == 1
+            raw_score = data.get("score")
+            if raw_score is None:
+                return None, f"Missing score field — raw response: {response[:200]}"
+            score = int(raw_score)
+            if score not in (0, 1):
+                return None, f"Invalid score field — raw response: {response[:200]}"
+            passed = score == 1
             reasoning = str(data.get("reasoning", ""))
             return passed, reasoning
     except Exception as e:
