@@ -2,7 +2,6 @@ export { useAddOptionListMutation } from './useAddOptionListMutation';
 export { useCreateBranchMutation } from './useCreateBranchMutation';
 export { useDeleteBranchMutation } from './useDeleteBranchMutation';
 export { useCheckoutBranchMutation } from './useCheckoutBranchMutation';
-export { useCheckoutWithUncommittedChangesHandling } from './useCheckoutWithUncommittedChangesHandling';
 export { useDiscardChangesMutation } from './useDiscardChangesMutation';
 export { useDeleteOptionListMutation } from './useDeleteOptionListMutation';
 export { useUpdateOptionListMutation } from './useUpdateOptionListMutation';
