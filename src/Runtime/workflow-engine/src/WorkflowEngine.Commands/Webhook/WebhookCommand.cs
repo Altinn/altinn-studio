@@ -76,8 +76,8 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
         var endpoint = commandData.Uri.ToUri(UriKind.Absolute);
 
         using var response = commandData.Payload is not null
-            ? await Post(httpClient, endpoint, commandData.Payload, commandData.ContentType, cancellationToken)
-            : await Get(httpClient, endpoint, cancellationToken);
+            ? await Post(httpClient, endpoint, commandData.Payload, commandData.ContentType, context, cancellationToken)
+            : await Get(httpClient, endpoint, context, cancellationToken);
 
         if (response.IsSuccessStatusCode)
             return ExecutionResult.Success();
@@ -105,24 +105,32 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
         Uri endpoint,
         string payload,
         string? contentType,
+        CommandExecutionContext context,
         CancellationToken cancellationToken
     )
     {
-        using var content = new StringContent(payload);
-        content.Headers.ContentType = contentType is not null ? new MediaTypeHeaderValue(contentType) : null;
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+        request.AddWorkflowMetadataHeaders(context);
+
+        request.Content = new StringContent(payload);
+        request.Content.Headers.ContentType = contentType is not null ? new MediaTypeHeaderValue(contentType) : null;
 
         _logger.SendingWebhookPost(endpoint, payload);
-        return await httpClient.PostAsync(endpoint, content, cancellationToken);
+        return await httpClient.SendAsync(request, cancellationToken);
     }
 
     private async Task<HttpResponseMessage> Get(
         HttpClient httpClient,
         Uri endpoint,
+        CommandExecutionContext context,
         CancellationToken cancellationToken
     )
     {
+        using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+        request.AddWorkflowMetadataHeaders(context);
+
         _logger.SendingWebhookGet(endpoint);
-        return await httpClient.GetAsync(endpoint, cancellationToken);
+        return await httpClient.SendAsync(request, cancellationToken);
     }
 }
 

@@ -31,10 +31,12 @@ Reusable class library for async workflow processing. Provides the core engine, 
 
 ## API Endpoints (provided by Core)
 
-- `POST /api/v1/workflows` — enqueue workflows, supports batch with dependency graphs
-- `GET /api/v1/workflows?namespace=` — list active workflows (optional namespace, correlationId, label filters)
-- `GET /api/v1/workflows/{workflowId:guid}` — get single workflow with all steps
-- `POST /api/v1/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)
+- `GET /api/v1/namespaces` — list distinct namespaces
+- `POST /api/v1/{namespace}/workflows` — enqueue workflows, supports batch with dependency graphs
+- `GET /api/v1/{namespace}/workflows` — list active workflows (optional correlationId, label filters)
+- `GET /api/v1/{namespace}/workflows/{workflowId:guid}` — get single workflow with all steps
+- `POST /api/v1/{namespace}/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)
+- `POST /api/v1/{namespace}/workflows/{workflowId:guid}/resume` — resume a terminal workflow for re-processing
 - Health endpoints: `/health`, `/health/ready`, `/health/live`
 - Dashboard SSE/REST endpoints under `/dashboard/*` (see Dashboard docs)
 

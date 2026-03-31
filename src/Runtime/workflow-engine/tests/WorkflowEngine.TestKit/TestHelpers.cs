@@ -57,13 +57,10 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     /// <summary>
     /// Wraps a single <see cref="WorkflowRequest"/> in a <see cref="WorkflowEnqueueRequest"/>.
     /// </summary>
-    public WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow) =>
+    public WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow, bool includeContext = true) =>
         new()
         {
-            CorrelationId = Guid.NewGuid(),
-            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            Context = CreateDefaultContext(),
+            Context = includeContext ? CreateDefaultContext() : null,
             Labels = new Dictionary<string, string>
             {
                 ["org"] = EngineAppFixture.DefaultOrg,
@@ -75,13 +72,13 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     /// <summary>
     /// Wraps a collection of <see cref="WorkflowRequest"/> in a <see cref="WorkflowEnqueueRequest"/>.
     /// </summary>
-    public WorkflowEnqueueRequest CreateEnqueueRequest(IEnumerable<WorkflowRequest> workflows) =>
+    public WorkflowEnqueueRequest CreateEnqueueRequest(
+        IEnumerable<WorkflowRequest> workflows,
+        bool includeContext = true
+    ) =>
         new()
         {
-            CorrelationId = Guid.NewGuid(),
-            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            Context = CreateDefaultContext(),
+            Context = includeContext ? CreateDefaultContext() : null,
             Labels = new Dictionary<string, string>
             {
                 ["org"] = EngineAppFixture.DefaultOrg,
