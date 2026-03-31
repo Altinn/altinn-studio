@@ -78,6 +78,7 @@ beforeEach(() => {
   window.altinnAppGlobalData = {
     applicationMetadata: getApplicationMetadataMock(),
     frontendSettings: getApplicationSettingsMock(),
+    platformFrontendSettings: { postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json' },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),
     userProfile: getProfileMock(),
