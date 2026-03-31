@@ -40,7 +40,7 @@ function parseEngineHealth(res) {
 }
 
 /**
- * Polls the health endpoint until there are no active workers (queue fully drained).
+ * Polls the workflows list endpoint until it returns 204 No Content (no active workflows).
  * @param {number} pollIntervalMs - milliseconds between polls
  */
 export function waitForQueueDrain(pollIntervalMs = 500) {
@@ -51,21 +51,19 @@ export function waitForQueueDrain(pollIntervalMs = 500) {
 
     while (!drained) {
         try {
-            const res = http.get(HEALTH_URL);
-            const engine = parseEngineHealth(res);
+            const res = http.get(BASE_URL, { tags: { name: 'queue_drain' } });
 
-            if (!engine) {
-                console.warn('  Warning: could not read engine data from health endpoint');
-            } else if (engine.workers.active === 0) {
+            if (res.status === 204) {
                 drained = true;
+            } else if (res.status === 200) {
+                const workflows = JSON.parse(res.body);
+                const count = Array.isArray(workflows) ? workflows.length : '?';
+                console.log(`  Active workflows: ${count}`);
             } else {
-                const q = engine.queue || {};
-                console.log(
-                    `  Workers: ${engine.workers.active}/${engine.workers.max}  DB: ${engine.db_connections.count}/${engine.db_connections.limit}  HTTP: ${engine.http_connections.count}/${engine.http_connections.limit}  Queue: ${q.active_workflows ?? '?'} active, ${q.scheduled_workflows ?? '?'} scheduled, ${q.failed_workflows ?? '?'} failed`,
-                );
+                console.warn(`  Unexpected status: ${res.status}`);
             }
         } catch (e) {
-            console.warn(`  Warning: health check failed: ${e.message}`);
+            console.warn(`  Warning: poll failed: ${e.message}`);
         }
 
         if (!drained) {
