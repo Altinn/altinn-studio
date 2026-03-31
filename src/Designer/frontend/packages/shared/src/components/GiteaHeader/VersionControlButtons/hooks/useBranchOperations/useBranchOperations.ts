@@ -28,23 +28,27 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
 
   const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
     onUncommittedChanges: setUncommittedChangesError,
+    onSuccess: () => window.location.reload(),
   });
 
   const discardChangesMutation = useDiscardChangesMutation(org, app);
 
   const checkoutNewBranch = (branchName: string) => {
-    setUncommittedChangesError(null);
+    clearUncommittedChangesError();
     createAndCheckoutBranch(branchName);
   };
 
   const checkoutExistingBranch = (branchName: string) => {
-    setUncommittedChangesError(null);
+    clearUncommittedChangesError();
     checkoutMutation.mutate(branchName);
   };
 
   const discardChangesAndCheckout = (targetBranch: string) => {
     discardChangesMutation.mutate(undefined, {
-      onSuccess: () => checkoutMutation.mutate(targetBranch),
+      onSuccess: () => {
+        clearUncommittedChangesError();
+        checkoutMutation.mutate(targetBranch);
+      },
     });
   };
 
