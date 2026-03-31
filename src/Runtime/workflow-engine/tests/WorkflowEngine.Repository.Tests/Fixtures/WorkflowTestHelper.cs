@@ -17,18 +17,16 @@ internal static class WorkflowTestHelper
         Dictionary<string, string>? labels = null
     )
     {
-        var request = new WorkflowEnqueueRequest
-        {
-            CorrelationId = metadata.CorrelationId,
-            Namespace = ns,
-            IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString("N"),
-            Labels = labels,
-            Workflows = workflows,
-        };
+        var resolvedKey =
+            idempotencyKey
+            ?? (string.IsNullOrEmpty(metadata.IdempotencyKey) ? Guid.NewGuid().ToString("N") : metadata.IdempotencyKey);
+        var resolvedMetadata = metadata with { Namespace = ns, IdempotencyKey = resolvedKey };
+
+        var request = new WorkflowEnqueueRequest { Labels = labels, Workflows = workflows };
 
         var buffered = new BufferedEnqueueRequest(
             request,
-            metadata,
+            resolvedMetadata,
             Guid.NewGuid().ToByteArray(),
             new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously)
         );
@@ -92,7 +90,13 @@ internal static class WorkflowTestHelper
             Links = links?.Select(id => (WorkflowRef)id).ToList(),
         };
 
-        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata = new WorkflowRequestMetadata(
+            ns,
+            Guid.NewGuid().ToString("N"),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
         var labels = new Dictionary<string, string> { ["org"] = org, ["app"] = app };
 
         return (request, metadata, ns, labels);

@@ -43,7 +43,14 @@ public class FileScanController : ControllerBase
         [FromRoute] Guid instanceGuid
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance == null)
         {
             return NotFound();

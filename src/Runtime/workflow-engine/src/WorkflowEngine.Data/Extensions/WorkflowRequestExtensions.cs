@@ -16,15 +16,15 @@ internal static class WorkflowRequestExtensions
         WorkflowEnqueueRequest enqueueRequest
     )
     {
-        var idempotencyKey = enqueueRequest.IdempotencyKey;
+        var idempotencyKey = metadata.IdempotencyKey;
 
         return new Workflow
         {
             DatabaseId = Guid.CreateVersion7(),
-            CorrelationId = metadata.CorrelationId ?? enqueueRequest.CorrelationId,
+            CorrelationId = metadata.CorrelationId,
             OperationId = workflowRequest.OperationId,
             IdempotencyKey = idempotencyKey,
-            Namespace = WorkflowNamespace.Normalize(enqueueRequest.Namespace),
+            Namespace = WorkflowNamespace.Normalize(metadata.Namespace),
             CreatedAt = metadata.CreatedAt,
             StartAt = workflowRequest.StartAt,
             BackoffUntil = workflowRequest.StartAt,

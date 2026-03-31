@@ -1,0 +1,170 @@
+{
+  "name": "Plus tests",
+  "testCases": [
+    {
+      "name": "Should add the two given numbers together",
+      "expression": ["plus", 0.1, 0.2],
+      "expects": 0.3
+    },
+    {
+      "name": "Returns expected value for inputs that would return different result when treated as 64-bit binary floats",
+      "expression": ["plus", 0.1, 0.2],
+      "expects": 0.3
+    },
+    {
+      "name": "Should add two negative numbers together",
+      "expression": ["plus", -4, -0.2],
+      "expects": -4.2
+    },
+    {
+      "name": "Should return null when both of the arguments are null",
+      "expression": ["plus", null, null],
+      "expects": null
+    },
+    {
+      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "expression": ["plus", 4.3, null],
+      "expects": null
+    },
+    {
+      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "expression": ["plus", null, 4.3],
+      "expects": null
+    },
+    {
+      "name": "Should add two integers",
+      "expression": ["plus", 10, 20],
+      "expects": 30
+    },
+    {
+      "name": "Should add [float, integer]",
+      "expression": ["plus", 10.5, 20],
+      "expects": 30.5
+    },
+    {
+      "name": "Should add [string, integer] when string is valid number",
+      "expression": ["plus", "10", 20],
+      "expects": 30
+    },
+    {
+      "name": "Should add [string, float] when string is valid number",
+      "expression": ["plus", "10.5", 20.3],
+      "expects": 30.8
+    },
+    {
+      "name": "Should add negative and positive numbers",
+      "expression": ["plus", 50, -30],
+      "expects": 20
+    },
+    {
+      "name": "Should add numbers in scientific notation",
+      "expression": ["plus", 1e3, 2e3],
+      "expects": 3000
+    },
+    {
+      "name": "Should add numbers with negative exponents",
+      "expression": ["plus", 1e-3, 2e-3],
+      "expects": 0.003
+    },
+    {
+      "name": "Should add scientific notation with regular number",
+      "expression": ["plus", 1e2, 50],
+      "expects": 150
+    },
+    {
+      "name": "Should fail with invalid string that cannot be parsed as number",
+      "expression": ["plus", "not a number", 10],
+      "expectsFailure": "Expected number, got value \"not a number\""
+    },
+    {
+      "name": "Should fail with [boolean, integer]",
+      "expression": ["plus", true, 10],
+      "expectsFailure": "Expected number, got value true"
+    },
+    {
+      "name": "Should fail with string with no decimals after dot",
+      "expression": ["plus", "55.", 10],
+      "expectsFailure": "Expected number, got value \"55.\""
+    },
+    {
+      "name": "Should handle very large number formatted as string",
+      "expression": ["plus", 1, "900719925474099"],
+      "expects": 900719925474100
+    },
+    {
+      "name": "Should handle very small numbers",
+      "expression": ["plus", 0.0000001, 0.0000002],
+      "expects": 0.0000003
+    },
+    {
+      "name": "Should add string scientific notation with plus sign in front of coefficient to number",
+      "expression": ["plus", "+5E2", 10],
+      "expects": 510
+    },
+    {
+      "name": "Should add string scientific notation with plus sign in front of exponent to number",
+      "expression": ["plus", "5E+2", 10],
+      "expects": 510
+    },
+    {
+      "name": "Should add string scientific notation with negative sign in front of coefficient to number",
+      "expression": ["plus", "-5E2", 10],
+      "expects": -490
+    },
+    {
+      "name": "Should add string scientific notation with negative sign in front of exponent to number",
+      "expression": ["plus", "5e-2", 10],
+      "expects": 10.05
+    },
+    {
+      "name": "Should add string scientific notation to number",
+      "expression": ["plus", "5E2", 10],
+      "expects": 510
+    },
+    {
+      "name": "Should add string scientific notation with no whole number part to number",
+      "expression": ["plus", ".5e2", 10],
+      "expects": 60
+    },
+    {
+      "name": "Should add string scientific notation equivalent to 0 to number",
+      "expression": ["plus", "0e0", 10],
+      "expects": 10
+    },
+    {
+      "name": "Should throw exception when string scientific notation has negative sign before the E",
+      "expression": ["plus", "5-E2", 10],
+      "expectsFailure": "Expected number, got value \"5-E2\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation has plus sign before the E",
+      "expression": ["plus", "5+E2", 10],
+      "expectsFailure": "Expected number, got value \"5+E2\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation is missing the exponent",
+      "expression": ["plus", "5e", 10],
+      "expectsFailure": "Expected number, got value \"5e\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation is missing the coefficient",
+      "expression": ["plus", "e2", 10],
+      "expectsFailure": "Expected number, got value \"e2\""
+    },
+    {
+      "name": "Should throw exception when less than two arguments are provided",
+      "expression": ["plus", 0.2],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Should throw exception when more than two arguments are present",
+      "expression": ["plus", 0.1, 0.2, 15, 1.50],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Should add negative and positive decimal numbers",
+      "expression": ["plus", 50.55, -30.66],
+      "expects": 19.89
+    }
+  ]
+}

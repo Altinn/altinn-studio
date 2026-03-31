@@ -1,0 +1,5 @@
+{
+  "name": "Should throw exception when string scientific notation is missing the coefficient",
+  "expression": ["lessThanEq", "e2", 10],
+  "expectsFailure": "Expected number, got value \"e2\""
+}

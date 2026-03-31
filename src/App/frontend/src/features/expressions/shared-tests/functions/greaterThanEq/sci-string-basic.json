@@ -1,0 +1,5 @@
+{
+  "name": "Should parse string scientific notation (true)",
+  "expression": ["greaterThanEq", "5E2", 400],
+  "expects": true
+}
