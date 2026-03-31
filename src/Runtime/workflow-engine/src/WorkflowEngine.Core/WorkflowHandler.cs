@@ -52,7 +52,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.canceled");
 
             StopActivity(workflow);
             return;
@@ -67,7 +67,7 @@ internal sealed class WorkflowHandler(
 
             Metrics.WorkflowsFailed.Add(1);
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.dependency_failed");
 
             return;
         }
@@ -95,7 +95,7 @@ internal sealed class WorkflowHandler(
                 }
             }
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.canceled");
 
             StopActivity(workflow);
             throw;
@@ -116,7 +116,7 @@ internal sealed class WorkflowHandler(
                 ]
             );
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.failed");
 
             StopActivity(workflow);
             return;
@@ -142,7 +142,7 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(1);
         }
 
-        await statusWriteBuffer.Submit(workflow, ct);
+        await statusWriteBuffer.Submit(workflow, ct, reason: "workflow.completed");
 
         StopActivity(workflow);
     }
@@ -169,7 +169,7 @@ internal sealed class WorkflowHandler(
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
 
-            await statusWriteBuffer.Submit(workflow, ct);
+            await statusWriteBuffer.Submit(workflow, ct, reason: "step.started", parentActivity: step.EngineActivity);
 
             ExecutionResult result;
             try
@@ -201,7 +201,7 @@ internal sealed class WorkflowHandler(
             step.UpdatedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
 
-            await statusWriteBuffer.Submit(workflow, ct);
+            await statusWriteBuffer.Submit(workflow, ct, reason: "step.completed", parentActivity: step.EngineActivity);
 
             RecordStepServiceTime(step);
             RecordStepTotalTime(step, previous);

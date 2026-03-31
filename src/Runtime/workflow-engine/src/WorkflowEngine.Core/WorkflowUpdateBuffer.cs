@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,7 +21,7 @@ internal interface IWorkflowUpdateBuffer
     /// Submits a workflow and its dirty steps for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    Task Submit(Workflow workflow, CancellationToken ct);
+    Task Submit(Workflow workflow, CancellationToken ct, string? reason = null, Activity? parentActivity = null);
 }
 
 /// <summary>
@@ -60,19 +61,25 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// Submits a workflow and its dirty steps for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    public async Task Submit(Workflow workflow, CancellationToken ct)
+    public async Task Submit(
+        Workflow workflow,
+        CancellationToken ct,
+        string? reason = null,
+        Activity? parentActivity = null
+    )
     {
         var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
 
         using var activity = Metrics.Source.StartActivity(
             "WorkflowUpdateBuffer.Submit",
-            parentContext: workflow.EngineActivity?.Context,
+            parentContext: parentActivity?.Context ?? workflow.EngineActivity?.Context,
             tags:
             [
                 ("workflow.database.id", workflow.DatabaseId),
                 ("workflow.operation.id", workflow.OperationId),
                 ("workflow.status", workflow.Status.ToString()),
                 ("dirty.steps.count", dirtySteps.Count),
+                ("submit.reason", reason),
             ]
         );
 
