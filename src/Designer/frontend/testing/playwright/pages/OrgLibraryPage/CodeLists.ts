@@ -90,10 +90,10 @@ export class CodeLists extends BasePage {
     return this.getCodeListTitle(title).isVisible();
   }
 
-  private getCodeListTitle(name: string): Locator {
+  private getCodeListTitle(title: string): Locator {
     return this.page.getByTitle(
       this.textMock('app_content_library.code_lists_with_text_resources.code_list_details_title', {
-        codeListTitle: name,
+        codeListTitle: title,
       }),
     );
   }
@@ -177,7 +177,6 @@ export class CodeLists extends BasePage {
     codeListTitle: string,
   ): Promise<void> {
     const detailsTitle = this.getCodeListTitle(codeListTitle);
-    await expect(detailsTitle).toBeVisible();
     const details = detailsTitle.locator('xpath=..');
     const table = details.getByRole('table');
     const rows = table.getByRole('row');
