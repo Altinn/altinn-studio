@@ -2,6 +2,7 @@ import 'jest';
 import 'whatwg-fetch';
 import '@testing-library/jest-dom/jest-globals';
 import '@testing-library/jest-dom';
+import '@oddbird/popover-polyfill';
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
@@ -117,37 +118,3 @@ jest.setTimeout(3000000);
 const TESTING_LIBRARY_TIMEOUT_MILLISECONDS = 2000;
 
 configure({ asyncUtilTimeout: TESTING_LIBRARY_TIMEOUT_MILLISECONDS });
-
-const originalMatches = Element.prototype.matches;
-
-beforeAll(() => {
-  // Polyfill for `Element.prototype.matches(':popover-open')`, which is used in The Design System, but not supported by JSDOM
-  Element.prototype.matches = function (selector) {
-    if (selector === ':popover-open') {
-      return this.hasAttribute('popover') && this.dataset.popoverOpen === 'true';
-    } else {
-      return originalMatches.call(this, selector);
-    }
-  };
-  if (!HTMLElement.prototype.showPopover) {
-    HTMLElement.prototype.showPopover = function (): void {
-      this.dataset.popoverOpen = 'true';
-    };
-  }
-  if (!HTMLElement.prototype.hidePopover) {
-    HTMLElement.prototype.hidePopover = function (): void {
-      this.dataset.popoverOpen = 'false';
-    };
-  }
-  if (!HTMLElement.prototype.togglePopover) {
-    HTMLElement.prototype.togglePopover = function (): boolean {
-      const isPopoverOpen = this.dataset.popoverOpen === 'true';
-      this.dataset.popoverOpen = this.dataset.popoverOpen === 'true' ? 'false' : 'true';
-      return isPopoverOpen;
-    };
-  }
-});
-
-afterAll(() => {
-  Element.prototype.matches = originalMatches;
-});
