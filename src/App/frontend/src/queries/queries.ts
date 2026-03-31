@@ -4,6 +4,7 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
+import { GlobalData } from 'src/GlobalData';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost } from 'src/utils/network/networking';
@@ -173,7 +174,7 @@ export const doPostStatelessFormData = async (
  */
 
 export const fetchLogo = async (): Promise<string> =>
-  (await axios.get('https://altinncdn.no/img/Altinn-logo-blue.svg')).data;
+  (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 

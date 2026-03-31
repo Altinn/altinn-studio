@@ -1,4 +1,5 @@
 import { IgnoredValidators } from 'src/features/validation';
+import { GlobalData } from 'src/GlobalData';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 
 const { org, app } = window;
@@ -159,8 +160,9 @@ export const getInstanceLayoutsUrl = (uiFolder: string, instanceId: string) =>
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
-export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';
-export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
+export const getAppFrontendCDNPath = () => GlobalData.platformFrontendSettings.appFrontendCdnBaseUrl;
+export const getFrontendVersionsCDN = () => `${getAppFrontendCDNPath()}/index.json`;
+export const getHelpCircleIllustrationUrl = () => GlobalData.platformFrontendSettings.helpCircleIllustrationUrl;
 
 export type ParamValue = string | number | boolean | null;
 

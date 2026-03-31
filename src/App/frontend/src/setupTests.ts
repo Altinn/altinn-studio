@@ -84,6 +84,11 @@ beforeEach(() => {
     availableLanguages: [{ language: 'nb' }],
     selectedParty: getPartyMock(),
     textResources: { language: 'nb', resources: getTextResourcesMock() },
+    platformFrontendSettings: {
+      appFrontendCdnBaseUrl: 'https://altinncdn.no/toolkits/altinn-app-frontend',
+      altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
+      helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+    },
   };
 });
 
