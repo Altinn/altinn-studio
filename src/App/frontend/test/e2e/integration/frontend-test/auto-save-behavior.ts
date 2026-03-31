@@ -236,7 +236,7 @@ describe('Auto save behavior', () => {
       cy.gotoNavPage('form');
       cy.navPage('form').should('have.attr', 'aria-current', 'page');
 
-      cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+      cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
       cy.get(appFrontend.changeOfName.reasonRelationship).click();
       cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
       cy.findByRole('button', { name: appFrontend.changeOfName.datePickerButton }).click();

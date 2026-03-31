@@ -53,6 +53,7 @@ export interface FunctionTestBase {
   expression: ExprValToActualOrExpr<ExprVal.Any>;
   expects?: unknown;
   expectsFailure?: string;
+  name?: string;
 }
 
 type FullFunctionTest = FunctionTestBase & SharedTest;

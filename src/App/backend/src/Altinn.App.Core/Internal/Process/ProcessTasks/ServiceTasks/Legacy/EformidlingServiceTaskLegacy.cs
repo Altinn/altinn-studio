@@ -60,7 +60,11 @@ internal class EformidlingServiceTaskLegacy : IEFormidlingServiceTaskLegacy
         {
             if (_eFormidlingService != null)
             {
-                Instance updatedInstance = await _instanceClient.GetInstance(instance);
+                Instance updatedInstance = await _instanceClient.GetInstance(
+                    instance,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
                 await _eFormidlingService.SendEFormidlingShipment(updatedInstance);
             }
             else

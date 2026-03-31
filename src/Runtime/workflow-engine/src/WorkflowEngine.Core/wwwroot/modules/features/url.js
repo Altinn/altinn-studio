@@ -160,7 +160,7 @@ export const restoreUrl = () => {
             for (const c of bar.querySelectorAll('.chip')) {
                 c.classList.toggle(
                     'active',
-                    /** @type {HTMLElement} */ ((c).dataset.status || '') === '',
+                    /** @type {HTMLElement} */ (c.dataset.status || '') === '',
                 );
             }
         }
@@ -231,7 +231,7 @@ export const restoreUrl = () => {
                 for (const o of dropdown.querySelectorAll('.time-option'))
                     o.classList.toggle(
                         'active',
-                        /** @type {HTMLElement} */ ((o).dataset.minutes || '') === String(qt),
+                        /** @type {HTMLElement} */ (o.dataset.minutes || '') === String(qt),
                     );
         }
     }
@@ -255,6 +255,9 @@ export const restoreUrl = () => {
                 set.add(value);
             }
         }
+        // Sync namespace dropdown state from restored label filters
+        const nsFilter = state.labelFilters.get('namespace');
+        if (nsFilter) state.namespaceFilter = new Set(nsFilter);
         if (state.labelFilters.size) _applyFilter();
     }
     for (const s of (p.get('cpt') || '').split(',').filter(Boolean)) {

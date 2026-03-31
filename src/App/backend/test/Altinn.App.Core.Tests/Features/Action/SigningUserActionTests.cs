@@ -109,7 +109,9 @@ public class SigningUserActionTests
 
             var instanceClientMock = new Mock<IInstanceClient>();
             instanceClientMock
-                .Setup(x => x.GetInstance(_instance))
+                .Setup(x =>
+                    x.GetInstance(_instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(() =>
                 {
                     if (signatureWasAdded)

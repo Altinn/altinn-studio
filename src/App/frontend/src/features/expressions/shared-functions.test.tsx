@@ -393,7 +393,7 @@ function getDefaultLayouts(): ILayoutCollection {
   };
 }
 
-async function assertExpr({ expression, expects, expectsFailure, ...rest }: FunctionTestBase) {
+async function assertExpr({ expression, expects, expectsFailure, name: _, ...rest }: FunctionTestBase) {
   // Makes sure we don't end up with any unexpected properties (if there are, these should probably be added as
   // dependencies for the expression in some way)
   expect(Object.keys(rest)).toHaveLength(0);
