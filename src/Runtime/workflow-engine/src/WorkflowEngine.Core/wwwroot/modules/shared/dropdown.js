@@ -40,11 +40,13 @@ export const rebuildDropdown = (listEl, allValues, filterSet) => {
 
 /**
  * Update the toggle button to show selected chips.
- * @param {Set<string>} filterSet
- * @param {HTMLElement} selectedEl
- * @param {HTMLElement} dropdown
+ * @param {'org' | 'app'} which
  */
-export const updateDropdownToggle = (filterSet, selectedEl, dropdown) => {
+export const updateDropdownToggle = (which) => {
+    const filterSet = which === 'org' ? state.orgFilter : state.appFilter;
+    const selectedEl = which === 'org' ? dom.orgSelected : dom.appSelected;
+    const dropdown = which === 'org' ? dom.orgDropdown : dom.appDropdown;
+
     if (filterSet.size === 0) {
         selectedEl.innerHTML = '';
         dropdown.classList.remove('has-selection');

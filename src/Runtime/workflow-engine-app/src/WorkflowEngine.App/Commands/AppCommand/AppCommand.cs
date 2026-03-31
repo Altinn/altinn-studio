@@ -112,15 +112,11 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
+        using var jsonPayload = JsonContent.Create(payload);
 
         _logger.SendingAppCommand(endpoint, payload);
 
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
-        {
-            Content = JsonContent.Create(payload),
-        };
-        httpRequest.AddWorkflowMetadataHeaders(context);
-        using var response = await httpClient.SendAsync(httpRequest, cancellationToken);
+        using var response = await httpClient.PostAsync(endpoint, jsonPayload, cancellationToken);
 
         if (response.IsSuccessStatusCode)
         {

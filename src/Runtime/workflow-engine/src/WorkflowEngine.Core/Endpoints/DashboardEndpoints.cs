@@ -231,7 +231,6 @@ internal static class DashboardEndpoints
                     IServiceProvider sp,
                     IHostApplicationLifetime lifetime,
                     HttpContext ctx,
-                    string? @namespace,
                     CancellationToken ct
                 ) =>
                 {
@@ -241,8 +240,6 @@ internal static class DashboardEndpoints
                     ctx.Response.ContentType = "text/event-stream";
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
-
-                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
 
                     string? previousActiveFingerprint = null;
                     string? previousRecentFingerprint = null;
@@ -257,10 +254,9 @@ internal static class DashboardEndpoints
                             using IServiceScope scope = sp.CreateScope();
                             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-                            IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(nsFilter, ct);
+                            IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(cancellationToken: ct);
                             IReadOnlyList<Workflow> recent = await repo.GetFinishedWorkflows(
                                 take: 100,
-                                namespaceFilter: nsFilter,
                                 cancellationToken: ct
                             );
 
@@ -330,25 +326,12 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/labels",
-                async (IServiceProvider sp, string key, string? @namespace, CancellationToken ct) =>
+                async (IServiceProvider sp, string key, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
-                    IReadOnlyList<string> values = await repo.GetDistinctLabelValues(key, nsFilter, ct);
+                    IReadOnlyList<string> values = await repo.GetDistinctLabelValues(key, ct);
                     return Results.Json(values, _jsonCompact);
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapGet(
-                "/dashboard/namespaces",
-                async (IServiceProvider sp, CancellationToken ct) =>
-                {
-                    using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    IReadOnlyList<string> namespaces = await repo.GetDistinctNamespaces(ct);
-                    return Results.Json(namespaces, _jsonCompact);
                 }
             )
             .ExcludeFromDescription();
@@ -365,15 +348,12 @@ internal static class DashboardEndpoints
                     bool? retried,
                     string? labels,
                     string? correlationId,
-                    string? @namespace,
                     CancellationToken ct
                 ) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
                     int maxResults = Math.Min(limit ?? 100, 200);
-
-                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
 
                     PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
                         ? [PersistentItemStatus.Completed, PersistentItemStatus.Failed, PersistentItemStatus.Requeued]
@@ -407,7 +387,6 @@ internal static class DashboardEndpoints
                         since: since,
                         retriedOnly: retriedOnly,
                         labelFilters: labelFilters,
-                        namespaceFilter: nsFilter,
                         correlationId: correlationId,
                         cancellationToken: ct
                     );
@@ -421,13 +400,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/scheduled",
-                async (IServiceProvider sp, string? @namespace, CancellationToken ct) =>
+                async (IServiceProvider sp, CancellationToken ct) =>
                 {
-                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
-
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    IReadOnlyList<Workflow> workflows = await repo.GetScheduledWorkflows(nsFilter, ct);
+                    IReadOnlyList<Workflow> workflows = await repo.GetScheduledWorkflows(ct);
                     return Results.Json(workflows.Select(DashboardMapper.MapWorkflow), _jsonCompact);
                 }
             )
@@ -435,11 +412,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/step",
-                async (IServiceProvider sp, Guid wf, string ns, string step, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wf, string step, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    Workflow? workflow = await repo.GetWorkflow(wf, ns, ct);
+                    Workflow? workflow = await repo.GetWorkflow(wf, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -492,11 +469,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/state",
-                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wf, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    Workflow? workflow = await repo.GetWorkflow(wf, ns, ct);
+                    Workflow? workflow = await repo.GetWorkflow(wf, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -537,18 +514,8 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing or invalid workflowId");
                     }
 
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp)
-                        || nsProp.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp.GetString() ?? throw new UnreachableException();
                     var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
+                    var result = await engine.ResumeWorkflow(workflowId, cascade: false, ct);
 
                     return result switch
                     {
@@ -576,24 +543,14 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing or invalid workflowId");
                     }
 
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp2)
-                        || nsProp2.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp2.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp2.GetString() ?? throw new UnreachableException();
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-                    bool updated = await repo.SkipBackoff(workflowId, ns, ct);
+                    bool updated = await repo.SkipBackoff(workflowId, ct);
                     if (updated)
                         return Results.Ok();
 
-                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ns, ct);
+                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ct);
                     if (status is null)
                         return Results.NotFound();
 

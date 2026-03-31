@@ -1,7 +1,8 @@
 ﻿{
   databaseId: {Scrubbed},
+  correlationId: Guid_1,
   operationId: op-wf-1,
-  idempotencyKey: idem-Guid_1,
+  idempotencyKey: idem-Guid_2,
   namespace: ttd:e2e-tests,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
@@ -13,7 +14,7 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//ping,
+      idempotencyKey: idem-Guid_2//ping,
       operationId: /ping,
       processingOrder: 0,
       updatedAt: {Scrubbed},

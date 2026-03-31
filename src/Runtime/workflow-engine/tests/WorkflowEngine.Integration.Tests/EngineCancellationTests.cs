@@ -26,8 +26,6 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 {
     private const string TestNamespace = "ttd:cancellation-tests";
 
-    private static string WorkflowsPath => $"/api/v1/{Uri.EscapeDataString(TestNamespace)}/workflows";
-
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private WireMockServer _wireMock = null!;
 
@@ -62,7 +60,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         // Cancel via the API
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/cancel",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -114,7 +112,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         // Cancel via the API
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/cancel",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -152,7 +150,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
         // Try to cancel it — should get 409 Conflict
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/cancel",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -177,7 +175,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         // First cancel — should succeed
         using var firstResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/cancel",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -193,7 +191,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         // Second cancel — returns 202 (already cancelling) or 409 (already terminal)
         using var secondResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{workflowId}/cancel",
+            $"/api/v1/workflows/{workflowId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -213,7 +211,7 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         using var client = factory.CreateClient();
         using var cancelResponse = await client.PostAsync(
-            $"{WorkflowsPath}/{fakeId}/cancel",
+            $"/api/v1/workflows/{fakeId}/cancel",
             content: null,
             cancellationToken: TestContext.Current.CancellationToken
         );
@@ -252,15 +250,14 @@ public sealed class EngineCancellationTests : IAsyncLifetime
 
         var request = new WorkflowEnqueueRequest
         {
+            IdempotencyKey = $"idem-{Guid.NewGuid()}",
+            Namespace = TestNamespace,
+            CorrelationId = Guid.NewGuid(),
             Context = JsonSerializer.SerializeToElement(new { test = "cancellation" }),
             Workflows = [new WorkflowRequest { OperationId = "cancel-test", Steps = steps }],
         };
 
-        using var msg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath);
-        msg.Content = JsonContent.Create(request);
-        msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
-
-        var response = await client.SendAsync(msg);
+        var response = await client.PostAsJsonAsync("/api/v1/workflows", request);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>();

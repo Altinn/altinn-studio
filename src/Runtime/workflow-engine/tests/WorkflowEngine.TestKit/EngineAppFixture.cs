@@ -34,7 +34,6 @@ public abstract class EngineAppFixture : IAsyncLifetime
     // Stored as IAsyncDisposable so we don't need the generic type parameter here
     private IAsyncDisposable _factory = null!;
     private Func<HttpClient> _createEngineClient = null!;
-    private Func<DelegatingHandler[], HttpClient> _createEngineClientWithHandlers = null!;
     private IServiceProvider _services = null!;
 
     /// <summary>
@@ -57,13 +56,6 @@ public abstract class EngineAppFixture : IAsyncLifetime
     public HttpClient CreateEngineClient() => _createEngineClient();
 
     /// <summary>
-    /// Creates an <see cref="HttpClient"/> with additional <see cref="DelegatingHandler"/>s
-    /// in the pipeline (e.g. <see cref="HttpExchangeRecorder"/> for capturing HTTP exchanges).
-    /// </summary>
-    public HttpClient CreateEngineClient(params DelegatingHandler[] handlers) =>
-        _createEngineClientWithHandlers(handlers);
-
-    /// <summary>
     /// Provides access to the engine's service provider.
     /// </summary>
     public IServiceProvider Services => _services;
@@ -75,7 +67,6 @@ public abstract class EngineAppFixture : IAsyncLifetime
     protected abstract (
         IAsyncDisposable Factory,
         Func<HttpClient> CreateEngineClient,
-        Func<DelegatingHandler[], HttpClient> CreateEngineClientWithHandlers,
         IServiceProvider Services
     ) CreateFactory(string connectionString);
 
@@ -92,12 +83,9 @@ public abstract class EngineAppFixture : IAsyncLifetime
         _wireMockPort = WireMock.Port;
         SetupDefaultStub();
 
-        var (factory, createEngineClient, createEngineClientWithHandlers, services) = CreateFactory(
-            _postgres.GetConnectionString()
-        );
+        var (factory, createEngineClient, services) = CreateFactory(_postgres.GetConnectionString());
         _factory = factory;
         _createEngineClient = createEngineClient;
-        _createEngineClientWithHandlers = createEngineClientWithHandlers;
         _services = services;
     }
 
@@ -187,7 +175,6 @@ public class EngineAppFixture<TProgram> : EngineAppFixture
     protected override (
         IAsyncDisposable Factory,
         Func<HttpClient> CreateEngineClient,
-        Func<DelegatingHandler[], HttpClient> CreateEngineClientWithHandlers,
         IServiceProvider Services
     ) CreateFactory(string connectionString)
     {
@@ -196,6 +183,6 @@ public class EngineAppFixture<TProgram> : EngineAppFixture
         // Accessing Server triggers ConfigureWebHost -> app startup.
         _ = factory.Server;
 
-        return (factory, factory.CreateClient, factory.CreateDefaultClient, factory.Services);
+        return (factory, factory.CreateClient, factory.Services);
     }
 }

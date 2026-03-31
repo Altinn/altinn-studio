@@ -65,13 +65,6 @@ public sealed record StepStatusResponse
     [JsonPropertyName("retryCount")]
     public required int RetryCount { get; init; }
 
-    /// <summary>
-    /// The output state produced by this step, passed as input to the next step.
-    /// </summary>
-    [JsonPropertyName("stateOut")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? StateOut { get; init; }
-
     [JsonPropertyName("retryStrategy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RetryStrategy? RetryStrategy { get; init; }
@@ -88,7 +81,6 @@ public sealed record StepStatusResponse
             UpdatedAt = step.UpdatedAt,
             Labels = step.Labels,
             RetryCount = step.RequeueCount,
-            StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
         };
 

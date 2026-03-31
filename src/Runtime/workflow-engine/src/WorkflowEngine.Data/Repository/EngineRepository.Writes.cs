@@ -233,8 +233,8 @@ internal sealed partial class EngineRepository
             {
                 var req = requests[i];
                 return (
-                    req.Metadata.IdempotencyKey,
-                    WorkflowNamespace.Normalize(req.Metadata.Namespace),
+                    req.Request.IdempotencyKey,
+                    WorkflowNamespace.Normalize(req.Request.Namespace),
                     req.RequestBodyHash,
                     "{" + string.Join(",", perRequestWorkflows[i].Select(w => w.DatabaseId)) + "}",
                     req.Metadata.CreatedAt
@@ -331,7 +331,7 @@ internal sealed partial class EngineRepository
     {
         var (keys, namespaces) = existingRequestIndices
             .Select(i =>
-                (requests[i].Metadata.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Metadata.Namespace))
+                (requests[i].Request.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Request.Namespace))
             )
             .ToArray()
             .Unzip();
@@ -356,7 +356,7 @@ internal sealed partial class EngineRepository
         foreach (var i in existingRequestIndices)
         {
             var req = requests[i];
-            var compositeKey = (req.Metadata.IdempotencyKey, WorkflowNamespace.Normalize(req.Metadata.Namespace));
+            var compositeKey = (req.Request.IdempotencyKey, WorkflowNamespace.Normalize(req.Request.Namespace));
             if (existingLookup.TryGetValue(compositeKey, out var existing))
             {
                 if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
@@ -388,7 +388,7 @@ internal sealed partial class EngineRepository
         var externalRefPairs = new HashSet<(Guid id, string ns)>();
         foreach (var request in requests)
         {
-            var ns = WorkflowNamespace.Normalize(request.Metadata.Namespace);
+            var ns = WorkflowNamespace.Normalize(request.Request.Namespace);
             foreach (var workflow in request.Request.Workflows)
             {
                 CollectExternalIds(workflow.DependsOn, ns, externalRefPairs);
@@ -417,7 +417,7 @@ internal sealed partial class EngineRepository
 
         for (var i = 0; i < requests.Count; i++)
         {
-            var ns = WorkflowNamespace.Normalize(requests[i].Metadata.Namespace);
+            var ns = WorkflowNamespace.Normalize(requests[i].Request.Namespace);
             var nonExistentReferences = requests[i]
                 .Request.Workflows.SelectMany(wf => (wf.DependsOn ?? []).Concat(wf.Links ?? []))
                 .Where(r => r.IsId && !verifiedPairs.Contains((r.Id, ns)))
@@ -446,8 +446,8 @@ internal sealed partial class EngineRepository
         foreach (
             var (current, index) in requests
                 .Select((value, index) => (Value: value, Index: index))
-                .OrderBy(x => WorkflowNamespace.Normalize(x.Value.Metadata.Namespace))
-                .ThenBy(x => x.Value.Metadata.IdempotencyKey)
+                .OrderBy(x => WorkflowNamespace.Normalize(x.Value.Request.Namespace))
+                .ThenBy(x => x.Value.Request.IdempotencyKey)
         )
         {
             if (!indicesToCheck.Contains(index))
@@ -457,9 +457,9 @@ internal sealed partial class EngineRepository
 
             if (
                 previous is not null
-                && WorkflowNamespace.Normalize(current.Metadata.Namespace)
-                    == WorkflowNamespace.Normalize(previous.Metadata.Namespace)
-                && current.Metadata.IdempotencyKey == previous.Metadata.IdempotencyKey
+                && WorkflowNamespace.Normalize(current.Request.Namespace)
+                    == WorkflowNamespace.Normalize(previous.Request.Namespace)
+                && current.Request.IdempotencyKey == previous.Request.IdempotencyKey
             )
             {
                 duplicates.Add(index);
@@ -713,7 +713,6 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<bool> RequestCancellation(
         Guid workflowId,
-        string ns,
         DateTimeOffset requestedAt,
         CancellationToken cancellationToken
     )
@@ -735,7 +734,6 @@ internal sealed partial class EngineRepository
                     UPDATE "engine"."Workflows"
                     SET "CancellationRequestedAt" = @requestedAt, "UpdatedAt" = @now
                     WHERE "Id" = @id
-                      AND "Namespace" = @ns
                       AND "Status" != ALL(@terminalStatuses)
                       AND "CancellationRequestedAt" IS NULL
                     """;
@@ -744,7 +742,6 @@ internal sealed partial class EngineRepository
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("requestedAt", requestedAt));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
-                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int[]>("terminalStatuses", terminalStatuses));
                     rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
                 },
@@ -990,7 +987,6 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Guid>> ResumeWorkflow(
         Guid workflowId,
-        string ns,
         DateTimeOffset resumedAt,
         bool cascade = false,
         CancellationToken cancellationToken = default
@@ -1020,14 +1016,12 @@ internal sealed partial class EngineRepository
                         "ReclaimCount" = 0,
                         "UpdatedAt" = @now
                     WHERE "Id" = @id
-                      AND "Namespace" = @ns
                       AND "Status" IN (@failed, @canceled, @depFailed, @requeued)
                     RETURNING "Id"
                     """;
                     await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
                     {
                         cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
-                        cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("enqueued", (int)PersistentItemStatus.Enqueued));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
                         cmd.Parameters.Add(new NpgsqlParameter<int>("canceled", (int)PersistentItemStatus.Canceled));
@@ -1132,7 +1126,7 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<bool> SkipBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default)
+    public async Task<bool> SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.SkipBackoff");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -1148,11 +1142,10 @@ internal sealed partial class EngineRepository
                     const string sql = """
                     UPDATE engine."Workflows"
                     SET "BackoffUntil" = NULL, "UpdatedAt" = @now
-                    WHERE "Id" = @id AND "Namespace" = @ns AND "Status" = @requeued AND "BackoffUntil" IS NOT NULL
+                    WHERE "Id" = @id AND "Status" = @requeued AND "BackoffUntil" IS NOT NULL
                     """;
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
-                    cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("requeued", (int)PersistentItemStatus.Requeued));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
                     rowsAffected = await cmd.ExecuteNonQueryAsync(ct);

@@ -52,11 +52,10 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The main ones:
 
 ```
-GET  /api/v1/namespaces                        (list distinct namespaces)
-POST /api/v1/{namespace}/workflows             (enqueue workflows)
-GET  /api/v1/{namespace}/workflows             (list active workflows)
-GET  /api/v1/{namespace}/workflows/{id}        (get single workflow with steps)
-POST /api/v1/{namespace}/workflows/{id}/cancel (request cancellation)
+POST /api/v1/workflows              (enqueue workflows)
+GET  /api/v1/workflows              (list active workflows)
+GET  /api/v1/workflows/{id}         (get single workflow with steps)
+POST /api/v1/workflows/{id}/cancel  (request cancellation)
 ```
 
 ## Migrations

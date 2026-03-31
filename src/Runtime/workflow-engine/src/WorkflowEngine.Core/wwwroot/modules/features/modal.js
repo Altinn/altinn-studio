@@ -192,9 +192,9 @@ const buildDetailsContent = (data) => {
         status === 'Requeued' &&
         new Date(/** @type {string} */ (data.backoffUntil)) - Date.now() > 5000;
     if (status === 'Failed') {
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">&#8635; Retry</a>`;
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfId)}')">&#8635; Retry</a>`;
     } else if (showSkipBackoff) {
-        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}','${esc(_openWfNamespace)}')">&#9654; Retry now</a>`;
+        statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}')">&#9654; Retry now</a>`;
     }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
     html += row('Idempotency Key', data.idempotencyKey);
@@ -291,7 +291,6 @@ let _hasStateDiff = false;
 
 /** Currently open modal context (for SSE-driven refresh) */
 let _openWfId = '';
-let _openWfNamespace = '';
 let _openStepKey = '';
 let _openStepName = '';
 let _refreshTimer = 0;
@@ -381,7 +380,7 @@ const activeStateView = () =>
 
 /** Fetch step data and render (or re-render) the modal */
 const fetchAndRender = async (wfId, stepKey, stepName, initialTab) => {
-    const url = `/dashboard/step?wf=${encodeURIComponent(wfId)}&ns=${encodeURIComponent(_openWfNamespace)}&step=${encodeURIComponent(stepKey)}`;
+    const url = `/dashboard/step?wf=${encodeURIComponent(wfId)}&step=${encodeURIComponent(stepKey)}`;
 
     try {
         const res = await fetch(url);
@@ -424,9 +423,8 @@ const fetchAndRender = async (wfId, stepKey, stepName, initialTab) => {
     }
 };
 
-window.openStepModal = async (wfId, wfNamespace, stepKey, stepName, initialTab) => {
+window.openStepModal = async (wfId, stepKey, stepName, initialTab) => {
     _openWfId = wfId;
-    _openWfNamespace = wfNamespace;
     _openStepKey = stepKey;
     _openStepName = stepName || '';
 
@@ -461,7 +459,7 @@ window.closeModal = () => {
 };
 
 /** Retry a failed workflow — called from status row retry button */
-window.retryWorkflow = async (e, workflowId, ns) => {
+window.retryWorkflow = async (e, workflowId) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
     if (btn.hasAttribute('disabled')) return;
@@ -471,7 +469,7 @@ window.retryWorkflow = async (e, workflowId, ns) => {
         const res = await fetch('/dashboard/retry', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workflowId, namespace: ns }),
+            body: JSON.stringify({ workflowId }),
         });
         if (res.ok) {
             btn.textContent = 'Retried';
@@ -482,7 +480,7 @@ window.retryWorkflow = async (e, workflowId, ns) => {
             btn.title = data.message || 'Retry failed';
             btn.classList.add('retry-failed');
             setTimeout(() => {
-                btn.removeAttribute('disabled');
+                btn.disabled = false;
                 btn.innerHTML = '&#8635; Retry';
                 btn.classList.remove('retry-failed');
             }, 3000);
@@ -491,7 +489,7 @@ window.retryWorkflow = async (e, workflowId, ns) => {
         btn.textContent = 'Error';
         btn.classList.add('retry-failed');
         setTimeout(() => {
-            btn.removeAttribute('disabled');
+            btn.disabled = false;
             btn.innerHTML = '&#8635; Retry';
             btn.classList.remove('retry-failed');
         }, 3000);
@@ -499,7 +497,7 @@ window.retryWorkflow = async (e, workflowId, ns) => {
 };
 
 /** Skip backoff timer — called from status row skip button */
-window.skipBackoff = async (e, workflowId, ns) => {
+window.skipBackoff = async (e, workflowId) => {
     e.stopPropagation();
     const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
     if (btn.hasAttribute('disabled')) return;
@@ -509,7 +507,7 @@ window.skipBackoff = async (e, workflowId, ns) => {
         const res = await fetch('/dashboard/skip-backoff', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workflowId, namespace: ns }),
+            body: JSON.stringify({ workflowId }),
         });
         if (res.ok) {
             btn.textContent = 'Skipped';
@@ -518,7 +516,7 @@ window.skipBackoff = async (e, workflowId, ns) => {
             btn.textContent = 'Failed';
             btn.classList.add('skip-failed');
             setTimeout(() => {
-                btn.removeAttribute('disabled');
+                btn.disabled = false;
                 btn.textContent = 'retry now';
                 btn.classList.remove('skip-failed');
             }, 3000);
@@ -527,7 +525,7 @@ window.skipBackoff = async (e, workflowId, ns) => {
         btn.textContent = 'Error';
         btn.classList.add('skip-failed');
         setTimeout(() => {
-            btn.removeAttribute('disabled');
+            btn.disabled = false;
             btn.textContent = 'retry now';
             btn.classList.remove('skip-failed');
         }, 3000);
