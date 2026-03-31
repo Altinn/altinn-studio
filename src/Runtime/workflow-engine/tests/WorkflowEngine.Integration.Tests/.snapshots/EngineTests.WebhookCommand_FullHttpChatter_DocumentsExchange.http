@@ -1,0 +1,150 @@
+###
+### 1. Client → Engine: Enqueue workflow
+###
+
+POST /api/v1/chatter-test/workflows?idempotencyKey=chatter-idem-key&correlationId=Guid_1 HTTP/1.1
+Content-Type: application/json; charset=utf-8
+
+{
+  "labels": {
+    "org": "ttd",
+    "app": "e2e-tests"
+  },
+  "context": null,
+  "workflows": [
+    {
+      "ref": "chatter-wf",
+      "operationId": "op-chatter-wf",
+      "steps": [
+        {
+          "operationId": "/step-1",
+          "command": {
+            "type": "webhook",
+            "maxExecutionTime": null,
+            "data": {
+              "uri": "http://localhost:{PORT}/step-1",
+              "payload": "step-1-data",
+              "contentType": "text/plain"
+            }
+          },
+          "retryStrategy": null,
+          "labels": null
+        },
+        {
+          "operationId": "/step-2",
+          "command": {
+            "type": "webhook",
+            "maxExecutionTime": null,
+            "data": {
+              "uri": "http://localhost:{PORT}/step-2",
+              "payload": null,
+              "contentType": null
+            }
+          },
+          "retryStrategy": null,
+          "labels": null
+        }
+      ],
+      "startAt": null,
+      "state": null,
+      "dependsOn": null,
+      "links": null
+    }
+  ]
+}
+
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+
+{
+  "workflows": [
+    {
+      "ref": "chatter-wf",
+      "databaseId": "Guid_2",
+      "namespace": "chatter-test"
+    }
+  ]
+}
+
+###
+### 2. Engine → Webhook: Step 1 (POST /step-1)
+###
+
+POST http://localhost:{PORT}/step-1 HTTP/1.1
+Host: localhost
+Content-Type: text/plain
+Correlation-Id: Guid_1
+Idempotency-Key: chatter-idem-key//step-1
+Namespace: chatter-test
+Operation-Id: /step-1
+Workflow-Id: Guid_2
+
+step-1-data
+
+HTTP/1.1 200
+
+###
+### 3. Engine → Webhook: Step 2 (GET /step-2)
+###
+
+GET http://localhost:{PORT}/step-2 HTTP/1.1
+Host: localhost
+Correlation-Id: Guid_1
+Idempotency-Key: chatter-idem-key//step-2
+Namespace: chatter-test
+Operation-Id: /step-2
+Workflow-Id: Guid_2
+
+HTTP/1.1 200
+
+###
+### 4. Client → Engine: Get completed workflow
+###
+
+GET /api/v1/chatter-test/workflows/Guid_2 HTTP/1.1
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "databaseId": "Guid_2",
+  "correlationId": "Guid_1",
+  "operationId": "op-chatter-wf",
+  "idempotencyKey": "chatter-idem-key",
+  "namespace": "chatter-test",
+  "createdAt": "{Scrubbed}",
+  "updatedAt": "{Scrubbed}",
+  "labels": {
+    "app": "e2e-tests",
+    "org": "ttd"
+  },
+  "overallStatus": "Completed",
+  "dependencies": {},
+  "links": {},
+  "steps": [
+    {
+      "databaseId": "Guid_3",
+      "idempotencyKey": "chatter-idem-key//step-1",
+      "operationId": "/step-1",
+      "processingOrder": 0,
+      "updatedAt": "{Scrubbed}",
+      "command": {
+        "type": "webhook"
+      },
+      "status": "Completed",
+      "retryCount": 0
+    },
+    {
+      "databaseId": "Guid_4",
+      "idempotencyKey": "chatter-idem-key//step-2",
+      "operationId": "/step-2",
+      "processingOrder": 1,
+      "updatedAt": "{Scrubbed}",
+      "command": {
+        "type": "webhook"
+      },
+      "status": "Completed",
+      "retryCount": 0
+    }
+  ]
+}

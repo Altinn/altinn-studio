@@ -26,6 +26,8 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
 {
     private const string TestNamespace = "ttd:shutdown-tests";
 
+    private static string WorkflowsPath => $"/api/v1/{Uri.EscapeDataString(TestNamespace)}/workflows";
+
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private WireMockServer _wireMock = null!;
 
@@ -147,14 +149,17 @@ public sealed class EngineGracefulShutdownTests : IAsyncLifetime
 
         var request = new WorkflowEnqueueRequest
         {
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            Namespace = TestNamespace,
-            CorrelationId = Guid.NewGuid(),
             Context = JsonSerializer.SerializeToElement(new { test = "shutdown" }),
             Workflows = [new WorkflowRequest { OperationId = "shutdown-test", Steps = steps }],
         };
 
-        var response = await client.PostAsJsonAsync("/api/v1/workflows", request);
+        using var msg = new HttpRequestMessage(HttpMethod.Post, WorkflowsPath)
+        {
+            Content = JsonContent.Create(request),
+        };
+        msg.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, $"idem-{Guid.NewGuid()}");
+
+        var response = await client.SendAsync(msg);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>();
