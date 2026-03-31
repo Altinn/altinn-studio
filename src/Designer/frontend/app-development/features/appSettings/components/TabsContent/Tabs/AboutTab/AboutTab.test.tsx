@@ -74,6 +74,7 @@ const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
+
   renderAboutTab({
     getAppMetadata,
     ...queries,
