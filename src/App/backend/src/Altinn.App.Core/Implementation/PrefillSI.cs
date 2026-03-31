@@ -294,22 +294,6 @@ public class PrefillSI : IPrefill
             string source = keyValuePair.Value;
             string target = keyValuePair.Key.Replace("-", string.Empty);
 
-            if (string.IsNullOrEmpty(source))
-            {
-                string errorMessage =
-                    $"Could not prefill, a source value was not set for target: {target.Replace(Environment.NewLine, "")}";
-                _logger.LogError(errorMessage);
-                throw new Exception(errorMessage);
-            }
-
-            if (string.IsNullOrEmpty(target))
-            {
-                string errorMessage =
-                    $"Could not prefill, a target value was not set for source: {source.Replace(Environment.NewLine, "")}";
-                _logger.LogError(errorMessage);
-                throw new Exception(errorMessage);
-            }
-
             JToken? sourceValue = null;
             if (sourceObject != null)
             {

@@ -229,7 +229,38 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     {
         TestTryDeserialize(2, 2.0, true);
         TestTryDeserialize(2.5, 2.5, true);
+        TestTryDeserialize(3.0, "3", true);
+        TestTryDeserialize(3.1, "3.1", true);
         TestTryDeserialize("test", "test", true);
+        TestTryDeserialize(0, false, true);
+        TestTryDeserialize(1, true, true);
+        TestTryDeserialize(2, false, false);
+        TestTryDeserialize(-1, false, false);
+        TestTryDeserialize(0.1, false, false);
+        TestTryDeserialize<bool?>(0, false, true);
+        TestTryDeserialize<bool?>(1, true, true);
+        TestTryDeserialize<bool?>(2, null, false);
+        TestTryDeserialize<bool?>(-1, null, false);
+        TestTryDeserialize<bool?>(0.1, null, false);
+        TestTryDeserialize("0", false, true);
+        TestTryDeserialize("1", true, true);
+        TestTryDeserialize("2", false, false);
+        TestTryDeserialize("-1", false, false);
+        TestTryDeserialize("0.1", false, false);
+        TestTryDeserialize("false", false, true);
+        TestTryDeserialize("true", true, true);
+        TestTryDeserialize("trUe", true, true);
+        TestTryDeserialize("falSe", false, true);
+
+        TestTryDeserialize<bool?>("0", false, true);
+        TestTryDeserialize<bool?>("1", true, true);
+        TestTryDeserialize<bool?>("2", null, false);
+        TestTryDeserialize<bool?>("-1", null, false);
+        TestTryDeserialize<bool?>("0.1", null, false);
+        TestTryDeserialize<bool?>("false", false, true);
+        TestTryDeserialize<bool?>("true", true, true);
+        TestTryDeserialize<bool?>("faLse", false, true);
+        TestTryDeserialize<bool?>("trUe", true, true);
         TestTryDeserialize(true, true, true);
         TestTryDeserialize(false, false, true);
         TestTryDeserialize(ExpressionValue.Null, (string?)null, true);
@@ -241,6 +272,8 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize<int?>(ExpressionValue.Null, null, true);
         TestTryDeserialize<int?>(ExpressionValue.False, 0, true);
         TestTryDeserialize<int?>(ExpressionValue.True, 1, true);
+        // Not sure what the correct string representation should be for JsonTokenType.True and JsonTokenType.False:
+        // There are many possibilites "true", "True", "sann", "ja", "ok", "1"
         TestTryDeserialize<string?>(ExpressionValue.False, null, false);
         TestTryDeserialize<string?>(ExpressionValue.True, null, false);
         TestTryDeserialize<string?>(ExpressionValue.Null, null, true);
@@ -257,7 +290,7 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
 
     private void TestTryDeserialize<T>(ExpressionValue value, T? expected, bool success)
     {
-        outputHelper.WriteLine(value.ToString());
+        outputHelper.WriteLine($"{value} -> {typeof(T).Name} {expected}: expects {(success ? "success" : "failure")}");
         if (value.TryDeserialize(out T? result))
         {
             Assert.True(success);

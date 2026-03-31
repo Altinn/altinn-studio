@@ -1,0 +1,5 @@
+{
+  "name": "Should work with numbers in scientific notation (true)",
+  "expression": ["lessThanEq", 2e3, 5e3],
+  "expects": true
+}

@@ -13,7 +13,7 @@ describe('Attachment tags validation', () => {
     cy.findByRole('textbox', { name: /alder/i }).type('17');
 
     // Opt-in to attachment type validation
-    cy.findByRole('radio', { name: /ja/i }).dsCheck();
+    cy.findByRole('radio', { name: /ja/i }).check();
 
     cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Vitnemål'");
     cy.get(appFrontend.errorReport).should('contain.text', "Du må laste opp 'Søknad'");

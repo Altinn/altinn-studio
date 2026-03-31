@@ -12,7 +12,7 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-_JUDGE_PROMPT_NAME = "intent_match"
+_JUDGE_PROMPT_NAME = "llm-as-a-judge/intent_match_judge"
 
 
 def _parse_judge_response(response: str) -> tuple[bool, str]:

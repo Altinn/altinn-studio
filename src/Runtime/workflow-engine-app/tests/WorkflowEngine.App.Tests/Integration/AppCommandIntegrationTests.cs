@@ -92,8 +92,6 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
     {
         var request = new WorkflowEnqueueRequest
         {
-            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = JsonSerializer.SerializeToElement(
                 new
                 {
@@ -168,8 +166,8 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
         );
 
         // Submit the same request twice (same idempotency key)
-        var response1 = await _client.Enqueue(request);
-        var response2 = await _client.Enqueue(request);
+        var response1 = await _client.Enqueue(request, idempotencyKey: "idempotent-test-key");
+        var response2 = await _client.Enqueue(request, idempotencyKey: "idempotent-test-key");
 
         // Both should return the same workflow ID
         Assert.Equal(response1.Workflows.Single().DatabaseId, response2.Workflows.Single().DatabaseId);

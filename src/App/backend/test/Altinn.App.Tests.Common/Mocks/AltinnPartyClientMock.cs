@@ -27,6 +27,11 @@ public class AltinnPartyClientMock : IAltinnPartyClient
         throw new NotImplementedException();
     }
 
+    public Task<Guid?> GetPartyUuidByUrn(string urn)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<Party> LookupParty(PartyLookup partyLookup)
     {
         var files = Directory.GetFiles(_partyFolder, "*.json");
