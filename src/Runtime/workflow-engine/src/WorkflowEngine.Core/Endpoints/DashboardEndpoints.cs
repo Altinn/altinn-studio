@@ -546,7 +546,7 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing namespace");
                     }
 
-                    string ns = nsProp.GetString()!;
+                    string ns = nsProp.GetString() ?? throw new UnreachableException();
                     var engine = sp.GetRequiredService<IEngine>();
                     var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
 
@@ -585,7 +585,7 @@ internal static class DashboardEndpoints
                         return Results.BadRequest("Missing namespace");
                     }
 
-                    string ns = nsProp2.GetString()!;
+                    string ns = nsProp2.GetString() ?? throw new UnreachableException();
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
