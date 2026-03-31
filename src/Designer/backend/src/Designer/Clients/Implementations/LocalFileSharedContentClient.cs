@@ -87,10 +87,17 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
             codeListId,
             version.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
         );
-        string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
-        return !string.IsNullOrWhiteSpace(jsonString)
-            ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)
-            : null;
+        try
+        {
+           string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
+           return !string.IsNullOrWhiteSpace(jsonString)
+                    ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)
+                    : null;
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return null;
+        }
     }
 
     private async Task PrepareOrganisationIndexFile(string content, CancellationToken cancellationToken = default)
