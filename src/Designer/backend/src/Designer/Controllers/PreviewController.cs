@@ -898,26 +898,20 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(lookupResponse);
         }
 
+        /// <summary>
+        /// Adds the pdfLayoutName to pages.order in the layout settings for preview purposes.
+        /// The actual Settings.json file is not modified.
+        /// </summary>
+        /// <param name="layoutSettings">The layout settings JsonNode to modify in-place.</param>
         private static void AddPdfLayoutNameToPageOrder(JsonNode layoutSettings)
         {
-            if (layoutSettings?["pages"] is not JsonObject pagesObject)
-            {
-                return;
-            }
-            string pdfLayoutName = pagesObject["pdfLayoutName"]?.GetValue<string>();
+            JsonObject pagesObject = layoutSettings?["pages"] as JsonObject;
+            string pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
             if (string.IsNullOrEmpty(pdfLayoutName))
             {
                 return;
             }
-            if (pagesObject["order"] is not JsonArray orderArray)
-            {
-                return;
-            }
-            bool alreadyInOrder = orderArray.Any(p => p?.GetValue<string>() == pdfLayoutName);
-            if (!alreadyInOrder)
-            {
-                orderArray.Add(JsonValue.Create(pdfLayoutName));
-            }
+            (pagesObject["order"] as JsonArray)?.Add(JsonValue.Create(pdfLayoutName));
         }
 
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
