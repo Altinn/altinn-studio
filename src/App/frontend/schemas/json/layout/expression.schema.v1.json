@@ -134,6 +134,10 @@
       "title": "Any expression returning a number (strict)",
       "anyOf": [
         { "type": "number", "title": "Numeric constant" },
+        { "$ref": "#/definitions/func-plus" },
+        { "$ref": "#/definitions/func-minus" },
+        { "$ref": "#/definitions/func-divide" },
+        { "$ref": "#/definitions/func-multiply" },
         { "$ref": "#/definitions/func-stringLength" },
         { "$ref": "#/definitions/func-stringIndexOf" },
         { "$ref": "#/definitions/func-countDataElements" }
@@ -357,6 +361,50 @@
         { "$ref": "#/definitions/boolean" }
       ],
       "additionalItems": { "$ref": "#/definitions/boolean" }
+    },
+    "func-plus": {
+      "title": "Addition",
+      "description": "This function returns the sum of its two arguments",
+      "type": "array",
+      "items": [
+        { "const": "plus" },
+        { "$ref": "#/definitions/number" },
+        { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-minus": {
+      "title": "Subtraction",
+      "description": "This function returns the difference between its two arguments, where the first argument is the minuend and the second is the subtrahend",
+      "type": "array",
+      "items": [
+        { "const": "minus" },
+        { "$ref": "#/definitions/number" },
+        { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-multiply": {
+      "title": "Multiplication",
+      "description": "This function returns the product of its two arguments",
+      "type": "array",
+      "items": [
+        { "const": "multiply" },
+        { "$ref": "#/definitions/number" },
+        { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-divide": {
+      "title": "Division",
+      "description": "This function returns the quotient of its two arguments, where the first argument is the dividend and the second is the divisor",
+      "type": "array",
+      "items": [
+        { "const": "divide" },
+        { "$ref": "#/definitions/number" },
+        { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
     },
     "func-formatDate": {
       "title": "Format date function",

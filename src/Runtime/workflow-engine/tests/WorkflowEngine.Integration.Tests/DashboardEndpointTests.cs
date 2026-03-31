@@ -219,7 +219,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/step?wf={workflowId}&step={Uri.EscapeDataString(stepKey)}",
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={Uri.EscapeDataString(stepKey)}",
             TestContext.Current.CancellationToken
         );
 
@@ -240,7 +240,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/step?wf={Guid.Empty}&step=nonexistent",
+            $"/dashboard/step?wf={Guid.Empty}&ns=nonexistent-ns&step=nonexistent",
             TestContext.Current.CancellationToken
         );
 
@@ -264,7 +264,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/state?wf={workflowId}",
+            $"/dashboard/state?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
             TestContext.Current.CancellationToken
         );
 
@@ -284,7 +284,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/state?wf={Guid.Empty}",
+            $"/dashboard/state?wf={Guid.Empty}&ns=nonexistent-ns",
             TestContext.Current.CancellationToken
         );
 

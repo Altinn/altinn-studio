@@ -258,7 +258,7 @@ This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims
 ## Cancellation
 
 ```
-POST /api/v1/workflows/{workflowId}/cancel
+POST /api/v1/{namespace}/workflows/{workflowId}/cancel
 ```
 
 1. Sets `CancellationRequestedAt` in the database
@@ -273,7 +273,7 @@ Cancellation is **idempotent** — multiple calls return the original timestamp.
 Terminal workflows (Failed, Canceled, DependencyFailed) can be resumed for re-processing:
 
 ```
-POST /api/v1/workflows/{workflowId}/resume?cascade=false
+POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 ```
 
 1. Resets the workflow to `Enqueued`, clearing `CancellationRequestedAt`, `BackoffUntil`, `HeartbeatAt`, and `ReclaimCount`
@@ -353,14 +353,13 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 ### Enqueue Workflows
 
 ```
-POST /api/v1/workflows
+POST /api/v1/{namespace}/workflows
 ```
 
 **Request:**
 
 ```json
 {
-  "namespace": "ttd:my-app",
   "idempotencyKey": "process-next-abc123",
   "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "labels": {
@@ -447,7 +446,7 @@ Same shape. The original workflow is returned, no new workflow is created.
 ### Get Single Workflow
 
 ```
-GET /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
+GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```
 
 **Response (200 OK):**
@@ -508,30 +507,30 @@ GET /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 
 ### List Workflows
 
-Filter by namespace and labels:
+Filter by labels:
 
-```
-GET /api/v1/workflows?namespace=ttd:my-app&labels.org=ttd&labels.app=my-app
+```http
+GET /api/v1/ttd:my-app/workflows?labels.org=ttd&labels.app=my-app
 ```
 
 Find all workflows for a specific instance via correlationId (instanceGuid):
 
-```
-GET /api/v1/workflows?correlationId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```http
+GET /api/v1/ttd:my-app/workflows?correlationId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
-Or combine filters — e.g. all workflows for a specific instance owner across apps:
+Or combine filters — e.g. all workflows for a specific instance owner:
 
-```
-GET /api/v1/workflows?namespace=ttd:my-app&labels.instanceOwnerPartyId=50001234
+```http
+GET /api/v1/ttd:my-app/workflows?labels.instanceOwnerPartyId=50001234
 ```
 
 Returns an array of `WorkflowStatusResponse` (same shape as the single workflow GET above).
 
 ### Cancel Workflow
 
-```
-POST /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
+```http
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 ```
 
 **Response (200 OK):**
@@ -547,7 +546,7 @@ POST /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 ### Resume Workflow
 
 ```
-POST /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
 ```
 
 **Response (200 OK):**

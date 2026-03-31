@@ -18,14 +18,14 @@ namespace Altinn.Platform.Storage.Controllers;
 /// </remarks>
 /// <param name="instanceRepository">the instance repository handler</param>
 /// <param name="instanceLockRepository">the instance lock repository</param>
-/// <param name="authorizationService">the authorization service</param>
+/// <param name="processAuthorizer">the process authorizer</param>
 /// <param name="logger">the logger</param>
 [Route("storage/api/v1/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/lock")]
 [ApiController]
 public class InstanceLockController(
     IInstanceRepository instanceRepository,
     IInstanceLockRepository instanceLockRepository,
-    IAuthorization authorizationService,
+    IProcessAuthorizer processAuthorizer,
     ILogger<InstanceLockController> logger
 ) : ControllerBase
 {
@@ -87,9 +87,7 @@ public class InstanceLockController(
             );
         }
 
-        var atLeastOneActionAuthorized = await AuthorizeInstanceLock(instance);
-
-        if (!atLeastOneActionAuthorized)
+        if (!await processAuthorizer.AuthorizeInstanceLock(instance))
         {
             return Problem(
                 detail: "Not authorized to acquire instance lock.",
@@ -205,30 +203,4 @@ public class InstanceLockController(
         };
     }
 
-    private async Task<bool> AuthorizeInstanceLock(Instance existingInstance)
-    {
-        string[] actionsThatAllowLock =
-        [
-            .. ProcessController.GetActionsThatAllowProcessNextForTaskType(
-                existingInstance.Process?.CurrentTask?.AltinnTaskType
-            ),
-            "reject",
-        ];
-        var taskId = existingInstance.Process?.CurrentTask?.ElementId;
-
-        foreach (string action in actionsThatAllowLock)
-        {
-            bool actionIsAuthorized = await authorizationService.AuthorizeInstanceAction(
-                existingInstance,
-                action,
-                taskId
-            );
-            if (actionIsAuthorized)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

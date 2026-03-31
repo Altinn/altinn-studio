@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -10,6 +11,16 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class ExpressionTestCaseRoot
 {
+    public ExpressionTestCaseRoot(TestCaseItem testCaseItem)
+    {
+        Name = testCaseItem.Name;
+        Expression = testCaseItem.Expression;
+        Expects = testCaseItem.Expects;
+        ExpectsFailure = testCaseItem.ExpectsFailure;
+    }
+
+    public ExpressionTestCaseRoot() { }
+
     [JsonIgnore]
     public string? Filename { get; set; }
 
@@ -42,6 +53,9 @@ public class ExpressionTestCaseRoot
 
     public class TestCaseItem
     {
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
         [JsonPropertyName("expression")]
         public required Expression Expression { get; set; }
 
@@ -93,11 +107,7 @@ public class ExpressionTestCaseRoot
         if (Context is not null)
         {
             //! Some tests do not need context, but it is not nullable in expression evaluator
-            context = await state.GetComponentContext(
-                Context.CurrentPageName,
-                Context.ComponentId,
-                Context.RowIndices
-            )!;
+            context = await state.GetComponentContext(Context.ComponentId, Context.ToContext())!;
         }
 
         //! Some tests do not need context, but it is not nullable in expression evaluator
@@ -154,4 +164,24 @@ public class ComponentContextForTestSpec
             RowIndices = context.RowIndices,
         };
     }
+
+    public ComponentContext ToContext() =>
+        new ComponentContext(
+            null!,
+            new UnknownComponent
+            {
+                Id = ComponentId,
+                PageId = CurrentPageName,
+                LayoutId = "layout",
+                Type = "unknown",
+                Hidden = default,
+                RemoveWhenHidden = default,
+                Required = default,
+                ReadOnly = default,
+                DataModelBindings = new Dictionary<string, ModelBinding>(),
+                TextResourceBindings = new Dictionary<string, Expression>(),
+            },
+            RowIndices ?? Array.Empty<int>(),
+            null
+        );
 }
