@@ -1,9 +1,8 @@
 ﻿[
   {
     databaseId: {Scrubbed},
-    correlationId: Guid_1,
     operationId: op-wf-1,
-    idempotencyKey: idem-Guid_2,
+    idempotencyKey: idem-Guid_1,
     namespace: ttd:e2e-tests,
     createdAt: {Scrubbed},
     updatedAt: {Scrubbed},
@@ -15,7 +14,7 @@
     steps: [
       {
         databaseId: {Scrubbed},
-        idempotencyKey: idem-Guid_2//slow,
+        idempotencyKey: idem-Guid_1//slow,
         operationId: /slow,
         processingOrder: 0,
         updatedAt: {Scrubbed},

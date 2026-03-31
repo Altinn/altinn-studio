@@ -39,7 +39,7 @@ class BaseConfig:
     ]
 
     # External integrations
-    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8069/sse")
+    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://host.docker.internal:8070/sse")
     MCP_SERVER_EXPECTED_VERSION = os.getenv("MCP_SERVER_EXPECTED_VERSION")  # Optional: if set, checks for exact version match
 
     # LLM configuration - Azure OpenAI preferred
@@ -105,6 +105,7 @@ class BaseConfig:
     LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION = os.getenv("LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION", "")
     LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT = os.getenv("LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT", "")
     LANGFUSE_SCORE_CONFIG_INTENT_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_INTENT_MATCH", "")
+    LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION = os.getenv("LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION", "")
 
 
 def get_config() -> BaseConfig:

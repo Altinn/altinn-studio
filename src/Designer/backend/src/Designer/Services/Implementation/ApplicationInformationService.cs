@@ -28,6 +28,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ITextResourceService _textResourceService;
         private readonly IResourceRegistry _resourceRegistryService;
         private readonly IOrgService _orgService;
+        private readonly IEnvironmentsService _environmentsService;
 
         /// <summary>
         /// Constructor
@@ -37,7 +38,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAuthorizationPolicyService authorizationPolicyService,
             ITextResourceService textResourceService,
             IResourceRegistry resourceRegistryService,
-            IOrgService orgService
+            IOrgService orgService,
+            IEnvironmentsService environmentsService
         )
         {
             _applicationMetadataService = applicationMetadataService;
@@ -45,6 +47,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _textResourceService = textResourceService;
             _resourceRegistryService = resourceRegistryService;
             _orgService = orgService;
+            _environmentsService = environmentsService;
         }
 
         private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -118,6 +121,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     ?? throw new JsonException("Could not deserialize application metadata");
 
                 Org orgListOrg = await _orgService.GetOrg(org);
+                if (org == "ttd")
+                {
+                    // Ensure we have the correct org number for ttd, which is needed for the
+                    // competent authority information in the service resource sent to Resource Registry.
+                    // We get this from the environments service which has the established logic for handling
+                    // ttd's org number situation (see EnvironmentsService.GetAltinnOrgNumber and related comments).
+                    orgListOrg.Orgnr = await _environmentsService.GetAltinnOrgNumber(org);
+                }
                 ServiceResource serviceResource = applicationMetadata
                     .ToServiceResource()
                     .WithOrgInformation(org, orgListOrg);

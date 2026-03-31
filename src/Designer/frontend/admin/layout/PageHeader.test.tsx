@@ -74,9 +74,9 @@ describe('PageHeader', () => {
       }),
     );
 
-    const userSettingsLink = screen.getByRole('menuitem', { name: textMock('user.settings') });
+    const settingsLink = screen.getByRole('menuitem', { name: textMock('settings') });
 
-    expect(userSettingsLink).toHaveAttribute('href', '/settings');
+    expect(settingsLink).toHaveAttribute('href', '/settings');
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();
@@ -100,9 +100,7 @@ describe('PageHeader', () => {
       }),
     );
 
-    expect(
-      screen.queryByRole('menuitem', { name: textMock('user.settings') }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('settings') })).not.toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();

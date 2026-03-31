@@ -12,6 +12,10 @@ from .nodes.reviewer_node import handle as reviewer_node
 from agents.services.events import AgentEvent, EventSink, sink
 from shared.utils.logging_utils import get_logger
 import asyncio
+import json
+
+
+_active_tasks: set = set()
 
 
 class WorkflowCancelled(Exception):
@@ -115,7 +119,7 @@ def build_graph():
 
 graph = build_graph()
 
-from langfuse import get_client
+from langfuse import get_client, propagate_attributes
 from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled, get_langfuse_client
 from agents.services.llm import parse_intent_async, suggest_goal_correction
 
@@ -153,6 +157,48 @@ async def _validate_intent(state: AgentState):
         state.session_id, parsed.action, parsed.component, parsed.confidence,
     )
 
+async def _evaluate_intent_match(user_goal: str, final_state: dict, trace_id: str) -> None:
+    try:
+        from agents.services.evaluation.intent_judge import run_intent_judge
+        step_plan = final_state.get("step_plan") or []
+        await run_intent_judge(
+            user_goal=user_goal,
+            agent_plan=step_plan[0] if isinstance(step_plan, list) and step_plan else None,
+            trace_id=trace_id,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        log.exception("Evaluation pipeline error (intent_match)")
+
+
+async def _evaluate_no_hallucination(user_goal: str, final_state: dict, trace_id: str) -> None:
+    try:
+        from agents.services.evaluation.hallucination_judge import run_hallucination_judge
+        step_plan = final_state.get("step_plan") or []
+        implementation_plan = final_state.get("implementation_plan")
+        response_parts = []
+        if isinstance(step_plan, list) and step_plan:
+            response_parts.append("\n".join(str(step) for step in step_plan))
+        if implementation_plan:
+            response_parts.append(
+                json.dumps(implementation_plan, ensure_ascii=False)
+                if isinstance(implementation_plan, (dict, list))
+                else str(implementation_plan)
+            )
+        agent_response = "\n\n".join(response_parts)
+        sources = str(final_state.get("planning_guidance") or "")
+        await run_hallucination_judge(
+            user_goal=user_goal,
+            agent_response=agent_response,
+            sources=sources,
+            trace_id=trace_id,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        log.exception("Evaluation pipeline error (no_hallucination)")
+
 
 async def run_once(state: AgentState, event_sink: EventSink = None):
     """Run one complete workflow loop with unified tracing"""
@@ -163,10 +209,9 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     init_langfuse()
     langfuse = get_client() if is_langfuse_enabled() else None
 
-    # Create single root trace for entire workflow
+    # Use start_as_current_observation as the root - this creates a trace and sets context
+    # so all nested observations will be children of this root
     if langfuse:
-        # Use start_as_current_observation as the root - this creates a trace and sets context
-        # so all nested observations will be children of this root
         with langfuse.start_as_current_observation(
             as_type="span",
             name="Altinity Agent Workflow",
@@ -178,45 +223,38 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
             metadata={
                 "span_type": "AGENT",
                 "full_goal_length": len(str(state.user_goal)),
-                "session_id": str(state.session_id)
+                "session_id": str(state.session_id),
+                "developer": state.developer,
             },
         ) as root_span:
-            try:
-                # Intent validation runs inside the trace
-                await _validate_intent(state)
+            with propagate_attributes(user_id=state.org):
+                try:
+                    await _validate_intent(state)
 
-                current_graph = build_graph()
-                final_state = await current_graph.ainvoke(state)
-                
-                root_span.update(output={
-                    "success": bool(final_state.get("tests_passed", False)),
-                    "changed_files": len(final_state.get("changed_files", [])),
-                    "next_action": str(final_state.get("next_action", ""))
-                })
+                    current_graph = build_graph()
+                    final_state = await current_graph.ainvoke(state)
 
-                # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
-                async def _run_intent_match_evaluation() -> None:
-                    try:
-                        from agents.services.evaluation.intent_judge import run_intent_judge
-                        step_plan = final_state.get("step_plan") or []
-                        await run_intent_judge(
-                            user_goal=state.user_goal,
-                            agent_plan=step_plan[0] if isinstance(step_plan, list) and step_plan else None,
-                            trace_id=root_span.trace_id,
-                        )
-                    except asyncio.CancelledError:
-                        raise
-                    except Exception:
-                        log.exception("Evaluation pipeline error")
+                    root_span.update(output={
+                        "success": bool(final_state.get("tests_passed", False)),
+                        "changed_files": len(final_state.get("changed_files", [])),
+                        "next_action": str(final_state.get("next_action", ""))
+                    })
 
-                asyncio.create_task(_run_intent_match_evaluation())
-                    
-            except Exception as e:
-                root_span.update(
-                    output={"error": str(e)},
-                    metadata={"error": str(e)}
-                )
-                raise
+                    # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
+                    for coro in (
+                        _evaluate_intent_match(state.user_goal, final_state, root_span.trace_id),
+                        _evaluate_no_hallucination(state.user_goal, final_state, root_span.trace_id),
+                    ):
+                        task = asyncio.create_task(coro)
+                        _active_tasks.add(task)
+                        task.add_done_callback(_active_tasks.discard)
+
+                except Exception as e:
+                    root_span.update(
+                        output={"error": str(e)},
+                        metadata={"error": str(e)}
+                    )
+                    raise
     else:
         await _validate_intent(state)
         current_graph = build_graph()
@@ -300,3 +338,4 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
     # Create background task
     task = asyncio.create_task(_run())
     return task
+

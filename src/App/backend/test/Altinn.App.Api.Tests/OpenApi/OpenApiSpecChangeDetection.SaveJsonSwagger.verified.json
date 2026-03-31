@@ -7920,6 +7920,62 @@
         },
         "additionalProperties": false
       },
+      "CustomEmail": {
+        "required": [
+          "body",
+          "subject"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/CustomText"
+          },
+          "body": {
+            "$ref": "#/components/schemas/CustomText"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomSms": {
+        "required": [
+          "senderName",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "senderName": {
+            "type": "string",
+            "nullable": true
+          },
+          "text": {
+            "$ref": "#/components/schemas/CustomText"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomText": {
+        "required": [
+          "en",
+          "nb",
+          "nn"
+        ],
+        "type": "object",
+        "properties": {
+          "nb": {
+            "type": "string",
+            "nullable": true
+          },
+          "nn": {
+            "type": "string",
+            "nullable": true
+          },
+          "en": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DataElement": {
         "type": "object",
         "properties": {
@@ -8846,10 +8902,69 @@
             "type": "string",
             "description": "Gets or sets the id of the instance to use as a source for the new instance.",
             "nullable": true
+          },
+          "notification": {
+            "$ref": "#/components/schemas/InstantiationNotification"
           }
         },
         "additionalProperties": false,
         "description": "Specialized model for instansiation of instances"
+      },
+      "InstantiationNotification": {
+        "type": "object",
+        "properties": {
+          "notificationChannel": {
+            "$ref": "#/components/schemas/NotificationChannel"
+          },
+          "allowSendingAfterWorkHours": {
+            "type": "boolean"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          },
+          "requestedSendTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "customSms": {
+            "$ref": "#/components/schemas/CustomSms"
+          },
+          "customEmail": {
+            "$ref": "#/components/schemas/CustomEmail"
+          },
+          "reminders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstantiationNotificationReminder"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "InstantiationNotificationReminder": {
+        "type": "object",
+        "properties": {
+          "requestedSendTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "sendAfterDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "customSms": {
+            "$ref": "#/components/schemas/CustomSms"
+          },
+          "customEmail": {
+            "$ref": "#/components/schemas/CustomEmail"
+          }
+        },
+        "additionalProperties": false
       },
       "InstantiationValidationResult": {
         "type": "object",
@@ -9020,6 +9135,17 @@
           }
         },
         "additionalProperties": false
+      },
+      "NotificationChannel": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32"
       },
       "NotificationStatus": {
         "enum": [

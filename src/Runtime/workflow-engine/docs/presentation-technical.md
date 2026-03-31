@@ -234,12 +234,12 @@ Three independent semaphore pools prevent resource exhaustion:
 When active workflows exceed the backpressure threshold, the engine returns **HTTP 429** on enqueue requests.
 
 ### Cancellation
-- `POST /api/v1/workflows/{id}/cancel`
+- `POST /api/v1/{namespace}/workflows/{id}/cancel`
 - Propagated across pods via DB polling
 - Idempotent &mdash; safe to call multiple times
 
 ### Resume
-- `POST /api/v1/workflows/{id}/resume?cascade=false`
+- `POST /api/v1/{namespace}/workflows/{id}/resume?cascade=false`
 - Resumes failed, canceled, or dependency-failed workflows
 - Optional `cascade=true` to resume transitively dependent workflows
 
@@ -263,8 +263,8 @@ When active workflows exceed the backpressure threshold, the engine returns **HT
 - Click-through to Grafana Tempo traces
 
 ### API
-- `GET /api/v1/workflows/{id}` &mdash; status, steps, errors, retry counts
-- `GET /api/v1/workflows` &mdash; list with filtering
+- `GET /api/v1/{namespace}/workflows/{id}` &mdash; status, steps, errors, retry counts
+- `GET /api/v1/{namespace}/workflows` &mdash; list with filtering
 - Health endpoints: `/health`, `/health/ready`, `/health/live`
 
 ---
