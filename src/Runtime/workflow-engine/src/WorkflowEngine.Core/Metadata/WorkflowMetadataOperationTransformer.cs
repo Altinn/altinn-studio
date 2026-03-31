@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Core.Endpoints;
+namespace WorkflowEngine.Core.Metadata;
 
 /// <summary>
 /// Adds OpenAPI parameter definitions for workflow metadata headers/query params

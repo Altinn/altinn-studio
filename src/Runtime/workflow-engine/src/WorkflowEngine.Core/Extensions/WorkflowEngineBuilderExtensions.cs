@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry.Extensions;
@@ -53,7 +54,7 @@ public static class WorkflowEngineBuilderExtensions
             // OpenAPI
             builder.Services.AddOpenApi(options =>
             {
-                options.AddOperationTransformer<Endpoints.WorkflowMetadataOperationTransformer>();
+                options.AddOperationTransformer<WorkflowMetadataOperationTransformer>();
             });
 
             return builder;
