@@ -4,15 +4,14 @@ import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/muta
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
+import { DEFAULT_BRANCH } from 'app-shared/constants';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
-
-const DEFAULT_BRANCH = 'master';
 
 export interface UseBranchOperationsResult {
   checkoutExistingBranch: (branchName: string) => void;
   checkoutNewBranch: (branchName: string) => void;
   discardChangesAndCheckout: (targetBranch: string) => void;
-  deleteCurrentBranch: (branchName: string) => void;
+  deleteCurrentBranch: (branchName: string) => Promise<void>;
   clearUncommittedChangesError: () => void;
   isLoading: boolean;
   uncommittedChangesError: UncommittedChangesError | null;
@@ -55,18 +54,11 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
     });
   };
 
-  const deleteCurrentBranch = (branchName: string) => {
-    discardChangesMutation.mutate(undefined, {
-      onSuccess: () => {
-        checkoutBranchMutation.mutate(DEFAULT_BRANCH, {
-          onSuccess: () => {
-            deleteBranchMutation.mutate(branchName, {
-              onSuccess: () => location.reload(),
-            });
-          },
-        });
-      },
-    });
+  const deleteCurrentBranch = async (branchName: string) => {
+    await discardChangesMutation.mutateAsync(undefined);
+    await checkoutBranchMutation.mutateAsync(DEFAULT_BRANCH);
+    await deleteBranchMutation.mutateAsync(branchName);
+    location.reload();
   };
 
   const clearUncommittedChangesError = () => {

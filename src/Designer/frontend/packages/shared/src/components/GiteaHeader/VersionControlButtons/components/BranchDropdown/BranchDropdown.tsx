@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@studio/hooks';
-import { StudioButton, StudioDropdown, StudioSpinner } from '@studio/components';
+import { StudioDropdown, StudioSpinner } from '@studio/components';
 import { BranchingIcon, PlusIcon, TrashIcon } from '@studio/icons';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { DEFAULT_BRANCH, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import { DeleteBranchDialog } from '../DeleteBranchDialog';
 import classes from './BranchDropdown.module.css';
 import { useBranchData } from '../../hooks/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations';
 import type { Branch } from 'app-shared/types/api/BranchTypes';
-
-const DEFAULT_BRANCH = 'master';
 
 export const BranchDropdown = () => {
   const { t } = useTranslation();
@@ -121,14 +119,10 @@ const BranchActions = ({
       </StudioDropdown.Item>
       {canDeleteCurrentBranch && (
         <StudioDropdown.Item>
-          <StudioButton
-            variant='tertiary'
-            icon={<TrashIcon />}
-            onClick={onDeleteBranchClick}
-            data-color='danger'
-          >
+          <StudioDropdown.Button onClick={onDeleteBranchClick} data-color='danger'>
+            <TrashIcon />
             {t('branching.delete_branch_dialog.title')}
-          </StudioButton>
+          </StudioDropdown.Button>
         </StudioDropdown.Item>
       )}
     </StudioDropdown.List>

@@ -156,31 +156,34 @@ describe('useBranchOperations', () => {
     expect(result.current.createError).toBe('Branch already exists');
   });
 
-  it('Should discard changes, checkout master, then delete branch when deleteCurrentBranch is called', () => {
-    const mockDiscardMutate = jest.fn((_, options) => options?.onSuccess?.());
-    const mockCheckoutBranchMutate = jest.fn((_, options) => options?.onSuccess?.());
-    const mockDeleteBranchMutate = jest.fn((_, options) => options?.onSuccess?.());
+  it('Should discard changes, checkout master, then delete branch when deleteCurrentBranch is called', async () => {
+    const mockDiscardMutateAsync = jest.fn().mockResolvedValue(undefined);
+    const mockCheckoutBranchMutateAsync = jest.fn().mockResolvedValue(undefined);
+    const mockDeleteBranchMutateAsync = jest.fn().mockResolvedValue(undefined);
 
     mockUseDiscardChangesMutation.mockReturnValue({
-      mutate: mockDiscardMutate,
+      mutate: discardChangesMutate,
+      mutateAsync: mockDiscardMutateAsync,
       isPending: false,
     } as any);
     mockUseCheckoutBranchMutation.mockReturnValue({
-      mutate: mockCheckoutBranchMutate,
+      mutate: checkoutBranchMutate,
+      mutateAsync: mockCheckoutBranchMutateAsync,
       isPending: false,
     } as any);
     mockUseDeleteBranchMutation.mockReturnValue({
-      mutate: mockDeleteBranchMutate,
+      mutate: deleteBranchMutate,
+      mutateAsync: mockDeleteBranchMutateAsync,
       isPending: false,
     } as any);
 
     const { result } = renderHook(() => useBranchOperations(org, app));
 
-    result.current.deleteCurrentBranch('feature-branch');
+    await act(() => result.current.deleteCurrentBranch('feature-branch'));
 
-    expect(mockDiscardMutate).toHaveBeenCalledWith(undefined, expect.any(Object));
-    expect(mockCheckoutBranchMutate).toHaveBeenCalledWith('master', expect.any(Object));
-    expect(mockDeleteBranchMutate).toHaveBeenCalledWith('feature-branch', expect.any(Object));
+    expect(mockDiscardMutateAsync).toHaveBeenCalledWith(undefined);
+    expect(mockCheckoutBranchMutateAsync).toHaveBeenCalledWith('master');
+    expect(mockDeleteBranchMutateAsync).toHaveBeenCalledWith('feature-branch');
     expect(window.location.reload).toHaveBeenCalled();
   });
 
