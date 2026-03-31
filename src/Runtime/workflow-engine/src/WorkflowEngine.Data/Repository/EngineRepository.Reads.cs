@@ -555,7 +555,14 @@ internal sealed partial class EngineRepository
                 labelFilter: labelFilters
             );
 
+            // EF Core strips Include() for aggregate queries, so this is a lightweight count
             var totalCount = await baseQuery.CountAsync(cancellationToken);
+
+            if (totalCount == 0)
+            {
+                logger.SuccessfullyFetchedWorkflows(0);
+                return ([], 0);
+            }
 
             var workflows = await baseQuery
                 .OrderBy(wf => wf.CreatedAt)
