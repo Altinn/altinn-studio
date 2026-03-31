@@ -1,6 +1,4 @@
 {
-  "namespace": "test-org:test-app",
-  "idempotencyKey": "__REPLACED_AT_RUNTIME__",
   "labels": { "org": "test-org", "app": "test-app" },
   "context": {
     "org": "test-org",

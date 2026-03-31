@@ -101,6 +101,13 @@ public sealed record WorkflowStatusResponse
     public IReadOnlyDictionary<Guid, PersistentItemStatus>? Links { get; init; }
 
     /// <summary>
+    /// The initial state passed to the first step of the workflow.
+    /// </summary>
+    [JsonPropertyName("initialState")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? InitialState { get; init; }
+
+    /// <summary>
     /// Details about each step in the workflow.
     /// </summary>
     [JsonPropertyName("steps")]
@@ -121,6 +128,7 @@ public sealed record WorkflowStatusResponse
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             Labels = workflow.Labels,
             OverallStatus = workflow.Status,
+            InitialState = workflow.InitialState,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),

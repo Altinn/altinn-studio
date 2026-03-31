@@ -68,14 +68,14 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     html +=
         `<div class="step-circle ${step.status}"` +
         ` style="cursor:pointer${isStatic ? ';animation:none;box-shadow:none' : ''}"` +
-        ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')">` +
+        ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')">` +
         `${stepIcon(step.status)}</div>`;
 
     if (step.stateChanged) {
         html +=
             `<div class="step-state-badge"` +
             ` title="State mutated"` +
-            ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','state')">` +
+            ` onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','state')">` +
             `</div>`;
     }
 
@@ -93,10 +93,10 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     const backoff = step.backoffUntil || (step.status === 'Requeued' ? wf.backoffUntil : null);
     if (step.status === 'Requeued' && backoff) {
         html += `<span class="step-backoff" data-backoff="${backoff}"></span>`;
-        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}')" title="Retry now (skip backoff timer)">retry now</button>`;
+        html += `<button class="skip-backoff-btn" onclick="skipBackoff(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry now (skip backoff timer)">retry now</button>`;
     }
     if (step.status === 'Failed') {
-        html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}')" title="Retry this workflow">&#8635; Retry</button>`;
+        html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
     }
     html += buildStepTimingHTML(step, isStatic);
     html += `</div></div>`;

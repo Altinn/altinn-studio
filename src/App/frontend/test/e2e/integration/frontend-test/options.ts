@@ -353,7 +353,7 @@ describe('Options', () => {
   it('optionsFilter should remove options based on a condition', () => {
     cy.gotoHiddenPage('filtered-options');
 
-    cy.findByRole('checkbox', { name: 'Blåbær' }).dsCheck();
+    cy.findByRole('checkbox', { name: 'Blåbær' }).check();
     cy.findByRole('checkbox', { name: 'Druer' }).should('not.exist'); // Filtered out
     cy.findByRole('checkbox', { name: 'Banan' }).should('not.exist'); // Filtered out
 
@@ -376,7 +376,7 @@ describe('Options', () => {
     cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
 
     // Disliking 'vannmelon' will remove the selection and not allow it to be re-selected
-    cy.findByRole('checkbox', { name: 'Vannmelon' }).dsCheck();
+    cy.findByRole('checkbox', { name: 'Vannmelon' }).check();
     cy.get('[data-componentid="ingredientId-0"]').should('have.text', '');
     cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
     cy.get('[data-componentid="ingredientType-0"]').findByRole('combobox').click();

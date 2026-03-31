@@ -1,6 +1,4 @@
 {
-  "namespace": "k6-org:k6-app",
-  "idempotencyKey": "__REPLACED_AT_RUNTIME__",
   "labels": { "org": "k6-org", "app": "k6-app" },
   "context": {},
   "workflows": [

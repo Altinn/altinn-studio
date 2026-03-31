@@ -110,7 +110,9 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
                 resourceAttributes.AppValue,
                 resourceAttributes.OrgValue,
                 Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]),
-                new Guid(resourceAttributes.InstanceValue.Split('/')[1])
+                new Guid(resourceAttributes.InstanceValue.Split('/')[1]),
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             if (instanceData != null)
