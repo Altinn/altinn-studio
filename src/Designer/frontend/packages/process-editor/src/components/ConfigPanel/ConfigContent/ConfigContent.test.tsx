@@ -14,6 +14,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
+import { queryDetailsBySummary } from '@studio/ui-test';
 
 const tasks = [
   {
@@ -154,11 +155,11 @@ describe('ConfigContent', () => {
 
   it('should render the Policy accordion', async () => {
     renderConfigContent();
-    const policyAccordion = screen.getByText(
+    const policyDetails = queryDetailsBySummary(
       textMock('process_editor.configuration_panel_policy_title'),
     );
     const user = userEvent.setup();
-    await user.click(policyAccordion);
+    await user.click(policyDetails);
     const editPolicyLink = await screen.findByText(
       textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
     );
@@ -167,10 +168,10 @@ describe('ConfigContent', () => {
 
   it('should render the Design accordion when a task has a connected layoutset', () => {
     renderConfigContent();
-    const designAccordion = screen.getByText(
+    const designDetails = queryDetailsBySummary(
       textMock('process_editor.configuration_panel_design_title'),
     );
-    expect(designAccordion).toBeInTheDocument();
+    expect(designDetails).toBeInTheDocument();
   });
 
   describe('Unique signature', () => {
