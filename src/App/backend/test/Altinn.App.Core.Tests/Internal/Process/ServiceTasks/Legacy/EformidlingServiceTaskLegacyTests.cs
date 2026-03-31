@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy;
@@ -30,7 +31,11 @@ public class EformidlingServiceTaskLegacyTests
         };
         var instance = new Instance();
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
-        _instanceClient.Setup(x => x.GetInstance(instance)).ReturnsAsync(instance);
+        _instanceClient
+            .Setup(x =>
+                x.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
         _eFormidlingService.Setup(x => x.SendEFormidlingShipment(instance)).Returns(Task.CompletedTask);
         var eformidlingServiceTask = GetEformidlingServiceTask(appSettings, _eFormidlingService.Object);
 
@@ -39,7 +44,10 @@ public class EformidlingServiceTaskLegacyTests
 
         // Assert
         _appMetadata.Verify(x => x.GetApplicationMetadata(), Times.Once);
-        _instanceClient.Verify(x => x.GetInstance(instance), Times.Once);
+        _instanceClient.Verify(
+            x => x.GetInstance(instance, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         _eFormidlingService.Verify(x => x.SendEFormidlingShipment(instance), Times.Once);
         _appMetadata.VerifyNoOtherCalls();
         _instanceClient.VerifyNoOtherCalls();

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
@@ -248,6 +249,15 @@ public static class InstantiationHelper
             {
                 externalIdentifier = await GetExternalIdentityForSelfIdentifiedParty(party, authenticationContext);
             }
+
+            externalIdentifier ??= party.Name switch
+            {
+                null or "" => null,
+                string name when name.StartsWith("epost:", StringComparison.InvariantCulture) =>
+                    $"{AltinnUrns.SelfIdentifiedEmail}:{name["epost:".Length..]}",
+                string name => $"{AltinnUrns.LegacySelfIdentified}:{name}",
+            };
+
             return new()
             {
                 PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture),
