@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 
-import { textResourcesApi } from 'src/core/api-client/textResources.api';
+import type { TextResourcesApi } from 'src/core/api-client/textResources.api';
 import type { IRawTextResource, ITextResourceResult, TextResourceMap } from 'src/features/language/textResources';
 
 export const textResourcesQueryKeys = {
@@ -11,9 +11,14 @@ export const textResourcesQueryKeys = {
 interface TextResourcesQueryParams {
   selectedLanguage: string;
   textResourcesFromWindow: ITextResourceResult | undefined;
+  textResourcesApi: TextResourcesApi;
 }
 
-export function textResourcesQuery({ selectedLanguage, textResourcesFromWindow }: TextResourcesQueryParams) {
+export function textResourcesQuery({
+  selectedLanguage,
+  textResourcesFromWindow,
+  textResourcesApi,
+}: TextResourcesQueryParams) {
   return queryOptions({
     queryKey: textResourcesQueryKeys.textResources(selectedLanguage),
     queryFn: async () => {
