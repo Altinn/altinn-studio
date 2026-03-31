@@ -241,6 +241,6 @@ export function fetchExternalApi({
 }
 
 export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
-  const { postalCodesUrl } = GlobalData.platformFrontendSettings;
+  const postalCodesUrl: string = GlobalData.platformFrontendSettings.postalCodesUrl;
   return (await axios.get(postalCodesUrl)).data;
 };
