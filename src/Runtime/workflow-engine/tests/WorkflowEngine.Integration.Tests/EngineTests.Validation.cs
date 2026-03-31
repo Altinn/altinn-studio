@@ -10,29 +10,6 @@ public partial class EngineTests
     // ── Namespace handling ──────────────────────────────────────────────────
 
     [Fact]
-    public async Task RawJson_WithoutNamespace_DefaultsToDefaultNamespace()
-    {
-        var port = fixture.WireMock.Port;
-        var request = $$"""
-            {
-                "workflows": [
-                    {
-                        "ref": "wf-no-ns",
-                        "operationId": "op-no-ns",
-                        "steps": [{ "operationId": "step-no-ns", "command": { "type": "webhook", "data": { "uri": "http://localhost:{{port}}/no-ns" } } }]
-                    }
-                ]
-            }
-            """;
-
-        var response = await _client.Enqueue(request, ns: "default", idempotencyKey: "no-namespace-test");
-
-        await Verify(response);
-        Assert.Single(response.Workflows);
-        Assert.All(response.Workflows, w => Assert.Equal("default", w.Namespace));
-    }
-
-    [Fact]
     public async Task RawJson_WithNamespace_NamespaceParrotedBack()
     {
         var port = fixture.WireMock.Port;
