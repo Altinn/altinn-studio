@@ -2,6 +2,7 @@
 
 import { dom, state } from '../core/state.js';
 import { esc } from '../core/helpers.js';
+import { rebuildDropdown, updateDropdownToggle } from '../shared/dropdown.js';
 
 /** Late-bound references */
 /** @type {() => void} */
@@ -32,6 +33,11 @@ export const toggleLabelFilter = (key, value) => {
     selected.clear();
     if (!sole) selected.add(v);
     if (selected.size === 0) state.labelFilters.delete(key);
+    // Sync namespace dropdown if the namespace label filter changed
+    if (key === 'namespace') {
+        state.namespaceFilter = new Set(state.labelFilters.get('namespace') || []);
+        rebuildNamespaceDropdown();
+    }
     rebuildLabelFilterBar();
     applyFilter();
     _syncUrl();
@@ -61,9 +67,13 @@ const rebuildLabelFilterBar = () => {
 export const fetchLabelValues = async () => {
     // First, discover available label keys by checking common ones
     const commonKeys = ['org', 'app', 'partyId', 'env'];
+    const nsParam =
+        state.namespaceFilter.size === 1
+            ? `&namespace=${encodeURIComponent([...state.namespaceFilter][0])}`
+            : '';
     for (const key of commonKeys) {
         try {
-            const res = await fetch(`/dashboard/labels?key=${encodeURIComponent(key)}`);
+            const res = await fetch(`/dashboard/labels?key=${encodeURIComponent(key)}${nsParam}`);
             if (res.ok) {
                 /** @type {string[]} */
                 const values = await res.json();
@@ -76,6 +86,80 @@ export const fetchLabelValues = async () => {
         }
     }
     state.labelValuesLoaded = true;
+
+    // Fetch namespaces for the namespace picker
+    await fetchNamespaces();
+};
+
+/* ── Namespace picker ───────────────────────────────────── */
+
+/** Fetch distinct namespaces and populate the dropdown. */
+const fetchNamespaces = async () => {
+    try {
+        const res = await fetch('/dashboard/namespaces');
+        if (!res.ok) return;
+        /** @type {string[]} */
+        const namespaces = await res.json();
+        state.allNamespaces = new Set(namespaces);
+        rebuildNamespaceDropdown();
+    } catch {
+        /* non-critical */
+    }
+};
+
+const rebuildNamespaceDropdown = () => {
+    rebuildDropdown(dom.nsList, state.allNamespaces, state.namespaceFilter);
+    updateDropdownToggle(state.namespaceFilter, dom.nsSelected, dom.nsDropdown);
+    // Disable the dropdown if there's only one namespace (or none)
+    dom.nsDropdown.classList.toggle('disabled', state.allNamespaces.size <= 1);
+};
+
+/** Handle clicks inside the namespace dropdown list. */
+dom.nsList.addEventListener('click', (e) => {
+    const target = /** @type {HTMLElement} */ (e.target);
+
+    // Handle select-all / clear actions
+    const action = target.closest('[data-action]');
+    if (action) {
+        const act = /** @type {HTMLElement} */ (action).dataset.action;
+        if (act === 'select-all') {
+            state.namespaceFilter = new Set(state.allNamespaces);
+        } else if (act === 'clear') {
+            state.namespaceFilter.clear();
+        }
+        syncNamespaceToLabelFilter();
+        rebuildNamespaceDropdown();
+        return;
+    }
+
+    // Handle individual item toggle
+    const item = /** @type {HTMLElement | null} */ (target.closest('.dropdown-item'));
+    if (!item) return;
+    const value = item.dataset.value || '';
+    if (state.namespaceFilter.has(value)) {
+        state.namespaceFilter.delete(value);
+    } else {
+        state.namespaceFilter.add(value);
+    }
+    syncNamespaceToLabelFilter();
+    rebuildNamespaceDropdown();
+});
+
+/** Sync the namespace filter set into the labelFilters map and trigger re-filter. */
+const syncNamespaceToLabelFilter = () => {
+    if (
+        state.namespaceFilter.size === 0 ||
+        state.namespaceFilter.size === state.allNamespaces.size
+    ) {
+        // No filter or all selected = show everything
+        state.labelFilters.delete('namespace');
+    } else {
+        state.labelFilters.set('namespace', new Set(state.namespaceFilter));
+    }
+    rebuildLabelFilterBar();
+    applyFilter();
+    _syncUrl();
+    if (state.queryLoaded) _loadQuery();
 };
 
 /* ── Filtering ───────────────────────────────────────────── */
@@ -164,9 +248,12 @@ export const applyFilter = () => {
                 const st = /** @type {HTMLElement} */ (chip).dataset.status || '';
                 const label =
                     /** @type {HTMLElement} */ (chip).dataset.label ||
-                    /** @type {HTMLElement} */ ((chip).dataset.label = (
-                        chip.textContent?.trim() || ''
-                    ).replace(/\s*\(.*\)$/, ''));
+                    /** @type {HTMLElement} */ (
+                        chip.dataset.label = (chip.textContent?.trim() || '').replace(
+                            /\s*\(.*\)$/,
+                            '',
+                        )
+                    );
                 if (!st) {
                     chip.textContent = `${label} (${cards.length})`;
                 } else {
@@ -204,10 +291,21 @@ dom.querySearchInput.addEventListener('keydown', (e) => {
     }
 });
 
-/** Merge label values discovered from SSE workflow cards. */
+/** Check for new namespaces from workflow data and re-fetch if found. */
 export const mergeDiscoveredLabels = () => {
-    // Labels are now stored on cards as data-labels="key:value,key:value"
-    // No dynamic dropdown to update — label filter chips are click-driven from card segments
+    const known = state.allNamespaces;
+    for (const wf of Object.values(state.previousWorkflows)) {
+        if (wf.namespace && !known.has(wf.namespace)) {
+            fetchNamespaces();
+            return;
+        }
+    }
+    for (const wf of state.recentWorkflows) {
+        if (wf.namespace && !known.has(wf.namespace)) {
+            fetchNamespaces();
+            return;
+        }
+    }
 };
 
 for (const bar of document.querySelectorAll('.section-chips')) {

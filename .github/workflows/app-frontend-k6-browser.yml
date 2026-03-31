@@ -2,7 +2,7 @@ name: App Frontend - K6 Browser Tests
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
@@ -17,11 +17,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 jobs:
   build-frontend:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Frontend
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/app-build-frontend
 
   build-localtest:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build Localtest
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -45,7 +45,7 @@ jobs:
           docker-profile: 'test-apps'
 
   k6-browser:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: K6 Browser
     runs-on: ubuntu-24.04
     timeout-minutes: 30

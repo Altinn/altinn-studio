@@ -144,7 +144,11 @@ internal class SigningUserAction : IUserAction
 
             // Reloading instance data because we know that storage has added a binary data element to the instance.
             // This is a workaround until we have a better solution for this. Don't take it as inspiration.
-            Instance instance = await _instanceClient.GetInstance(context.Instance);
+            Instance instance = await _instanceClient.GetInstance(
+                context.Instance,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             context.DataMutator.Instance.Data = instance.Data;
         }
         catch (PlatformHttpException)

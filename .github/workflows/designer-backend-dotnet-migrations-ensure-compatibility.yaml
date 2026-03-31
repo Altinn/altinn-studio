@@ -2,7 +2,7 @@ name: Designer Backend - Ensure Migrations Compatibility
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-dotnet-migrations-ensure-compatibility.yaml'
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   ensure-migrations-compatibility:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Try to generate script and to add a new migrations
     runs-on: ubuntu-latest
     timeout-minutes: 30

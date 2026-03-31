@@ -99,7 +99,7 @@ describe('ResourceAdmHeader', () => {
       }),
     );
 
-    expect(screen.getByRole('menuitem', { name: textMock('user.settings') })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: textMock('settings') })).toBeInTheDocument();
   });
 
   it('should not include user settings link in profile menu when studioOidc is disabled', async () => {
@@ -117,9 +117,7 @@ describe('ResourceAdmHeader', () => {
       }),
     );
 
-    expect(
-      screen.queryByRole('menuitem', { name: textMock('user.settings') }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('settings') })).not.toBeInTheDocument();
   });
 });
 

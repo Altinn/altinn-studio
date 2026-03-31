@@ -293,6 +293,7 @@ namespace Altinn.App.Api.Controllers
                     Microsoft.Extensions.Hosting.IHostEnvironment env,
                     Altinn.App.Core.Helpers.Serialization.ModelSerializationService serializationService,
                     Altinn.App.Api.Helpers.Patch.InternalPatchService patchService,
+                    Altinn.App.Core.Features.Notifications.INotificationService notificationService,
                     Altinn.App.Core.Internal.Texts.ITranslationService translationService,
                     System.IServiceProvider serviceProvider) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceComplete")]
@@ -372,6 +373,24 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 403)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 500)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.LookupPersonResponse>> LookupPerson([Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.LookupPersonRequest lookupPersonRequest, System.Threading.CancellationToken cancellationToken) { }
+    }
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    [Microsoft.AspNetCore.Mvc.ApiController]
+    [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
+    [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/notification-webhook-listener")]
+    public class NotificationCallbackController : Microsoft.AspNetCore.Mvc.ControllerBase
+    {
+        public NotificationCallbackController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.NotificationCallbackController> logger, Altinn.App.Core.Features.Notifications.Cancellation.ICancelInstantiationNotification instantiationNotification, Altinn.App.Core.Features.Notifications.SecretProvider.INotificationConditionCodeValidator validator, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) { }
+        [Microsoft.AspNetCore.Mvc.HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Controllers.NotificationCallbackResponse), 200)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Controllers.NotificationCallbackResponse>> NotificationCallback([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? code) { }
+    }
+    public sealed class NotificationCallbackResponse
+    {
+        public NotificationCallbackResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("sendNotification")]
+        public bool SendNotification { get; set; }
     }
     [Microsoft.AspNetCore.Mvc.ApiController]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/options")]
@@ -1012,6 +1031,7 @@ namespace Altinn.App.Api.Models
         public InstansiationInstance() { }
         public System.DateTime? DueBefore { get; set; }
         public Altinn.Platform.Storage.Interface.Models.InstanceOwner InstanceOwner { get; set; }
+        public Altinn.App.Core.Models.Notifications.Future.InstantiationNotification Notification { get; set; }
         public System.Collections.Generic.Dictionary<string, string> Prefill { get; set; }
         public string SourceInstanceId { get; set; }
         public System.DateTime? VisibleAfter { get; set; }

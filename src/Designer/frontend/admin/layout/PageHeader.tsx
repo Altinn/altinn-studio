@@ -1,4 +1,4 @@
-import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
 import type { Org } from 'app-shared/types/OrgList';
 import type { StudioProfileMenuGroup } from '@studio/components';
 import { StudioPageHeader, StudioAvatar } from '@studio/components';
@@ -91,13 +91,13 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
     itemName: t('sync_header.documentation'),
   };
 
-  const userSettingsMenuItem = {
+  const settingsMenuItem = {
     action: {
       type: 'link' as const,
-      href: USER_SETTINGS_BASENAME,
+      href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem = {
@@ -106,7 +106,7 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [userSettingsMenuItem, docsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [settingsMenuItem, docsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

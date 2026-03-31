@@ -33,7 +33,12 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
             List<DataElement> dataElements = instance.Data.FindAll(de => de.DataType == dataType.Id);
             foreach (DataElement dataElement in dataElements)
             {
-                await _dataClient.UnlockDataElement(instanceIdentifier, Guid.Parse(dataElement.Id));
+                await _dataClient.UnlockDataElement(
+                    instanceIdentifier,
+                    Guid.Parse(dataElement.Id),
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
             }
         }
     }
@@ -49,7 +54,12 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
             List<DataElement> dataElements = instance.Data.FindAll(de => de.DataType == dataType.Id);
             foreach (DataElement dataElement in dataElements)
             {
-                await _dataClient.LockDataElement(instanceIdentifier, Guid.Parse(dataElement.Id));
+                await _dataClient.LockDataElement(
+                    instanceIdentifier,
+                    Guid.Parse(dataElement.Id),
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
             }
         }
     }

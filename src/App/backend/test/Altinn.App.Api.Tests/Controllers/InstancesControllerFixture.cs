@@ -9,6 +9,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -103,6 +104,7 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
             Mock<IPrefill>().VerifyNoOtherCalls();
         Mock<IProfileClient>().VerifyNoOtherCalls();
         Mock<IProcessEngine>().VerifyNoOtherCalls();
+        Mock<INotificationService>().VerifyNoOtherCalls();
     }
 
     public void Dispose() => (ServiceProvider as IDisposable)?.Dispose();
@@ -136,6 +138,7 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton(new Mock<IProcessReader>(MockBehavior.Loose).Object);
         services.AddSingleton(new Mock<IAuthorizationService>(MockBehavior.Loose).Object);
         services.AddTransient<ProcessStateEnricher>();
+        services.AddSingleton(new Mock<INotificationService>(MockBehavior.Strict).Object);
 
         var httpContextMock = new Mock<HttpContext>(MockBehavior.Strict);
         services.AddTransient(_ => httpContextMock.Object);

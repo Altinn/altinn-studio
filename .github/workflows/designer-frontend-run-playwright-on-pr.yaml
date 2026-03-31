@@ -2,7 +2,7 @@ name: Designer Frontend - Playwright tests on PR
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/**'
       - '!src/Designer/frontend/stats/**'
@@ -18,12 +18,12 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   playwright-tests:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Playwright (${{ matrix.studio-oidc-mode && 'StudioOidc' || 'GiteaOidc' }})
     timeout-minutes: 25
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
           echo DEVELOP_BACKEND=0 >> .env
           echo DEVELOP_DASHBOARD=0 >> .env
           echo DEVELOP_PREVIEW=0 >> .env
-          echo DEVELOP_USER_SETTINGS=0 >> .env
+          echo DEVELOP_SETTINGS=0 >> .env
           echo GITEA_ADMIN_PASS=g9wDIG@6gf >> .env
           echo GITEA_ADMIN_USER=localg1iteaadmin >> .env
           echo GITEA_CYPRESS_USER=cypress_testuser >> .env

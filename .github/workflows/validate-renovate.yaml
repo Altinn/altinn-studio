@@ -1,7 +1,7 @@
 name: Validate Renovate config
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - "renovate.json"
   workflow_dispatch:
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   validate:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Validate renovate.json
     runs-on: ubuntu-latest
     timeout-minutes: 30

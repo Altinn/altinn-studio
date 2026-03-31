@@ -23,7 +23,7 @@ public abstract class ContactPointsControllerTestsBase<TTestClass>
 {
     protected const string AllowedOrg = "Org1";
 
-    protected static string VersionPrefix(string org) => $"/designer/api/v1/admin/contact-points/{org}";
+    protected static string VersionPrefix(string org) => $"/designer/api/v1/orgs/{org}/contact-points";
 
     protected ContactPointsControllerTestsBase(
         WebApplicationFactory<Program> factory,

@@ -10,7 +10,7 @@ import { useMediaQuery } from '@studio/hooks';
 import { StudioAvatar } from '@studio/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
-import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import type { User } from 'app-shared/types/Repository';
 import { useUrlParams } from '../../hooks/useUrlParams';
@@ -84,13 +84,13 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
     itemName: t('shared.header_go_to_gitea'),
   };
 
-  const userSettingsMenuItem: StudioProfileMenuItem = {
+  const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: USER_SETTINGS_BASENAME,
+      href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
@@ -99,7 +99,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   };
 
   const otherMenuItems: StudioProfileMenuItem[] = [
-    ...(studioOidc ? [userSettingsMenuItem] : []),
+    ...(studioOidc ? [settingsMenuItem] : []),
     giteaMenuItem,
   ];
 

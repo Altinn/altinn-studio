@@ -81,7 +81,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
   };
 
   const renderAvatar = (type: 'user' | 'assistant'): ReactElement => {
-    const label = type === 'user' ? (currentUser?.full_name ?? 'Deg') : 'Altinny';
+    const label = type === 'user' ? (currentUser?.full_name ?? 'Deg') : 'Altinity';
 
     if (type === 'assistant') {
       return (
@@ -356,7 +356,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     <div className={`${classes.messageRow} ${classes.assistantRow}`}>
       {renderAvatar('assistant')}
       <div className={classes.assistantMessage}>
-        <div className={classes.messageMeta}>Altinny</div>
+        <div className={classes.messageMeta}>Altinity</div>
         <div className={classes.assistantBody}>
           {message.isLoading && (
             <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
