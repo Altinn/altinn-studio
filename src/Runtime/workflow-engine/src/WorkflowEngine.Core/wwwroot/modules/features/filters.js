@@ -67,9 +67,15 @@ const rebuildLabelFilterBar = () => {
 export const fetchLabelValues = async () => {
     // First, discover available label keys by checking common ones
     const commonKeys = ['org', 'app', 'partyId', 'env'];
+    const nsParam =
+        state.namespaceFilter.size === 1
+            ? `&namespace=${encodeURIComponent([...state.namespaceFilter][0])}`
+            : '';
     for (const key of commonKeys) {
         try {
-            const res = await fetch(`/dashboard/labels?key=${encodeURIComponent(key)}`);
+            const res = await fetch(
+                `/dashboard/labels?key=${encodeURIComponent(key)}${nsParam}`,
+            );
             if (res.ok) {
                 /** @type {string[]} */
                 const values = await res.json();

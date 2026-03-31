@@ -268,7 +268,7 @@ public class EngineEndpointTests
                     {
                         Ref = "wf-1",
                         DatabaseId = Guid.NewGuid(),
-                        Namespace = WorkflowNamespace.Default,
+                        Namespace = DefaultNamespace,
                     },
                 ])
             );

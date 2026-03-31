@@ -769,7 +769,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var orgs = await queryRepo.GetDistinctLabelValues("org", TestContext.Current.CancellationToken);
+        var orgs = await queryRepo.GetDistinctLabelValues("org", ns: null, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, orgs.Count);
         Assert.Contains("digdir", orgs);

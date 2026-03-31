@@ -53,9 +53,13 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets all distinct values for a given label key across all workflows.
+    /// Gets distinct values for a given label key, optionally filtered by namespace.
     /// </summary>
-    Task<IReadOnlyList<string>> GetDistinctLabelValues(string labelKey, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> GetDistinctLabelValues(
+        string labelKey,
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets all distinct namespace values across all workflows, ordered alphabetically.

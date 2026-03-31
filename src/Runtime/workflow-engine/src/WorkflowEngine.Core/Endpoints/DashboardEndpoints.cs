@@ -242,12 +242,7 @@ internal static class DashboardEndpoints
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
 
-                    // Normalize namespace filter: null/"all" means no filter
-                    string? nsFilter =
-                        string.IsNullOrWhiteSpace(@namespace)
-                        || string.Equals(@namespace, "all", StringComparison.OrdinalIgnoreCase)
-                            ? null
-                            : @namespace;
+                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
 
                     string? previousActiveFingerprint = null;
                     string? previousRecentFingerprint = null;
@@ -335,11 +330,12 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/labels",
-                async (IServiceProvider sp, string key, CancellationToken ct) =>
+                async (IServiceProvider sp, string key, string? @namespace, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    IReadOnlyList<string> values = await repo.GetDistinctLabelValues(key, ct);
+                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
+                    IReadOnlyList<string> values = await repo.GetDistinctLabelValues(key, nsFilter, ct);
                     return Results.Json(values, _jsonCompact);
                 }
             )
@@ -377,12 +373,7 @@ internal static class DashboardEndpoints
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
                     int maxResults = Math.Min(limit ?? 100, 200);
 
-                    // Normalize namespace filter: null/"all" means no filter
-                    string? nsFilter =
-                        string.IsNullOrWhiteSpace(@namespace)
-                        || string.Equals(@namespace, "all", StringComparison.OrdinalIgnoreCase)
-                            ? null
-                            : @namespace;
+                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
 
                     PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
                         ? [PersistentItemStatus.Completed, PersistentItemStatus.Failed, PersistentItemStatus.Requeued]
@@ -432,12 +423,7 @@ internal static class DashboardEndpoints
                 "/dashboard/scheduled",
                 async (IServiceProvider sp, string? @namespace, CancellationToken ct) =>
                 {
-                    // Normalize namespace filter: null/"all" means no filter
-                    string? nsFilter =
-                        string.IsNullOrWhiteSpace(@namespace)
-                        || string.Equals(@namespace, "all", StringComparison.OrdinalIgnoreCase)
-                            ? null
-                            : @namespace;
+                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
 
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();

@@ -82,6 +82,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<IReadOnlyList<string>> GetDistinctLabelValues(
         string labelKey,
+        string? ns = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -101,16 +102,26 @@ internal sealed partial class EngineRepository
                 await conn.OpenAsync(cancellationToken);
 
             // Extract distinct values for the given label key from JSONB
-            const string sql = """
-                SELECT DISTINCT "Labels"->>@key AS val
-                FROM "engine"."Workflows"
-                WHERE "Labels" IS NOT NULL AND "Labels" ? @key
-                ORDER BY val
-                """;
+            var sql = ns is null
+                ? """
+                    SELECT DISTINCT "Labels"->>@key AS val
+                    FROM "engine"."Workflows"
+                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
+                    ORDER BY val
+                    """
+                : """
+                    SELECT DISTINCT "Labels"->>@key AS val
+                    FROM "engine"."Workflows"
+                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
+                      AND "Namespace" = @ns
+                    ORDER BY val
+                    """;
 
             var results = new List<string>();
             await using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.Add(new NpgsqlParameter<string>("key", labelKey));
+            if (ns is not null)
+                cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
 
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))

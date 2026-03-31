@@ -80,7 +80,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
 
-        var ns = WorkflowNamespace.Normalize(@namespace);
+        var ns = NormalizeNamespace(@namespace);
         var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext, ns);
 
         Activity.Current?.SetTag("workflow.correlation.id", inbound.CorrelationId);
@@ -134,7 +134,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var ns = WorkflowNamespace.Normalize(@namespace);
+        var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
         var workflows = await repository.GetActiveWorkflowsByCorrelationId(
             correlationId,
@@ -158,7 +158,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get"));
 
-        var ns = WorkflowNamespace.Normalize(@namespace);
+        var ns = NormalizeNamespace(@namespace);
         var workflow = await repository.GetWorkflow(workflowId, ns, cancellationToken);
 
         if (workflow is null)
@@ -178,7 +178,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
 
-        var ns = WorkflowNamespace.Normalize(@namespace);
+        var ns = NormalizeNamespace(@namespace);
         var result = await engine.CancelWorkflow(workflowId, ns, cancellationToken);
 
         return result switch
@@ -213,7 +213,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
 
-        var ns = WorkflowNamespace.Normalize(@namespace);
+        var ns = NormalizeNamespace(@namespace);
         var result = await engine.ResumeWorkflow(workflowId, ns, cascade, cancellationToken);
 
         return result switch
@@ -232,6 +232,23 @@ internal static class EngineRequestHandlers
             ),
             _ => throw new UnreachableException(),
         };
+    }
+
+    /// <summary>
+    /// Normalizes and validates the namespace route parameter.
+    /// Wraps <see cref="ArgumentException"/> from <see cref="WorkflowNamespace.Normalize"/>
+    /// as a <see cref="BadHttpRequestException"/> for consistent 400 handling.
+    /// </summary>
+    private static string NormalizeNamespace(string @namespace)
+    {
+        try
+        {
+            return WorkflowNamespace.Normalize(@namespace);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new BadHttpRequestException(ex.Message);
+        }
     }
 
     /// <summary>

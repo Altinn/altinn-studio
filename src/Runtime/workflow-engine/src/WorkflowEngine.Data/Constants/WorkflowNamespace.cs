@@ -4,19 +4,28 @@
 namespace WorkflowEngine.Data.Constants;
 
 /// <summary>
-/// Centralizes namespace normalization and the default namespace constant.
-/// All namespace values are stored as lowercase; missing values fall back to <see cref="Default"/>.
+/// Centralizes namespace normalization.
+/// All namespace values are stored as trimmed lowercase.
 /// </summary>
 internal static class WorkflowNamespace
 {
-    /// <summary>
-    /// The global catch-all namespace used when no namespace is specified.
-    /// </summary>
-    public const string Default = "default";
+    private const int MaxLength = 200;
 
     /// <summary>
-    /// Normalizes a namespace value: trims, lowercases, and falls back to <see cref="Default"/> if null/empty.
+    /// Normalizes a namespace value: trims and lowercases.
+    /// Throws <see cref="ArgumentException"/> if the result exceeds <see cref="MaxLength"/> characters
+    /// or is empty/whitespace-only.
     /// </summary>
-    public static string Normalize(string? ns) =>
-        string.IsNullOrWhiteSpace(ns) ? Default : ns.Trim().ToLowerInvariant();
+    public static string Normalize(string? ns)
+    {
+        if (string.IsNullOrWhiteSpace(ns))
+            throw new ArgumentException("Namespace is required.", nameof(ns));
+
+        var normalized = ns.Trim().ToLowerInvariant();
+
+        if (normalized.Length > MaxLength)
+            throw new ArgumentException($"Namespace exceeds maximum length of {MaxLength} characters.", nameof(ns));
+
+        return normalized;
+    }
 }
