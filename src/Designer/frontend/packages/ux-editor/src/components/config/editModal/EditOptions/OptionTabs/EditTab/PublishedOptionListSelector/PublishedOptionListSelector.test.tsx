@@ -67,7 +67,7 @@ describe('PublishedOptionListSelector', () => {
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 
-  it.only('Displays the published code list selection form when the user clicks the button', async () => {
+  it('Displays the published code list selection form when the user clicks the button', async () => {
     const user = setupUser();
     renderPublishedOptionListSelectorWithData();
 
