@@ -180,7 +180,6 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ITranslationService, TranslationService>();
         services.AddSingleton<BootstrapGlobalService>();
         services.AddTransient<LayoutAnalysisService>();
-        services.AddTransient<IInitialValidationService, InitialValidationService>();
         services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();

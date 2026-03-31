@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Register.Models;
@@ -32,7 +33,7 @@ public sealed class FormBootstrapService
     private readonly IAppOptionsService _appOptionsService;
     private readonly IServiceProvider _serviceProvider;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IInitialValidationService _initialValidationService;
+    private readonly IValidationService _validationService;
     private readonly IFormDataReader _formDataReader;
     private readonly IAppModel _appModel;
     private readonly IPrefill _prefillService;
@@ -58,7 +59,7 @@ public sealed class FormBootstrapService
         _appOptionsService = appOptionsService;
         _serviceProvider = serviceProvider;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
-        _initialValidationService = serviceProvider.GetRequiredService<IInitialValidationService>();
+        _validationService = serviceProvider.GetRequiredService<IValidationService>();
         _formDataReader = serviceProvider.GetRequiredService<IFormDataReader>();
         _appModel = appModel;
         _prefillService = prefillService;
@@ -467,7 +468,14 @@ public sealed class FormBootstrapService
                 )
                 ?.Id;
 
-        var issues = await _initialValidationService.Validate(dataAccessor, taskId, language, cancellationToken);
+        _ = cancellationToken;
+        var issues = await _validationService.ValidateInstanceAtTask(
+            dataAccessor,
+            taskId,
+            ignoredValidators: null,
+            onlyIncrementalValidators: true,
+            language
+        );
         return PartitionInitialValidationIssues(issues, defaultDataElementId);
     }
 

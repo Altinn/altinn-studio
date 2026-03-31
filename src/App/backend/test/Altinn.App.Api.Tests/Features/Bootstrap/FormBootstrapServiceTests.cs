@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -33,7 +34,7 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<IAppOptionsService> _appOptionsService = new();
     private readonly Mock<IAppOptionsFileHandler> _appOptionsFileHandler = new();
-    private readonly Mock<IInitialValidationService> _initialValidationService = new();
+    private readonly Mock<IValidationService> _validationService = new();
     private readonly Mock<IFormDataReader> _formDataReader = new();
     private readonly IAppModel _appModel = new AppModelMock<DummyModel>();
     private readonly Mock<IDataClient> _dataClient = new();
@@ -79,7 +80,7 @@ public class FormBootstrapServiceTests
                 Options.Create(new FrontEndSettings())
             )
         );
-        services.AddSingleton(_initialValidationService.Object);
+        services.AddSingleton(_validationService.Object);
         services.AddSingleton(_formDataReader.Object);
         services.AddSingleton(_appOptionsFileHandler.Object);
         services.AddSingleton(_dataProcessor.Object);
@@ -121,8 +122,8 @@ public class FormBootstrapServiceTests
         var appMetadata = CreateAppMetadata("model");
 
         SetupMocks(appMetadata);
-        _initialValidationService
-            .Setup(x => x.Validate(It.IsAny<IInstanceDataAccessor>(), "Task_1", "nb", It.IsAny<CancellationToken>()))
+        _validationService
+            .Setup(x => x.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", null, true, "nb"))
             .ReturnsAsync([
                 new ValidationIssueWithSource
                 {
@@ -346,13 +347,14 @@ public class FormBootstrapServiceTests
 
         Assert.Null(result.ValidationIssues);
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
-        _initialValidationService.Verify(
+        _validationService.Verify(
             x =>
-                x.Validate(
+                x.ValidateInstanceAtTask(
                     It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
+                    null,
+                    true,
+                    It.IsAny<string>()
                 ),
             Times.Never
         );
@@ -702,8 +704,8 @@ public class FormBootstrapServiceTests
         var appMetadata = CreateAppMetadata("model", "submodel");
 
         SetupMocks(appMetadata, uiFolder: "subform", dataType: "submodel");
-        _initialValidationService
-            .Setup(x => x.Validate(It.IsAny<IInstanceDataAccessor>(), "Task_1", "nb", It.IsAny<CancellationToken>()))
+        _validationService
+            .Setup(x => x.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", null, true, "nb"))
             .ReturnsAsync([
                 new ValidationIssueWithSource
                 {
@@ -978,13 +980,14 @@ public class FormBootstrapServiceTests
                 x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
             )
             .ReturnsAsync(new AppOptions { Options = [] });
-        _initialValidationService
+        _validationService
             .Setup(x =>
-                x.Validate(
+                x.ValidateInstanceAtTask(
                     It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
+                    null,
+                    true,
+                    It.IsAny<string>()
                 )
             )
             .ReturnsAsync([]);

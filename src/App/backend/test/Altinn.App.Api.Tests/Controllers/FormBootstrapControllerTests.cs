@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -330,7 +331,7 @@ public class FormBootstrapControllerTests
         var implementationServices = new ServiceCollection();
         implementationServices.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         implementationServices.AddAppImplementationFactory();
-        implementationServices.AddSingleton(Mock.Of<IInitialValidationService>());
+        implementationServices.AddSingleton(Mock.Of<IValidationService>());
         implementationServices.AddSingleton(Mock.Of<IFormDataReader>());
         implementationServices.AddSingleton(Mock.Of<IAppOptionsFileHandler>());
         var implementationServiceProvider = implementationServices.BuildServiceProvider();
