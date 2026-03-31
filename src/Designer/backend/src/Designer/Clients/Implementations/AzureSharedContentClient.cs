@@ -107,18 +107,18 @@ public class AzureSharedContentClient : ISharedContentClient
         CancellationToken cancellationToken = default
     )
     {
-        version ??= LatestCodeListFileName;
+        version = string.IsNullOrWhiteSpace(version) ? LatestCodeListFileName : version;
         string url = CombineWithDelimiter(
             _sharedContentBaseUri,
             orgName,
             CodeListsSegment,
             codeListId,
-            version.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
+            version.EndsWith(JsonExtension, StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
         );
 
         try
         {
-            var response = await _httpClient.GetAsync(url, cancellationToken);
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;

@@ -81,7 +81,7 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
         CancellationToken cancellationToken = default
     )
     {
-        version ??= LatestCodeListFileName;
+        version = string.IsNullOrWhiteSpace(version) ? LatestCodeListFileName : version;
         string url = CombineWithDelimiter(
             orgName,
             CodeListsSegment,
