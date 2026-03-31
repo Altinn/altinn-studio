@@ -813,7 +813,7 @@ public partial class PreviewController(
                 return Ok(options);
             }
         }
-        catch (Exception ex) when (ex is NotFoundException || ex is SharedContentRequestException)
+        catch (Exception ex) when (ex is NotFoundException or SharedContentRequestException)
         {
             // Return empty list since app-frontend don't handle a null result
             return Ok(new List<string>());
