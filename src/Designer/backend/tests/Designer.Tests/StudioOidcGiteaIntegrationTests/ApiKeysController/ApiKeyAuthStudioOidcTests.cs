@@ -47,6 +47,25 @@ public class ApiKeyAuthStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<Api
         Assert.Contains(tokens, t => t.Name == "api-key-token");
     }
 
+    [Theory]
+    [InlineData("designer/api/user/current", "scope-test-user")]
+    [InlineData("designer/api/orgs", "scope-test-orgs")]
+    public async Task NonWhitelistedEndpoint_WithApiKey_ShouldReturnForbidden(string endpoint, string tokenName)
+    {
+        using var createContent = CreateTokenRequestContent(tokenName, DateTimeOffset.UtcNow.AddDays(30));
+        using HttpResponseMessage createResponse = await HttpClient.PostAsync(BaseUrl, createContent);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        string createBody = await createResponse.Content.ReadAsStringAsync();
+        var created = JsonSerializer.Deserialize<CreateApiKeyResponse>(createBody, s_jsonOptions);
+
+        using var apiKeyClient = new HttpClient { BaseAddress = new Uri(GiteaFixture.DesignerUrl) };
+        apiKeyClient.DefaultRequestHeaders.Add(ApiKeyAuthenticationDefaults.HeaderName, created.Key);
+
+        using HttpResponseMessage response = await apiKeyClient.GetAsync(endpoint);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
     private static StringContent CreateTokenRequestContent(string name, DateTimeOffset expiresAt)
     {
         string json = JsonSerializer.Serialize(new { name, expiresAt });

@@ -205,4 +205,24 @@ public enum ExpressionFunction
     /// If no translations exist for the current language, we will use the resources for "nb"
     /// </summary>
     text,
+
+    /// <summary>
+    /// Adding numbers. Must be numeric values.
+    /// </summary>
+    plus,
+
+    /// <summary>
+    /// Subtracting all preceding values from the first. Must be numeric values.
+    /// </summary>
+    minus,
+
+    /// <summary>
+    /// Multiplying numbers. Must be numeric values.
+    /// </summary>
+    multiply,
+
+    /// <summary>
+    /// Divide numbers. Must be numeric values.
+    /// </summary>
+    divide,
 }

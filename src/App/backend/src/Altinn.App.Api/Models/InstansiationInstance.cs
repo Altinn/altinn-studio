@@ -1,5 +1,6 @@
 #nullable disable
 using System.Text.Json;
+using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Models;
@@ -33,6 +34,11 @@ public class InstansiationInstance
     /// Gets or sets the id of the instance to use as a source for the new instance.
     /// </summary>
     public string SourceInstanceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the notifications to send to the instance owner related to the instansiation of the instance.
+    /// </summary>
+    public InstantiationNotification Notification { get; set; }
 
     /// <inheritdoc/>
     public override string ToString()

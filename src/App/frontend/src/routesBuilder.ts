@@ -1,4 +1,7 @@
-import { TaskKeys } from 'src/hooks/useNavigatePage';
+export enum TaskKeys {
+  ProcessEnd = 'ProcessEnd',
+  CustomReceipt = 'CustomReceipt',
+}
 
 /**
  * Route path patterns — must match the current URL segments exactly.

@@ -91,11 +91,17 @@ export const TasksSelector = ({
 
 export type PagesSelectorProps = {
   selectedPages: StudioSuggestionItem[];
+  initialSelectedPages?: StudioSuggestionItem[];
   taskName?: string;
   onChange: (value: StudioSuggestionItem[]) => void;
 };
 
-export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelectorProps) => {
+export const PagesSelector = ({
+  selectedPages,
+  initialSelectedPages,
+  taskName,
+  onChange,
+}: PagesSelectorProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
@@ -106,7 +112,7 @@ export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelect
   const availablePages = getAvailablePages(
     formLayouts,
     configsForTask,
-    selectedPages?.map((p) => p.value),
+    initialSelectedPages?.map((page) => page.value),
   );
 
   const noAvailablePages = taskName && availablePages.length === 0;

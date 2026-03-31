@@ -1,39 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-import { useAppMutations, useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
-import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
+import { useCurrentInstance } from 'src/core/queries/instance';
+import {
+  usePartiesAllowedToInstantiate as usePartiesAllowedToInstantiateBase,
+  useSetSelectedParty as useSetSelectedPartyMutation,
+} from 'src/core/queries/party';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
-import type { IInstance, IParty } from 'src/types/shared';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
-
-const partyQueryKeys = {
-  all: ['parties'] as const,
-  allowedToInstantiate: () => [...partyQueryKeys.all, 'allowedToInstantiate'] as const,
-};
-
-// Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts
-export function usePartiesQueryDef(enabled: boolean) {
-  const { fetchPartiesAllowedToInstantiate } = useAppQueries();
-  return {
-    queryKey: partyQueryKeys.allowedToInstantiate(),
-    queryFn: fetchPartiesAllowedToInstantiate,
-    enabled,
-  };
-}
+import { GlobalData } from 'src/GlobalData';
+import type { IParty } from 'src/types/shared';
 
 const usePartiesAllowedToInstantiateQuery = () => {
   const allowAnonymous = useIsAllowAnonymous(false);
 
-  const utils = useQuery(usePartiesQueryDef(allowAnonymous));
+  const utils = usePartiesAllowedToInstantiateBase({ enabled: allowAnonymous });
 
   useEffect(() => {
     utils.error && window.logError('Fetching parties failed:\n', utils.error);
@@ -41,19 +27,9 @@ const usePartiesAllowedToInstantiateQuery = () => {
 
   return {
     ...utils,
+    data: utils.parties,
     enabled: allowAnonymous,
   };
-};
-
-const useSetSelectedPartyMutation = () => {
-  const { doSetSelectedParty } = useAppMutations();
-  return useMutation({
-    mutationKey: ['doSetSelectedParty'],
-    mutationFn: (party: IParty) => doSetSelectedParty(party.partyId),
-    onError: (error: HttpClientError) => {
-      window.logError('Setting current party failed:\n', error);
-    },
-  });
 };
 
 const { Provider: PartiesProvider, useCtx: usePartiesAllowedToInstantiateCtx } = delayedContext(() =>
@@ -97,7 +73,11 @@ const { Provider: RealSelectedPartyProvider, useCtx: useSelectedPartyCtx } = cre
 const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   const validParties = useValidParties();
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
-  const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetSelectedPartyMutation();
+  const {
+    setSelectedPartyAsync: mutateAsync,
+    data: dataFromMutation,
+    error: errorFromMutation,
+  } = useSetSelectedPartyMutation();
   const [userHasSelectedParty, setUserHasSelectedParty] = useState(false);
 
   if (errorFromMutation) {
@@ -109,7 +89,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   }
 
   const partyFromMutation = dataFromMutation === 'Party successfully updated' ? sentToMutation : undefined;
-  const selectedParty = partyFromMutation ?? window.altinnAppGlobalData.selectedParty;
+  const selectedParty = partyFromMutation ?? GlobalData.getSelectedParty();
   const selectedIsValid = selectedParty && validParties?.some((party) => party.partyId === selectedParty.partyId);
 
   return (
@@ -122,8 +102,9 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
         setParty: async (party) => {
           try {
             setSentToMutation(party);
-            const result = await mutateAsync(party);
+            const result = await mutateAsync({ partyId: party.partyId });
             if (result === 'Party successfully updated') {
+              GlobalData.setSelectedParty(party);
               return party;
             }
             return undefined;
@@ -170,11 +151,9 @@ export const useSetHasSelectedParty = () => useSelectedPartyCtx().setUserHasSele
 
 export function useInstanceOwnerParty(): IParty | null {
   const parties = usePartiesAllowedToInstantiate() ?? [];
-  const queryClient = useQueryClient();
+  const instance = useCurrentInstance();
 
-  const instanceOwner = queryClient.getQueryData<IInstance>(
-    instanceQueries.instanceData(useInstanceDataQueryArgs()).queryKey,
-  )?.instanceOwner;
+  const instanceOwner = instance?.instanceOwner;
 
   if (!instanceOwner) {
     return null;

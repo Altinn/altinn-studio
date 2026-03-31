@@ -5,6 +5,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getPartyMock, getPartyWithSubunitMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
+import { PartyApi } from 'src/core/api-client/party.api';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { useSelectedParty, useSelectedPartyIsValid } from 'src/features/party/PartiesProvider';
 import { renderWithDefaultProviders } from 'src/test/renderWithProviders';
@@ -45,17 +46,19 @@ function TestWrapper(props: PropsWithChildren) {
 
 describe('PartySelection', () => {
   function render(_parties = parties) {
+    jest.mocked(PartyApi.getPartiesAllowedToInstantiateHierarchical).mockResolvedValue(_parties);
     return renderWithDefaultProviders({
       renderer: (
         <TestWrapper>
           <PartySelection />
         </TestWrapper>
       ),
-      queries: {
-        fetchPartiesAllowedToInstantiate: async () => _parties,
-      },
     });
   }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('should have working pagination', async () => {
     const user = userEvent.setup({ delay: null });
@@ -140,8 +143,9 @@ describe('PartySelection', () => {
     it.each(testCases)(
       'should be possible to click on ($partyName)',
       async ({ parties, expectedPartyId, partyName, expandSubunit }) => {
+        const setSelectedPartyMock = jest.mocked(PartyApi.setSelectedParty);
         const user = userEvent.setup({ delay: null });
-        const { mutations } = await render(parties);
+        await render(parties);
 
         expect(screen.getByTestId('valid-party')).toHaveTextContent('false');
 
@@ -150,9 +154,8 @@ describe('PartySelection', () => {
         }
 
         await user.click(screen.getByRole('button', { name: partyName }));
-        await waitFor(() => expect(mutations.doSetSelectedParty.mock).toHaveBeenCalled());
-        expect(mutations.doSetSelectedParty.mock).toHaveBeenCalledWith(expectedPartyId);
-        mutations.doSetSelectedParty.resolve('Party successfully updated');
+        await waitFor(() => expect(setSelectedPartyMock).toHaveBeenCalled());
+        expect(setSelectedPartyMock).toHaveBeenCalledWith({ partyId: expectedPartyId });
         await waitFor(() => expect(screen.getByTestId('current-party')).toHaveTextContent(`${expectedPartyId}`));
         await waitFor(() => expect(screen.getByTestId('valid-party')).toHaveTextContent('true'));
       },

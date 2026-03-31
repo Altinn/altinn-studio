@@ -20,4 +20,11 @@ public interface IProfileClient
     /// <param name="ssn">the ssn</param>
     /// <returns>The userprofile for the given ssn</returns>
     Task<UserProfile?> GetUserProfile(string ssn);
+
+    /// <summary>
+    /// Method for getting the userprofile from a given user uuid
+    /// </summary>
+    /// <param name="userUuid">the user uuid</param>
+    /// <returns>The userprofile for the given user uuid</returns>
+    Task<UserProfile?> GetUserProfile(Guid userUuid);
 }

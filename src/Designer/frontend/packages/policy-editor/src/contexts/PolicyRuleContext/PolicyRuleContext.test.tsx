@@ -29,8 +29,6 @@ describe('PolicyRuleContext', () => {
   });
 
   it('should throw an error when usePolicyRuleContext is used outside of a PolicyRuleContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       usePolicyRuleContext();
       return <div data-testid='context'>Test</div>;
@@ -39,6 +37,5 @@ describe('PolicyRuleContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'usePolicyRuleContext must be used within a PolicyRuleContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 });

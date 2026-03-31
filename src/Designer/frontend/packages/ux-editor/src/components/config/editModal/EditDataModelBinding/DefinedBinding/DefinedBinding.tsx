@@ -1,5 +1,4 @@
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import classes from './DefinedBinding.module.css';
 import { useTranslation } from 'react-i18next';
@@ -33,12 +32,7 @@ export const DefinedBinding = ({
     useValidDataModels(currentDataModel);
 
   if (isLoadingDataModels) {
-    return (
-      <StudioSpinner
-        showSpinnerTitle={false}
-        spinnerTitle={t('ux_editor.modal_properties_loading')}
-      />
-    );
+    return <StudioSpinner aria-label={t('ux_editor.modal_properties_loading')} />;
   }
 
   const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });

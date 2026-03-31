@@ -1,1 +1,0 @@
-export { StudioAvatar } from './StudioAvatar';

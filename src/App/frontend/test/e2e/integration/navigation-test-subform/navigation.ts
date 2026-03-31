@@ -229,7 +229,7 @@ describe('navigation', () => {
       cy.navGroup(/Innsending/, /Oppsummering/).should('be.visible');
       cy.gotoNavGroup(/Utfylling/, device, /Ekstra/);
 
-      cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).dsCheck();
+      cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
 
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
@@ -238,7 +238,7 @@ describe('navigation', () => {
       cy.navGroup(/Innsending/, /Oppsummering/).should('be.visible');
       isUsingMobile && cy.hideNavGroupsMobile();
       isUsingTablet && cy.hideNavGroupsTablet();
-      cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).dsCheck();
+      cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).check();
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Innsending/).should('not.exist');
@@ -249,7 +249,7 @@ describe('navigation', () => {
       cy.findByRole('heading', { name: 'Viktig informasjon' }).should('be.visible');
       cy.findByRole('button', { name: 'Neste' }).should('not.exist');
       cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
-      cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).dsUncheck();
+      cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).uncheck();
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('heading', { name: 'Viktig informasjon' }).should('be.visible');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();

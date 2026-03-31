@@ -16,6 +16,7 @@ export type StudioInlineTextFieldProps = {
   className?: string;
   saveAriaLabel: string;
   cancelAriaLabel: string;
+  onUnsavedValueChange?: (hasUnsavedValue: boolean) => void;
 };
 
 export const StudioInlineTextField = ({
@@ -28,13 +29,21 @@ export const StudioInlineTextField = ({
   className,
   saveAriaLabel,
   cancelAriaLabel,
+  onUnsavedValueChange,
 }: StudioInlineTextFieldProps): React.ReactElement => {
   const [isEditMode, setIsEditMode] = React.useState(false);
 
   const openEditMode = (): void => setIsEditMode(true);
 
   if (!isEditMode) {
-    return <StudioProperty.Button property={label} value={value} onClick={openEditMode} />;
+    return (
+      <StudioProperty.Button
+        property={label}
+        value={value}
+        onClick={openEditMode}
+        className={classes.propertyButton}
+      />
+    );
   }
 
   const handleSaveFieldInput = (newValue: string): void => {
@@ -56,6 +65,7 @@ export const StudioInlineTextField = ({
       cancelAriaLabel={cancelAriaLabel}
       onSave={handleSaveFieldInput}
       onCancel={handleCancelFieldInput}
+      onUnsavedValueChange={onUnsavedValueChange}
     />
   );
 };
@@ -73,6 +83,7 @@ type InlineTextFieldEditProps = {
   cancelAriaLabel: string;
   onSave: (newValue: string) => void;
   onCancel: () => void;
+  onUnsavedValueChange?: (hasUnsavedValue: boolean) => void;
 };
 
 const InlineTextFieldEdit = ({
@@ -86,15 +97,24 @@ const InlineTextFieldEdit = ({
   cancelAriaLabel,
   onSave,
   onCancel,
+  onUnsavedValueChange,
 }: InlineTextFieldEditProps): React.ReactElement => {
   const [inputValue, setInputValue] = React.useState(value);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    setInputValue(e.target.value);
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onUnsavedValueChange?.(newValue !== value);
   };
 
-  const handleSave = (): void => onSave(inputValue);
-  const handleCancel = (): void => onCancel();
+  const handleSave = (): void => {
+    onSave(inputValue);
+    onUnsavedValueChange?.(false);
+  };
+  const handleCancel = (): void => {
+    onUnsavedValueChange?.(false);
+    onCancel();
+  };
 
   const primary = {
     label: saveAriaLabel,

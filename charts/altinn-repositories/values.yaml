@@ -5,7 +5,6 @@ image:
   repository: altinntjenestercontainerregistry.azurecr.io/altinn-repositories
   pullPolicy: Always
   containerPort: 3000
-  imagePullSecret: acrsecret
 
 securityContext:
   runAsUser: 1000

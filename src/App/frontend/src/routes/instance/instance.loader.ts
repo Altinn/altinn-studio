@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { instanceQueries } from 'src/features/instance/InstanceContext';
+import { prefetchInstanceData } from 'src/core/queries/instance';
 import { processQueries } from 'src/features/instance/useProcessQuery';
 
 export function instanceLoader(queryClient: QueryClient) {
@@ -13,7 +13,7 @@ export function instanceLoader(queryClient: QueryClient) {
     // Fire-and-forget: warm the cache without blocking route rendering.
     // The route components show their own loading states via <Loader />.
     if (instanceOwnerPartyId && instanceGuid) {
-      queryClient.prefetchQuery(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }));
+      prefetchInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid });
     }
     if (instanceId) {
       queryClient.prefetchQuery(processQueries.processState(instanceId));
