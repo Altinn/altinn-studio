@@ -27,7 +27,7 @@ public interface ISharedContentClient
     /// </summary>
     /// <param name="orgName">Organisation name.</param>
     /// <param name="codeListId">The code list id.</param>
-    /// <param name="version">The code list vesion.</param>
+    /// <param name="version">The code list version.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
     /// <returns>The published code list.</returns>
     Task<CodeList?> GetPublishedCodeListForOrg(

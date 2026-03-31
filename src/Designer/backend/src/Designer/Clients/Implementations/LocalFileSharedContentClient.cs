@@ -81,7 +81,12 @@ public class LocalFileSharedContentClient(ILogger<LocalFileSharedContentClient> 
     )
     {
         version ??= LatestCodeListFileName;
-        string url = CombineWithDelimiter(orgName, CodeListsSegment, codeListId, JsonFileName(version));
+        string url = CombineWithDelimiter(
+            orgName,
+            CodeListsSegment,
+            codeListId,
+            version.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
+        );
         string? jsonString = await ReadFileByRelativePathAsync(url, cancellationToken);
         return !string.IsNullOrWhiteSpace(jsonString)
             ? JsonSerializer.Deserialize<CodeList>(jsonString, s_jsonOptions)

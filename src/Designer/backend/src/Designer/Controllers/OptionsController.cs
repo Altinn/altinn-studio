@@ -104,7 +104,7 @@ public class OptionsController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
-    /// <param name="optionsListIdOrLibraryRef">Name of the option list.</param>
+    /// <param name="optionsListIdOrLibraryRef">Name of the option list or a library reference.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Produces("application/json")]

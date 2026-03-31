@@ -15,6 +15,7 @@ using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Exceptions.SharedContent;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Preview;
@@ -812,7 +813,7 @@ public partial class PreviewController(
                 return Ok(options);
             }
         }
-        catch (NotFoundException)
+        catch (Exception ex) when (ex is NotFoundException || ex is SharedContentRequestException)
         {
             // Return empty list since app-frontend don't handle a null result
             return Ok(new List<string>());

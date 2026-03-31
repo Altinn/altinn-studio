@@ -112,12 +112,16 @@ public class AzureSharedContentClient : ISharedContentClient
             orgName,
             CodeListsSegment,
             codeListId,
-            JsonFileName(version)
+            version.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
         );
 
         try
         {
             var response = await _httpClient.GetAsync(url, cancellationToken);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 throw new HttpRequestException(
@@ -128,7 +132,7 @@ public class AzureSharedContentClient : ISharedContentClient
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
             return !string.IsNullOrWhiteSpace(responseContent)
-                ? JsonSerializer.Deserialize<CodeList?>(responseContent, s_jsonOptions)
+                ? JsonSerializer.Deserialize<CodeList>(responseContent, s_jsonOptions)
                 : null;
         }
         catch (HttpRequestException ex)

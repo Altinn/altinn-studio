@@ -1,6 +1,6 @@
 ﻿namespace Altinn.Studio.Designer.Services.Models;
 
-public class LanguageConst
+internal static class LanguageConst
 {
     internal const string Nb = "nb";
     internal const string Nn = "nn";
