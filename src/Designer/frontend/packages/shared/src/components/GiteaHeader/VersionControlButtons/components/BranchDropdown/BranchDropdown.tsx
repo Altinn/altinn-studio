@@ -19,7 +19,7 @@ export const BranchDropdown = () => {
   const { t } = useTranslation();
   const { owner: org, repoName: app } = useGiteaHeaderContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [branchToDelete, setBranchToDelete] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const { currentBranch, branchList, isLoading: isLoadingData } = useBranchData(org, app);
@@ -27,6 +27,7 @@ export const BranchDropdown = () => {
     checkoutExistingBranch,
     checkoutNewBranch,
     discardChangesAndCheckout,
+    deleteCurrentBranch,
     clearUncommittedChangesError,
     uncommittedChangesError,
     createError,
@@ -35,6 +36,7 @@ export const BranchDropdown = () => {
 
   const triggerButtonText = shouldDisplayText ? currentBranch : undefined;
   const isLoading = isLoadingData || isLoadingOperations;
+  const canDeleteCurrentBranch = currentBranch !== DEFAULT_BRANCH;
 
   if (isLoading) {
     return (
@@ -56,15 +58,16 @@ export const BranchDropdown = () => {
         data-color-scheme='light'
         triggerButtonClassName={classes.branchButton}
       >
-        <StudioDropdown.List>
-          <BranchListItems
-            branchList={branchList}
-            currentBranch={currentBranch}
-            onBranchClick={checkoutExistingBranch}
-            onCreateBranchClick={() => setShowCreateDialog(true)}
-            onDeleteBranchClick={setBranchToDelete}
-          />
-        </StudioDropdown.List>
+        <BranchActions
+          canDeleteCurrentBranch={canDeleteCurrentBranch}
+          onCreateBranchClick={() => setShowCreateDialog(true)}
+          onDeleteBranchClick={() => setShowDeleteDialog(true)}
+        />
+        <BranchList
+          branchList={branchList}
+          currentBranch={currentBranch}
+          onBranchClick={checkoutExistingBranch}
+        />
       </StudioDropdown>
       <CreateBranchDialog
         isOpen={showCreateDialog}
@@ -74,11 +77,12 @@ export const BranchDropdown = () => {
         isLoading={isLoading}
         createError={createError}
       />
-      {branchToDelete && (
+      {showDeleteDialog && (
         <DeleteBranchDialog
-          branchName={branchToDelete}
-          isOpen={!!branchToDelete}
-          onClose={() => setBranchToDelete(null)}
+          branchName={currentBranch}
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onDelete={deleteCurrentBranch}
         />
       )}
       {uncommittedChangesError && (
@@ -93,59 +97,70 @@ export const BranchDropdown = () => {
   );
 };
 
-interface BranchListItemsProps {
-  branchList: Array<Branch> | undefined;
-  currentBranch: string | undefined;
-  onBranchClick: (branchName: string) => void;
+interface BranchActionsProps {
+  canDeleteCurrentBranch: boolean;
   onCreateBranchClick: () => void;
-  onDeleteBranchClick: (branchName: string) => void;
+  onDeleteBranchClick: () => void;
 }
 
-const BranchListItems = ({
-  branchList,
-  currentBranch,
-  onBranchClick,
+const BranchActions = ({
+  canDeleteCurrentBranch,
   onCreateBranchClick,
   onDeleteBranchClick,
-}: BranchListItemsProps) => {
+}: BranchActionsProps) => {
   const { t } = useTranslation();
 
-  const isDeletable = (branchName: string): boolean =>
-    branchName !== currentBranch && branchName !== DEFAULT_BRANCH;
-
   return (
-    <>
-      {branchList?.map((branch) => (
-        <StudioDropdown.Item key={branch.name}>
-          <div className={classes.branchItem}>
-            <StudioDropdown.Button
-              onClick={() => onBranchClick(branch.name)}
-              disabled={branch.name === currentBranch}
-              title={t('branching.switch_to_branch', { branchName: branch.name })}
-            >
-              {branch.name}
-            </StudioDropdown.Button>
-            {isDeletable(branch.name) && (
-              <StudioButton
-                className={classes.deleteButton}
-                variant='tertiary'
-                icon
-                onClick={() => onDeleteBranchClick(branch.name)}
-                title={t('branching.delete_branch_button', { branchName: branch.name })}
-                aria-label={t('branching.delete_branch_button', { branchName: branch.name })}
-              >
-                <TrashIcon />
-              </StudioButton>
-            )}
-          </div>
-        </StudioDropdown.Item>
-      ))}
+    <StudioDropdown.List>
+      <StudioDropdown.Heading>{t('branching.actions_heading')}</StudioDropdown.Heading>
       <StudioDropdown.Item>
         <StudioDropdown.Button onClick={onCreateBranchClick}>
           <PlusIcon />
           {t('branching.new_branch_dialog.trigger')}
         </StudioDropdown.Button>
       </StudioDropdown.Item>
-    </>
+      {canDeleteCurrentBranch && (
+        <StudioDropdown.Item>
+          <StudioButton
+            variant='tertiary'
+            icon={<TrashIcon />}
+            onClick={onDeleteBranchClick}
+            data-color='danger'
+          >
+            {t('branching.delete_branch_dialog.title')}
+          </StudioButton>
+        </StudioDropdown.Item>
+      )}
+    </StudioDropdown.List>
+  );
+};
+
+interface BranchListProps {
+  branchList: Array<Branch> | undefined;
+  currentBranch: string | undefined;
+  onBranchClick: (branchName: string) => void;
+}
+
+const BranchList = ({ branchList, currentBranch, onBranchClick }: BranchListProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <StudioDropdown.List>
+      <StudioDropdown.Heading>{t('branching.select_branch_heading')}</StudioDropdown.Heading>
+      <div className={classes.branchList}>
+        {branchList?.map((branch) => (
+          <StudioDropdown.Item key={branch.name}>
+            <StudioDropdown.Button
+              onClick={() => onBranchClick(branch.name)}
+              disabled={branch.name === currentBranch}
+              title={t('branching.switch_to_branch', { branchName: branch.name })}
+            >
+              <BranchingIcon />
+              {branch.name}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+        ))}
+      </div>
+    </StudioDropdown.List>
   );
 };

@@ -4,12 +4,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DeleteBranchDialog } from './DeleteBranchDialog';
 import type { DeleteBranchDialogProps } from './DeleteBranchDialog';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const defaultProps: DeleteBranchDialogProps = {
   branchName: 'feature-branch',
   isOpen: true,
   onClose: jest.fn(),
+  onDelete: jest.fn(),
 };
 
 describe('DeleteBranchDialog', () => {
@@ -37,9 +37,10 @@ describe('DeleteBranchDialog', () => {
     expect(confirmButton).not.toBeDisabled();
   });
 
-  it('should call deleteBranch mutation when confirm button is clicked', async () => {
+  it('should call onDelete with branch name when confirmed', async () => {
     const user = userEvent.setup();
-    renderDeleteBranchDialog();
+    const onDelete = jest.fn();
+    renderDeleteBranchDialog({ onDelete });
 
     const confirmInput = getConfirmInput();
     await user.type(confirmInput, 'feature-branch');
@@ -47,7 +48,7 @@ describe('DeleteBranchDialog', () => {
     const confirmButton = getConfirmButton();
     await user.click(confirmButton);
 
-    expect(queriesMock.deleteBranch).toHaveBeenCalledTimes(1);
+    expect(onDelete).toHaveBeenCalledWith('feature-branch');
   });
 
   it('should call onClose when cancel button is clicked', async () => {
@@ -56,7 +57,7 @@ describe('DeleteBranchDialog', () => {
     renderDeleteBranchDialog({ onClose });
 
     const cancelButton = screen.getByRole('button', {
-      name: textMock('branching.delete_branch_dialog.cancel'),
+      name: textMock('general.cancel'),
     });
     await user.click(cancelButton);
 
@@ -74,6 +75,6 @@ const getConfirmInput = () => {
 
 const getConfirmButton = () => {
   return screen.getByRole('button', {
-    name: textMock('branching.delete_branch_dialog.confirm'),
+    name: textMock('general.delete'),
   });
 };

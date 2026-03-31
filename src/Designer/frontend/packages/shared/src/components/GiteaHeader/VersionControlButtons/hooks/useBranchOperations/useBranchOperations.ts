@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { useCreateAndCheckoutBranch } from '../useCreateAndCheckoutBranch';
 import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
+import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
+import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
+
+const DEFAULT_BRANCH = 'master';
 
 export interface UseBranchOperationsResult {
   checkoutExistingBranch: (branchName: string) => void;
   checkoutNewBranch: (branchName: string) => void;
   discardChangesAndCheckout: (targetBranch: string) => void;
+  deleteCurrentBranch: (branchName: string) => void;
   clearUncommittedChangesError: () => void;
   isLoading: boolean;
   uncommittedChangesError: UncommittedChangesError | null;
@@ -31,6 +36,8 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
   });
 
   const discardChangesMutation = useDiscardChangesMutation(org, app);
+  const checkoutBranchMutation = useCheckoutBranchMutation(org, app);
+  const deleteBranchMutation = useDeleteBranchMutation(org, app);
 
   const checkoutNewBranch = (branchName: string) => {
     setUncommittedChangesError(null);
@@ -48,17 +55,36 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
     });
   };
 
+  const deleteCurrentBranch = (branchName: string) => {
+    discardChangesMutation.mutate(undefined, {
+      onSuccess: () => {
+        checkoutBranchMutation.mutate(DEFAULT_BRANCH, {
+          onSuccess: () => {
+            deleteBranchMutation.mutate(branchName, {
+              onSuccess: () => location.reload(),
+            });
+          },
+        });
+      },
+    });
+  };
+
   const clearUncommittedChangesError = () => {
     setUncommittedChangesError(null);
   };
 
   const isLoading =
-    isLoadingCreateNewBranch || checkoutMutation.isPending || discardChangesMutation.isPending;
+    isLoadingCreateNewBranch ||
+    checkoutMutation.isPending ||
+    discardChangesMutation.isPending ||
+    checkoutBranchMutation.isPending ||
+    deleteBranchMutation.isPending;
 
   return {
     checkoutExistingBranch,
     checkoutNewBranch,
     discardChangesAndCheckout,
+    deleteCurrentBranch,
     clearUncommittedChangesError,
     uncommittedChangesError,
     createError,

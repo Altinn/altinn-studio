@@ -5,26 +5,26 @@ import {
   StudioDialog,
   StudioHeading,
   StudioParagraph,
-  StudioSpinner,
   StudioTextfield,
 } from '@studio/components';
 import { TrashIcon } from '@studio/icons';
-import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
-import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import classes from './DeleteBranchDialog.module.css';
 
 export interface DeleteBranchDialogProps {
   branchName: string;
   isOpen: boolean;
   onClose: () => void;
+  onDelete: (branchName: string) => void;
 }
 
-export const DeleteBranchDialog = ({ branchName, isOpen, onClose }: DeleteBranchDialogProps) => {
+export const DeleteBranchDialog = ({
+  branchName,
+  isOpen,
+  onClose,
+  onDelete,
+}: DeleteBranchDialogProps) => {
   const { t } = useTranslation();
-  const { owner: org, repoName: app } = useGiteaHeaderContext();
   const [confirmationInput, setConfirmationInput] = useState('');
-
-  const { mutate: deleteBranch, isPending } = useDeleteBranchMutation(org, app);
 
   const isBranchNameConfirmed = confirmationInput === branchName;
 
@@ -34,9 +34,8 @@ export const DeleteBranchDialog = ({ branchName, isOpen, onClose }: DeleteBranch
   };
 
   const handleDelete = () => {
-    deleteBranch(branchName, {
-      onSuccess: handleClose,
-    });
+    onDelete(branchName);
+    onClose();
   };
 
   return (
@@ -61,27 +60,20 @@ export const DeleteBranchDialog = ({ branchName, isOpen, onClose }: DeleteBranch
           description={t('branching.delete_branch_dialog.textfield_description')}
           value={confirmationInput}
           onChange={(e) => setConfirmationInput(e.target.value)}
-          disabled={isPending}
         />
         <div className={classes.buttons}>
-          {isPending ? (
-            <StudioSpinner aria-hidden spinnerTitle={t('branching.delete_branch_dialog.loading')} />
-          ) : (
-            <>
-              <StudioButton
-                variant='secondary'
-                data-color='danger'
-                onClick={handleDelete}
-                disabled={!isBranchNameConfirmed}
-                icon={<TrashIcon />}
-              >
-                {t('general.delete')}
-              </StudioButton>
-              <StudioButton variant='secondary' onClick={handleClose}>
-                {t('general.cancel')}
-              </StudioButton>
-            </>
-          )}
+          <StudioButton
+            variant='secondary'
+            data-color='danger'
+            onClick={handleDelete}
+            disabled={!isBranchNameConfirmed}
+            icon={<TrashIcon />}
+          >
+            {t('general.delete')}
+          </StudioButton>
+          <StudioButton variant='secondary' onClick={handleClose}>
+            {t('general.cancel')}
+          </StudioButton>
         </div>
       </StudioDialog.Block>
     </StudioDialog>

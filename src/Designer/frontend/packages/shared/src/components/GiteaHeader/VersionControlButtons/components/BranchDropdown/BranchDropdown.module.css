@@ -4,12 +4,9 @@
   padding: 0 var(--ds-size-2);
 }
 
-.branchItem {
-  display: flex;
-}
-
-.deleteButton {
-  width: auto;
+.branchList {
+  max-height: 50vh; /*Fits screen at 150% scaling */
+  overflow-y: auto;
 }
 
 /* Style for .branchButton is temporary until we migrate to StudioPageHeader */

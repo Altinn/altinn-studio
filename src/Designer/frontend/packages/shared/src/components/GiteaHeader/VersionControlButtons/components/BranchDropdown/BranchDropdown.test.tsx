@@ -22,6 +22,7 @@ const mockUseBranchOperations = jest.mocked(useBranchOperations);
 const checkoutExistingBranch = jest.fn();
 const checkoutNewBranch = jest.fn();
 const discardChangesAndCheckout = jest.fn();
+const deleteCurrentBranch = jest.fn();
 const clearUncommittedChangesError = jest.fn();
 
 const mockBranchData = (overrides = {}) => {
@@ -38,6 +39,7 @@ const mockBranchOperations = (overrides = {}) => {
     checkoutExistingBranch,
     checkoutNewBranch,
     discardChangesAndCheckout,
+    deleteCurrentBranch,
     clearUncommittedChangesError,
     isLoading: false,
     uncommittedChangesError: null,
@@ -186,37 +188,32 @@ describe('BranchDropdown', () => {
     expect(clearUncommittedChangesError).toHaveBeenCalled();
   });
 
-  it('Should show delete button for non-current, non-default branches', async () => {
-    const user = userEvent.setup();
-    renderBranchDropdown();
-    await user.click(getDropdownTrigger());
-
-    const deleteButtons = screen.getAllByRole('button', {
-      name: textMock('branching.delete_branch_button'),
-    });
-    expect(deleteButtons).toHaveLength(1);
-  });
-
-  it('Should not show delete button for the current branch', async () => {
+  it('Should show delete branch button when current branch is not master', async () => {
     const user = userEvent.setup();
     mockBranchData({ currentBranch: 'feature-branch' });
     renderBranchDropdown();
     await user.click(getDropdownTrigger());
 
-    const deleteButtons = screen.queryAllByRole('button', {
-      name: textMock('branching.delete_branch_button'),
-    });
-    expect(deleteButtons).toHaveLength(0);
+    const deleteButton = getDeleteBranchButton();
+    expect(deleteButton).toBeInTheDocument();
   });
 
-  it('Should open delete confirmation dialog when clicking delete button', async () => {
+  it('Should not show delete branch button when current branch is master', async () => {
     const user = userEvent.setup();
     renderBranchDropdown();
     await user.click(getDropdownTrigger());
 
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('branching.delete_branch_button'),
-    });
+    const deleteButton = queryDeleteBranchButton();
+    expect(deleteButton).not.toBeInTheDocument();
+  });
+
+  it('Should open delete dialog when clicking delete branch button', async () => {
+    const user = userEvent.setup();
+    mockBranchData({ currentBranch: 'feature-branch' });
+    renderBranchDropdown();
+    await user.click(getDropdownTrigger());
+
+    const deleteButton = getDeleteBranchButton();
     await user.click(deleteButton);
 
     const deleteDialog = screen.getByRole('dialog');
@@ -248,4 +245,12 @@ const getMasterBranchButton = () => {
 
 const getFeatureBranchButton = () => {
   return screen.getByRole('button', { name: 'feature-branch' });
+};
+
+const getDeleteBranchButton = () => {
+  return screen.getByRole('button', { name: textMock('branching.delete_branch_dialog.title') });
+};
+
+const queryDeleteBranchButton = () => {
+  return screen.queryByRole('button', { name: textMock('branching.delete_branch_dialog.title') });
 };

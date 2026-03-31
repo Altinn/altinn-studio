@@ -2,23 +2,33 @@ import { renderHook, act } from '@testing-library/react';
 import { useBranchOperations } from './useBranchOperations';
 import { useCreateAndCheckoutBranch } from '../useCreateAndCheckoutBranch';
 import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
+import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
+import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import { uncommittedChangesErrorMock } from '../../test/mocks/branchingMocks';
 import { app, org } from '@studio/testing/testids';
 
 jest.mock('../useCreateAndCheckoutBranch');
 jest.mock('app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling');
+jest.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');
 jest.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
+jest.mock('app-shared/hooks/mutations/useDeleteBranchMutation');
 
 const mockUseCreateAndCheckoutBranch = jest.mocked(useCreateAndCheckoutBranch);
 const mockUseCheckoutWithUncommittedChangesHandling = jest.mocked(
   useCheckoutWithUncommittedChangesHandling,
 );
+const mockUseCheckoutBranchMutation = jest.mocked(useCheckoutBranchMutation);
 const mockUseDiscardChangesMutation = jest.mocked(useDiscardChangesMutation);
+const mockUseDeleteBranchMutation = jest.mocked(useDeleteBranchMutation);
 
 const createAndCheckoutBranch = jest.fn();
 const checkoutMutate = jest.fn();
+const checkoutBranchMutate = jest.fn();
 const discardChangesMutate = jest.fn();
+const deleteBranchMutate = jest.fn();
+
+const { reload: originalReload } = window.location;
 
 describe('useBranchOperations', () => {
   beforeEach(() => {
@@ -31,13 +41,29 @@ describe('useBranchOperations', () => {
       mutate: checkoutMutate,
       isPending: false,
     } as any);
+    mockUseCheckoutBranchMutation.mockReturnValue({
+      mutate: checkoutBranchMutate,
+      isPending: false,
+    } as any);
     mockUseDiscardChangesMutation.mockReturnValue({
       mutate: discardChangesMutate,
       isPending: false,
     } as any);
+    mockUseDeleteBranchMutation.mockReturnValue({
+      mutate: deleteBranchMutate,
+      isPending: false,
+    } as any);
+
+    Object.defineProperty(window, 'location', {
+      value: { reload: jest.fn() },
+      writable: true,
+    });
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    window.location.reload = originalReload;
+    jest.clearAllMocks();
+  });
 
   it('Should call checkout mutation with branch name', () => {
     const { result } = renderHook(() => useBranchOperations(org, app));
@@ -128,6 +154,34 @@ describe('useBranchOperations', () => {
     const { result } = renderHook(() => useBranchOperations(org, app));
 
     expect(result.current.createError).toBe('Branch already exists');
+  });
+
+  it('Should discard changes, checkout master, then delete branch when deleteCurrentBranch is called', () => {
+    const mockDiscardMutate = jest.fn((_, options) => options?.onSuccess?.());
+    const mockCheckoutBranchMutate = jest.fn((_, options) => options?.onSuccess?.());
+    const mockDeleteBranchMutate = jest.fn((_, options) => options?.onSuccess?.());
+
+    mockUseDiscardChangesMutation.mockReturnValue({
+      mutate: mockDiscardMutate,
+      isPending: false,
+    } as any);
+    mockUseCheckoutBranchMutation.mockReturnValue({
+      mutate: mockCheckoutBranchMutate,
+      isPending: false,
+    } as any);
+    mockUseDeleteBranchMutation.mockReturnValue({
+      mutate: mockDeleteBranchMutate,
+      isPending: false,
+    } as any);
+
+    const { result } = renderHook(() => useBranchOperations(org, app));
+
+    result.current.deleteCurrentBranch('feature-branch');
+
+    expect(mockDiscardMutate).toHaveBeenCalledWith(undefined, expect.any(Object));
+    expect(mockCheckoutBranchMutate).toHaveBeenCalledWith('master', expect.any(Object));
+    expect(mockDeleteBranchMutate).toHaveBeenCalledWith('feature-branch', expect.any(Object));
+    expect(window.location.reload).toHaveBeenCalled();
   });
 
   it('Should return correct loading state', () => {
