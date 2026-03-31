@@ -268,6 +268,7 @@ namespace Altinn.Studio.Designer.Controllers
                     null,
                     cancellationToken
                 );
+                AddPdfLayoutNameToPageOrder(layoutSettings);
                 byte[] layoutSettingsContent = JsonSerializer.SerializeToUtf8Bytes(layoutSettings);
                 return new FileContentResult(layoutSettingsContent, MimeTypeMap.GetMimeType(".json"));
             }
@@ -306,6 +307,7 @@ namespace Altinn.Studio.Designer.Controllers
                     layoutSetName,
                     cancellationToken
                 );
+                AddPdfLayoutNameToPageOrder(layoutSettings);
                 byte[] layoutSettingsContent = JsonSerializer.SerializeToUtf8Bytes(layoutSettings);
                 return new FileContentResult(layoutSettingsContent, MimeTypeMap.GetMimeType(".json"));
             }
@@ -894,6 +896,28 @@ namespace Altinn.Studio.Designer.Controllers
             string lookupResponse =
                 $"{{\"success\":true,\"personDetails\":{{\"ssn\":\"{mockSsn}\",\"name\":\"Test T. Testesen (preview)\", \"lastName\":\"Testesen (preview)\"}}}}";
             return Ok(lookupResponse);
+        }
+
+        private static void AddPdfLayoutNameToPageOrder(JsonNode layoutSettings)
+        {
+            if (layoutSettings?["pages"] is not JsonObject pagesObject)
+            {
+                return;
+            }
+            string pdfLayoutName = pagesObject["pdfLayoutName"]?.GetValue<string>();
+            if (string.IsNullOrEmpty(pdfLayoutName))
+            {
+                return;
+            }
+            if (pagesObject["order"] is not JsonArray orderArray)
+            {
+                return;
+            }
+            bool alreadyInOrder = orderArray.Any(p => p?.GetValue<string>() == pdfLayoutName);
+            if (!alreadyInOrder)
+            {
+                orderArray.Add(JsonValue.Create(pdfLayoutName));
+            }
         }
 
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
