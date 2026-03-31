@@ -48,11 +48,7 @@ function initDb(dbPath = DB_PATH) {
   `);
 
   // Migration for existing databases
-  try {
-    db.exec('ALTER TABLE jobs ADD COLUMN pr_number INTEGER');
-  } catch {
-    /* column already exists */
-  }
+  try { db.exec('ALTER TABLE jobs ADD COLUMN pr_number INTEGER'); } catch { /* column already exists */ }
 
   return prepareStatements(db);
 }
