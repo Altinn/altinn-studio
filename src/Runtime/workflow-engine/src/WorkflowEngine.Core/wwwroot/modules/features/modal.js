@@ -475,7 +475,7 @@ window.retryWorkflow = async (e, workflowId, ns) => {
             btn.title = data.message || 'Retry failed';
             btn.classList.add('retry-failed');
             setTimeout(() => {
-                btn.disabled = false;
+                btn.removeAttribute('disabled');
                 btn.innerHTML = '&#8635; Retry';
                 btn.classList.remove('retry-failed');
             }, 3000);
@@ -484,7 +484,7 @@ window.retryWorkflow = async (e, workflowId, ns) => {
         btn.textContent = 'Error';
         btn.classList.add('retry-failed');
         setTimeout(() => {
-            btn.disabled = false;
+            btn.removeAttribute('disabled');
             btn.innerHTML = '&#8635; Retry';
             btn.classList.remove('retry-failed');
         }, 3000);
@@ -511,7 +511,7 @@ window.skipBackoff = async (e, workflowId, ns) => {
             btn.textContent = 'Failed';
             btn.classList.add('skip-failed');
             setTimeout(() => {
-                btn.disabled = false;
+                btn.removeAttribute('disabled');
                 btn.textContent = 'retry now';
                 btn.classList.remove('skip-failed');
             }, 3000);
@@ -520,7 +520,7 @@ window.skipBackoff = async (e, workflowId, ns) => {
         btn.textContent = 'Error';
         btn.classList.add('skip-failed');
         setTimeout(() => {
-            btn.disabled = false;
+            btn.removeAttribute('disabled');
             btn.textContent = 'retry now';
             btn.classList.remove('skip-failed');
         }, 3000);

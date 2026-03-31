@@ -96,7 +96,14 @@ const fetchNamespaces = async () => {
         if (!res.ok) return;
         /** @type {string[]} */
         const namespaces = await res.json();
+        const prev = state.allNamespaces;
         state.allNamespaces = new Set(namespaces);
+
+        // If filter currently covers all known namespaces (implicit "all" mode),
+        // re-sync so newly discovered namespaces are included automatically.
+        if (state.namespaceFilter.size === prev.size && [...prev].every((ns) => state.namespaceFilter.has(ns))) {
+            state.namespaceFilter = new Set(state.allNamespaces);
+        }
         rebuildNamespaceDropdown();
     } catch {
         /* non-critical */

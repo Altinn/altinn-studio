@@ -509,19 +509,19 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 
 Filter by labels:
 
-```
+```http
 GET /api/v1/ttd:my-app/workflows?labels.org=ttd&labels.app=my-app
 ```
 
 Find all workflows for a specific instance via correlationId (instanceGuid):
 
-```
+```http
 GET /api/v1/ttd:my-app/workflows?correlationId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
 Or combine filters — e.g. all workflows for a specific instance owner:
 
-```
+```http
 GET /api/v1/ttd:my-app/workflows?labels.instanceOwnerPartyId=50001234
 ```
 
@@ -529,7 +529,7 @@ Returns an array of `WorkflowStatusResponse` (same shape as the single workflow 
 
 ### Cancel Workflow
 
-```
+```http
 POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 ```
 

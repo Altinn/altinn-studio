@@ -6,6 +6,9 @@ import { esc, expandJsonStrings, syntaxHighlight } from '../core/helpers.js';
 /** Currently open workflow databaseId (for refresh) */
 let _openWfId = '';
 
+/** Currently open workflow namespace (for refresh) */
+let _openWfNamespace = '';
+
 /** Debounce timer id */
 let _refreshTimer = 0;
 
@@ -87,6 +90,7 @@ const fetchAndRender = async (wfId, wfNamespace) => {
 
 window.openStateModal = async (wfId, wfNamespace) => {
     _openWfId = wfId;
+    _openWfNamespace = wfNamespace;
     dom.stateTitle.textContent = 'State Trail';
     dom.stateBody.innerHTML = '<div class="modal-loading">Loading...</div>';
     dom.stateModal.classList.add('open');
@@ -96,13 +100,14 @@ window.openStateModal = async (wfId, wfNamespace) => {
 window.closeStateModal = () => {
     dom.stateModal.classList.remove('open');
     _openWfId = '';
+    _openWfNamespace = '';
 };
 
 /** Called by live.js when a workflow fingerprint changes. Debounced refresh. */
 export const notifyWorkflowChanged = (/** @type {string} */ wfId) => {
     if (!_openWfId || wfId !== _openWfId) return;
     clearTimeout(_refreshTimer);
-    _refreshTimer = window.setTimeout(() => fetchAndRender(_openWfId), 1000);
+    _refreshTimer = window.setTimeout(() => fetchAndRender(_openWfId, _openWfNamespace), 1000);
 };
 
 document.addEventListener('keydown', (e) => {

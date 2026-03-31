@@ -27,7 +27,7 @@ export function buildRequestParams() {
  * Returns the serialized JSON string ready for POST.
  */
 export function buildPayload(template) {
-    return JSON.stringify(JSON.parse(JSON.stringify(template)));
+    return JSON.stringify(template);
 }
 
 /**

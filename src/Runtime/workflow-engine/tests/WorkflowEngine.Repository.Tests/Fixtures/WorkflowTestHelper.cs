@@ -17,7 +17,9 @@ internal static class WorkflowTestHelper
         Dictionary<string, string>? labels = null
     )
     {
-        var resolvedKey = idempotencyKey ?? Guid.NewGuid().ToString("N");
+        var resolvedKey =
+            idempotencyKey
+            ?? (string.IsNullOrEmpty(metadata.IdempotencyKey) ? Guid.NewGuid().ToString("N") : metadata.IdempotencyKey);
         var resolvedMetadata = metadata with { Namespace = ns, IdempotencyKey = resolvedKey };
 
         var request = new WorkflowEnqueueRequest { Labels = labels, Workflows = workflows };

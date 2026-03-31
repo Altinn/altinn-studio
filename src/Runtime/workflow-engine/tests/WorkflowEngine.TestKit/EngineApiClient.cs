@@ -60,7 +60,7 @@ public sealed class EngineApiClient : IDisposable
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
-            Content = new StringContent(jsonRequest, new UTF8Encoding(), "application/json"),
+            Content = new StringContent(jsonRequest, Encoding.UTF8, "application/json"),
         };
         AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
 
@@ -81,7 +81,7 @@ public sealed class EngineApiClient : IDisposable
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, GetBasePath(ns))
         {
-            Content = new StringContent(JsonSerializer.Serialize(request), new UTF8Encoding(), "application/json"),
+            Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"),
         };
         AddMetadataHeaders(httpRequest.Headers, idempotencyKey, correlationId);
 
@@ -119,7 +119,7 @@ public sealed class EngineApiClient : IDisposable
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, path)
         {
-            Content = new StringContent(JsonSerializer.Serialize(request), new UTF8Encoding(), "application/json"),
+            Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"),
         };
 
         return await _client.SendAsync(httpRequest);
@@ -157,30 +157,30 @@ public sealed class EngineApiClient : IDisposable
     /// <summary>
     /// Requests cancellation of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> CancelWorkflowRaw(Guid workflowId) =>
-        _client.PostAsync($"{GetBasePath()}/{workflowId}/cancel", content: null);
+    public Task<HttpResponseMessage> CancelWorkflowRaw(Guid workflowId, string? ns = null) =>
+        _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/cancel", content: null);
 
     /// <summary>
     /// Requests cancellation of a workflow and asserts a 2xx response. Throws on failure.
     /// </summary>
-    public async Task<CancelWorkflowResponse> CancelWorkflow(Guid workflowId)
+    public async Task<CancelWorkflowResponse> CancelWorkflow(Guid workflowId, string? ns = null)
     {
-        using var response = await CancelWorkflowRaw(workflowId);
+        using var response = await CancelWorkflowRaw(workflowId, ns);
         return await AssertSuccessAndDeserialize<CancelWorkflowResponse>(response);
     }
 
     /// <summary>
     /// Requests resume of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false) =>
-        _client.PostAsync($"{GetBasePath()}/{workflowId}/resume?cascade={cascade}", content: null);
+    public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false, string? ns = null) =>
+        _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/resume?cascade={cascade}", content: null);
 
     /// <summary>
     /// Requests resume of a workflow and asserts a 2xx response. Throws on failure.
     /// </summary>
-    public async Task<ResumeWorkflowResponse> ResumeWorkflow(Guid workflowId, bool cascade = false)
+    public async Task<ResumeWorkflowResponse> ResumeWorkflow(Guid workflowId, bool cascade = false, string? ns = null)
     {
-        using var response = await ResumeWorkflowRaw(workflowId, cascade);
+        using var response = await ResumeWorkflowRaw(workflowId, cascade, ns);
         return await AssertSuccessAndDeserialize<ResumeWorkflowResponse>(response);
     }
 

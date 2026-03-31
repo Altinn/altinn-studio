@@ -93,7 +93,7 @@ public static class HttpChatterHelpers
         var headers = req.Headers;
 
         // Request line
-        http.AppendLine($"{req.Method} {req.AbsolutePath} HTTP/1.1");
+        http.AppendLine($"{req.Method} {req.Url} HTTP/1.1");
         http.AppendLine($"Host: {req.Host}");
 
         // Emit all non-transport headers in alphabetical order

@@ -553,14 +553,16 @@ internal static class DashboardEndpoints
 
                     if (
                         !doc.RootElement.TryGetProperty("namespace", out var nsProp)
+                        || nsProp.ValueKind != JsonValueKind.String
                         || string.IsNullOrWhiteSpace(nsProp.GetString())
                     )
                     {
                         return Results.BadRequest("Missing namespace");
                     }
 
+                    string ns = nsProp.GetString()!;
                     var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, nsProp.GetString()!, cascade: false, ct);
+                    var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
 
                     return result switch
                     {
@@ -590,6 +592,7 @@ internal static class DashboardEndpoints
 
                     if (
                         !doc.RootElement.TryGetProperty("namespace", out var nsProp2)
+                        || nsProp2.ValueKind != JsonValueKind.String
                         || string.IsNullOrWhiteSpace(nsProp2.GetString())
                     )
                     {

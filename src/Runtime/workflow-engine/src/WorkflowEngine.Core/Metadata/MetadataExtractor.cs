@@ -67,13 +67,31 @@ internal static class MetadataExtractor
     /// </summary>
     private static string? ExtractSingleValue(HttpContext httpContext, string headerName, string queryParamName)
     {
-        var fromHeader = httpContext.Request.Headers.TryGetValue(headerName, out var headerValues)
-            ? headerValues.ToString()
-            : null;
+        string? fromHeader = null;
+        if (httpContext.Request.Headers.TryGetValue(headerName, out var headerValues))
+        {
+            if (headerValues.Count > 1)
+            {
+                throw new BadHttpRequestException(
+                    $"Header '{headerName}' was supplied multiple times. Supply it exactly once."
+                );
+            }
 
-        var fromQuery = httpContext.Request.Query.TryGetValue(queryParamName, out var queryValues)
-            ? queryValues.ToString()
-            : null;
+            fromHeader = headerValues.ToString();
+        }
+
+        string? fromQuery = null;
+        if (httpContext.Request.Query.TryGetValue(queryParamName, out var queryValues))
+        {
+            if (queryValues.Count > 1)
+            {
+                throw new BadHttpRequestException(
+                    $"Query parameter '{queryParamName}' was supplied multiple times. Supply it exactly once."
+                );
+            }
+
+            fromQuery = queryValues.ToString();
+        }
 
         // Treat empty strings as absent
         if (string.IsNullOrWhiteSpace(fromHeader))
