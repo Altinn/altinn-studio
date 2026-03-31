@@ -40,10 +40,10 @@ internal sealed class WorkflowMetadataOperationTransformer : IOpenApiOperationTr
             {
                 Name = WorkflowMetadataConstants.Headers.IdempotencyKey,
                 In = ParameterLocation.Header,
-                Required = false,
+                Required = true,
                 Description =
                     $"Idempotency key for the enqueue request. Can also be supplied as query parameter '{WorkflowMetadataConstants.QueryParams.IdempotencyKey}'. "
-                    + "Required, but the header is optional if the query parameter is present. Must not be supplied as both.",
+                    + "Must not be supplied as both header and query parameter.",
                 Schema = new OpenApiSchema { Type = JsonSchemaType.String },
             }
         );
