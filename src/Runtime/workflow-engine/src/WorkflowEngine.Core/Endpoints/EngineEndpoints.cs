@@ -124,29 +124,44 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
         [FromRoute] string @namespace,
         [FromQuery] Guid? correlationId,
         [FromQuery(Name = "label")] string[]? labels,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
+        var effectivePage = Math.Max(page ?? 1, 1);
+        var effectivePageSize = Math.Clamp(pageSize ?? 25, 1, 100);
+
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var workflows = await repository.GetActiveWorkflowsByCorrelationId(
+        var (workflows, totalCount) = await repository.GetActiveWorkflowsPaginated(
+            effectivePage,
+            effectivePageSize,
             correlationId,
             ns,
             labelFilters,
             cancellationToken
         );
 
-        if (workflows.Count == 0)
+        if (totalCount == 0)
             return TypedResults.NoContent();
 
-        return TypedResults.Ok(workflows.Select(WorkflowStatusResponse.FromWorkflow));
+        return TypedResults.Ok(
+            new PaginatedResponse<WorkflowStatusResponse>
+            {
+                Data = workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Page = effectivePage,
+                PageSize = effectivePageSize,
+                TotalCount = totalCount,
+            }
+        );
     }
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(

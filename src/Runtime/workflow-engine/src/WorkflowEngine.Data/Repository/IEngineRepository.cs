@@ -96,9 +96,12 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets all active (incomplete) workflows, optionally filtered by correlation ID and namespace.
+    /// Gets active (incomplete) workflows with pagination, optionally filtered by correlation ID and namespace.
+    /// Returns the page of workflows and the total count of matching rows.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
+    Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> GetActiveWorkflowsPaginated(
+        int page,
+        int pageSize,
         Guid? correlationId = null,
         string? ns = null,
         IReadOnlyDictionary<string, string>? labelFilters = null,

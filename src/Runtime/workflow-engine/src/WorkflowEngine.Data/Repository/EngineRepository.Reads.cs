@@ -532,29 +532,41 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
+    public async Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> GetActiveWorkflowsPaginated(
+        int page,
+        int pageSize,
         Guid? correlationId = null,
         string? ns = null,
         IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsByCorrelationId");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsPaginated");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            logger.FetchingWorkflows("active (by correlationId)");
+            logger.FetchingWorkflows("active (paginated)");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context
-                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns, labelFilter: labelFilters)
+            var baseQuery = context.GetActiveWorkflows(
+                correlationIdFilter: correlationId,
+                namespaceFilter: ns,
+                labelFilter: labelFilters
+            );
+
+            var totalCount = await baseQuery.CountAsync(cancellationToken);
+
+            var workflows = await baseQuery
+                .OrderBy(wf => wf.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
-            logger.SuccessfullyFetchedWorkflows(result.Count);
+            logger.SuccessfullyFetchedWorkflows(workflows.Count);
 
-            return result;
+            return (workflows, totalCount);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

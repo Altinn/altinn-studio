@@ -300,18 +300,22 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsByCorrelationId(
+                r.GetActiveWorkflowsPaginated(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
                     It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<IReadOnlyDictionary<string, string>?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([workflow]);
+            .ReturnsAsync(([workflow], 1));
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
             DefaultNamespace,
+            null,
+            null,
             null,
             null,
             repositoryMock.Object,
@@ -319,11 +323,14 @@ public class EngineEndpointTests
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<IEnumerable<WorkflowStatusResponse>>>(result.Result);
+        var ok = Assert.IsType<Ok<PaginatedResponse<WorkflowStatusResponse>>>(result.Result);
         Assert.NotNull(ok.Value);
-        var workflows = ok.Value.ToList();
-        Assert.Single(workflows);
-        Assert.Equal(PersistentItemStatus.Enqueued, workflows[0].OverallStatus);
+        Assert.Single(ok.Value.Data);
+        Assert.Equal(PersistentItemStatus.Enqueued, ok.Value.Data[0].OverallStatus);
+        Assert.Equal(1, ok.Value.Page);
+        Assert.Equal(25, ok.Value.PageSize);
+        Assert.Equal(1, ok.Value.TotalCount);
+        Assert.Equal(1, ok.Value.TotalPages);
     }
 
     [Fact]
@@ -333,18 +340,22 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsByCorrelationId(
+                r.GetActiveWorkflowsPaginated(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
                     It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<IReadOnlyDictionary<string, string>?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([]);
+            .ReturnsAsync(([], 0));
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
             DefaultNamespace,
+            null,
+            null,
             null,
             null,
             repositoryMock.Object,
@@ -363,21 +374,25 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsByCorrelationId(
+                r.GetActiveWorkflowsPaginated(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
                     It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<IReadOnlyDictionary<string, string>?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Guid?, string?, IReadOnlyDictionary<string, string>?, CancellationToken>(
-                (_, ns, _, _) => capturedNamespace = ns
+            .Callback<int, int, Guid?, string?, IReadOnlyDictionary<string, string>?, CancellationToken>(
+                (_, _, _, ns, _, _) => capturedNamespace = ns
             )
-            .ReturnsAsync([]);
+            .ReturnsAsync(([], 0));
 
         // Act
         await EngineRequestHandlers.ListActiveWorkflows(
             DefaultNamespace,
+            null,
+            null,
             null,
             null,
             repositoryMock.Object,
@@ -386,6 +401,86 @@ public class EngineEndpointTests
 
         // Assert — handler passes namespace from route to repository
         Assert.Equal(DefaultNamespace, capturedNamespace);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_PageSizeClampedToMax100()
+    {
+        // Arrange
+        int capturedPageSize = 0;
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetActiveWorkflowsPaginated(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<int, int, Guid?, string?, IReadOnlyDictionary<string, string>?, CancellationToken>(
+                (_, pageSize, _, _, _, _) => capturedPageSize = pageSize
+            )
+            .ReturnsAsync(([], 0));
+
+        // Act
+        await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultNamespace,
+            null,
+            null,
+            1,
+            999,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(100, capturedPageSize);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_PaginationParamsPassedToRepository()
+    {
+        // Arrange
+        int capturedPage = 0;
+        int capturedPageSize = 0;
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetActiveWorkflowsPaginated(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IReadOnlyDictionary<string, string>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<int, int, Guid?, string?, IReadOnlyDictionary<string, string>?, CancellationToken>(
+                (page, pageSize, _, _, _, _) =>
+                {
+                    capturedPage = page;
+                    capturedPageSize = pageSize;
+                }
+            )
+            .ReturnsAsync(([], 0));
+
+        // Act
+        await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultNamespace,
+            null,
+            null,
+            3,
+            50,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(3, capturedPage);
+        Assert.Equal(50, capturedPageSize);
     }
 
     // === GetWorkflow Handler Tests ===

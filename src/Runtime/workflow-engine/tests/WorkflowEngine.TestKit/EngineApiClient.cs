@@ -185,16 +185,43 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Lists active workflows with pagination. Returns the full paginated response or an empty one on 204 No Content.
+    /// </summary>
+    public async Task<PaginatedResponse<WorkflowStatusResponse>> ListActiveWorkflowsPaginated(
+        int? page = null,
+        int? pageSize = null,
+        string? ns = null
+    )
+    {
+        var qs = new List<string>();
+        if (page.HasValue)
+            qs.Add($"page={page.Value}");
+        if (pageSize.HasValue)
+            qs.Add($"pageSize={pageSize.Value}");
+
+        var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);
+        using var response = await _client.GetAsync(path);
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return new PaginatedResponse<WorkflowStatusResponse>
+            {
+                Data = [],
+                Page = page ?? 1,
+                PageSize = pageSize ?? 25,
+                TotalCount = 0,
+            };
+
+        return await AssertSuccessAndDeserialize<PaginatedResponse<WorkflowStatusResponse>>(response);
+    }
+
+    /// <summary>
     /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
+    /// Convenience wrapper around <see cref="ListActiveWorkflowsPaginated"/> that returns just the data.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
-        using var response = await _client.GetAsync(GetBasePath(ns));
-
-        if (response.StatusCode == HttpStatusCode.NoContent)
-            return [];
-
-        return await AssertSuccessAndDeserialize<List<WorkflowStatusResponse>>(response);
+        var result = await ListActiveWorkflowsPaginated(ns: ns);
+        return [.. result.Data];
     }
 
     /// <summary>
