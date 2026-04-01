@@ -56,8 +56,7 @@ describe('StudioLanguagePicker', () => {
     studioTest.mockNextConfirmDialog(true);
     await user.clickRemove();
 
-    expect(onRemove).toHaveBeenCalledTimes(1);
-    expect(onRemove).toHaveBeenCalledWith(twoLetterCodes[1]);
+    expect(getLanguageInput()).toHaveValue(twoLetterCodes[0]);
   });
 
   it('Renders the combobox as disabled when the list of languages is empty', async () => {
