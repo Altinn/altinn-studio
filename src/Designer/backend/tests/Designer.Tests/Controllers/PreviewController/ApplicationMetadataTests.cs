@@ -15,129 +15,130 @@ using Moq;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PreviewController;
-
-public class ApplicationMetadataTests
-    : PreviewControllerTestsBase<ApplicationMetadataTests>,
-        IClassFixture<WebApplicationFactory<Program>>
+namespace Designer.Tests.Controllers.PreviewController
 {
-    private readonly Mock<IAppDevelopmentService> _appDevelopmentServiceMock;
-
-    public ApplicationMetadataTests(WebApplicationFactory<Program> factory)
-        : base(factory)
+    public class ApplicationMetadataTests
+        : PreviewControllerTestsBase<ApplicationMetadataTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        _appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
-    }
+        private readonly Mock<IAppDevelopmentService> _appDevelopmentServiceMock;
 
-    protected override void ConfigureTestServices(IServiceCollection services)
-    {
-        services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
-        services.Configure<SharedContentClientSettings>(c =>
+        public ApplicationMetadataTests(WebApplicationFactory<Program> factory)
+            : base(factory)
         {
-            c.StorageAccountUrl = "http://test.no";
-            c.StorageContainerName = "storageAccountName";
-        });
-        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_appDevelopmentServiceMock.Object);
-    }
+            _appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
+        }
 
-    [Fact]
-    public async Task Get_ApplicationMetadata_Ok()
-    {
-        string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(
-            Org,
-            PreviewApp,
-            Developer,
-            "App/config/applicationmetadata.json"
-        );
-        _appDevelopmentServiceMock
-            .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
-            .Returns(NuGet.Versioning.NuGetVersion.Parse("1.0.0"));
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<SharedContentClientSettings>(c =>
+            {
+                c.StorageAccountUrl = "http://test.no";
+                c.StorageContainerName = "storageAccountName";
+            });
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
+            services.AddSingleton(_appDevelopmentServiceMock.Object);
+        }
 
-        string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationmetadata";
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+        [Fact]
+        public async Task Get_ApplicationMetadata_Ok()
+        {
+            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/config/applicationmetadata.json"
+            );
+            _appDevelopmentServiceMock
+                .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+                .Returns(NuGet.Versioning.NuGetVersion.Parse("1.0.0"));
 
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationmetadata";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        string responseBody = await response.Content.ReadAsStringAsync();
-        ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
-            expectedApplicationMetadataString,
-            JsonSerializerOptions
-        );
-        expectedApplicationMetadata.AltinnNugetVersion = string.Empty;
-        string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
-        Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
-    }
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-    [Fact]
-    public async Task Get_ApplicationMetadata_With_V8_Altinn_Nuget_Version_Ok()
-    {
-        string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(
-            Org,
-            PreviewApp,
-            Developer,
-            "App/config/applicationmetadata.json"
-        );
-        _appDevelopmentServiceMock
-            .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
-            .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
+            string responseBody = await response.Content.ReadAsStringAsync();
+            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+                expectedApplicationMetadataString,
+                JsonSerializerOptions
+            );
+            expectedApplicationMetadata.AltinnNugetVersion = string.Empty;
+            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
+            Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
+        }
 
-        string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationmetadata";
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+        [Fact]
+        public async Task Get_ApplicationMetadata_With_V8_Altinn_Nuget_Version_Ok()
+        {
+            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(
+                Org,
+                PreviewApp,
+                Developer,
+                "App/config/applicationmetadata.json"
+            );
+            _appDevelopmentServiceMock
+                .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+                .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
 
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationmetadata";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        string responseBody = await response.Content.ReadAsStringAsync();
-        ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
-            expectedApplicationMetadataString,
-            JsonSerializerOptions
-        );
-        expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
-        string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
-        Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
-    }
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-    [Fact]
-    public async Task Get_ApplicationMetadata_WithAllPartyTypesAllowedSetToFalse()
-    {
-        string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(
-            Org,
-            AppV4,
-            Developer,
-            "App/config/applicationmetadata.json"
-        );
-        ApplicationMetadata originalApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
-            originalApplicationMetadataString,
-            JsonSerializerOptions
-        );
+            string responseBody = await response.Content.ReadAsStringAsync();
+            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+                expectedApplicationMetadataString,
+                JsonSerializerOptions
+            );
+            expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
+            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
+            Assert.True(JsonUtils.DeepEquals(expectedJson, responseBody));
+        }
 
-        Assert.True(originalApplicationMetadata.PartyTypesAllowed.Person);
-        Assert.True(originalApplicationMetadata.PartyTypesAllowed.Organisation);
-        Assert.True(originalApplicationMetadata.PartyTypesAllowed.SubUnit);
-        Assert.True(originalApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
+        [Fact]
+        public async Task Get_ApplicationMetadata_WithAllPartyTypesAllowedSetToFalse()
+        {
+            string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(
+                Org,
+                AppV4,
+                Developer,
+                "App/config/applicationmetadata.json"
+            );
+            ApplicationMetadata originalApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+                originalApplicationMetadataString,
+                JsonSerializerOptions
+            );
 
-        _appDevelopmentServiceMock
-            .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
-            .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.Person);
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.Organisation);
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.SubUnit);
+            Assert.True(originalApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
 
-        string dataPathWithData = $"{Org}/{AppV4}/api/v1/applicationmetadata";
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            _appDevelopmentServiceMock
+                .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+                .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
 
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string dataPathWithData = $"{Org}/{AppV4}/api/v1/applicationmetadata";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        string responseBody = await response.Content.ReadAsStringAsync();
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        ApplicationMetadata responseApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
-            responseBody,
-            JsonSerializerOptions
-        );
+            string responseBody = await response.Content.ReadAsStringAsync();
 
-        Assert.False(responseApplicationMetadata.PartyTypesAllowed.Person);
-        Assert.False(responseApplicationMetadata.PartyTypesAllowed.Organisation);
-        Assert.False(responseApplicationMetadata.PartyTypesAllowed.SubUnit);
-        Assert.False(responseApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
+            ApplicationMetadata responseApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+                responseBody,
+                JsonSerializerOptions
+            );
+
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.Person);
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.Organisation);
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.SubUnit);
+            Assert.False(responseApplicationMetadata.PartyTypesAllowed.BankruptcyEstate);
+        }
     }
 }

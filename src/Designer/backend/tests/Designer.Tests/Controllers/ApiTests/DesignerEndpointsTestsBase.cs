@@ -15,165 +15,173 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Designer.Tests.Controllers.ApiTests;
-
-/// <summary>
-/// More adjusted version of the ApiTestsBase class that is used for testing controllers that contains org and repo in the path.
-/// Provides functionality for copying a repository from the test repositories location to a temporary location for testing which is disposed after execution of the test.
-/// </summary>
-/// <typeparam name="TControllerTest">Tests class type.</typeparam>
-public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
-    where TControllerTest : class
+namespace Designer.Tests.Controllers.ApiTests
 {
     /// <summary>
-    /// Holds the path of the test repo path that was created for tests purposes.
+    /// More adjusted version of the ApiTestsBase class that is used for testing controllers that contains org and repo in the path.
+    /// Provides functionality for copying a repository from the test repositories location to a temporary location for testing which is disposed after execution of the test.
     /// </summary>
-    protected string TestRepoPath { get; private set; }
-
-    protected string RemoteTestRepoPath { get; private set; }
-
-    protected string TestOrgPath { get; private set; }
-
-    // Most common tests configuration used. If needed override this method in the test class.
-    protected override void ConfigureTestServices(IServiceCollection services)
+    /// <typeparam name="TControllerTest">Tests class type.</typeparam>
+    public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
+        where TControllerTest : class
     {
-        services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton<IDistributedLockProvider>(_ =>
+        /// <summary>
+        /// Holds the path of the test repo path that was created for tests purposes.
+        /// </summary>
+        protected string TestRepoPath { get; private set; }
+
+        protected string RemoteTestRepoPath { get; private set; }
+
+        protected string TestOrgPath { get; private set; }
+
+        // Most common tests configuration used. If needed override this method in the test class.
+        protected override void ConfigureTestServices(IServiceCollection services)
         {
-            var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;
-            return new FileDistributedSynchronizationProvider(directoryInfo);
-        });
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
+            services.AddSingleton<IDistributedLockProvider>(_ =>
+            {
+                var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;
+                return new FileDistributedSynchronizationProvider(directoryInfo);
+            });
 
-        // Use mock logger for Quartz to prevent ObjectDisposedException on LoggerFactory
-        var mockLoggerFactory = new Mock<ILoggerFactory>();
-        mockLoggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
-        Quartz.Logging.LogContext.SetCurrentLogProvider(mockLoggerFactory.Object);
-    }
-
-    /// <summary>
-    /// Common Serialization options for tests.
-    /// </summary>
-    protected readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter() },
-    };
-
-    public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory)
-        : base(factory) { }
-
-    /// <summary>
-    /// Copies a repository from the test repositories location to a temporary location for testing.
-    /// Ensures that created Folder is deleted after test.
-    /// Value of created repo path is stored in <see cref="TestRepoPath"/> property.
-    /// Limitation is that only one repository can be cloned.
-    /// </summary>
-    /// <param name="org">Organisation short name.</param>
-    /// <param name="repo">Repository name.</param>
-    /// <param name="developer">Developer username.</param>
-    /// <param name="targetRepository">Test repository name.</param>
-    protected async Task CopyRepositoryForTest(string org, string repo, string developer, string targetRepository)
-    {
-        if (TestRepoPath is not null)
-        {
-            throw new InvalidOperationException("Repository already created for test.");
+            // Use mock logger for Quartz to prevent ObjectDisposedException on LoggerFactory
+            var mockLoggerFactory = new Mock<ILoggerFactory>();
+            mockLoggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
+            Quartz.Logging.LogContext.SetCurrentLogProvider(mockLoggerFactory.Object);
         }
-        TestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
-    }
 
-    /// <summary>
-    /// Copies a remote repository from the test repositories location to a temporary location for testing.
-    /// Ensures that created Folder is deleted after test.
-    /// Value of created repo path is stored in <see cref="RemoteTestRepoPath"/> property.
-    /// Limitation is that only one repository can be cloned.
-    /// </summary>
-    /// <param name="org">Organisation short name.</param>
-    /// <param name="repo">Repository name</param>
-    /// <param name="targetRepository">Test repository name.</param>
-    protected async Task CopyRemoteRepositoryForTest(string org, string repo, string targetRepository)
-    {
-        if (RemoteTestRepoPath is not null)
+        /// <summary>
+        /// Common Serialization options for tests.
+        /// </summary>
+        protected readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
         {
-            throw new InvalidOperationException("Remote repository already created for test.");
-        }
-        RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
-    }
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new JsonStringEnumConverter() },
+        };
 
-    /// <summary>
-    /// Copies a organisation and repository from the test repositories to a temporary location for testing.
-    /// Ensures that created Folder is deleted after test.
-    /// Value of created org path is stored in <see cref="TestOrgPath"/> property.
-    /// Limitation is that only one org can be cloned.
-    /// </summary>
-    /// <param name="developer">Username of developer.</param>
-    /// <param name="org">Organisation short name.</param>
-    /// <param name="repo">Repository name.</param>
-    /// <param name="targetOrg">Test organisation name.</param>
-    /// <param name="targetRepository">test repository name.</param>
-    /// <exception cref="InvalidOperationException"></exception>
-    protected async Task CopyOrgRepositoryForTest(
-        string developer,
-        string org,
-        string repo,
-        string targetOrg,
-        string targetRepository
-    )
-    {
-        if (TestOrgPath is not null)
-        {
-            throw new InvalidOperationException("Organisation already created for test.");
-        }
-        TestOrgPath = await TestDataHelper.CopyOrgForTest(developer, org, repo, targetOrg, targetRepository);
-    }
+        public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
-    /// <summary>
-    /// Copies a repository from the test repositories to a temporary location for testing.
-    /// </summary>
-    /// <param name="developer">Username of developer.</param>
-    /// <param name="org">Organisation short name.</param>
-    /// <param name="repo">Repository name.</param>
-    /// <param name="targetOrg">Test organisation name.</param>
-    /// <param name="targetRepository">test repository name.</param>
-    /// <exception cref="InvalidOperationException"></exception>
-    /// <remarks>
-    /// <see cref="CopyOrgRepositoryForTest"/> must be used first.
-    /// </remarks>
-    protected async Task AddRepositoryToTestOrg(
-        string developer,
-        string org,
-        string repo,
-        string targetOrg,
-        string targetRepository
-    )
-    {
-        if (TestOrgPath is null)
+        /// <summary>
+        /// Copies a repository from the test repositories location to a temporary location for testing.
+        /// Ensures that created Folder is deleted after test.
+        /// Value of created repo path is stored in <see cref="TestRepoPath"/> property.
+        /// Limitation is that only one repository can be cloned.
+        /// </summary>
+        /// <param name="org">Organisation short name.</param>
+        /// <param name="repo">Repository name.</param>
+        /// <param name="developer">Developer username.</param>
+        /// <param name="targetRepository">Test repository name.</param>
+        protected async Task CopyRepositoryForTest(string org, string repo, string developer, string targetRepository)
         {
-            throw new InvalidOperationException("Organisation has not been instantiated for test.");
-        }
-        await TestDataHelper.AddRepositoryToTestOrg(developer, org, repo, targetOrg, targetRepository);
-    }
+            if (TestRepoPath is not null)
+            {
+                throw new InvalidOperationException("Repository already created for test.");
+            }
 
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        if (!disposing)
-        {
-            return;
+            TestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
         }
-        if (!string.IsNullOrWhiteSpace(TestRepoPath))
+
+        /// <summary>
+        /// Copies a remote repository from the test repositories location to a temporary location for testing.
+        /// Ensures that created Folder is deleted after test.
+        /// Value of created repo path is stored in <see cref="RemoteTestRepoPath"/> property.
+        /// Limitation is that only one repository can be cloned.
+        /// </summary>
+        /// <param name="org">Organisation short name.</param>
+        /// <param name="repo">Repository name</param>
+        /// <param name="targetRepository">Test repository name.</param>
+        protected async Task CopyRemoteRepositoryForTest(string org, string repo, string targetRepository)
         {
-            Directory.Delete(TestRepoPath, true);
+            if (RemoteTestRepoPath is not null)
+            {
+                throw new InvalidOperationException("Remote repository already created for test.");
+            }
+
+            RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
         }
-        if (!string.IsNullOrWhiteSpace(RemoteTestRepoPath))
+
+        /// <summary>
+        /// Copies a organisation and repository from the test repositories to a temporary location for testing.
+        /// Ensures that created Folder is deleted after test.
+        /// Value of created org path is stored in <see cref="TestOrgPath"/> property.
+        /// Limitation is that only one org can be cloned.
+        /// </summary>
+        /// <param name="developer">Username of developer.</param>
+        /// <param name="org">Organisation short name.</param>
+        /// <param name="repo">Repository name.</param>
+        /// <param name="targetOrg">Test organisation name.</param>
+        /// <param name="targetRepository">test repository name.</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        protected async Task CopyOrgRepositoryForTest(
+            string developer,
+            string org,
+            string repo,
+            string targetOrg,
+            string targetRepository
+        )
         {
-            Directory.Delete(RemoteTestRepoPath, true);
+            if (TestOrgPath is not null)
+            {
+                throw new InvalidOperationException("Organisation already created for test.");
+            }
+
+            TestOrgPath = await TestDataHelper.CopyOrgForTest(developer, org, repo, targetOrg, targetRepository);
         }
-        if (!string.IsNullOrWhiteSpace(TestOrgPath))
+
+        /// <summary>
+        /// Copies a repository from the test repositories to a temporary location for testing.
+        /// </summary>
+        /// <param name="developer">Username of developer.</param>
+        /// <param name="org">Organisation short name.</param>
+        /// <param name="repo">Repository name.</param>
+        /// <param name="targetOrg">Test organisation name.</param>
+        /// <param name="targetRepository">test repository name.</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <remarks>
+        /// <see cref="CopyOrgRepositoryForTest"/> must be used first.
+        /// </remarks>
+        protected async Task AddRepositoryToTestOrg(
+            string developer,
+            string org,
+            string repo,
+            string targetOrg,
+            string targetRepository
+        )
         {
-            Directory.Delete(TestOrgPath, true);
+            if (TestOrgPath is null)
+            {
+                throw new InvalidOperationException("Organisation has not been instantiated for test.");
+            }
+
+            await TestDataHelper.AddRepositoryToTestOrg(developer, org, repo, targetOrg, targetRepository);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (!disposing)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(TestRepoPath))
+            {
+                Directory.Delete(TestRepoPath, true);
+            }
+
+            if (!string.IsNullOrWhiteSpace(RemoteTestRepoPath))
+            {
+                Directory.Delete(RemoteTestRepoPath, true);
+            }
+
+            if (!string.IsNullOrWhiteSpace(TestOrgPath))
+            {
+                Directory.Delete(TestOrgPath, true);
+            }
         }
     }
 }
