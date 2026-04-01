@@ -352,7 +352,7 @@ namespace DataModeling.Tests.Assertions
 
         private static void KeywordEqual(ConstKeyword expected, ConstKeyword actual)
         {
-            Assert.True(expected.Value.IsEquivalentTo(actual.Value));
+            Assert.Equal(expected.Value?.ToJsonString(), actual.Value?.ToJsonString());
         }
 
         private static void KeywordEqual(ContainsKeyword expected, ContainsKeyword actual)
@@ -372,7 +372,7 @@ namespace DataModeling.Tests.Assertions
 
         private static void KeywordEqual(DefaultKeyword expected, DefaultKeyword actual)
         {
-            Assert.True(expected.Value.IsEquivalentTo(actual.Value));
+            Assert.Equal(expected.Value?.ToJsonString(), actual.Value?.ToJsonString());
         }
 
         private static void KeywordEqual(DefinitionsKeyword expected, DefinitionsKeyword actual)

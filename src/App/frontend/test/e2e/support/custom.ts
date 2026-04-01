@@ -28,20 +28,6 @@ Cypress.Commands.add('isVisible', { prevSubject: true }, (subject) => {
   expect(isVisible(subject[0])).to.be.true;
 });
 
-Cypress.Commands.add('dsCheck', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
-  cy.log('Checking');
-  if (subject && !subject.is(':checked')) {
-    cy.wrap(subject).parent().click();
-  }
-});
-
-Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
-  cy.log('Unchecking');
-  if (subject && subject.is(':checked')) {
-    cy.wrap(subject).parent().click();
-  }
-});
-
 Cypress.Commands.add('waitUntilSaved', () => {
   // If the data-unsaved-changes attribute does not exist, the page is not in a data/form state, and we should not
   // wait for it to be saved.

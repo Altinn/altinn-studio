@@ -99,7 +99,14 @@ public class ActionsController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance?.Process is null)
         {
             return Conflict($"Process is not started.");

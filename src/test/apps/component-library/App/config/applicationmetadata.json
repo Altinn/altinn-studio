@@ -1,4 +1,17 @@
 {
+  "description": {
+    "nb": "Altinn komponentbibliotek er en oversikt over alle komponentene som er tilgjengelig ",
+    "en": "The Altinn component library is an overview of all the components that are available.",
+    "nn": "Altinn komponentbibliotek er en oversikt over alle komponentene som er tilgjengelig "
+  },
+  "contactPoints": [
+    {
+      "category": "",
+      "email": "",
+      "telephone": "f",
+      "contactPage": ""
+    }
+  ],
   "id": "ttd/component-library",
   "logo": {
     "displayAppOwnerNameInHeader": false,
@@ -7,7 +20,9 @@
   },
   "org": "ttd",
   "title": {
-    "nb": "altinn-apps-all-components"
+    "nb": "Altinn komponentbibliotek",
+    "nn": "Altinn komponentbibliotek",
+    "en": "Altinn Components Libary"
   },
   "dataTypes": [
     {

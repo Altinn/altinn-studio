@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { BASE_URL, requestParams, buildPayload, pollHealthOnce } from './lib/helpers.js';
+import { BASE_URL, buildRequestParams, buildPayload, pollHealthOnce } from './lib/helpers.js';
 
 const RATE = parseInt(__ENV.RATE || '100', 10);
 const MAX_VUS = parseInt(__ENV.MAX_VUS || '2000', 10);
@@ -34,7 +34,7 @@ export const options = {
 
 export function enqueueWorkflow() {
     const body = buildPayload(payloadTemplate);
-    const res = http.post(BASE_URL, body, requestParams);
+    const res = http.post(BASE_URL, body, buildRequestParams());
 
     check(res, {
         'status is 200': (r) => r.status === 200,
