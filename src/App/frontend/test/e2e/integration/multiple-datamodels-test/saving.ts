@@ -191,7 +191,7 @@ describe('saving multiple data models', () => {
     cy.findByRole('searchbox', { name: /søk/i }).clear();
     cy.findByRole('searchbox', { name: /søk/i }).type('Utvikler');
     cy.findAllByRole('radio').should('have.length', 2);
-    cy.findByRole('radio', { name: /johanne/i }).dsCheck();
+    cy.findByRole('radio', { name: /johanne/i }).check();
     cy.findByRole('radio', { name: /johanne/i }).should('be.checked');
     cy.findByRole('searchbox', { name: /søk/i }).clear();
     cy.findAllByRole('radio').should('have.length', 5);

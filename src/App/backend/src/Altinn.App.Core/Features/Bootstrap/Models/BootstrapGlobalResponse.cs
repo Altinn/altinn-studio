@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
@@ -74,4 +75,10 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("orgLogoUrl")]
     public string? OrgLogoUrl { get; set; }
+
+    /// <summary>
+    /// Environment-specific configuration for the frontend, sourced from runtime configuration.
+    /// </summary>
+    [JsonPropertyName("platformFrontendSettings")]
+    public required PlatformFrontendSettings PlatformFrontendSettings { get; set; }
 }

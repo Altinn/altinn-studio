@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check } from 'k6';
 import {
     BASE_URL,
-    requestParams,
+    buildRequestParams,
     buildPayload,
     waitForQueueDrain,
     formatSummary,
@@ -31,7 +31,7 @@ export const options = {
 
 export default function () {
     const body = buildPayload(payloadTemplate);
-    const res = http.post(BASE_URL, body, requestParams);
+    const res = http.post(BASE_URL, body, buildRequestParams());
 
     check(res, {
         'status is 200 (accepted)': (r) => r.status === 200,

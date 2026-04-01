@@ -45,7 +45,10 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetScheduledWorkflows");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -55,7 +58,10 @@ internal sealed partial class EngineRepository
             logger.FetchingWorkflows("scheduled");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context.GetScheduledWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+            var result = await context
+                .GetScheduledWorkflows(namespaceFilter: ns)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result.Count);
 
@@ -76,6 +82,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<IReadOnlyList<string>> GetDistinctLabelValues(
         string labelKey,
+        string? ns = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -95,16 +102,26 @@ internal sealed partial class EngineRepository
                 await conn.OpenAsync(cancellationToken);
 
             // Extract distinct values for the given label key from JSONB
-            const string sql = """
-                SELECT DISTINCT "Labels"->>@key AS val
-                FROM "engine"."Workflows"
-                WHERE "Labels" IS NOT NULL AND "Labels" ? @key
-                ORDER BY val
-                """;
+            var sql = ns is null
+                ? """
+                    SELECT DISTINCT "Labels"->>@key AS val
+                    FROM "engine"."Workflows"
+                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
+                    ORDER BY val
+                    """
+                : """
+                    SELECT DISTINCT "Labels"->>@key AS val
+                    FROM "engine"."Workflows"
+                    WHERE "Labels" IS NOT NULL AND "Labels" ? @key
+                      AND "Namespace" = @ns
+                    ORDER BY val
+                    """;
 
             var results = new List<string>();
             await using var cmd = new NpgsqlCommand(sql, conn);
             cmd.Parameters.Add(new NpgsqlParameter<string>("key", labelKey));
+            if (ns is not null)
+                cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
 
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
@@ -116,6 +133,35 @@ internal sealed partial class EngineRepository
             logger.SuccessfullyFetchedWorkflows(results.Count);
 
             return results;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<string>> GetDistinctNamespaces(CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetDistinctNamespaces");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.FetchingWorkflows("namespaces");
+
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            return await dbContext
+                .Workflows.Select(w => w.Namespace)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToListAsync(cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -367,6 +413,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<PersistentItemStatus?> GetWorkflowStatus(
         Guid workflowId,
+        string ns,
         CancellationToken cancellationToken = default
     )
     {
@@ -378,6 +425,7 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var entity = await context
                 .GetWorkflowById(workflowId, includeSteps: false, includeDependencies: false, includeLinks: false)
+                .Where(wf => wf.Namespace == ns)
                 .Select(w => new { w.Status })
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -398,6 +446,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<WorkflowCancellationInfo?> GetCancellationInfo(
         Guid workflowId,
+        string ns,
         CancellationToken cancellationToken
     )
     {
@@ -409,6 +458,7 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var entity = await context
                 .GetWorkflowById(workflowId, includeSteps: false, includeDependencies: false, includeLinks: false)
+                .Where(wf => wf.Namespace == ns)
                 .Select(w => new { w.Status, w.CancellationRequestedAt })
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -519,7 +569,7 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow?> GetWorkflow(Guid workflowId, CancellationToken cancellationToken = default)
+    public async Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflow");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -529,7 +579,10 @@ internal sealed partial class EngineRepository
             logger.FetchingWorkflowById(workflowId);
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var entity = await context.GetWorkflowById(workflowId).SingleOrDefaultAsync(cancellationToken);
+            var entity = await context
+                .GetWorkflowById(workflowId)
+                .Where(wf => wf.Namespace == ns)
+                .SingleOrDefaultAsync(cancellationToken);
 
             if (entity is null)
             {

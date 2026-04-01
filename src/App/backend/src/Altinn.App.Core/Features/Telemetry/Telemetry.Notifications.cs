@@ -35,6 +35,32 @@ partial class Telemetry
                 }
             }
         );
+
+        InitMetricCounter(
+            context,
+            MetricNameOrderCancel,
+            init: static m =>
+            {
+                foreach (var result in CancelResultExtensions.GetValues())
+                {
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+                }
+            }
+        );
+    }
+
+    internal Activity? StartNotificationConditionTokenGenerateActivity(Guid instanceGuid)
+    {
+        var activity = ActivitySource.StartActivity("Notifications.Condition.GenerateToken");
+        activity?.SetTag(InternalLabels.NotificationOrderId, instanceGuid);
+        return activity;
+    }
+
+    internal Activity? StartNotificationConditionValidateActivity(Guid instanceGuid)
+    {
+        var activity = ActivitySource.StartActivity("Notifications.Condition.ValidateCode");
+        activity?.SetTag(InternalLabels.NotificationOrderId, instanceGuid);
+        return activity;
     }
 
     internal Activity? StartNotificationOrderActivity(OrderType type)
@@ -52,9 +78,23 @@ partial class Telemetry
                 new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true))
             );
 
+    internal Activity? StartNotificationOrderCancelActivity(Guid orderId)
+    {
+        var activity = ActivitySource.StartActivity("Notifications.Order.Cancel");
+        activity?.SetTag(InternalLabels.NotificationOrderId, orderId);
+        return activity;
+    }
+
+    internal void RecordNotificationOrderCancel(CancelResult result) =>
+        _counters[MetricNameOrderCancel]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
+
     internal static class Notifications
     {
         internal static readonly string MetricNameOrder = Metrics.CreateLibName("notification_orders");
+        internal static readonly string MetricNameOrderCancel = Metrics.CreateLibName(
+            "notification_order_cancellations"
+        );
 
         [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
         internal enum OrderResult
@@ -74,6 +114,22 @@ partial class Telemetry
 
             [Display(Name = "email")]
             Email,
+
+            [Display(Name = "future")]
+            Future,
+        }
+
+        [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
+        internal enum CancelResult
+        {
+            [Display(Name = "success")]
+            Success,
+
+            [Display(Name = "error")]
+            Error,
+
+            [Display(Name = "cancelled")]
+            Cancelled,
         }
     }
 }

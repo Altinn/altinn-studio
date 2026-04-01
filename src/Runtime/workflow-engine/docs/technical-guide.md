@@ -5,27 +5,27 @@ This document is aimed at internal developers who need to understand, integrate 
 ## Table of Contents
 
 - [Workflow Engine — Technical Guide](#workflow-engine--technical-guide)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Architecture](#architecture)
-  - [Project Structure](#project-structure)
-  - [Hosting Model](#hosting-model)
-  - [Workflow Lifecycle](#workflow-lifecycle)
-  - [Command System](#command-system)
-  - [Retry \& Error Handling](#retry--error-handling)
-  - [Concurrency Model](#concurrency-model)
-  - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
-  - [Cancellation](#cancellation)
-  - [Resume](#resume)
-  - [Dependency Graphs](#dependency-graphs)
-  - [Telemetry \& Observability](#telemetry--observability)
-  - [Dashboard](#dashboard)
-  - [API Reference](#api-reference)
-  - [Health Checks](#health-checks)
-  - [Configuration](#configuration)
-  - [Testing](#testing)
-  - [Creating a New Host](#creating-a-new-host)
-  - [The App Layer: `WorkflowEngine.App`](#the-app-layer-workflowengineapp)
+    - [Table of Contents](#table-of-contents)
+    - [Overview](#overview)
+    - [Architecture](#architecture)
+    - [Project Structure](#project-structure)
+    - [Hosting Model](#hosting-model)
+    - [Workflow Lifecycle](#workflow-lifecycle)
+    - [Command System](#command-system)
+    - [Retry \& Error Handling](#retry--error-handling)
+    - [Concurrency Model](#concurrency-model)
+    - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
+    - [Cancellation](#cancellation)
+    - [Resume](#resume)
+    - [Dependency Graphs](#dependency-graphs)
+    - [Telemetry \& Observability](#telemetry--observability)
+    - [Dashboard](#dashboard)
+    - [API Reference](#api-reference)
+    - [Health Checks](#health-checks)
+    - [Configuration](#configuration)
+    - [Testing](#testing)
+    - [Creating a New Host](#creating-a-new-host)
+    - [The App Layer: `WorkflowEngine.App`](#the-app-layer-workflowengineapp)
 
 ---
 
@@ -76,15 +76,15 @@ The engine is a **reusable class library**, not a standalone application. Hosts 
 
 ## Project Structure
 
-| Project | Purpose |
-|---------|---------|
-| `WorkflowEngine.Core` | Processing loop, HTTP endpoints, executor, host composition extensions |
-| `WorkflowEngine.Commands` | Built-in commands (WebhookCommand). Host-specific commands live in their own projects |
-| `WorkflowEngine.Models` | Domain models: `Workflow`, `Step`, `CommandDefinition`, status enums, exceptions |
-| `WorkflowEngine.Data` | EF Core persistence, `IEngineRepository`, PostgreSQL implementation |
-| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), `RetryStrategy` |
-| `WorkflowEngine.Telemetry` | OpenTelemetry counters, histograms, observable gauges, activity source |
-| `WorkflowEngine.TestKit` | Reusable integration test infrastructure: fixtures, API client, test helpers |
+| Project                     | Purpose                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| `WorkflowEngine.Core`       | Processing loop, HTTP endpoints, executor, host composition extensions                |
+| `WorkflowEngine.Commands`   | Built-in commands (WebhookCommand). Host-specific commands live in their own projects |
+| `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `CommandDefinition`, status enums, exceptions      |
+| `WorkflowEngine.Data`       | EF Core persistence, `IEngineRepository`, PostgreSQL implementation                   |
+| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), `RetryStrategy`               |
+| `WorkflowEngine.Telemetry`  | OpenTelemetry counters, histograms, observable gauges, activity source                |
+| `WorkflowEngine.TestKit`    | Reusable integration test infrastructure: fixtures, API client, test helpers          |
 
 ## Hosting Model
 
@@ -125,6 +125,7 @@ await app.RunAsync();
 ```
 
 Additional states:
+
 - **DependencyFailed** — a dependency workflow failed
 - **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
 
@@ -166,11 +167,11 @@ Base classes `Command<TData, TContext>` and `Command<TData>` provide typed overr
 
 Executes HTTP requests (GET or POST). Response classification:
 
-| Response | Classification | Action |
-|----------|---------------|--------|
-| 2xx | Success | Next step |
-| 408, 429, 5xx | Retryable | Retry with backoff |
-| Other 4xx | Critical | Fail immediately |
+| Response      | Classification | Action             |
+| ------------- | -------------- | ------------------ |
+| 2xx           | Success        | Next step          |
+| 408, 429, 5xx | Retryable      | Retry with backoff |
+| Other 4xx     | Critical       | Fail immediately   |
 
 ### Registration
 
@@ -183,11 +184,11 @@ The `CommandRegistry` maps type strings to `ICommand` singletons. Commands valid
 
 ### ExecutionResult
 
-| Result | Meaning |
-|--------|---------|
-| `ExecutionResult.Success()` | Step completed |
-| `ExecutionResult.RetryableError(message)` | Transient failure — retry |
-| `ExecutionResult.CriticalError(message)` | Permanent failure — no retry |
+| Result                                    | Meaning                      |
+| ----------------------------------------- | ---------------------------- |
+| `ExecutionResult.Success()`               | Step completed               |
+| `ExecutionResult.RetryableError(message)` | Transient failure — retry    |
+| `ExecutionResult.CriticalError(message)`  | Permanent failure — no retry |
 
 ### State Passing
 
@@ -205,22 +206,22 @@ Step 3 (confirm)  → StateIn:  {"signed": true}
 
 Per-step, configurable:
 
-| Field | Purpose |
-|-------|---------|
-| `BackoffType` | `Exponential`, `Linear`, or `Constant` |
-| `BaseInterval` | Initial delay |
-| `MaxRetries` | Max retry count (optional) |
-| `MaxDelay` | Cap on individual delay (optional) |
-| `MaxDuration` | Total deadline from first attempt (optional) |
+| Field          | Purpose                                      |
+| -------------- | -------------------------------------------- |
+| `BackoffType`  | `Exponential`, `Linear`, or `Constant`       |
+| `BaseInterval` | Initial delay                                |
+| `MaxRetries`   | Max retry count (optional)                   |
+| `MaxDelay`     | Cap on individual delay (optional)           |
+| `MaxDuration`  | Total deadline from first attempt (optional) |
 
 **Default**: Exponential, 1s base, 5m max delay, 24h deadline.
 
 ### Backoff Calculation
 
-| Type | Formula | Example (1s base) |
-|------|---------|-------------------|
-| Constant | `base` | 1s, 1s, 1s... |
-| Linear | `base × iteration` | 1s, 2s, 3s... |
+| Type        | Formula                  | Example (1s base)                      |
+| ----------- | ------------------------ | -------------------------------------- |
+| Constant    | `base`                   | 1s, 1s, 1s...                          |
+| Linear      | `base × iteration`       | 1s, 2s, 3s...                          |
 | Exponential | `base × 2^(iteration-1)` | 1s, 2s, 4s, 8s... (capped at MaxDelay) |
 
 ### Failure Outcomes
@@ -236,11 +237,11 @@ When a workflow fails:
 
 Three independent semaphore pools via `IConcurrencyLimiter`:
 
-| Pool | Default | Purpose |
-|------|---------|---------|
-| Workers | 400 | Concurrent workflow processing tasks |
-| DB Operations | 90 | PostgreSQL connection slots |
-| HTTP Calls | 400 | Outbound HTTP requests |
+| Pool          | Default | Purpose                              |
+| ------------- | ------- | ------------------------------------ |
+| Workers       | 400     | Concurrent workflow processing tasks |
+| DB Operations | 90      | PostgreSQL connection slots          |
+| HTTP Calls    | 400     | Outbound HTTP requests               |
 
 When `ActiveWorkflowCount` ≥ `BackpressureThreshold` (default: 500,000), the engine returns HTTP 429 on enqueue requests.
 
@@ -258,7 +259,7 @@ This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims
 ## Cancellation
 
 ```
-POST /api/v1/workflows/{workflowId}/cancel
+POST /api/v1/{namespace}/workflows/{workflowId}/cancel
 ```
 
 1. Sets `CancellationRequestedAt` in the database
@@ -273,7 +274,7 @@ Cancellation is **idempotent** — multiple calls return the original timestamp.
 Terminal workflows (Failed, Canceled, DependencyFailed) can be resumed for re-processing:
 
 ```
-POST /api/v1/workflows/{workflowId}/resume?cascade=false
+POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 ```
 
 1. Resets the workflow to `Enqueued`, clearing `CancellationRequestedAt`, `BackoffUntil`, `HeartbeatAt`, and `ReclaimCount`
@@ -286,9 +287,9 @@ When `cascade=true`, all transitively dependent workflows in `DependencyFailed` 
 
 ```json
 {
-  "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "resumedAt": "2026-03-19T10:02:00+00:00",
-  "cascadeResumed": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "resumedAt": "2026-03-19T10:02:00+00:00",
+    "cascadeResumed": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
 }
 ```
 
@@ -327,11 +328,11 @@ OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
 
 ### Metrics
 
-| Type | Examples |
-|------|---------|
-| Counters | `engine.workflows.request.received`, `.execution.success`, `.failed`, `.requeued`, `.reclaimed` |
-| Histograms | `engine.workflows.time.queue`, `.time.service`, `.time.total` (also per step) |
-| Gauges | `engine.workflows.active`, `.scheduled`, `.failed`; `engine.slots.workers.*`, `.db.*`, `.http.*` |
+| Type       | Examples                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| Counters   | `engine.workflows.request.received`, `.execution.success`, `.failed`, `.requeued`, `.reclaimed`  |
+| Histograms | `engine.workflows.time.queue`, `.time.service`, `.time.total` (also per step)                    |
+| Gauges     | `engine.workflows.active`, `.scheduled`, `.failed`; `engine.slots.workers.*`, `.db.*`, `.http.*` |
 
 ### Traces
 
@@ -353,68 +354,67 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 ### Enqueue Workflows
 
 ```
-POST /api/v1/workflows
+POST /api/v1/{namespace}/workflows
 ```
 
 **Request:**
 
 ```json
 {
-  "namespace": "ttd:my-app",
-  "idempotencyKey": "process-next-abc123",
-  "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "labels": {
-    "org": "ttd",
-    "app": "my-app",
-    "instanceOwnerPartyId": "50001234",
-    "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  },
-  "context": {
-    "actor": { "userIdOrOrgNumber": "12345678901" },
-    "lockToken": "lock-token-from-app",
-    "org": "ttd",
-    "app": "my-app",
-    "instanceOwnerPartyId": 50001234,
-    "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  },
-  "workflows": [
-    {
-      "ref": "validate-and-sign",
-      "operationId": "process-task-2",
-      "steps": [
+    "idempotencyKey": "process-next-abc123",
+    "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "labels": {
+        "org": "ttd",
+        "app": "my-app",
+        "instanceOwnerPartyId": "50001234",
+        "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    "context": {
+        "actor": { "userIdOrOrgNumber": "12345678901" },
+        "lockToken": "lock-token-from-app",
+        "org": "ttd",
+        "app": "my-app",
+        "instanceOwnerPartyId": 50001234,
+        "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    "workflows": [
         {
-          "operationId": "validate-form",
-          "command": {
-            "type": "app",
-            "data": { "commandKey": "ValidateFormData" }
-          }
-        },
-        {
-          "operationId": "generate-pdf",
-          "command": {
-            "type": "app",
-            "data": { "commandKey": "GeneratePdf" }
-          },
-          "retryStrategy": {
-            "backoffType": "Exponential",
-            "baseInterval": "00:00:02",
-            "maxDelay": "00:05:00",
-            "maxDuration": "01:00:00"
-          }
-        },
-        {
-          "operationId": "notify-complete",
-          "command": {
-            "type": "webhook",
-            "data": {
-              "uri": "https://hooks.example.com/workflow-done",
-              "method": "POST"
-            }
-          }
+            "ref": "validate-and-sign",
+            "operationId": "process-task-2",
+            "steps": [
+                {
+                    "operationId": "validate-form",
+                    "command": {
+                        "type": "app",
+                        "data": { "commandKey": "ValidateFormData" }
+                    }
+                },
+                {
+                    "operationId": "generate-pdf",
+                    "command": {
+                        "type": "app",
+                        "data": { "commandKey": "GeneratePdf" }
+                    },
+                    "retryStrategy": {
+                        "backoffType": "Exponential",
+                        "baseInterval": "00:00:02",
+                        "maxDelay": "00:05:00",
+                        "maxDuration": "01:00:00"
+                    }
+                },
+                {
+                    "operationId": "notify-complete",
+                    "command": {
+                        "type": "webhook",
+                        "data": {
+                            "uri": "https://hooks.example.com/workflow-done",
+                            "method": "POST"
+                        }
+                    }
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
 ```
 
@@ -422,13 +422,13 @@ POST /api/v1/workflows
 
 ```json
 {
-  "workflows": [
-    {
-      "ref": "validate-and-sign",
-      "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-      "namespace": "ttd:my-app"
-    }
-  ]
+    "workflows": [
+        {
+            "ref": "validate-and-sign",
+            "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+            "namespace": "ttd:my-app"
+        }
+    ]
 }
 ```
 
@@ -440,123 +440,123 @@ Same shape. The original workflow is returned, no new workflow is created.
 
 ```json
 {
-  "message": "Command validation failed for step 'validate-form': commandKey is required"
+    "message": "Command validation failed for step 'validate-form': commandKey is required"
 }
 ```
 
 ### Get Single Workflow
 
 ```
-GET /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
+GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```
 
 **Response (200 OK):**
 
 ```json
 {
-  "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "operationId": "process-task-2",
-  "idempotencyKey": "process-next-abc123",
-  "namespace": "ttd:my-app",
-  "createdAt": "2026-03-19T10:00:00+00:00",
-  "updatedAt": "2026-03-19T10:00:05+00:00",
-  "overallStatus": "Completed",
-  "labels": {
-    "org": "ttd",
-    "app": "my-app",
-    "instanceOwnerPartyId": "50001234",
-    "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  },
-  "steps": [
-    {
-      "databaseId": "c1d2e3f4-a5b6-7890-cdef-123456789abc",
-      "operationId": "validate-form",
-      "processingOrder": 0,
-      "updatedAt": "2026-03-19T10:00:02+00:00",
-      "command": { "type": "app" },
-      "status": "Completed",
-      "retryCount": 0
+    "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "correlationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "operationId": "process-task-2",
+    "idempotencyKey": "process-next-abc123",
+    "namespace": "ttd:my-app",
+    "createdAt": "2026-03-19T10:00:00+00:00",
+    "updatedAt": "2026-03-19T10:00:05+00:00",
+    "overallStatus": "Completed",
+    "labels": {
+        "org": "ttd",
+        "app": "my-app",
+        "instanceOwnerPartyId": "50001234",
+        "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
     },
-    {
-      "databaseId": "d2e3f4a5-b6c7-8901-defg-23456789abcd",
-      "operationId": "generate-pdf",
-      "processingOrder": 1,
-      "updatedAt": "2026-03-19T10:00:04+00:00",
-      "command": { "type": "app" },
-      "status": "Completed",
-      "retryCount": 1,
-      "retryStrategy": {
-        "backoffType": "Exponential",
-        "baseInterval": "00:00:02",
-        "maxDelay": "00:05:00",
-        "maxDuration": "01:00:00"
-      }
-    },
-    {
-      "databaseId": "e3f4a5b6-c7d8-9012-efgh-3456789abcde",
-      "operationId": "notify-complete",
-      "processingOrder": 2,
-      "updatedAt": "2026-03-19T10:00:05+00:00",
-      "command": { "type": "webhook" },
-      "status": "Completed",
-      "retryCount": 0
-    }
-  ]
+    "steps": [
+        {
+            "databaseId": "c1d2e3f4-a5b6-7890-cdef-123456789abc",
+            "operationId": "validate-form",
+            "processingOrder": 0,
+            "updatedAt": "2026-03-19T10:00:02+00:00",
+            "command": { "type": "app" },
+            "status": "Completed",
+            "retryCount": 0
+        },
+        {
+            "databaseId": "d2e3f4a5-b6c7-8901-defg-23456789abcd",
+            "operationId": "generate-pdf",
+            "processingOrder": 1,
+            "updatedAt": "2026-03-19T10:00:04+00:00",
+            "command": { "type": "app" },
+            "status": "Completed",
+            "retryCount": 1,
+            "retryStrategy": {
+                "backoffType": "Exponential",
+                "baseInterval": "00:00:02",
+                "maxDelay": "00:05:00",
+                "maxDuration": "01:00:00"
+            }
+        },
+        {
+            "databaseId": "e3f4a5b6-c7d8-9012-efgh-3456789abcde",
+            "operationId": "notify-complete",
+            "processingOrder": 2,
+            "updatedAt": "2026-03-19T10:00:05+00:00",
+            "command": { "type": "webhook" },
+            "status": "Completed",
+            "retryCount": 0
+        }
+    ]
 }
 ```
 
 ### List Workflows
 
-Filter by namespace and labels:
+Filter by labels:
 
-```
-GET /api/v1/workflows?namespace=ttd:my-app&labels.org=ttd&labels.app=my-app
+```http
+GET /api/v1/ttd:my-app/workflows?labels.org=ttd&labels.app=my-app
 ```
 
 Find all workflows for a specific instance via correlationId (instanceGuid):
 
-```
-GET /api/v1/workflows?correlationId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```http
+GET /api/v1/ttd:my-app/workflows?correlationId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
-Or combine filters — e.g. all workflows for a specific instance owner across apps:
+Or combine filters — e.g. all workflows for a specific instance owner:
 
-```
-GET /api/v1/workflows?namespace=ttd:my-app&labels.instanceOwnerPartyId=50001234
+```http
+GET /api/v1/ttd:my-app/workflows?labels.instanceOwnerPartyId=50001234
 ```
 
 Returns an array of `WorkflowStatusResponse` (same shape as the single workflow GET above).
 
 ### Cancel Workflow
 
-```
-POST /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
+```http
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
 ```
 
 **Response (200 OK):**
 
 ```json
 {
-  "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "cancellationRequestedAt": "2026-03-19T10:01:00+00:00",
-  "canceledImmediately": true
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "cancellationRequestedAt": "2026-03-19T10:01:00+00:00",
+    "canceledImmediately": true
 }
 ```
 
 ### Resume Workflow
 
 ```
-POST /api/v1/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
 ```
 
 **Response (200 OK):**
 
 ```json
 {
-  "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "resumedAt": "2026-03-19T10:02:00+00:00",
-  "cascadeResumed": []
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "resumedAt": "2026-03-19T10:02:00+00:00",
+    "cascadeResumed": []
 }
 ```
 
@@ -568,11 +568,11 @@ GET /health/ready  — readiness (includes DB + engine status)
 GET /health/live   — liveness
 ```
 
-| Flag | Health Result |
-|------|--------------|
-| `Running + Healthy` | Healthy |
-| `QueueFull` or `Disabled` | Degraded |
-| `Unhealthy` or `Stopped` | Unhealthy |
+| Flag                      | Health Result |
+| ------------------------- | ------------- |
+| `Running + Healthy`       | Healthy       |
+| `QueueFull` or `Disabled` | Degraded      |
+| `Unhealthy` or `Stopped`  | Unhealthy     |
 
 Response includes worker counts, connection pool utilization, and queue depths.
 
@@ -582,39 +582,39 @@ All via `EngineSettings` (bound from `appsettings.json`):
 
 ### Processing
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `MaxWorkflowsPerRequest` | — | Max workflows in a single enqueue call |
-| `MaxStepsPerWorkflow` | — | Max steps per workflow |
-| `MaxLabels` | — | Max label key-value pairs |
-| `DefaultStepCommandTimeout` | 30s | Per-step execution timeout |
-| `DefaultStepRetryStrategy` | Exponential(1s, 5m, 24h) | Default retry strategy |
+| Setting                     | Default                  | Description                            |
+| --------------------------- | ------------------------ | -------------------------------------- |
+| `MaxWorkflowsPerRequest`    | —                        | Max workflows in a single enqueue call |
+| `MaxStepsPerWorkflow`       | —                        | Max steps per workflow                 |
+| `MaxLabels`                 | —                        | Max label key-value pairs              |
+| `DefaultStepCommandTimeout` | 30s                      | Per-step execution timeout             |
+| `DefaultStepRetryStrategy`  | Exponential(1s, 5m, 24h) | Default retry strategy                 |
 
 ### Heartbeat & Recovery
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `HeartbeatInterval` | 3s | Worker liveness proof interval |
-| `StaleWorkflowThreshold` | 15s | Time before a workflow is considered stale |
-| `MaxReclaimCount` | 3 | Reclaim attempts before marking as failed |
-| `CancellationWatcherInterval` | 2s | Cross-pod cancellation poll interval |
+| Setting                       | Default | Description                                |
+| ----------------------------- | ------- | ------------------------------------------ |
+| `HeartbeatInterval`           | 3s      | Worker liveness proof interval             |
+| `StaleWorkflowThreshold`      | 15s     | Time before a workflow is considered stale |
+| `MaxReclaimCount`             | 3       | Reclaim attempts before marking as failed  |
+| `CancellationWatcherInterval` | 2s      | Cross-pod cancellation poll interval       |
 
 ### Concurrency
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `Concurrency.MaxWorkers` | 400 | Concurrent workflow processing tasks |
-| `Concurrency.MaxDbOperations` | 90 | DB connection pool limit |
-| `Concurrency.MaxHttpCalls` | 400 | Outbound HTTP request limit |
-| `Concurrency.BackpressureThreshold` | 500,000 | Active workflow count before 429 |
+| Setting                             | Default | Description                          |
+| ----------------------------------- | ------- | ------------------------------------ |
+| `Concurrency.MaxWorkers`            | 400     | Concurrent workflow processing tasks |
+| `Concurrency.MaxDbOperations`       | 90      | DB connection pool limit             |
+| `Concurrency.MaxHttpCalls`          | 400     | Outbound HTTP request limit          |
+| `Concurrency.BackpressureThreshold` | 500,000 | Active workflow count before 429     |
 
 ### Write Buffer
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `WriteBuffer.MaxBatchSize` | 100 | Workflows per batch insert |
-| `WriteBuffer.MaxQueueSize` | 1,000 | Channel buffer size |
-| `WriteBuffer.FlushConcurrency` | 4 | Concurrent batch flushers |
+| Setting                        | Default | Description                |
+| ------------------------------ | ------- | -------------------------- |
+| `WriteBuffer.MaxBatchSize`     | 100     | Workflows per batch insert |
+| `WriteBuffer.MaxQueueSize`     | 1,000   | Channel buffer size        |
+| `WriteBuffer.FlushConcurrency` | 4       | Concurrent batch flushers  |
 
 ## Testing
 
@@ -738,12 +738,12 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 
 ### Error Classification
 
-| HTTP Response | Classification |
-|---------------|---------------|
-| 2xx | Success |
-| 408, 418, 429 | Retryable |
-| 5xx | Retryable |
-| Other 4xx | Critical — no retry |
+| HTTP Response | Classification      |
+| ------------- | ------------------- |
+| 2xx           | Success             |
+| 408, 418, 429 | Retryable           |
+| 5xx           | Retryable           |
+| Other 4xx     | Critical — no retry |
 
 ### State Passing
 
@@ -753,10 +753,10 @@ AppCommand reads `{ "state": "..." }` from the response body and stores it as `s
 
 ```json
 {
-  "AppCommandSettings": {
-    "ApiKey": "your-api-key",
-    "CommandEndpoint": "http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks"
-  }
+    "AppCommandSettings": {
+        "ApiKey": "your-api-key",
+        "CommandEndpoint": "http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks"
+    }
 }
 ```
 
