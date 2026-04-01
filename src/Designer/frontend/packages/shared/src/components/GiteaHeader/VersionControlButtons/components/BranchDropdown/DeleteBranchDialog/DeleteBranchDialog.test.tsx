@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DeleteBranchDialog } from './DeleteBranchDialog';
 import type { DeleteBranchDialogProps } from './DeleteBranchDialog';
-import { renderWithProviders } from '../../../mocks/renderWithProviders';
+import { renderWithProviders } from '../../../../mocks/renderWithProviders';
 
 const defaultProps: DeleteBranchDialogProps = {
   branchName: 'feature-branch',
