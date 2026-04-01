@@ -10,7 +10,7 @@ import {
   StudioTabs,
   StudioAlert,
 } from '@studio/components';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
@@ -63,19 +63,21 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
 
   const availableEnvironments = Object.keys(runningApps).toSorted(sortEnvironments);
 
-  if (!availableEnvironments.length) {
-    return (
-      <StudioAlert data-color='info'>{t('admin.environment.no_results', { orgName })}</StudioAlert>
-    );
-  }
-
   const activeEnvironment =
     selectedEnvironment && availableEnvironments.includes(selectedEnvironment)
       ? selectedEnvironment
       : availableEnvironments[0];
 
-  if (activeEnvironment !== selectedEnvironment) {
-    setSelectedEnvironment(activeEnvironment);
+  useEffect(() => {
+    if (activeEnvironment && activeEnvironment !== selectedEnvironment) {
+      setSelectedEnvironment(activeEnvironment);
+    }
+  }, [activeEnvironment, selectedEnvironment, setSelectedEnvironment]);
+
+  if (!availableEnvironments.length) {
+    return (
+      <StudioAlert data-color='info'>{t('admin.environment.no_results', { orgName })}</StudioAlert>
+    );
   }
 
   return (

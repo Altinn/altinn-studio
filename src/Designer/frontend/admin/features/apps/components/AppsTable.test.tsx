@@ -174,13 +174,15 @@ describe('AppsTable', () => {
   });
 
   describe('environment fallback', () => {
-    it('should render the first available environment when selectedEnvironment is not available', () => {
+    beforeEach(() => {
       jest.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
         if (key === 'range') return [1440, mockSetRange];
         if (key === 'environment') return ['production', mockSetEnvironment];
         return [defaultValue, jest.fn()];
       });
+    });
 
+    it('should render the first available environment and update selectedEnvironment when it is not available', () => {
       const queryClient = createQueryClientMock();
       queryClient.setQueryData([QueryKey.PublishedApps, org], {
         tt02: [{ app, env: 'tt02', org, version: '1' }],
@@ -190,22 +192,6 @@ describe('AppsTable', () => {
 
       expect(screen.getByRole('tab', { name: /tt02/i })).toBeInTheDocument();
       expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument();
-    });
-
-    it('should call setSelectedEnvironment with the first available environment when selectedEnvironment is not available', () => {
-      jest.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
-        if (key === 'range') return [1440, mockSetRange];
-        if (key === 'environment') return ['production', mockSetEnvironment];
-        return [defaultValue, jest.fn()];
-      });
-
-      const queryClient = createQueryClientMock();
-      queryClient.setQueryData([QueryKey.PublishedApps, org], {
-        tt02: [{ app, env: 'tt02', org, version: '1' }],
-      });
-
-      renderAppsTable(queryClient);
-
       expect(mockSetEnvironment).toHaveBeenCalledWith('tt02');
     });
   });
