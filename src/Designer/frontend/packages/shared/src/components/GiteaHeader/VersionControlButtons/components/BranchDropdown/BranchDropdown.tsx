@@ -35,6 +35,7 @@ export const BranchDropdown = () => {
   const triggerButtonText = shouldDisplayText ? currentBranch : undefined;
   const isLoading = isLoadingData || isLoadingOperations;
   const canDeleteCurrentBranch = currentBranch !== DEFAULT_APP_BRANCH;
+  const shouldDisplayBranchList = branchList?.length > 1;
 
   if (isLoading) {
     return (
@@ -61,11 +62,13 @@ export const BranchDropdown = () => {
           onCreateBranchClick={() => setShowCreateDialog(true)}
           onDeleteBranchClick={() => setShowDeleteDialog(true)}
         />
-        <BranchList
-          branchList={branchList}
-          currentBranch={currentBranch}
-          onBranchClick={checkoutExistingBranch}
-        />
+        {shouldDisplayBranchList && (
+          <BranchList
+            branchList={branchList}
+            currentBranch={currentBranch}
+            onBranchClick={checkoutExistingBranch}
+          />
+        )}
       </StudioDropdown>
       <CreateBranchDialog
         isOpen={showCreateDialog}

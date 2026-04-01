@@ -72,14 +72,14 @@ describe('BranchDropdown', () => {
     expect(loadingSpinner).toBeInTheDocument();
   });
 
-  it('should render dropdown trigger with text on a large screen', () => {
+  it('Should render dropdown trigger with text on large screen', () => {
     renderBranchDropdown();
 
     const dropdownTrigger = getDropdownTrigger();
     expect(dropdownTrigger).toHaveTextContent(currentBranchInfoMock.branchName);
   });
 
-  it('should not render the button text on a small screen', () => {
+  it('Should render dropdown trigger without text on small screen', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(true);
     renderBranchDropdown();
 
@@ -87,15 +87,27 @@ describe('BranchDropdown', () => {
     expect(dropdownTrigger).not.toHaveTextContent(currentBranchInfoMock.branchName);
   });
 
-  it('Should list branches and disable current branch', async () => {
+  it('Should not render branch list when there is only one branch', async () => {
+    const user = userEvent.setup();
+    mockBranchData({ branchList: [branchesMock[0]] });
+    renderBranchDropdown();
+
+    await user.click(getDropdownTrigger());
+
+    expect(queryBranchListHeading()).not.toBeInTheDocument();
+  });
+
+  it('Should render branch list and disable current branch', async () => {
     const user = userEvent.setup();
     renderBranchDropdown();
     const dropdownTrigger = getDropdownTrigger();
     await user.click(dropdownTrigger);
 
+    const branchListHeading = queryBranchListHeading();
     const masterBranchButton = getMasterBranchButton();
     const featureBranchButton = getFeatureBranchButton();
 
+    expect(branchListHeading).toBeInTheDocument();
     expect(masterBranchButton).toBeInTheDocument();
     expect(masterBranchButton).toBeDisabled();
     expect(featureBranchButton).toBeInTheDocument();
@@ -253,4 +265,8 @@ const getDeleteBranchButton = () => {
 
 const queryDeleteBranchButton = () => {
   return screen.queryByRole('button', { name: textMock('branching.delete_branch_dialog.title') });
+};
+
+const queryBranchListHeading = () => {
+  return screen.queryByText(textMock('branching.select_branch_heading'));
 };
