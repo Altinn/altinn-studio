@@ -78,14 +78,12 @@ export const BranchDropdown = () => {
         isLoading={isLoading}
         createError={createError}
       />
-      {showDeleteDialog && (
-        <DeleteBranchDialog
-          branchName={currentBranch}
-          isOpen={showDeleteDialog}
-          onClose={() => setShowDeleteDialog(false)}
-          onDelete={deleteCurrentBranch}
-        />
-      )}
+      <DeleteBranchDialog
+        branchName={currentBranch}
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onDelete={deleteCurrentBranch}
+      />
       {uncommittedChangesError && (
         <UncommittedChangesDialog
           onClose={clearUncommittedChangesError}
