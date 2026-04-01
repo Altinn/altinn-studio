@@ -37,7 +37,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
   });
 
   describe('successful checkout', () => {
-    it('should reload page when checkout succeeds', async () => {
+    it('should call onSuccess when checkout succeeds', async () => {
       const checkoutBranch = jest
         .fn()
         .mockImplementation(() => Promise.resolve<RepoStatus>(mockRepoStatus));
@@ -47,6 +47,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
           useCheckoutWithUncommittedChangesHandling(org, app, {
             onUncommittedChanges: mockOnUncommittedChanges,
             onOtherError: mockOnOtherError,
+            onSuccess: () => window.location.reload(),
           }),
         {
           queries: { checkoutBranch },
@@ -72,6 +73,7 @@ describe('useCheckoutWithUncommittedChangesHandling', () => {
         () =>
           useCheckoutWithUncommittedChangesHandling(org, app, {
             onUncommittedChanges: mockOnUncommittedChanges,
+            onSuccess: () => window.location.reload(),
           }),
         {
           queries: { checkoutBranch },

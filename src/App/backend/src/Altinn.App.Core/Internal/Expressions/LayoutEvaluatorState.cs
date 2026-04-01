@@ -114,8 +114,49 @@ public class LayoutEvaluatorState
     }
 
     /// <summary>
+    /// Get a specific component context from the state relative to another contexts subform data element and row indexes.
+    /// </summary>
+    public async Task<ComponentContext?> GetComponentContext(string componentId, ComponentContext relativeContext)
+    {
+        if (_componentModel is null)
+        {
+            throw new InvalidOperationException("Component model not loaded");
+        }
+
+        var contexts = (await GetComponentContexts()).SelectMany(c => c.Descendants);
+
+        if (relativeContext.DataElementIdentifier is not null)
+        {
+            // Filter out contexts that does not have the same data element identifier as the relative context, this ensures that we only get contexts from the same subform repeat group when there are multiple in the same layout
+            contexts = contexts.Where(c => c.DataElementIdentifier == relativeContext.DataElementIdentifier);
+        }
+        // Filter out all contexts that have the wrong Id
+        // Filter out contexts that does not have a prefix matching
+        var filteredContexts = contexts
+            .Where(c => c.Component?.Id == componentId)
+            .Where(c => RowIndexMatch(relativeContext.RowIndices, c.RowIndices))
+            .ToArray();
+        if (filteredContexts.Length == 0)
+        {
+            return null; // No context found
+        }
+
+        if (filteredContexts.Length == 1)
+        {
+            return filteredContexts[0];
+        }
+
+        throw new InvalidOperationException(
+            $"Multiple contexts found for {componentId} with [{(relativeContext.RowIndices is null ? "" : string.Join(", ", relativeContext.RowIndices))}]"
+        );
+    }
+
+    /// <summary>
     /// Get a specific component context from the state
     /// </summary>
+    [Obsolete(
+        "A context is not uniquely identified by componentId and rowIndexes, use GetComponentContext(string, ComponentContext) instead so that we get subform data element as well."
+    )]
     public async Task<ComponentContext?> GetComponentContext(
         string? pageName,
         string componentId,

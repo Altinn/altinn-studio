@@ -44,7 +44,10 @@ internal class SqlBulkInserter(IDbContextFactory<EngineDbContext> dbContextFacto
                     ColumnName = p.GetColumnName(),
                     NpgsqlDbType = (typeMapping as INpgsqlTypeMapping)?.NpgsqlDbType,
                     Getter = BuildGetter<T>(
-                        p.PropertyInfo!,
+                        p.PropertyInfo
+                            ?? throw new InvalidOperationException(
+                                $"PropertyInfo is null for column '{p.GetColumnName()}'"
+                            ),
                         (p.GetValueConverter() ?? typeMapping.Converter)?.ConvertToProviderExpression
                     ),
                 };

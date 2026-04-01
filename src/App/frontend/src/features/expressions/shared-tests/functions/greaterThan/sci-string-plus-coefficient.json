@@ -1,0 +1,5 @@
+{
+  "name": "Should parse string scientific notation with plus sign in front of coefficient (true)",
+  "expression": ["greaterThan", "+5E2", 400],
+  "expects": true
+}

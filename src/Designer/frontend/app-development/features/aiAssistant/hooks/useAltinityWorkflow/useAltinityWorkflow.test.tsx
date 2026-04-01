@@ -32,6 +32,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
+      cancelWorkflow: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -66,6 +67,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
+      cancelWorkflow: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -111,6 +113,10 @@ const createThreadState = (): AltinityThreadState => ({
   createNewThread: jest.fn(),
   deleteThread: jest.fn(),
   addMessageToThread: jest.fn(),
+  removeLoadingMessage: jest.fn(),
+  replaceLoadingWithMessage: jest.fn(),
+  removeLastUserMessage: jest.fn(),
+  removeCancelledMessages: jest.fn(),
   upsertAssistantMessage: jest.fn(),
   updateWorkflowStatusMessage: jest.fn(),
 });

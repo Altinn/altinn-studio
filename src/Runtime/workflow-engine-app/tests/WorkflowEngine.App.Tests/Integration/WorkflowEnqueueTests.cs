@@ -130,10 +130,10 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task MixedCommandTypes_AppAndWebhook_AllComplete()
     {
-        var appStep = _testHelpers.CreateAppCommandStep("/mixed-app-step");
+        var appStep = AppTestHelpers.CreateAppCommandStep("/mixed-app-step");
         var webhookStep = _testHelpers.CreateWebhookStep("/mixed-webhook-step");
 
-        var request = _testHelpers.CreateEnqueueRequest(
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [appStep, webhookStep]),
             lockToken: InstanceLockToken
         );
@@ -151,11 +151,11 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
     [Fact]
     public async Task MultipleWorkflows_NoDependencies_AllComplete()
     {
-        var wf1 = _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateAppCommandStep("/multi-1")]);
-        var wf2 = _testHelpers.CreateWorkflow("wf-2", [_testHelpers.CreateAppCommandStep("/multi-2")]);
-        var wf3 = _testHelpers.CreateWorkflow("wf-3", [_testHelpers.CreateAppCommandStep("/multi-3")]);
+        var wf1 = _testHelpers.CreateWorkflow("wf-1", [AppTestHelpers.CreateAppCommandStep("/multi-1")]);
+        var wf2 = _testHelpers.CreateWorkflow("wf-2", [AppTestHelpers.CreateAppCommandStep("/multi-2")]);
+        var wf3 = _testHelpers.CreateWorkflow("wf-3", [AppTestHelpers.CreateAppCommandStep("/multi-3")]);
 
-        var request = _testHelpers.CreateEnqueueRequest([wf1, wf2, wf3], lockToken: InstanceLockToken);
+        var request = AppTestHelpers.CreateEnqueueRequest([wf1, wf2, wf3], lockToken: InstanceLockToken);
 
         var response = await _client.Enqueue(request);
         var allIds = response.Workflows.Select(w => w.DatabaseId);
@@ -184,7 +184,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
             """;
 
         var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.Enqueue(request));
-        Assert.Contains("BadRequest", ex.Message);
+        Assert.Contains("BadRequest", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
             """;
 
         var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.Enqueue(request));
-        Assert.Contains("BadRequest", ex.Message);
+        Assert.Contains("BadRequest", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -39,7 +39,7 @@ k6 run .k6/constant-rate.js -e RATE=50
 
 ## Payload
 
-Scripts use `payloads/process-next.json` — an 11-step app command workflow matching the Altinn process-next flow. The `idempotencyKey` and `correlationId` are replaced with unique values per request at runtime.
+Scripts use `payloads/process-next.json` — an 11-step app command workflow matching the Altinn process-next flow. The `idempotencyKey` and `correlationId` headers are generated with unique values per request at runtime.
 
 ## Shared Library
 

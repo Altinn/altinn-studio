@@ -1,5 +1,6 @@
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
@@ -28,7 +29,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .Setup(c =>
+                c.GetInstances(
+                    It.IsAny<Dictionary<string, StringValues>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instances);
 
         // Act
@@ -42,7 +49,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId"))));
+            .Verify(c =>
+                c.GetInstances(
+                    It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            );
         fixture.VerifyNoOtherCalls();
     }
 
@@ -80,7 +93,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .Setup(c =>
+                c.GetInstances(
+                    It.IsAny<Dictionary<string, StringValues>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instances);
         fixture.Mock<IProfileClient>().Setup(p => p.GetUserProfile(12345)).ReturnsAsync(default(UserProfile)!);
 
@@ -95,7 +114,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId"))));
+            .Verify(c =>
+                c.GetInstances(
+                    It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            );
         fixture.Mock<IProfileClient>().Verify(p => p.GetUserProfile(12345));
         fixture.VerifyNoOtherCalls();
     }
@@ -133,7 +158,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .Setup(c =>
+                c.GetInstances(
+                    It.IsAny<Dictionary<string, StringValues>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instances);
         fixture.Mock<IProfileClient>().Setup(p => p.GetUserProfile(12345)).ReturnsAsync(new UserProfile());
 
@@ -148,7 +179,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId"))));
+            .Verify(c =>
+                c.GetInstances(
+                    It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            );
         fixture.Mock<IProfileClient>().Verify(p => p.GetUserProfile(12345));
         fixture.VerifyNoOtherCalls();
     }
@@ -184,7 +221,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .Setup(c =>
+                c.GetInstances(
+                    It.IsAny<Dictionary<string, StringValues>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instances);
         fixture
             .Mock<IProfileClient>()
@@ -202,7 +245,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId"))));
+            .Verify(c =>
+                c.GetInstances(
+                    It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            );
         fixture.Mock<IProfileClient>().Verify(p => p.GetUserProfile(12345));
         fixture.VerifyNoOtherCalls();
     }
@@ -239,7 +288,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .Setup(c =>
+                c.GetInstances(
+                    It.IsAny<Dictionary<string, StringValues>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instances);
         fixture
             .Mock<IOrganizationClient>()
@@ -257,7 +312,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId"))));
+            .Verify(c =>
+                c.GetInstances(
+                    It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            );
         fixture.Mock<IOrganizationClient>().Verify(er => er.GetOrganization("123456789"));
         fixture.VerifyNoOtherCalls();
     }
@@ -293,7 +354,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .Setup(c =>
+                c.GetInstances(
+                    It.IsAny<Dictionary<string, StringValues>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instances);
         fixture
             .Mock<IOrganizationClient>()
@@ -311,7 +378,13 @@ public class InstancesController_ActiveInstancesTest
 
         fixture
             .Mock<IInstanceClient>()
-            .Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId"))));
+            .Verify(c =>
+                c.GetInstances(
+                    It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            );
         fixture.Mock<IOrganizationClient>().Verify(er => er.GetOrganization("123456789"));
         fixture.VerifyNoOtherCalls();
     }

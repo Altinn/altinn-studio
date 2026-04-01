@@ -6,7 +6,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
-import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
+import { httpDelete, httpGetRaw, httpPatch, httpPost } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   appPath,
@@ -24,13 +24,11 @@ import {
   getPdfFormatUrl,
   getProcessNextUrl,
   getProcessStateUrl,
-  getSetSelectedPartyUrl,
   getUpdateFileTagsUrl,
   getValidationUrl,
   postalCodesUrl,
   refreshJwtTokenUrl,
   textResourcesUrl,
-  validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import type { DataPostResponse } from 'src/features/attachments';
@@ -47,11 +45,7 @@ import type {
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { LooseAutocomplete } from 'src/types';
-import type { IActionType, IData, IParty, IProcess, PostalCodesRegistry } from 'src/types/shared';
-
-export const doSetSelectedParty = (partyId: number | string) =>
-  putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
+import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
@@ -191,8 +185,6 @@ export const fetchLayoutsForInstance = (uiFolder: string, instanceId: string): P
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
-
-export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 

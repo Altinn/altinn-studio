@@ -41,8 +41,8 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
     [Fact]
     public async Task AppCommand_UsesCorrectMethod()
     {
-        var step = _testHelpers.CreateAppCommandStep("/app-command-callback");
-        var request = _testHelpers.CreateEnqueueRequest(
+        var step = AppTestHelpers.CreateAppCommandStep("/app-command-callback");
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [step]),
             lockToken: InstanceLockToken
         );
@@ -72,8 +72,8 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
     public async Task AppCommand_AllStepsComplete_InOrder(int numSteps)
     {
         var stubs = Enumerable.Range(1, numSteps).Select(i => $"/app-{i}").ToList();
-        var steps = stubs.Select(x => _testHelpers.CreateAppCommandStep(x)).ToList();
-        var request = _testHelpers.CreateEnqueueRequest(
+        var steps = stubs.Select(x => AppTestHelpers.CreateAppCommandStep(x)).ToList();
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", steps),
             lockToken: InstanceLockToken
         );
@@ -92,8 +92,6 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
     {
         var request = new WorkflowEnqueueRequest
         {
-            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = JsonSerializer.SerializeToElement(
                 new
                 {
@@ -132,8 +130,8 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
     [Fact]
     public async Task AppCommand_CallbackPayload_IsCorrect()
     {
-        var step = _testHelpers.CreateAppCommandStep("/verify-payload", payload: "custom-payload");
-        var request = _testHelpers.CreateEnqueueRequest(
+        var step = AppTestHelpers.CreateAppCommandStep("/verify-payload", payload: "custom-payload");
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [step]),
             lockToken: InstanceLockToken
         );
@@ -161,15 +159,15 @@ public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) :
     [Fact]
     public async Task AppCommand_IdempotentResubmit_DoesNotDuplicate()
     {
-        var step = _testHelpers.CreateAppCommandStep("/idempotent-test");
-        var request = _testHelpers.CreateEnqueueRequest(
+        var step = AppTestHelpers.CreateAppCommandStep("/idempotent-test");
+        var request = AppTestHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [step]),
             lockToken: InstanceLockToken
         );
 
         // Submit the same request twice (same idempotency key)
-        var response1 = await _client.Enqueue(request);
-        var response2 = await _client.Enqueue(request);
+        var response1 = await _client.Enqueue(request, idempotencyKey: "idempotent-test-key");
+        var response2 = await _client.Enqueue(request, idempotencyKey: "idempotent-test-key");
 
         // Both should return the same workflow ID
         Assert.Equal(response1.Workflows.Single().DatabaseId, response2.Workflows.Single().DatabaseId);

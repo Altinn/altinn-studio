@@ -5,4 +5,16 @@ namespace WorkflowEngine.Models.Exceptions;
 /// that does not match the actual deserialized type.
 /// This is a non-retryable programming error.
 /// </summary>
-public sealed class CommandDataTypeMismatchException(string message) : EngineException(message);
+public sealed class CommandDataTypeMismatchException : EngineException
+{
+    /// <inheritdoc/>
+    public CommandDataTypeMismatchException() { }
+
+    /// <inheritdoc/>
+    public CommandDataTypeMismatchException(string message)
+        : base(message) { }
+
+    /// <inheritdoc/>
+    public CommandDataTypeMismatchException(string message, Exception? innerException)
+        : base(message, innerException) { }
+}

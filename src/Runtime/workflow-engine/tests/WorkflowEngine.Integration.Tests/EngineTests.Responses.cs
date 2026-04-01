@@ -225,7 +225,7 @@ public partial class EngineTests
         // Act
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            $"/api/v1/{Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}/workflows",
             TestContext.Current.CancellationToken
         );
 
@@ -240,7 +240,7 @@ public partial class EngineTests
     {
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            $"/api/v1/{Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}/workflows",
             TestContext.Current.CancellationToken
         );
 
@@ -415,7 +415,7 @@ public partial class EngineTests
 
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            $"/api/v1/{Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}/workflows",
             TestContext.Current.CancellationToken
         );
 

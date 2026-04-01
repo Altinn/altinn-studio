@@ -12,7 +12,9 @@ public sealed record Step : PersistentItem
 
     public RetryStrategy? RetryStrategy { get; init; }
     public int RequeueCount { get; set; }
+#pragma warning disable CA1002, CA2227 // Mutable domain entity — List<T> with setter is intentional
     public List<ErrorEntry> ErrorHistory { get; set; } = [];
+#pragma warning restore CA1002, CA2227
     public string? StateOut { get; set; }
 
     internal DateTimeOffset? ExecutionStartedAt { get; set; }

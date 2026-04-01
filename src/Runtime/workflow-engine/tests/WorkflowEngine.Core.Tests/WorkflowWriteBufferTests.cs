@@ -84,8 +84,6 @@ public class WorkflowWriteBufferTests
     {
         var request = new WorkflowEnqueueRequest
         {
-            IdempotencyKey = $"idem-{key}",
-            Namespace = "test-ns",
             Workflows =
             [
                 new WorkflowRequest
@@ -104,7 +102,13 @@ public class WorkflowWriteBufferTests
             ],
         };
 
-        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata = new WorkflowRequestMetadata(
+            "test-ns",
+            $"idem-{key}",
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
         var hash = request.ComputeHash();
         return (request, metadata, hash);
     }
@@ -407,7 +411,9 @@ public class WorkflowWriteBufferTests
     }
 
     [Fact]
+#pragma warning disable S2699 // Implicit assertion: signal.Wait throws if not signaled within timeout
     public async Task Enqueue_Success_SignalsAsyncSignal()
+#pragma warning restore S2699
     {
         var (buffer, repo, signal) = CreateBuffer();
         SetupMockCreated(repo);

@@ -119,10 +119,13 @@ internal sealed class EngineDbContext : DbContext
     private static class JsonbConverter<T>
         where T : class
     {
+        // EF expression trees don't support throw expressions; value is never null (serialized by us)
+#pragma warning disable NX0003
         public static readonly ValueConverter<T?, string> Converter = new(
             v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
             v => JsonSerializer.Deserialize<T>(v, JsonSerializerOptions.Default)!
         );
+#pragma warning restore NX0003
 
         public static readonly ValueComparer<T?> Comparer = new(
             equalsExpression: (a, b) => Serialize(a) == Serialize(b),

@@ -30,7 +30,7 @@ internal sealed class StatusChangeSignal(NpgsqlDataSource dataSource, ILogger<St
                 await using (var cmd = new NpgsqlCommand("LISTEN status_changed", conn))
                     await cmd.ExecuteNonQueryAsync(stoppingToken);
 
-                logger.LogInformation("PG LISTEN status_changed connected");
+                logger.ListenConnected();
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -44,7 +44,7 @@ internal sealed class StatusChangeSignal(NpgsqlDataSource dataSource, ILogger<St
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "PG LISTEN connection lost, reconnecting in 1s");
+                logger.ListenConnectionLost(ex);
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
@@ -56,4 +56,13 @@ internal sealed class StatusChangeSignal(NpgsqlDataSource dataSource, ILogger<St
             }
         }
     }
+}
+
+internal static partial class StatusChangeSignalLogs
+{
+    [LoggerMessage(LogLevel.Information, "PG LISTEN status_changed connected")]
+    internal static partial void ListenConnected(this ILogger<StatusChangeSignal> logger);
+
+    [LoggerMessage(LogLevel.Warning, "PG LISTEN connection lost, reconnecting in 1s")]
+    internal static partial void ListenConnectionLost(this ILogger<StatusChangeSignal> logger, Exception ex);
 }

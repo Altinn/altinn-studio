@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
+// CA1708: C# 14 extension blocks generate synthetic members that trigger this false positive
+#pragma warning disable CA1708
+
 namespace WorkflowEngine.Telemetry.Extensions;
 
 public static class TelemetryExtensions
