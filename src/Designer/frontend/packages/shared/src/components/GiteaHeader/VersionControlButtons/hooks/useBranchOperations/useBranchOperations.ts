@@ -5,7 +5,7 @@ import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBra
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import { HttpResponseUtils } from 'app-shared/utils/httpResponseUtils';
-import { DEFAULT_BRANCH } from 'app-shared/constants';
+import { DEFAULT_APP_BRANCH } from 'app-shared/constants';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 import type { AxiosError } from 'axios';
 
@@ -80,7 +80,7 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
   const deleteCurrentBranch = (branchName: string): void => {
     discardChangesMutation.mutate(undefined, {
       onSuccess: () => {
-        checkoutBranchMutation.mutate(DEFAULT_BRANCH, {
+        checkoutBranchMutation.mutate(DEFAULT_APP_BRANCH, {
           onSuccess: () => {
             deleteBranchMutation.mutate(branchName, {
               onSuccess: () => location.reload(),

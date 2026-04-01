@@ -5,7 +5,7 @@ import { StudioDropdown, StudioSpinner } from '@studio/components';
 import { BranchingIcon, PlusIcon, TrashIcon } from '@studio/icons';
 import { UncommittedChangesDialog } from 'app-shared/components/UncommittedChangesDialog';
 import { CreateBranchDialog } from 'app-shared/components/CreateBranchDialog';
-import { DEFAULT_BRANCH, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { DEFAULT_APP_BRANCH, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import { DeleteBranchDialog } from '../DeleteBranchDialog';
 import classes from './BranchDropdown.module.css';
@@ -34,7 +34,7 @@ export const BranchDropdown = () => {
 
   const triggerButtonText = shouldDisplayText ? currentBranch : undefined;
   const isLoading = isLoadingData || isLoadingOperations;
-  const canDeleteCurrentBranch = currentBranch !== DEFAULT_BRANCH;
+  const canDeleteCurrentBranch = currentBranch !== DEFAULT_APP_BRANCH;
 
   if (isLoading) {
     return (
