@@ -36,7 +36,7 @@ jobs:
       working-directory: src/AI/mcp
       run: |
         uv run -m server.main > server.log 2>&1 &
-        curl --retry 30 --retry-delay 2 --retry-connrefused --silent --output /dev/null http://localhost:8070/sse
+        curl --retry 30 --retry-delay 2 --retry-connrefused http://localhost:8070/sse
       env:
         AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
 
