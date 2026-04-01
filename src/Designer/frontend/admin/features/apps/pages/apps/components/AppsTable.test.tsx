@@ -41,12 +41,16 @@ jest.mock('axios', () => ({
 jest.mock('admin/features/apps/hooks/useQueryParamState');
 
 const mockSetRange = jest.fn();
+const mockSetEnvironment = jest.fn();
 
 describe('AppsTable', () => {
   beforeEach(() => {
     jest.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
       if (key === 'range') {
         return [1440, mockSetRange];
+      }
+      if (key === 'environment') {
+        return [defaultValue, mockSetEnvironment];
       }
       return [defaultValue, jest.fn()];
     });
@@ -166,6 +170,29 @@ describe('AppsTable', () => {
         const metricElement = screen.getByText(textMock(`admin.metrics.${metric.name}`));
         expect(metricElement).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('environment fallback', () => {
+    beforeEach(() => {
+      jest.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
+        if (key === 'range') return [1440, mockSetRange];
+        if (key === 'environment') return ['production', mockSetEnvironment];
+        return [defaultValue, jest.fn()];
+      });
+    });
+
+    it('should render the first available environment and update selectedEnvironment when it is not available', () => {
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData([QueryKey.PublishedApps, org], {
+        tt02: [{ app, env: 'tt02', org, version: '1' }],
+      });
+
+      renderAppsTable(queryClient);
+
+      expect(screen.getByRole('tab', { name: /tt02/i })).toBeInTheDocument();
+      expect(screen.queryByLabelText(textMock('general.loading'))).not.toBeInTheDocument();
+      expect(mockSetEnvironment).toHaveBeenCalledWith('tt02');
     });
   });
 
