@@ -5,7 +5,7 @@
 }
 
 .branchList {
-  max-height: 50vh; /*Fits screen at 150% scaling */
+  max-height: calc(100vh - 23rem); /* Scales well up to 200% zoom */
   overflow-y: auto;
 }
 
