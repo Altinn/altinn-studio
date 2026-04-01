@@ -1,4 +1,5 @@
 using Altinn.App.Api.Controllers;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -68,7 +69,16 @@ public class FileScanControllerTests
 
         var instanceClientMock = new Mock<IInstanceClient>();
         instanceClientMock
-            .Setup(e => e.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+            .Setup(e =>
+                e.GetInstance(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .Returns(Task.FromResult(instance));
 
         return instanceClientMock;

@@ -70,7 +70,13 @@ public class DataClientTestsXmlJson
         var dataClient = serviceProvider.GetRequiredService<IDataClient>();
 
         // New endpoint with instance
-        var elementNew = await dataClient.InsertFormData(_instance, dataType, data);
+        var elementNew = await dataClient.InsertFormData(
+            _instance,
+            dataType,
+            data,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         Assert.Equal(dataType, elementNew.DataType);
         Assert.Equal(requestContentType, elementNew.ContentType);
@@ -209,7 +215,14 @@ public class DataClientTestsXmlJson
                 Guid.Parse(oldElement.Id)
             );
 
-        var actNew = async () => await dataClient.UpdateFormData(_instance, data, oldElement);
+        var actNew = async () =>
+            await dataClient.UpdateFormData(
+                _instance,
+                data,
+                oldElement,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
 
         if (dataType == "xmlDataType")
         {
@@ -351,7 +364,12 @@ public class DataClientTestsXmlJson
         var dataClient = serviceProvider.GetRequiredService<IDataClient>();
 
         // Verify Most up-to-date method
-        var retrievedData = await dataClient.GetFormData(_instance, element);
+        var retrievedData = await dataClient.GetFormData(
+            _instance,
+            element,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         Assert.Equivalent(data, retrievedData);
 
         // Verify Obsolete method
@@ -400,7 +418,9 @@ public class DataClientTestsXmlJson
         await Assert.ThrowsAsync<PlatformHttpException>(() =>
             dataClient.GetFormData(_instanceId, typeof(TestDataXml), Org, App, InstanceOwnerPartyId, wrongElementId)
         );
-        await Assert.ThrowsAsync<PlatformHttpException>(() => dataClient.GetFormData(_instance, wrongDataElement));
+        await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            dataClient.GetFormData(_instance, wrongDataElement, authenticationMethod: null, CancellationToken.None)
+        );
 
         await Assert.ThrowsAsync<PlatformHttpException>(() =>
             dataClient.GetFormData<TestData>(_instance, wrongDataElement)
@@ -446,7 +466,15 @@ public class DataClientTestsXmlJson
         );
 
         await Assert.ThrowsAsync<PlatformHttpException>(() =>
-            dataClient.GetDataBytes(Org, App, InstanceOwnerPartyId, _instanceId, wrongElementId)
+            dataClient.GetDataBytes(
+                Org,
+                App,
+                InstanceOwnerPartyId,
+                _instanceId,
+                wrongElementId,
+                authenticationMethod: null,
+                CancellationToken.None
+            )
         );
 
         _mockedServiceCollection.VerifyMocks();

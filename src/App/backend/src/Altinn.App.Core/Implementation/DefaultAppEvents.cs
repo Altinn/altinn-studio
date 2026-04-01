@@ -60,7 +60,7 @@ public class DefaultAppEvents : IAppEvents
             return;
         }
 
-        instance = await _instanceClient.GetInstance(instance);
+        instance = await _instanceClient.GetInstance(instance, authenticationMethod: null, CancellationToken.None);
         List<DataElement> elementsToDelete = instance.Data.Where(e => typesToDelete.Contains(e.DataType)).ToList();
 
         List<Task> deleteTasks = new();
@@ -71,7 +71,9 @@ public class DefaultAppEvents : IAppEvents
                     int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
                     Guid.Parse(item.InstanceGuid),
                     Guid.Parse(item.Id),
-                    true
+                    true,
+                    authenticationMethod: null,
+                    CancellationToken.None
                 )
             );
         }

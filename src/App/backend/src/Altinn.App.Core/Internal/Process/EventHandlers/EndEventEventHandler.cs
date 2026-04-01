@@ -50,7 +50,13 @@ public class EndEventEventHandler : IEndEventEventHandler
         if (applicationMetadata.AutoDeleteOnProcessEnd && instance.Process?.Ended != null)
         {
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-            await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceIdentifier.InstanceGuid, true);
+            await _instanceClient.DeleteInstance(
+                instanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                true,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
         }
     }
 }

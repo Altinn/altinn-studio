@@ -3,26 +3,31 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 
 // --- Configuration ---
-export const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api/v1/workflows';
+const NAMESPACE = __ENV.NAMESPACE || 'default';
+export const BASE_URL =
+    __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
 export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
-export const requestParams = {
-    headers: {
-        'Content-Type': 'application/json',
-    },
-};
+/**
+ * Builds request params with unique metadata headers for each request.
+ * Returns a k6 params object with Content-Type, Idempotency-Key, and Correlation-Id headers.
+ */
+export function buildRequestParams() {
+    const guid = uuidv4();
+    return {
+        headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': `k6-${guid}`,
+            'Correlation-Id': guid,
+        },
+    };
+}
 
 /**
- * Deep-clones the payload template and replaces placeholder fields with unique values.
+ * Deep-clones the payload template.
  * Returns the serialized JSON string ready for POST.
  */
 export function buildPayload(template) {
-    const guid = uuidv4();
-    const payload = JSON.parse(JSON.stringify(template));
-    payload.idempotencyKey = `k6-${guid}`;
-    if (!payload.correlationId) {
-        payload.correlationId = guid;
-    }
-    return JSON.stringify(payload);
+    return JSON.stringify(template);
 }
 
 /**
@@ -35,7 +40,7 @@ function parseEngineHealth(res) {
 }
 
 /**
- * Polls the health endpoint until there are no active workers (queue fully drained).
+ * Polls the workflows list endpoint until it returns 204 No Content (no active workflows).
  * @param {number} pollIntervalMs - milliseconds between polls
  */
 export function waitForQueueDrain(pollIntervalMs = 500) {
@@ -46,21 +51,19 @@ export function waitForQueueDrain(pollIntervalMs = 500) {
 
     while (!drained) {
         try {
-            const res = http.get(HEALTH_URL);
-            const engine = parseEngineHealth(res);
+            const res = http.get(BASE_URL, { tags: { name: 'queue_drain' } });
 
-            if (!engine) {
-                console.warn('  Warning: could not read engine data from health endpoint');
-            } else if (engine.workers.active === 0) {
+            if (res.status === 204) {
                 drained = true;
+            } else if (res.status === 200) {
+                const workflows = JSON.parse(res.body);
+                const count = Array.isArray(workflows) ? workflows.length : '?';
+                console.log(`  Active workflows: ${count}`);
             } else {
-                const q = engine.queue || {};
-                console.log(
-                    `  Workers: ${engine.workers.active}/${engine.workers.max}  DB: ${engine.db_connections.count}/${engine.db_connections.limit}  HTTP: ${engine.http_connections.count}/${engine.http_connections.limit}  Queue: ${q.active_workflows ?? '?'} active, ${q.scheduled_workflows ?? '?'} scheduled, ${q.failed_workflows ?? '?'} failed`,
-                );
+                console.warn(`  Unexpected status: ${res.status}`);
             }
         } catch (e) {
-            console.warn(`  Warning: health check failed: ${e.message}`);
+            console.warn(`  Warning: poll failed: ${e.message}`);
         }
 
         if (!drained) {

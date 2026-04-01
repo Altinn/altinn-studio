@@ -84,8 +84,6 @@ public class WorkflowWriteBufferTests
     {
         var request = new WorkflowEnqueueRequest
         {
-            IdempotencyKey = $"idem-{key}",
-            Namespace = "test-ns",
             Workflows =
             [
                 new WorkflowRequest
@@ -104,7 +102,13 @@ public class WorkflowWriteBufferTests
             ],
         };
 
-        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata = new WorkflowRequestMetadata(
+            "test-ns",
+            $"idem-{key}",
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
         var hash = request.ComputeHash();
         return (request, metadata, hash);
     }

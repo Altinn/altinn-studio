@@ -62,7 +62,10 @@ internal class DataService : IDataService
             dataTypeId,
             "application/json",
             dataTypeId + ".json",
-            referenceStream
+            referenceStream,
+            generatedFromTask: null,
+            authenticationMethod: null,
+            cancellationToken: CancellationToken.None
         );
     }
 
@@ -82,7 +85,9 @@ internal class DataService : IDataService
             "application/json",
             dataTypeId + ".json",
             dataElementId,
-            referenceStream
+            referenceStream,
+            authenticationMethod: null,
+            CancellationToken.None
         );
     }
 
@@ -93,7 +98,9 @@ internal class DataService : IDataService
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
             dataElementId,
-            false
+            false,
+            authenticationMethod: null,
+            CancellationToken.None
         );
     }
 
@@ -102,7 +109,9 @@ internal class DataService : IDataService
         Stream dataStream = await _dataClient.GetBinaryData(
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
-            new Guid(dataElement.Id)
+            new Guid(dataElement.Id),
+            authenticationMethod: null,
+            CancellationToken.None
         );
         if (dataStream == null)
         {

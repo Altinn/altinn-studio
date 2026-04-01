@@ -255,6 +255,9 @@ export const restoreUrl = () => {
                 set.add(value);
             }
         }
+        // Sync namespace dropdown state from restored label filters
+        const nsFilter = state.labelFilters.get('namespace');
+        if (nsFilter) state.namespaceFilter = new Set(nsFilter);
         if (state.labelFilters.size) _applyFilter();
     }
     for (const s of (p.get('cpt') || '').split(',').filter(Boolean)) {
