@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './CustomReceiptContent.module.css';
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
 import { CreateCustomReceiptForm } from './CreateCustomReceiptForm';
@@ -19,7 +18,7 @@ export const CustomReceiptContent = (): React.ReactElement => {
   if (pendingApiOperations) {
     return (
       <StudioSpinner
-        spinnerTitle={t('process_editor.configuration_panel_custom_receipt_spinner_title')}
+        aria-label={t('process_editor.configuration_panel_custom_receipt_spinner_title')}
         className={classes.spinner}
       />
     );

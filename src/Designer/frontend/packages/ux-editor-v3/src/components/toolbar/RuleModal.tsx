@@ -1,4 +1,3 @@
-import React from 'react';
 import { RuleComponent } from '../config/RuleComponent';
 import { useTranslation } from 'react-i18next';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
@@ -9,6 +8,8 @@ import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigU
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { StudioParagraph } from '@studio/components';
+
+import type { JSX } from 'react';
 
 export function RuleModal() {
   const { org, app } = useStudioEnvironmentParams();

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './CreatedFor.module.css';
 import { useTranslation } from 'react-i18next';

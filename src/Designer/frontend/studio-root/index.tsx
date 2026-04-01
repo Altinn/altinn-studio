@@ -1,4 +1,3 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { STUDIO_ROOT_BASENAME, DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -12,6 +11,7 @@ import type { QueryClientConfig } from '@tanstack/react-query';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
+import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import 'app-shared/design-tokens';
 
 i18next.use(initReactI18next).init({
@@ -39,7 +39,9 @@ root.render(
   <FeatureFlagsProvider>
     <BrowserRouter basename={STUDIO_ROOT_BASENAME}>
       <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-        <App />
+        <EnvironmentConfigProvider>
+          <App />
+        </EnvironmentConfigProvider>
       </ServicesContextProvider>
     </BrowserRouter>
   </FeatureFlagsProvider>,

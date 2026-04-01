@@ -1,4 +1,4 @@
-import type { FormEvent, ForwardedRef, ReactNode } from 'react';
+import type { ChangeEvent, ForwardedRef, ReactNode } from 'react';
 import React from 'react';
 import { StudioInputTable } from './';
 import type { RenderResult } from '@testing-library/react';
@@ -334,7 +334,7 @@ describe('StudioInputTable', () => {
             renderSingleNumberfieldCell({
               label: 'test',
               onChange: (value: number) =>
-                onChange?.({ target: { value } } as unknown as FormEvent<HTMLInputElement>),
+                onChange?.({ target: { value } } as unknown as ChangeEvent<HTMLInputElement>),
             }),
           action: (user) => user.type(screen.getByRole('textbox'), '1'),
         },

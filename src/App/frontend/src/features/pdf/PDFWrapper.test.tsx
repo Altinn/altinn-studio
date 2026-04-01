@@ -8,10 +8,11 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
-import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AppQueries } from 'src/queries/types';
 
@@ -34,15 +35,18 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
       p.processTasks = [p.currentTask!];
     }),
   );
-  jest.mocked(fetchInstanceData).mockImplementation(async () => {
+  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => {
     const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
-    return getInstanceDataMock(
-      undefined,
-      instanceOwnerParty.partyId,
-      undefined,
-      instanceOwnerParty.orgNumber,
-      instanceOwnerParty,
-    );
+    return {
+      ...getInstanceDataMock(
+        undefined,
+        instanceOwnerParty.partyId,
+        undefined,
+        instanceOwnerParty.orgNumber,
+        instanceOwnerParty,
+      ),
+      process: getProcessDataMock(),
+    };
   });
 
   return await renderWithoutInstanceAndLayout({

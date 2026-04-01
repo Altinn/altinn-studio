@@ -1,5 +1,4 @@
 import type { ReactElement, ReactNode } from 'react';
-import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   SchemaModel,

@@ -1,4 +1,5 @@
-import React, { type ReactElement, type ReactNode, createContext, useContext } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import { type User } from 'app-shared/types/Repository';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import {
@@ -15,7 +16,7 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 import { useSearchParams } from 'react-router-dom';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
+import { SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type PageHeaderContextProps = {
   user: User;
@@ -55,13 +56,13 @@ export const PageHeaderContextProvider = ({
     itemName: t('sync_header.documentation'),
   };
 
-  const userSettingsMenuItem: StudioProfileMenuItem = {
+  const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: USER_SETTINGS_BASENAME,
+      href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('settings'),
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
@@ -72,12 +73,12 @@ export const PageHeaderContextProvider = ({
   const studioOidc = environment?.featureFlags?.studioOidc;
 
   const profileMenuItems: StudioProfileMenuItem[] = [
+    ...(studioOidc ? [settingsMenuItem] : []),
     docsMenuItem,
-    ...(studioOidc ? [userSettingsMenuItem] : []),
     logOutMenuItem,
   ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [settingsMenuItem, docsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

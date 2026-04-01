@@ -8,7 +8,7 @@ import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
@@ -86,10 +86,7 @@ export const EditFormComponent = ({
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
       {showComponentConfigBeta && isPending && (
-        <StudioSpinner
-          showSpinnerTitle
-          spinnerTitle={t('ux_editor.edit_component.loading_schema')}
-        />
+        <StudioSpinner aria-hidden spinnerTitle={t('ux_editor.edit_component.loading_schema')} />
       )}
       {showComponentConfigBeta && !isPending && (
         <FormComponentConfig

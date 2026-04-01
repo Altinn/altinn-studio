@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';

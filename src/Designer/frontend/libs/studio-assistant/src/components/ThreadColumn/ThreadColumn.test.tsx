@@ -1,4 +1,3 @@
-import React from 'react';
 import { ThreadColumn } from './ThreadColumn';
 import { render, screen } from '@testing-library/react';
 import type { ThreadColumnProps } from './ThreadColumn';

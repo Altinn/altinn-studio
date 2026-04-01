@@ -3,7 +3,6 @@ import type { FormAttachmentListComponent } from '../../../../types/FormComponen
 import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -91,8 +90,8 @@ describe('AttachmentListComponent', () => {
   it('should render spinner when appMetadata is pending', () => {
     render({}, undefined, defaultLayoutSets, defaultDataTypes, false);
 
-    const spinnerText = screen.getByText(textMock('ux_editor.component_properties.loading'));
-    expect(spinnerText).toBeInTheDocument();
+    const spinnerLabel = screen.getByLabelText(textMock('ux_editor.component_properties.loading'));
+    expect(spinnerLabel).toBeInTheDocument();
   });
 
   it('should render AttachmentList component', async () => {

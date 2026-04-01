@@ -162,6 +162,7 @@ internal sealed class SigneeContextsManager(
             TaskId = taskId,
             SigneeState = new SigneeContextState(),
             CommunicationConfig = providedSignee.CommunicationConfig,
+            AdditionalActionsToDelegate = providedSignee.AdditionalActionsToDelegate,
             Signee = signee,
         };
     }

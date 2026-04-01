@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { DropdownHeading } from '@digdir/designsystemet-react';
 import type { DropdownHeadingProps } from '@digdir/designsystemet-react';

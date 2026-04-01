@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import type { Meta } from '@storybook/react-vite';
 import { TestTable } from './test-data/TestTable';
 import type { StudioInputTableProps } from './StudioInputTable';

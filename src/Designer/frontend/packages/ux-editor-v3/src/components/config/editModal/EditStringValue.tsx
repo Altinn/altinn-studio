@@ -1,5 +1,4 @@
 import { StudioSelect, StudioSuggestion, StudioTextfield } from '@studio/components';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { FormField } from '../../FormField';

@@ -1,4 +1,4 @@
-import React, { type ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
 import type { SubExpression } from '../../../../../../types/Expressions';
 import { DataSource } from '../../../../../../types/Expressions';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';

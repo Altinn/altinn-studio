@@ -14,7 +14,7 @@ export function testRefForwarding<Element extends HTMLElement = HTMLElement>(
 function testObjectRefForwarding<Element extends HTMLElement>(
   ...[renderComponent, getTargetElement]: Parameters<typeof testRefForwarding<Element>>
 ): void {
-  const ref: RefObject<Element> = createRef<Element>();
+  const ref: RefObject<Element | null> = createRef<Element>();
   const { container, unmount } = renderComponent(ref);
   expect(ref.current).toBe(getTargetElement?.(container));
   unmount();

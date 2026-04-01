@@ -240,7 +240,16 @@ public class ValidationControllerValidateDataTests
     private void SetupMocks(string app, string org, int instanceOwnerId, ValidateDataTestScenario testScenario)
     {
         _instanceMock
-            .Setup(i => i.GetInstance(app, org, instanceOwnerId, testScenario.InstanceId))
+            .Setup(i =>
+                i.GetInstance(
+                    app,
+                    org,
+                    instanceOwnerId,
+                    testScenario.InstanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .Returns(Task.FromResult(testScenario.ReceivedInstance)!);
         if (testScenario.ReceivedApplication != null)
         {

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import {
   InformationSquareIcon,

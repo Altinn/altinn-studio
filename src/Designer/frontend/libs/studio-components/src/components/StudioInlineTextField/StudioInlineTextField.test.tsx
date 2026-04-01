@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -41,6 +40,45 @@ describe('StudioInlineTextField', () => {
     expect(onChange).toHaveBeenCalledWith(newValue);
     expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: label })).not.toBeInTheDocument();
+  });
+
+  it('should call onUnsavedValueChange(true) when the value changes', async () => {
+    const user = userEvent.setup();
+    const onUnsavedValueChange = jest.fn();
+    renderStudioInlineTextField({
+      label,
+      value,
+      onUnsavedValueChange,
+      saveAriaLabel: 'Save',
+      cancelAriaLabel: 'Cancel',
+    });
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.clear(screen.getByRole('textbox', { name: label }));
+    await user.type(screen.getByRole('textbox', { name: label }), 'New value');
+    expect(onUnsavedValueChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it('should call onUnsavedValueChange(false) when Save and Cancel are clicked', async () => {
+    const user = userEvent.setup();
+    const onUnsavedValueChange = jest.fn();
+    renderStudioInlineTextField({
+      label,
+      value,
+      onUnsavedValueChange,
+      saveAriaLabel: 'Save',
+      cancelAriaLabel: 'Cancel',
+    });
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.clear(screen.getByRole('textbox', { name: label }));
+    await user.type(screen.getByRole('textbox', { name: label }), 'New value');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onUnsavedValueChange).toHaveBeenLastCalledWith(false);
+
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.clear(screen.getByRole('textbox', { name: label }));
+    await user.type(screen.getByRole('textbox', { name: label }), 'Another value');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onUnsavedValueChange).toHaveBeenLastCalledWith(false);
   });
 
   it('should render description in edit mode when provided', async () => {

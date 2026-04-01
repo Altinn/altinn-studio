@@ -1,11 +1,10 @@
-﻿import type { Locator, Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { Routes, url } from '../helpers/routes';
 
-// Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
+const SKIP_LOGIN_GUIDE_KEY = 'altinn-studio-skip-login-guide';
+
 const loginPageTexts: Record<string, string> = {
   login: 'Logg inn',
-  continueToLogin: 'Fortsett til innlogging',
-  dontShowAgain: 'Ikke vis denne meldingen igjen',
   username: 'Brukernavn eller e-postadresse',
   password: 'Passord',
   error_message: 'Brukernavn eller passord er feil.',
@@ -61,8 +60,8 @@ export class LoginPage {
   }
 
   public async loginViaFakeAnsattporten(): Promise<void> {
+    await this.skipLoginGuide();
     await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
-    await this.dismissAccountLinkModalIfVisible();
     await this.page.waitForURL(/\/authorize/);
     await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
 
@@ -81,14 +80,8 @@ export class LoginPage {
     }
   }
 
-  private async dismissAccountLinkModalIfVisible(): Promise<void> {
-    const continueButton = this.page.getByRole('button', {
-      name: loginPageTexts['continueToLogin'],
-    });
-    if (await continueButton.isVisible({ timeout: 2000 })) {
-      await this.page.getByLabel(loginPageTexts['dontShowAgain']).check();
-      await continueButton.click();
-    }
+  private async skipLoginGuide(): Promise<void> {
+    await this.page.evaluate((key) => localStorage.setItem(key, 'true'), SKIP_LOGIN_GUIDE_KEY);
   }
 
   public async addSessionToSharableStorage() {

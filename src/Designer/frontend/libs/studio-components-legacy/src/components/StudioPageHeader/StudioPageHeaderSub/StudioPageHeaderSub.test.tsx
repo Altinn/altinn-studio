@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioPageHeaderSub, type StudioPageHeaderSubProps } from './StudioPageHeaderSub';
 import { StudioPageHeaderContext } from '../context';

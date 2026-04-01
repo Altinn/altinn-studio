@@ -1,0 +1,12 @@
+{
+  "priority": 5,
+  "name": "Instant error (500)",
+  "request": {
+    "urlPath": "/error",
+    "method": "ANY"
+  },
+  "response": {
+    "status": 500,
+    "jsonBody": { "error": "Simulated failure" }
+  }
+}

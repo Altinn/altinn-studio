@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactElement } from 'react';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import type { DropTargetMonitor } from 'react-dnd';
 import { useDrop } from 'react-dnd';
 import type { DndItem } from '../types';
@@ -47,7 +47,9 @@ export function StudioDragAndDropList<T>({ children }: StudioDragAndDropListProp
       className={classes.root + ' ' + domSelectors.list.className}
       data-testid={droppableListId}
       id={domSelectors.list.id}
-      ref={drop}
+      ref={(element) => {
+        drop(element);
+      }}
       style={{ backgroundColor }}
     >
       {children}

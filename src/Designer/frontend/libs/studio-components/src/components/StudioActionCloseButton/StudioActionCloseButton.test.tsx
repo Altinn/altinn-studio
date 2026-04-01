@@ -1,4 +1,4 @@
-import React, { type ForwardedRef } from 'react';
+import type { ForwardedRef } from 'react';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { render, screen } from '@testing-library/react';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';

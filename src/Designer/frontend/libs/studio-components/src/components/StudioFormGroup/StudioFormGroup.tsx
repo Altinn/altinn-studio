@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { StudioFieldset, type StudioFieldsetProps } from '../StudioFieldset';
 import { StudioLabelWrapper } from '../StudioLabelWrapper';

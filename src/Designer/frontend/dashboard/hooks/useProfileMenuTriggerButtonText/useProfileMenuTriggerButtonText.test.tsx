@@ -1,4 +1,3 @@
-import React from 'react';
 import { useProfileMenuTriggerButtonText } from './useProfileMenuTriggerButtonText';
 import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
 import { SelectedContextType } from '../../enums/SelectedContextType';

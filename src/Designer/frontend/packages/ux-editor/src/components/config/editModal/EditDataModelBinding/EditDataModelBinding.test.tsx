@@ -1,4 +1,3 @@
-import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditDataModelBinding, type EditDataModelBindingProps } from './EditDataModelBinding';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
@@ -146,9 +145,7 @@ describe('EditDataModelBinding', () => {
       },
     });
 
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const definedButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_edit', { binding: labelSpecificText }),
@@ -181,9 +178,7 @@ describe('EditDataModelBinding', () => {
         handleComponentChange,
       },
     });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const definedButton = screen.getByRole('button', { name: definedButtonText });
 
@@ -206,3 +201,9 @@ describe('EditDataModelBinding', () => {
     );
   });
 });
+
+const waitForLoadingToFinish = async () => {
+  await waitForElementToBeRemoved(() =>
+    screen.queryByLabelText(textMock('ux_editor.modal_properties_loading')),
+  );
+};

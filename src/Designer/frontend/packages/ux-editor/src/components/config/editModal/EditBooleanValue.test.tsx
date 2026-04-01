@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { EditBooleanValue } from './EditBooleanValue';
 import { renderWithProviders } from '../../../testing/mocks';

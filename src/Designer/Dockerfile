@@ -5,6 +5,9 @@ WORKDIR /build
 COPY ./package.json yarn.lock ./
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
+COPY ./.yarn/patches ./.yarn/patches
+
+COPY src/App/frontend/package.json ./src/App/frontend/
 
 COPY src/Designer/development/azure-devops-mock/package.json ./src/Designer/development/azure-devops-mock/
 COPY src/Designer/frontend/package.json ./src/Designer/frontend/
@@ -24,6 +27,7 @@ COPY src/Designer/frontend/libs/studio-guard/package.json ./src/Designer/fronten
 COPY src/Designer/frontend/libs/studio-hooks/package.json ./src/Designer/frontend/libs/studio-hooks/
 COPY src/Designer/frontend/libs/studio-icons/package.json ./src/Designer/frontend/libs/studio-icons/
 COPY src/Designer/frontend/libs/studio-pure-functions/package.json ./src/Designer/frontend/libs/studio-pure-functions/
+COPY src/Designer/frontend/libs/studio-ui-test/package.json ./src/Designer/frontend/libs/studio-ui-test/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
 COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/frontend/packages/schema-editor/
@@ -37,7 +41,7 @@ COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Des
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
-COPY src/Designer/frontend/user-settings/package.json ./src/Designer/frontend/user-settings/
+COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 
 RUN yarn --immutable
 
@@ -45,7 +49,7 @@ COPY . .
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:ebdd46c1a72c10bb992c276e5e6afc6e245757bd1a295d7f0870b266e11c306e AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:5e2228a03bcb9b75b9078f7a2379c2c82639422b785601ff271f744745ac2f71 AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/Designer/backend .
@@ -79,7 +83,7 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/dashboard/dist
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/dist ./wwwroot/info/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
-COPY --from=generate-studio-frontend /build/src/Designer/frontend/user-settings/dist ./wwwroot/settings/
+COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist ./wwwroot/settings/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

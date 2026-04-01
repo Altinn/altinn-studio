@@ -1,4 +1,3 @@
-import React from 'react';
 import { FetchChangesPopover } from './FetchChangesPopover';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

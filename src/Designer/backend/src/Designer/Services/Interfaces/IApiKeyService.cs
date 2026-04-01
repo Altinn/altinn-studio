@@ -13,6 +13,7 @@ public interface IApiKeyService
         string name,
         ApiKeyType tokenType,
         DateTimeOffset expiresAt,
+        string? createdByUsername = null,
         CancellationToken cancellationToken = default
     );
     Task<ApiKey?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default);

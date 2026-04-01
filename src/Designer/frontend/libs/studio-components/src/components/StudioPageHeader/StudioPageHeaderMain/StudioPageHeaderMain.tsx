@@ -1,4 +1,4 @@
-import React, { type ReactNode, type ReactElement } from 'react';
+import type { ReactNode, ReactElement } from 'react';
 import classes from './StudioPageHeaderMain.module.css';
 import cn from 'classnames';
 import { useStudioPageHeaderContext } from '../context';

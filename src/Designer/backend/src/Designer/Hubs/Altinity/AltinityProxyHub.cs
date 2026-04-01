@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +11,15 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelBinding.Constants;
+using Altinn.Studio.Designer.Services.Implementation.Altinity;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ApiKeyType = Altinn.Studio.Designer.Models.ApiKey.ApiKeyType;
 
 namespace Altinn.Studio.Designer.Hubs.Altinity;
 
@@ -32,10 +35,11 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly AltinitySettings _altinitySettings;
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
     private readonly IAltinityWebSocketService _webSocketService;
+    private readonly AltinityAttachmentBuffer _attachmentStore;
+    private readonly IApiKeyService _apiKeyService;
+    private readonly IUserOrganizationService _userOrganizationService;
 
     private static readonly ConcurrentDictionary<string, string> s_sessionIdToDeveloper = new();
-
-    private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToWebSocket = new();
 
     private static readonly ConcurrentDictionary<string, string> s_signalRConnectionToSessionId = new();
 
@@ -45,7 +49,10 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         ILogger<AltinityProxyHub> logger,
         IOptions<AltinitySettings> altinitySettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
-        IAltinityWebSocketService webSocketService
+        IAltinityWebSocketService webSocketService,
+        IUserOrganizationService userOrganizationService,
+        AltinityAttachmentBuffer attachmentStore,
+        IApiKeyService apiKeyService
     )
     {
         _httpContextAccessor = httpContextAccessor;
@@ -54,6 +61,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         _altinitySettings = altinitySettings.Value;
         _serviceRepositorySettings = serviceRepositorySettings.Value;
         _webSocketService = webSocketService;
+        _userOrganizationService = userOrganizationService;
+        _attachmentStore = attachmentStore;
+        _apiKeyService = apiKeyService;
     }
 
     public override async Task OnConnectedAsync()
@@ -74,23 +84,21 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         try
         {
-            string wsConnectionId = await _webSocketService.ConnectAndRegisterSessionAsync(
-                sessionId,
-                async (message) =>
-                {
-                    await Clients.Group(developer).ReceiveAgentMessage(message);
-                }
-            );
+            await _webSocketService.EnsureConnectedAsync(developer);
+            await _webSocketService.RegisterSessionAsync(developer, sessionId);
 
-            s_signalRConnectionToWebSocket.TryAdd(connectionId, wsConnectionId);
             s_sessionIdToDeveloper.TryAdd(sessionId, developer);
             s_signalRConnectionToSessionId.TryAdd(connectionId, sessionId);
 
-            _logger.LogInformation("Established WebSocket to Altinity for session {SessionId}", sessionId);
+            _logger.LogInformation(
+                "Registered session {SessionId} on agents WS for developer {Developer}",
+                sessionId,
+                developer
+            );
 
             await Clients.Caller.SessionCreated(sessionId);
         }
-        catch (Exception ex) when (ex is WebSocketException or HttpRequestException or OperationCanceledException)
+        catch (Exception ex)
         {
             _logger.LogError(
                 ex,
@@ -111,15 +119,13 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         await Groups.RemoveFromGroupAsync(connectionId, developer);
 
-        if (s_signalRConnectionToWebSocket.TryRemove(connectionId, out string? wsConnectionId))
-        {
-            await _webSocketService.DisconnectSessionAsync(wsConnectionId);
-        }
-
         if (s_signalRConnectionToSessionId.TryRemove(connectionId, out string? sessionId))
         {
             s_sessionIdToDeveloper.TryRemove(sessionId, out _);
         }
+
+        // Don't close the developer WS — it persists across tab reconnects.
+        // It will be cleaned up by the service when the developer has no active sessions.
 
         _logger.LogInformation("Altinity hub disconnected for user: {Developer}", developer);
 
@@ -127,17 +133,16 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     }
 
     /// <summary>
-    /// Proxies the start workflow request to Altinity agent with user's Gitea token
+    /// Proxies the start workflow request to Altinity agent with a short-lived Designer API key
     /// </summary>
     /// <param name="request">The workflow start request</param>
     /// <returns>Agent response</returns>
     public async Task<object> StartWorkflow(JsonElement request)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        string userToken = await GetCurrentDeveloperTokenAsync();
-
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateSessionOwnership(sessionId, developer);
+        await ValidateOrgMembershipAsync(request, developer);
 
         _logger.LogInformation(
             "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
@@ -145,25 +150,86 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             sessionId
         );
 
-        var agentResponse = await ForwardRequestToAltinityAgentAsync(request, developer, userToken, sessionId);
+        // Re-register session on the agents WS before starting
+        await _webSocketService.EnsureConnectedAsync(developer);
+        await _webSocketService.RegisterSessionAsync(developer, sessionId);
+
+        string apiKey = await CreateAltinityApiKeyAsync(developer, sessionId);
+
+        var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
+        var agentResponse = await ForwardRequestToAltinityAgentAsync(
+            enrichedWithAttachments,
+            developer,
+            apiKey,
+            sessionId
+        );
+
+        // Remove attachments from buffer only after successful forwarding
+        _attachmentStore.RemoveAll(attachmentIds);
 
         return agentResponse;
     }
 
-    private async Task<string> GetCurrentDeveloperTokenAsync()
+    private (JsonElement Request, List<string> AttachmentIds) ResolveAttachments(JsonElement request)
     {
-        // Use the same method as GiteaTokenDelegatingHandler - OAuth JWT token
-        // Gitea in Altinn Studio is configured to accept JWT tokens from OIDC
-        string? token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+        var attachmentIds = new List<string>();
 
-        if (string.IsNullOrEmpty(token))
+        if (
+            !request.TryGetProperty("attachment_ids", out var idsElement)
+            || idsElement.ValueKind != JsonValueKind.Array
+        )
         {
-            throw new HubException("Missing access_token in authentication context");
+            return (request, attachmentIds);
         }
 
-        _logger.LogInformation("Retrieved OAuth access_token");
+        var attachments = new List<object>();
+        foreach (var idEl in idsElement.EnumerateArray())
+        {
+            string? id = idEl.GetString();
+            if (id == null)
+            {
+                continue;
+            }
 
-        return token;
+            if (!_attachmentStore.TryGet(id, out var stored) || stored == null)
+            {
+                _logger.LogWarning("Attachment {AttachmentId} not found in buffer", id);
+                continue;
+            }
+
+            attachmentIds.Add(id);
+            attachments.Add(
+                new
+                {
+                    name = stored.Name,
+                    mimeType = stored.MimeType,
+                    size = stored.Size,
+                    dataBase64 = stored.DataBase64,
+                }
+            );
+        }
+
+        var requestDict =
+            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText())
+            ?? throw new HubException("Failed to parse workflow request");
+
+        requestDict.Remove("attachment_ids");
+        if (attachments.Count > 0)
+        {
+            requestDict["attachments"] = JsonSerializer.SerializeToElement(attachments);
+        }
+
+        return (JsonSerializer.SerializeToElement(requestDict), attachmentIds);
+    }
+
+    private async Task<string> CreateAltinityApiKeyAsync(string developer, string sessionId)
+    {
+        string keyName = $"altinity-{Guid.NewGuid()}";
+        DateTimeOffset expiresAt = DateTimeOffset.UtcNow.AddMinutes(20);
+
+        var (rawKey, _) = await _apiKeyService.CreateAsync(developer, keyName, ApiKeyType.System, expiresAt);
+
+        return rawKey;
     }
 
     private static string ExtractSessionIdFromRequest(JsonElement request)
@@ -180,6 +246,22 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
 
         return sessionId;
+    }
+
+    private async Task ValidateOrgMembershipAsync(JsonElement request, string developer)
+    {
+        string? org = request.TryGetProperty("org", out var orgElement) ? orgElement.GetString() : null;
+
+        if (string.IsNullOrWhiteSpace(org))
+        {
+            throw new HubException("Missing org in request");
+        }
+
+        if (!await _userOrganizationService.UserIsMemberOfOrganization(org))
+        {
+            _logger.LogWarning("User {Developer} was denied access to start workflow for org {Org}", developer, org);
+            throw new HubException("Access denied");
+        }
     }
 
     private void ValidateSessionOwnership(string sessionId, string developer)
@@ -209,12 +291,12 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private async Task<JsonElement> ForwardRequestToAltinityAgentAsync(
         JsonElement request,
         string developer,
-        string userToken,
+        string apiKey,
         string sessionId
     )
     {
         var enrichedRequest = EnrichRequestWithRepoUrl(request);
-        var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, userToken, sessionId);
+        var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, apiKey, sessionId);
         var response = await SendRequestToAltinityAsync(httpRequest);
 
         return response;
@@ -254,7 +336,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private HttpRequestMessage CreateAltinityHttpRequest(
         JsonElement request,
         string developer,
-        string userToken,
+        string apiKey,
         string sessionId
     )
     {
@@ -263,7 +345,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
             Content = JsonContent.Create(request),
         };
 
-        AddUserCredentialsToRequest(httpRequest, developer, userToken, sessionId);
+        AddUserCredentialsToRequest(httpRequest, developer, apiKey, sessionId);
 
         return httpRequest;
     }
@@ -271,13 +353,41 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private static void AddUserCredentialsToRequest(
         HttpRequestMessage httpRequest,
         string developer,
-        string userToken,
+        string apiKey,
         string sessionId
     )
     {
-        httpRequest.Headers.Add("X-User-Token", userToken);
+        httpRequest.Headers.Add("X-Api-Key", apiKey);
         httpRequest.Headers.Add("X-Developer", developer);
         httpRequest.Headers.Add("X-Session-Id", sessionId);
+    }
+
+    /// <summary>
+    /// Cancels a running workflow for the given session
+    /// </summary>
+    public async Task<object> CancelWorkflow(string sessionId)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        ValidateSessionOwnership(sessionId, developer);
+
+        _logger.LogInformation("CancelWorkflow called for session {SessionId} by {Developer}", sessionId, developer);
+
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.PostAsync($"{_altinitySettings.AgentUrl}/api/agent/cancel/{sessionId}", null);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "Cancel request failed for session {SessionId}: {StatusCode}",
+                sessionId,
+                response.StatusCode
+            );
+            throw new HubException($"Cancel failed: {responseContent}");
+        }
+
+        _logger.LogInformation("Session {SessionId} cancelled successfully", sessionId);
+        return JsonSerializer.Deserialize<JsonElement>(responseContent);
     }
 
     private async Task<JsonElement> SendRequestToAltinityAsync(HttpRequestMessage httpRequest)

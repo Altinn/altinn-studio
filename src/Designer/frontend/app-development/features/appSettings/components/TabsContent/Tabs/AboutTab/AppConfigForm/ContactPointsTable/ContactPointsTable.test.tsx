@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointsTable } from './ContactPointsTable';
@@ -125,9 +125,7 @@ describe('ContactPointsTable', () => {
     });
     await waitFor(() => expect(addButton.className).toContain('validationFocusedButton'));
     await user.click(addButton);
-    await waitFor(async () => {
-      addButton.blur();
-    });
+    await user.tab(); // done to move focus away from add button
     await waitFor(() => {
       expect(addButton.className).not.toContain('validationFocusedButton');
     });

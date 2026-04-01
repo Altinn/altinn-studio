@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback } from 'react';
+import { forwardRef, useCallback } from 'react';
 import type { StudioTableProps } from '../StudioTable';
 import { StudioTable } from '../StudioTable';
 import classes from './StudioInputTable.module.css';

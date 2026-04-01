@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import classes from './SubHeader.module.css';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';

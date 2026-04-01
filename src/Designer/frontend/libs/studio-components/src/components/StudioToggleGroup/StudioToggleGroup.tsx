@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import type { ToggleGroupProps, ToggleGroupItemProps } from '@digdir/designsystemet-react';

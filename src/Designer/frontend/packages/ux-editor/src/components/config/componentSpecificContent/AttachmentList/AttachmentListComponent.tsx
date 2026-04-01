@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
@@ -6,7 +5,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import { reservedDataTypes } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
@@ -14,6 +13,8 @@ import { convertInternalToExternalFormat } from './convertFunctions/convertToExt
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+
+import type { JSX } from 'react';
 
 type AttachmentListComponentProps = IGenericEditComponent<ComponentType.AttachmentList> & {
   className?: string;
@@ -31,7 +32,7 @@ export const AttachmentListComponent = ({
   const { layoutSet } = useUxEditorParams();
 
   if (appMetadataPending)
-    return <StudioSpinner spinnerTitle={t('ux_editor.component_properties.loading')} />;
+    return <StudioSpinner aria-label={t('ux_editor.component_properties.loading')} />;
 
   const availableAttachments: AvailableAttachementLists = getAvailableAttachments(
     layoutSets,

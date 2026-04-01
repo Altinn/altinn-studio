@@ -1,10 +1,9 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageHeader } from './PageHeader';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 
 const mockEnvironment: {
@@ -14,8 +13,8 @@ const mockEnvironment: {
 } = { environment: null, isLoading: false, error: null };
 const mockLogout = jest.fn();
 
-jest.mock('@studio/components-legacy', () => ({
-  ...jest.requireActual('@studio/components-legacy'),
+jest.mock('@studio/hooks', () => ({
+  ...jest.requireActual('@studio/hooks'),
   useMediaQuery: jest.fn(),
 }));
 
@@ -75,9 +74,9 @@ describe('PageHeader', () => {
       }),
     );
 
-    const userSettingsLink = screen.getByRole('menuitem', { name: textMock('user.settings') });
+    const settingsLink = screen.getByRole('menuitem', { name: textMock('settings') });
 
-    expect(userSettingsLink).toHaveAttribute('href', '/settings');
+    expect(settingsLink).toHaveAttribute('href', '/settings');
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();
@@ -101,9 +100,7 @@ describe('PageHeader', () => {
       }),
     );
 
-    expect(
-      screen.queryByRole('menuitem', { name: textMock('user.settings') }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: textMock('settings') })).not.toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();

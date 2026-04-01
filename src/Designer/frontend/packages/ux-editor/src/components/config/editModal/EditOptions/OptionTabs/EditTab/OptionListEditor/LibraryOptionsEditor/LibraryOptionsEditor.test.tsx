@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';

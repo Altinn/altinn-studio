@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { AllAccessPackages, type AllAccessPackagesProps } from './AllAccessPackages';
 import type {
@@ -47,7 +46,7 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     name: area2Name,
     urn: 'urn:area2',
     description: '',
-    iconUrl: '',
+    iconUrl: 'area2_icon',
     packages: [package3],
   },
 ];
