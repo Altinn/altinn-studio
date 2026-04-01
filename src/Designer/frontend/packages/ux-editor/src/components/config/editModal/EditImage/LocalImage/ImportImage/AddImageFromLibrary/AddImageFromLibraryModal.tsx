@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, type JSX } from 'react';
 import { StudioDialog, StudioHeading } from '@studio/components';
 import { ChooseFromLibrary } from './ChooseFromLibrary/ChooseFromLibrary';
 import { useTranslation } from 'react-i18next';

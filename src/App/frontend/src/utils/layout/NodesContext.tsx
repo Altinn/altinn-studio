@@ -21,7 +21,7 @@ import {
 } from 'src/features/validation/validationContext';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { TaskKeys } from 'src/routesBuilder';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';

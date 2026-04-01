@@ -1,0 +1,9 @@
+.addButtonWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.addButton {
+  max-width: 400px;
+  flex: 1;
+}

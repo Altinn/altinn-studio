@@ -5,6 +5,9 @@ WORKDIR /build
 COPY ./package.json yarn.lock ./
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
+COPY ./.yarn/patches ./.yarn/patches
+
+COPY src/App/frontend/package.json ./src/App/frontend/
 
 COPY src/Designer/development/azure-devops-mock/package.json ./src/Designer/development/azure-devops-mock/
 COPY src/Designer/frontend/package.json ./src/Designer/frontend/
@@ -38,7 +41,7 @@ COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Des
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
-COPY src/Designer/frontend/user-settings/package.json ./src/Designer/frontend/user-settings/
+COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 
 RUN yarn --immutable
 
@@ -80,7 +83,7 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/dashboard/dist
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/dist ./wwwroot/info/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
-COPY --from=generate-studio-frontend /build/src/Designer/frontend/user-settings/dist ./wwwroot/settings/
+COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist ./wwwroot/settings/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

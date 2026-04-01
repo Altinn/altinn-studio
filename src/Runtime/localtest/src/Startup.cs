@@ -141,6 +141,7 @@ namespace LocalTest
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
+            services.AddTransient<IProcessAuthorizer, ProcessAuthorizer>();
             services.AddTransient<IDataService, DataService>();
             services.AddTransient<ISigningService, SigningService>();
             services.AddTransient<IInstanceEventService, InstanceEventService>();

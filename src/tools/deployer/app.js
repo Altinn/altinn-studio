@@ -22,7 +22,13 @@ function reconcileSelections(status) {
     for (const plane of service.planes) {
       for (const slot of Object.values(plane.envs)) {
         const next = slot.next;
-        if (!next || next.status !== 'waiting' || next.canApprove !== true || !Number.isInteger(next.runId)) continue;
+        if (
+          !next ||
+          next.status !== 'waiting' ||
+          next.canApprove !== true ||
+          !Number.isInteger(next.runId)
+        )
+          continue;
         valid.add(selectionKey(next.runId, service.workflow, slot.name));
       }
     }
@@ -65,7 +71,9 @@ function el(tag, className, text) {
 }
 
 function setLastUpdatedFromStatus(status) {
-  const ts = status.fetchedAt ? new Date(status.fetchedAt).toLocaleTimeString() : new Date().toLocaleTimeString();
+  const ts = status.fetchedAt
+    ? new Date(status.fetchedAt).toLocaleTimeString()
+    : new Date().toLocaleTimeString();
   document.getElementById('last-updated').textContent = `Data from ${ts}`;
 }
 
@@ -79,6 +87,25 @@ function updateApproveBar() {
   document.getElementById('approve-count').textContent = `${selected.size} pending selected`;
 }
 
+function extLink(href, className, text, title) {
+  const a = el('a', className, text);
+  a.href = href;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  if (title) a.title = title;
+  return a;
+}
+
+function renderLinks(data) {
+  const row = el('div', 'cell-links');
+  row.appendChild(extLink(data.runUrl, 'cell-link cell-link-run', 'run', 'Open workflow run'));
+  if (data.prUrl)
+    row.appendChild(
+      extLink(data.prUrl, 'cell-link cell-link-pr', `#${data.prNumber}`, 'Open pull request'),
+    );
+  return row;
+}
+
 function renderDeployment(data, statusClass) {
   const container = el('div', `cell-half ${statusClass}`);
   if (!data) {
@@ -86,16 +113,14 @@ function renderDeployment(data, statusClass) {
     return container;
   }
 
-  const link = el('a');
-  link.href = data.runUrl;
-  link.target = '_blank';
-  link.rel = 'noopener';
-  link.title = data.title;
-  if (statusClass === 'half-in_progress' || statusClass === 'half-queued') link.appendChild(el('span', 'spinner'));
-  link.appendChild(el('span', 'sha', data.sha));
-  link.appendChild(el('span', 'title', data.title));
-  link.appendChild(el('span', 'time', relativeTime(data.updatedAt)));
-  container.appendChild(link);
+  if (statusClass === 'half-in_progress' || statusClass === 'half-queued')
+    container.appendChild(el('span', 'spinner'));
+  container.appendChild(el('span', 'sha', data.sha));
+  container.appendChild(el('span', 'title', data.title));
+  const footer = el('div', 'cell-footer');
+  footer.appendChild(el('span', 'time', relativeTime(data.updatedAt)));
+  footer.appendChild(renderLinks(data));
+  container.appendChild(footer);
   return container;
 }
 
@@ -120,18 +145,17 @@ function renderWaitingHalf(next, service, slot) {
   const body = el('div', 'waiting-body');
   body.appendChild(el('span', 'sha', next.sha));
   body.appendChild(el('span', 'title', next.title));
-  body.appendChild(el('span', 'time', relativeTime(next.updatedAt)));
+  const footer = el('div', 'cell-footer');
+  footer.appendChild(el('span', 'time', relativeTime(next.updatedAt)));
+  footer.appendChild(renderLinks(next));
+  body.appendChild(footer);
 
-  const ghLink = el('a', 'gh-ext-link', '\u2197');
-  ghLink.href = next.runUrl;
-  ghLink.target = '_blank';
-  ghLink.rel = 'noopener';
-  ghLink.title = 'Open in GitHub';
-
-  container.append(checkbox, body, ghLink);
+  container.append(checkbox, body);
 
   const hovered = { selection, checkbox };
-  container.addEventListener('mouseenter', () => { hoveredWaitingCell = hovered; });
+  container.addEventListener('mouseenter', () => {
+    hoveredWaitingCell = hovered;
+  });
   container.addEventListener('mouseleave', () => {
     if (hoveredWaitingCell?.selection.key === selection.key) hoveredWaitingCell = null;
   });
@@ -143,18 +167,23 @@ function getPlaneServices(status, planeName) {
   for (const service of status.services) {
     const plane = service.planes.find((p) => p.name === planeName);
     if (!plane) continue;
+
     services.push({
       workflow: service.workflow,
       displayName: service.displayName,
       envs: plane.envs,
     });
   }
+  services.sort((a, b) => a.displayName.localeCompare(b.displayName));
   return services;
 }
 
 function renderGrid(containerId, services, envs) {
   const grid = document.getElementById(containerId);
-  grid.style.gridTemplateColumns = `140px repeat(${envs.length}, 1fr)`;
+  const envMinWidth = 220;
+  const serviceColWidth = 150;
+  grid.style.gridTemplateColumns = `${serviceColWidth}px repeat(${envs.length}, minmax(${envMinWidth}px, 1fr))`;
+  grid.style.minWidth = `${serviceColWidth + envs.length * envMinWidth + envs.length * 8}px`;
   grid.innerHTML = '';
 
   grid.appendChild(el('div', 'cell cell-header', 'Service'));
@@ -163,14 +192,19 @@ function renderGrid(containerId, services, envs) {
   for (const service of services) {
     grid.appendChild(el('div', 'cell cell-service', service.displayName));
     for (const env of envs) {
-      const slot = service.envs[env.name] ?? { name: env.name, displayName: env.displayName, current: null, next: null };
+      const slot = service.envs[env.name] ?? {
+        name: env.name,
+        displayName: env.displayName,
+        current: null,
+        next: null,
+      };
       const current = slot.current;
       const next = slot.next;
       const cell = el('div', 'cell cell-env');
 
       if (env.ungated) {
         const nextIsActiveOrFailed = next && effectiveStatus(next) !== 'success';
-        const data = nextIsActiveOrFailed ? next : (current || next);
+        const data = nextIsActiveOrFailed ? next : current || next;
         cell.classList.add('cell-single');
         cell.appendChild(renderDeployment(data, deploymentStatusClass(data)));
       } else {
@@ -234,7 +268,11 @@ async function doApprove() {
   confirmOk.disabled = true;
   confirmOk.textContent = 'Approving...';
   try {
-    const items = [...selected.values()].map(({ runId, workflow, env }) => ({ runId, workflow, env }));
+    const items = [...selected.values()].map(({ runId, workflow, env }) => ({
+      runId,
+      workflow,
+      env,
+    }));
     const res = await fetch('/api/approve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

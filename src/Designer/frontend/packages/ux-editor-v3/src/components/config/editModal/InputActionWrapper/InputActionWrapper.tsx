@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type JSX } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { ButtonProps } from '@digdir/designsystemet-react';
@@ -21,7 +21,9 @@ const actionToIconMap: Record<AvailableAction, React.ReactNode> = {
 };
 
 export type InputActionWrapperProps = {
-  children: React.ReactElement;
+  children: React.ReactElement<{
+    onFocus?: React.FocusEventHandler<HTMLElement>;
+  }>;
   mode?: ActionGroup;
   onEditClick: () => void;
   onDeleteClick: () => void;

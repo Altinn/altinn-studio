@@ -88,7 +88,14 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, instance.Process);
 
             return Ok(appProcessState);
@@ -133,7 +140,14 @@ public class ProcessController : ControllerBase
 
         try
         {
-            instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
 
             var request = new ProcessStartRequest()
             {
@@ -202,7 +216,14 @@ public class ProcessController : ControllerBase
 
         try
         {
-            instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
 
             if (instance.Process == null)
             {
@@ -266,7 +287,14 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                ct
+            );
 
             var processNextRequest = new ProcessNextRequest
             {
@@ -328,7 +356,14 @@ public class ProcessController : ControllerBase
 
         try
         {
-            instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
         }
         catch (PlatformHttpException e)
         {

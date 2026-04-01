@@ -1,0 +1,195 @@
+{
+  "name": "Divide tests",
+  "testCases": [
+    {
+      "name": "Should divide the first argument with the second",
+      "expression": ["divide", 0.1, 0.2],
+      "expects": 0.5
+    },
+    {
+      "name": "Should divide two negative numbers yielding positive result",
+      "expression": ["divide", -0.1, -0.2],
+      "expects": 0.5
+    },
+    {
+      "name": "Should return null when both of the arguments are null",
+      "expression": ["divide", null, null],
+      "expects": null
+    },
+    {
+      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "expression": ["divide", null, 2.1],
+      "expects": null
+    },
+    {
+      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "expression": ["divide", 2.1, null],
+      "expects": null
+    },
+    {
+      "name": "Should divide two integers",
+      "expression": ["divide", 30, 6],
+      "expects": 5
+    },
+    {
+      "name": "Should divide [float, integer]",
+      "expression": ["divide", 30.0, 6],
+      "expects": 5.0
+    },
+    {
+      "name": "Should divide [string, integer] when string is valid number",
+      "expression": ["divide", "30", 6],
+      "expects": 5
+    },
+    {
+      "name": "Should divide [string, float] when string is valid number",
+      "expression": ["divide", "22.0", 4.0],
+      "expects": 5.5
+    },
+    {
+      "name": "Should handle dividing zero by a number",
+      "expression": ["divide", 0, 42],
+      "expects": 0
+    },
+    {
+      "name": "Should divide negative by positive",
+      "expression": ["divide", -30, 6],
+      "expects": -5
+    },
+    {
+      "name": "Should divide two negative numbers",
+      "expression": ["divide", -30, -6],
+      "expects": 5
+    },
+    {
+      "name": "Should divide numbers in scientific notation",
+      "expression": ["divide", 6e3, 2e3],
+      "expects": 3
+    },
+    {
+      "name": "Should divide numbers with negative exponents",
+      "expression": ["divide", 6e-3, 2e-3],
+      "expects": 3
+    },
+    {
+      "name": "Should divide scientific notation by regular number",
+      "expression": ["divide", 5e2, 10],
+      "expects": 50
+    },
+    {
+      "name": "Should fail with invalid string that cannot be parsed as number",
+      "expression": ["divide", 100, "not a number"],
+      "expectsFailure": "Expected number, got value \"not a number\""
+    },
+    {
+      "name": "Should fail with string with no decimals after dot",
+      "expression": ["divide", "55.", 5],
+      "expectsFailure": "Expected number, got value \"55.\""
+    },
+    {
+      "name": "Should handle very large numbers within the safe range",
+      "expression": ["divide", 1000000000000, 1000000],
+      "expects": 1000000
+    },
+    {
+      "name": "Should handle very large number formatted as string",
+      "expression": ["divide", "999999999999999", 3],
+      "expects": 333333333333333
+    },
+    {
+      "name": "Should handle very small numbers",
+      "expression": ["divide", 0.00000001, 0.0001],
+      "expects": 0.0001
+    },
+    {
+      "name": "Returns expected value for inputs that would return different result when treated as 64-bit binary floats",
+      "expression": ["divide", 0.00000001, 0.0001],
+      "expects": 0.0001
+    },
+    {
+      "name": "Should divide string scientific notation with plus sign in front of coefficient",
+      "expression": ["divide", "+5E2", 10],
+      "expects": 50
+    },
+    {
+      "name": "Should divide string scientific notation with plus sign in front of exponent",
+      "expression": ["divide", "5E+2", 10],
+      "expects": 50
+    },
+    {
+      "name": "Should divide string scientific notation with negative sign in front of coefficient",
+      "expression": ["divide", "-5E2", 10],
+      "expects": -50
+    },
+    {
+      "name": "Should divide string scientific notation with negative sign in front of exponent",
+      "expression": ["divide", "5e-2", 10],
+      "expects": 0.005
+    },
+    {
+      "name": "Should divide string scientific notation by number",
+      "expression": ["divide", "5E2", 10],
+      "expects": 50
+    },
+    {
+      "name": "Should divide string scientific notation with no whole number part by number",
+      "expression": ["divide", ".5e2", 10],
+      "expects": 5
+    },
+    {
+      "name": "Should divide string scientific notation equivalent to 0 by number",
+      "expression": ["divide", "0e0", 10],
+      "expects": 0
+    },
+    {
+      "name": "Should throw exception when string scientific notation has negative sign before the E",
+      "expression": ["divide", "5-E2", 10],
+      "expectsFailure": "Expected number, got value \"5-E2\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation has plus sign before the E",
+      "expression": ["divide", "5+E2", 10],
+      "expectsFailure": "Expected number, got value \"5+E2\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation is missing the exponent",
+      "expression": ["divide", "5e", 10],
+      "expectsFailure": "Expected number, got value \"5e\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation is missing the coefficient",
+      "expression": ["divide", "e2", 10],
+      "expectsFailure": "Expected number, got value \"e2\""
+    },
+    {
+      "name": "Should throw exception when less than two arguments are provided",
+      "expression": ["divide", 2.1],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Should throw exception when more than two arguments are present",
+      "expression": ["divide", 0.1, 0.2, 15, 1.50],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Should divide negative by positive decimal",
+      "expression": ["divide", -0.1, 0.2],
+      "expects": -0.5
+    },
+    {
+      "name": "Should return null when dividend is null and divisor is zero",
+      "expression": ["divide", null, 0],
+      "expects": null
+    },
+    {
+      "name": "Should throw exception when trying to divide by zero",
+      "expression": ["divide", 15, 0],
+      "expectsFailure": "The second argument is 0, cannot divide by 0"
+    },
+    {
+      "name": "Should fail with [boolean, integer]",
+      "expression": ["divide", true, 100],
+      "expectsFailure": "Expected number, got value true"
+    }
+  ]
+}

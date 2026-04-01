@@ -1,0 +1,13 @@
+{
+  "priority": 5,
+  "name": "Slow error (5s, then 500)",
+  "request": {
+    "urlPath": "/slow/error",
+    "method": "ANY"
+  },
+  "response": {
+    "status": 500,
+    "fixedDelayMilliseconds": 5000,
+    "jsonBody": { "error": "Simulated slow failure after 5s" }
+  }
+}

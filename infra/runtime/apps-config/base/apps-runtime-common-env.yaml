@@ -8,7 +8,9 @@ data:
   ServiceRepositorySettings__RepositoryLocation: /AltinnService/
   PdfGeneratorSettings__ServiceEndpointUri: http://pdf-generator.pdf.svc.cluster.local/pdf
   PlatformSettings__ApiPdf2Endpoint: http://pdf-generator.pdf.svc.cluster.local/pdf
+  PlatformSettings__ApiWorkflowEngineEndpoint: http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local/api/v1/workflows/
   GeneralSettings__ExternalAppBaseUrl: https://{org}.apps.{hostName}/{org}/{app}/
+  PlatformFrontendSettings__PostalCodesUrl: https://altinncdn.no/postcodes/registry.json
 ---
 apiVersion: v1
 kind: Secret

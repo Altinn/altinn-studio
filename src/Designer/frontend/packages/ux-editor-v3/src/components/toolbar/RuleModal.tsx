@@ -9,6 +9,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../hooks/useAppContext';
 import { StudioParagraph } from '@studio/components';
 
+import type { JSX } from 'react';
+
 export function RuleModal() {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedLayoutSet } = useAppContext();

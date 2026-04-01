@@ -174,4 +174,48 @@ public class AltinnPartyClient : IAltinnPartyClient
         var partyId = listResponse[0].GetProperty("partyId").GetInt32();
         return partyId;
     }
+
+    /// <inheritdoc/>
+    public async Task<Guid?> GetPartyUuidByUrn(string urn)
+    {
+        using var activity = _telemetry?.StartLookupPartyActivity();
+        string endpointUrl = "access-management/parties/query";
+        var query = new { data = new string[] { urn } };
+        using var content = new StringContent(JsonSerializer.Serialize(query));
+        content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+
+        string token = _userTokenProvider.GetUserToken();
+
+        using HttpResponseMessage response = await _client.PostAsync(
+            token,
+            endpointUrl,
+            content,
+            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+        );
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            _logger.LogError(
+                "// Getting partyUuid by URN {Urn} failed with statuscode {StatusCode} - {Reason}",
+                urn,
+                response.StatusCode,
+                await response.Content.ReadAsStringAsync()
+            );
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+
+        using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
+        var listResponse = responseDocument.RootElement.GetProperty("data");
+        if (listResponse.GetArrayLength() == 0)
+        {
+            return null;
+        }
+        if (listResponse.GetArrayLength() > 1)
+        {
+            throw new InvalidOperationException($"Multiple parties found for URN {urn}");
+        }
+
+        var partyUuid = listResponse[0].GetProperty("partyUuid").GetGuid();
+        return partyUuid;
+    }
 }
