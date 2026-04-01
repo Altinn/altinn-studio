@@ -2,7 +2,7 @@ import { axiosInstance } from 'src/core/axiosInstance';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 import type { BackendValidationIssue } from 'src/features/validation';
 
-export const validationApi = {
+export const backendValidationApi = {
   async fetchBackendValidations(
     instanceId: string,
     language: string,
@@ -19,4 +19,4 @@ export const validationApi = {
   },
 };
 
-export type ValidationApi = typeof validationApi;
+export type BackendValidationApi = typeof backendValidationApi;
