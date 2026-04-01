@@ -75,6 +75,8 @@
  *   querySearch:          string,
  *   sectionStatus:        Record<string, string>,
  *   labelFilters:         Map<string, Set<string>>,
+ *   namespaceFilter:      Set<string>,
+ *   allNamespaces:        Set<string>,
  * }} DashboardState
  */
 
@@ -96,6 +98,9 @@ export const dom = {
     labelFilterBar: /** @type {HTMLElement} */ (document.getElementById('label-filter-bar')),
     scheduledSection: /** @type {HTMLElement} */ (document.getElementById('scheduled-section')),
     scheduledContainer: /** @type {HTMLElement} */ (document.getElementById('scheduled-workflows')),
+    nsDropdown: /** @type {HTMLElement} */ (document.getElementById('ns-dropdown')),
+    nsList: /** @type {HTMLElement} */ (document.getElementById('ns-list')),
+    nsSelected: /** @type {HTMLElement} */ (document.getElementById('ns-selected')),
     sseDot: /** @type {HTMLElement} */ (document.getElementById('sse-dot')),
     engineIcon: /** @type {HTMLElement} */ (document.getElementById('engine-icon')),
     engineStatusLabel: /** @type {HTMLElement} */ (document.getElementById('engine-status-label')),
@@ -129,6 +134,10 @@ export const state = {
     /** @type {Map<string, string[]>} label key → all known values (from backend) */
     labelValues: new Map(),
     labelValuesLoaded: false,
+    /** @type {Set<string>} selected namespace values */
+    namespaceFilter: new Set(),
+    /** @type {Set<string>} all known namespaces from backend */
+    allNamespaces: new Set(),
     compactSections: {
         scheduled: localStorage.getItem('compact:scheduled') === '1',
         inbox: localStorage.getItem('compact:inbox') === '1',
