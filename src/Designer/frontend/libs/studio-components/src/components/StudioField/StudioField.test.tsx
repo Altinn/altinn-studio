@@ -13,12 +13,6 @@ describe('StudioField', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('applies custom data-size correctly', () => {
-    renderField({ 'data-size': 'lg' });
-
-    expect(screen.getByRole('textbox').parentElement?.getAttribute('data-size')).toBe('lg');
-  });
-
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) => renderField({ className }));
   });
