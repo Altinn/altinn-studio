@@ -89,6 +89,15 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                         policy.Requirements.Add(new AiAssistantPermissionRequirement());
                     }
                 );
+
+                options.AddPolicy(
+                    AltinnPolicy.MustBeOrgOwner,
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+                        policy.Requirements.Add(new OrgOwnerRequirement());
+                    }
+                );
             });
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();
@@ -99,6 +108,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             services.AddScoped<IAuthorizationHandler, OrganizationPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, AdminPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, AiAssistantPermissionHandler>();
+            services.AddScoped<IAuthorizationHandler, OrgOwnerHandler>();
 
             return services;
         }

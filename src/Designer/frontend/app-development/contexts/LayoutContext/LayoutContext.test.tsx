@@ -29,8 +29,6 @@ describe('LayoutContext', () => {
   });
 
   it('should throw an error when useLayoutContext is used outside of a LayoutContextProvider', () => {
-    // Mock console error to check if it has been called
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useLayoutContext();
       return <div data-testid='context'>Test</div>;
@@ -39,7 +37,6 @@ describe('LayoutContext', () => {
     expect(() => render(<TestComponent />)).toThrow(
       'useLayoutContext must be used within a LayoutContextProvider',
     );
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('should update selectedLayoutSetName when setSelectedLayoutSetName is called', async () => {

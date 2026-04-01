@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, type JSX } from 'react';
 
 export type StudioRecommendedNextActionContext = {
   shouldDisplayAction: (actionId: string) => boolean;

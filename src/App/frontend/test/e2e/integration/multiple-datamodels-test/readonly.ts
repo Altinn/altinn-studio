@@ -45,7 +45,7 @@ describe('readonly data models', () => {
 
     const errorReportTitle = /Du må rette disse feilene før du kan gå videre/i;
     cy.gotoNavPage('Side6');
-    cy.findByRole('radio', { name: /kåre/i }).dsCheck();
+    cy.findByRole('radio', { name: /kåre/i }).check();
     cy.findByText(errorReportTitle).should('not.exist');
     cy.waitUntilSaved();
     cy.findByRole('button', { name: /send inn/i }).click();

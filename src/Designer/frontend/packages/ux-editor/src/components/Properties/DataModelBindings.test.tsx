@@ -121,7 +121,7 @@ describe('DataModelBindings', () => {
     });
 
     await waitForElementToBeRemoved(() =>
-      screen.queryAllByTitle(textMock('ux_editor.modal_properties_loading')),
+      screen.queryAllByLabelText(textMock('ux_editor.modal_properties_loading')),
     );
 
     ['address', 'careOf'].forEach((prop) => {

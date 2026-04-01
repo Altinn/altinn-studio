@@ -31,7 +31,7 @@ function CreateNewCodeListDialog(
     codeListNames,
     textResources,
   }: CreateNewCodeListDialogProps,
-  ref: RefObject<HTMLDialogElement>,
+  ref: RefObject<HTMLDialogElement | null>,
 ): ReactElement {
   const { t } = useTranslation();
   const newCodeList: CodeListWithTextResources = [];

@@ -419,7 +419,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            return layoutSetsFile.ValidationOnNavigation;
+            return layoutSetsFile.UiSettings?.ValidationOnNavigation;
         }
 
         public async Task SaveValidationOnNavigationLayoutSets(
@@ -442,7 +442,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            layoutSetsFile.ValidationOnNavigation = validationOnNavigation;
+            layoutSetsFile.UiSettings ??= new UiSettings();
+            layoutSetsFile.UiSettings.ValidationOnNavigation = validationOnNavigation;
 
             await altinnAppGitRepository.SaveLayoutSets(layoutSetsFile);
         }

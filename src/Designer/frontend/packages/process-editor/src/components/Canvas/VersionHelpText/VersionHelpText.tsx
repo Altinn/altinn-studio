@@ -4,6 +4,8 @@ import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 
+import type { JSX } from 'react';
+
 /**
  * @component
  *  Displays the helptext informing the user that their version is too old

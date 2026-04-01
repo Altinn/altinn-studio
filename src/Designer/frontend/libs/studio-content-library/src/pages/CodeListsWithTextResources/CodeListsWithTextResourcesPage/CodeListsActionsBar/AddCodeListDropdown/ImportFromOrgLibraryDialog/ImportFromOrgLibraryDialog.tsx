@@ -12,7 +12,7 @@ export type ImportFromOrgLibraryDialogProps = {
 
 function ImportFromOrgLibraryDialog(
   { codeListIds, onImportCodeListFromOrg }: ImportFromOrgLibraryDialogProps,
-  ref: RefObject<HTMLDialogElement>,
+  ref: RefObject<HTMLDialogElement | null>,
 ): ReactElement {
   const { t } = useTranslation();
 

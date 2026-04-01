@@ -1,0 +1,10 @@
+{
+  "priority": 10,
+  "request": {
+    "urlPattern": ".*",
+    "method": "ANY"
+  },
+  "response": {
+    "status": 200
+  }
+}

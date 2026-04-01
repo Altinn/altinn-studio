@@ -5,6 +5,7 @@
 !package.json
 !yarn.lock
 !.yarn*
+!src/App/frontend/package.json
 !src/App/template/src
 
 # Test-apps are built in its own container, so they need to be included

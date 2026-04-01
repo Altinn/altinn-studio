@@ -178,7 +178,7 @@ const renderCreateNewCodeListDialog = (
   return render(<Component />);
 };
 
-const useShowModal = (ref: React.RefObject<HTMLDialogElement>): void => {
+const useShowModal = (ref: React.RefObject<HTMLDialogElement | null>): void => {
   useEffect(() => {
     ref.current?.showModal();
   }, [ref]);

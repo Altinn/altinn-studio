@@ -51,20 +51,17 @@ describe('DefinedBinding', () => {
 
   it('should render loading spinner', async () => {
     renderDefinedBinding();
-    const loadingSpinnerTitle = textMock('ux_editor.modal_properties_loading');
+    const loadingSpinnerLabel = textMock('ux_editor.modal_properties_loading');
 
-    const loadingSpinner = screen.getByTitle(loadingSpinnerTitle);
+    const loadingSpinner = screen.getByLabelText(loadingSpinnerLabel);
     expect(loadingSpinner).toBeInTheDocument();
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(loadingSpinnerTitle));
+    await waitForLoadingToFinish();
   });
 
   it('should render edit button with the binding selected', async () => {
     renderDefinedBinding();
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const editButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
@@ -84,10 +81,7 @@ describe('DefinedBinding', () => {
         },
       },
     });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
 
     const editButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
@@ -100,9 +94,7 @@ describe('DefinedBinding', () => {
 
   it('should render with error css class when selected data model does not exist', async () => {
     renderWithDataModelAndMetadata('non-existent-model', dataModelField);
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
     const editButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
     });
@@ -111,9 +103,7 @@ describe('DefinedBinding', () => {
 
   it('should render with error css class when selected data model field does not exist in model', async () => {
     renderWithDataModelAndMetadata(dataModel, 'non-existent-field');
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
     const editButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
     });
@@ -122,15 +112,19 @@ describe('DefinedBinding', () => {
 
   it('should render without error css class when selected data model and field is valid', async () => {
     renderWithDataModelAndMetadata(dataModel, dataModelField);
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
+    await waitForLoadingToFinish();
     const editButton = screen.getByRole('button', {
       name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
     });
     expect(editButton).not.toHaveClass('error');
   });
 });
+
+const waitForLoadingToFinish = async () => {
+  await waitForElementToBeRemoved(() =>
+    screen.queryByLabelText(textMock('ux_editor.modal_properties_loading')),
+  );
+};
 
 const renderWithDataModelAndMetadata = (modelName: string, fieldName: string) => {
   const queryClient = createQueryClientMock();

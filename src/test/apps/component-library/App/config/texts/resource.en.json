@@ -1,0 +1,361 @@
+{
+  "language": "en",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "altinn-apps-all-components"
+    },
+    {
+      "id": "Grid",
+      "value": "Grid"
+    },
+    {
+      "id": "Grid.Title",
+      "value": "My grid component"
+    },
+    {
+      "id": "Grid.Description",
+      "value": "Hello this is a description of the component below"
+    },
+    {
+      "id": "Header.Component",
+      "value": "component"
+    },
+    {
+      "id": "Header.Summary",
+      "value": ""
+    },
+    {
+      "id": "Header.Summary2",
+      "value": ""
+    },
+    {
+      "id": "Header.Summary2.Compact",
+      "value": ""
+    },
+    {
+      "id": "InputPage",
+      "value": ""
+    },
+    {
+      "id": "DividerPage",
+      "value": ""
+    },
+    {
+      "id": "InputPage.Input.title",
+      "value": ""
+    },
+    {
+      "id": "InputPage.Input.Grid.title-1",
+      "value": ""
+    },
+    {
+      "id": "InputPage.Input.Grid.title-2",
+      "value": ""
+    },
+    {
+      "id": "InputPage.Input.Grid.title.long",
+      "value": ""
+    },
+    {
+      "id": "ImageUploadPage.ImageUpload.title",
+      "value": ""
+    },
+    {
+      "id": "TextareaPage",
+      "value": ""
+    },
+    {
+      "id": "ImageUploadPage",
+      "value": ""
+    },
+    {
+      "id": "TextareaPage.Textarea.title",
+      "value": ""
+    },
+    {
+      "id": "RadioButtonsPage",
+      "value": ""
+    },
+    {
+      "id": "RadioButtonsPage.RadioButtons.title",
+      "value": ""
+    },
+    {
+      "id": "DropdownPage.Dropdown.title",
+      "value": ""
+    },
+    {
+      "id": "Group.Title",
+      "value": ""
+    },
+    {
+      "id": "Group.Description",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroup.Name",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroup.Points",
+      "value": ""
+    },
+    {
+      "id": "InputPage.Summary2.emptyFieldText",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroup.Date",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroup.Cars",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroup.CarBrand",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroup.CarModel",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroup.ModelYear",
+      "value": ""
+    },
+    {
+      "id": "ListPage",
+      "value": ""
+    },
+    {
+      "id": "ListPage.List.title",
+      "value": ""
+    },
+    {
+      "id": "ListPage.List2.title",
+      "value": ""
+    },
+    {
+      "id": "MapPage.Map.title",
+      "value": ""
+    },
+    {
+      "id": "MapPage",
+      "value": ""
+    },
+    {
+      "id": "CheckboxesPage",
+      "value": ""
+    },
+    {
+      "id": "CheckboxesPage.Checkboxes.title",
+      "value": ""
+    },
+    {
+      "id": "Grid.Input.Title",
+      "value": ""
+    },
+    {
+      "id": "MultipleSelectPage.MultipleSelect.title",
+      "value": ""
+    },
+    {
+      "id": "GroupPage",
+      "value": ""
+    },
+    {
+      "id": "RepeatingGroupPage",
+      "value": ""
+    },
+    {
+      "id": "GridPage",
+      "value": ""
+    },
+    {
+      "id": "GroupPage-Group-Header.title",
+      "value": ""
+    },
+    {
+      "id": "AddressPage",
+      "value": ""
+    },
+    {
+      "id": "SummaryPage",
+      "value": ""
+    },
+    {
+      "id": "Side4.Button-qHGXDg.title",
+      "value": ""
+    },
+    {
+      "id": "Side4.Header-tZjZtv.title",
+      "value": ""
+    },
+    {
+      "id": "Side4.Header-in-new-summary",
+      "value": ""
+    },
+    {
+      "id": "undefined",
+      "value": ""
+    },
+    {
+      "id": "RenderPreviousTask",
+      "value": ""
+    },
+    {
+      "id": "RenderSpecificPageFromPreviousTask",
+      "value": ""
+    },
+    {
+      "id": "RenderSpecificComponentFromPreviousTask",
+      "value": ""
+    },
+    {
+      "id": "reasons.related",
+      "value": ""
+    },
+    {
+      "id": "reasons.adoptive",
+      "value": ""
+    },
+    {
+      "id": "reasons.stepParents",
+      "value": ""
+    },
+    {
+      "id": "reasons.spouse",
+      "value": ""
+    },
+    {
+      "id": "reasons.cohabitant",
+      "value": ""
+    },
+    {
+      "id": "reasons.pastName",
+      "value": ""
+    },
+    {
+      "id": "reasons.farm",
+      "value": ""
+    },
+    {
+      "id": "reasons.newName",
+      "value": ""
+    },
+    {
+      "id": "reasons.other",
+      "value": ""
+    },
+    {
+      "id": "appLogo.url",
+      "value": ""
+    },
+    {
+      "id": "MultipleSelectPage",
+      "value": ""
+    },
+    {
+      "id": "DropdownPage",
+      "value": ""
+    },
+    {
+      "id": "FileUploadPage",
+      "value": ""
+    },
+    {
+      "id": "TabsPage",
+      "value": ""
+    },
+    {
+      "id": "LikertPage",
+      "value": ""
+    },
+    {
+      "id": "ButtonPage",
+      "value": ""
+    },
+    {
+      "id": "LinkPage",
+      "value": ""
+    },
+    {
+      "id": "DatepickerPage",
+      "value": ""
+    },
+    {
+      "id": "NumberPage",
+      "value": ""
+    },
+    {
+      "id": "TextPage",
+      "value": ""
+    },
+    {
+      "id": "DatePage",
+      "value": ""
+    },
+    {
+      "id": "question-1",
+      "value": ""
+    },
+    {
+      "id": "question-2",
+      "value": ""
+    },
+    {
+      "id": "question-3",
+      "value": ""
+    },
+    {
+      "id": "question-4",
+      "value": ""
+    },
+    {
+      "id": "question-5",
+      "value": ""
+    },
+    {
+      "id": "question-6",
+      "value": ""
+    },
+    {
+      "id": "likert-row-title",
+      "value": ""
+    },
+    {
+      "id": "CardsPage",
+      "value": ""
+    },
+    {
+      "id": "CardsPage-image-alt-text",
+      "value": ""
+    },
+    {
+      "id": "CardsPage-Lydmerke-alt-text",
+      "value": ""
+    },
+    {
+      "id": "CardsPage-Videomerke-alt-text",
+      "value": ""
+    },
+    {
+      "id": "CardsPage-Number-Input",
+      "value": ""
+    },
+    {
+      "id": "CardsPage-Percentage-Input",
+      "value": ""
+    },
+    {
+      "id": "CardsPage-text-Input",
+      "value": ""
+    },
+    {
+      "id": "AttachmentListPage",
+      "value": ""
+    }
+  ]
+}
