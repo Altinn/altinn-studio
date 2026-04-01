@@ -792,7 +792,8 @@ async def synthesize_patch(
                     except Exception as e:
                         log.warning(f"Could not read model file {model_file}: {e}")
 
-    # Get current text resource file contents so the LLM sees existing IDs
+    # Build a compact per-file ID summary so the LLM sees ALL existing IDs
+    # without hitting the truncation limit that raw file content would.
     current_resource_content = ""
     if repository_path and repo_facts.get("resources"):
         for resource_file in repo_facts["resources"]:
@@ -800,7 +801,10 @@ async def synthesize_patch(
             if resource_path.exists():
                 try:
                     with open(resource_path, 'r') as f:
-                        current_resource_content += f"--- {resource_file} ---\n{f.read()}\n\n"
+                        data = json.load(f)
+                    resources = data.get("resources", []) if isinstance(data, dict) else []
+                    ids = [r.get("id", "") for r in resources if isinstance(r, dict) and "id" in r]
+                    current_resource_content += f"--- {resource_file} ---\nIDs: {ids}\n\n"
                 except Exception as e:
                     log.warning(f"Could not read resource file {resource_file}: {e}")
 
@@ -812,7 +816,7 @@ async def synthesize_patch(
         tool_results=json.dumps(serializable_tools, indent=2) if serializable_tools else "[]",
         current_layout_content=current_layout_content[:3000] if current_layout_content else "Not available",
         current_model_content=current_model_content[:3000] if current_model_content else "Not available",
-        current_resource_content=current_resource_content[:5000] if current_resource_content else "Not available",
+        current_resource_content=current_resource_content if current_resource_content else "Not available",
         repo_summary=json.dumps(repo_summary, indent=2)
     )
 

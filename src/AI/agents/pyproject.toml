@@ -35,6 +35,9 @@ dependencies = [
 
     # JSON repair for malformed LLM outputs
     "json-repair>=0.58.7",
+
+    # YAML parsing for prompt frontmatter
+    "PyYAML>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -51,6 +54,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["agents*", "api*", "shared*"]
+
+[tool.setuptools.package-data]
+agents = ["prompts/**/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

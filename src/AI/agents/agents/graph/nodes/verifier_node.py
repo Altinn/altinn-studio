@@ -85,7 +85,7 @@ async def handle(state: AgentState) -> AgentState:
                 log.warning(f"❌ Validation failed after {max_fix_attempts} attempts")
                 if state.tests_passed is not False:  # Only set to False if not already False
                     state.tests_passed = False
-                state.verify_notes = (state.verify_notes or []) + [str(error) for error in result.errors]
+                state.verify_notes = (state.verify_notes or []) + _collect_error_strings(result)
                 break
             
             log.warning(f"⚠️ Validation failed (attempt {fix_attempt}/{max_fix_attempts}), attempting auto-fix...")
@@ -96,7 +96,7 @@ async def handle(state: AgentState) -> AgentState:
             if not fix_applied:
                 log.warning("Could not generate auto-fix, stopping attempts")
                 state.tests_passed = False
-                state.verify_notes = (state.verify_notes or []) + [str(error) for error in result.errors]
+                state.verify_notes = (state.verify_notes or []) + _collect_error_strings(result)
                 break
             
             log.info("✅ Auto-fix applied, re-running verification...")
@@ -234,6 +234,51 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
     except Exception as e:
         log.error(f"Auto-fix failed: {e}", exc_info=True)
         return False
+
+
+def _collect_error_strings(result) -> list[str]:
+    """Collect human-readable error strings from a verification result.
+
+    Pulls from ``result.errors`` first, then falls back to extracting
+    messages from ``result.tool_results`` so structured errors are never
+    silently dropped.
+    """
+    import json as _json
+
+    notes: list[str] = []
+    if result.errors:
+        notes.extend(_error_to_str(e) for e in result.errors)
+
+    # Also harvest errors embedded in tool_results (MCP may put them there)
+    for tr in getattr(result, "tool_results", []):
+        rd = tr.get("result", {})
+        # Normalise various MCP response shapes to a dict
+        if hasattr(rd, "structured_content"):
+            rd = rd.structured_content
+        elif hasattr(rd, "text"):
+            try:
+                rd = _json.loads(rd.text)
+            except Exception:
+                continue
+        elif isinstance(rd, list) and rd:
+            first = rd[0]
+            if hasattr(first, "text"):
+                try:
+                    rd = _json.loads(first.text)
+                except Exception:
+                    continue
+            elif isinstance(first, dict):
+                rd = first
+            else:
+                continue
+        if not isinstance(rd, dict):
+            continue
+        for err in rd.get("validation_errors", []) + rd.get("errors", []):
+            s = _error_to_str(err)
+            if s and s not in notes:
+                notes.append(s)
+
+    return notes if notes else ["Verification failed (no structured error details available)"]
 
 
 _DUPLICATE_RESOURCE_ID_PATTERN = "Duplicate resource IDs"

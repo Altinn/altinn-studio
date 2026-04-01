@@ -30,3 +30,6 @@ langfuse>=3.0.0
 
 # JSON repair for malformed LLM outputs
 json-repair>=0.58.7
+
+# YAML parsing for prompt frontmatter
+PyYAML>=6.0

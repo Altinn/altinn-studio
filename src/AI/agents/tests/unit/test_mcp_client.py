@@ -39,7 +39,7 @@ class TestMCPDown:
             mock_ctx.ping = AsyncMock(side_effect=ConnectionRefusedError("Connection refused"))
             mock_get.return_value = mock_ctx
 
-            with pytest.raises(Exception):
+            with pytest.raises(ConnectionRefusedError):
                 await client.connect()
 
         assert client.is_ready is False

@@ -156,10 +156,12 @@ async def handle(state: AgentState) -> AgentState:
         log.info(f"🔧 Applying patch with {len(normalized_patch_data.get('changes', []))} changes to {len(normalized_patch_data.get('files', []))} files")
         git_ops.apply(normalized_patch_data, state.repo_path)
         
-        # Deduplicate resource IDs (handles both LLM-generated and pre-existing duplicates)
-        resource_files = (state.repo_facts or {}).get("resources", [])
-        if resource_files:
-            deduped = git_ops.deduplicate_resource_ids(state.repo_path, resource_files)
+        # Deduplicate resource IDs only in files touched by this patch
+        all_resource_files = set((state.repo_facts or {}).get("resources", []))
+        patch_files = {c.get("file", "") for c in normalized_patch_data.get("changes", [])}
+        touched_resource_files = list(all_resource_files & patch_files)
+        if touched_resource_files:
+            deduped = git_ops.deduplicate_resource_ids(state.repo_path, touched_resource_files)
             if deduped:
                 log.info(f"🧹 Deduplicated resource IDs in {len(deduped)} file(s): {deduped}")
         

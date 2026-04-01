@@ -35,7 +35,7 @@ def _make_resource_file(tmp: Path, rel_path: str, resources: list) -> str:
     return rel_path
 
 
-def _make_state(tmp_dir: str, changed_files: list = None, repo_facts: dict = None) -> AgentState:
+def _make_state(tmp_dir: str, changed_files: list | None = None, repo_facts: dict | None = None) -> AgentState:
     return AgentState(
         session_id="test-session",
         user_goal="test",
@@ -45,7 +45,7 @@ def _make_state(tmp_dir: str, changed_files: list = None, repo_facts: dict = Non
     )
 
 
-def _make_verification_result(tool_results: list, errors: list = None):
+def _make_verification_result(tool_results: list | None = None, errors: list | None = None):
     """Create a mock MCPVerificationResult."""
     result = Mock()
     result.passed = False

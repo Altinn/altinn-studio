@@ -114,6 +114,7 @@ async def handle(state: AgentState) -> AgentState:
                     log.info(f"✅ MCP docs ready — proceeding with planning (session {state.session_id})")
                 else:
                     log.warning(f"⚠️ MCP docs not available — proceeding anyway (session {state.session_id})")
+                    state.mcp_degraded = True
                     sink.send(AgentEvent(
                         type="status",
                         session_id=state.session_id,

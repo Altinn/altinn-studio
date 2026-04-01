@@ -88,17 +88,6 @@ async def start_agent(
                 log.error(f"Failed to process attachments for session {req.session_id}: {e}")
                 raise HTTPException(status_code=400, detail=f"Invalid attachment payload: {e}") from e
 
-        # MCP readiness check — live ping to verify MCP is actually reachable
-        from agents.services.mcp import get_mcp_client
-        mcp = get_mcp_client()
-        mcp_available = True
-        try:
-            await mcp.check_server_status()
-        except Exception as ping_err:
-            log.warning(f"🔌 MCP health ping failed: {ping_err}")
-            mcp._mark_disconnected(error=ping_err)
-            mcp_available = False
-
         # Route based on allow_app_changes flag
         if not req.allow_app_changes:
             # Chat mode - skip intent validation for questions
@@ -220,8 +209,14 @@ async def start_agent(
             task.add_done_callback(_active_tasks.discard)
         else:
             # Normal workflow mode - make changes
-            # MCP is required for workflow — reject if unavailable
-            if not mcp_available:
+            # MCP is required for workflow — live ping to verify reachability
+            from agents.services.mcp import get_mcp_client
+            mcp = get_mcp_client()
+            try:
+                await mcp.check_server_status()
+            except Exception as ping_err:
+                log.warning(f"🔌 MCP health ping failed: {ping_err}")
+                mcp._mark_disconnected(error=ping_err)
                 raise HTTPException(
                     status_code=503,
                     detail="MCP server is not available. Please retry shortly.",

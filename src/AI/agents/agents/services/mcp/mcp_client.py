@@ -251,7 +251,7 @@ class MCPClient:
             self._connection_loop(max_retries=RECONNECT_MAX_RETRIES)
         )
 
-    def start_connection_loop(self) -> asyncio.Task:
+    def start_connection_loop(self) -> asyncio.Task | None:
         """Start a non-blocking background task that connects when the server is ready.
 
         Safe to call multiple times — only one loop runs at a time.
@@ -268,15 +268,14 @@ class MCPClient:
     async def ensure_connected(self):
         """Block until the MCP server is reachable.
 
-        If the background loop is running it waits for it to finish.
-        Otherwise it starts a fresh connection attempt.
+        If a background loop is already running (e.g. the infinite startup
+        loop), we do **not** await it — that would block forever while MCP
+        is down.  Instead we attempt a single direct connection so the
+        caller gets an immediate success or exception.
         """
         if self._connected:
             return
-        if self._connection_task and not self._connection_task.done():
-            await self._connection_task
-        else:
-            await self.connect()
+        await self.connect()
     
     async def check_server_status(self) -> dict:
         """
