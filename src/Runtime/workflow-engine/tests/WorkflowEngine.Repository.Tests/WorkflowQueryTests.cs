@@ -23,7 +23,11 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
         // Act
-        var fetched = await repo.GetWorkflow(workflow.DatabaseId, TestContext.Current.CancellationToken);
+        var fetched = await repo.GetWorkflow(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.NotNull(fetched);
@@ -40,10 +44,96 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository();
 
         // Act
-        var fetched = await repo.GetWorkflow(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var fetched = await repo.GetWorkflow(Guid.NewGuid(), "nonexistent-ns", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(fetched);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_ById_WrongNamespace_ReturnsNull()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest();
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+
+        var fetched = await repo.GetWorkflow(
+            workflow.DatabaseId,
+            "wrong-namespace",
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Null(fetched);
+    }
+
+    [Fact]
+    public async Task GetWorkflowStatus_WrongNamespace_ReturnsNull()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest();
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+
+        var status = await repo.GetWorkflowStatus(
+            workflow.DatabaseId,
+            "wrong-namespace",
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Null(status);
+    }
+
+    [Fact]
+    public async Task RequestCancellation_WrongNamespace_ReturnsFalse()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest();
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
+
+        var updated = await repo.RequestCancellation(
+            workflow.DatabaseId,
+            "wrong-namespace",
+            DateTimeOffset.UtcNow,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.False(updated);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_WrongNamespace_ReturnsEmpty()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed);
+
+        var resumed = await repo.ResumeWorkflow(
+            workflow.DatabaseId,
+            "wrong-namespace",
+            DateTimeOffset.UtcNow,
+            cascade: false,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Empty(resumed);
+    }
+
+    [Fact]
+    public async Task SkipBackoff_WrongNamespace_ReturnsFalse()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Requeued);
+
+        var updated = await repo.SkipBackoff(
+            workflow.DatabaseId,
+            "wrong-namespace",
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.False(updated);
     }
 
     // ── GetActiveWorkflows ─────────────────────────────────────

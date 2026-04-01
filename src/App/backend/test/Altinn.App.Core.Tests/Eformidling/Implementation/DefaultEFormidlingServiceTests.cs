@@ -62,21 +62,21 @@ public class DefaultEFormidlingServiceTests
         services.AddAppImplementationFactory();
         services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
 
-        var userTokenProvider = new Mock<IUserTokenProvider>();
-        var appMetadata = new Mock<IAppMetadata>();
-        var dataClient = new Mock<IDataClient>();
-        var eFormidlingMetadata = new Mock<IEFormidlingMetadata>();
-        var eFormidlingReceivers = new Mock<IEFormidlingReceivers>();
-        var eventClient = new Mock<IEventsClient>();
+        var userTokenProvider = new Mock<IUserTokenProvider>(MockBehavior.Strict);
+        var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
+        var dataClient = new Mock<IDataClient>(MockBehavior.Strict);
+        var eFormidlingMetadata = new Mock<IEFormidlingMetadata>(MockBehavior.Strict);
+        var eFormidlingReceivers = new Mock<IEFormidlingReceivers>(MockBehavior.Strict);
+        var eventClient = new Mock<IEventsClient>(MockBehavior.Loose);
         var appSettings = Options.Create(
             new AppSettings { RuntimeCookieName = "AltinnStudioRuntime", EFormidlingSender = "980123456" }
         );
         var platformSettings = Options.Create(new PlatformSettings { SubscriptionKey = "subscription-key" });
         var eFormidlingClient = new Mock<IEFormidlingClient>();
-        var tokenGenerator = new Mock<IAccessTokenGenerator>();
-        var processReader = new Mock<IProcessReader>();
-        var hostEnvironment = new Mock<IHostEnvironment>();
-        var eFormidlingLegacyConfigProvider = new Mock<IEFormidlingLegacyConfigurationProvider>();
+        var tokenGenerator = new Mock<IAccessTokenGenerator>(MockBehavior.Strict);
+        var processReader = new Mock<IProcessReader>(MockBehavior.Strict);
+        var hostEnvironment = new Mock<IHostEnvironment>(MockBehavior.Strict);
+        var eFormidlingLegacyConfigProvider = new Mock<IEFormidlingLegacyConfigurationProvider>(MockBehavior.Strict);
 
         var instanceGuid = Guid.Parse("41C1099C-7EDD-47F5-AD1F-6267B497796F");
         var instance = new Instance

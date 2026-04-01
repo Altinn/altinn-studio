@@ -10,6 +10,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -116,6 +117,7 @@ export const ReceiptContainer = () => {
   }, [lastChanged]);
 
   const dialogId = useMemo(() => getDialogIdFromDataValues(dataValues), [dataValues]);
+  const hiddenFromInbox = MessageBoxConfigEvaluator.isHiddenFromInbox(applicationMetadata.messageBoxConfig);
 
   const attachmentWithDataType = getAttachmentsWithDataType({
     attachments: dataElements,
@@ -184,8 +186,12 @@ export const ReceiptContainer = () => {
           body={<Lang id='receipt.body' />}
           collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
-          subtitle={<Lang id='receipt.subtitle' />}
-          subtitleurl={returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId)}
+          subtitle={hiddenFromInbox ? undefined : <Lang id='receipt.subtitle' />}
+          subtitleurl={
+            hiddenFromInbox
+              ? undefined
+              : returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId)
+          }
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}
           pdf={pdfDisplayAttachments}

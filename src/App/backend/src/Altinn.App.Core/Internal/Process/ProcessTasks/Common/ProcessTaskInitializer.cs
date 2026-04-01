@@ -90,7 +90,13 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
             ObjectUtils.InitializeAltinnRowId(data);
             ObjectUtils.PrepareModelForXmlStorage(data);
 
-            DataElement createdDataElement = await _dataClient.InsertFormData(instance, dataType.Id, data);
+            DataElement createdDataElement = await _dataClient.InsertFormData(
+                instance,
+                dataType.Id,
+                data,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             instance.Data ??= [];
             instance.Data.Add(createdDataElement);
 
@@ -116,7 +122,9 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
             Instance updatedInstance = await _instanceClient.UpdatePresentationTexts(
                 int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedValues }
+                new PresentationTexts { Texts = updatedValues },
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             instance.PresentationTexts = updatedInstance.PresentationTexts;
@@ -138,7 +146,9 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
             Instance updatedInstance = await _instanceClient.UpdateDataValues(
                 int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
-                new DataValues { Values = updatedValues }
+                new DataValues { Values = updatedValues },
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             instance.DataValues = updatedInstance.DataValues;
