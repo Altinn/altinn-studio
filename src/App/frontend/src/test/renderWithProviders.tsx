@@ -13,8 +13,10 @@ import type { JSONSchema7 } from 'json-schema';
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
+import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppComponentsBridge } from 'src/AppComponentsBridge';
+import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -27,6 +29,8 @@ import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffe
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
+import type { PartyApi } from 'src/core/api-client/party.api';
+import type { ApiClients } from 'src/core/contexts/ApiProvider';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
@@ -34,11 +38,16 @@ import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
+type ApiOverrides = Partial<{
+  partyApi: Partial<PartyApi>;
+}>;
+
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   renderer: (() => React.ReactElement) | React.ReactElement;
   router?: (props: PropsWithChildren) => React.ReactNode;
   waitUntilLoaded?: boolean;
   queries?: Partial<AppQueries>;
+  apis?: ApiOverrides;
   initialRenderRef?: InitialRenderRef;
 }
 
@@ -131,6 +140,13 @@ const defaultQueryMocks: AppQueries = {
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
+};
+
+const defaultApiMocks: ApiClients = {
+  partyApi: {
+    getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
+    setSelectedParty: async () => 'Party successfully updated',
+  },
 };
 
 function makeProxy<Name extends keyof FormDataMethods>(name: Name, ref: InitialRenderRef) {
@@ -282,30 +298,33 @@ export function StatelessRouter({
 
 interface ProvidersProps extends PropsWithChildren {
   queries: AppQueriesContext;
+  apis: ApiClients;
   queryClient: QueryClient;
   Router?: (props: PropsWithChildren) => React.ReactNode;
 }
 
-function DefaultProviders({ children, queries, queryClient, Router = DefaultRouter }: ProvidersProps) {
+function DefaultProviders({ children, queries, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
   return (
-    <AppQueriesProvider
-      {...queries}
-      queryClient={queryClient}
-    >
-      <UiConfigProvider>
-        <PageNavigationProvider>
-          <Router>
-            <AppComponentsBridge>
-              <NavigationEffectProvider>
-                <GlobalFormDataReadersProvider>
-                  <PartyProvider>{children}</PartyProvider>
-                </GlobalFormDataReadersProvider>
-              </NavigationEffectProvider>
-            </AppComponentsBridge>
-          </Router>
-        </PageNavigationProvider>
-      </UiConfigProvider>
-    </AppQueriesProvider>
+    <ApiProvider apis={apis}>
+      <AppQueriesProvider
+        {...queries}
+        queryClient={queryClient}
+      >
+        <UiConfigProvider>
+          <PageNavigationProvider>
+            <Router>
+              <AppComponentsBridge>
+                <NavigationEffectProvider>
+                  <GlobalFormDataReadersProvider>
+                    <PartyProvider>{children}</PartyProvider>
+                  </GlobalFormDataReadersProvider>
+                </NavigationEffectProvider>
+              </AppComponentsBridge>
+            </Router>
+          </PageNavigationProvider>
+        </UiConfigProvider>
+      </AppQueriesProvider>
+    </ApiProvider>
   );
 }
 
@@ -323,24 +342,27 @@ function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceP
   );
 }
 
-function MinimalProviders({ children, queries, queryClient, Router = DefaultRouter }: ProvidersProps) {
+function MinimalProviders({ children, queries, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
   return (
-    <AppQueriesProvider
-      {...queries}
-      queryClient={queryClient}
-    >
-      <Router>
-        <NavigationEffectProvider>
-          <AppComponentsBridge>{children}</AppComponentsBridge>
-        </NavigationEffectProvider>
-      </Router>
-    </AppQueriesProvider>
+    <ApiProvider apis={apis}>
+      <AppQueriesProvider
+        {...queries}
+        queryClient={queryClient}
+      >
+        <Router>
+          <NavigationEffectProvider>
+            <AppComponentsBridge>{children}</AppComponentsBridge>
+          </NavigationEffectProvider>
+        </Router>
+      </AppQueriesProvider>
+    </ApiProvider>
   );
 }
 
 interface SetupFakeAppProps {
   queries?: Partial<AppQueries>;
   mutations?: Partial<AppMutations>;
+  apis?: ApiOverrides;
 }
 
 /**
@@ -352,7 +374,7 @@ interface SetupFakeAppProps {
  * which may not be available in a unit test context) you can use this function to render all the basic providers
  * needed to render a component in something that looks like an app.
  */
-export function setupFakeApp({ queries, mutations }: SetupFakeAppProps = {}) {
+export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {}) {
   const queryClient = new QueryClient({
     defaultOptions: {
       mutations: { retry: false },
@@ -374,12 +396,20 @@ export function setupFakeApp({ queries, mutations }: SetupFakeAppProps = {}) {
     ...mutations,
   };
 
+  const finalApis: ApiClients = {
+    partyApi: {
+      ...defaultApiMocks.partyApi,
+      ...apis?.partyApi,
+    },
+  };
+
   return {
     queryClient,
     queries: {
       ...finalQueries,
       ...finalMutations,
     },
+    apis: finalApis,
     queriesOnly: finalQueries,
     mutationsOnly: finalMutations,
   };
@@ -389,12 +419,13 @@ const renderBase = async ({
   renderer,
   router,
   queries = {},
+  apis = {},
   waitUntilLoaded = true,
   Providers = DefaultProviders,
   initialRenderRef = { current: true },
   ...renderOptions
 }: BaseRenderOptions) => {
-  const { queryClient, queriesOnly: finalQueries } = setupFakeApp({ queries });
+  const { queryClient, queriesOnly: finalQueries, apis: finalApis } = setupFakeApp({ queries, apis });
   const mutations = makeMutationMocks(queryPromiseMock);
 
   const queryMocks = Object.fromEntries(
@@ -413,6 +444,7 @@ const renderBase = async ({
     <Providers
       Router={router}
       queryClient={queryClient}
+      apis={finalApis}
       queries={{
         ...queryMocks,
         ...mutationMocks,
