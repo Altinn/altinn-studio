@@ -1,0 +1,173 @@
+import type { ReactElement, RefObject } from 'react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioDialog,
+  StudioFormActions,
+  StudioHeading,
+  StudioParagraph,
+  StudioTextfield,
+} from '@studio/components';
+import { ClipboardIcon } from '@navikt/aksel-icons';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
+import { useAddUserApiKeyMutation } from '../../../hooks/mutations/useAddUserApiKeyMutation';
+import { useUserApiKeysQuery } from '../../../hooks/queries/useUserApiKeysQuery';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import classes from './AddApiKeyDialog.module.css';
+import { StudioCloseIcon } from '@studio/icons';
+
+const MAX_USER_API_KEY_EXPIRY_DAYS = 365;
+
+export const computeMaxExpiresAt = (): string => {
+  const todayUtc = new Date().toISOString().split('T')[0];
+  const maxDate = new Date(todayUtc);
+  maxDate.setUTCDate(maxDate.getUTCDate() + MAX_USER_API_KEY_EXPIRY_DAYS);
+  return maxDate.toISOString().split('T')[0];
+};
+
+type AddApiKeyDialogProps = {
+  dialogRef: RefObject<HTMLDialogElement | null>;
+  onApiKeyCreated: (id: number) => void;
+  onClose: () => void;
+};
+
+export const AddApiKeyDialog = ({
+  dialogRef,
+  onApiKeyCreated,
+  onClose,
+}: AddApiKeyDialogProps): ReactElement => {
+  const { t } = useTranslation();
+  const [name, setName] = useState('');
+  const [expiresAt, setExpiresAt] = useState(computeMaxExpiresAt);
+  const [submitted, setSubmitted] = useState(false);
+  const [newApiKey, setNewApiKey] = useState<string | null>(null);
+
+  const { mutate: addUserApiKey, isPending, error } = useAddUserApiKeyMutation();
+  const { data: apiKeys } = useUserApiKeysQuery();
+  const queryClient = useQueryClient();
+
+  const todayUtc = new Date().toISOString().split('T')[0];
+  const maxExpiresAtString = computeMaxExpiresAt();
+
+  const isDuplicateName =
+    apiKeys?.some((apiKey) => apiKey.name === name) ||
+    (error?.response?.status === ServerCodes.Conflict &&
+      error?.response?.data?.errorCode === ApiErrorCodes.DuplicateTokenName);
+
+  const handleAdd = () => {
+    setSubmitted(true);
+    if (!name || !expiresAt || isDuplicateName) return;
+    addUserApiKey(
+      { name, expiresAt: `${expiresAt}T23:59:59Z` },
+      {
+        onSuccess: (response) => {
+          setNewApiKey(response.key);
+          onApiKeyCreated(response.id);
+          setName('');
+          setExpiresAt(computeMaxExpiresAt());
+          setSubmitted(false);
+          queryClient.invalidateQueries({ queryKey: [QueryKey.UserApiKeys] });
+        },
+      },
+    );
+  };
+
+  const handleClose = () => {
+    setSubmitted(false);
+    setNewApiKey(null);
+    onClose();
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(newApiKey!).then(
+      () => {
+        toast.success(t('settings.user.api_keys.copy_success'), {
+          toastId: 'settings.user.api_keys.copy_success',
+        });
+        handleClose();
+      },
+      () => {
+        toast.error(t('settings.user.api_keys.copy_error'), {
+          toastId: 'settings.user.api_keys.copy_error',
+        });
+      },
+    );
+  };
+
+  if (newApiKey) {
+    return (
+      <StudioDialog ref={dialogRef} closeButton={false}>
+        <StudioDialog.Block className={classes.keyDialogBlock}>
+          <StudioAlert data-color='success' className={classes.keyDialogAlert}>
+            <StudioButton
+              variant='tertiary'
+              icon={<StudioCloseIcon />}
+              onClick={handleClose}
+              aria-label={t('general.close')}
+              className={classes.keyDialogCloseButton}
+            />
+            <StudioHeading level={2}>
+              {t('settings.user.api_keys.new_api_key_dialog_title')}
+            </StudioHeading>
+            <StudioParagraph>
+              {t('settings.user.api_keys.new_api_key_dialog_warning')}
+            </StudioParagraph>
+            <StudioTextfield
+              readOnly
+              value={newApiKey}
+              label={t('settings.user.api_keys.api_key')}
+            />
+            <StudioButton icon={<ClipboardIcon />} onClick={handleCopy} data-color='success'>
+              {t('settings.user.api_keys.copy')}
+            </StudioButton>
+          </StudioAlert>
+        </StudioDialog.Block>
+      </StudioDialog>
+    );
+  }
+
+  return (
+    <StudioDialog ref={dialogRef} onClose={handleClose}>
+      <StudioDialog.Block className={classes.addDialogBlock}>
+        <StudioHeading level={2}>{t('settings.user.api_keys.add')}</StudioHeading>
+        <div className={classes.fields}>
+          <StudioTextfield
+            label={t('settings.user.api_keys.name')}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            tagText={t('general.required')}
+            error={
+              submitted &&
+              ((!name ? t('validation_errors.required') : undefined) ??
+                (isDuplicateName ? t('settings.user.api_keys.error_duplicate_name') : undefined))
+            }
+            maxLength={100}
+          />
+          <StudioTextfield
+            label={t('settings.user.api_keys.expires_at')}
+            type='date'
+            value={expiresAt}
+            onChange={(e) => setExpiresAt(e.target.value)}
+            min={todayUtc}
+            max={maxExpiresAtString}
+            required
+            tagText={t('general.required')}
+            error={submitted && !expiresAt ? t('validation_errors.required') : undefined}
+            className={classes.dateInput}
+          />
+        </div>
+        <StudioFormActions
+          primary={{ label: t('general.add'), onClick: handleAdd }}
+          secondary={{ label: t('general.cancel'), onClick: handleClose }}
+          isLoading={isPending}
+        />
+      </StudioDialog.Block>
+    </StudioDialog>
+  );
+};

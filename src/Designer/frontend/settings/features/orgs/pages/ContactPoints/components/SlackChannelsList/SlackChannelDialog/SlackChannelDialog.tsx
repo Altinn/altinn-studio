@@ -127,8 +127,11 @@ export const SlackChannelDialog = ({
           </StudioCheckboxGroup>
         </div>
         <StudioFormActions
-          primary={{ label: t('settings.orgs.contact_points.save'), onClick: handleSave }}
-          secondary={{ label: t('settings.orgs.contact_points.cancel'), onClick: handleClose }}
+          primary={{
+            label: isEditing ? t('general.save') : t('general.add'),
+            onClick: handleSave,
+          }}
+          secondary={{ label: t('general.cancel'), onClick: handleClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />

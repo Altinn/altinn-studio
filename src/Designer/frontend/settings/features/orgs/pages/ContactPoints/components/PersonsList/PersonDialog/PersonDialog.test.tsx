@@ -84,11 +84,11 @@ function PersonDialogStatefulWrapper({
   );
 }
 
-const getSaveButton = () =>
-  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.save') });
+const getAddButton = () => screen.getByRole('button', { name: textMock('general.add') });
 
-const getCancelButton = () =>
-  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.cancel') });
+const getSaveButton = () => screen.getByRole('button', { name: textMock('general.save') });
+
+const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 
 const getNameInput = () =>
   screen.getByRole('textbox', {
@@ -122,6 +122,20 @@ describe('PersonDialog', () => {
         name: textMock('settings.orgs.contact_points.dialog_edit_person_title'),
       }),
     ).toBeInTheDocument();
+  });
+
+  it('renders add button when not editing', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog();
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(getAddButton()).toBeInTheDocument();
+  });
+
+  it('renders save button when editing', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({ isEditing: true });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(getSaveButton()).toBeInTheDocument();
   });
 
   it('renders the name, email, and phone fields', async () => {
@@ -188,7 +202,7 @@ describe('PersonDialog', () => {
       },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
@@ -200,7 +214,7 @@ describe('PersonDialog', () => {
       person: { name: '', email: 'test@example.com', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -212,7 +226,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: '', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -222,7 +236,7 @@ describe('PersonDialog', () => {
       person: { name: '', email: 'test@example.com', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
@@ -232,7 +246,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: '', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(
       screen.getAllByText(textMock('settings.orgs.contact_points.error_contact_method_required'))
         .length,
@@ -245,7 +259,7 @@ describe('PersonDialog', () => {
     render(<PersonDialogStatefulWrapper />);
 
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
 
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
     expect(
@@ -279,7 +293,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: '', phone: '12345678', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
@@ -289,7 +303,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: 'not-an-email', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(screen.getByText(textMock('validation_errors.invalid_email'))).toBeInTheDocument();
   });
 
@@ -301,7 +315,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: 'not-an-email', phone: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -311,7 +325,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: '', phone: 'abc', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(screen.getByText(textMock('validation_errors.invalid_phone'))).toBeInTheDocument();
   });
 
@@ -323,7 +337,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: '', phone: 'abc', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -333,7 +347,7 @@ describe('PersonDialog', () => {
       person: { name: 'Test', email: '', phone: '12345678', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(screen.queryByText(textMock('validation_errors.invalid_email'))).not.toBeInTheDocument();
   });
 
@@ -349,7 +363,7 @@ describe('PersonDialog', () => {
       },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(screen.queryByText(textMock('validation_errors.invalid_phone'))).not.toBeInTheDocument();
   });
 

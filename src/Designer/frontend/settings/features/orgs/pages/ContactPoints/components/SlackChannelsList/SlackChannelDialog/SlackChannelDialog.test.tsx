@@ -82,11 +82,11 @@ function SlackChannelDialogStatefulWrapper({
   );
 }
 
-const getSaveButton = () =>
-  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.save') });
+const getAddButton = () => screen.getByRole('button', { name: textMock('general.add') });
 
-const getCancelButton = () =>
-  screen.getByRole('button', { name: textMock('settings.orgs.contact_points.cancel') });
+const getSaveButton = () => screen.getByRole('button', { name: textMock('general.save') });
+
+const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 
 const getChannelNameInput = () =>
   screen.getByRole('textbox', {
@@ -125,6 +125,20 @@ describe('SlackChannelDialog', () => {
         name: textMock('settings.orgs.contact_points.dialog_edit_slack_title'),
       }),
     ).toBeInTheDocument();
+  });
+
+  it('renders add button when not editing', async () => {
+    const user = userEvent.setup();
+    renderSlackChannelDialog();
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(getAddButton()).toBeInTheDocument();
+  });
+
+  it('renders save button when editing', async () => {
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ isEditing: true });
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(getSaveButton()).toBeInTheDocument();
   });
 
   it('renders the channel name and webhook URL fields', async () => {
@@ -166,7 +180,7 @@ describe('SlackChannelDialog', () => {
       },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
@@ -183,7 +197,7 @@ describe('SlackChannelDialog', () => {
       },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -195,7 +209,7 @@ describe('SlackChannelDialog', () => {
       channel: { channelName: '#general', webhookUrl: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -210,7 +224,7 @@ describe('SlackChannelDialog', () => {
       },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
@@ -220,7 +234,7 @@ describe('SlackChannelDialog', () => {
       channel: { channelName: '#general', webhookUrl: '', isActive: true, environments: [] },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
@@ -230,7 +244,7 @@ describe('SlackChannelDialog', () => {
     render(<SlackChannelDialogStatefulWrapper />);
 
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
 
     expect(screen.getAllByText(textMock('validation_errors.required')).length).toBeGreaterThan(0);
 
@@ -259,7 +273,7 @@ describe('SlackChannelDialog', () => {
       },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(
       screen.getByText(textMock('validation_errors.invalid_slack_webhook_url')),
     ).toBeInTheDocument();
@@ -278,7 +292,7 @@ describe('SlackChannelDialog', () => {
       },
     });
     await user.click(screen.getByRole('button', { name: 'Open' }));
-    await user.click(getSaveButton());
+    await user.click(getAddButton());
     expect(onSave).not.toHaveBeenCalled();
   });
 

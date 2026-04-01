@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import {
   StudioDeleteButton,
   StudioError,
-  StudioParagraph,
   StudioSpinner,
   StudioTable,
   StudioTag,
@@ -43,10 +42,6 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
 
   if (isError) {
     return <StudioError>{t('settings.user.api_keys.error')}</StudioError>;
-  }
-
-  if (sortedApiKeys.length === 0) {
-    return <StudioParagraph>{t('settings.user.api_keys.no_api_keys')}</StudioParagraph>;
   }
 
   const now = new Date();

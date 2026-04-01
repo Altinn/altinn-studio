@@ -58,8 +58,17 @@ const getExpiryInput = () =>
     exact: false,
   });
 
-const getAddButton = () =>
+const getOpenDialogButton = () =>
   screen.getByRole('button', { name: textMock('settings.user.api_keys.add') });
+
+const getSubmitButton = () => {
+  const buttons = screen.getAllByRole('button', { name: textMock('general.add') });
+  return buttons[buttons.length - 1];
+};
+
+const openDialog = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(getOpenDialogButton());
+};
 
 const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, date: string) => {
   await user.type(getNameInput(), name);
@@ -70,39 +79,51 @@ const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, 
 describe('AddApiKey', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the add form', () => {
+  it('renders the open dialog button', () => {
     renderAddApiKey();
-    expect(getNameInput()).toBeInTheDocument();
-    expect(getExpiryInput()).toBeInTheDocument();
-    expect(getAddButton()).toBeInTheDocument();
+    expect(getOpenDialogButton()).toBeInTheDocument();
   });
 
-  it('sets min to today and max to 365 days from today on the expiry input', () => {
+  it('renders the form after opening the dialog', async () => {
+    const user = userEvent.setup();
+    renderAddApiKey();
+    await openDialog(user);
+    expect(getNameInput()).toBeInTheDocument();
+    expect(getExpiryInput()).toBeInTheDocument();
+    expect(getSubmitButton()).toBeInTheDocument();
+  });
+
+  it('sets min to today and max to 365 days from today on the expiry input', async () => {
     const maxUtc = (() => {
       const d = new Date(todayUtc);
       d.setUTCDate(d.getUTCDate() + 365);
       return d.toISOString().split('T')[0];
     })();
+    const user = userEvent.setup();
     renderAddApiKey();
+    await openDialog(user);
     const expiryInput = getExpiryInput();
     expect(expiryInput).toHaveAttribute('min', todayUtc);
     expect(expiryInput).toHaveAttribute('max', maxUtc);
   });
 
-  it('defaults the expiry input to the max date (365 days from today)', () => {
+  it('defaults the expiry input to the max date (365 days from today)', async () => {
     const maxUtc = (() => {
       const d = new Date(todayUtc);
       d.setUTCDate(d.getUTCDate() + 365);
       return d.toISOString().split('T')[0];
     })();
+    const user = userEvent.setup();
     renderAddApiKey();
+    await openDialog(user);
     expect(getExpiryInput()).toHaveValue(maxUtc);
   });
 
   it('shows required error only for name when submitting with default expiry', async () => {
     const user = userEvent.setup();
     renderAddApiKey();
-    await user.click(getAddButton());
+    await openDialog(user);
+    await user.click(getSubmitButton());
     expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(1);
   });
 
@@ -115,18 +136,21 @@ describe('AddApiKey', () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await user.type(getNameInput(), 'New api key');
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
+    await openDialog(user);
     expect(getExpiryInput()).toHaveValue(maxUtc);
   });
 
   it('shows duplicate name error when name already exists', async () => {
     const user = userEvent.setup();
     renderAddApiKey();
+    await openDialog(user);
     await fillForm(user, 'Existing api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     expect(
       screen.getByText(textMock('settings.user.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
@@ -138,8 +162,9 @@ describe('AddApiKey', () => {
       response: { status: 409, data: { errorCode: ApiErrorCodes.DuplicateTokenName } },
     });
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     expect(
       await screen.findByText(textMock('settings.user.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
@@ -149,8 +174,9 @@ describe('AddApiKey', () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     expect(addUserApiKey).toHaveBeenCalledWith({
       name: 'New api key',
       expiresAt: `${validExpiresAt}T23:59:59Z`,
@@ -161,8 +187,9 @@ describe('AddApiKey', () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     expect(await screen.findByDisplayValue('secret-key-value')).toBeInTheDocument();
   });
 
@@ -170,20 +197,22 @@ describe('AddApiKey', () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
     expect(onApiKeyCreated).toHaveBeenCalledWith(mockNewApiKey.id);
   });
 
-  it('closes the api key alert when close button is clicked', async () => {
+  it('closes the success dialog when the dialog close button is clicked', async () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
     expect(screen.queryByDisplayValue('secret-key-value')).not.toBeInTheDocument();
   });
 
@@ -193,8 +222,9 @@ describe('AddApiKey', () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(
       screen.getByRole('button', {
@@ -213,8 +243,9 @@ describe('AddApiKey', () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
+    await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getAddButton());
+    await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(
       screen.getByRole('button', {
