@@ -31,12 +31,6 @@
       {
         "name": "typescript-plugin-css-modules"
       }
-    ],
-    "types": [
-      "jest",
-      "@testing-library/jest-dom",
-      "@digdir/designsystemet-react/react-types",
-      "@digdir/designsystemet-css/theme"
     ]
   },
   "files": ["declaration.d.ts"],
