@@ -69,7 +69,7 @@ async def start_agent(
                 raise HTTPException(
                     status_code=503,
                     detail="MCP server is not available. Please retry shortly.",
-                )
+                ) from ping_err
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
