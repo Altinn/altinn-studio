@@ -13,6 +13,21 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+MCP_ERROR_PHRASES = [
+    "failed to connect",
+    "connection refused",
+    "connection reset",
+    "all connection attempts failed",
+    "mcp server",
+    "planning guidance missing",
+]
+
+
+def _is_mcp_exception(exc: Exception) -> bool:
+    """Check if an exception is related to MCP connectivity."""
+    msg = str(exc).lower()
+    return any(phrase in msg for phrase in MCP_ERROR_PHRASES)
+
 
 async def handle(state: AgentState) -> AgentState:
     """Execute the complete actor workflow pipeline and apply the resulting patch."""
@@ -141,6 +156,13 @@ async def handle(state: AgentState) -> AgentState:
         log.info(f"🔧 Applying patch with {len(normalized_patch_data.get('changes', []))} changes to {len(normalized_patch_data.get('files', []))} files")
         git_ops.apply(normalized_patch_data, state.repo_path)
         
+        # Deduplicate resource IDs (handles both LLM-generated and pre-existing duplicates)
+        resource_files = (state.repo_facts or {}).get("resources", [])
+        if resource_files:
+            deduped = git_ops.deduplicate_resource_ids(state.repo_path, resource_files)
+            if deduped:
+                log.info(f"🧹 Deduplicated resource IDs in {len(deduped)} file(s): {deduped}")
+        
         # Check for Source of Truth files that need sync (deduplicated)
         modified_sot_files = list(set(
             change.get("file", "")
@@ -268,9 +290,9 @@ async def handle(state: AgentState) -> AgentState:
 
     except Exception as exc:
         log.error(f"Actor node failed: {exc}", exc_info=True)
-        if state.mcp_degraded:
-            # MCP was down — don't send error event, reviewer will append the warning
-            log.info("MCP degraded — skipping actor error event, reviewer will handle")
+        if state.mcp_degraded and _is_mcp_exception(exc):
+            # MCP was down and this is an MCP-related error — let reviewer handle it
+            log.info("MCP degraded (MCP-related error) — skipping actor error event, reviewer will handle")
             state.next_action = "review"
         else:
             state.next_action = "stop"

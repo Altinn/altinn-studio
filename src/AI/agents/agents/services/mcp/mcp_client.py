@@ -66,8 +66,10 @@ class MCPClient:
     def last_error(self) -> str | None:
         return self._last_error
 
-    def _mark_disconnected(self):
+    def _mark_disconnected(self, error: Exception | str | None = None):
         """Reset connection state and restart a limited reconnection loop."""
+        if error is not None:
+            self._last_error = str(error)
         if not self._connected:
             return  # Already disconnected — avoid duplicate loops
         self._connected = False
@@ -178,7 +180,7 @@ class MCPClient:
                         "MCP became unreachable while waiting for docs "
                         "— proceeding without documentation"
                     )
-                    self._mark_disconnected()
+                    self._mark_disconnected(error="MCP unreachable during docs wait")
                     return False
             await asyncio.sleep(DOCS_READY_POLL_INTERVAL_SECONDS)
 
@@ -315,7 +317,7 @@ class MCPClient:
         except Exception as e:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")
             if self._is_connection_error(e):
-                self._mark_disconnected()
+                self._mark_disconnected(error=e)
             return {"error": str(e)}
 
     @staticmethod

@@ -792,6 +792,18 @@ async def synthesize_patch(
                     except Exception as e:
                         log.warning(f"Could not read model file {model_file}: {e}")
 
+    # Get current text resource file contents so the LLM sees existing IDs
+    current_resource_content = ""
+    if repository_path and repo_facts.get("resources"):
+        for resource_file in repo_facts["resources"]:
+            resource_path = Path(repository_path) / resource_file
+            if resource_path.exists():
+                try:
+                    with open(resource_path, 'r') as f:
+                        current_resource_content += f"--- {resource_file} ---\n{f.read()}\n\n"
+                except Exception as e:
+                    log.warning(f"Could not read resource file {resource_file}: {e}")
+
     user_prompt = render_template(
         "patch_synthesis_user",
         user_goal=user_goal,
@@ -800,6 +812,7 @@ async def synthesize_patch(
         tool_results=json.dumps(serializable_tools, indent=2) if serializable_tools else "[]",
         current_layout_content=current_layout_content[:3000] if current_layout_content else "Not available",
         current_model_content=current_model_content[:3000] if current_model_content else "Not available",
+        current_resource_content=current_resource_content[:5000] if current_resource_content else "Not available",
         repo_summary=json.dumps(repo_summary, indent=2)
     )
 

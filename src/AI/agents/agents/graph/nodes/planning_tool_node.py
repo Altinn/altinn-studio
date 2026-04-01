@@ -145,11 +145,10 @@ async def handle(state: AgentState) -> AgentState:
                     }
                 }
             ) as span:
-                # Call altinn_route - the v2 entry point that returns planning_context
-                # This tool accepts NO parameters - it returns base planning documentation
-                tool_input = {}
+                # Call altinn_route with the semantic query derived from user goal
+                tool_input = {"query": semantic_query}
                 
-                log.info(f"🔍 Calling altinn_route (no parameters)")
+                log.info(f"🔍 Calling altinn_route with query: '{semantic_query}'")
                 
                 # Call altinn_route - the v2 entry point
                 # Returns: planning_context, next_tool, args_template, prerequisites, workflow
@@ -163,9 +162,18 @@ async def handle(state: AgentState) -> AgentState:
                 
                 # New: MCPClient.call_tool may already return a structured dict (structured_content)
                 if isinstance(planning_result, dict):
-                    # Check if it's an error response
-                    if "error" in planning_result:
-                        log.warning(f"⚠️ altinn_route returned error: {planning_result['error']}")
+                    # Check if it's an error response (altinn_route uses "error_code", call_tool uses "error")
+                    if "error" in planning_result or "error_code" in planning_result:
+                        err_detail = planning_result.get("error") or planning_result.get("message") or planning_result.get("error_code")
+                        log.warning(f"⚠️ altinn_route returned error: {err_detail}")
+                        state.mcp_degraded = True
+                        planning_guidance = ""
+                    # Verify response contains actual guidance, not just a routing stub
+                    elif "content" not in planning_result and "planning_context" not in planning_result:
+                        log.warning(
+                            f"⚠️ altinn_route returned no guidance content (keys: {list(planning_result.keys())})"
+                            " — marking degraded"
+                        )
                         state.mcp_degraded = True
                         planning_guidance = ""
                     else:
@@ -251,6 +259,7 @@ async def handle(state: AgentState) -> AgentState:
             state.mcp_degraded = True
             if not hasattr(state, 'planning_guidance') or state.planning_guidance is None:
                 state.planning_guidance = ""
+            state.next_action = "plan"
             log.info("MCP degraded — continuing workflow without planning guidance")
     
     return state
