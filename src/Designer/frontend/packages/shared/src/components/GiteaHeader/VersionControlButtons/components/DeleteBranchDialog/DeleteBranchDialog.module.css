@@ -10,16 +10,7 @@
   gap: var(--ds-size-2);
 }
 
-.headingIcon {
-  font-size: var(--ds-size-6);
-}
-
 .buttons {
   display: flex;
   gap: var(--ds-size-3);
-  justify-content: flex-start;
-}
-
-.buttons button {
-  width: fit-content;
 }

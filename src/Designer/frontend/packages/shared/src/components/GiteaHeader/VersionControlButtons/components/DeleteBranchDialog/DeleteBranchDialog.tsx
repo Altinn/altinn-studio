@@ -42,7 +42,7 @@ export const DeleteBranchDialog = ({
     <StudioDialog open={isOpen} onClose={handleClose} data-color-scheme='light'>
       <StudioDialog.Block>
         <StudioHeading className={classes.heading}>
-          <TrashIcon className={classes.headingIcon} />
+          <TrashIcon />
           {t('branching.delete_branch_dialog.title')}
         </StudioHeading>
       </StudioDialog.Block>
