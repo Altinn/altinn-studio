@@ -13,9 +13,12 @@ internal interface IEngineRepository
     Task<IReadOnlyList<Workflow>> GetActiveWorkflows(string? ns = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all scheduled workflows.
+    /// Gets all scheduled workflows, optionally filtered by namespace.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets finished workflows (completed, failed, canceled, dependency-failed).
@@ -50,9 +53,18 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets all distinct values for a given label key across all workflows.
+    /// Gets distinct values for a given label key, optionally filtered by namespace.
     /// </summary>
-    Task<IReadOnlyList<string>> GetDistinctLabelValues(string labelKey, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> GetDistinctLabelValues(
+        string labelKey,
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets all distinct namespace values across all workflows, ordered alphabetically.
+    /// </summary>
+    Task<IReadOnlyList<string>> GetDistinctNamespaces(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of active workflows.
@@ -75,9 +87,13 @@ internal interface IEngineRepository
     Task<int> CountSuccessfulWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the status of a workflow by its database ID, or null if not found.
+    /// Gets the status of a workflow by its database ID and namespace, or null if not found.
     /// </summary>
-    Task<PersistentItemStatus?> GetWorkflowStatus(Guid workflowId, CancellationToken cancellationToken = default);
+    Task<PersistentItemStatus?> GetWorkflowStatus(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets all active (incomplete) workflows, optionally filtered by correlation ID and namespace.
@@ -90,9 +106,9 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets the full workflow (with steps) by database ID, or null if not found.
+    /// Gets the full workflow (with steps) by database ID and namespace, or null if not found.
     /// </summary>
-    Task<Workflow?> GetWorkflow(Guid workflowId, CancellationToken cancellationToken = default);
+    Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a workflow by idempotency key and creation time.
@@ -139,13 +155,22 @@ internal interface IEngineRepository
     /// Only affects workflows that are not already in a terminal state and not already flagged for cancellation.
     /// Returns true if the workflow was found and updated.
     /// </summary>
-    Task<bool> RequestCancellation(Guid workflowId, DateTimeOffset requestedAt, CancellationToken cancellationToken);
+    Task<bool> RequestCancellation(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset requestedAt,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Returns the status and cancellation timestamp for a workflow, or null if the workflow does not exist.
     /// Used by the cancel endpoint to distinguish "already cancelling" from "already terminal" and "not found".
     /// </summary>
-    Task<WorkflowCancellationInfo?> GetCancellationInfo(Guid workflowId, CancellationToken cancellationToken);
+    Task<WorkflowCancellationInfo?> GetCancellationInfo(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Returns the subset of <paramref name="inFlightIds"/> that have a non-null <c>CancellationRequestedAt</c>.
@@ -180,6 +205,7 @@ internal interface IEngineRepository
     /// </summary>
     Task<IReadOnlyList<Guid>> ResumeWorkflow(
         Guid workflowId,
+        string ns,
         DateTimeOffset resumedAt,
         bool cascade = false,
         CancellationToken cancellationToken = default
@@ -189,5 +215,5 @@ internal interface IEngineRepository
     /// Clears BackoffUntil on a requeued workflow so it resumes retrying immediately.
     /// Returns true if the workflow was found, is Requeued, and had a non-null BackoffUntil.
     /// </summary>
-    Task<bool> SkipBackoff(Guid workflowId, CancellationToken cancellationToken = default);
+    Task<bool> SkipBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
 }

@@ -938,10 +938,10 @@ describe('UI Components', () => {
     cy.get(component('mapSummary')).findByRole('img', { description: /hankabakken 8/i }).should('be.visible');
     }
 
-    cy.findByRole('checkbox', { name: /hankabakken 2/i }).dsUncheck();
-    cy.findByRole('checkbox', { name: /hankabakken 4/i }).dsUncheck();
-    cy.findByRole('checkbox', { name: /hankabakken 7/i }).dsUncheck();
-    cy.findByRole('checkbox', { name: /hankabakken 8/i }).dsUncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 2/i }).uncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 4/i }).uncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 7/i }).uncheck();
+    cy.findByRole('checkbox', { name: /hankabakken 8/i }).uncheck();
     cy.waitUntilSaved();
 
     // prettier-ignore

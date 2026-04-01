@@ -45,6 +45,7 @@ public class InstancesController : ControllerBase
     private readonly GeneralSettings _generalSettings;
     private readonly IRegisterService _registerService;
     private readonly IApplicationService _applicationService;
+    private readonly IProcessAuthorizer _processAuthorizer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -57,6 +58,7 @@ public class InstancesController : ControllerBase
     /// <param name="registerService">the instance register service.</param>
     /// <param name="applicationService">the application service.</param>
     /// <param name="settings">the general settings.</param>
+    /// <param name="processAuthorizer">the process authorizer.</param>
     public InstancesController(
         IInstanceRepository instanceRepository,
         IPartiesWithInstancesClient partiesWithInstancesClient,
@@ -65,7 +67,8 @@ public class InstancesController : ControllerBase
         IInstanceEventService instanceEventService,
         IRegisterService registerService,
         IApplicationService applicationService,
-        IOptions<GeneralSettings> settings
+        IOptions<GeneralSettings> settings,
+        IProcessAuthorizer processAuthorizer
     )
     {
         _instanceRepository = instanceRepository;
@@ -77,6 +80,7 @@ public class InstancesController : ControllerBase
         _registerService = registerService;
         _applicationService = applicationService;
         _generalSettings = settings.Value;
+        _processAuthorizer = processAuthorizer;
     }
 
     /// <summary>
@@ -911,9 +915,11 @@ public class InstancesController : ControllerBase
     /// <param name="presentationTexts">Collection of changes to the presentation texts collection.</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The instance that was updated with an updated collection of presentation texts.</returns>
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+    [Authorize]
     [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/presentationtexts")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [Consumes("application/json")]
     [Produces("application/json")]
     public async Task<ActionResult<Instance>> UpdatePresentationTexts(
@@ -933,6 +939,11 @@ public class InstancesController : ControllerBase
             true,
             cancellationToken
         );
+
+        if (!await _processAuthorizer.AuthorizePresentationTextsUpdate(instance))
+        {
+            return Forbid();
+        }
 
         if (instance.PresentationTexts == null)
         {
@@ -969,10 +980,11 @@ public class InstancesController : ControllerBase
     /// <param name="dataValues">Collection of changes to the data values collection.</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The instance that was updated with an updated collection of data values.</returns>
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+    [Authorize]
     [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/datavalues")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [Consumes("application/json")]
     [Produces("application/json")]
     public async Task<ActionResult<Instance>> UpdateDataValues(
@@ -992,6 +1004,11 @@ public class InstancesController : ControllerBase
             true,
             cancellationToken
         );
+
+        if (!await _processAuthorizer.AuthorizeDataValuesUpdate(instance))
+        {
+            return Forbid();
+        }
 
         instance.DataValues ??= new Dictionary<string, string>();
 

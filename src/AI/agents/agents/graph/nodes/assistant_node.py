@@ -124,7 +124,8 @@ async def handle(state: AgentState) -> AgentState:
                 "repository_summary": repo_summary,
                 "tools_used": list(tool_results.keys()),
                 "sources": cited_sources,  # Only sources that were actually cited
-                "mode": "chat"
+                "mode": "chat",
+                "trace_id": main_span.trace_id,
             }
 
             # Add this Q&A to conversation history for future context

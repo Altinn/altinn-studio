@@ -35,23 +35,23 @@ import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
 export interface ExpressionDataSources {
-  process?: IProcess;
-  instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
+  attachmentsSelector: AttachmentsSelector;
+  codeListSelector: CodeListSelector;
+  currentDataModelPath: IDataModelReference | undefined;
+  currentLanguage: string;
+  currentPage: string | undefined;
   dataElementSelector: ReturnType<typeof useDataElementsSelectorProps>;
   dataModelNames: string[];
-  formDataSelector: FormDataSelectorLax;
-  attachmentsSelector: AttachmentsSelector;
-  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
-  currentLanguage: string;
   defaultDataType: string | null;
-  externalApis: ExternalApisResult;
-  currentDataModelPath: IDataModelReference | undefined;
-  codeListSelector: CodeListSelector;
-  layoutLookups: LayoutLookups;
   displayValues: Record<string, string | undefined>;
+  externalApis: ExternalApisResult;
+  formDataSelector: FormDataSelectorLax;
   hiddenComponents: Record<string, boolean | undefined>;
-  currentPage: string | undefined;
+  instanceDataSources: IInstanceDataSources | null;
+  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
+  layoutLookups: LayoutLookups;
+  process?: IProcess;
 }
 
 const multiSelectors = {
