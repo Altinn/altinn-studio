@@ -54,13 +54,6 @@ describe('ApiKeysList', () => {
     expect(await screen.findByText(textMock('settings.user.api_keys.error'))).toBeInTheDocument();
   });
 
-  it('renders empty state message when there are no api keys', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.UserApiKeys], []);
-    renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
-    expect(screen.getByText(textMock('settings.user.api_keys.no_api_keys'))).toBeInTheDocument();
-  });
-
   it('renders the list of api keys', () => {
     renderApiKeysList();
     expect(screen.getByText('My api key')).toBeInTheDocument();

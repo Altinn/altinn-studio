@@ -140,7 +140,7 @@ describe('AddApiKey', () => {
     await user.type(getNameInput(), 'New api key');
     await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
     await openDialog(user);
     expect(getExpiryInput()).toHaveValue(maxUtc);
   });
@@ -212,7 +212,7 @@ describe('AddApiKey', () => {
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
     expect(screen.queryByDisplayValue('secret-key-value')).not.toBeInTheDocument();
   });
 
