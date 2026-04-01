@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -15,15 +16,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-
     public class GetOptionsTests
         : PreviewControllerTestsBase<GetOptionsTests>,
             IClassFixture<WebApplicationFactory<Program>>
     {
         public GetOptionsTests(WebApplicationFactory<Program> factory)
-            : base(factory)
-        {
-        }
+            : base(factory) { }
 
         private readonly Mock<ISharedContentClient> _sharedContentClient = new();
 
@@ -90,8 +88,9 @@ namespace Designer.Tests.Controllers.PreviewController
         {
             string dataPathWithData = $"{Org}/{AppV4}/api/options/non-existing-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer =
-                new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -113,9 +112,9 @@ namespace Designer.Tests.Controllers.PreviewController
                 {
                     new(
                         Value: "testValue",
-                        Label: new Dictionary<string, string>() { { "nb", "testLabel" } },
-                        Description: new Dictionary<string, string>() { { "nb", "testDescription" } },
-                        HelpText: new Dictionary<string, string>() { { "nb", "testHelpText" } },
+                        Label: new Dictionary<string, string>() { { LanguageConst.Nb, "testLabel" } },
+                        Description: new Dictionary<string, string>() { { LanguageConst.Nb, "testDescription" } },
+                        HelpText: new Dictionary<string, string>() { { LanguageConst.Nb, "testHelpText" } },
                         Tags: ["test-data"]
                     ),
                 },
