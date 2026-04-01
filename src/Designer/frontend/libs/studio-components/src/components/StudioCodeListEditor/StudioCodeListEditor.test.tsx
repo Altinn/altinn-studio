@@ -177,23 +177,19 @@ describe('StudioCodeListEditor', () => {
   });
 
   describe('Invalid code list handling', () => {
-    it('Applies invalid state to duplicated values', () => {
+    it('Applies custom error message to duplicated values', () => {
       renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
       const firstDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
       const secondDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
-      expect(firstDuplicateInput).toBeInvalid();
-      expect(secondDuplicateInput).toBeInvalid();
+      expect((firstDuplicateInput as HTMLInputElement).validity.customError).toBe(true);
+      expect((secondDuplicateInput as HTMLInputElement).validity.customError).toBe(true);
     });
 
-    // TODO - This test is redundant as all inputs are marked as invalid when a `validationmessage` is declared inside a `fieldset` element. This is due to accessibility reasons.
-    it.failing(
-      'Does not apply invalid state to unique values when other values are duplicated',
-      () => {
-        renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
-        const uniqueValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-        expect(uniqueValueInput).toBeValid();
-      },
-    );
+    it('Does not apply custom error message to unique values when other values are duplicated', () => {
+      renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+      const uniqueValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+      expect((uniqueValueInput as HTMLInputElement).validity.customError).toBe(false);
+    });
 
     it('Renders a general error message when there are errors', () => {
       renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
