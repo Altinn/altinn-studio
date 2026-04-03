@@ -136,6 +136,33 @@ describe('AppConfigForm', () => {
     expect(delegableSwitch).toBeChecked();
   });
 
+  it('displays correct default values for visibility and delegation when access is not defined, and updates the values on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm({
+      appConfig: { ...mockAppConfig, access: undefined },
+    });
+
+    const visibleSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
+    );
+    const delegableSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
+    );
+
+    expect(visibleSwitch).toBeChecked();
+    expect(delegableSwitch).toBeChecked();
+
+    await user.click(visibleSwitch);
+
+    expect(visibleSwitch).not.toBeChecked();
+    expect(delegableSwitch).toBeChecked();
+
+    await user.click(delegableSwitch);
+
+    expect(visibleSwitch).not.toBeChecked();
+    expect(delegableSwitch).not.toBeChecked();
+  });
+
   it('updates "keywords" input field with correct value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm();
