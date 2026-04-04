@@ -9,7 +9,9 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
@@ -63,6 +65,23 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
             ?? throw new InvalidOperationException(
                 "Received empty or null response body when deserializing AppDeployment."
             );
+    }
+
+    public async Task<IEnumerable<KubernetesDeployment>> GetKubernetesDeploymentsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string labelSelector,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deployments";
+
+        var query = new Dictionary<string, string?> { ["labelSelector"] = labelSelector };
+        requestUrl = QueryHelpers.AddQueryString(requestUrl, query);
+
+        return await client.GetFromJsonAsync<IEnumerable<KubernetesDeployment>>(requestUrl, cancellationToken) ?? [];
     }
 
     public async Task<bool> IsAppDeployedWithGitOpsAsync(
