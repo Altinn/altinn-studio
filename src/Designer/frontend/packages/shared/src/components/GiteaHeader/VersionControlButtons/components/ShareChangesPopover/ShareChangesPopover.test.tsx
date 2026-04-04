@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -174,6 +175,64 @@ describe('shareChanges', () => {
     );
     expect(screen.queryByText(textMock('sync_header.nothing_to_push'))).not.toBeInTheDocument();
     expect(screen.getByText(textMock('sync_header.changes_to_share'))).toBeInTheDocument();
+  });
+
+  it('should close the popover when merge conflict mode becomes active', async () => {
+    const user = userEvent.setup();
+    const getRepoStatus = mockGetRepoStatus.mockResolvedValue({
+      contentStatus: [{ filePath: '', fileStatus: 'Modified' }],
+      aheadBy: 1,
+      behindBy: 0,
+      hasMergeConflict: false,
+      repositoryStatus: 'Ok',
+    });
+
+    const TestComponent = () => {
+      const [hasMergeConflict, setHasMergeConflict] = useState(false);
+
+      return (
+        <VersionControlButtonsContext.Provider
+          value={{
+            ...mockVersionControlButtonsContextValue,
+            hasPushRights: true,
+            hasMergeConflict,
+          }}
+        >
+          <button onClick={() => setHasMergeConflict(true)}>Set conflict</button>
+          <ShareChangesPopover />
+        </VersionControlButtonsContext.Provider>
+      );
+    };
+
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.RepoMetadata, org, app], {
+      ...repository,
+      permissions: { ...repository.permissions, push: true },
+    });
+
+    renderWithProviders({ ...queriesMock, getRepoStatus }, queryClient)(<TestComponent />);
+
+    await user.click(
+      screen.getByRole('button', { name: textMock('sync_header.changes_to_share') }),
+    );
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 3,
+        name: textMock('sync_header.describe_and_validate'),
+      }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Set conflict' }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', {
+          level: 3,
+          name: textMock('sync_header.describe_and_validate'),
+        }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it('should render the button with text on a large screen', () => {

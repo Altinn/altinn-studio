@@ -20,11 +20,11 @@ describe('useHasMergeConflict', () => {
     expect(result.current.hasMergeConflict).toBe(true);
   });
 
-  it('should set hasMergeConflict to true when repositoryStatus is CheckoutConflict', () => {
+  it('should set hasMergeConflict to false when repositoryStatus is CheckoutConflict', () => {
     const { result } = renderHook(() =>
       useHasMergeConflict({ ...mockRepoStatus, repositoryStatus: 'CheckoutConflict' }),
     );
-    expect(result.current.hasMergeConflict).toBe(true);
+    expect(result.current.hasMergeConflict).toBe(false);
   });
 
   it('should set hasMergeConflict to false when repoStatus.hasMergeConflict is false', () => {

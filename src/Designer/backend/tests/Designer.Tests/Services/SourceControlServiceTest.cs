@@ -16,68 +16,29 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
+using DesignerRepositoryStatus = Altinn.Studio.Designer.Enums.RepositoryStatus;
 
 namespace Designer.Tests.Services
 {
-    public class SourceControlServiceTest : IDisposable
+    public class SourceControlServiceTest
     {
-        private Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private Mock<IGiteaClient> _giteaClientMock;
-        private ServiceRepositorySettings _settings;
-        private Mock<HttpContext> _httpContextMock;
-        private SourceControlService _sourceControlService;
-
-        private readonly string _org = "ttd";
-        private readonly string _developer = "testUser";
-        private string _repoDir;
-
-        private void Setup()
-        {
-            // Setup mocks
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _giteaClientMock = new Mock<IGiteaClient>();
-            _httpContextMock = new Mock<HttpContext>();
-            _httpContextMock
-                .Setup(x => x.User)
-                .Returns(new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "testUser")], "mock")));
-
-            // Setup settings with a test repository location
-            _settings = new ServiceRepositorySettings
-            {
-                RepositoryLocation = TestDataHelper.GetTestDataRepositoriesRootDirectory(),
-                RepositoryBaseURL = "https://test.gitea.com",
-            };
-
-            // Setup HttpContextAccessor to return mock HttpContext
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(_httpContextMock.Object);
-
-            // Create the service under test
-            _sourceControlService = new SourceControlService(
-                _settings,
-                _giteaClientMock.Object,
-                new Mock<IGitServerAuthHeadersProvider>().Object,
-                new Mock<IConfiguration>().Object
-            );
-        }
-
         [Fact]
         public void DeleteLocalBranchIfExists()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
             string branchName = "feature-branch-to-delete";
-            AltinnRepoEditingContext context = CreateTestRepository(repoName, branchName);
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName, branchName);
 
-            // Act
-            using (Repository repo = new(_repoDir))
+            using (Repository repo = new(fixture.RepoDir))
             {
                 Assert.Contains(repo.Branches, b => b.FriendlyName == branchName);
             }
 
-            _sourceControlService.DeleteLocalBranchIfExists(context, branchName);
+            fixture.Service.DeleteLocalBranchIfExists(context, branchName);
 
-            // Assert
-            using Repository finalRepoState = new(_repoDir);
+            using Repository finalRepoState = new(fixture.RepoDir);
             Assert.NotNull(finalRepoState);
             Assert.NotEmpty(finalRepoState.Branches);
             Assert.DoesNotContain(finalRepoState.Branches, b => b.FriendlyName == branchName);
@@ -86,48 +47,45 @@ namespace Designer.Tests.Services
         [Fact]
         public void CreateLocalBranch()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
             string branchName = "new-feature-branch";
             string commitSha = null;
-            AltinnRepoEditingContext context = CreateTestRepository(repoName);
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName);
 
-            // Act
-            _sourceControlService.CreateLocalBranch(context, branchName, commitSha);
+            fixture.Service.CreateLocalBranch(context, branchName, commitSha);
 
-            // Assert
-            using Repository finalRepoState = new(_repoDir);
+            using Repository finalRepoState = new(fixture.RepoDir);
             Assert.NotNull(finalRepoState);
             Assert.NotEmpty(finalRepoState.Branches);
-            Assert.Equal(2, finalRepoState.Branches.Count()); // master + new branch
+            Assert.Equal(2, finalRepoState.Branches.Count());
             Assert.Contains(finalRepoState.Branches, b => b.FriendlyName == branchName);
         }
 
         [Fact]
         public void CreateLocalBranch_WithCommitSha()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
             string branchName = "new-feature-branch";
-            AltinnRepoEditingContext context = CreateTestRepository(repoName);
-            string defaultBranchName = GetHeadBranchName();
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName);
+            string defaultBranchName = fixture.GetHeadBranchName();
             string commitSha;
-            using (Repository repo = new(_repoDir))
+            using (Repository repo = new(fixture.RepoDir))
             {
                 commitSha = repo.Head.Tip.Sha;
             }
 
-            AddFileToRepo();
-            _sourceControlService.CommitToLocalRepo(context, "commitMessage");
+            fixture.AddFileToRepo();
+            fixture.Service.CommitToLocalRepo(context, "commitMessage");
+            fixture.Service.CreateLocalBranch(context, branchName, commitSha);
 
-            // Act
-            _sourceControlService.CreateLocalBranch(context, branchName, commitSha);
-
-            // Assert
-            using Repository finalRepoState = new(_repoDir);
+            using Repository finalRepoState = new(fixture.RepoDir);
             Assert.NotNull(finalRepoState);
             Assert.NotEmpty(finalRepoState.Branches);
-            Assert.Equal(2, finalRepoState.Branches.Count()); // master + new branch
+            Assert.Equal(2, finalRepoState.Branches.Count());
             Branch createdBranch = finalRepoState.Branches.Single(b => b.FriendlyName == branchName);
             Assert.NotNull(createdBranch);
             Assert.Equal(commitSha, createdBranch.Tip.Sha);
@@ -138,72 +96,65 @@ namespace Designer.Tests.Services
         [Fact]
         public void CommitToLocalRepo()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
             string commitMessage = "fixed everything!";
-            AltinnRepoEditingContext context = CreateTestRepository(repoName);
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName);
 
-            // Act
-            AddFileToRepo();
-            _sourceControlService.CommitToLocalRepo(context, commitMessage);
+            fixture.AddFileToRepo();
+            fixture.Service.CommitToLocalRepo(context, commitMessage);
 
-            // Assert
-            using Repository finalRepoState = new(_repoDir);
+            using Repository finalRepoState = new(fixture.RepoDir);
             Assert.NotNull(finalRepoState);
             Assert.NotEmpty(finalRepoState.Commits);
-            Assert.Equal(2, finalRepoState.Commits.Count()); // Initial commit + new commit
+            Assert.Equal(2, finalRepoState.Commits.Count());
             Assert.Equal(commitMessage, finalRepoState.Head.Tip.MessageShort);
         }
 
         [Fact]
         public void CheckoutRepoOnBranch()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
-            AltinnRepoEditingContext context = CreateTestRepository(repoName);
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName);
             string branchName = "new-feature-branch";
 
-            _sourceControlService.CreateLocalBranch(context, branchName);
+            fixture.Service.CreateLocalBranch(context, branchName);
+            fixture.Service.CheckoutRepoOnBranch(context, branchName);
 
-            // Act
-            _sourceControlService.CheckoutRepoOnBranch(context, branchName);
-
-            using Repository repository = new(_repoDir);
-
-            // Assert
-            Assert.Equal(2, repository.Branches.Count()); // new-feature-branch + master
+            using Repository repository = new(fixture.RepoDir);
+            Assert.Equal(2, repository.Branches.Count());
             Assert.Equal(branchName, repository.Head.FriendlyName);
         }
 
         [Fact]
         public void RebaseOntoDefaultBranch()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
-            AltinnRepoEditingContext context = CreateTestRepository(repoName);
-            string defaultBranchName = GetHeadBranchName();
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName);
+            string defaultBranchName = fixture.GetHeadBranchName();
             string branchName = "new-feature-branch";
             string commitMessageFeature = "broke it again!";
             string commitMessageMaster = "fixed everything!";
 
-            // Create a branch and add a commit
-            _sourceControlService.CreateLocalBranch(context, branchName);
-            _sourceControlService.CheckoutRepoOnBranch(context, branchName);
-            AddFileToRepo("file-on-feature-branch");
-            _sourceControlService.CommitToLocalRepo(context, commitMessageFeature);
+            fixture.Service.CreateLocalBranch(context, branchName);
+            fixture.Service.CheckoutRepoOnBranch(context, branchName);
+            fixture.AddFileToRepo("file-on-feature-branch");
+            fixture.Service.CommitToLocalRepo(context, commitMessageFeature);
 
-            // Add a commit to master
-            _sourceControlService.CheckoutRepoOnBranch(context, defaultBranchName);
-            AddFileToRepo("file-on-master");
-            _sourceControlService.CommitToLocalRepo(context, commitMessageMaster);
+            fixture.Service.CheckoutRepoOnBranch(context, defaultBranchName);
+            fixture.AddFileToRepo("file-on-master");
+            fixture.Service.CommitToLocalRepo(context, commitMessageMaster);
 
-            // Act
-            _sourceControlService.CheckoutRepoOnBranch(context, branchName);
-            _sourceControlService.RebaseOntoDefaultBranch(context);
+            fixture.Service.CheckoutRepoOnBranch(context, branchName);
+            fixture.Service.RebaseOntoDefaultBranch(context);
 
-            // Assert
-            using Repository repository = new(_repoDir);
-            Assert.Equal(2, repository.Branches.Count()); // new-feature-branch + master
+            using Repository repository = new(fixture.RepoDir);
+            Assert.Equal(2, repository.Branches.Count());
             Branch defaultBranch = repository.Branches.First(b => b.FriendlyName == defaultBranchName);
             Assert.Equal(2, defaultBranch.Commits.Count());
             Assert.Equal(commitMessageMaster, defaultBranch.Tip.MessageShort);
@@ -216,25 +167,23 @@ namespace Designer.Tests.Services
         [Fact]
         public void MergeBranchIntoHead()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
-            AltinnRepoEditingContext context = CreateTestRepository(repoName);
-            string defaultBranchName = GetHeadBranchName();
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName);
+            string defaultBranchName = fixture.GetHeadBranchName();
             string branchName = "new-feature-branch";
             string commitMessage = "broke it again!";
 
-            // Create a branch and add a commit
-            _sourceControlService.CreateLocalBranch(context, branchName);
-            _sourceControlService.CheckoutRepoOnBranch(context, branchName);
-            AddFileToRepo("file-on-feature-branch");
-            _sourceControlService.CommitToLocalRepo(context, commitMessage);
+            fixture.Service.CreateLocalBranch(context, branchName);
+            fixture.Service.CheckoutRepoOnBranch(context, branchName);
+            fixture.AddFileToRepo("file-on-feature-branch");
+            fixture.Service.CommitToLocalRepo(context, commitMessage);
 
-            // Act
-            _sourceControlService.CheckoutRepoOnBranch(context, defaultBranchName);
-            _sourceControlService.MergeBranchIntoHead(context, branchName);
+            fixture.Service.CheckoutRepoOnBranch(context, defaultBranchName);
+            fixture.Service.MergeBranchIntoHead(context, branchName);
 
-            // Assert
-            using Repository repository = new(_repoDir);
+            using Repository repository = new(fixture.RepoDir);
             Branch defaultBranch = repository.Branches.First(b => b.FriendlyName == defaultBranchName);
             Assert.Equal(2, defaultBranch.Commits.Count());
             Assert.Equal(commitMessage, defaultBranch.Tip.MessageShort);
@@ -243,7 +192,6 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task DeleteRepository_GiteaServiceIsCalled()
         {
-            // Arrange
             string org = "ttd";
             string origApp = "hvem-er-hvem";
             string app = TestDataHelper.GenerateTestRepoName(origApp);
@@ -259,13 +207,11 @@ namespace Designer.Tests.Services
             Mock<IGiteaClient> mock = new();
             mock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
 
-            SourceControlService sut = GetServiceForTest(developer, mock);
+            using var fixture = Fixture.Create(developer: developer, giteaClientMock: mock);
 
-            // Act
-            await sut.DeleteRepository(editingContext);
+            await fixture.Service.DeleteRepository(editingContext);
             string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
 
-            // Assert
             mock.VerifyAll();
             Assert.False(Directory.Exists(expectedPath));
         }
@@ -273,7 +219,6 @@ namespace Designer.Tests.Services
         [Fact]
         public async Task CreatePullRequest_InputMappedCorectlyToCreatePullRequestOption()
         {
-            // Arrange
             string target = "master";
             string source = "branch";
             string user = "testUser";
@@ -293,30 +238,30 @@ namespace Designer.Tests.Services
                 user
             );
 
-            SourceControlService sut = GetServiceForTest(user, mock);
+            using var fixture = Fixture.Create(developer: user, giteaClientMock: mock);
 
-            // Act
-            await sut.CreatePullRequest(editingContext, target, source, "title");
+            await fixture.Service.CreatePullRequest(editingContext, target, source, "title");
 
-            // Assert
             mock.VerifyAll();
         }
 
         [Fact]
         public void GetChangedContent_OnMasterBranch_ReturnsUncommittedChanges()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
+                AltinnAuthenticatedRepoEditingContext.FromEditingContext(
+                    fixture.CreateTestRepository(repoName),
+                    "dummytoken"
+                );
 
-            string testFile = Path.Join(_repoDir, "uncommitted-file.txt");
+            string testFile = Path.Join(fixture.RepoDir, "uncommitted-file.txt");
             File.WriteAllText(testFile, "This is new content");
 
-            // Act
-            var result = _sourceControlService.GetChangedContent(authenticatedContext);
+            var result = fixture.Service.GetChangedContent(authenticatedContext);
 
-            // Assert
             Assert.Single(result);
             Assert.Contains("uncommitted-file.txt", result.Keys);
         }
@@ -324,35 +269,36 @@ namespace Designer.Tests.Services
         [Fact]
         public void GetChangedContent_OnFeatureBranch_ReturnsOnlyUncommittedChanges()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
             const string BranchName = "feature-branch";
-            var context = CreateTestRepository(repoName);
+            AltinnRepoEditingContext context = fixture.CreateTestRepository(repoName);
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromEditingContext(context, "dummytoken");
 
-            // Create feature branch and commit a file
-            _sourceControlService.CreateLocalBranch(context, BranchName);
-            _sourceControlService.CheckoutRepoOnBranch(context, BranchName);
+            fixture.Service.CreateLocalBranch(context, BranchName);
+            fixture.Service.CheckoutRepoOnBranch(context, BranchName);
 
-            string committedFile = Path.Join(_repoDir, "committed-on-feature.txt");
+            string committedFile = Path.Join(fixture.RepoDir, "committed-on-feature.txt");
             File.WriteAllText(committedFile, "Committed content");
 
-            using (var repo = new Repository(_repoDir))
+            using (var repo = new Repository(fixture.RepoDir))
             {
                 Commands.Stage(repo, "committed-on-feature.txt");
-                var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+                var signature = new LibGit2Sharp.Signature(
+                    fixture.Developer,
+                    $"{fixture.Developer}@test.com",
+                    DateTimeOffset.Now
+                );
                 repo.Commit("Add file on feature branch", signature, signature);
             }
 
-            // Add uncommitted file
-            string uncommittedFile = Path.Join(_repoDir, "uncommitted-on-feature.txt");
+            string uncommittedFile = Path.Join(fixture.RepoDir, "uncommitted-on-feature.txt");
             File.WriteAllText(uncommittedFile, "Uncommitted content");
 
-            // Act
-            var result = _sourceControlService.GetChangedContent(authenticatedContext);
+            var result = fixture.Service.GetChangedContent(authenticatedContext);
 
-            // Assert
             Assert.Single(result);
             Assert.Contains("uncommitted-on-feature.txt", result.Keys);
             Assert.DoesNotContain("committed-on-feature.txt", result.Keys);
@@ -361,16 +307,414 @@ namespace Designer.Tests.Services
         [Fact]
         public void GetChangedContent_NoChanges_ReturnsEmptyDictionary()
         {
-            // Arrange
+            using var fixture = Fixture.Create();
+
             string repoName = TestDataHelper.GenerateTestRepoName();
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
+                AltinnAuthenticatedRepoEditingContext.FromEditingContext(
+                    fixture.CreateTestRepository(repoName),
+                    "dummytoken"
+                );
 
-            // Act
-            var result = _sourceControlService.GetChangedContent(authenticatedContext);
+            var result = fixture.Service.GetChangedContent(authenticatedContext);
 
-            // Assert
             Assert.Empty(result);
+        }
+
+        [Fact]
+        public void PullRemoteChanges_DirtyAndOnlyBehind_FastForwardsWithoutLosingLocalChanges()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+
+            fixture.CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+            File.WriteAllText(Path.Join(localRepoPath, "local-only.txt"), "local dirty content");
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+            using Repository localRepo = new(localRepoPath);
+            Assert.True(localRepo.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.Empty(localRepo.Index.Conflicts);
+            Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
+            Assert.Equal("local dirty content", File.ReadAllText(Path.Join(localRepoPath, "local-only.txt")));
+        }
+
+        [Fact]
+        public void PullRemoteChanges_DirtyAndOnlyBehind_ReturnsCheckoutConflictWhenFastForwardWouldOverwrite()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+
+            using Repository repoBeforePull = new(localRepoPath);
+            string headBeforePull = repoBeforePull.Head.Tip.Sha;
+
+            fixture.CommitAndPushChange(
+                collaboratorRepoPath,
+                "test.txt",
+                """
+                line one
+                remote line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                line eleven
+                line twelve
+                """,
+                "remote conflicting update"
+            );
+            File.WriteAllText(
+                Path.Join(localRepoPath, "test.txt"),
+                """
+                line one
+                local line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                line eleven
+                line twelve
+                """
+            );
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.CheckoutConflict, status.RepositoryStatus);
+            using Repository localRepo = new(localRepoPath);
+            Assert.Equal(headBeforePull, localRepo.Head.Tip.Sha);
+            Assert.True(localRepo.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.Empty(localRepo.Index.Conflicts);
+            string fileContent = File.ReadAllText(Path.Join(localRepoPath, "test.txt"));
+            Assert.Contains("local line two", fileContent);
+            Assert.DoesNotContain("remote line two", fileContent);
+        }
+
+        [Fact]
+        public void PullRemoteChanges_DirtyAndDiverged_ReturnsCheckoutConflictWithoutRebasing()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            string headBeforePull;
+
+            using (Repository localRepo = new(localRepoPath))
+            {
+                File.WriteAllText(Path.Join(localRepoPath, "test.txt"), "local committed change");
+                Commands.Stage(localRepo, "test.txt");
+                var signature = new LibGit2Sharp.Signature(
+                    fixture.Developer,
+                    $"{fixture.Developer}@test.com",
+                    DateTimeOffset.Now
+                );
+                localRepo.Commit("local committed update", signature, signature);
+                headBeforePull = localRepo.Head.Tip.Sha;
+            }
+
+            fixture.CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+            File.WriteAllText(Path.Join(localRepoPath, "local-only.txt"), "dirty change");
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.CheckoutConflict, status.RepositoryStatus);
+            using Repository localRepoAfterPull = new(localRepoPath);
+            Assert.Equal(headBeforePull, localRepoAfterPull.Head.Tip.Sha);
+            Assert.True(localRepoAfterPull.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.Empty(localRepoAfterPull.Index.Conflicts);
+            Assert.False(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
+            Assert.True(File.Exists(Path.Join(localRepoPath, "local-only.txt")));
+        }
+
+        [Fact]
+        public void PullRemoteChanges_CleanAndDiverged_RebasesWithoutMergeCommit()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            string localCommitSha;
+
+            using (Repository localRepo = new(localRepoPath))
+            {
+                File.WriteAllText(
+                    Path.Join(localRepoPath, "test.txt"),
+                    """
+                    line one
+                    local line two
+                    line three
+                    line four
+                    line five
+                    line six
+                    line seven
+                    line eight
+                    line nine
+                    line ten
+                    line eleven
+                    line twelve
+                    """
+                );
+                Commands.Stage(localRepo, "test.txt");
+                var signature = new LibGit2Sharp.Signature(
+                    fixture.Developer,
+                    $"{fixture.Developer}@test.com",
+                    DateTimeOffset.Now
+                );
+                localCommitSha = localRepo.Commit("local committed update", signature, signature).Sha;
+            }
+
+            string remoteCommitSha = fixture.CommitAndPushChange(
+                collaboratorRepoPath,
+                "remote-only.txt",
+                "remote content",
+                "remote update"
+            );
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+            using Repository localRepoAfterPull = new(localRepoPath);
+            Assert.NotEqual(localCommitSha, localRepoAfterPull.Head.Tip.Sha);
+            Assert.Single(localRepoAfterPull.Head.Tip.Parents);
+            Assert.Equal(remoteCommitSha, localRepoAfterPull.Head.Tip.Parents.Single().Sha);
+        }
+
+        [Fact]
+        public void PullRemoteChanges_CleanAndDivergedWithConflicts_ReturnsMergeConflictAndAbortsRebase()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            string localCommitSha;
+
+            using (Repository localRepo = new(localRepoPath))
+            {
+                File.WriteAllText(
+                    Path.Join(localRepoPath, "test.txt"),
+                    """
+                    line one
+                    local line two
+                    line three
+                    line four
+                    line five
+                    line six
+                    line seven
+                    line eight
+                    line nine
+                    line ten
+                    line eleven
+                    line twelve
+                    """
+                );
+                Commands.Stage(localRepo, "test.txt");
+                var signature = new LibGit2Sharp.Signature(
+                    fixture.Developer,
+                    $"{fixture.Developer}@test.com",
+                    DateTimeOffset.Now
+                );
+                localCommitSha = localRepo.Commit("local committed update", signature, signature).Sha;
+            }
+
+            fixture.CommitAndPushChange(
+                collaboratorRepoPath,
+                "test.txt",
+                """
+                line one
+                remote line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                line eleven
+                line twelve
+                """,
+                "remote conflicting update"
+            );
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.MergeConflict, status.RepositoryStatus);
+            using Repository localRepoAfterPull = new(localRepoPath);
+            Assert.Equal(localCommitSha, localRepoAfterPull.Head.Tip.Sha);
+            Assert.False(localRepoAfterPull.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.Empty(localRepoAfterPull.Index.Conflicts);
+            string fileContent = File.ReadAllText(Path.Join(localRepoPath, "test.txt"));
+            Assert.Contains("local line two", fileContent);
+            Assert.DoesNotContain("remote line two", fileContent);
+        }
+
+        [Fact]
+        public void PullRemoteChanges_CleanAndDivergedWithLocalStudioCommit_PreservesStudioNoteAndSucceeds()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+
+            string localCommitSha = fixture.CommitStudioChange(
+                localRepoPath,
+                "local-only.txt",
+                "local content",
+                "local studio update"
+            );
+            fixture.CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+            using Repository localRepoAfterPull = new(localRepoPath);
+            Assert.NotEqual(localCommitSha, localRepoAfterPull.Head.Tip.Sha);
+            Assert.Equal("local studio update", localRepoAfterPull.Head.Tip.MessageShort);
+            Assert.Equal(
+                "studio-commit",
+                localRepoAfterPull
+                    .Notes[localRepoAfterPull.Notes.DefaultNamespace, localRepoAfterPull.Head.Tip.Id]
+                    ?.Message
+            );
+        }
+
+        [Fact]
+        public void RebaseOntoRemoteBranch_WithMultipleLocalStudioCommits_PreservesAllLocalNotes()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            fixture.CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+
+            fixture.CommitStudioChange(localRepoPath, "local-one.txt", "local one", "local studio update one");
+            fixture.CommitStudioChange(localRepoPath, "local-two.txt", "local two", "local studio update two");
+
+            RemoteRebaseResult rebaseResult = fixture.Service.RebaseOntoRemoteBranch(
+                authenticatedContext,
+                General.DefaultBranch
+            );
+            Assert.Equal(RebaseStatus.Complete, rebaseResult.Status);
+            Assert.Contains(rebaseResult.ContentStatus, content => content.FilePath == "remote-only.txt");
+
+            using Repository localRepo = new(localRepoPath);
+            Assert.Equal("local studio update two", localRepo.Head.Tip.MessageShort);
+            Assert.Equal("local studio update one", localRepo.Head.Tip.Parents.Single().MessageShort);
+
+            Assert.Equal(
+                "studio-commit",
+                localRepo.Notes[localRepo.Notes.DefaultNamespace, localRepo.Head.Tip.Id]?.Message
+            );
+            Assert.Equal(
+                "studio-commit",
+                localRepo.Notes[localRepo.Notes.DefaultNamespace, localRepo.Head.Tip.Parents.Single().Id]?.Message
+            );
+        }
+
+        [Fact]
+        public void RebaseOntoRemoteBranch_WhenNotedCommitDrops_DoesNotMoveNoteToUnnotedCommit()
+        {
+            using var fixture = Fixture.Create();
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+
+            fixture.CommitStudioChange(localRepoPath, "shared.txt", "same content", "noted local update");
+
+            using (Repository localRepo = new(localRepoPath))
+            {
+                File.WriteAllText(Path.Join(localRepoPath, "local-only.txt"), "local only");
+                Commands.Stage(localRepo, "local-only.txt");
+                var signature = new LibGit2Sharp.Signature(
+                    fixture.Developer,
+                    $"{fixture.Developer}@test.com",
+                    DateTimeOffset.Now
+                );
+                localRepo.Commit("plain local update", signature, signature);
+            }
+
+            fixture.CommitAndPushChange(collaboratorRepoPath, "shared.txt", "same content", "remote duplicate update");
+
+            RemoteRebaseResult rebaseResult = fixture.Service.RebaseOntoRemoteBranch(
+                authenticatedContext,
+                General.DefaultBranch
+            );
+
+            Assert.Equal(RebaseStatus.Complete, rebaseResult.Status);
+            using Repository localRepoAfterRebase = new(localRepoPath);
+            Assert.Equal("plain local update", localRepoAfterRebase.Head.Tip.MessageShort);
+            Assert.Null(
+                localRepoAfterRebase.Notes[
+                    localRepoAfterRebase.Notes.DefaultNamespace,
+                    localRepoAfterRebase.Head.Tip.Id
+                ]
+            );
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void PullRemoteChanges_RepoInitializedFromEmptyRemote_PullsRemoteChanges(bool studioOidcEnabled)
+        {
+            using var fixture = Fixture.Create(studioOidcEnabled: studioOidcEnabled);
+
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = fixture.CreateRepositoryFromEmptyRemote(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+
+            fixture.CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+
+            RepoStatus status = fixture.Service.PullRemoteChanges(authenticatedContext);
+
+            Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+            Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
         }
 
         private static HttpContext GetHttpContextForTestUser(string userName)
@@ -381,80 +725,22 @@ namespace Designer.Tests.Services
             identity.AddClaims(claims);
 
             ClaimsPrincipal principal = new(identity);
-            HttpContext c = new DefaultHttpContext();
-            c.Request.HttpContext.User = principal;
+            HttpContext context = new DefaultHttpContext();
+            context.Request.HttpContext.User = principal;
 
-            return c;
+            return context;
         }
 
-        private static SourceControlService GetServiceForTest(string developer, Mock<IGiteaClient> giteaMock = null)
+        private static IConfiguration CreateConfiguration(bool studioOidcEnabled)
         {
-            HttpContext ctx = GetHttpContextForTestUser(developer);
-
-            Mock<IHttpContextAccessor> httpContextAccessorMock = new();
-            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
-
-            giteaMock ??= new Mock<IGiteaClient>();
-
-            string unitTestFolder = Path.GetDirectoryName(
-                new Uri(typeof(RepositoryServiceTests).Assembly.Location).LocalPath
-            );
-            var repoSettings = new ServiceRepositorySettings()
-            {
-                RepositoryLocation =
-                    Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
-                    + Path.DirectorySeparatorChar,
-            };
-
-            SourceControlService service = new(
-                repoSettings,
-                giteaMock.Object,
-                new Mock<IGitServerAuthHeadersProvider>().Object,
-                new Mock<IConfiguration>().Object
-            );
-
-            return service;
-        }
-
-        private AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)
-        {
-            Setup();
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
-            _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
-            Directory.CreateDirectory(_repoDir);
-
-            Repository.Init(_repoDir);
-
-            using var repo = new Repository(_repoDir);
-
-            string testFile = Path.Join(_repoDir, "test.txt");
-            File.WriteAllText(testFile, "Initial content");
-
-            Commands.Stage(repo, "test.txt");
-            var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
-            repo.Commit("Initial commit", signature, signature);
-            EnsureServiceDefaultBranch(repo);
-
-            // Create additional branch if specified
-            if (!string.IsNullOrEmpty(additionalBranch))
-            {
-                repo.CreateBranch(additionalBranch);
-            }
-
-            return editingContext;
-        }
-
-        private void AddFileToRepo(string filename = null)
-        {
-            string filePath = Path.Join(_repoDir, filename ?? "new-file.txt");
-            string content = "this is the content of the file.";
-            File.WriteAllText(filePath, content);
-        }
-
-        private string GetHeadBranchName()
-        {
-            using var repo = new Repository(_repoDir);
-            return repo.Head.FriendlyName;
+            return new ConfigurationBuilder()
+                .AddInMemoryCollection(
+                    new Dictionary<string, string>
+                    {
+                        [$"FeatureManagement:{StudioFeatureFlags.StudioOidc}"] = studioOidcEnabled.ToString(),
+                    }
+                )
+                .Build();
         }
 
         private static void EnsureServiceDefaultBranch(Repository repo)
@@ -470,22 +756,277 @@ namespace Designer.Tests.Services
             repo.Branches.Remove(currentHeadBranch);
         }
 
-        public void Dispose()
+        private sealed record Fixture(
+            SourceControlService SourceControlService,
+            ServiceRepositorySettings Settings,
+            Mock<IGiteaClient> MockGiteaClient,
+            Mock<IGitServerAuthHeadersProvider> MockGitServerAuthHeadersProvider,
+            string Org,
+            string Developer
+        ) : IDisposable
         {
-            if (string.IsNullOrWhiteSpace(_repoDir))
+            private readonly List<string> _directoriesToCleanUp = [];
+
+            public SourceControlService Service => SourceControlService;
+
+            public string RepoDir { get; private set; } = string.Empty;
+
+            public static Fixture Create(
+                bool studioOidcEnabled = false,
+                string org = "ttd",
+                string developer = "testUser",
+                Mock<IGiteaClient> giteaClientMock = null
+            )
             {
-                return;
-            }
-            try
-            {
-                if (Directory.Exists(_repoDir))
+                Mock<IGiteaClient> mockGiteaClient = giteaClientMock ?? new Mock<IGiteaClient>();
+                Mock<IGitServerAuthHeadersProvider> mockGitServerAuthHeadersProvider = new();
+                mockGitServerAuthHeadersProvider.Setup(x => x.GetAuthHeaders()).Returns([]);
+
+                ServiceRepositorySettings settings = new()
                 {
-                    Directory.Delete(_repoDir, true);
+                    RepositoryLocation = TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+                    RepositoryBaseURL = "https://test.gitea.com",
+                };
+
+                Mock<IHttpContextAccessor> httpContextAccessorMock = new();
+                httpContextAccessorMock.Setup(x => x.HttpContext).Returns(GetHttpContextForTestUser(developer));
+
+                SourceControlService service = new(
+                    settings,
+                    mockGiteaClient.Object,
+                    mockGitServerAuthHeadersProvider.Object,
+                    CreateConfiguration(studioOidcEnabled)
+                );
+
+                return new Fixture(
+                    service,
+                    settings,
+                    mockGiteaClient,
+                    mockGitServerAuthHeadersProvider,
+                    org,
+                    developer
+                );
+            }
+
+            public AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)
+            {
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                    Org,
+                    repoName,
+                    Developer
+                );
+                string repoDir = TestDataHelper.GetTestDataRepositoryDirectory(Org, repoName, Developer);
+                SetRepoDir(repoDir);
+                Directory.CreateDirectory(repoDir);
+
+                Repository.Init(repoDir);
+
+                using var repo = new Repository(repoDir);
+
+                string testFile = Path.Join(repoDir, "test.txt");
+                File.WriteAllText(testFile, "Initial content");
+
+                Commands.Stage(repo, "test.txt");
+                var signature = new LibGit2Sharp.Signature(Developer, $"{Developer}@test.com", DateTimeOffset.Now);
+                repo.Commit("Initial commit", signature, signature);
+                EnsureServiceDefaultBranch(repo);
+
+                if (!string.IsNullOrEmpty(additionalBranch))
+                {
+                    repo.CreateBranch(additionalBranch);
+                }
+
+                return editingContext;
+            }
+
+            public AltinnAuthenticatedRepoEditingContext CreateTrackedRepositoryForPull(
+                string repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            )
+            {
+                Settings.RepositoryBaseURL = new Uri(
+                    TestDataHelper.GetTestDataRemoteRepositoryRootDirectory() + Path.DirectorySeparatorChar
+                ).AbsoluteUri;
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                    Org,
+                    repoName,
+                    Developer
+                );
+
+                localRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(Org, repoName, Developer);
+                string remoteRepoPath = $"{TestDataHelper.GetTestDataRemoteRepository(Org, repoName)}.git";
+                collaboratorRepoPath = $"{remoteRepoPath}-collaborator";
+                string seedRepoPath = $"{remoteRepoPath}-seed";
+
+                SetRepoDir(localRepoPath);
+                TrackDirectory(remoteRepoPath);
+                TrackDirectory(collaboratorRepoPath);
+                TrackDirectory(seedRepoPath);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(remoteRepoPath)!);
+                Directory.CreateDirectory(Path.GetDirectoryName(localRepoPath)!);
+
+                Repository.Init(seedRepoPath);
+                using (Repository seedRepo = new(seedRepoPath))
+                {
+                    File.WriteAllText(
+                        Path.Join(seedRepoPath, "test.txt"),
+                        """
+                        line one
+                        line two
+                        line three
+                        line four
+                        line five
+                        line six
+                        line seven
+                        line eight
+                        line nine
+                        line ten
+                        line eleven
+                        line twelve
+                        """
+                    );
+                    Commands.Stage(seedRepo, "test.txt");
+                    var signature = new LibGit2Sharp.Signature(Developer, $"{Developer}@test.com", DateTimeOffset.Now);
+                    seedRepo.Commit("Initial commit", signature, signature);
+                    EnsureServiceDefaultBranch(seedRepo);
+                }
+
+                Repository.Init(remoteRepoPath, true);
+                using (Repository seedRepo = new(seedRepoPath))
+                {
+                    Remote remote = seedRepo.Network.Remotes.Add("origin", remoteRepoPath);
+                    seedRepo.Network.Push(remote, $"refs/heads/{General.DefaultBranch}", new PushOptions());
+                }
+
+                Repository.Clone(
+                    remoteRepoPath,
+                    localRepoPath,
+                    new CloneOptions { BranchName = General.DefaultBranch }
+                );
+                Repository.Clone(
+                    remoteRepoPath,
+                    collaboratorRepoPath,
+                    new CloneOptions { BranchName = General.DefaultBranch }
+                );
+
+                return AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
+            }
+
+            public AltinnAuthenticatedRepoEditingContext CreateRepositoryFromEmptyRemote(
+                string repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            )
+            {
+                Settings.RepositoryBaseURL = new Uri(
+                    TestDataHelper.GetTestDataRemoteRepositoryRootDirectory() + Path.DirectorySeparatorChar
+                ).AbsoluteUri;
+                AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                    Org,
+                    repoName,
+                    Developer
+                );
+
+                localRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(Org, repoName, Developer);
+                string remoteRepoPath = $"{TestDataHelper.GetTestDataRemoteRepository(Org, repoName)}.git";
+                collaboratorRepoPath = $"{remoteRepoPath}-collaborator";
+
+                SetRepoDir(localRepoPath);
+                TrackDirectory(remoteRepoPath);
+                TrackDirectory(collaboratorRepoPath);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(remoteRepoPath)!);
+                Directory.CreateDirectory(Path.GetDirectoryName(localRepoPath)!);
+                Repository.Init(remoteRepoPath, true);
+                using (Repository remoteRepo = new(remoteRepoPath))
+                {
+                    remoteRepo.Refs.UpdateTarget("HEAD", $"refs/heads/{General.DefaultBranch}");
+                }
+                Repository.Clone(remoteRepoPath, localRepoPath);
+
+                AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                    AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
+
+                File.WriteAllText(Path.Join(localRepoPath, "test.txt"), "initial content");
+                Service.PushChangesForRepository(authenticatedContext, new CommitInfo { Message = "initial commit" });
+
+                Repository.Clone(remoteRepoPath, collaboratorRepoPath);
+                return authenticatedContext;
+            }
+
+            public string CommitAndPushChange(
+                string collaboratorRepoPath,
+                string filePath,
+                string content,
+                string commitMessage
+            )
+            {
+                using var collaboratorRepo = new Repository(collaboratorRepoPath);
+                File.WriteAllText(Path.Join(collaboratorRepoPath, filePath), content);
+                Commands.Stage(collaboratorRepo, filePath);
+                var signature = new LibGit2Sharp.Signature(Developer, $"{Developer}@test.com", DateTimeOffset.Now);
+                LibGit2Sharp.Commit commit = collaboratorRepo.Commit(commitMessage, signature, signature);
+                collaboratorRepo.Network.Push(collaboratorRepo.Head, new PushOptions());
+                return commit.Sha;
+            }
+
+            public string CommitStudioChange(string repoPath, string filePath, string content, string commitMessage)
+            {
+                using var repo = new Repository(repoPath);
+                File.WriteAllText(Path.Join(repoPath, filePath), content);
+                Commands.Stage(repo, filePath);
+                var signature = new LibGit2Sharp.Signature(Developer, $"{Developer}@test.com", DateTimeOffset.Now);
+                LibGit2Sharp.Commit commit = repo.Commit(commitMessage, signature, signature);
+                repo.Notes.Add(commit.Id, "studio-commit", signature, signature, repo.Notes.DefaultNamespace);
+                return commit.Sha;
+            }
+
+            public void AddFileToRepo(string filename = null)
+            {
+                string filePath = Path.Join(RepoDir, filename ?? "new-file.txt");
+                string content = "this is the content of the file.";
+                File.WriteAllText(filePath, content);
+            }
+
+            public string GetHeadBranchName()
+            {
+                using var repo = new Repository(RepoDir);
+                return repo.Head.FriendlyName;
+            }
+
+            public void Dispose()
+            {
+                try
+                {
+                    TrackDirectory(RepoDir);
+                    foreach (string directory in _directoriesToCleanUp.Distinct())
+                    {
+                        if (Directory.Exists(directory))
+                        {
+                            Directory.Delete(directory, true);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to clean up test directory: {ex.Message}");
                 }
             }
-            catch (Exception ex)
+
+            private void SetRepoDir(string repoDir)
             {
-                Console.WriteLine($"Failed to clean up test directory: {ex.Message}");
+                RepoDir = repoDir;
+                TrackDirectory(repoDir);
+            }
+
+            private void TrackDirectory(string directory)
+            {
+                if (!string.IsNullOrWhiteSpace(directory))
+                {
+                    _directoriesToCleanUp.Add(directory);
+                }
             }
         }
     }

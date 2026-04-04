@@ -381,15 +381,35 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {
-                RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
-                _sourceControl.Push(authenticatedContext);
-                foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
+                string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
+                    ? commitInfo.BranchName
+                    : _sourceControl.GetCurrentBranch(authenticatedContext).BranchName;
+                RemoteRebaseResult rebaseResult = _sourceControl.RebaseOntoRemoteBranch(
+                    authenticatedContext,
+                    branchName
+                );
+                if (rebaseResult.Status == LibGit2Sharp.RebaseStatus.Conflicts)
                 {
-                    Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
-                    SyncSuccess syncSuccess = new(source);
-                    await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
+                    throw new LibGit2Sharp.NonFastForwardException(
+                        $"Rebase onto remote branch '{branchName}' failed with conflicts."
+                    );
                 }
+
+                _sourceControl.PublishBranch(authenticatedContext, branchName);
+                await NotifyFileSyncSuccesses(developer, rebaseResult.ContentStatus);
             }
+        }
+
+        private Task NotifyFileSyncSuccesses(string developer, IEnumerable<RepositoryContent> contentStatuses)
+        {
+            IEnumerable<Task> notifications = contentStatuses.Select(repoContent =>
+            {
+                Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+                SyncSuccess syncSuccess = new(source);
+                return _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
+            });
+
+            return Task.WhenAll(notifications);
         }
 
         /// <summary>

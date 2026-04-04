@@ -1551,6 +1551,7 @@
   "shared.header_profile_icon_text": "Åpne profilmenyen",
   "shared.header_user_for_org": "{{user}}\n for {{org}}",
   "sync_header.changes_to_share": "Del dine endringer",
+  "sync_header.checkout_conflict_blocked_action": "Du har lokale endringer i en fil som også er endret eksternt. Del eller slett endringene dine før du fortsetter.",
   "sync_header.clone": "Klone",
   "sync_header.clone_https": "Klone med HTTPS",
   "sync_header.clone_https_button": "Kopier lenke",
