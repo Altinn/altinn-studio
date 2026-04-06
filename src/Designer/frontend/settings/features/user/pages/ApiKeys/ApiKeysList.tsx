@@ -76,12 +76,11 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
             </StudioTable.Cell>
             <StudioTable.Cell className={classes.deleteCell}>
               <StudioDeleteButton
+                aria-label={t('settings.user.api_keys.delete')}
                 onDelete={() => deleteUserApiKey(apiKey.id)}
                 confirmMessage={t('settings.user.api_keys.delete_confirm')}
                 disabled={pendingDeleteApiKey && deletingApiKeyId === apiKey.id}
-              >
-                {t('settings.user.api_keys.delete')}
-              </StudioDeleteButton>
+              />
             </StudioTable.Cell>
           </StudioTable.Row>
         ))}
