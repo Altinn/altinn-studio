@@ -15,6 +15,9 @@ namespace Altinn.App.Core.Tests.Features.Auth;
 
 public class AuthenticatedTests
 {
+    private const string MaskinportenExchangedServiceOwnerToken =
+        "eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ4NXQiOiIyTmhueDlVaE5nOVBOYzFSV0F4Sm9GRmwxT0UiLCJ0eXAiOiJKV1QifQ.eyJzY29wZSI6ImFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLndyaXRlIGFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLnJlYWQiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzM3ODE5Mzc2LCJpYXQiOjE3Mzc4MTc1NzYsImNsaWVudF9pZCI6IjA0NGY1MDQwLTU0ZTMtNGEyNy1hMjIxLWE4NTE0ZmQzMGNhOSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk5MTgyNTgyNyJ9LCJ1cm46YWx0aW5uOm9yZyI6ImRpZ2RpciIsInVybjphbHRpbm46b3JnTnVtYmVyIjoiOTkxODI1ODI3IiwidXJuOmFsdGlubjphdXRoZW50aWNhdGVtZXRob2QiOiJtYXNraW5wb3J0ZW4iLCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MywiaXNzIjoiaHR0cHM6Ly9wbGF0Zm9ybS50dDAyLmFsdGlubi5uby9hdXRoZW50aWNhdGlvbi9hcGkvdjEvb3BlbmlkLyIsImp0aSI6IjFmN2RlMDFhLTgyYjMtNDc3Yi04MmQzLTBiY2I5NDkzOGVjNyIsIm5iZiI6MTczNzgxNzU3Nn0.G9uZ_YK2IxUgv8ySP3zy_IG0kOO3qJtEqHPds2f3jh1_YHcQlHEnQXUecUR-xD-Qi8qtI_GEJizA3l-zXc9DLkxgv4HVamzBrOcm9aQWqd3s8_OuI1nF4WjWrcw5FHpaXl1DqbgqPQI8rxOJhmW-H4rE944TKHLwvBlsX-9brYU_CC1WfnymFwODKsGhT1hm5ljQeV6O6j0GkNsRANiQlUnIMJcMVQEBtcuHGBLeNq-u5JSXzs17GLB371IN9Jb8IoYKu7njW3-Pat-QWebDYT9jdMQHOYslr0WByTvlnhL6Z7aQ8KbllbNw3GoYOvCBphVVpmk7aaqcchUiBh30-g";
+
     // These are real tokens used from tt02/test login methods across Altinn, ID-porten and Maskinporten
     public static TheoryData<string, string, AuthenticationTypes, bool> Tokens =>
         new()
@@ -63,7 +66,7 @@ public class AuthenticatedTests
             },
             {
                 "Maskinporten exchanged service owner token",
-                "eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ4NXQiOiIyTmhueDlVaE5nOVBOYzFSV0F4Sm9GRmwxT0UiLCJ0eXAiOiJKV1QifQ.eyJzY29wZSI6ImFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLndyaXRlIGFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLnJlYWQiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzM3ODE5Mzc2LCJpYXQiOjE3Mzc4MTc1NzYsImNsaWVudF9pZCI6IjA0NGY1MDQwLTU0ZTMtNGEyNy1hMjIxLWE4NTE0ZmQzMGNhOSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk5MTgyNTgyNyJ9LCJ1cm46YWx0aW5uOm9yZyI6ImRpZ2RpciIsInVybjphbHRpbm46b3JnTnVtYmVyIjoiOTkxODI1ODI3IiwidXJuOmFsdGlubjphdXRoZW50aWNhdGVtZXRob2QiOiJtYXNraW5wb3J0ZW4iLCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MywiaXNzIjoiaHR0cHM6Ly9wbGF0Zm9ybS50dDAyLmFsdGlubi5uby9hdXRoZW50aWNhdGlvbi9hcGkvdjEvb3BlbmlkLyIsImp0aSI6IjFmN2RlMDFhLTgyYjMtNDc3Yi04MmQzLTBiY2I5NDkzOGVjNyIsIm5iZiI6MTczNzgxNzU3Nn0.G9uZ_YK2IxUgv8ySP3zy_IG0kOO3qJtEqHPds2f3jh1_YHcQlHEnQXUecUR-xD-Qi8qtI_GEJizA3l-zXc9DLkxgv4HVamzBrOcm9aQWqd3s8_OuI1nF4WjWrcw5FHpaXl1DqbgqPQI8rxOJhmW-H4rE944TKHLwvBlsX-9brYU_CC1WfnymFwODKsGhT1hm5ljQeV6O6j0GkNsRANiQlUnIMJcMVQEBtcuHGBLeNq-u5JSXzs17GLB371IN9Jb8IoYKu7njW3-Pat-QWebDYT9jdMQHOYslr0WByTvlnhL6Z7aQ8KbllbNw3GoYOvCBphVVpmk7aaqcchUiBh30-g",
+                MaskinportenExchangedServiceOwnerToken,
                 AuthenticationTypes.ServiceOwner,
                 true
             },
@@ -197,17 +200,54 @@ public class AuthenticatedTests
         }
 
         var hash = Convert.ToBase64String(XxHash128.Hash(Encoding.UTF8.GetBytes(token)));
-        await Verify(
-                new
-                {
-                    Description = description,
-                    AuthType = auth.GetType().FullName,
-                    Auth = auth,
-                    Jwt = (Dictionary<string, object>)jwtToken.Payload,
-                    Details = details,
-                }
-            )
-            .UseTextForParameters($"type={tokenType}_{hash[0..4]}")
+        await VerifyAuthenticated(
+            new
+            {
+                Description = description,
+                AuthType = auth.GetType().FullName,
+                Auth = auth,
+                Jwt = jwtToken.Payload,
+                Details = details,
+            },
+            $"type={tokenType}_{hash[0..4]}"
+        );
+    }
+
+    [Fact]
+    public async Task Can_Parse_Real_ServiceOwner_Token_When_App_Metadata_Org_Differs()
+    {
+        const string appMetadataOrg = "ttd";
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(MaskinportenExchangedServiceOwnerToken);
+
+        var auth = Parse(
+            "Maskinporten exchanged service owner token with mismatched app metadata org",
+            jwtToken,
+            MaskinportenExchangedServiceOwnerToken,
+            AuthenticationTypes.ServiceOwner,
+            appMetadataOrg
+        );
+
+        var serviceOwner = Assert.IsType<Authenticated.ServiceOwner>(auth);
+        var details = await serviceOwner.LoadDetails();
+
+        await VerifyAuthenticated(
+            new
+            {
+                Description = "Maskinporten exchanged service owner token with mismatched app metadata org",
+                AppMetadataOrg = appMetadataOrg,
+                AuthType = auth.GetType().FullName,
+                Auth = auth,
+                Jwt = jwtToken.Payload,
+                Details = details,
+            },
+            "service_owner_mismatched_app_org"
+        );
+    }
+
+    private Task VerifyAuthenticated(object target, string parameter) =>
+        Verify(target)
+            .UseTextForParameters(parameter)
             .DontIgnoreEmptyCollections()
             .DontScrubDateTimes()
             .DontScrubGuids()
@@ -216,7 +256,6 @@ public class AuthenticatedTests
                 s.Converters.Add(new ScopesConverter());
                 s.Converters.Add(new OrganisationNumberConverter());
             });
-    }
 
     private sealed class ScopesConverter : WriteOnlyJsonConverter<Scopes>
     {
@@ -234,7 +273,13 @@ public class AuthenticatedTests
         }
     }
 
-    private Authenticated Parse(string description, JwtSecurityToken jwtToken, string token, AuthenticationTypes type)
+    private Authenticated Parse(
+        string description,
+        JwtSecurityToken jwtToken,
+        string token,
+        AuthenticationTypes type,
+        string appMetadataOrg = "digdir"
+    )
     {
         string ReadClaim(string key)
         {
@@ -274,7 +319,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: () =>
                             ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture),
                         getUserProfile: userId =>
@@ -326,7 +371,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: () =>
                             ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture),
                         getUserProfile: userId =>
@@ -367,7 +412,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
@@ -399,7 +444,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
@@ -431,7 +476,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
@@ -465,7 +510,7 @@ public class AuthenticatedTests
                         tokenStr: token,
                         parsedToken: null,
                         isAuthenticated: true,
-                        appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
+                        appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
                         getSelectedParty: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,

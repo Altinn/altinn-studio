@@ -106,6 +106,36 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
         return orgDetails;
     }
 
+    public async Task<AltinnCdnOrgName?> GetOrgNameByAppId(string appId, CancellationToken cancellationToken = default)
+    {
+        using var httpClient = _httpClientFactory.CreateClient(nameof(AltinnCdnClient));
+        using var response = await httpClient.GetAsync("https://altinncdn.no/orgs/altinn-orgs.json", cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+
+        if (
+            doc.RootElement.ValueKind != JsonValueKind.Object
+            || !doc.RootElement.TryGetProperty("orgs", out var orgsElement)
+        )
+        {
+            throw new JsonException("Missing 'orgs' property in Altinn CDN response");
+        }
+
+        string orgAcronym = appId.Split('/')[0];
+
+        foreach (var property in orgsElement.EnumerateObject())
+        {
+            if (property.Name.Equals(orgAcronym, StringComparison.OrdinalIgnoreCase))
+            {
+                return property.Value.Deserialize<AltinnCdnOrgDetails>(_jsonOptions)?.Name;
+            }
+        }
+
+        return null;
+    }
+
     private static bool IsTransientError(Exception ex) =>
         ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException;
 }

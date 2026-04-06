@@ -1,18 +1,19 @@
 import type { ReactElement } from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { previewPage } from 'app-shared/api/paths';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioCenter, StudioSpinner } from '@studio/components';
+import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
+import { StudioAlert, StudioCenter, StudioSpinner } from '@studio/components';
 import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
 import classes from './Preview.module.css';
 
 export const Preview = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: user, isPending: userPending } = useUserQuery();
+  const { data: user } = useUserQuery();
+  const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
 
-  const [iframeKey, setIframeKey] = useState(0);
   const {
     mutate: createInstance,
     data: instance,
@@ -42,39 +43,23 @@ export const Preview = (): ReactElement => {
     user,
   ]);
 
-  // Listen for repository reset events to reload the preview
-  useEffect(() => {
-    const handleRepoReset = (): void => {
-      setIframeKey((prev) => prev + 1);
-    };
-
-    window.addEventListener('altinity-repo-reset', handleRepoReset as EventListener);
-
-    return (): void => {
-      window.removeEventListener('altinity-repo-reset', handleRepoReset as EventListener);
-    };
-  }, []);
-
   const { layoutSetName, layoutName, taskId } = layoutMetadata;
+
   const previewError =
     layoutMetadataError || (createInstanceError ? 'Error loading preview' : undefined);
-  const isLoading =
-    userPending ||
-    layoutMetadataPending ||
-    !layoutSetName ||
-    !layoutName ||
-    !taskId ||
-    createInstancePending ||
-    !instance;
 
-  if (isLoading) {
+  if (!instance && !previewError) {
     return (
       <StudioCenter>
-        {previewError ? (
-          <div style={{ color: '#f44336' }}>{previewError}</div>
-        ) : (
-          <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
-        )}
+        <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
+      </StudioCenter>
+    );
+  }
+
+  if (previewError) {
+    return (
+      <StudioCenter>
+        <StudioAlert data-color='danger'>{previewError}</StudioAlert>
       </StudioCenter>
     );
   }
@@ -84,7 +69,7 @@ export const Preview = (): ReactElement => {
   return (
     <div className={classes.previewContainer}>
       <iframe
-        key={iframeKey}
+        key={currentBranchInfo?.commitSha}
         className={classes.previewIframe}
         title='App Preview'
         src={previewURL}

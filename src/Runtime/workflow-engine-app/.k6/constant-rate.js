@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import {
     BASE_URL,
-    requestParams,
+    buildRequestParams,
     buildPayload,
     pollHealthOnce,
 } from '../../workflow-engine/.k6/lib/helpers.js';
@@ -39,7 +39,7 @@ export const options = {
 
 export function enqueueWorkflow() {
     const body = buildPayload(payloadTemplate);
-    const res = http.post(BASE_URL, body, requestParams);
+    const res = http.post(BASE_URL, body, buildRequestParams());
 
     check(res, {
         'status is 200': (r) => r.status === 200,

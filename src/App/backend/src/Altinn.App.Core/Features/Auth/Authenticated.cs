@@ -877,25 +877,18 @@ public abstract class Authenticated
                     $"Invalid org claim for service owner token: {context.OrgClaim.Value}"
                 );
 
-            if (orgClaimValue == appMetadata.Org)
-            {
-                // In this case the token should have a serviceowner scope,
-                // due to the `urn:altinn:org` claim
-                if (!context.OrgNoClaim.IsValidString(out var orgNoClaimValue))
-                    throw new AuthenticationContextException("Missing org number claim for service owner token");
-                if (!context.AuthMethodClaim.IsValidString(out var authMethodClaimValue))
-                    throw new AuthenticationContextException(
-                        "Missing or invalid authentication method claim for service owner token"
-                    );
+            // In this case the token should have a serviceowner scope,
+            // due to the `urn:altinn:org` claim
+            if (!context.OrgNoClaim.IsValidString(out var orgNoClaimValue))
+                throw new AuthenticationContextException("Missing org number claim for service owner token");
+            if (!context.AuthMethodClaim.IsValidString(out var authMethodClaimValue))
+                throw new AuthenticationContextException(
+                    "Missing or invalid authentication method claim for service owner token"
+                );
 
-                ParseAuthLevel(context.AuthLevelClaim, out authLevel);
+            ParseAuthLevel(context.AuthLevelClaim, out authLevel);
 
-                return new ServiceOwner(orgClaimValue, orgNoClaimValue, authLevel, authMethodClaimValue, ref context);
-            }
-            else
-            {
-                return NewOrg(ref context);
-            }
+            return new ServiceOwner(orgClaimValue, orgNoClaimValue, authLevel, authMethodClaimValue, ref context);
         }
         else if (context.OrgNoClaim.Exists)
         {

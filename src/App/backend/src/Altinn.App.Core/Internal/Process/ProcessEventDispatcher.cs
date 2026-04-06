@@ -36,7 +36,12 @@ public class ProcessEventDispatcher : IProcessEventDispatcher
     /// <inheritdoc/>
     public async Task<Instance> DispatchToStorage(Instance instance, List<InstanceEvent>? events)
     {
-        Instance updatedInstance = await _instanceClient.UpdateProcessAndEvents(instance, events ?? []);
+        Instance updatedInstance = await _instanceClient.UpdateProcessAndEvents(
+            instance,
+            events ?? [],
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         return updatedInstance;
     }

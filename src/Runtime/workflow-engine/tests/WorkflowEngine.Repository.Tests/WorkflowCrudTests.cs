@@ -228,7 +228,11 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         workflow.Status = PersistentItemStatus.Processing;
         await repo.UpdateWorkflow(workflow, cancellationToken: TestContext.Current.CancellationToken);
 
-        var status = await repo.GetWorkflowStatus(workflow.DatabaseId, TestContext.Current.CancellationToken);
+        var status = await repo.GetWorkflowStatus(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            TestContext.Current.CancellationToken
+        );
         Assert.Equal(PersistentItemStatus.Processing, status);
 
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
@@ -245,7 +249,11 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest();
         var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
-        var status = await repo.GetWorkflowStatus(workflow.DatabaseId, TestContext.Current.CancellationToken);
+        var status = await repo.GetWorkflowStatus(
+            workflow.DatabaseId,
+            workflow.Namespace,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(PersistentItemStatus.Enqueued, status);
 
@@ -261,7 +269,11 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository();
 
         var nonExistentId = Guid.NewGuid();
-        var status = await repo.GetWorkflowStatus(nonExistentId, TestContext.Current.CancellationToken);
+        var status = await repo.GetWorkflowStatus(
+            nonExistentId,
+            "nonexistent-ns",
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Null(status);
         Assert.Null(await fixture.GetWorkflow(nonExistentId));
@@ -346,7 +358,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+        var scheduled = await queryRepo.GetScheduledWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Single(scheduled);
         Assert.Equal(futureWorkflow.DatabaseId, scheduled[0].DatabaseId);
@@ -386,7 +398,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+        var scheduled = await queryRepo.GetScheduledWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(scheduled, w => w.DatabaseId == workflowB.DatabaseId);
     }
@@ -417,7 +429,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+        var scheduled = await queryRepo.GetScheduledWorkflows(cancellationToken: TestContext.Current.CancellationToken);
         var active = await queryRepo.GetActiveWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.DoesNotContain(scheduled, w => w.DatabaseId == workflowB.DatabaseId);
@@ -535,7 +547,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata1 = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata1 = new WorkflowRequestMetadata(
+            "test-namespace",
+            Guid.NewGuid().ToString("N"),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
         var workflow1 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request1, metadata1);
 
         var request2 = new WorkflowRequest
@@ -550,7 +568,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata2 = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata2 = new WorkflowRequestMetadata(
+            "test-namespace",
+            Guid.NewGuid().ToString("N"),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
         var workflow2 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request2, metadata2);
 
         // Act: mutate in-memory state and call the new batch method
@@ -682,7 +706,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var metadata = new WorkflowRequestMetadata(
+            "test-namespace",
+            Guid.NewGuid().ToString("N"),
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            null
+        );
 
         var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
@@ -739,7 +769,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var orgs = await queryRepo.GetDistinctLabelValues("org", TestContext.Current.CancellationToken);
+        var orgs = await queryRepo.GetDistinctLabelValues("org", ns: null, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, orgs.Count);
         Assert.Contains("digdir", orgs);

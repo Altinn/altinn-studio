@@ -78,7 +78,14 @@ public class SigningController : ControllerBase
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         _logger.LogInformation(
             "Getting signees state for org {Org} with instance {InstanceGuid} of app {App} for party {PartyId}",
@@ -185,7 +192,14 @@ public class SigningController : ControllerBase
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         string? finalTaskId = taskId ?? instance.Process?.CurrentTask?.ElementId;
         if (string.IsNullOrEmpty(finalTaskId) || !VerifyIsSigningTask(finalTaskId))
@@ -261,7 +275,14 @@ public class SigningController : ControllerBase
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         string? finalTaskId = taskId ?? instance.Process?.CurrentTask?.ElementId;
         if (string.IsNullOrEmpty(finalTaskId) || !VerifyIsSigningTask(finalTaskId))

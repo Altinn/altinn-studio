@@ -5,10 +5,10 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getPartyMock, getPartyWithSubunitMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
-import { PartyApi } from 'src/core/api-client/party.api';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { useSelectedParty, useSelectedPartyIsValid } from 'src/features/party/PartiesProvider';
 import { renderWithDefaultProviders } from 'src/test/renderWithProviders';
+import type { PartyApi } from 'src/core/api-client/party.api';
 
 const deletedParty = getPartyMock({
   ssn: '01017512347',
@@ -45,20 +45,21 @@ function TestWrapper(props: PropsWithChildren) {
 }
 
 describe('PartySelection', () => {
-  function render(_parties = parties) {
-    jest.mocked(PartyApi.getPartiesAllowedToInstantiateHierarchical).mockResolvedValue(_parties);
+  function render(_parties = parties, setPartiesMock?: PartyApi['setSelectedParty']) {
     return renderWithDefaultProviders({
       renderer: (
         <TestWrapper>
           <PartySelection />
         </TestWrapper>
       ),
+      apis: {
+        partyApi: {
+          getPartiesAllowedToInstantiateHierarchical: async () => _parties,
+          ...(setPartiesMock ? { setSelectedParty: setPartiesMock } : {}),
+        },
+      },
     });
   }
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('should have working pagination', async () => {
     const user = userEvent.setup({ delay: null });
@@ -143,9 +144,9 @@ describe('PartySelection', () => {
     it.each(testCases)(
       'should be possible to click on ($partyName)',
       async ({ parties, expectedPartyId, partyName, expandSubunit }) => {
-        const setSelectedPartyMock = jest.mocked(PartyApi.setSelectedParty);
+        const setSelectedPartyMock = jest.fn(async () => 'Party successfully updated' as const);
         const user = userEvent.setup({ delay: null });
-        await render(parties);
+        await render(parties, setSelectedPartyMock);
 
         expect(screen.getByTestId('valid-party')).toHaveTextContent('false');
 
