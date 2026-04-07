@@ -12,7 +12,7 @@ import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/Ins
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 
-const render = async (createWithPrefillMock: InstanceApi['createWithPrefill']) => {
+const render = async (createWithPrefill: InstanceApi['createWithPrefill']) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
     onEntry: {
       show: 'stateless',
@@ -51,7 +51,7 @@ const render = async (createWithPrefillMock: InstanceApi['createWithPrefill']) =
     ),
     apis: {
       instanceApi: {
-        createWithPrefill: createWithPrefillMock,
+        createWithPrefill,
       },
     },
   });

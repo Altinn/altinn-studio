@@ -29,7 +29,7 @@ const render = async (instances = mockActiveInstances) => {
     id: '512345/new-instance-guid',
     process: getProcessDataMock(),
   }));
-  const utils = await renderWithInstanceAndLayout({
+  const renderResult = await renderWithInstanceAndLayout({
     renderer: () => <InstanceSelectionWrapper />,
     apis: {
       instanceApi: {
@@ -39,7 +39,7 @@ const render = async (instances = mockActiveInstances) => {
     },
   });
   return {
-    ...utils,
+    ...renderResult,
     instanceCreateMock,
   };
 };
