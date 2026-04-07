@@ -1,4 +1,4 @@
-import type { ReactElement, RefObject } from 'react';
+import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -30,7 +30,6 @@ export type Person = {
 };
 
 type PersonDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement | null>;
   person: Person;
   availableEnvironments: string[];
   onFieldChange: (field: keyof Person, value: string | boolean | string[]) => void;
@@ -41,7 +40,6 @@ type PersonDialogProps = {
 };
 
 export const PersonDialog = ({
-  dialogRef,
   person,
   availableEnvironments,
   onFieldChange,
@@ -81,11 +79,6 @@ export const PersonDialog = ({
     if (isValid) onSave();
   };
 
-  const handleClose = () => {
-    setSubmitted(false);
-    onClose();
-  };
-
   const title = isEditing
     ? t('settings.orgs.contact_points.dialog_edit_person_title')
     : t('settings.orgs.contact_points.add_contact');
@@ -101,7 +94,7 @@ export const PersonDialog = ({
   }, [person.environments, setValue]);
 
   return (
-    <StudioDialog ref={dialogRef} onClose={handleClose}>
+    <StudioDialog open onClose={onClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
         <StudioHeading level={2}>{title}</StudioHeading>
         <StudioParagraph>{t('settings.orgs.contact_points.dialog_subtitle')}</StudioParagraph>
@@ -151,7 +144,7 @@ export const PersonDialog = ({
             label: isEditing ? t('general.save') : t('general.add'),
             onClick: handleSave,
           }}
-          secondary={{ label: t('general.cancel'), onClick: handleClose }}
+          secondary={{ label: t('general.cancel'), onClick: onClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />

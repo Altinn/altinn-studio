@@ -1,4 +1,4 @@
-import type { ReactElement, RefObject } from 'react';
+import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -25,7 +25,6 @@ export type SlackChannel = {
 };
 
 type SlackChannelDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement | null>;
   channel: SlackChannel;
   availableEnvironments: string[];
   onFieldChange: (field: keyof SlackChannel, value: string | boolean | string[]) => void;
@@ -36,7 +35,6 @@ type SlackChannelDialogProps = {
 };
 
 export const SlackChannelDialog = ({
-  dialogRef,
   channel,
   availableEnvironments,
   onFieldChange,
@@ -67,11 +65,6 @@ export const SlackChannelDialog = ({
     if (isValid) onSave();
   };
 
-  const handleClose = () => {
-    setSubmitted(false);
-    onClose();
-  };
-
   const title = isEditing
     ? t('settings.orgs.contact_points.dialog_edit_slack_title')
     : t('settings.orgs.contact_points.add_slack_channel');
@@ -87,7 +80,7 @@ export const SlackChannelDialog = ({
   }, [channel.environments, setValue]);
 
   return (
-    <StudioDialog ref={dialogRef} onClose={handleClose}>
+    <StudioDialog open onClose={onClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
         <StudioHeading level={2}>{title}</StudioHeading>
         <StudioParagraph>{t('settings.orgs.contact_points.dialog_subtitle')}</StudioParagraph>
@@ -131,7 +124,7 @@ export const SlackChannelDialog = ({
             label: isEditing ? t('general.save') : t('general.add'),
             onClick: handleSave,
           }}
-          secondary={{ label: t('general.cancel'), onClick: handleClose }}
+          secondary={{ label: t('general.cancel'), onClick: onClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />

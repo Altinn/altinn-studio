@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
@@ -30,7 +30,7 @@ const createEmptyPerson = (availableEnvironments: string[]): Person => ({
 
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [personForm, setPersonForm] = useState<Person>(createEmptyPerson([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -47,17 +47,17 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
   const openAddDialog = () => {
     setPersonForm(createEmptyPerson(availableEnvironments));
     setEditingId(null);
-    dialogRef.current?.showModal();
+    setIsOpen(true);
   };
 
   const openEditDialog = (person: ContactPoint) => {
     setPersonForm(contactPointToPerson(person));
     setEditingId(person.id);
-    dialogRef.current?.showModal();
+    setIsOpen(true);
   };
 
   const closeDialog = () => {
-    dialogRef.current?.close();
+    setIsOpen(false);
   };
 
   const handleFieldChange = (field: keyof Person, value: string | boolean | string[]) => {
@@ -131,16 +131,17 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
         </StudioTable.Body>
       </StudioTable>
       <AddButton onClick={openAddDialog}>{t('settings.orgs.contact_points.add_contact')}</AddButton>
-      <PersonDialog
-        dialogRef={dialogRef}
-        person={personForm}
-        availableEnvironments={availableEnvironments}
-        onFieldChange={handleFieldChange}
-        onSave={handleSave}
-        onClose={closeDialog}
-        isEditing={editingId !== null}
-        isSaving={isSaving}
-      />
+      {isOpen && (
+        <PersonDialog
+          person={personForm}
+          availableEnvironments={availableEnvironments}
+          onFieldChange={handleFieldChange}
+          onSave={handleSave}
+          onClose={closeDialog}
+          isEditing={editingId !== null}
+          isSaving={isSaving}
+        />
+      )}
     </>
   );
 };

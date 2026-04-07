@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AddApiKey } from './AddApiKey';
+import { ApiKeys } from './ApiKeys';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -46,24 +46,17 @@ const mockNewApiKey: AddUserApiKeyResponse = {
   expiresAt: validExpiresAt,
 };
 
-const onApiKeyCreated = jest.fn();
-
-const renderAddApiKey = (queries: Parameters<typeof renderWithProviders>[1]['queries'] = {}) => {
+const renderApiKeys = (queries: Parameters<typeof renderWithProviders>[1]['queries'] = {}) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.UserApiKeys], mockApiKeys);
-  return renderWithProviders(<AddApiKey onApiKeyCreated={onApiKeyCreated} />, {
-    queryClient,
-    queries,
-  });
+  return renderWithProviders(<ApiKeys />, { queryClient, queries });
 };
 
 const getNameInput = () =>
   screen.getByLabelText(textMock('settings.user.api_keys.name'), { exact: false });
 
 const getExpiryInput = () =>
-  screen.getByLabelText(textMock('settings.user.api_keys.expires_at'), {
-    exact: false,
-  });
+  screen.getByLabelText(textMock('settings.user.api_keys.expires_at'), { exact: false });
 
 const getOpenDialogButton = () =>
   screen.getByRole('button', { name: textMock('settings.user.api_keys.add') });
@@ -83,17 +76,17 @@ const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, 
   await user.type(getExpiryInput(), date);
 };
 
-describe('AddApiKey', () => {
+describe('ApiKeys', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('renders the open dialog button', () => {
-    renderAddApiKey();
+    renderApiKeys();
     expect(getOpenDialogButton()).toBeInTheDocument();
   });
 
   it('renders the form after opening the dialog', async () => {
     const user = userEvent.setup();
-    renderAddApiKey();
+    renderApiKeys();
     await openDialog(user);
     expect(getNameInput()).toBeInTheDocument();
     expect(getExpiryInput()).toBeInTheDocument();
@@ -102,7 +95,7 @@ describe('AddApiKey', () => {
 
   it('sets min to today and max to 365 days from today on the expiry input', async () => {
     const user = userEvent.setup();
-    renderAddApiKey();
+    renderApiKeys();
     await openDialog(user);
     const expiryInput = getExpiryInput();
     expect(expiryInput).toHaveAttribute('min', today);
@@ -111,14 +104,14 @@ describe('AddApiKey', () => {
 
   it('defaults the expiry input to the max date (365 days from today)', async () => {
     const user = userEvent.setup();
-    renderAddApiKey();
+    renderApiKeys();
     await openDialog(user);
     expect(getExpiryInput()).toHaveValue(maxExpiresAt);
   });
 
   it('shows required error only for name when submitting with default expiry', async () => {
     const user = userEvent.setup();
-    renderAddApiKey();
+    renderApiKeys();
     await openDialog(user);
     await user.click(getSubmitButton());
     expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(1);
@@ -126,7 +119,7 @@ describe('AddApiKey', () => {
 
   it('shows required error for expiry when submitting with empty expiry', async () => {
     const user = userEvent.setup();
-    renderAddApiKey();
+    renderApiKeys();
     await openDialog(user);
     await user.clear(getExpiryInput());
     await user.click(getSubmitButton());
@@ -136,7 +129,7 @@ describe('AddApiKey', () => {
   it('resets expiry to the max date after successful api key creation', async () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
-    renderAddApiKey({ addUserApiKey });
+    renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await user.type(getNameInput(), 'New api key');
     await user.click(getSubmitButton());
@@ -148,7 +141,7 @@ describe('AddApiKey', () => {
 
   it('shows duplicate name error when name already exists', async () => {
     const user = userEvent.setup();
-    renderAddApiKey();
+    renderApiKeys();
     await openDialog(user);
     await fillForm(user, 'Existing api key', validExpiresAt);
     await user.click(getSubmitButton());
@@ -162,7 +155,7 @@ describe('AddApiKey', () => {
     const addUserApiKey = jest.fn().mockRejectedValue({
       response: { status: 409, data: { errorCode: ApiErrorCodes.DuplicateTokenName } },
     });
-    renderAddApiKey({ addUserApiKey });
+    renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
@@ -178,7 +171,7 @@ describe('AddApiKey', () => {
   it('calls addUserApiKey with correct payload', async () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
-    renderAddApiKey({ addUserApiKey });
+    renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
@@ -191,28 +184,17 @@ describe('AddApiKey', () => {
   it('shows the new api key after successful creation', async () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
-    renderAddApiKey({ addUserApiKey });
+    renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
     expect(await screen.findByDisplayValue('secret-key-value')).toBeInTheDocument();
   });
 
-  it('calls onApiKeyCreated with the new api key id after creation', async () => {
-    const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
-    renderAddApiKey({ addUserApiKey });
-    await openDialog(user);
-    await fillForm(user, 'New api key', validExpiresAt);
-    await user.click(getSubmitButton());
-    await screen.findByDisplayValue('secret-key-value');
-    expect(onApiKeyCreated).toHaveBeenCalledWith(mockNewApiKey.id);
-  });
-
   it('closes the success dialog when the dialog close button is clicked', async () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
-    renderAddApiKey({ addUserApiKey });
+    renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
@@ -226,16 +208,12 @@ describe('AddApiKey', () => {
     jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
-    renderAddApiKey({ addUserApiKey });
+    renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(
-      screen.getByRole('button', {
-        name: textMock('settings.user.api_keys.copy'),
-      }),
-    );
+    await user.click(screen.getByRole('button', { name: textMock('settings.user.api_keys.copy') }));
     expect(writeText).toHaveBeenCalledWith('secret-key-value');
     expect(toast.success).toHaveBeenCalledWith(
       textMock('settings.user.api_keys.copy_success'),
@@ -247,16 +225,12 @@ describe('AddApiKey', () => {
     jest.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
-    renderAddApiKey({ addUserApiKey });
+    renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(
-      screen.getByRole('button', {
-        name: textMock('settings.user.api_keys.copy'),
-      }),
-    );
+    await user.click(screen.getByRole('button', { name: textMock('settings.user.api_keys.copy') }));
     expect(toast.error).toHaveBeenCalledWith(
       textMock('settings.user.api_keys.copy_error'),
       expect.objectContaining({ toastId: 'settings.user.api_keys.copy_error' }),

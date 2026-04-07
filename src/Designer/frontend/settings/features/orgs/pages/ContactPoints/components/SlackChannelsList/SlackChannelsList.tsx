@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
@@ -29,7 +29,7 @@ const createEmptySlackChannel = (availableEnvironments: string[]): SlackChannel 
 
 export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): ReactElement => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [channelForm, setChannelForm] = useState<SlackChannel>(createEmptySlackChannel([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -46,17 +46,17 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
   const openAddDialog = () => {
     setChannelForm(createEmptySlackChannel(availableEnvironments));
     setEditingId(null);
-    dialogRef.current?.showModal();
+    setIsOpen(true);
   };
 
   const openEditDialog = (channel: ContactPoint) => {
     setChannelForm(contactPointToSlackChannel(channel));
     setEditingId(channel.id);
-    dialogRef.current?.showModal();
+    setIsOpen(true);
   };
 
   const closeDialog = () => {
-    dialogRef.current?.close();
+    setIsOpen(false);
   };
 
   const handleFieldChange = (field: keyof SlackChannel, value: string | boolean | string[]) => {
@@ -126,16 +126,17 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
       <AddButton onClick={openAddDialog}>
         {t('settings.orgs.contact_points.add_slack_channel')}
       </AddButton>
-      <SlackChannelDialog
-        dialogRef={dialogRef}
-        channel={channelForm}
-        availableEnvironments={availableEnvironments}
-        onFieldChange={handleFieldChange}
-        onSave={handleSave}
-        onClose={closeDialog}
-        isEditing={editingId !== null}
-        isSaving={isSaving}
-      />
+      {isOpen && (
+        <SlackChannelDialog
+          channel={channelForm}
+          availableEnvironments={availableEnvironments}
+          onFieldChange={handleFieldChange}
+          onSave={handleSave}
+          onClose={closeDialog}
+          isEditing={editingId !== null}
+          isSaving={isSaving}
+        />
+      )}
     </>
   );
 };
