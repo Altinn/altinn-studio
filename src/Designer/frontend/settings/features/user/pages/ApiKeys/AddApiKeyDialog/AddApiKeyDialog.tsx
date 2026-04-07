@@ -1,4 +1,4 @@
-import type { ReactElement, RefObject } from 'react';
+import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -37,13 +37,11 @@ export const computeMaxExpiresAt = (): string => {
 };
 
 type AddApiKeyDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement | null>;
   onApiKeyCreated: (id: number) => void;
   onClose: () => void;
 };
 
 export const AddApiKeyDialog = ({
-  dialogRef,
   onApiKeyCreated,
   onClose,
 }: AddApiKeyDialogProps): ReactElement => {
@@ -89,8 +87,6 @@ export const AddApiKeyDialog = ({
   };
 
   const handleClose = () => {
-    setSubmitted(false);
-    setNewApiKey(null);
     onClose();
   };
 
@@ -112,7 +108,7 @@ export const AddApiKeyDialog = ({
 
   if (newApiKey) {
     return (
-      <StudioDialog ref={dialogRef} closeButton={false}>
+      <StudioDialog closeButton={false} open>
         <StudioDialog.Block className={classes.keyDialogBlock}>
           <StudioAlert data-color='success' className={classes.keyDialogAlert}>
             <StudioButton
@@ -143,7 +139,7 @@ export const AddApiKeyDialog = ({
   }
 
   return (
-    <StudioDialog ref={dialogRef} onClose={handleClose}>
+    <StudioDialog open onClose={handleClose}>
       <StudioDialog.Block className={classes.addDialogBlock}>
         <StudioHeading level={2}>{t('settings.user.api_keys.add')}</StudioHeading>
         <div className={classes.fields}>

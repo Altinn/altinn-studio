@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
@@ -11,15 +11,7 @@ type AddApiKeyProps = {
 
 export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactElement => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  const openDialog = () => {
-    dialogRef.current?.showModal();
-  };
-
-  const closeDialog = () => {
-    dialogRef.current?.close();
-  };
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -27,17 +19,15 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
         <StudioButton
           variant='secondary'
           icon={<PlusIcon />}
-          onClick={openDialog}
+          onClick={() => setIsOpen(true)}
           className={classes.addButton}
         >
           {t('settings.user.api_keys.add')}
         </StudioButton>
       </div>
-      <AddApiKeyDialog
-        dialogRef={dialogRef}
-        onApiKeyCreated={onApiKeyCreated}
-        onClose={closeDialog}
-      />
+      {isOpen && (
+        <AddApiKeyDialog onApiKeyCreated={onApiKeyCreated} onClose={() => setIsOpen(false)} />
+      )}
     </>
   );
 };
