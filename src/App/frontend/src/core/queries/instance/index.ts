@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
-import type { InstanceApi } from 'src/core/api-client/instance.api';
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import {
   activeInstancesQuery,
@@ -10,6 +9,7 @@ import {
   useCreateInstance as useCreateInstanceInternal,
 } from 'src/core/queries/instance/instance.queries';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { BaseQueryResult } from 'src/core/queries/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance } from 'src/types/shared';

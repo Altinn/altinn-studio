@@ -3,12 +3,12 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import type { InstanceApi } from 'src/core/api-client/instance.api';
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
 export type IndexLoaderError =

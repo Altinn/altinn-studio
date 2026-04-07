@@ -1,9 +1,9 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { parseInstanceId } from 'src/core/queries/instance/utils';
 import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
+import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
 
 type InstantiationArgs = number | Instantiation;
 

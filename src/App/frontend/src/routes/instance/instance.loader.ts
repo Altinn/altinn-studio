@@ -2,9 +2,9 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import type { InstanceApi } from 'src/core/api-client/instance.api';
 import { prefetchInstanceData } from 'src/core/queries/instance';
 import { processQueries } from 'src/features/instance/useProcessQuery';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 
 export function instanceLoader(queryClient: QueryClient, instanceApi: InstanceApi) {
   return function loader({ params }: LoaderFunctionArgs) {
