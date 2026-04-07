@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { loadESLint } from 'eslint';
 import fs from 'node:fs/promises';
 import type { ESLint } from 'eslint';
+import type { LegacyESLint } from 'eslint/use-at-your-own-risk';
 
 export async function saveFile(targetPath: string, _content: string, removeText?: RegExp, fileExisted?: boolean) {
   const content = `${_content.trim()}\n`;
@@ -33,7 +34,7 @@ async function fileExists(path: string) {
   }
 }
 
-let eslint: ESLint | undefined;
+let eslint: ESLint | LegacyESLint;
 async function getESLint() {
   if (!eslint) {
     const ESLint = await loadESLint();
