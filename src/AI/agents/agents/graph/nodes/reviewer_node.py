@@ -177,6 +177,14 @@ async def handle(state: AgentState) -> AgentState:
                 session_id=state.session_id,
             )
             
+            # Append degraded warning if MCP went down during this request
+            if state.mcp_degraded:
+                summary += (
+                    "\n\n⚠️ **Merk:** MCP-serveren mistet tilkoblingen under behandlingen. "
+                    "Resultatet kan være ufullstendig — kontroller endringene og prøv igjen om noe ikke ser riktig ut."
+                )
+                log.info("⚠️ Appended MCP-degraded warning to early summary")
+
             sink.send(
                 AgentEvent(
                     type="assistant_message",
@@ -238,6 +246,14 @@ async def handle(state: AgentState) -> AgentState:
             reasoning=result.get("reasoning", "No reasoning provided"),
             session_id=state.session_id,
         )
+
+        # Append degraded warning if MCP went down during this request
+        if state.mcp_degraded:
+            summary += (
+                "\n\n⚠️ **Merk:** MCP-serveren mistet tilkoblingen under behandlingen. "
+                "Resultatet kan være ufullstendig — kontroller endringene og prøv igjen om noe ikke ser riktig ut."
+            )
+            log.info("⚠️ Appended MCP-degraded warning to assistant message")
 
         # Send single comprehensive message to frontend
         log.info(f"📤 Sending assistant_message for session {state.session_id}")

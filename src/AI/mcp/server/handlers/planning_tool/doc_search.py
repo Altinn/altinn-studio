@@ -407,6 +407,7 @@ class DocumentationSearch:
         self.fetcher = DocumentFetcher(self.cache)
         self.index = DocumentIndex()
         self._initialized = False
+        self._indexing = False
     
     def _parse_llms_full(self) -> List[Tuple[str, str]]:
         """Parse llms-full.txt for title and URL pairs."""
@@ -472,6 +473,8 @@ class DocumentationSearch:
         if self._initialized:
             return
         
+        self._indexing = True
+        
         def log(msg: str):
             """Log to stderr to avoid interfering with stdio JSON-RPC."""
             if verbose:
@@ -509,6 +512,7 @@ class DocumentationSearch:
         
         log(f"Indexed {fetched_count} documents ({cached_count} from cache)")
         self._initialized = True
+        self._indexing = False
     
     def search(self, query: str, max_results: int = 3, include_full_content: bool = True) -> List[Dict]:
         """Search documentation.
@@ -534,3 +538,67 @@ class DocumentationSearch:
         self.cache.clear()
         self.index = DocumentIndex()
         self._initialized = False
+
+    @property
+    def is_indexing(self) -> bool:
+        """True while a background initialization is in progress."""
+        return self._indexing
+
+    @property
+    def is_ready(self) -> bool:
+        """True when the index has been fully built."""
+        return self._initialized
+
+
+# ---------------------------------------------------------------------------
+# Singleton accessor with optional background pre-initialization
+# ---------------------------------------------------------------------------
+import pathlib as _pathlib
+import threading as _threading
+
+_PLANNING_DIR = _pathlib.Path(__file__).parent
+_DEFAULT_LLMS_PATH = str(_PLANNING_DIR / "llms-full.txt")
+_DEFAULT_CACHE_DIR = str(_PLANNING_DIR / ".doc_cache")
+
+_singleton_lock = _threading.Lock()
+_singleton: DocumentationSearch | None = None
+_init_thread: _threading.Thread | None = None
+
+
+def get_doc_search(
+    llms_file: str = _DEFAULT_LLMS_PATH,
+    cache_dir: str = _DEFAULT_CACHE_DIR,
+    cache_days: int = 7,
+) -> DocumentationSearch:
+    """Return the singleton ``DocumentationSearch`` instance.
+
+    If it doesn't exist yet it is created (but **not** initialized —
+    call ``start_background_indexing`` for that).
+    """
+    global _singleton
+    if _singleton is None:
+        with _singleton_lock:
+            if _singleton is None:
+                _singleton = DocumentationSearch(llms_file, cache_dir, cache_days)
+    return _singleton
+
+
+def start_background_indexing() -> None:
+    """Kick off documentation fetching/indexing in a daemon thread.
+
+    Safe to call multiple times — only one thread will run.
+    """
+    global _init_thread
+    search = get_doc_search()
+    if search.is_ready:
+        return
+    with _singleton_lock:
+        if _init_thread is not None and _init_thread.is_alive():
+            return
+        _init_thread = _threading.Thread(
+            target=search.initialize,
+            kwargs={"verbose": True},
+            daemon=True,
+            name="doc-index-init",
+        )
+        _init_thread.start()
