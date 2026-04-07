@@ -11,6 +11,9 @@ import {
   StudioFormActions,
 } from '@studio/components';
 import classes from './SlackChannelDialog.module.css';
+import { useAddContactPointMutation } from '../../../../../hooks/useAddContactPointMutation';
+import { useUpdateContactPointMutation } from '../../../../../hooks/useUpdateContactPointMutation';
+import { slackChannelToPayload } from '../slackChannelUtils';
 
 const slackWebhookUrlRegex = /^https:\/\/hooks\.slack\.com\/services\/.+/;
 const slackWebhookPlaceholder = 'https://hooks.slack.com/services/...';
@@ -25,45 +28,66 @@ export type SlackChannel = {
 };
 
 type SlackChannelDialogProps = {
-  channel: SlackChannel;
+  initialValue: SlackChannel;
   availableEnvironments: string[];
-  onFieldChange: (field: keyof SlackChannel, value: string | boolean | string[]) => void;
-  onSave: () => void;
+  org: string;
+  editingId: string | null;
   onClose: () => void;
-  isEditing: boolean;
-  isSaving: boolean;
 };
 
 export const SlackChannelDialog = ({
-  channel,
+  initialValue,
   availableEnvironments,
-  onFieldChange,
-  onSave,
+  org,
+  editingId,
   onClose,
-  isEditing,
-  isSaving,
 }: SlackChannelDialogProps): ReactElement => {
   const { t } = useTranslation();
+  const [channel, setChannel] = useState(initialValue);
   const [submitted, setSubmitted] = useState(false);
 
+  const { mutate: addChannel, isPending: isAdding } = useAddContactPointMutation(org);
+  const { mutate: updateChannel, isPending: isUpdating } = useUpdateContactPointMutation(org);
+  const isSaving = isAdding || isUpdating;
+
+  const trimmedChannelName = channel.channelName.trim();
+  const trimmedWebhookUrl = channel.webhookUrl.trim();
+
   const channelNameError =
-    submitted && !channel.channelName ? t('validation_errors.required') : undefined;
+    submitted && !trimmedChannelName ? t('validation_errors.required') : undefined;
 
   const webhookUrlError = submitted
-    ? !channel.webhookUrl
+    ? !trimmedWebhookUrl
       ? t('validation_errors.required')
-      : !slackWebhookUrlRegex.test(channel.webhookUrl)
+      : !slackWebhookUrlRegex.test(trimmedWebhookUrl)
         ? t('validation_errors.invalid_slack_webhook_url')
         : undefined
     : undefined;
 
   const isValid =
-    !!channel.channelName && !!channel.webhookUrl && slackWebhookUrlRegex.test(channel.webhookUrl);
+    !!trimmedChannelName && !!trimmedWebhookUrl && slackWebhookUrlRegex.test(trimmedWebhookUrl);
+
+  const handleClose = () => {
+    if (!isSaving) onClose();
+  };
 
   const handleSave = () => {
+    const trimmedChannel = {
+      ...channel,
+      channelName: trimmedChannelName,
+      webhookUrl: trimmedWebhookUrl,
+    };
     setSubmitted(true);
-    if (isValid) onSave();
+    if (!isValid) return;
+    const payload = slackChannelToPayload(trimmedChannel);
+    if (editingId) {
+      updateChannel({ id: editingId, payload }, { onSuccess: onClose });
+    } else {
+      addChannel(payload, { onSuccess: onClose });
+    }
   };
+
+  const isEditing = editingId !== null;
 
   const title = isEditing
     ? t('settings.orgs.contact_points.dialog_edit_slack_title')
@@ -71,7 +95,7 @@ export const SlackChannelDialog = ({
 
   const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
     value: channel.environments,
-    onChange: (value) => onFieldChange('environments', value),
+    onChange: (value) => setChannel((prev) => ({ ...prev, environments: value })),
     name: 'slackEnvironments',
   });
 
@@ -80,7 +104,7 @@ export const SlackChannelDialog = ({
   }, [channel.environments, setValue]);
 
   return (
-    <StudioDialog open onClose={onClose}>
+    <StudioDialog open onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
         <StudioHeading level={2}>{title}</StudioHeading>
         <StudioParagraph>{t('settings.orgs.contact_points.dialog_subtitle')}</StudioParagraph>
@@ -88,7 +112,7 @@ export const SlackChannelDialog = ({
           <StudioTextfield
             label={t('settings.orgs.contact_points.field_channel_name')}
             value={channel.channelName}
-            onChange={(e) => onFieldChange('channelName', e.target.value)}
+            onChange={(e) => setChannel((prev) => ({ ...prev, channelName: e.target.value }))}
             maxLength={channelNameMaxLength}
             required
             error={channelNameError}
@@ -97,7 +121,7 @@ export const SlackChannelDialog = ({
           <StudioTextfield
             label={t('settings.orgs.contact_points.field_webhook_url')}
             value={channel.webhookUrl}
-            onChange={(e) => onFieldChange('webhookUrl', e.target.value)}
+            onChange={(e) => setChannel((prev) => ({ ...prev, webhookUrl: e.target.value }))}
             maxLength={webhookUrlMaxLength}
             placeholder={slackWebhookPlaceholder}
             required
@@ -124,7 +148,7 @@ export const SlackChannelDialog = ({
             label: isEditing ? t('general.save') : t('general.add'),
             onClick: handleSave,
           }}
-          secondary={{ label: t('general.cancel'), onClick: onClose }}
+          secondary={{ label: t('general.cancel'), onClick: handleClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />

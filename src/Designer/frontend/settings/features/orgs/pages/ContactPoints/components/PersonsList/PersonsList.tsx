@@ -7,9 +7,7 @@ import { ActionsCell } from '../ActionsCell/ActionsCell';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { PersonDialog } from './PersonDialog/PersonDialog';
 import type { Person } from './PersonDialog/PersonDialog';
-import { personToPayload, contactPointToPerson } from './personUtils';
-import { useAddContactPointMutation } from '../../../../hooks/useAddContactPointMutation';
-import { useUpdateContactPointMutation } from '../../../../hooks/useUpdateContactPointMutation';
+import { contactPointToPerson } from './personUtils';
 import { useToggleContactPointActiveMutation } from '../../../../hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from '../../../../hooks/useDeleteContactPointMutation';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
@@ -31,46 +29,25 @@ const createEmptyPerson = (availableEnvironments: string[]): Person => ({
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [personForm, setPersonForm] = useState<Person>(createEmptyPerson([]));
+  const [initialValue, setInitialValue] = useState<Person>(createEmptyPerson([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { mutate: addPerson, isPending: isAdding } = useAddContactPointMutation(org);
-  const { mutate: updatePerson, isPending: isUpdating } = useUpdateContactPointMutation(org);
   const { mutate: toggleActive } = useToggleContactPointActiveMutation(org);
   const { mutate: deletePerson } = useDeleteContactPointMutation(org);
 
   const { data: orgs } = useOrgListQuery();
   const availableEnvironments = orgs?.[org]?.environments ?? [];
 
-  const isSaving = isAdding || isUpdating;
-
   const openAddDialog = () => {
-    setPersonForm(createEmptyPerson(availableEnvironments));
+    setInitialValue(createEmptyPerson(availableEnvironments));
     setEditingId(null);
     setIsOpen(true);
   };
 
   const openEditDialog = (person: ContactPoint) => {
-    setPersonForm(contactPointToPerson(person));
+    setInitialValue(contactPointToPerson(person));
     setEditingId(person.id);
     setIsOpen(true);
-  };
-
-  const closeDialog = () => {
-    setIsOpen(false);
-  };
-
-  const handleFieldChange = (field: keyof Person, value: string | boolean | string[]) => {
-    setPersonForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = () => {
-    const payload = personToPayload(personForm);
-    if (editingId) {
-      updatePerson({ id: editingId, payload }, { onSuccess: closeDialog });
-    } else {
-      addPerson(payload, { onSuccess: closeDialog });
-    }
   };
 
   const handleToggleActive = (person: ContactPoint) => {
@@ -133,13 +110,11 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
       <AddButton onClick={openAddDialog}>{t('settings.orgs.contact_points.add_contact')}</AddButton>
       {isOpen && (
         <PersonDialog
-          person={personForm}
+          initialValue={initialValue}
           availableEnvironments={availableEnvironments}
-          onFieldChange={handleFieldChange}
-          onSave={handleSave}
-          onClose={closeDialog}
-          isEditing={editingId !== null}
-          isSaving={isSaving}
+          org={org}
+          editingId={editingId}
+          onClose={() => setIsOpen(false)}
         />
       )}
     </>

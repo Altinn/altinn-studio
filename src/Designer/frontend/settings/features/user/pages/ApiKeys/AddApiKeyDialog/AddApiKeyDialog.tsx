@@ -16,8 +16,6 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import { useAddUserApiKeyMutation } from '../../../hooks/mutations/useAddUserApiKeyMutation';
 import { useUserApiKeysQuery } from '../../../hooks/queries/useUserApiKeysQuery';
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import classes from './AddApiKeyDialog.module.css';
 import { StudioCloseIcon } from '@studio/icons';
 
@@ -58,20 +56,24 @@ export const AddApiKeyDialog = ({
     reset: resetMutation,
   } = useAddUserApiKeyMutation();
   const { data: apiKeys } = useUserApiKeysQuery();
-  const queryClient = useQueryClient();
 
   const today = formatLocalDate(new Date());
 
+  const trimmedName = name.trim();
   const isDuplicateName =
-    apiKeys?.some((apiKey) => apiKey.name === name) ||
+    apiKeys?.some((apiKey) => apiKey.name === trimmedName) ||
     (error?.response?.status === ServerCodes.Conflict &&
       error?.response?.data?.errorCode === ApiErrorCodes.DuplicateTokenName);
 
+  const handleClose = () => {
+    if (!isPending) onClose();
+  };
+
   const handleAdd = () => {
     setSubmitted(true);
-    if (!name || !expiresAt || isDuplicateName) return;
+    if (!trimmedName || !expiresAt || isDuplicateName) return;
     addUserApiKey(
-      { name, expiresAt: `${expiresAt}T23:59:59Z` },
+      { name: trimmedName, expiresAt: `${expiresAt}T23:59:59Z` },
       {
         onSuccess: (response) => {
           setNewApiKey(response.key);
@@ -79,7 +81,6 @@ export const AddApiKeyDialog = ({
           setName('');
           setExpiresAt(computeMaxExpiresAt());
           setSubmitted(false);
-          queryClient.invalidateQueries({ queryKey: [QueryKey.UserApiKeys] });
         },
       },
     );
@@ -134,7 +135,7 @@ export const AddApiKeyDialog = ({
   }
 
   return (
-    <StudioDialog open onClose={onClose}>
+    <StudioDialog open onClose={handleClose}>
       <StudioDialog.Block className={classes.addDialogBlock}>
         <StudioHeading level={2}>{t('settings.user.api_keys.add')}</StudioHeading>
         <div className={classes.fields}>
@@ -149,7 +150,7 @@ export const AddApiKeyDialog = ({
             tagText={t('general.required')}
             error={
               submitted &&
-              ((!name ? t('validation_errors.required') : undefined) ??
+              ((!trimmedName ? t('validation_errors.required') : undefined) ??
                 (isDuplicateName ? t('settings.user.api_keys.error_duplicate_name') : undefined))
             }
             maxLength={100}
@@ -169,7 +170,7 @@ export const AddApiKeyDialog = ({
         </div>
         <StudioFormActions
           primary={{ label: t('general.add'), onClick: handleAdd }}
-          secondary={{ label: t('general.cancel'), onClick: onClose }}
+          secondary={{ label: t('general.cancel'), onClick: handleClose }}
           isLoading={isPending}
         />
       </StudioDialog.Block>

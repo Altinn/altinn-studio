@@ -20,6 +20,9 @@ import {
   emailMaxLength,
   phoneMaxLength,
 } from '../../../../../constants/contactPointConstants';
+import { useAddContactPointMutation } from '../../../../../hooks/useAddContactPointMutation';
+import { useUpdateContactPointMutation } from '../../../../../hooks/useUpdateContactPointMutation';
+import { personToPayload } from '../personUtils';
 
 export type Person = {
   name: string;
@@ -30,54 +33,77 @@ export type Person = {
 };
 
 type PersonDialogProps = {
-  person: Person;
+  initialValue: Person;
   availableEnvironments: string[];
-  onFieldChange: (field: keyof Person, value: string | boolean | string[]) => void;
-  onSave: () => void;
+  org: string;
+  editingId: string | null;
   onClose: () => void;
-  isEditing: boolean;
-  isSaving: boolean;
 };
 
 export const PersonDialog = ({
-  person,
+  initialValue,
   availableEnvironments,
-  onFieldChange,
-  onSave,
+  org,
+  editingId,
   onClose,
-  isEditing,
-  isSaving,
 }: PersonDialogProps): ReactElement => {
   const { t } = useTranslation();
+  const [person, setPerson] = useState(initialValue);
   const [submitted, setSubmitted] = useState(false);
 
-  const nameError = submitted && !person.name ? t('validation_errors.required') : undefined;
+  const { mutate: addPerson, isPending: isAdding } = useAddContactPointMutation(org);
+  const { mutate: updatePerson, isPending: isUpdating } = useUpdateContactPointMutation(org);
+  const isSaving = isAdding || isUpdating;
+
+  const trimmedName = person.name.trim();
+  const trimmedEmail = person.email.trim();
+  const trimmedPhone = person.phone.trim();
+
+  const nameError = submitted && !trimmedName ? t('validation_errors.required') : undefined;
 
   const emailError =
-    submitted && person.email && !emailRegex.test(person.email)
+    submitted && trimmedEmail && !emailRegex.test(trimmedEmail)
       ? t('validation_errors.invalid_email')
       : undefined;
 
   const phoneError =
-    submitted && person.phone && !phoneRegex.test(person.phone)
+    submitted && trimmedPhone && !phoneRegex.test(trimmedPhone)
       ? t('validation_errors.invalid_phone')
       : undefined;
 
   const contactMethodError =
-    submitted && !person.email && !person.phone
+    submitted && !trimmedEmail && !trimmedPhone
       ? t('settings.orgs.contact_points.error_contact_method_required')
       : undefined;
 
   const isValid =
-    !!person.name &&
-    (!!person.email || !!person.phone) &&
-    (!person.email || emailRegex.test(person.email)) &&
-    (!person.phone || phoneRegex.test(person.phone));
+    !!trimmedName &&
+    (!!trimmedEmail || !!trimmedPhone) &&
+    (!trimmedEmail || emailRegex.test(trimmedEmail)) &&
+    (!trimmedPhone || phoneRegex.test(trimmedPhone));
+
+  const handleClose = () => {
+    if (!isSaving) onClose();
+  };
 
   const handleSave = () => {
+    const trimmedPerson = {
+      ...person,
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: trimmedPhone,
+    };
     setSubmitted(true);
-    if (isValid) onSave();
+    if (!isValid) return;
+    const payload = personToPayload(trimmedPerson);
+    if (editingId) {
+      updatePerson({ id: editingId, payload }, { onSuccess: onClose });
+    } else {
+      addPerson(payload, { onSuccess: onClose });
+    }
   };
+
+  const isEditing = editingId !== null;
 
   const title = isEditing
     ? t('settings.orgs.contact_points.dialog_edit_person_title')
@@ -85,7 +111,7 @@ export const PersonDialog = ({
 
   const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
     value: person.environments,
-    onChange: (value) => onFieldChange('environments', value),
+    onChange: (value) => setPerson((prev) => ({ ...prev, environments: value })),
     name: 'personEnvironments',
   });
 
@@ -94,7 +120,7 @@ export const PersonDialog = ({
   }, [person.environments, setValue]);
 
   return (
-    <StudioDialog open onClose={onClose}>
+    <StudioDialog open onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
         <StudioHeading level={2}>{title}</StudioHeading>
         <StudioParagraph>{t('settings.orgs.contact_points.dialog_subtitle')}</StudioParagraph>
@@ -102,7 +128,7 @@ export const PersonDialog = ({
           <StudioTextfield
             label={t('settings.orgs.contact_points.field_name')}
             value={person.name}
-            onChange={(e) => onFieldChange('name', e.target.value)}
+            onChange={(e) => setPerson((prev) => ({ ...prev, name: e.target.value }))}
             maxLength={nameMaxLength}
             required
             error={nameError}
@@ -111,7 +137,7 @@ export const PersonDialog = ({
           <StudioTextfield
             label={t('settings.orgs.contact_points.field_email')}
             value={person.email}
-            onChange={(e) => onFieldChange('email', e.target.value)}
+            onChange={(e) => setPerson((prev) => ({ ...prev, email: e.target.value }))}
             maxLength={emailMaxLength}
             placeholder={emailPlaceholder}
             error={emailError ?? contactMethodError}
@@ -119,7 +145,7 @@ export const PersonDialog = ({
           <StudioTextfield
             label={t('settings.orgs.contact_points.field_phone')}
             value={person.phone}
-            onChange={(e) => onFieldChange('phone', e.target.value)}
+            onChange={(e) => setPerson((prev) => ({ ...prev, phone: e.target.value }))}
             maxLength={phoneMaxLength}
             placeholder={phonePlaceholder}
             error={phoneError ?? contactMethodError}
@@ -144,7 +170,7 @@ export const PersonDialog = ({
             label: isEditing ? t('general.save') : t('general.add'),
             onClick: handleSave,
           }}
-          secondary={{ label: t('general.cancel'), onClick: onClose }}
+          secondary={{ label: t('general.cancel'), onClick: handleClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />

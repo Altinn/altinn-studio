@@ -7,18 +7,9 @@ import { PersonsList } from './PersonsList';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
 jest.mock('./PersonDialog/PersonDialog', () => ({
-  PersonDialog: ({
-    isEditing,
-    onSave,
-    onClose,
-  }: {
-    isEditing: boolean;
-    onSave: () => void;
-    onClose: () => void;
-  }) => (
+  PersonDialog: ({ editingId, onClose }: { editingId: string | null; onClose: () => void }) => (
     <div>
-      <div>{isEditing ? 'EditDialog' : 'AddDialog'}</div>
-      <button onClick={onSave}>Save</button>
+      <div>{editingId ? 'EditDialog' : 'AddDialog'}</div>
       <button onClick={onClose}>Cancel</button>
     </div>
   ),
@@ -126,28 +117,5 @@ describe('PersonsList', () => {
     });
     await user.click(deleteButton);
     expect(queriesMock.deleteContactPoint).toHaveBeenCalledWith(testOrg, 'person-1');
-  });
-
-  it('calls addContactPoint when saving a new person', async () => {
-    const user = userEvent.setup();
-    renderPersonsList();
-    await user.click(getAddButton());
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
-      testOrg,
-      expect.objectContaining({ name: '', isActive: true }),
-    );
-  });
-
-  it('calls updateContactPoint when saving an edited person', async () => {
-    const user = userEvent.setup();
-    renderPersonsList({ persons: [person1] });
-    await user.click(getEditButton());
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(queriesMock.updateContactPoint).toHaveBeenCalledWith(
-      testOrg,
-      'person-1',
-      expect.objectContaining({ name: 'Test 1' }),
-    );
   });
 });
