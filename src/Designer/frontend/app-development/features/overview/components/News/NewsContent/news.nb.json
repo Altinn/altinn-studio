@@ -4,7 +4,7 @@
     {
       "date": "2026-04-07",
       "title": "Ny funksjonalitet: Forhindre navigasjon i appen når det finnes valideringsfeil på side navigasjonen",
-      "content": "Nå kan du legge til validering på sidenavigasjonen i appen. Dette gjør at brukere hindres i å gå videre dersom det finnes valideringsfeil på siden. Slik sikrer du at nødvendige opplysninger fylles ut før de navigerer videre. Valideringsregler satt på sidenavigasjonen vil overstyre regler som er lagt på navigasjonsknapper, customButtons eller andre steder i appen."
+      "content": "Nå kan du legge til validering på sidenavigasjonen i appen under <strong>Utforming > Andre innstillinger</strong>. Dette gjør at brukere hindres i å gå videre dersom det finnes valideringsfeil på siden. Regler satt på sidenavigasjonen vil overstyre andre navigeringsregler i appen."
     },
     {
       "date": "2026-03-24",
