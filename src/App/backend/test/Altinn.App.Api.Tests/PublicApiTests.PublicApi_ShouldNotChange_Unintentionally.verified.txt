@@ -323,6 +323,12 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<System.Collections.Generic.List<Altinn.App.Api.Models.SimpleInstance>>> GetActiveInstances([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, int instanceOwnerPartyId) { }
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [Microsoft.AspNetCore.Mvc.HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched")]
+        [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.EnrichedInstanceResponse), 200)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetEnriched([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken cancellationToken) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
@@ -982,6 +988,28 @@ namespace Altinn.App.Api.Models
         [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
         public required System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationSourcePair> ValidationIssues { get; init; }
     }
+    public sealed class EnrichedInstanceResponse
+    {
+        public EnrichedInstanceResponse() { }
+        public required string AppId { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.CompleteConfirmation> CompleteConfirmations { get; init; }
+        public required System.DateTime? Created { get; init; }
+        public required string CreatedBy { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.DataElement> Data { get; init; }
+        public required System.Collections.Generic.IReadOnlyDictionary<string, string> DataValues { get; init; }
+        public required System.DateTime? DueBefore { get; init; }
+        public required string Id { get; init; }
+        public required Altinn.App.Api.Models.InstanceOwnerResponse InstanceOwner { get; init; }
+        public required System.DateTime? LastChanged { get; init; }
+        public required string LastChangedBy { get; init; }
+        public required string Org { get; init; }
+        public required System.Collections.Generic.IReadOnlyDictionary<string, string> PresentationTexts { get; init; }
+        public required Altinn.App.Core.Internal.Process.Elements.AppProcessState Process { get; init; }
+        public required Altinn.Platform.Storage.Interface.Models.ResourceLinks SelfLinks { get; init; }
+        public required Altinn.Platform.Storage.Interface.Models.InstanceStatus Status { get; init; }
+        public required System.DateTime? VisibleAfter { get; init; }
+        public override string ToString() { }
+    }
     public class InstanceFileScanResult
     {
         public InstanceFileScanResult(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier) { }
@@ -1020,7 +1048,7 @@ namespace Altinn.App.Api.Models
         public required string LastChangedBy { get; init; }
         public required string Org { get; init; }
         public required System.Collections.Generic.IReadOnlyDictionary<string, string> PresentationTexts { get; init; }
-        public required Altinn.App.Core.Internal.Process.Elements.AppProcessState Process { get; init; }
+        public required Altinn.Platform.Storage.Interface.Models.ProcessState Process { get; init; }
         public required Altinn.Platform.Storage.Interface.Models.ResourceLinks SelfLinks { get; init; }
         public required Altinn.Platform.Storage.Interface.Models.InstanceStatus Status { get; init; }
         public required System.DateTime? VisibleAfter { get; init; }
