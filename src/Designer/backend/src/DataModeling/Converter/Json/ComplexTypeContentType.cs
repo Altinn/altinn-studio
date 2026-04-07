@@ -1,11 +1,10 @@
-namespace Altinn.Studio.DataModeling.Converter.Json
+namespace Altinn.Studio.DataModeling.Converter.Json;
+
+/// <summary>
+/// Placeholder
+/// </summary>
+public enum ComplexTypeContentType
 {
-    /// <summary>
-    /// Placeholder
-    /// </summary>
-    public enum ComplexTypeContentType
-    {
-        ComplexContent,
-        SimpleContentExtensionOrRestriction,
-    }
+    ComplexContent,
+    SimpleContentExtensionOrRestriction,
 }

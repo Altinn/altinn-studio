@@ -1,11 +1,10 @@
-﻿namespace PolicyAdmin.Models
+﻿namespace PolicyAdmin.Models;
+
+public class ActionOption
 {
-    public class ActionOption
-    {
-        public string? ActionId { get; set; }
+    public string? ActionId { get; set; }
 
-        public string? ActionTitle { get; set; }
+    public string? ActionTitle { get; set; }
 
-        public string? ActionDescription { get; set; }
-    }
+    public string? ActionDescription { get; set; }
 }

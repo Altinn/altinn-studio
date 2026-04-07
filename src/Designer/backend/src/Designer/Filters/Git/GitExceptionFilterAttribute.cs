@@ -6,75 +6,74 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Altinn.Studio.Designer.Filters.Git
+namespace Altinn.Studio.Designer.Filters.Git;
+
+public class GitExceptionFilterAttribute : ExceptionFilterAttribute
 {
-    public class GitExceptionFilterAttribute : ExceptionFilterAttribute
+    public override void OnException(ExceptionContext context)
     {
-        public override void OnException(ExceptionContext context)
+        base.OnException(context);
+
+        if (context.ActionDescriptor is not ControllerActionDescriptor)
         {
-            base.OnException(context);
+            return;
+        }
 
-            if (context.ActionDescriptor is not ControllerActionDescriptor)
-            {
-                return;
-            }
-
-            if (context.Exception is NonFastForwardException)
-            {
-                context.Result = new ObjectResult(
-                    ProblemDetailsUtils.GenerateProblemDetails(
-                        context.Exception,
-                        GitErrorCodes.NonFastForwardError,
-                        HttpStatusCode.Conflict
-                    )
-                )
-                {
-                    StatusCode = (int)HttpStatusCode.Conflict,
-                };
-            }
-
-            if (context.Exception is RepositoryNotFoundException)
-            {
-                context.Result = new ObjectResult(
-                    ProblemDetailsUtils.GenerateProblemDetails(
-                        context.Exception,
-                        GitErrorCodes.RepositoryNotFound,
-                        HttpStatusCode.NotFound
-                    )
-                )
-                {
-                    StatusCode = (int)HttpStatusCode.NotFound,
-                };
-            }
-
-            if (
-                context.Exception is GiteaUnathorizedException
-                || (
-                    context.Exception is LibGit2SharpException
-                    && context.Exception.Message.Contains("server requires authentication that we do not support")
+        if (context.Exception is NonFastForwardException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    GitErrorCodes.NonFastForwardError,
+                    HttpStatusCode.Conflict
                 )
             )
             {
-                context.Result = new ObjectResult(
-                    ProblemDetailsUtils.GenerateProblemDetails(
-                        context.Exception,
-                        GitErrorCodes.SessionExpired,
-                        HttpStatusCode.Unauthorized
-                    )
-                )
-                {
-                    StatusCode = (int)HttpStatusCode.Unauthorized,
-                };
-            }
+                StatusCode = (int)HttpStatusCode.Conflict,
+            };
+        }
 
-            if (context.Exception is Exceptions.UncommittedChangesException uncommittedChangesException)
+        if (context.Exception is RepositoryNotFoundException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    GitErrorCodes.RepositoryNotFound,
+                    HttpStatusCode.NotFound
+                )
+            )
             {
-                context.Result = new ObjectResult(uncommittedChangesException.ErrorDetails)
-                {
-                    StatusCode = (int)HttpStatusCode.Conflict,
-                };
-                context.ExceptionHandled = true;
-            }
+                StatusCode = (int)HttpStatusCode.NotFound,
+            };
+        }
+
+        if (
+            context.Exception is GiteaUnathorizedException
+            || (
+                context.Exception is LibGit2SharpException
+                && context.Exception.Message.Contains("server requires authentication that we do not support")
+            )
+        )
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    GitErrorCodes.SessionExpired,
+                    HttpStatusCode.Unauthorized
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.Unauthorized,
+            };
+        }
+
+        if (context.Exception is Exceptions.UncommittedChangesException uncommittedChangesException)
+        {
+            context.Result = new ObjectResult(uncommittedChangesException.ErrorDetails)
+            {
+                StatusCode = (int)HttpStatusCode.Conflict,
+            };
+            context.ExceptionHandled = true;
         }
     }
 }

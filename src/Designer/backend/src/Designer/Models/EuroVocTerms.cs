@@ -1,10 +1,9 @@
 ﻿#nullable disable
 using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+public class EuroVocTerms
 {
-    public class EuroVocTerms
-    {
-        public List<EuroVocTerm> EuroVocs { get; set; }
-    }
+    public List<EuroVocTerm> EuroVocs { get; set; }
 }

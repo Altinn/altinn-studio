@@ -11,61 +11,60 @@
 
 using System.Runtime.Serialization;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// PayloadCommitVerification represents the GPG verification of a commit
+/// </summary>
+[DataContract]
+public partial class PayloadCommitVerification
 {
     /// <summary>
-    /// PayloadCommitVerification represents the GPG verification of a commit
+    /// Initializes a new instance of the <see cref="PayloadCommitVerification"/> class.
     /// </summary>
-    [DataContract]
-    public partial class PayloadCommitVerification
+    public PayloadCommitVerification() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PayloadCommitVerification" /> class.
+    /// </summary>
+    /// <param name="payload">Payload.</param>
+    /// <param name="reason">Reason.</param>
+    /// <param name="signature">Signature.</param>
+    /// <param name="verified">Verified.</param>
+    public PayloadCommitVerification(
+        string payload = default(string),
+        string reason = default(string),
+        string signature = default(string),
+        bool? verified = default(bool?)
+    )
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PayloadCommitVerification"/> class.
-        /// </summary>
-        public PayloadCommitVerification() { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PayloadCommitVerification" /> class.
-        /// </summary>
-        /// <param name="payload">Payload.</param>
-        /// <param name="reason">Reason.</param>
-        /// <param name="signature">Signature.</param>
-        /// <param name="verified">Verified.</param>
-        public PayloadCommitVerification(
-            string payload = default(string),
-            string reason = default(string),
-            string signature = default(string),
-            bool? verified = default(bool?)
-        )
-        {
-            this.Payload = payload;
-            this.Reason = reason;
-            this.Signature = signature;
-            this.Verified = verified;
-        }
-
-        /// <summary>
-        /// Gets or Sets Payload
-        /// </summary>
-        [DataMember(Name = "payload", EmitDefaultValue = false)]
-        public string Payload { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Reason
-        /// </summary>
-        [DataMember(Name = "reason", EmitDefaultValue = false)]
-        public string Reason { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Signature
-        /// </summary>
-        [DataMember(Name = "signature", EmitDefaultValue = false)]
-        public string Signature { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Verified
-        /// </summary>
-        [DataMember(Name = "verified", EmitDefaultValue = false)]
-        public bool? Verified { get; set; }
+        this.Payload = payload;
+        this.Reason = reason;
+        this.Signature = signature;
+        this.Verified = verified;
     }
+
+    /// <summary>
+    /// Gets or Sets Payload
+    /// </summary>
+    [DataMember(Name = "payload", EmitDefaultValue = false)]
+    public string Payload { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Reason
+    /// </summary>
+    [DataMember(Name = "reason", EmitDefaultValue = false)]
+    public string Reason { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Signature
+    /// </summary>
+    [DataMember(Name = "signature", EmitDefaultValue = false)]
+    public string Signature { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Verified
+    /// </summary>
+    [DataMember(Name = "verified", EmitDefaultValue = false)]
+    public bool? Verified { get; set; }
 }

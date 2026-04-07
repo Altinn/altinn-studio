@@ -1,10 +1,9 @@
-namespace Altinn.Studio.Designer.Enums
+namespace Altinn.Studio.Designer.Enums;
+
+public enum ReferenceType
 {
-    public enum ReferenceType
-    {
-        Task,
-        LayoutSet,
-        Layout,
-        Component,
-    }
+    Task,
+    LayoutSet,
+    Layout,
+    Component,
 }

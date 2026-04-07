@@ -1,68 +1,67 @@
 #nullable disable
 using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+using System;
+using System.Linq;
+using Newtonsoft.Json;
+
+/// <summary>
+/// The resource collection.
+/// </summary>
+public class ResourceCollection
 {
-    using System;
-    using System.Linq;
-    using Newtonsoft.Json;
+    /// <summary>
+    /// Gets or sets the language.
+    /// </summary>
+    [JsonProperty("language")]
+    public string Language { get; set; }
 
     /// <summary>
-    /// The resource collection.
+    /// Gets or sets the resources.
     /// </summary>
-    public class ResourceCollection
+    [JsonProperty("resources")]
+    public List<Resource> Resources { get; set; }
+
+    /// <summary>
+    /// Adds text resource to the Resources list.
+    /// </summary>
+    /// <param name="id"> The id. </param>
+    /// <param name="value"> The value. </param>
+    /// <exception cref="ArgumentException">id missing</exception>
+    public void Add(string id, string value)
     {
-        /// <summary>
-        /// Gets or sets the language.
-        /// </summary>
-        [JsonProperty("language")]
-        public string Language { get; set; }
-
-        /// <summary>
-        /// Gets or sets the resources.
-        /// </summary>
-        [JsonProperty("resources")]
-        public List<Resource> Resources { get; set; }
-
-        /// <summary>
-        /// Adds text resource to the Resources list.
-        /// </summary>
-        /// <param name="id"> The id. </param>
-        /// <param name="value"> The value. </param>
-        /// <exception cref="ArgumentException">id missing</exception>
-        public void Add(string id, string value)
+        if (string.IsNullOrWhiteSpace(id))
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentException("Argument null or whitespace", nameof(id));
-            }
-
-            if (Resources.Any(r => r.Id == id))
-            {
-                Resources.Find(r => r.Id == id).Value = value;
-            }
-            else
-            {
-                Resources.Add(new Resource { Id = id, Value = value ?? string.Empty });
-            }
+            throw new ArgumentException("Argument null or whitespace", nameof(id));
         }
 
-        /// <summary>
-        /// Deletes text resource in the Resources list.
-        /// </summary>
-        /// <param name="id"> The id. </param>
-        /// <exception cref="ArgumentException">id missing</exception>
-        public void Delete(string id)
+        if (Resources.Any(r => r.Id == id))
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentException("Argument null or whitespace", nameof(id));
-            }
+            Resources.Find(r => r.Id == id).Value = value;
+        }
+        else
+        {
+            Resources.Add(new Resource { Id = id, Value = value ?? string.Empty });
+        }
+    }
 
-            if (Resources.Any(r => r.Id == id))
-            {
-                Resources.Remove(Resources.Find(r => r.Id == id));
-            }
+    /// <summary>
+    /// Deletes text resource in the Resources list.
+    /// </summary>
+    /// <param name="id"> The id. </param>
+    /// <exception cref="ArgumentException">id missing</exception>
+    public void Delete(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Argument null or whitespace", nameof(id));
+        }
+
+        if (Resources.Any(r => r.Id == id))
+        {
+            Resources.Remove(Resources.Find(r => r.Id == id));
         }
     }
 }

@@ -1,18 +1,17 @@
-namespace Altinn.Studio.Designer.ViewModels.Request.Enums
+namespace Altinn.Studio.Designer.ViewModels.Request.Enums;
+
+/// <summary>
+/// Enum that defines direction for sort
+/// </summary>
+public enum SortDirection
 {
     /// <summary>
-    /// Enum that defines direction for sort
+    /// Ascending direction
     /// </summary>
-    public enum SortDirection
-    {
-        /// <summary>
-        /// Ascending direction
-        /// </summary>
-        Ascending,
+    Ascending,
 
-        /// <summary>
-        /// Descending direction
-        /// </summary>
-        Descending,
-    }
+    /// <summary>
+    /// Descending direction
+    /// </summary>
+    Descending,
 }

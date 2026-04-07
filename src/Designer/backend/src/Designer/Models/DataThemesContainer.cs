@@ -1,10 +1,9 @@
 ﻿#nullable disable
 using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+public class DataThemesContainer
 {
-    public class DataThemesContainer
-    {
-        public List<DataTheme> DataThemes { get; set; }
-    }
+    public List<DataTheme> DataThemes { get; set; }
 }

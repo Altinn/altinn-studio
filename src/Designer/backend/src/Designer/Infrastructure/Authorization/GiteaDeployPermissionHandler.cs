@@ -12,103 +12,102 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace Altinn.Studio.Designer.Infrastructure.Authorization
-{
-    /// <summary>
-    /// Authorization Handler for GiteaDeployPermissionRequirement
-    /// </summary>
-    public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPermissionRequirement>
-    {
-        private readonly IGiteaClient _giteaClient;
-        private readonly HttpContext _httpContext;
+namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="giteaClient">IGiteaClient</param>
-        /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        public GiteaDeployPermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
+/// <summary>
+/// Authorization Handler for GiteaDeployPermissionRequirement
+/// </summary>
+public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPermissionRequirement>
+{
+    private readonly IGiteaClient _giteaClient;
+    private readonly HttpContext _httpContext;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="giteaClient">IGiteaClient</param>
+    /// <param name="httpContextAccessor">IHttpContextAccessor</param>
+    public GiteaDeployPermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContext = httpContextAccessor.HttpContext;
+        _giteaClient = giteaClient;
+    }
+
+    /// <inheritdoc/>
+    protected override async Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        GiteaDeployPermissionRequirement requirement
+    )
+    {
+        if (_httpContext == null)
         {
-            _httpContext = httpContextAccessor.HttpContext;
-            _giteaClient = giteaClient;
+            return;
         }
 
-        /// <inheritdoc/>
-        protected override async Task HandleRequirementAsync(
-            AuthorizationHandlerContext context,
-            GiteaDeployPermissionRequirement requirement
-        )
+        string org = _httpContext.GetRouteValue("org")?.ToString();
+
+        if (string.IsNullOrWhiteSpace(org))
         {
-            if (_httpContext == null)
-            {
-                return;
-            }
+            _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            return;
+        }
 
-            string org = _httpContext.GetRouteValue("org")?.ToString();
+        string environment = _httpContext.GetRouteValue("environment")?.ToString();
 
-            if (string.IsNullOrWhiteSpace(org))
-            {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return;
-            }
+        if (string.IsNullOrEmpty(environment))
+        {
+            _httpContext.Request.EnableBuffering();
 
-            string environment = _httpContext.GetRouteValue("environment")?.ToString();
-
-            if (string.IsNullOrEmpty(environment))
-            {
-                _httpContext.Request.EnableBuffering();
-
-                using (
-                    var reader = new StreamReader(
-                        _httpContext.Request.Body,
-                        encoding: Encoding.UTF8,
-                        detectEncodingFromByteOrderMarks: false,
-                        bufferSize: 1024,
-                        leaveOpen: true
-                    )
+            using (
+                var reader = new StreamReader(
+                    _httpContext.Request.Body,
+                    encoding: Encoding.UTF8,
+                    detectEncodingFromByteOrderMarks: false,
+                    bufferSize: 1024,
+                    leaveOpen: true
                 )
+            )
+            {
+                try
                 {
-                    try
-                    {
-                        string body = await reader.ReadToEndAsync();
-                        JsonNode bodyJson = JsonNode.Parse(body);
+                    string body = await reader.ReadToEndAsync();
+                    JsonNode bodyJson = JsonNode.Parse(body);
 
-                        if (bodyJson["envName"] is not null)
-                        {
-                            environment = bodyJson["envName"].ToString();
-                        }
-                        if (bodyJson["environment"] is not null)
-                        {
-                            environment = bodyJson["environment"].ToString();
-                        }
-                    }
-                    catch
+                    if (bodyJson["envName"] is not null)
                     {
-                        _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                        return;
+                        environment = bodyJson["envName"].ToString();
                     }
-                    reader.Close();
-                    // Reset the request body stream position so the next middleware can read it
-                    _httpContext.Request.Body.Position = 0;
+                    if (bodyJson["environment"] is not null)
+                    {
+                        environment = bodyJson["environment"].ToString();
+                    }
                 }
+                catch
+                {
+                    _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
+                }
+                reader.Close();
+                // Reset the request body stream position so the next middleware can read it
+                _httpContext.Request.Body.Position = 0;
             }
+        }
 
-            string matchTeam = $"Deploy-{environment}";
-            List<Team> teams = await _giteaClient.GetTeams();
+        string matchTeam = $"Deploy-{environment}";
+        List<Team> teams = await _giteaClient.GetTeams();
 
-            bool any = teams.Any(t =>
-                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
-                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
-            );
+        bool any = teams.Any(t =>
+            t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+            && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+        );
 
-            if (any)
-            {
-                context.Succeed(requirement);
-            }
-            else
-            {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-            }
+        if (any)
+        {
+            context.Succeed(requirement);
+        }
+        else
+        {
+            _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
         }
     }
 }

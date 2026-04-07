@@ -16,94 +16,93 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// DeleteEmailOption options when deleting email addresses
+/// </summary>
+[DataContract]
+public partial class DeleteEmailOption : IEquatable<DeleteEmailOption>, IValidatableObject
 {
     /// <summary>
-    /// DeleteEmailOption options when deleting email addresses
+    /// Initializes a new instance of the <see cref="DeleteEmailOption" /> class.
     /// </summary>
-    [DataContract]
-    public partial class DeleteEmailOption : IEquatable<DeleteEmailOption>, IValidatableObject
+    /// <param name="emails">email addresses to delete.</param>
+    public DeleteEmailOption(List<string> emails = default(List<string>))
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DeleteEmailOption" /> class.
-        /// </summary>
-        /// <param name="emails">email addresses to delete.</param>
-        public DeleteEmailOption(List<string> emails = default(List<string>))
+        this.Emails = emails;
+    }
+
+    /// <summary>
+    /// email addresses to delete
+    /// </summary>
+    [DataMember(Name = "emails", EmitDefaultValue = false)]
+    public List<string> Emails { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class DeleteEmailOption {\n");
+        sb.Append("  Emails: ").Append(Emails).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return this.Equals(input as DeleteEmailOption);
+    }
+
+    /// <summary>
+    /// Returns true if DeleteEmailOption instances are equal
+    /// </summary>
+    /// <param name="input">Instance of DeleteEmailOption to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(DeleteEmailOption input)
+    {
+        if (input == null)
         {
-            this.Emails = emails;
+            return false;
         }
 
-        /// <summary>
-        /// email addresses to delete
-        /// </summary>
-        [DataMember(Name = "emails", EmitDefaultValue = false)]
-        public List<string> Emails { get; set; }
+        return this.Emails == input.Emails || (this.Emails != null && this.Emails.SequenceEqual(input.Emails));
+    }
 
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
         {
-            var sb = new StringBuilder();
-            sb.Append("class DeleteEmailOption {\n");
-            sb.Append("  Emails: ").Append(Emails).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return this.Equals(input as DeleteEmailOption);
-        }
-
-        /// <summary>
-        /// Returns true if DeleteEmailOption instances are equal
-        /// </summary>
-        /// <param name="input">Instance of DeleteEmailOption to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(DeleteEmailOption input)
-        {
-            if (input == null)
+            int hashCode = 41;
+            if (this.Emails != null)
             {
-                return false;
+                hashCode = (hashCode * 59) + this.Emails.GetHashCode();
             }
 
-            return this.Emails == input.Emails || (this.Emails != null && this.Emails.SequenceEqual(input.Emails));
+            return hashCode;
         }
+    }
 
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
-            {
-                int hashCode = 41;
-                if (this.Emails != null)
-                {
-                    hashCode = (hashCode * 59) + this.Emails.GetHashCode();
-                }
-
-                return hashCode;
-            }
-        }
-
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
-        }
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

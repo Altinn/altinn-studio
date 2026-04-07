@@ -9,62 +9,61 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace Altinn.Studio.Designer.Infrastructure.Authorization
-{
-    /// <summary>
-    /// Authorization Handler for GiteaPublishResourcePermissionRequirement
-    /// </summary>
-    public class GiteaPublishResourcePermissionHandler : AuthorizationHandler<GiteaPublishResourcePermissionRequirement>
-    {
-        private readonly IGiteaClient _giteaClient;
-        private readonly HttpContext _httpContext;
+namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="giteaClient">IGiteaClient</param>
-        /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        public GiteaPublishResourcePermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
+/// <summary>
+/// Authorization Handler for GiteaPublishResourcePermissionRequirement
+/// </summary>
+public class GiteaPublishResourcePermissionHandler : AuthorizationHandler<GiteaPublishResourcePermissionRequirement>
+{
+    private readonly IGiteaClient _giteaClient;
+    private readonly HttpContext _httpContext;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="giteaClient">IGiteaClient</param>
+    /// <param name="httpContextAccessor">IHttpContextAccessor</param>
+    public GiteaPublishResourcePermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContext = httpContextAccessor.HttpContext;
+        _giteaClient = giteaClient;
+    }
+
+    /// <inheritdoc/>
+    protected override async Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        GiteaPublishResourcePermissionRequirement requirement
+    )
+    {
+        if (_httpContext == null)
         {
-            _httpContext = httpContextAccessor.HttpContext;
-            _giteaClient = giteaClient;
+            return;
         }
 
-        /// <inheritdoc/>
-        protected override async Task HandleRequirementAsync(
-            AuthorizationHandlerContext context,
-            GiteaPublishResourcePermissionRequirement requirement
-        )
+        string org = _httpContext.GetRouteValue("org")?.ToString();
+        string environment = _httpContext.GetRouteValue("env")?.ToString();
+        if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(environment))
         {
-            if (_httpContext == null)
-            {
-                return;
-            }
+            _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            return;
+        }
 
-            string org = _httpContext.GetRouteValue("org")?.ToString();
-            string environment = _httpContext.GetRouteValue("env")?.ToString();
-            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(environment))
-            {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return;
-            }
+        string matchTeam = $"Resources-Publish-{environment}";
+        List<Team> teams = await _giteaClient.GetTeams();
 
-            string matchTeam = $"Resources-Publish-{environment}";
-            List<Team> teams = await _giteaClient.GetTeams();
+        bool isTeamMember = teams.Any(t =>
+            t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+            && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+        );
 
-            bool isTeamMember = teams.Any(t =>
-                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
-                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
-            );
-
-            if (isTeamMember)
-            {
-                context.Succeed(requirement);
-            }
-            else
-            {
-                _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-            }
+        if (isTeamMember)
+        {
+            context.Succeed(requirement);
+        }
+        else
+        {
+            _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
         }
     }
 }

@@ -12,40 +12,39 @@ using System.IO;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// CreateAccessTokenOption options
+/// </summary>
+[DataContract]
+public partial class CreateAccessTokenOption
 {
     /// <summary>
-    /// CreateAccessTokenOption options
+    /// Initializes a new instance of the <see cref="CreateAccessTokenOption" /> class.
     /// </summary>
-    [DataContract]
-    public partial class CreateAccessTokenOption
+    [JsonConstructor]
+    protected CreateAccessTokenOption() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateAccessTokenOption" /> class.
+    /// </summary>
+    /// <param name="name">Name of the repository to create (required).</param>
+    public CreateAccessTokenOption(string name = default(string))
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateAccessTokenOption" /> class.
-        /// </summary>
-        [JsonConstructor]
-        protected CreateAccessTokenOption() { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateAccessTokenOption" /> class.
-        /// </summary>
-        /// <param name="name">Name of the repository to create (required).</param>
-        public CreateAccessTokenOption(string name = default(string))
+        // to ensure "Name" is required (not null)
+        if (name == null)
         {
-            // to ensure "Name" is required (not null)
-            if (name == null)
-            {
-                throw new InvalidDataException(
-                    "Name is a required property for CreateAccessTokenOption and cannot be null"
-                );
-            }
-            this.Name = name;
+            throw new InvalidDataException(
+                "Name is a required property for CreateAccessTokenOption and cannot be null"
+            );
         }
-
-        /// <summary>
-        /// Name of the repository to create
-        /// </summary>
-        [DataMember(Name = "name", EmitDefaultValue = false)]
-        public string Name { get; set; }
+        this.Name = name;
     }
+
+    /// <summary>
+    /// Name of the repository to create
+    /// </summary>
+    [DataMember(Name = "name", EmitDefaultValue = false)]
+    public string Name { get; set; }
 }

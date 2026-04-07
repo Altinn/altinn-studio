@@ -2,21 +2,20 @@ using System;
 using Json.Pointer;
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Converter.Metadata
+namespace Altinn.Studio.DataModeling.Converter.Metadata;
+
+/// <summary>
+/// Event args added when a keyword has been processed.
+/// </summary>
+public class KeywordProcessedEventArgs : EventArgs
 {
     /// <summary>
-    /// Event args added when a keyword has been processed.
+    /// The path to the keyword that was processed.
     /// </summary>
-    public class KeywordProcessedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The path to the keyword that was processed.
-        /// </summary>
-        public JsonPointer Path { get; set; }
+    public JsonPointer Path { get; set; }
 
-        /// <summary>
-        /// The keyword that was processed.
-        /// </summary>
-        public IJsonSchemaKeyword Keyword { get; set; }
-    }
+    /// <summary>
+    /// The keyword that was processed.
+    /// </summary>
+    public IJsonSchemaKeyword Keyword { get; set; }
 }

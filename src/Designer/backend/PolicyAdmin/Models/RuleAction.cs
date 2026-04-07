@@ -1,7 +1,6 @@
-﻿namespace Altinn.Studio.PolicyAdmin.Models
+﻿namespace Altinn.Studio.PolicyAdmin.Models;
+
+public class RuleAction
 {
-    public class RuleAction
-    {
-        public AttributeMatch? Attribute { get; set; }
-    }
+    public AttributeMatch? Attribute { get; set; }
 }

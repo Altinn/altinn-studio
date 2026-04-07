@@ -10,40 +10,39 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Designer.Tests.Controllers.RepositoryController
+namespace Designer.Tests.Controllers.RepositoryController;
+
+public class ResetLocalRepositoryTests
+    : DesignerEndpointsTestsBase<ResetLocalRepositoryTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class ResetLocalRepositoryTests
-        : DesignerEndpointsTestsBase<ResetLocalRepositoryTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private static string VersionPrefix => "/designer/api/repos";
+
+    public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    // Do not use mocked repository
+    protected override void ConfigureTestServices(IServiceCollection services)
     {
-        private static string VersionPrefix => "/designer/api/repos";
+        base.ConfigureTestServices(services);
+        services.AddTransient<ISourceControl, ISourceControlMock>();
+    }
 
-        public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+    [Theory]
+    [InlineData("ttd", "apps-test", "testUser")]
+    public async Task ResetRepo_Returns200(string org, string repo, string developer)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        await CopyRemoteRepositoryForTest(org, repo, targetRepository);
 
-        // Do not use mocked repository
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            base.ConfigureTestServices(services);
-            services.AddTransient<ISourceControl, ISourceControlMock>();
-        }
+        // Arrange
+        string uri = $"{VersionPrefix}/repo/{org}/{targetRepository}/reset";
 
-        [Theory]
-        [InlineData("ttd", "apps-test", "testUser")]
-        public async Task ResetRepo_Returns200(string org, string repo, string developer)
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, repo, developer, targetRepository);
-            await CopyRemoteRepositoryForTest(org, repo, targetRepository);
+        // Act
+        using HttpResponseMessage res = await HttpClient.GetAsync(uri);
 
-            // Arrange
-            string uri = $"{VersionPrefix}/repo/{org}/{targetRepository}/reset";
-
-            // Act
-            using HttpResponseMessage res = await HttpClient.GetAsync(uri);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        }
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
     }
 }

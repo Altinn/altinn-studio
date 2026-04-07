@@ -11,69 +11,68 @@ using Altinn.Studio.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Studio.Designer.Infrastructure
+namespace Altinn.Studio.Designer.Infrastructure;
+
+/// <summary>
+/// Contains extension methods for configuring Mvc
+/// </summary>
+public static class MvcConfiguration
 {
     /// <summary>
-    /// Contains extension methods for configuring Mvc
+    /// Extension method that configures Mvc
     /// </summary>
-    public static class MvcConfiguration
+    /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
+    public static IServiceCollection ConfigureMvc(this IServiceCollection services)
     {
-        /// <summary>
-        /// Extension method that configures Mvc
-        /// </summary>
-        /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
-        public static IServiceCollection ConfigureMvc(this IServiceCollection services)
+        services
+            .AddControllers()
+            .AddMvcOptions(options =>
+            {
+                options.Filters.Add(typeof(AppDevelopmentExceptionFilterAttribute));
+                options.Filters.Add(typeof(DataModelingExceptionFilterAttribute));
+                options.Filters.Add(typeof(GitExceptionFilterAttribute));
+                options.Filters.Add(typeof(IoExceptionFilterAttribute));
+                options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
+                options.Filters.Add(typeof(ApiKeyExceptionFilterAttribute));
+                options.Filters.Add(typeof(ApiKeyScopeFilter));
+            })
+            .AddNewtonsoftJson(options =>
+                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())
+            )
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new NextStepTypeJsonConverter());
+            });
+
+        services.AddMvc(options => options.EnableEndpointRouting = false);
+
+        services.AddRazorPages();
+
+        IMvcBuilder mvc = services.AddControllers().AddControllersAsServices();
+        mvc.Services.AddRazorPages();
+
+        mvc.Services.Configure<MvcOptions>(options =>
         {
-            services
-                .AddControllers()
-                .AddMvcOptions(options =>
-                {
-                    options.Filters.Add(typeof(AppDevelopmentExceptionFilterAttribute));
-                    options.Filters.Add(typeof(DataModelingExceptionFilterAttribute));
-                    options.Filters.Add(typeof(GitExceptionFilterAttribute));
-                    options.Filters.Add(typeof(IoExceptionFilterAttribute));
-                    options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
-                    options.Filters.Add(typeof(ApiKeyExceptionFilterAttribute));
-                    options.Filters.Add(typeof(ApiKeyScopeFilter));
-                })
-                .AddNewtonsoftJson(options =>
-                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())
-                )
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.Converters.Add(new NextStepTypeJsonConverter());
-                });
+            // Adding custom modelbinders
+            options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
+        });
 
-            services.AddMvc(options => options.EnableEndpointRouting = false);
+        mvc.AddXmlSerializerFormatters();
 
-            services.AddRazorPages();
+        services.AddAntiforgery(options =>
+        {
+            // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
+            // The values of the tokens are not the same and both need to be present and valid in a "unsafe" request.
 
-            IMvcBuilder mvc = services.AddControllers().AddControllersAsServices();
-            mvc.Services.AddRazorPages();
+            // Axios which we are using for client-side automatically extracts the value from the cookie named XSRF-TOKEN. We are setting this cookie in the UserController.
+            // We will therefore have two token cookies. One that contains the .net core cookie token; And one that is the request token and is added as a header in requests.
+            // The tokens are based on the logged-in user and must be updated if the user changes.
+            // https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1
+            // https://github.com/axios/axios/blob/master/lib/defaults.js
+            options.Cookie.Name = "AS-XSRF-TOKEN";
+            options.HeaderName = "X-XSRF-TOKEN";
+        });
 
-            mvc.Services.Configure<MvcOptions>(options =>
-            {
-                // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-            });
-
-            mvc.AddXmlSerializerFormatters();
-
-            services.AddAntiforgery(options =>
-            {
-                // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
-                // The values of the tokens are not the same and both need to be present and valid in a "unsafe" request.
-
-                // Axios which we are using for client-side automatically extracts the value from the cookie named XSRF-TOKEN. We are setting this cookie in the UserController.
-                // We will therefore have two token cookies. One that contains the .net core cookie token; And one that is the request token and is added as a header in requests.
-                // The tokens are based on the logged-in user and must be updated if the user changes.
-                // https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1
-                // https://github.com/axios/axios/blob/master/lib/defaults.js
-                options.Cookie.Name = "AS-XSRF-TOKEN";
-                options.HeaderName = "X-XSRF-TOKEN";
-            });
-
-            return services;
-        }
+        return services;
     }
 }

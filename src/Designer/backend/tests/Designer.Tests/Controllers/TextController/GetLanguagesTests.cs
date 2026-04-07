@@ -6,33 +6,32 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.TextController
+namespace Designer.Tests.Controllers.TextController;
+
+public class GetLanguagesTests
+    : DesignerEndpointsTestsBase<GetLanguagesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetLanguagesTests
-        : DesignerEndpointsTestsBase<GetLanguagesTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
+
+    public GetLanguagesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Theory]
+    [InlineData("ttd", "hvem-er-hvem", "en", "nb")]
+    public async Task GetLanguage_WithValidInput_ReturnsOk(string org, string app, params string[] expectedLangs)
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
+        string url = $"{VersionPrefix(org, app)}/languages";
 
-        public GetLanguagesTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        string expectedContent = JsonSerializer.Serialize(expectedLangs);
 
-        [Theory]
-        [InlineData("ttd", "hvem-er-hvem", "en", "nb")]
-        public async Task GetLanguage_WithValidInput_ReturnsOk(string org, string app, params string[] expectedLangs)
-        {
-            string url = $"{VersionPrefix(org, app)}/languages";
+        // Act
+        using var response = await HttpClient.GetAsync(url);
 
-            string expectedContent = JsonSerializer.Serialize(expectedLangs);
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            // Act
-            using var response = await HttpClient.GetAsync(url);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string content = await response.Content.ReadAsStringAsync();
-            Assert.True(JsonUtils.DeepEquals(expectedContent, content));
-        }
+        string content = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonUtils.DeepEquals(expectedContent, content));
     }
 }

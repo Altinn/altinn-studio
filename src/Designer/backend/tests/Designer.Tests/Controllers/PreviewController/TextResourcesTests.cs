@@ -7,28 +7,27 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PreviewController
+namespace Designer.Tests.Controllers.PreviewController;
+
+public class TextResourcesTests
+    : PreviewControllerTestsBase<TextResourcesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class TextResourcesTests
-        : PreviewControllerTestsBase<TextResourcesTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    public TextResourcesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task Get_TextResources_Ok()
     {
-        public TextResourcesTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/textresources";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-        [Fact]
-        public async Task Get_TextResources_Ok()
-        {
-            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/textresources";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            TextResource text = JsonConvert.DeserializeObject<TextResource>(responseDocument.RootElement.ToString());
-            Assert.Equal("nb", text.Language);
-        }
+        string responseBody = await response.Content.ReadAsStringAsync();
+        JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+        TextResource text = JsonConvert.DeserializeObject<TextResource>(responseDocument.RootElement.ToString());
+        Assert.Equal("nb", text.Language);
     }
 }

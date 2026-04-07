@@ -1,10 +1,9 @@
 #nullable disable
 using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.Models.Dto
+namespace Altinn.Studio.Designer.Models.Dto;
+
+public class SubjectResourcesDto
 {
-    public class SubjectResourcesDto
-    {
-        public List<SubjectResources> Data { get; set; }
-    }
+    public List<SubjectResources> Data { get; set; }
 }

@@ -32,123 +32,122 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
-namespace Altinn.Studio.Designer.Infrastructure
+namespace Altinn.Studio.Designer.Infrastructure;
+
+/// <summary>
+/// Contains extension methods for registering services to the DI container
+/// </summary>
+public static class ServiceRegistration
 {
     /// <summary>
-    /// Contains extension methods for registering services to the DI container
+    /// Extension method that registers services to the DI container
     /// </summary>
-    public static class ServiceRegistration
+    /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
+    /// <param name="configuration">The configuration for the project</param>
+    public static IServiceCollection RegisterServiceImplementations(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
-        /// <summary>
-        /// Extension method that registers services to the DI container
-        /// </summary>
-        /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
-        /// <param name="configuration">The configuration for the project</param>
-        public static IServiceCollection RegisterServiceImplementations(
-            this IServiceCollection services,
-            IConfiguration configuration
-        )
+        services.AddTransient<IRepository, RepositoryService>();
+        services.AddTransient<ISchemaModelService, SchemaModelService>();
+        services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
+        services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
+
+        services.AddTransient<ISourceControl, SourceControlService>();
+
+        services.AddSingleton(configuration);
+
+        services.AddDbContext<DesignerdbContext>(options =>
         {
-            services.AddTransient<IRepository, RepositoryService>();
-            services.AddTransient<ISchemaModelService, SchemaModelService>();
-            services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
-            services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
+            PostgreSQLSettings postgresSettings = configuration
+                .GetSection(nameof(PostgreSQLSettings))
+                .Get<PostgreSQLSettings>();
+            options.UseNpgsql(postgresSettings.FormattedConnectionString());
+        });
 
-            services.AddTransient<ISourceControl, SourceControlService>();
+        services.AddScoped<IReleaseRepository, ReleaseRepository>();
+        services.AddScoped<IDeploymentRepository, DeploymentRepository>();
+        services.AddScoped<IDeployEventRepository, DeployEventRepository>();
+        services.AddScoped<IAppScopesRepository, AppScopesRepository>();
+        services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
+        services.AddScoped<IChatRepository, ChatRepository>();
+        services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
+        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
+        services.AddScoped<IContactPointsRepository, ContactPointRepository>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
+        services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
+        services.AddScoped<IUserOrganizationService, UserOrganizationService>();
+        services.AddScoped<ICanUseFeatureEvaluator, CanUseUploadDataModelEvaluator>();
+        services.AddTransient<IReleaseService, ReleaseService>();
+        services.AddTransient<IDeploymentService, DeploymentService>();
+        services.AddTransient<IAppScopesService, AppScopesService>();
+        services.AddTransient<IAppSettingsService, AppSettingsService>();
+        services.AddTransient<IContactPointsService, ContactPointsService>();
+        services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
+        services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
+        services.AddTransient<IAppResourcesService, AppResourcesService>();
+        services.AddTransient<IAlertsService, AlertsService>();
+        services.AddTransient<IMetricsService, MetricsService>();
+        services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
+        services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
+        services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
+        services.AddTransient<ITextResourceService, TextResourceService>();
+        services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
+        services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
+        services.AddTransient<ITextsService, TextsService>();
+        services.AddTransient<IOptionsService, OptionsService>();
+        services.AddTransient<IOptionListReferenceService, OptionListReferenceService>();
+        services.AddTransient<IOrgCodeListService, OrgCodeListService>();
+        services.AddTransient<IOrgContentService, OrgContentService>();
+        services.AddTransient<IEnvironmentsService, EnvironmentsService>();
+        services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
+        services.AddHttpClient<IOrgService, OrgService>();
+        services.AddHttpClient<ImageClient>();
+        services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
+        services.AddTransient<ITaskNavigationService, TaskNavigationService>();
+        services.AddTransient<IPreviewService, PreviewService>();
+        services.AddTransient<IDataService, DataService>();
+        services.AddTransient<IInstanceService, InstanceService>();
+        services.AddTransient<IProcessModelingService, ProcessModelingService>();
+        services.AddTransient<IImagesService, ImagesService>();
+        services.AddTransient<ILayoutService, LayoutService>();
+        services.AddTransient<IOrgTextsService, OrgTextsService>();
+        services.AddTransient<CanUseFeatureEvaluatorRegistry>();
+        services.RegisterDatamodeling(configuration);
+        services.RegisterSettingsSingleton<KafkaSettings>(configuration);
+        services.AddTransient<IKafkaProducer, KafkaProducer>();
+        services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
+        services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
+        services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
+        services.AddTransient<IOrgLibraryService, OrgLibraryService>();
+        services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
+        services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+        services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
+        services.AddScoped<IApiKeyService, ApiKeyService>();
+        services.AddScoped<IBotAccountService, BotAccountService>();
+        services.AddScoped<IDeployEnvironmentAccessService, GiteaDeployEnvironmentAccessService>();
+        services.RegisterSettingsSingleton<ApiKeySettings>(configuration);
+        services.AddSingleton<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
+        services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 
-            services.AddSingleton(configuration);
+        return services;
+    }
 
-            services.AddDbContext<DesignerdbContext>(options =>
-            {
-                PostgreSQLSettings postgresSettings = configuration
-                    .GetSection(nameof(PostgreSQLSettings))
-                    .Get<PostgreSQLSettings>();
-                options.UseNpgsql(postgresSettings.FormattedConnectionString());
-            });
-
-            services.AddScoped<IReleaseRepository, ReleaseRepository>();
-            services.AddScoped<IDeploymentRepository, DeploymentRepository>();
-            services.AddScoped<IDeployEventRepository, DeployEventRepository>();
-            services.AddScoped<IAppScopesRepository, AppScopesRepository>();
-            services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
-            services.AddScoped<IChatRepository, ChatRepository>();
-            services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
-            services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
-            services.AddScoped<IContactPointsRepository, ContactPointRepository>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
-            services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
-            services.AddScoped<IUserOrganizationService, UserOrganizationService>();
-            services.AddScoped<ICanUseFeatureEvaluator, CanUseUploadDataModelEvaluator>();
-            services.AddTransient<IReleaseService, ReleaseService>();
-            services.AddTransient<IDeploymentService, DeploymentService>();
-            services.AddTransient<IAppScopesService, AppScopesService>();
-            services.AddTransient<IAppSettingsService, AppSettingsService>();
-            services.AddTransient<IContactPointsService, ContactPointsService>();
-            services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
-            services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
-            services.AddTransient<IAppResourcesService, AppResourcesService>();
-            services.AddTransient<IAlertsService, AlertsService>();
-            services.AddTransient<IMetricsService, MetricsService>();
-            services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
-            services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
-            services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
-            services.AddTransient<ITextResourceService, TextResourceService>();
-            services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
-            services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
-            services.AddTransient<ITextsService, TextsService>();
-            services.AddTransient<IOptionsService, OptionsService>();
-            services.AddTransient<IOptionListReferenceService, OptionListReferenceService>();
-            services.AddTransient<IOrgCodeListService, OrgCodeListService>();
-            services.AddTransient<IOrgContentService, OrgContentService>();
-            services.AddTransient<IEnvironmentsService, EnvironmentsService>();
-            services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
-            services.AddHttpClient<IOrgService, OrgService>();
-            services.AddHttpClient<ImageClient>();
-            services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
-            services.AddTransient<ITaskNavigationService, TaskNavigationService>();
-            services.AddTransient<IPreviewService, PreviewService>();
-            services.AddTransient<IDataService, DataService>();
-            services.AddTransient<IInstanceService, InstanceService>();
-            services.AddTransient<IProcessModelingService, ProcessModelingService>();
-            services.AddTransient<IImagesService, ImagesService>();
-            services.AddTransient<ILayoutService, LayoutService>();
-            services.AddTransient<IOrgTextsService, OrgTextsService>();
-            services.AddTransient<CanUseFeatureEvaluatorRegistry>();
-            services.RegisterDatamodeling(configuration);
-            services.RegisterSettingsSingleton<KafkaSettings>(configuration);
-            services.AddTransient<IKafkaProducer, KafkaProducer>();
-            services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
-            services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
-            services.AddTransient<IGitOpsManifestsRenderer, ScribanGitOpsManifestsRenderer>();
-            services.AddTransient<IOrgLibraryService, OrgLibraryService>();
-            services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
-            services.AddTransient<ICustomTemplateService, CustomTemplateService>();
-            services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
-            services.AddScoped<IApiKeyService, ApiKeyService>();
-            services.AddScoped<IBotAccountService, BotAccountService>();
-            services.AddScoped<IDeployEnvironmentAccessService, GiteaDeployEnvironmentAccessService>();
-            services.RegisterSettingsSingleton<ApiKeySettings>(configuration);
-            services.AddSingleton<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
-            services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
-
-            return services;
-        }
-
-        public static IServiceCollection RegisterDatamodeling(
-            this IServiceCollection services,
-            IConfiguration configuration
-        )
-        {
-            services.AddTransient<IXmlSchemaToJsonSchemaConverter, XmlSchemaToJsonSchemaConverter>();
-            services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
-            services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
-            services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
-            services.RegisterSettings<CSharpGenerationSettings>(configuration);
-            services.AddTransient<IJsonSchemaValidator, AltinnJsonSchemaValidator>();
-            services.AddTransient<IModelNameValidator, ModelNameValidator>();
-            RegisterXsdKeywords();
-            return services;
-        }
+    public static IServiceCollection RegisterDatamodeling(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services.AddTransient<IXmlSchemaToJsonSchemaConverter, XmlSchemaToJsonSchemaConverter>();
+        services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
+        services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
+        services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
+        services.RegisterSettings<CSharpGenerationSettings>(configuration);
+        services.AddTransient<IJsonSchemaValidator, AltinnJsonSchemaValidator>();
+        services.AddTransient<IModelNameValidator, ModelNameValidator>();
+        RegisterXsdKeywords();
+        return services;
     }
 }

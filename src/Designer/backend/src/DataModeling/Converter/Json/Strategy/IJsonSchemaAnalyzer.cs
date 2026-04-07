@@ -1,18 +1,17 @@
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
+namespace Altinn.Studio.DataModeling.Converter.Json.Strategy;
+
+/// <summary>
+/// Class for analyzing a Json Schema with regards to how various constructs should
+/// be serialized to XSD.
+/// </summary>
+public interface IJsonSchemaAnalyzer
 {
     /// <summary>
-    /// Class for analyzing a Json Schema with regards to how various constructs should
-    /// be serialized to XSD.
+    /// Analyze the schema and return relevant metadata for the conversion process
     /// </summary>
-    public interface IJsonSchemaAnalyzer
-    {
-        /// <summary>
-        /// Analyze the schema and return relevant metadata for the conversion process
-        /// </summary>
-        /// <param name="schema">The schema to analyze</param>
-        /// <returns>The relevant metadata for the schema to convert properly</returns>
-        JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema);
-    }
+    /// <param name="schema">The schema to analyze</param>
+    /// <returns>The relevant metadata for the schema to convert properly</returns>
+    JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema);
 }

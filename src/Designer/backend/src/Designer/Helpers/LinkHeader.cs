@@ -3,81 +3,80 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Altinn.Studio.Designer.Helpers
+namespace Altinn.Studio.Designer.Helpers;
+
+/// <summary>
+/// Link Header
+/// </summary>
+public class LinkHeader
 {
     /// <summary>
-    /// Link Header
+    /// Link to first page in search
     /// </summary>
-    public class LinkHeader
+    public string FirstLink { get; set; }
+
+    /// <summary>
+    /// Link to previous page in search
+    /// </summary>
+    public string PrevLink { get; set; }
+
+    /// <summary>
+    /// Link to next page in search
+    /// </summary>
+    public string NextLink { get; set; }
+
+    /// <summary>
+    /// Link to last page in search
+    /// </summary>
+    public string LastLink { get; set; }
+
+    /// <summary>
+    /// Parse links from headerstring
+    /// </summary>
+    /// <param name="linkHeaderStr">link-string from header</param>
+    /// <returns></returns>
+    public static LinkHeader LinksFromHeader(string linkHeaderStr)
     {
-        /// <summary>
-        /// Link to first page in search
-        /// </summary>
-        public string FirstLink { get; set; }
+        LinkHeader linkHeader = null;
 
-        /// <summary>
-        /// Link to previous page in search
-        /// </summary>
-        public string PrevLink { get; set; }
-
-        /// <summary>
-        /// Link to next page in search
-        /// </summary>
-        public string NextLink { get; set; }
-
-        /// <summary>
-        /// Link to last page in search
-        /// </summary>
-        public string LastLink { get; set; }
-
-        /// <summary>
-        /// Parse links from headerstring
-        /// </summary>
-        /// <param name="linkHeaderStr">link-string from header</param>
-        /// <returns></returns>
-        public static LinkHeader LinksFromHeader(string linkHeaderStr)
+        if (!string.IsNullOrWhiteSpace(linkHeaderStr))
         {
-            LinkHeader linkHeader = null;
+            string[] linkStrings = linkHeaderStr.Split(',');
 
-            if (!string.IsNullOrWhiteSpace(linkHeaderStr))
+            if (linkStrings != null && linkStrings.Any())
             {
-                string[] linkStrings = linkHeaderStr.Split(',');
+                linkHeader = new LinkHeader();
 
-                if (linkStrings != null && linkStrings.Any())
+                foreach (string linkString in linkStrings)
                 {
-                    linkHeader = new LinkHeader();
+                    var relMatch = Regex.Match(linkString, "(?<=rel=\").+?(?=\")", RegexOptions.IgnoreCase);
+                    var linkMatch = Regex.Match(linkString, "(?<=<).+?(?=>)", RegexOptions.IgnoreCase);
 
-                    foreach (string linkString in linkStrings)
+                    if (relMatch.Success && linkMatch.Success)
                     {
-                        var relMatch = Regex.Match(linkString, "(?<=rel=\").+?(?=\")", RegexOptions.IgnoreCase);
-                        var linkMatch = Regex.Match(linkString, "(?<=<).+?(?=>)", RegexOptions.IgnoreCase);
+                        string rel = relMatch.Value.ToUpper();
+                        string link = linkMatch.Value;
 
-                        if (relMatch.Success && linkMatch.Success)
+                        switch (rel)
                         {
-                            string rel = relMatch.Value.ToUpper();
-                            string link = linkMatch.Value;
-
-                            switch (rel)
-                            {
-                                case "FIRST":
-                                    linkHeader.FirstLink = link;
-                                    break;
-                                case "PREV":
-                                    linkHeader.PrevLink = link;
-                                    break;
-                                case "NEXT":
-                                    linkHeader.NextLink = link;
-                                    break;
-                                case "LAST":
-                                    linkHeader.LastLink = link;
-                                    break;
-                            }
+                            case "FIRST":
+                                linkHeader.FirstLink = link;
+                                break;
+                            case "PREV":
+                                linkHeader.PrevLink = link;
+                                break;
+                            case "NEXT":
+                                linkHeader.NextLink = link;
+                                break;
+                            case "LAST":
+                                linkHeader.LastLink = link;
+                                break;
                         }
                     }
                 }
             }
-
-            return linkHeader;
         }
+
+        return linkHeader;
     }
 }

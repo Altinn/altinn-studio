@@ -6,56 +6,55 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.AppDevelopmentController
+namespace Designer.Tests.Controllers.AppDevelopmentController;
+
+public class GetAppMetadataModelIds
+    : DesignerEndpointsTestsBase<GetAppMetadataModelIds>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetAppMetadataModelIds
-        : DesignerEndpointsTestsBase<GetAppMetadataModelIds>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/app-development";
+
+    public GetAppMetadataModelIds(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Theory]
+    [InlineData("ttd", "app-with-layoutsets", "testUser")]
+    public async Task GetAppMetadataModelIds_Should_Return_ModelIdsList(string org, string app, string developer)
     {
-        private static string VersionPrefix(string org, string repository) =>
-            $"/designer/api/{org}/{repository}/app-development";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        public GetAppMetadataModelIds(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        string url = $"{VersionPrefix(org, targetRepository)}/model-ids";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser")]
-        public async Task GetAppMetadataModelIds_Should_Return_ModelIdsList(string org, string app, string developer)
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/model-ids";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+        string responseContent = await response.Content.ReadAsStringAsync();
 
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("[\"datamodel\",\"unUsedDatamodel\",\"HvemErHvem_M\"]", responseContent);
+    }
 
-            string responseContent = await response.Content.ReadAsStringAsync();
+    [Theory]
+    [InlineData("ttd", "empty-app-pref-json", "testUser")]
+    public async Task GetAppMetadataModelIds_NoModelsInAppMetadata_Should_Return_EmptyArray(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            Assert.Equal("[\"datamodel\",\"unUsedDatamodel\",\"HvemErHvem_M\"]", responseContent);
-        }
+        string url = $"{VersionPrefix(org, targetRepository)}/model-ids";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        [Theory]
-        [InlineData("ttd", "empty-app-pref-json", "testUser")]
-        public async Task GetAppMetadataModelIds_NoModelsInAppMetadata_Should_Return_EmptyArray(
-            string org,
-            string app,
-            string developer
-        )
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/model-ids";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+        string responseContent = await response.Content.ReadAsStringAsync();
 
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-
-            Assert.Equal("[]", responseContent);
-        }
+        Assert.Equal("[]", responseContent);
     }
 }

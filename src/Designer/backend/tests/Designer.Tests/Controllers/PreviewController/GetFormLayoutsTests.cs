@@ -6,34 +6,33 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PreviewController
+namespace Designer.Tests.Controllers.PreviewController;
+
+public class GetFormLayoutsTests
+    : PreviewControllerTestsBase<GetFormLayoutsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetFormLayoutsTests
-        : PreviewControllerTestsBase<GetFormLayoutsTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    public GetFormLayoutsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task Get_FormLayouts_Ok()
     {
-        public GetFormLayoutsTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        string expectedFormLayout = TestDataHelper.GetFileFromRepo(
+            Org,
+            PreviewApp,
+            Developer,
+            "App/ui/layouts/layout.json"
+        );
+        string expectedFormLayouts = @"{""layout"": " + expectedFormLayout + "}";
 
-        [Fact]
-        public async Task Get_FormLayouts_Ok()
-        {
-            string expectedFormLayout = TestDataHelper.GetFileFromRepo(
-                Org,
-                PreviewApp,
-                Developer,
-                "App/ui/layouts/layout.json"
-            );
-            string expectedFormLayouts = @"{""layout"": " + expectedFormLayout + "}";
+        string dataPathWithData = $"{Org}/{PreviewApp}/api/resource/FormLayout.json";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            string dataPathWithData = $"{Org}/{PreviewApp}/api/resource/FormLayout.json";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
 
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Assert.True(JsonUtils.DeepEquals(expectedFormLayouts, responseBody));
-        }
+        string responseBody = await response.Content.ReadAsStringAsync();
+        Assert.True(JsonUtils.DeepEquals(expectedFormLayouts, responseBody));
     }
 }

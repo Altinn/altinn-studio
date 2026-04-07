@@ -3,46 +3,45 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.DataModeling.Metamodel
+namespace Altinn.Studio.DataModeling.Metamodel;
+
+/// <summary>
+/// Class representation for the metadata for a service
+/// </summary>
+public class ModelMetadata
 {
     /// <summary>
-    /// Class representation for the metadata for a service
+    /// Gets or sets the organization the service belongs to
     /// </summary>
-    public class ModelMetadata
-    {
-        /// <summary>
-        /// Gets or sets the organization the service belongs to
-        /// </summary>
-        [Required]
-        public string Org { get; set; }
+    [Required]
+    public string Org { get; set; }
 
-        /// <summary>
-        /// Gets or sets the service short name
-        /// </summary>
-        [Required]
-        public string ServiceName { get; set; }
+    /// <summary>
+    /// Gets or sets the service short name
+    /// </summary>
+    [Required]
+    public string ServiceName { get; set; }
 
-        /// <summary>
-        /// Gets or sets the repository name
-        /// </summary>
-        [Required]
-        public string RepositoryName { get; set; }
+    /// <summary>
+    /// Gets or sets the repository name
+    /// </summary>
+    [Required]
+    public string RepositoryName { get; set; }
 
-        /// <summary>
-        /// Gets or sets the service id
-        /// </summary>
-        public string ServiceId { get; set; }
+    /// <summary>
+    /// Gets or sets the service id
+    /// </summary>
+    public string ServiceId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the target namespace provided in xsd file.
-        /// </summary>
-        public string TargetNamespace { get; set; }
+    /// <summary>
+    /// Gets or sets the target namespace provided in xsd file.
+    /// </summary>
+    public string TargetNamespace { get; set; }
 
-        /// <summary>
-        /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)
-        /// </summary>
-        [JsonProperty(PropertyName = "elements")]
-        [JsonPropertyName("elements")]
-        public Dictionary<string, ElementMetadata> Elements { get; set; } = new Dictionary<string, ElementMetadata>();
-    }
+    /// <summary>
+    /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)
+    /// </summary>
+    [JsonProperty(PropertyName = "elements")]
+    [JsonPropertyName("elements")]
+    public Dictionary<string, ElementMetadata> Elements { get; set; } = new Dictionary<string, ElementMetadata>();
 }

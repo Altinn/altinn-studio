@@ -7,62 +7,61 @@ using Xunit;
 using Xunit.Abstractions;
 using XmlSchemaValidator = SharedResources.Tests.XmlSchemaValidator;
 
-namespace DataModeling.Tests
+namespace DataModeling.Tests;
+
+public class Seres2JsonSchema2SeresTests : SchemaConversionTestsBase<Seres2JsonSchema2SeresTests>
 {
-    public class Seres2JsonSchema2SeresTests : SchemaConversionTestsBase<Seres2JsonSchema2SeresTests>
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public Seres2JsonSchema2SeresTests(ITestOutputHelper testOutputHelper)
     {
-        private readonly ITestOutputHelper _testOutputHelper;
+        _testOutputHelper = testOutputHelper;
+    }
 
-        public Seres2JsonSchema2SeresTests(ITestOutputHelper testOutputHelper)
+    [Theory]
+    [ClassData(typeof(RoundTripConversionTestData))]
+    public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(
+        string xsdSchemaPath,
+        string xmlPath
+    )
+    {
+        Given
+            .That.XsdSchemaLoaded(xsdSchemaPath)
+            .When.LoadedXsdSchemaConvertedToJsonSchema()
+            .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
+            .Then.OriginalAndConvertedXsdSchemasShouldBeEquivalent()
+            .And.XmlShouldBeValidAgainstSchema(xmlPath, LoadedXsdSchema)
+            .And.XmlShouldBeValidAgainstSchema(xmlPath, ConvertedXsdSchema);
+    }
+
+    // Assertion methods
+    private Seres2JsonSchema2SeresTests OriginalAndConvertedXsdSchemasShouldBeEquivalent()
+    {
+        XmlSchemaAssertions.IsEquivalentTo(LoadedXsdSchema, ConvertedXsdSchema);
+        return this;
+    }
+
+    private Seres2JsonSchema2SeresTests XmlShouldBeValidAgainstSchema(string xmlPath, XmlSchema schema)
+    {
+        if (!string.IsNullOrEmpty(xmlPath))
         {
-            _testOutputHelper = testOutputHelper;
+            var xml = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
+            Assert.True(ValidateXml(schema, xml));
         }
 
-        [Theory]
-        [ClassData(typeof(RoundTripConversionTestData))]
-        public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(
-            string xsdSchemaPath,
-            string xmlPath
-        )
+        return this;
+    }
+
+    private bool ValidateXml(XmlSchema xmlSchema, string xml)
+    {
+        var xmlSchemaValidator = new XmlSchemaValidator(xmlSchema);
+
+        var validXml = xmlSchemaValidator.Validate(xml);
+        if (!validXml)
         {
-            Given
-                .That.XsdSchemaLoaded(xsdSchemaPath)
-                .When.LoadedXsdSchemaConvertedToJsonSchema()
-                .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
-                .Then.OriginalAndConvertedXsdSchemasShouldBeEquivalent()
-                .And.XmlShouldBeValidAgainstSchema(xmlPath, LoadedXsdSchema)
-                .And.XmlShouldBeValidAgainstSchema(xmlPath, ConvertedXsdSchema);
+            xmlSchemaValidator.ValidationErrors.ForEach(e => _testOutputHelper.WriteLine(e.Message));
         }
 
-        // Assertion methods
-        private Seres2JsonSchema2SeresTests OriginalAndConvertedXsdSchemasShouldBeEquivalent()
-        {
-            XmlSchemaAssertions.IsEquivalentTo(LoadedXsdSchema, ConvertedXsdSchema);
-            return this;
-        }
-
-        private Seres2JsonSchema2SeresTests XmlShouldBeValidAgainstSchema(string xmlPath, XmlSchema schema)
-        {
-            if (!string.IsNullOrEmpty(xmlPath))
-            {
-                var xml = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
-                Assert.True(ValidateXml(schema, xml));
-            }
-
-            return this;
-        }
-
-        private bool ValidateXml(XmlSchema xmlSchema, string xml)
-        {
-            var xmlSchemaValidator = new XmlSchemaValidator(xmlSchema);
-
-            var validXml = xmlSchemaValidator.Validate(xml);
-            if (!validXml)
-            {
-                xmlSchemaValidator.ValidationErrors.ForEach(e => _testOutputHelper.WriteLine(e.Message));
-            }
-
-            return validXml;
-        }
+        return validXml;
     }
 }

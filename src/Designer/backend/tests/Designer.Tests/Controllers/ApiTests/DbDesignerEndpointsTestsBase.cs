@@ -3,24 +3,24 @@ using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.ApiTests
-{
-    [Trait("Category", "DbIntegrationTest")]
-    [Collection(nameof(DesignerDbCollection))]
-    public abstract class DbDesignerEndpointsTestsBase<TControllerTest> : DesignerEndpointsTestsBase<TControllerTest>
-        where TControllerTest : class
-    {
-        protected readonly DesignerDbFixture DesignerDbFixture;
+namespace Designer.Tests.Controllers.ApiTests;
 
-        protected DbDesignerEndpointsTestsBase(
-            WebApplicationFactory<Program> factory,
-            DesignerDbFixture designerDbFixture
-        )
-            : base(factory)
-        {
-            DesignerDbFixture = designerDbFixture;
-            JsonConfigOverrides.Add(
-                $@"
+[Trait("Category", "DbIntegrationTest")]
+[Collection(nameof(DesignerDbCollection))]
+public abstract class DbDesignerEndpointsTestsBase<TControllerTest> : DesignerEndpointsTestsBase<TControllerTest>
+    where TControllerTest : class
+{
+    protected readonly DesignerDbFixture DesignerDbFixture;
+
+    protected DbDesignerEndpointsTestsBase(
+        WebApplicationFactory<Program> factory,
+        DesignerDbFixture designerDbFixture
+    )
+        : base(factory)
+    {
+        DesignerDbFixture = designerDbFixture;
+        JsonConfigOverrides.Add(
+            $@"
               {{
                     ""PostgreSQLSettings"": {{
                         ""ConnectionString"": ""{DesignerDbFixture.ConnectionString}"",
@@ -28,7 +28,6 @@ namespace Designer.Tests.Controllers.ApiTests
                     }}
              }}
             "
-            );
-        }
+        );
     }
 }

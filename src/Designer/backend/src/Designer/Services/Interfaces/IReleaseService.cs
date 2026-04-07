@@ -4,35 +4,34 @@ using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 
-namespace Altinn.Studio.Designer.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces;
+
+/// <summary>
+/// The interface for business logic service for release
+/// </summary>
+public interface IReleaseService
 {
     /// <summary>
-    /// The interface for business logic service for release
+    /// Starts a build in the pipeline
+    /// Creates a document in document db
     /// </summary>
-    public interface IReleaseService
-    {
-        /// <summary>
-        /// Starts a build in the pipeline
-        /// Creates a document in document db
-        /// </summary>
-        /// <param name="release">Release containing data from client</param>
-        /// <returns>The created document in db</returns>
-        Task<ReleaseEntity> CreateAsync(ReleaseEntity release);
+    /// <param name="release">Release containing data from client</param>
+    /// <returns>The created document in db</returns>
+    Task<ReleaseEntity> CreateAsync(ReleaseEntity release);
 
-        /// <summary>
-        /// Gets releases based on a query
-        /// </summary>
-        /// <param name="org">Organisation</param>
-        /// <param name="app">Application name</param>
-        /// <param name="query">ReleaseQueryModel</param>
-        /// <returns>SearchResults of type ReleaseEntity</returns>
-        Task<SearchResults<ReleaseEntity>> GetAsync(string org, string app, DocumentQueryModel query);
+    /// <summary>
+    /// Gets releases based on a query
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="app">Application name</param>
+    /// <param name="query">ReleaseQueryModel</param>
+    /// <returns>SearchResults of type ReleaseEntity</returns>
+    Task<SearchResults<ReleaseEntity>> GetAsync(string org, string app, DocumentQueryModel query);
 
-        /// <summary>
-        /// Updates a release document
-        /// </summary>
-        /// <param name="buildNumber">Azure DevOps build number</param>
-        /// <param name="appOwner">Application owner</param>
-        Task UpdateAsync(string buildNumber, string appOwner);
-    }
+    /// <summary>
+    /// Updates a release document
+    /// </summary>
+    /// <param name="buildNumber">Azure DevOps build number</param>
+    /// <param name="appOwner">Application owner</param>
+    Task UpdateAsync(string buildNumber, string appOwner);
 }

@@ -1,11 +1,10 @@
 #nullable disable
-namespace Altinn.Studio.Designer.Filters.AppDevelopment
+namespace Altinn.Studio.Designer.Filters.AppDevelopment;
+
+public class AppDevelopmentErrorCodes
 {
-    public class AppDevelopmentErrorCodes
-    {
-        public const string InvalidLayoutSetIdError = "AD_03";
-        public const string ConflictingFileNameError = "AD_04";
-        public const string UploadedImageNotValid = nameof(UploadedImageNotValid);
-        public const string ResourcePublishingError = nameof(ResourcePublishingError);
-    }
+    public const string InvalidLayoutSetIdError = "AD_03";
+    public const string ConflictingFileNameError = "AD_04";
+    public const string UploadedImageNotValid = nameof(UploadedImageNotValid);
+    public const string ResourcePublishingError = nameof(ResourcePublishingError);
 }

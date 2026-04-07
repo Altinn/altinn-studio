@@ -1,20 +1,19 @@
-namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
+namespace Altinn.Studio.DataModeling.Converter.Json.Strategy;
+
+/// <summary>
+/// Placeholder
+/// </summary>
+public interface IJsonSchemaConverterStrategy
 {
     /// <summary>
-    /// Placeholder
+    /// Returns the JSON Schema analyzer used by this strategy
     /// </summary>
-    public interface IJsonSchemaConverterStrategy
-    {
-        /// <summary>
-        /// Returns the JSON Schema analyzer used by this strategy
-        /// </summary>
-        /// <returns></returns>
-        IJsonSchemaAnalyzer GetAnalyzer();
+    /// <returns></returns>
+    IJsonSchemaAnalyzer GetAnalyzer();
 
-        /// <summary>
-        /// Returns the JSON Schema converter used by this strategy
-        /// </summary>
-        /// <returns></returns>
-        IJsonSchemaConverter GetConverter();
-    }
+    /// <summary>
+    /// Returns the JSON Schema converter used by this strategy
+    /// </summary>
+    /// <returns></returns>
+    IJsonSchemaConverter GetConverter();
 }

@@ -1,18 +1,17 @@
 ﻿using System.Runtime.InteropServices;
 using Xunit;
 
-namespace Designer.Tests.TestAttributes
+namespace Designer.Tests.TestAttributes;
+
+public sealed class SkipOnOsPlatformsFact : FactAttribute
 {
-    public sealed class SkipOnOsPlatformsFact : FactAttribute
+    public SkipOnOsPlatformsFact(params string[] osPlatforms)
     {
-        public SkipOnOsPlatformsFact(params string[] osPlatforms)
+        foreach (string osPlatform in osPlatforms)
         {
-            foreach (string osPlatform in osPlatforms)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Create(osPlatform)))
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Create(osPlatform)))
-                {
-                    Skip = $"Ignoring test on {osPlatform} platform.";
-                }
+                Skip = $"Ignoring test on {osPlatform} platform.";
             }
         }
     }
