@@ -4,8 +4,7 @@ import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 
 // --- Configuration ---
 const NAMESPACE = __ENV.NAMESPACE || 'default';
-export const BASE_URL =
-    __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
+export const BASE_URL = __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
 export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
 /**
  * Builds request params with unique metadata headers for each request.

@@ -98,13 +98,17 @@ async def handle(state: AgentState) -> AgentState:
 
     except Exception as exc:
         log.error(f"Planner node failed: {exc}", exc_info=True)
-        state.next_action = "stop"
-        sink.send(
-            AgentEvent(
-                type="error",
-                session_id=state.session_id,
-                data={"message": f"Planning failed: {exc}"},
+        if state.mcp_degraded:
+            # MCP was already down — don't send error event, actor fallback will handle it
+            log.info("MCP degraded — skipping error event, actor fallback will handle")
+        else:
+            state.next_action = "stop"
+            sink.send(
+                AgentEvent(
+                    type="error",
+                    session_id=state.session_id,
+                    data={"message": f"Planning failed: {exc}"},
+                )
             )
-        )
 
     return state
