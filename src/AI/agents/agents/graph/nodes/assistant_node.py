@@ -71,6 +71,32 @@ async def handle(state: AgentState) -> AgentState:
             _check_cancelled()
             tool_names = await _get_available_tools()
 
+            # Wait for MCP docs if still indexing (user sees status message)
+            mcp = get_mcp_client()
+            if mcp.is_ready and not mcp.is_docs_ready:
+                log.info(f"⏳ MCP docs still indexing — waiting before proceeding (session {state.session_id})")
+                sink.send(AgentEvent(
+                    type="status",
+                    session_id=state.session_id,
+                    data={
+                        "message": "Venter på at dokumentasjonsindeksen skal bli klar...",
+                        "status": "docs_indexing",
+                    },
+                ))
+                docs_ready = await mcp.wait_for_docs_ready()
+                if docs_ready:
+                    log.info(f"✅ MCP docs ready — proceeding with session {state.session_id}")
+                else:
+                    log.warning(f"⚠️ MCP docs not available — proceeding anyway (session {state.session_id})")
+                    sink.send(AgentEvent(
+                        type="status",
+                        session_id=state.session_id,
+                        data={
+                            "message": "MCP-serveren mistet tilkoblingen. Svaret kan være ufullstendig — prøv igjen om det ikke ser riktig ut.",
+                            "status": "mcp_degraded",
+                        },
+                    ))
+
             # Step 3: Plan tool execution (LLM-based, always includes planning_tool)
             log.info("🎯 Planning tool execution...")
             _check_cancelled()
