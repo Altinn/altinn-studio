@@ -355,17 +355,18 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 
 	// Create container
 	cfg := types.ContainerConfig{
-		Name:          c.Name,
-		Image:         imageID,
-		Command:       c.Command,
-		Env:           c.Env,
-		Ports:         c.Ports,
-		Volumes:       c.Volumes,
-		ExtraHosts:    c.ExtraHosts,
-		RestartPolicy: c.RestartPolicy,
-		Labels:        desiredLabels,
-		Detach:        true,
-		User:          c.User,
+		Name:           c.Name,
+		Image:          imageID,
+		Command:        c.Command,
+		Env:            c.Env,
+		Ports:          c.Ports,
+		Volumes:        c.Volumes,
+		ExtraHosts:     c.ExtraHosts,
+		NetworkAliases: c.NetworkAliases,
+		RestartPolicy:  c.RestartPolicy,
+		Labels:         desiredLabels,
+		Detach:         true,
+		User:           c.User,
 	}
 
 	cfg.Networks = networks
@@ -509,6 +510,7 @@ func containerSpecHash(c *Container, imageID string, networks []string) string {
 	writeSortedList(&b, "networks", networks)
 	writeSortedList(&b, "env", c.Env)
 	writeSortedList(&b, "extraHosts", c.ExtraHosts)
+	writeSortedList(&b, "networkAliases", c.NetworkAliases)
 
 	b.WriteString("command=")
 	b.WriteString(strings.Join(c.Command, "\x00"))

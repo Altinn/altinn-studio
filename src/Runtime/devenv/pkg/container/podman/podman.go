@@ -144,6 +144,10 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		args = append(args, "--network", net)
 	}
 
+	for _, alias := range cfg.NetworkAliases {
+		args = append(args, "--network-alias", alias)
+	}
+
 	for _, p := range cfg.Ports {
 		portArg := fmt.Sprintf("%s:%s", p.HostPort, p.ContainerPort)
 		if p.HostIP != "" {

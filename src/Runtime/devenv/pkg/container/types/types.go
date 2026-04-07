@@ -172,19 +172,20 @@ type VolumeMount struct {
 
 // ContainerConfig defines options for creating a container.
 type ContainerConfig struct {
-	Labels        map[string]string
-	Name          string
-	Image         string
-	User          string
-	RestartPolicy string
-	ExtraHosts    []string
-	Volumes       []VolumeMount
-	Networks      []string
-	Ports         []PortMapping
-	Env           []string
-	Command       []string
-	CapAdd        []string
-	Detach        bool
+	Labels         map[string]string
+	Name           string
+	Image          string
+	User           string
+	RestartPolicy  string
+	ExtraHosts     []string
+	NetworkAliases []string
+	Volumes        []VolumeMount
+	Networks       []string
+	Ports          []PortMapping
+	Env            []string
+	Command        []string
+	CapAdd         []string
+	Detach         bool
 }
 
 // ImageInfo contains metadata about an image.

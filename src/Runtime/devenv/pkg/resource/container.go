@@ -14,17 +14,18 @@ var (
 // Container is a resource representing a container.
 // It is a pure value type - use Executor to apply to infrastructure.
 type Container struct {
-	Image         ResourceRef
-	Labels        map[string]string
-	Name          string
-	RestartPolicy string
-	User          string
-	Networks      []ResourceRef
-	Ports         []types.PortMapping
-	Volumes       []types.VolumeMount
-	Env           []string
-	Command       []string
-	ExtraHosts    []string
+	Image          ResourceRef
+	Labels         map[string]string
+	Name           string
+	RestartPolicy  string
+	User           string
+	Networks       []ResourceRef
+	Ports          []types.PortMapping
+	Volumes        []types.VolumeMount
+	Env            []string
+	Command        []string
+	ExtraHosts     []string
+	NetworkAliases []string
 }
 
 // ID returns the unique identifier for this container.

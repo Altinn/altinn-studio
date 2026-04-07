@@ -89,6 +89,26 @@ func TestContainerSpecHash_IgnoresSliceOrderForSetLikeFields(t *testing.T) {
 	}
 }
 
+func TestContainerSpecHash_ChangesOnNetworkAliasChange(t *testing.T) {
+	t.Parallel()
+
+	base := &Container{
+		Name:           "localtest",
+		Image:          RefID("image:localtest"),
+		NetworkAliases: []string{"local.altinn.cloud"},
+	}
+
+	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
+
+	modified := *base
+	modified.NetworkAliases = []string{"local.altinn.cloud", "altinn.local"}
+	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
+
+	if baseHash == modifiedHash {
+		t.Fatalf("container spec hash did not change when network aliases changed")
+	}
+}
+
 func TestExecutor_StopAndRemoveContainer_PropagatesStopError(t *testing.T) {
 	t.Parallel()
 

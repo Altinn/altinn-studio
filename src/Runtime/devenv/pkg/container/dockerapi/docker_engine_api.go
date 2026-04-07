@@ -282,8 +282,19 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		CapAdd:        capAdd,
 	}
 
+	var networkingConfig *network.NetworkingConfig
+	if primaryNetwork != "" && len(cfg.NetworkAliases) > 0 {
+		networkingConfig = &network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{
+				primaryNetwork: {
+					Aliases: cfg.NetworkAliases,
+				},
+			},
+		}
+	}
+
 	// Create the container
-	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, nil, nil, cfg.Name)
+	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, networkingConfig, nil, cfg.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to create container: %w", err)
 	}
