@@ -185,7 +185,7 @@ public class ProcessEngine : IProcessEngine
             // Fetch fresh instance on subsequent iterations
             if (!firstIteration)
             {
-                instance = await _instanceClient.GetInstance(instance);
+                instance = await _instanceClient.GetInstance(instance, ct: ct);
             }
 
             // Only use action and actionOnBehalfOf on first iteration

@@ -1,0 +1,5 @@
+{
+  "name": "Should work with numbers with negative exponents (true)",
+  "expression": ["greaterThanEq", 5e-3, 2e-3],
+  "expects": true
+}

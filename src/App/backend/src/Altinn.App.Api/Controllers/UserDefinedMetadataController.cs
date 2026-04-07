@@ -73,7 +73,14 @@ public class UserDefinedMetadataController : ControllerBase
         [FromRoute] Guid dataGuid
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         DataElement? dataElement = instance.Data.Find(m =>
             m.Id.Equals(dataGuid.ToString(), StringComparison.OrdinalIgnoreCase)
         );
@@ -121,7 +128,14 @@ public class UserDefinedMetadataController : ControllerBase
             return BadRequest($"The following keys are duplicated: {string.Join(", ", duplicatedKeys)}");
         }
 
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         DataElement? dataElement = instance.Data.Find(m =>
             m.Id.Equals(dataGuid.ToString(), StringComparison.OrdinalIgnoreCase)
         );
@@ -162,7 +176,12 @@ public class UserDefinedMetadataController : ControllerBase
         }
 
         dataElement.UserDefinedMetadata = userDefinedMetadataDto.UserDefinedMetadata;
-        dataElement = await _dataClient.Update(instance, dataElement);
+        dataElement = await _dataClient.Update(
+            instance,
+            dataElement,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
 
         UserDefinedMetadataDto responseUserDefinedMetadataDto = new()
         {

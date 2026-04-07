@@ -1,0 +1,180 @@
+{
+  "name": "Minus tests",
+  "testCases": [
+    {
+      "name": "Should subtract the second argument from the first",
+      "expression": ["minus", 0.1, 0.2],
+      "expects": -0.1
+    },
+    {
+      "name": "Should subtract the second negative argument from the first",
+      "expression": ["minus", -0.1, -0.2],
+      "expects": 0.1
+    },
+    {
+      "name": "Should return null when both of the arguments are null",
+      "expression": ["minus", null, null],
+      "expects": null
+    },
+    {
+      "name": "Should return null when one of the arguments is null [null, decimal]",
+      "expression": ["minus", null, 2.1],
+      "expects": null
+    },
+    {
+      "name": "Should return null when one of the arguments is null [decimal, null]",
+      "expression": ["minus", 2.1, null],
+      "expects": null
+    },
+    {
+      "name": "Should subtract one integer from another",
+      "expression": ["minus", 50, 20],
+      "expects": 30
+    },
+    {
+      "name": "Should subtract [float, integer]",
+      "expression": ["minus", 50.5, 20],
+      "expects": 30.5
+    },
+    {
+      "name": "Should subtract [string, integer] when string is valid number",
+      "expression": ["minus", "50", 20],
+      "expects": 30
+    },
+    {
+      "name": "Should subtract [string, float] when string is valid number",
+      "expression": ["minus", "50.8", 20.3],
+      "expects": 30.5
+    },
+    {
+      "name": "Returns expected value for inputs that would return different result when treated as 64-bit binary floats",
+      "expression": ["minus", 50.8, 20.3],
+      "expects": 30.5
+    },
+    {
+      "name": "Should handle subtracting zero",
+      "expression": ["minus", 42, 0],
+      "expects": 42
+    },
+    {
+      "name": "Should handle subtracting from zero",
+      "expression": ["minus", 0, 42],
+      "expects": -42
+    },
+    {
+      "name": "Should subtract negative from positive",
+      "expression": ["minus", 50, -30],
+      "expects": 80
+    },
+    {
+      "name": "Should subtract numbers in scientific notation",
+      "expression": ["minus", 5e3, 2e3],
+      "expects": 3000
+    },
+    {
+      "name": "Should subtract numbers with negative exponents",
+      "expression": ["minus", 5e-3, 2e-3],
+      "expects": 0.003
+    },
+    {
+      "name": "Should subtract scientific notation from regular number",
+      "expression": ["minus", 150, 1e2],
+      "expects": 50
+    },
+    {
+      "name": "Should fail with invalid string that cannot be parsed as number",
+      "expression": ["minus", 50, "not a number"],
+      "expectsFailure": "Expected number, got value \"not a number\""
+    },
+    {
+      "name": "Should fail with [boolean, integer]",
+      "expression": ["minus", false, 10],
+      "expectsFailure": "Expected number, got value false"
+    },
+    {
+      "name": "Should fail with string with no decimals after dot",
+      "expression": ["minus", "55.", 10],
+      "expectsFailure": "Expected number, got value \"55.\""
+    },
+    {
+      "name": "Should handle very large number formatted as string",
+      "expression": ["minus", 1, "900719925474099"],
+      "expects": -900719925474098
+    },
+    {
+      "name": "Should handle very small numbers",
+      "expression": ["minus", 0.0000003, 0.0000001],
+      "expects": 0.0000002
+    },
+    {
+      "name": "Should throw exception when less than two arguments are provided",
+      "expression": ["minus", 0.2],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Should parse string scientific notation with plus sign in front of coefficient",
+      "expression": ["minus", "+5E2", 10],
+      "expects": 490
+    },
+    {
+      "name": "Should parse string scientific notation with plus sign in front of exponent",
+      "expression": ["minus", "5E+2", 10],
+      "expects": 490
+    },
+    {
+      "name": "Should parse string scientific notation with negative sign in front of coefficient",
+      "expression": ["minus", "-5E2", 10],
+      "expects": -510
+    },
+    {
+      "name": "Should parse string scientific notation with negative sign in front of exponent",
+      "expression": ["minus", "5e-2", 10],
+      "expects": -9.95
+    },
+    {
+      "name": "Should subtract string scientific notation by number",
+      "expression": ["minus", "5E2", 10],
+      "expects": 490
+    },
+    {
+      "name": "Should subtract string scientific notation with no whole number part by number",
+      "expression": ["minus", ".5e2", 10],
+      "expects": 40
+    },
+    {
+      "name": "Should subtract string scientific notation equivalent to 0 by number",
+      "expression": ["minus", "0e0", 10],
+      "expects": -10
+    },
+    {
+      "name": "Should throw exception when string scientific notation has negative sign before the E",
+      "expression": ["minus", "5-E2", 10],
+      "expectsFailure": "Expected number, got value \"5-E2\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation has plus sign before the E",
+      "expression": ["minus", "5+E2", 10],
+      "expectsFailure": "Expected number, got value \"5+E2\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation is missing the exponent",
+      "expression": ["minus", "5e", 10],
+      "expectsFailure": "Expected number, got value \"5e\""
+    },
+    {
+      "name": "Should throw exception when string scientific notation is missing the coefficient",
+      "expression": ["minus", "e2", 10],
+      "expectsFailure": "Expected number, got value \"e2\""
+    },
+    {
+      "name": "Should throw exception when more than two arguments are present",
+      "expression": ["minus", 0.1, 0.2, 15, 1.50],
+      "expectsFailure": "Invalid"
+    },
+    {
+      "name": "Should subtract negative from positive decimal",
+      "expression": ["minus", 50.55, -30.77],
+      "expects": 81.32
+    }
+  ]
+}

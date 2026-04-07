@@ -73,7 +73,10 @@ const fetchQuery = async (opts) => {
         if (!isGuid && state.labelFilters.size > 0) {
             const labelPairs = [];
             for (const [key, values] of state.labelFilters) {
-                if (key === 'correlationId') {
+                if (key === 'namespace') {
+                    // Send as dedicated namespace param when a single namespace is selected
+                    if (values.size === 1) params.set('namespace', [...values][0]);
+                } else if (key === 'correlationId') {
                     for (const v of values) params.set('correlationId', v);
                 } else {
                     for (const v of values) labelPairs.push(`${key}:${v}`);
