@@ -123,21 +123,23 @@ export const AboutResourcePage = ({
           {t('resourceadm.about_resource_title')}
         </StudioHeading>
         {validationErrors.length > 0 && (
-          <ErrorSummary.Root>
-            <ErrorSummary.Heading>
-              {t('resourceadm.about_resource_error_summary_header')}
-            </ErrorSummary.Heading>
-            <ErrorSummary.List>
-              {validationErrors.map((error) => {
-                const href = `#${error.field}${error.index !== undefined && typeof error.index === 'number' ? `-${error.index}` : ''}`;
-                return (
-                  <ErrorSummary.Item key={JSON.stringify(error)} href={href}>
-                    {error.error}
-                  </ErrorSummary.Item>
-                );
-              })}
-            </ErrorSummary.List>
-          </ErrorSummary.Root>
+          <div className={classes.errorSummary}>
+            <ErrorSummary.Root>
+              <ErrorSummary.Heading>
+                {t('resourceadm.about_resource_error_summary_header')}
+              </ErrorSummary.Heading>
+              <ErrorSummary.List>
+                {validationErrors.map((error) => {
+                  const href = `#${error.field}${error.index !== undefined && typeof error.index === 'number' ? `-${error.index}` : ''}`;
+                  return (
+                    <ErrorSummary.Item key={JSON.stringify(error)} href={href}>
+                      {error.error}
+                    </ErrorSummary.Item>
+                  );
+                })}
+              </ErrorSummary.List>
+            </ErrorSummary.Root>
+          </div>
         )}
         <ResourceTextField
           id='identifier'
