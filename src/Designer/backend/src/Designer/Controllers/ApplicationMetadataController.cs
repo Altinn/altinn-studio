@@ -92,8 +92,10 @@ public class ApplicationMetadataController : ControllerBase
         }
 
         await _applicationMetadataService.CreateApplicationMetadata(org, app, app);
-        ApplicationMetadata createdApplication =
-            await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+        ApplicationMetadata createdApplication = await _applicationMetadataService.GetApplicationMetadataFromRepository(
+            org,
+            app
+        );
         if (createdApplication == null)
         {
             return StatusCode(500);

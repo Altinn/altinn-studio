@@ -12,8 +12,7 @@ public class GetServiceConfigTests
     : DesignerEndpointsTestsBase<GetServiceConfigTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/config";
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
 
     public GetServiceConfigTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

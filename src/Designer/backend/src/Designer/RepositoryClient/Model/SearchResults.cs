@@ -92,7 +92,7 @@ public partial class SearchResults : IEquatable<SearchResults>, IValidatableObje
         }
 
         return (this.Data == other.Data || (this.Data != null && this.Data.SequenceEqual(other.Data)))
-               && (this.Ok == other.Ok || (this.Ok != null && this.Ok.Equals(other.Ok)));
+            && (this.Ok == other.Ok || (this.Ok != null && this.Ok.Equals(other.Ok)));
     }
 
     /// <summary>

@@ -243,12 +243,7 @@ public class RepositoryServiceTests
                 developer,
                 "App/config/applicationmetadata.json"
             );
-            string gitConfigString = TestDataHelper.GetFileFromRepo(
-                org,
-                targetRepository,
-                developer,
-                ".git/config"
-            );
+            string gitConfigString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, ".git/config");
             string developerClonePath = Path.Combine(
                 TestDataHelper.GetTestDataRepositoriesRootDirectory(),
                 developer,
@@ -258,10 +253,7 @@ public class RepositoryServiceTests
             Assert.True(Directory.Exists(expectedRepoPath));
             Assert.Contains($"\"id\": \"ttd/{targetRepository}\"", appMetadataString);
             Assert.Contains($"https://dev.altinn.studio/repos/{org}/{origRemoteRepo}.git", gitConfigString);
-            Assert.DoesNotContain(
-                Directory.GetDirectories(developerClonePath),
-                a => a.Contains("_COPY_OF_ORIGIN_")
-            );
+            Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
         }
         finally
         {
@@ -289,11 +281,7 @@ public class RepositoryServiceTests
 
         try
         {
-            workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(
-                org,
-                "apps-test",
-                sourceWithConfig
-            );
+            workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, "apps-test", sourceWithConfig);
             PrepareRemoteTestData(org, sourceWithConfig);
 
             string configPath = Path.Combine(workingRemoteDirPath, "config.json");
@@ -571,9 +559,7 @@ public class RepositoryServiceTests
             .ReturnsAsync(authResult);
 
         var serviceProviderMock = new Mock<IServiceProvider>();
-        serviceProviderMock
-            .Setup(x => x.GetService(typeof(IAuthenticationService)))
-            .Returns(authServiceMock.Object);
+        serviceProviderMock.Setup(x => x.GetService(typeof(IAuthenticationService))).Returns(authServiceMock.Object);
 
         c.RequestServices = serviceProviderMock.Object;
 

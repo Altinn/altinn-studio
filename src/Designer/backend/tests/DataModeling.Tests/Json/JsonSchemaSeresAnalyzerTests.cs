@@ -77,10 +77,7 @@ public class JsonSchemaSeresAnalyzerTests
 
         var results = analyzer.AnalyzeSchema(schema);
 
-        Assert.Contains(
-            CompatibleXsdType.ComplexContent,
-            results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer))
-        );
+        Assert.Contains(CompatibleXsdType.ComplexContent, results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer)));
         Assert.Contains(
             CompatibleXsdType.ComplexContentExtension,
             results.GetCompatibleTypes(JsonPointer.Parse(jsonPointer))

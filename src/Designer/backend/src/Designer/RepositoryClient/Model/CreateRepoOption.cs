@@ -150,21 +150,18 @@ public partial class CreateRepoOption : IEquatable<CreateRepoOption>, IValidatab
         }
 
         return (this.AutoInit == input.AutoInit || (this.AutoInit != null && this.AutoInit.Equals(input.AutoInit)))
-               && (
-                   this.Description == input.Description
-                   || (this.Description != null && this.Description.Equals(input.Description))
-               )
-               && (
-                   this.Gitignores == input.Gitignores
-                   || (this.Gitignores != null && this.Gitignores.Equals(input.Gitignores))
-               )
-               && (this.License == input.License || (this.License != null && this.License.Equals(input.License)))
-               && (this.Name == input.Name || (this.Name != null && this.Name.Equals(input.Name)))
-               && (
-                   this.IsPrivate == input.IsPrivate
-                   || (this.IsPrivate != null && this.IsPrivate.Equals(input.IsPrivate))
-               )
-               && (this.Readme == input.Readme || (this.Readme != null && this.Readme.Equals(input.Readme)));
+            && (
+                this.Description == input.Description
+                || (this.Description != null && this.Description.Equals(input.Description))
+            )
+            && (
+                this.Gitignores == input.Gitignores
+                || (this.Gitignores != null && this.Gitignores.Equals(input.Gitignores))
+            )
+            && (this.License == input.License || (this.License != null && this.License.Equals(input.License)))
+            && (this.Name == input.Name || (this.Name != null && this.Name.Equals(input.Name)))
+            && (this.IsPrivate == input.IsPrivate || (this.IsPrivate != null && this.IsPrivate.Equals(input.IsPrivate)))
+            && (this.Readme == input.Readme || (this.Readme != null && this.Readme.Equals(input.Readme)));
     }
 
     /// <summary>

@@ -115,11 +115,11 @@ public partial class CreateKeyOption : IEquatable<CreateKeyOption>, IValidatable
         }
 
         return (this.Key == input.Key || (this.Key != null && this.Key.Equals(input.Key)))
-               && (
-                   this.IsReadOnly == input.IsReadOnly
-                   || (this.IsReadOnly != null && this.IsReadOnly.Equals(input.IsReadOnly))
-               )
-               && (this.Title == input.Title || (this.Title != null && this.Title.Equals(input.Title)));
+            && (
+                this.IsReadOnly == input.IsReadOnly
+                || (this.IsReadOnly != null && this.IsReadOnly.Equals(input.IsReadOnly))
+            )
+            && (this.Title == input.Title || (this.Title != null && this.Title.Equals(input.Title)));
     }
 
     /// <summary>

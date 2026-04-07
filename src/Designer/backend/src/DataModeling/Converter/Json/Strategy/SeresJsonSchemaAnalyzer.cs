@@ -32,9 +32,7 @@ public class SeresJsonSchemaAnalyzer : JsonSchemaAnalyzer, IJsonSchemaAnalyzer
             var messageTypeNameElement = info.Value.GetProperty("modellnavn");
 
             Metadata.MessageName =
-                messageNameElement.ValueKind == JsonValueKind.Undefined
-                    ? "melding"
-                    : messageNameElement.GetString();
+                messageNameElement.ValueKind == JsonValueKind.Undefined ? "melding" : messageNameElement.GetString();
             Metadata.MessageTypeName =
                 messageTypeNameElement.ValueKind == JsonValueKind.Undefined ? null : messageNameElement.GetString();
         }

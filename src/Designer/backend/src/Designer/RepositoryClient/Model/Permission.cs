@@ -97,8 +97,8 @@ public partial class Permission : IEquatable<Permission>, IValidatableObject
         }
 
         return (this.Admin == input.Admin || (this.Admin != null && this.Admin.Equals(input.Admin)))
-               && (this.Pull == input.Pull || (this.Pull != null && this.Pull.Equals(input.Pull)))
-               && (this.Push == input.Push || (this.Push != null && this.Push.Equals(input.Push)));
+            && (this.Pull == input.Pull || (this.Pull != null && this.Pull.Equals(input.Pull)))
+            && (this.Push == input.Push || (this.Push != null && this.Push.Equals(input.Push)));
     }
 
     /// <summary>

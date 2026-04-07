@@ -19,22 +19,13 @@ public class SeresConverterTests
 
     [Theory]
     [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema.json", @"Model/XmlSchema/Seres/SeresBasicSchema.xsd")]
-    [InlineData(
-        @"Model/JsonSchema/Seres/SeresBasicSchema_allOf.json",
-        @"Model/XmlSchema/Seres/SeresBasicSchema.xsd"
-    )]
-    [InlineData(
-        @"Model/JsonSchema/Seres/SeresBasicSchema_anyOf.json",
-        @"Model/XmlSchema/Seres/SeresBasicSchema.xsd"
-    )]
+    [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema_allOf.json", @"Model/XmlSchema/Seres/SeresBasicSchema.xsd")]
+    [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema_anyOf.json", @"Model/XmlSchema/Seres/SeresBasicSchema.xsd")]
     [InlineData(
         @"Model/JsonSchema/Seres/SeresBasicSchema_inline.json",
         @"Model/XmlSchema/Seres/SeresBasicSchema_inline.xsd"
     )]
-    [InlineData(
-        @"Model/JsonSchema/Seres/SeresWithAttributes.json",
-        @"Model/XmlSchema/Seres/SeresWithAttributes.xsd"
-    )]
+    [InlineData(@"Model/JsonSchema/Seres/SeresWithAttributes.json", @"Model/XmlSchema/Seres/SeresWithAttributes.xsd")]
     [InlineData(
         @"Model/JsonSchema/Seres/SeresWithAnyAttribute.json",
         @"Model/XmlSchema/Seres/SeresWithAnyAttribute.xsd"

@@ -19,12 +19,7 @@ public class GetResourceTests
 
     [Theory]
     [InlineData("ttd", "hvem-er-hvem", "testUser", "nb")]
-    public async Task GetLanguage_WithValidInput_ReturnsOk(
-        string org,
-        string app,
-        string developer,
-        string language
-    )
+    public async Task GetLanguage_WithValidInput_ReturnsOk(string org, string app, string developer, string language)
     {
         string url = $"{VersionPrefix(org, app)}/language/{language}";
         string expectedContent = TestDataHelper.GetFileFromRepo(

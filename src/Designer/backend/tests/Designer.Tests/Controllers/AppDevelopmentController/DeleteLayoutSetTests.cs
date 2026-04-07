@@ -185,9 +185,7 @@ public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        JsonNode formLayout = (await GetFormLayouts(org, targetRepository, developer, layoutSetWithRef))[
-            layoutSetFile
-        ];
+        JsonNode formLayout = (await GetFormLayouts(org, targetRepository, developer, layoutSetWithRef))[layoutSetFile];
         JsonArray layout = formLayout["data"]?["layout"] as JsonArray;
 
         bool componentsReferencingDeletedLayoutSet = layout

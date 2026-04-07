@@ -168,10 +168,7 @@ public class ProcessModelingController : ControllerBase
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-        string taskType = await _processModelingService.GetTaskTypeFromProcessDefinition(
-            editingContext,
-            layoutSetId
-        );
+        string taskType = await _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, layoutSetId);
         return taskType;
     }
 }

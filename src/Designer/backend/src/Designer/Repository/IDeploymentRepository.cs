@@ -47,11 +47,7 @@ public interface IDeploymentRepository
     /// <summary>
     /// Gets app names with a recent deploy in the given environment.
     /// </summary>
-    Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(
-        string org,
-        string environment,
-        DateTimeOffset sinceUtc
-    );
+    Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(string org, string environment, DateTimeOffset sinceUtc);
 
     /// <summary>
     /// Calls a function to update deployment entity

@@ -46,11 +46,7 @@ public class DiscardChangesTests
             CurrentBranch = "main",
             ContentStatus = new List<RepositoryContent>(),
         };
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
@@ -78,11 +74,7 @@ public class DiscardChangesTests
             CurrentBranch = "main",
             ContentStatus = new List<RepositoryContent>(),
         };
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
@@ -104,11 +96,7 @@ public class DiscardChangesTests
         string org = "ttd";
         string repo = "non-existing-repo";
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock
             .Setup(x => x.DiscardLocalChanges(editingContext))
@@ -138,11 +126,7 @@ public class DiscardChangesTests
             CurrentBranch = branchName,
             ContentStatus = new List<RepositoryContent>(),
         };
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 

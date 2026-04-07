@@ -109,10 +109,7 @@ public class ResourceRegistryService : IResourceRegistry
                 $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
         }
 
-        string serviceResourceString = System.Text.Json.JsonSerializer.Serialize(
-            serviceResource,
-            _serializerOptions
-        );
+        string serviceResourceString = System.Text.Json.JsonSerializer.Serialize(serviceResource, _serializerOptions);
         _httpClientFactory.CreateClient("myHttpClient");
         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Bearer",
@@ -126,11 +123,7 @@ public class ResourceRegistryService : IResourceRegistry
         {
             string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
             using (
-                StringContent putContent = new StringContent(
-                    serviceResourceString,
-                    Encoding.UTF8,
-                    "application/json"
-                )
+                StringContent putContent = new StringContent(serviceResourceString, Encoding.UTF8, "application/json")
             )
             {
                 response = await _httpClient.PutAsync(putRequest, putContent);
@@ -139,11 +132,7 @@ public class ResourceRegistryService : IResourceRegistry
         else
         {
             using (
-                StringContent postContent = new StringContent(
-                    serviceResourceString,
-                    Encoding.UTF8,
-                    "application/json"
-                )
+                StringContent postContent = new StringContent(serviceResourceString, Encoding.UTF8, "application/json")
             )
             {
                 response = await _httpClient.PostAsync(publishResourceToResourceRegistryUrl, postContent);
@@ -250,11 +239,7 @@ public class ResourceRegistryService : IResourceRegistry
     ///     Get resource list
     /// </summary>
     /// <returns>List of all resources</returns>
-    public async Task<List<ServiceResource>> GetResourceList(
-        string env,
-        bool includeAltinn2,
-        bool includeApps = false
-    )
+    public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false)
     {
         string endpointUrl;
 
@@ -381,8 +366,7 @@ public class ResourceRegistryService : IResourceRegistry
         setServiceEditionExpiredResponse.EnsureSuccessStatusCode();
 
         // set batch start time
-        string migrateDelegationsUrl =
-            $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
+        string migrateDelegationsUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
         delegationRequest.DateTimeForExport = DateTimeOffset.UtcNow.AddMinutes(10); // set batch start time 10 minutes from now
         string serializedContent = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
         using HttpRequestMessage migrateDelegationsRequest = new HttpRequestMessage()
@@ -396,9 +380,7 @@ public class ResourceRegistryService : IResourceRegistry
             tokenResponse.AccessToken
         );
 
-        using HttpResponseMessage migrateDelegationsResponse = await _httpClient.SendAsync(
-            migrateDelegationsRequest
-        );
+        using HttpResponseMessage migrateDelegationsResponse = await _httpClient.SendAsync(migrateDelegationsRequest);
         migrateDelegationsResponse.EnsureSuccessStatusCode();
 
         return new StatusCodeResult(202);
@@ -451,8 +433,7 @@ public class ResourceRegistryService : IResourceRegistry
                 IEnumerable<string> batchPartyIds = partyIds.Where(
                     (x, index) => index >= i && index < (i + BATCH_LOOKUP_SIZE)
                 );
-                string brregUrl =
-                    "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
+                string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
                 string partyIdsString = string.Join(",", batchPartyIds);
                 List<BrregParty>[] parties = await Task.WhenAll(
                     GetBrregParties(string.Format(brregUrl, "enheter", partyIdsString)),
@@ -462,9 +443,7 @@ public class ResourceRegistryService : IResourceRegistry
                 members.AddRange(
                     batchPartyIds.Select(orgnr =>
                     {
-                        string enhetOrgName = parties[0]
-                            .Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
-                            ?.Navn;
+                        string enhetOrgName = parties[0].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
                         string underenhetOrgName = parties[1]
                             .Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
                             ?.Navn;
@@ -495,8 +474,7 @@ public class ResourceRegistryService : IResourceRegistry
 
         HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
         getAccessListsResponse.EnsureSuccessStatusCode();
-        AccessListInfoDtoPaginated res =
-            await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
+        AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
         return new PagedAccessListResponse() { Data = res.Data, NextPage = res.Links?.Next };
     }
 
@@ -512,8 +490,7 @@ public class ResourceRegistryService : IResourceRegistry
 
         HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
         getAccessListsResponse.EnsureSuccessStatusCode();
-        AccessListInfoDtoPaginated res =
-            await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
+        AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
 
         return new PagedAccessListResponse() { Data = res.Data, NextPage = res.Links?.Next };
     }
@@ -673,12 +650,7 @@ public class ResourceRegistryService : IResourceRegistry
         };
     }
 
-    public async Task<HttpStatusCode> AddResourceAccessList(
-        string org,
-        string resourceId,
-        string listId,
-        string env
-    )
+    public async Task<HttpStatusCode> AddResourceAccessList(string org, string resourceId, string listId, string env)
     {
         UpsertAccessListResourceConnectionDto data = new UpsertAccessListResourceConnectionDto();
         data.Actions = new List<string>(); // actions are not used yet
@@ -691,12 +663,7 @@ public class ResourceRegistryService : IResourceRegistry
         return response.StatusCode;
     }
 
-    public async Task<HttpStatusCode> RemoveResourceAccessList(
-        string org,
-        string resourceId,
-        string listId,
-        string env
-    )
+    public async Task<HttpStatusCode> RemoveResourceAccessList(string org, string resourceId, string listId, string env)
     {
         string removeUrl = $"/{org}/{listId}/resource-connections/{resourceId}";
         HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, removeUrl);

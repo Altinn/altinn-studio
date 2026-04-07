@@ -248,11 +248,7 @@ public class SourceControlServiceTest : IDisposable
         string origApp = "hvem-er-hvem";
         string app = TestDataHelper.GenerateTestRepoName(origApp);
         string developer = "testUser";
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            app,
-            developer
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
         await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
 

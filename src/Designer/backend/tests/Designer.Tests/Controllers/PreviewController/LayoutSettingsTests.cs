@@ -16,18 +16,11 @@ public class LayoutSettingsTests(WebApplicationFactory<Program> factory)
     [Fact]
     public async Task Get_LayoutSettings_Ok()
     {
-        string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(
-            Org,
-            AppV3,
-            Developer,
-            "App/ui/Settings.json"
-        );
+        string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, AppV3, Developer, "App/ui/Settings.json");
 
         string dataPathWithData = $"{Org}/{AppV3}/api/layoutsettings";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-        httpRequestMessage.Headers.Referrer = new Uri(
-            $"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet="
-        );
+        httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

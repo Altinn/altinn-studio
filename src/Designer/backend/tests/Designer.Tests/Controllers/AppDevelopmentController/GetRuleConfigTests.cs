@@ -28,13 +28,7 @@ public class GetRuleConfigTests
         "layoutSet1",
         "TestData/App/ui/changename/RuleConfiguration.json"
     )]
-    [InlineData(
-        "ttd",
-        "app-without-layoutsets",
-        "testUser",
-        null,
-        "TestData/App/ui/changename/RuleConfiguration.json"
-    )]
+    [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/changename/RuleConfiguration.json")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/group/RuleConfiguration.json")]
     public async Task GetRuleConfig_ShouldReturnOK(
         string org,

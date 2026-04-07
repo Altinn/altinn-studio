@@ -22,10 +22,7 @@ public class CsharpModelConversionTestsBase<TTestType> : SchemaConversionTestsBa
 
     protected virtual void JsonToMetamodelKeywordProcessedHandler(object sender, KeywordProcessedEventArgs e) { }
 
-    protected virtual void JsonToMetamodelSubSchemaProcessedHandler(
-        object sender,
-        SubSchemaProcessedEventArgs e
-    ) { }
+    protected virtual void JsonToMetamodelSubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e) { }
 
     protected TTestType ConvertedJsonSchemaConvertedToModelMetadata()
     {

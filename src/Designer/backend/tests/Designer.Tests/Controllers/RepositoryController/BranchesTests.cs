@@ -15,9 +15,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController;
 
-public class BranchesTests
-    : DesignerEndpointsTestsBase<BranchesTests>,
-        IClassFixture<WebApplicationFactory<Program>>
+public class BranchesTests : DesignerEndpointsTestsBase<BranchesTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix => "/designer/api/repos";
 

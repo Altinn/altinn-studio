@@ -8,9 +8,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController;
 
-public class AnonymousTests
-    : PreviewControllerTestsBase<AnonymousTests>,
-        IClassFixture<WebApplicationFactory<Program>>
+public class AnonymousTests : PreviewControllerTestsBase<AnonymousTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     public AnonymousTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
@@ -20,9 +18,7 @@ public class AnonymousTests
     {
         string dataPathWithData = $"{Org}/{AppV4}/api/v1/data/anonymous";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-        httpRequestMessage.Headers.Referrer = new Uri(
-            $"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet="
-        );
+        httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

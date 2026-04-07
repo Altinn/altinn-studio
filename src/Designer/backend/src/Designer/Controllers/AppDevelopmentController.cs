@@ -395,11 +395,7 @@ public class AppDevelopmentController : Controller
                 continue;
             }
 
-            var validationSettings = new ValidationOnNavigation
-            {
-                Show = settingGroup.Show,
-                Page = settingGroup.Page,
-            };
+            var validationSettings = new ValidationOnNavigation { Show = settingGroup.Show, Page = settingGroup.Page };
 
             foreach (var taskId in settingGroup.Tasks)
             {
@@ -420,9 +416,7 @@ public class AppDevelopmentController : Controller
 
                 taskSettingsMap.TryGetValue(layoutSet.Id, out var newValidationSettings);
 
-                if (
-                    HasValidationSettingsChanged(layoutSettings.Pages.ValidationOnNavigation, newValidationSettings)
-                )
+                if (HasValidationSettingsChanged(layoutSettings.Pages.ValidationOnNavigation, newValidationSettings))
                 {
                     layoutSettings.Pages.ValidationOnNavigation = newValidationSettings;
 
@@ -537,11 +531,7 @@ public class AppDevelopmentController : Controller
                     Show = item.Settings.Pages.ValidationOnNavigation.Show,
                     Page = item.Settings.Pages.ValidationOnNavigation.Page,
                 })
-                .GroupBy(x => new
-                {
-                    ShowKey = x.Show != null ? string.Join(",", x.Show.OrderBy(s => s)) : "",
-                    x.Page,
-                })
+                .GroupBy(x => new { ShowKey = x.Show != null ? string.Join(",", x.Show.OrderBy(s => s)) : "", x.Page })
                 .Select(group => new ValidationOnNavigationDto
                 {
                     Tasks = group.Select(x => x.Id).ToList(),
@@ -673,8 +663,9 @@ public class AppDevelopmentController : Controller
 
                 foreach ((string pageName, JsonNode layoutNode) in layouts)
                 {
-                    PageValidationOnNavigationDto matchingGroupForPage =
-                        validationGroupsForLayoutSet.FirstOrDefault(g => g.Pages.Contains(pageName));
+                    PageValidationOnNavigationDto matchingGroupForPage = validationGroupsForLayoutSet.FirstOrDefault(
+                        g => g.Pages.Contains(pageName)
+                    );
 
                     JsonObject dataNode = layoutNode?["data"]?.AsObject();
                     if (dataNode == null)
@@ -845,10 +836,7 @@ public class AppDevelopmentController : Controller
                 {
                     LayoutSetDto layoutSetDto = layoutSet.ToDto();
                     string layoutSetId = layoutSet?.Id;
-                    LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(
-                        editingContext,
-                        layoutSetId
-                    );
+                    LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(editingContext, layoutSetId);
                     PagesDto pages = PagesDto.From(layoutSettings);
                     layoutSetDto.PageCount =
                         pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages.Count;
@@ -891,11 +879,7 @@ public class AppDevelopmentController : Controller
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        await _appDevelopmentService.SaveValidationOnNavigationLayoutSets(
-            editingContext,
-            config,
-            cancellationToken
-        );
+        await _appDevelopmentService.SaveValidationOnNavigationLayoutSets(editingContext, config, cancellationToken);
 
         return Ok();
     }
@@ -941,11 +925,7 @@ public class AppDevelopmentController : Controller
             cancellationToken
         );
         await _mediator.Publish(
-            new LayoutSetCreatedEvent
-            {
-                EditingContext = editingContext,
-                LayoutSet = layoutSetPayload.LayoutSetConfig,
-            },
+            new LayoutSetCreatedEvent { EditingContext = editingContext, LayoutSet = layoutSetPayload.LayoutSetConfig },
             cancellationToken
         );
         return Ok(layoutSets);
@@ -1086,12 +1066,7 @@ public class AppDevelopmentController : Controller
             {
                 var content = await reader.ReadToEndAsync(cancellationToken);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.SaveRuleHandler(
-                    editingContext,
-                    content,
-                    layoutSetName,
-                    cancellationToken
-                );
+                await _appDevelopmentService.SaveRuleHandler(editingContext, content, layoutSetName, cancellationToken);
             }
 
             return NoContent();
@@ -1126,12 +1101,7 @@ public class AppDevelopmentController : Controller
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            await _appDevelopmentService.SaveRuleConfig(
-                editingContext,
-                ruleConfig,
-                layoutSetName,
-                cancellationToken
-            );
+            await _appDevelopmentService.SaveRuleConfig(editingContext, ruleConfig, layoutSetName, cancellationToken);
             return Ok();
         }
         catch (Exception exception)

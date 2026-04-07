@@ -20,8 +20,7 @@ public class AddMetadataForAttachmentTests
     : DesignerEndpointsTestsBase<AddMetadataForAttachmentTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/metadata";
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
 
     public AddMetadataForAttachmentTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

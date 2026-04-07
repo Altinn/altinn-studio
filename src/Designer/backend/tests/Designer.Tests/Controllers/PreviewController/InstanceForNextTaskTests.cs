@@ -28,9 +28,7 @@ public class InstanceForNextTaskTests(WebApplicationFactory<Program> factory)
 
         string responseBody = await response.Content.ReadAsStringAsync();
         JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-        Instance responseInstance = JsonConvert.DeserializeObject<Instance>(
-            responseDocument.RootElement.ToString()
-        );
+        Instance responseInstance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
         Assert.Equal(PartyId + "/" + V3InstanceId, responseInstance.Id);
         Assert.Equal(Org, responseInstance.Org);
     }
@@ -47,9 +45,7 @@ public class InstanceForNextTaskTests(WebApplicationFactory<Program> factory)
 
         string responseBody = await response.Content.ReadAsStringAsync();
         JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-        Instance responseInstance = JsonConvert.DeserializeObject<Instance>(
-            responseDocument.RootElement.ToString()
-        );
+        Instance responseInstance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
         Assert.Equal(instance.Id, responseInstance.Id);
         Assert.Equal(Org, responseInstance.Org);
         Assert.Equal(TaskId, instance.Process.CurrentTask.ElementId);

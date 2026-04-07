@@ -72,19 +72,12 @@ public class UpdateTextsForKeysTests
         PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
         // Act
-        using HttpResponseMessage response = await RunPutRequest(
-            orgName,
-            targetRepository,
-            language,
-            updateDictionary
-        );
+        using HttpResponseMessage response = await RunPutRequest(orgName, targetRepository, language, updateDictionary);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string responseContent = await response.Content.ReadAsStringAsync();
-        Assert.True(
-            JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), responseContent)
-        );
+        Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), responseContent));
     }
 
     [Theory]
@@ -115,9 +108,7 @@ public class UpdateTextsForKeysTests
     {
         foreach ((string key, string value) in updateDictionary)
         {
-            var textResourceContainsKey = resource.Resources.Find(textResourceElement =>
-                textResourceElement.Id == key
-            );
+            var textResourceContainsKey = resource.Resources.Find(textResourceElement => textResourceElement.Id == key);
             if (textResourceContainsKey is null)
             {
                 resource.Resources.Insert(0, new TextResourceElement { Id = key, Value = value });
@@ -125,11 +116,7 @@ public class UpdateTextsForKeysTests
             }
 
             int indexTextResourceElementUpdateKey = resource.Resources.IndexOf(textResourceContainsKey);
-            resource.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement
-            {
-                Id = key,
-                Value = value,
-            };
+            resource.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = key, Value = value };
         }
     }
 

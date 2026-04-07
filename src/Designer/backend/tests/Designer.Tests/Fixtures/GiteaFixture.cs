@@ -46,9 +46,7 @@ public class GiteaFixture : IAsyncLifetime
                         Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
                             "Basic",
                             Convert.ToBase64String(
-                                Encoding.ASCII.GetBytes(
-                                    $"{GiteaConstants.AdminUser}:{GiteaConstants.AdminPassword}"
-                                )
+                                Encoding.ASCII.GetBytes($"{GiteaConstants.AdminUser}:{GiteaConstants.AdminPassword}")
                             )
                         ),
                     },

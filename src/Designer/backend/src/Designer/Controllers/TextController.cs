@@ -184,11 +184,7 @@ public class TextController : Controller
     /// <remarks>If the newId is empty or undefined it implies that it is going to be removed</remarks>
     /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
     [HttpPut("keys")]
-    public async Task<IActionResult> UpdateKeyNames(
-        string org,
-        string app,
-        [FromBody] List<TextIdMutation> mutations
-    )
+    public async Task<IActionResult> UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
     {
         bool mutationHasOccured = false;
         try
@@ -264,10 +260,7 @@ public class TextController : Controller
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         if (
-            _repository.DeleteLanguage(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
-                languageCode
-            )
+            _repository.DeleteLanguage(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), languageCode)
         )
         {
             return Ok($"Resources.{languageCode}.json was successfully deleted.");

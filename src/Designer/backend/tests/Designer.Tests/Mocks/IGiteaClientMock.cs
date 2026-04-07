@@ -229,11 +229,7 @@ public class IGiteaClientMock : IGiteaClient
         return $"{string.Join("/", pathArray.Take(pathArray.Length - 1))}/{shortCommitId}/{pathArray.Last()}";
     }
 
-    public async Task<bool> CreatePullRequest(
-        string org,
-        string app,
-        CreatePullRequestOption createPullRequestOption
-    )
+    public async Task<bool> CreatePullRequest(string org, string app, CreatePullRequestOption createPullRequestOption)
     {
         return await Task.FromResult(true);
     }

@@ -134,10 +134,7 @@ public class PreviewController(
             developer
         );
         Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
-        return new FileStreamResult(
-            imageStream,
-            MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower())
-        );
+        return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
     }
 
     /// <summary>
@@ -218,11 +215,7 @@ public class PreviewController(
     [HttpGet]
     [UseSystemTextJson]
     [Route("api/layoutsets")]
-    public async Task<ActionResult<LayoutSets>> LayoutSets(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
+    public async Task<ActionResult<LayoutSets>> LayoutSets(string org, string app, CancellationToken cancellationToken)
     {
         try
         {
@@ -250,11 +243,7 @@ public class PreviewController(
     /// <returns>layoutsettings</returns>
     [HttpGet]
     [Route("api/layoutsettings")]
-    public async Task<ActionResult<string>> LayoutSettings(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
+    public async Task<ActionResult<string>> LayoutSettings(string org, string app, CancellationToken cancellationToken)
     {
         try
         {
@@ -468,11 +457,7 @@ public class PreviewController(
     /// <returns>The mocked instance object</returns>
     [HttpGet]
     [Route("/designer/api/{org}/{app}/mock-instance-id")]
-    public async Task<ActionResult<string>> GetInstanceId(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
+    public async Task<ActionResult<string>> GetInstanceId(string org, string app, CancellationToken cancellationToken)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string refererHeader = Request.Headers["Referer"];
@@ -581,10 +566,7 @@ public class PreviewController(
             app,
             developer
         );
-        Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(
-            null,
-            cancellationToken
-        );
+        Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(null, cancellationToken);
         // return as byte array to imitate app backend
         byte[] formLayoutsContent = JsonSerializer.SerializeToUtf8Bytes(formLayouts);
         return new FileContentResult(formLayoutsContent, MimeTypeMap.GetMimeType(".json"));
@@ -631,11 +613,7 @@ public class PreviewController(
     /// <returns>Rule handler as string or no content if not found</returns>
     [HttpGet]
     [Route("api/resource/RuleHandler.js")]
-    public async Task<ActionResult<string>> GetRuleHandler(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
+    public async Task<ActionResult<string>> GetRuleHandler(string org, string app, CancellationToken cancellationToken)
     {
         try
         {

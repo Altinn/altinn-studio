@@ -141,8 +141,7 @@ public class CopyAppTests(WebApplicationFactory<Program> factory)
     public async Task CopyApp_InvalidTargetRepoName_BadRequest()
     {
         // Arrange
-        string uri =
-            $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository=2022-{ValidTargetRepo}";
+        string uri = $"{UrlPrefix}/copy-app?sourceRepository={ValidSourceRepo}&targetRepository=2022-{ValidTargetRepo}";
 
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, uri);
 

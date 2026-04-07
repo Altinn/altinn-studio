@@ -60,11 +60,7 @@ public class GitRepository
             IEnumerable<string> foundFiles = Directory.EnumerateFiles(
                 RepositoryDirectory,
                 searchPattern,
-                new EnumerationOptions
-                {
-                    MatchCasing = MatchCasing.CaseInsensitive,
-                    RecurseSubdirectories = recursive,
-                }
+                new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive }
             );
             files.AddRange(foundFiles);
         }

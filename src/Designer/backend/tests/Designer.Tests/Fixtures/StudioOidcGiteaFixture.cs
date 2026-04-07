@@ -53,9 +53,7 @@ public class StudioOidcGiteaFixture : IAsyncLifetime
                         Authorization = new AuthenticationHeaderValue(
                             "Basic",
                             Convert.ToBase64String(
-                                Encoding.ASCII.GetBytes(
-                                    $"{GiteaConstants.AdminUser}:{GiteaConstants.AdminPassword}"
-                                )
+                                Encoding.ASCII.GetBytes($"{GiteaConstants.AdminUser}:{GiteaConstants.AdminPassword}")
                             )
                         ),
                     },

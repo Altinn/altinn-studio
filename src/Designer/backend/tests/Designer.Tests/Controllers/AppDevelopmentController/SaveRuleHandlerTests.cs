@@ -25,13 +25,7 @@ public class SaveRuleHandlerTests
         : base(factory) { }
 
     [Theory]
-    [InlineData(
-        "ttd",
-        "app-with-layoutsets",
-        "testUser",
-        "layoutSet1",
-        "TestData/App/ui/changename/RuleHandler.js"
-    )]
+    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/changename/RuleHandler.js")]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/datalist/RuleHandler.js")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/changename/RuleHandler.js")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/datalist/RuleHandler.js")]

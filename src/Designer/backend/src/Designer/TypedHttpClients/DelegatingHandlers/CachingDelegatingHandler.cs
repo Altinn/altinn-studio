@@ -34,10 +34,7 @@ public class CachingDelegatingHandler : DelegatingHandler
     {
         string cacheKey = $"{request.Method}_{request.RequestUri}";
 
-        if (
-            IsEligibleForCaching(request)
-            && _memoryCache.TryGetValue(cacheKey, out CacheResponseDataEntry cacheEntry)
-        )
+        if (IsEligibleForCaching(request) && _memoryCache.TryGetValue(cacheKey, out CacheResponseDataEntry cacheEntry))
         {
             return GetCachedResponseMessage(cacheEntry);
         }

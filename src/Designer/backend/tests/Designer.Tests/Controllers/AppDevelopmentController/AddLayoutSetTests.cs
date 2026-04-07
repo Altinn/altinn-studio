@@ -45,11 +45,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -86,11 +82,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -125,11 +117,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -163,11 +151,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -196,11 +180,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -229,11 +209,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -268,34 +244,20 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
-        var layoutSetPayload = new LayoutSetPayload()
-        {
-            TaskType = TaskType.Pdf,
-            LayoutSetConfig = newLayoutSetConfig,
-        };
+        var layoutSetPayload = new LayoutSetPayload() { TaskType = TaskType.Pdf, LayoutSetConfig = newLayoutSetConfig };
 
         string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         JsonNode pdfLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "PdfLayout");
-        JsonNode errorPageLayout = await GetLayoutFile(
-            org,
-            targetRepository,
-            developer,
-            layoutSetId,
-            "ServiceTask"
-        );
+        JsonNode errorPageLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "ServiceTask");
         LayoutSettings layoutSettings = await GetLayoutSettingsFile(org, targetRepository, developer, layoutSetId);
 
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
@@ -327,11 +289,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(layoutSetPayload),
-                Encoding.UTF8,
-                "application/json"
-            ),
+            Content = new StringContent(JsonSerializer.Serialize(layoutSetPayload), Encoding.UTF8, "application/json"),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -354,13 +312,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
     private async Task<JsonNode> GetLayoutFile(string org, string app, string developer, string layoutSetName)
     {
-        return await GetLayoutFile(
-            org,
-            app,
-            developer,
-            layoutSetName,
-            AltinnAppGitRepository.InitialLayoutFileName
-        );
+        return await GetLayoutFile(org, app, developer, layoutSetName, AltinnAppGitRepository.InitialLayoutFileName);
     }
 
     private async Task<JsonNode> GetLayoutFile(

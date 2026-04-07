@@ -34,14 +34,8 @@ public class XsdUnhandledEnumAttributesKeywordJsonConverterTests
             2,
             xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "frontend").Properties.Count
         );
-        Assert.Equal(
-            2,
-            xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "backend").Properties.Count
-        );
-        Assert.Equal(
-            2,
-            xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "other").Properties.Count
-        );
+        Assert.Equal(2, xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "backend").Properties.Count);
+        Assert.Equal(2, xsdUnhandledEnumAttributesKeyword.Properties.Single(p => p.Name == "other").Properties.Count);
     }
 
     [Fact]
@@ -50,10 +44,7 @@ public class XsdUnhandledEnumAttributesKeywordJsonConverterTests
         // Arrange
         var namedValueKeyPairsFrontend = new NamedKeyValuePairs("frontend");
         namedValueKeyPairsFrontend.Add("seres:elementtype", "Datakodeelement");
-        namedValueKeyPairsFrontend.Add(
-            "seres:guid",
-            "http://seres.no/guid/Kursdomene/Datakodeelement/other/784952"
-        );
+        namedValueKeyPairsFrontend.Add("seres:guid", "http://seres.no/guid/Kursdomene/Datakodeelement/other/784952");
 
         var namedValueKeyPairsBackend = new NamedKeyValuePairs("backend");
         namedValueKeyPairsBackend.Add("seres:elementtype", "Datakodeelement");
@@ -64,12 +55,7 @@ public class XsdUnhandledEnumAttributesKeywordJsonConverterTests
         namedValueKeyPairsOther.Add("seres:guid", "http://seres.no/guid/Kursdomene/Datakodeelement/other/784950");
 
         var keyword = new XsdUnhandledEnumAttributesKeyword(
-            new NamedKeyValuePairs[]
-            {
-                namedValueKeyPairsFrontend,
-                namedValueKeyPairsBackend,
-                namedValueKeyPairsOther,
-            }
+            new NamedKeyValuePairs[] { namedValueKeyPairsFrontend, namedValueKeyPairsBackend, namedValueKeyPairsOther }
         );
 
         // Act

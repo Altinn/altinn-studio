@@ -100,9 +100,7 @@ public class ModelSerializationDeserializationTests
         var xmlStream = SharedResourcesHelper.LoadTestData(xmlResource);
 
         return (_TestData.Model.CSharp.melding)
-            new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.melding)).Deserialize(
-                xmlStream
-            );
+            new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.melding)).Deserialize(xmlStream);
     }
 
     private bool ValidateXml(string xml)

@@ -143,14 +143,7 @@ public class UpdateFormLayoutNameTests
 
         string url = $"{VersionPrefix("ttd", app)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
         string oldLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{layoutName}.json");
-        string newLayoutPath = Path.Join(
-            TestRepoPath,
-            "App",
-            "ui",
-            layoutSetName,
-            "layouts",
-            $"{newLayoutName}.json"
-        );
+        string newLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{newLayoutName}.json");
 
         Directory.CreateDirectory(Path.GetDirectoryName(oldLayoutPath));
         await File.WriteAllTextAsync(oldLayoutPath, "{}");

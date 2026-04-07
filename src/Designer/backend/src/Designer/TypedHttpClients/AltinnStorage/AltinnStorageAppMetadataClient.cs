@@ -66,12 +66,7 @@ public class AltinnStorageAppMetadataClient : IAltinnStorageAppMetadataClient
     }
 
     /// <inheritdoc />
-    public async Task UpsertApplicationMetadata(
-        string org,
-        string app,
-        string applicationMetadataJson,
-        string envName
-    )
+    public async Task UpsertApplicationMetadata(string org, string app, string applicationMetadataJson, string envName)
     {
         var storageUri = await CreateStorageUri(envName);
         Uri uri = new($"{storageUri}?appId={org}/{app}");

@@ -58,9 +58,7 @@ public class UpdateResourceTests
         };
 
         RepositoryMock
-            .Setup(r =>
-                r.UpdateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>())
-            )
+            .Setup(r => r.UpdateServiceResource(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceResource>()))
             .Returns(new StatusCodeResult(201));
         httpRequestMessage.Content = new StringContent(
             JsonConvert.SerializeObject(serviceResource),

@@ -131,10 +131,7 @@ public class DeploymentsController : ControllerBase
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
 
-        var createResult = await _deploymentService.CreateAsync(
-            authenticatedContext,
-            createDeployment.ToDomainModel()
-        );
+        var createResult = await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel());
         return Created(string.Empty, createResult);
     }
 
@@ -160,11 +157,7 @@ public class DeploymentsController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
-        await _deploymentService.UndeployAsync(
-            authenticatedContext,
-            undeployRequest.Environment,
-            cancellationToken
-        );
+        await _deploymentService.UndeployAsync(authenticatedContext, undeployRequest.Environment, cancellationToken);
 
         return Accepted();
     }

@@ -44,18 +44,13 @@ public class ReleasesController : ControllerBase
     /// <returns>SearchResults of type ReleaseEntity</returns>
     [HttpGet]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-    public async Task<SearchResults<ReleaseEntity>> Get(
-        string org,
-        string app,
-        [FromQuery] DocumentQueryModel query
-    )
+    public async Task<SearchResults<ReleaseEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
     {
         SearchResults<ReleaseEntity> releases = await _releaseService.GetAsync(org, app, query);
 
         List<ReleaseEntity> laggingReleases = releases
             .Results.Where(d =>
-                d.Build.Status.Equals(BuildStatus.InProgress)
-                && d.Build.Started.Value.AddMinutes(2) < DateTime.UtcNow
+                d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(2) < DateTime.UtcNow
             )
             .ToList();
 

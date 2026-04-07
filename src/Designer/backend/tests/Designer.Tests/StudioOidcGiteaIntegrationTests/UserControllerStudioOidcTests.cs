@@ -64,16 +64,11 @@ public class UserControllerStudioOidcTests : StudioOidcGiteaIntegrationTestsBase
         string targetRepo = TestDataHelper.GenerateTestRepoName();
         await CreateAppUsingDesigner(org, targetRepo);
 
-        using var putStarredResponse = await HttpClient.PutAsync(
-            $"designer/api/user/starred/{org}/{targetRepo}",
-            null
-        );
+        using var putStarredResponse = await HttpClient.PutAsync($"designer/api/user/starred/{org}/{targetRepo}", null);
         Assert.Equal(HttpStatusCode.NoContent, putStarredResponse.StatusCode);
         await GetAndVerifyStarredRepos(targetRepo);
 
-        using var deleteStarredResponse = await HttpClient.DeleteAsync(
-            $"designer/api/user/starred/{org}/{targetRepo}"
-        );
+        using var deleteStarredResponse = await HttpClient.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
         Assert.Equal(HttpStatusCode.NoContent, deleteStarredResponse.StatusCode);
 
         await GetAndVerifyStarredRepos();

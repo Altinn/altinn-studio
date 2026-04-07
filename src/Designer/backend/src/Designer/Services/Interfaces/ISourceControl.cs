@@ -50,10 +50,7 @@ public interface ISourceControl
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     /// <param name="commitInfo">the commit information for the app</param>
-    void PushChangesForRepository(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        CommitInfo commitInfo
-    );
+    void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo);
 
     /// <summary>
     /// Commits all changes in repo and pushes them to the provided branch
@@ -158,12 +155,7 @@ public interface ISourceControl
     /// <param name="target">The name of the base ref</param>
     /// <param name="source">The name of the head ref</param>
     /// <param name="title">The pull request title</param>
-    Task<bool> CreatePullRequest(
-        AltinnRepoEditingContext editingContext,
-        string target,
-        string source,
-        string title
-    );
+    Task<bool> CreatePullRequest(AltinnRepoEditingContext editingContext, string target, string source, string title);
 
     /// <summary>
     /// Deletes the provided repository. Both local clone and remote repo.

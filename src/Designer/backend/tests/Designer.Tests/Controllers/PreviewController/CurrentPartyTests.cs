@@ -22,9 +22,7 @@ public class CurrentPartyTests
     {
         string dataPathWithData = $"{Org}/{AppV4}/api/authorization/parties/current";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-        httpRequestMessage.Headers.Referrer = new Uri(
-            $"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet="
-        );
+        httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

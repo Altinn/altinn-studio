@@ -36,8 +36,7 @@ public class DeleteFormLayoutTests
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string url =
-            $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
@@ -65,8 +64,7 @@ public class DeleteFormLayoutTests
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string url =
-            $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 

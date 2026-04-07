@@ -46,8 +46,8 @@ public class CustomTemplateController : ControllerBase
         }
         catch (CustomTemplateException ex)
             when (ex.Code == CustomTemplateErrorCode.DeserializationFailed
-                  || ex.Code == CustomTemplateErrorCode.ValidationFailed
-                 )
+                || ex.Code == CustomTemplateErrorCode.ValidationFailed
+            )
         {
             return StatusCode(
                 500,

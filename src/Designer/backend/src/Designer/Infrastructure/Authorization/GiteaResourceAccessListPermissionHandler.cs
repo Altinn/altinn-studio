@@ -25,10 +25,7 @@ public class GiteaResourceAccessListPermissionHandler
     /// </summary>
     /// <param name="giteaClient">IGiteaClient</param>
     /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-    public GiteaResourceAccessListPermissionHandler(
-        IGiteaClient giteaClient,
-        IHttpContextAccessor httpContextAccessor
-    )
+    public GiteaResourceAccessListPermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
     {
         _httpContext = httpContextAccessor.HttpContext;
         _giteaClient = giteaClient;

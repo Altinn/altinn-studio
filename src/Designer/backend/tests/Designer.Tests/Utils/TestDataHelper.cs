@@ -96,7 +96,7 @@ public static class TestDataHelper
     {
         var unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
         return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData"))
-               + Path.DirectorySeparatorChar;
+            + Path.DirectorySeparatorChar;
     }
 
     public static string GetTestDataRepositoriesRootDirectory()
@@ -158,23 +158,14 @@ public static class TestDataHelper
     )
     {
         var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
-        var targetDirectory = Path.Combine(
-            GetTestDataRepositoriesRootDirectory(),
-            developer,
-            org,
-            targetRepository
-        );
+        var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepository);
 
         await CopyDirectory(sourceAppRepository, targetDirectory);
 
         return targetDirectory;
     }
 
-    public static async Task<string> CopyRemoteRepositoryForTest(
-        string org,
-        string repository,
-        string targetRepository
-    )
+    public static async Task<string> CopyRemoteRepositoryForTest(string org, string repository, string targetRepository)
     {
         var sourceRemoteRepository = GetTestDataRemoteRepository(org, repository);
         var targetDirectory = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), org, targetRepository);
@@ -527,12 +518,7 @@ public static class TestDataHelper
         return Path.Join(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
     }
 
-    public static string[] GetRepositoryFileNames(
-        string developer,
-        string org,
-        string repository,
-        string searchPattern
-    )
+    public static string[] GetRepositoryFileNames(string developer, string org, string repository, string searchPattern)
     {
         return Directory.GetFiles(GetRepositoryDirectory(developer, org, repository), searchPattern);
     }

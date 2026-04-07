@@ -9,12 +9,7 @@ public interface ILayoutService
 {
     public Task CreatePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId);
     public Task DeletePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId);
-    public Task RenamePage(
-        AltinnRepoEditingContext editingContext,
-        string layoutSetId,
-        string pageId,
-        string newName
-    );
+    public Task RenamePage(AltinnRepoEditingContext editingContext, string layoutSetId, string pageId, string newName);
     public Task UpdatePageOrder(AltinnRepoEditingContext editingContext, string layoutSetId, Pages pages);
 
     public Task<LayoutSettings> GetLayoutSettings(

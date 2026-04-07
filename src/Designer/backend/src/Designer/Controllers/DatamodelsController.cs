@@ -252,8 +252,7 @@ public class DatamodelsController : ControllerBase
         // Sets the location header and content-type manually instead of using CreatedAtAction
         // because the latter overrides the content type and sets it to text/plain.
         string baseUrl = GetBaseUrl();
-        string locationUrl =
-            $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
+        string locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
         Response.Headers.Append("Location", locationUrl);
         Response.StatusCode = (int)HttpStatusCode.Created;
 
@@ -335,9 +334,7 @@ public class DatamodelsController : ControllerBase
 
     private static string GetFileNameFromUploadedFile(IFormFile thefile)
     {
-        return ContentDispositionHeaderValue
-            .Parse(new StringSegment(thefile.ContentDisposition))
-            .FileName.ToString();
+        return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
     }
 
     private bool TryValidateSchema(string schema, out ValidationProblemDetails problemDetails)

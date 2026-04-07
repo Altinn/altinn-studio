@@ -116,10 +116,7 @@ public class JsonSchemaNormalizerTests
         );
         var expectedNormalizedJsonSchemaText = JsonSerializer.Serialize(expectedNormalizedJsonSchema);
 
-        var json = JsonSerializer.Serialize(
-            normalizedJsonSchema,
-            new JsonSerializerOptions { WriteIndented = true }
-        );
+        var json = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions { WriteIndented = true });
 
         Assert.Equal(expectedNormalizedJsonSchemaText, normalizedJsonSchemaText);
         return Task.CompletedTask;

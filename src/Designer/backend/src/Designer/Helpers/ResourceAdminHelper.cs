@@ -26,8 +26,8 @@ public static class ResourceAdminHelper
             string nnTitle = titleToValidate.ContainsKey("nn") ? titleToValidate["nn"] : string.Empty;
 
             return !string.IsNullOrWhiteSpace(enTitle.Trim())
-                   && !string.IsNullOrWhiteSpace(nbTitle.Trim())
-                   && !string.IsNullOrWhiteSpace(nnTitle.Trim());
+                && !string.IsNullOrWhiteSpace(nbTitle.Trim())
+                && !string.IsNullOrWhiteSpace(nnTitle.Trim());
         }
         else
         {

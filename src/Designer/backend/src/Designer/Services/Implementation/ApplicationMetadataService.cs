@@ -76,11 +76,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
     }
 
     /// <inheritdoc/>
-    public async Task UpdateApplicationMetaDataLocally(
-        string org,
-        string app,
-        ApplicationMetadata applicationMetadata
-    )
+    public async Task UpdateApplicationMetaDataLocally(string org, string app, ApplicationMetadata applicationMetadata)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
@@ -113,11 +109,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
     }
 
     /// <inheritdic />
-    public async Task UpdateAppMetadataConfigAsync(
-        string org,
-        string app,
-        ServiceConfiguration serviceConfiguration
-    )
+    public async Task UpdateAppMetadataConfigAsync(string org, string app, ServiceConfiguration serviceConfiguration)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(

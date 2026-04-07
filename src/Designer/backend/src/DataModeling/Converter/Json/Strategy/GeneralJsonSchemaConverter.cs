@@ -151,9 +151,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
     {
         try
         {
-            var schemaToCompile = string.IsNullOrWhiteSpace(schema.TargetNamespace)
-                ? schema
-                : ReloadXsdSchema(schema);
+            var schemaToCompile = string.IsNullOrWhiteSpace(schema.TargetNamespace) ? schema : ReloadXsdSchema(schema);
             var schemaSet = new XmlSchemaSet();
             schemaSet.Add(schemaToCompile);
             schemaSet.Compile();
@@ -186,11 +184,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
                 switch (name)
                 {
                     case "AttributeFormDefault":
-                        _xsd.AttributeFormDefault = Enum.TryParse(
-                            value,
-                            true,
-                            out XmlSchemaForm xmlSchemaFormAttribute
-                        )
+                        _xsd.AttributeFormDefault = Enum.TryParse(value, true, out XmlSchemaForm xmlSchemaFormAttribute)
                             ? xmlSchemaFormAttribute
                             : XmlSchemaForm.Unqualified;
                         break;
@@ -261,9 +255,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
     private void HandleInfoKeyword(InfoKeyword infoKeyword)
     {
         var markup = new List<XmlNode>();
-        var xsdNamespace = _xsd
-            .Namespaces.ToArray()
-            .First(ns => ns.Namespace == KnownXmlNamespaces.XmlSchemaNamespace);
+        var xsdNamespace = _xsd.Namespaces.ToArray().First(ns => ns.Namespace == KnownXmlNamespaces.XmlSchemaNamespace);
 
         foreach (var property in infoKeyword.Value.EnumerateObject())
         {
@@ -349,11 +341,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
         }
     }
 
-    private void HandleComplexType(
-        XmlSchemaComplexType item,
-        WorkList<IJsonSchemaKeyword> keywords,
-        JsonPointer path
-    )
+    private void HandleComplexType(XmlSchemaComplexType item, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
     {
         var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
@@ -413,11 +401,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
         }
     }
 
-    private void HandleComplexType(
-        XmlSchemaElement element,
-        WorkList<IJsonSchemaKeyword> keywords,
-        JsonPointer path
-    )
+    private void HandleComplexType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
     {
         var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
@@ -485,10 +469,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
         WorkList<IJsonSchemaKeyword> keywords
     )
     {
-        if (
-            keywords.HasKeyword<XsdNillableKeyword>(k => k.Value)
-            && keywords.TryGetKeyword(out RefKeyword reference)
-        )
+        if (keywords.HasKeyword<XsdNillableKeyword>(k => k.Value) && keywords.TryGetKeyword(out RefKeyword reference))
         {
             element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
             return true;
@@ -650,11 +631,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
         }
     }
 
-    private void HandleAttribute(
-        XmlSchemaAttribute attribute,
-        WorkList<IJsonSchemaKeyword> keywords,
-        JsonPointer path
-    )
+    private void HandleAttribute(XmlSchemaAttribute attribute, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
     {
         var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
@@ -827,9 +804,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
         return XmlQualifiedName.Empty;
     }
 
-    private static IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(
-        WorkList<IJsonSchemaKeyword> keywords
-    )
+    private static IReadOnlyList<NamedKeyValuePairs> GetUnhandledEnumAttributes(WorkList<IJsonSchemaKeyword> keywords)
     {
         return keywords.Pull<XsdUnhandledEnumAttributesKeyword>()?.Properties ?? new List<NamedKeyValuePairs>();
     }
@@ -1032,9 +1007,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
                 );
                 return typeName;
             case SchemaValueType.Array:
-                var arrayTypeKeyword = keywords
-                    .GetKeyword<ItemsKeyword>()
-                    .SingleSchema.GetKeywordOrNull<TypeKeyword>();
+                var arrayTypeKeyword = keywords.GetKeyword<ItemsKeyword>().SingleSchema.GetKeywordOrNull<TypeKeyword>();
                 XmlQualifiedName arrayType = SetType(
                     arrayTypeKeyword.Type,
                     keywords.Pull<FormatKeyword>()?.Value,
@@ -1073,9 +1046,7 @@ public class GeneralJsonSchemaConverter : IJsonSchemaConverter
             out var attributePropertiesSchemas
         );
 
-        restriction.BaseTypeName = GetTypeNameFromReference(
-            baseTypeSchema.GetKeywordOrNull<RefKeyword>().Reference
-        );
+        restriction.BaseTypeName = GetTypeNameFromReference(baseTypeSchema.GetKeywordOrNull<RefKeyword>().Reference);
 
         HandleSimpleContentRestrictionValueProperty(
             restriction,

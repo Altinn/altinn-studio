@@ -110,12 +110,11 @@ public class ApplicationInformationService : IApplicationInformationService
 
         try
         {
-            string appMetadataJson =
-                await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
-                    org,
-                    app,
-                    shortCommitId
-                );
+            string appMetadataJson = await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
+                org,
+                app,
+                shortCommitId
+            );
             ApplicationMetadata? applicationMetadata =
                 JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataJson, s_jsonOptions)
                 ?? throw new JsonException("Could not deserialize application metadata");

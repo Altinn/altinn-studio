@@ -24,9 +24,7 @@ public class KubernetesDeploymentsServiceTest
     public KubernetesDeploymentsServiceTest()
     {
         _environementsService = new Mock<IEnvironmentsService>();
-        _environementsService
-            .Setup(req => req.GetEnvironments())
-            .ReturnsAsync(GetEnvironments("environments.json"));
+        _environementsService.Setup(req => req.GetEnvironments()).ReturnsAsync(GetEnvironments("environments.json"));
 
         _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
         _kubernetesWrapperClient
@@ -66,7 +64,7 @@ public class KubernetesDeploymentsServiceTest
                 )
                 .ReturnsAsync(
                     kubernetesDeployments.FirstOrDefault(deployment => deployment.EnvName == environment.Name)
-                    ?? new KubernetesDeployment { EnvName = environment.Name }
+                        ?? new KubernetesDeployment { EnvName = environment.Name }
                 );
         }
 
@@ -122,15 +120,7 @@ public class KubernetesDeploymentsServiceTest
         string unitTestFolder = Path.GetDirectoryName(
             new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
         );
-        string path = Path.Combine(
-            unitTestFolder,
-            "..",
-            "..",
-            "..",
-            "_TestData",
-            "KubernetesDeployments",
-            filename
-        );
+        string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "KubernetesDeployments", filename);
         if (!File.Exists(path))
         {
             return null;

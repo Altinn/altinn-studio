@@ -17,12 +17,7 @@ public class DeleteLanguageTests
 
     [Theory]
     [InlineData("ttd", "hvem-er-hvem", "testUser", "nb")]
-    public async Task DeleteLanguage_WithValidInput_ReturnsOk(
-        string org,
-        string app,
-        string developer,
-        string language
-    )
+    public async Task DeleteLanguage_WithValidInput_ReturnsOk(string org, string app, string developer, string language)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);

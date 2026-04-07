@@ -57,23 +57,9 @@ public class SaveFormLayoutTestsBase(WebApplicationFactory<Program> factory)
         "layoutSet1",
         "TestData/App/ui/changename/layouts/summary.json"
     )]
-    [InlineData(
-        "ttd",
-        "empty-app",
-        "testUser",
-        "testLayout",
-        null,
-        "TestData/App/ui/layoutWithUnknownProperties.json"
-    )]
+    [InlineData("ttd", "empty-app", "testUser", "testLayout", null, "TestData/App/ui/layoutWithUnknownProperties.json")]
     [InlineData("ttd", "empty-app", "testUser", "testLayout", null, "TestData/App/ui/changename/layouts/form.json")]
-    [InlineData(
-        "ttd",
-        "empty-app",
-        "testUser",
-        "testLayout",
-        null,
-        "TestData/App/ui/changename/layouts/summary.json"
-    )]
+    [InlineData("ttd", "empty-app", "testUser", "testLayout", null, "TestData/App/ui/changename/layouts/summary.json")]
     public async Task SaveFormLayout_ReturnsOk(
         string org,
         string app,
@@ -86,8 +72,7 @@ public class SaveFormLayoutTestsBase(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string url =
-            $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 
         string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
 
@@ -111,14 +96,7 @@ public class SaveFormLayoutTestsBase(WebApplicationFactory<Program> factory)
         "layoutSet1",
         "TestData/App/ui/layoutWithUnknownProperties.json"
     )]
-    [InlineData(
-        "ttd",
-        "empty-app",
-        "testUser",
-        "testLayout",
-        null,
-        "TestData/App/ui/changename/layouts/summary.json"
-    )]
+    [InlineData("ttd", "empty-app", "testUser", "testLayout", null, "TestData/App/ui/changename/layouts/summary.json")]
     public async Task SaveFormLayoutWithComponentIdsChange_ReturnsOk(
         string org,
         string app,
@@ -131,8 +109,7 @@ public class SaveFormLayoutTestsBase(WebApplicationFactory<Program> factory)
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        string url =
-            $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
 
         string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
 
@@ -282,8 +259,7 @@ public class SaveFormLayoutTestsBase(WebApplicationFactory<Program> factory)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        string url =
-            $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+        string url = $"{VersionPrefix(org, targetRepository)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
         string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
 
         Assert.True(

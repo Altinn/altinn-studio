@@ -19,9 +19,7 @@ public class GetRuleHandlerTests
     {
         string dataPathWithData = $"{Org}/{AppV4}/api/resource/RuleHandler.js";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-        httpRequestMessage.Headers.Referrer = new Uri(
-            $"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet="
-        );
+        httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);

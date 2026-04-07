@@ -196,10 +196,7 @@ public class SchemaModelService : ISchemaModelService
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
-        var jsonContent = await altinnAppGitRepository.ReadTextByRelativePathAsync(
-            relativeFilePath,
-            cancellationToken
-        );
+        var jsonContent = await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath, cancellationToken);
         var jsonSchema = JsonSchema.FromText(jsonContent);
         return GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
     }

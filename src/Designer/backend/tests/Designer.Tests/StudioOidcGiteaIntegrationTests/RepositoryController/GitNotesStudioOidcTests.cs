@@ -144,10 +144,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         );
         Assert.Equal(HttpStatusCode.OK, pullResponse.StatusCode);
 
-        await File.WriteAllTextAsync(
-            $"{CreatedFolderPath}/test3.txt",
-            "I am a new file created directly with gitea"
-        );
+        await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file created directly with gitea");
         using var commitAndPushContent = new StringContent(
             GetCommitInfoJson("test commit", org, targetRepo),
             Encoding.UTF8,
@@ -180,10 +177,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         );
         Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
 
-        await File.WriteAllTextAsync(
-            $"{CreatedFolderPath}/test3.txt",
-            "I am a new file created directly with gitea"
-        );
+        await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file created directly with gitea");
 
         using HttpResponseMessage pullResponse = await HttpClient.GetAsync(
             $"designer/api/repos/repo/{org}/{targetRepo}/pull"

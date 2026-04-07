@@ -84,9 +84,7 @@ public class ReleaseServiceTest
             .ReturnsAsync(GetReleases("createdRelease.json").First());
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
         _appScopesRepository
             .Setup(r =>
@@ -251,9 +249,7 @@ public class ReleaseServiceTest
 
     private static List<ReleaseEntity> GetReleases(string filename)
     {
-        string unitTestFolder = Path.GetDirectoryName(
-            new Uri(typeof(ReleaseServiceTest).Assembly.Location).LocalPath
-        );
+        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ReleaseServiceTest).Assembly.Location).LocalPath);
         string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
         if (File.Exists(path))
         {
@@ -329,9 +325,7 @@ public class ReleaseServiceTest
             )
             .ReturnsAsync(appScopes);
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         ReleaseService releaseService = new(
@@ -406,9 +400,7 @@ public class ReleaseServiceTest
             )
             .ReturnsAsync(appScopes);
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         ReleaseService releaseService = new(
@@ -472,9 +464,7 @@ public class ReleaseServiceTest
             )
             .ReturnsAsync((AppScopesEntity)null);
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         ReleaseService releaseService = new(
@@ -538,9 +528,7 @@ public class ReleaseServiceTest
             )
             .ReturnsAsync((AppScopesEntity)null);
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _featureManager.Setup(f => f.IsEnabledAsync("StudioOidc")).ReturnsAsync(true);
@@ -635,9 +623,7 @@ public class ReleaseServiceTest
             )
             .ReturnsAsync((AppScopesEntity)null);
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _featureManager.Setup(f => f.IsEnabledAsync("StudioOidc")).ReturnsAsync(false);

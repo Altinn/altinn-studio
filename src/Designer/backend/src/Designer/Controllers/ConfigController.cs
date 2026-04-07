@@ -70,8 +70,10 @@ public class ConfigController : Controller
     [HttpPost]
     public async Task SetServiceConfig(string org, string app, [FromBody] dynamic serviceConfig)
     {
-        ServiceConfiguration serviceConfigurationObject =
-            await _applicationMetadataService.GetAppMetadataConfigAsync(org, app);
+        ServiceConfiguration serviceConfigurationObject = await _applicationMetadataService.GetAppMetadataConfigAsync(
+            org,
+            app
+        );
         serviceConfigurationObject.ServiceDescription = serviceConfig.serviceDescription.ToString();
         serviceConfigurationObject.ServiceId = serviceConfig.serviceId.ToString();
         serviceConfigurationObject.ServiceName = serviceConfig.serviceName.ToString();

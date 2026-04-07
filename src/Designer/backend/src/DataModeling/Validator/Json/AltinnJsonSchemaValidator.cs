@@ -120,19 +120,11 @@ public class AltinnJsonSchemaValidator : IJsonSchemaValidator
     {
         if (schema.TryGetKeyword(out ItemsKeyword itemsKeyword) && itemsKeyword.SingleSchema is not null)
         {
-            ValidateSubSchema(
-                path.Combine(JsonPointer.Parse("/items")),
-                itemsKeyword.SingleSchema,
-                validationContext
-            );
+            ValidateSubSchema(path.Combine(JsonPointer.Parse("/items")), itemsKeyword.SingleSchema, validationContext);
         }
     }
 
-    private void ValidateOneOfKeyword(
-        JsonPointer path,
-        OneOfKeyword oneOfKeyword,
-        ValidationContext validationContext
-    )
+    private void ValidateOneOfKeyword(JsonPointer path, OneOfKeyword oneOfKeyword, ValidationContext validationContext)
     {
         int subSchemaIndex = 0;
         foreach (var subSchema in oneOfKeyword.Schemas)

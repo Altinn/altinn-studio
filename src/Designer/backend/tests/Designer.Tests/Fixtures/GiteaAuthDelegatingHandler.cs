@@ -39,10 +39,7 @@ internal class GiteaAuthDelegatingHandler : DelegatingHandler
         CancellationToken cancellationToken
     )
     {
-        using var redirectToAuthorizeRequest = new HttpRequestMessage(
-            HttpMethod.Get,
-            initialResponse.Headers.Location
-        );
+        using var redirectToAuthorizeRequest = new HttpRequestMessage(HttpMethod.Get, initialResponse.Headers.Location);
         using var redirectToAuthorizeResponse = await base.SendAsync(redirectToAuthorizeRequest, cancellationToken);
 
         using var authorizeRedirectedToLoginResponse = await Redirect(
@@ -187,10 +184,7 @@ internal class GiteaAuthDelegatingHandler : DelegatingHandler
             "<form method=\"post\" action=\"",
             "\">"
         );
-        using var grantRequest = new HttpRequestMessage(
-            HttpMethod.Post,
-            TestUrlsProvider.Instance.GiteaUrl + grantUrl
-        )
+        using var grantRequest = new HttpRequestMessage(HttpMethod.Post, TestUrlsProvider.Instance.GiteaUrl + grantUrl)
         {
             Content = grantContent,
         };

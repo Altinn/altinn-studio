@@ -186,8 +186,7 @@ public class ISourceControlMock : ISourceControl
         return Task.FromResult(new Branch { Name = branchName });
     }
 
-    public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) =>
-        throw new NotImplementedException();
+    public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
 
     public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName) =>
         throw new NotImplementedException();

@@ -50,12 +50,7 @@ public class SaveResourceTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         Assert.True(
-            TestDataHelper.FileExistsInRepo(
-                org,
-                targetRepository,
-                developer,
-                $"App/config/texts/resource.{lang}.json"
-            )
+            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json")
         );
         Assert.True(
             JsonUtils.DeepEquals(

@@ -29,20 +29,8 @@ public class SaveRuleConfigTests
         "layoutSet1",
         "TestData/App/ui/changename/RuleConfiguration.json"
     )]
-    [InlineData(
-        "ttd",
-        "app-with-layoutsets",
-        "testUser",
-        "layoutSet1",
-        "TestData/App/ui/group/RuleConfiguration.json"
-    )]
-    [InlineData(
-        "ttd",
-        "app-without-layoutsets",
-        "testUser",
-        null,
-        "TestData/App/ui/changename/RuleConfiguration.json"
-    )]
+    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/group/RuleConfiguration.json")]
+    [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/changename/RuleConfiguration.json")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/group/RuleConfiguration.json")]
     public async Task SaveRuleConfiguration_ShouldCreateRuleConfigurationFile_AndReturnOk(
         string org,

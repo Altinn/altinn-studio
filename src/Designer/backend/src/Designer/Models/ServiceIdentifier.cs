@@ -23,9 +23,9 @@ public class ServiceIdentifier : IEquatable<ServiceIdentifier>
     public bool Equals(ServiceIdentifier other)
     {
         return Org != null
-               && Service != null
-               && Org.Equals(other?.Org, StringComparison.CurrentCultureIgnoreCase)
-               && Service.Equals(other?.Service, StringComparison.CurrentCultureIgnoreCase);
+            && Service != null
+            && Org.Equals(other?.Org, StringComparison.CurrentCultureIgnoreCase)
+            && Service.Equals(other?.Service, StringComparison.CurrentCultureIgnoreCase);
     }
 
     /// <summary> String representation of object. </summary>

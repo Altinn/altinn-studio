@@ -379,8 +379,10 @@ public static class PolicyConverter
         XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
         astr.Value = level;
 
-        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression =
-            new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), astr);
+        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(
+            new Uri("urn:altinn:obligation1-assignment1"),
+            astr
+        );
         xacmlAttributeAssignmentExpression.Category = new Uri(
             AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel
         );
@@ -399,8 +401,10 @@ public static class PolicyConverter
         XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
         astr.Value = level;
 
-        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression =
-            new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation2-assignment2"), astr);
+        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(
+            new Uri("urn:altinn:obligation2-assignment2"),
+            astr
+        );
         xacmlAttributeAssignmentExpression.Category = new Uri(
             AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
         );

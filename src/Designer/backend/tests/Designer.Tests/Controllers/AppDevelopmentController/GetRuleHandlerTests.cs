@@ -21,13 +21,7 @@ public class GetRuleHandlerTests
         : base(factory) { }
 
     [Theory]
-    [InlineData(
-        "ttd",
-        "app-with-layoutsets",
-        "testUser",
-        "layoutSet1",
-        "TestData/App/ui/changename/RuleHandler.js"
-    )]
+    [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/changename/RuleHandler.js")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/changename/RuleHandler.js")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/datalist/RuleHandler.js")]
     [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/group/RuleHandler.js")]
@@ -59,11 +53,7 @@ public class GetRuleHandlerTests
     [Theory]
     [InlineData("ttd", "empty-app", "layoutSet1")]
     [InlineData("ttd", "empty-app", null)]
-    public async Task GetRuleHandler_IfNotExists_Should_AndReturnNotFound(
-        string org,
-        string app,
-        string layoutSetName
-    )
+    public async Task GetRuleHandler_IfNotExists_Should_AndReturnNotFound(string org, string app, string layoutSetName)
     {
         string url = $"{VersionPrefix(org, app)}/rule-handler?layoutSetName={layoutSetName}";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);

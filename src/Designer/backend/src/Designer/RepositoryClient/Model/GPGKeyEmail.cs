@@ -83,7 +83,7 @@ public partial class GPGKeyEmail : IEquatable<GPGKeyEmail>, IValidatableObject
         }
 
         return (this.Email == input.Email || (this.Email != null && this.Email.Equals(input.Email)))
-               && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
+            && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
     }
 
     /// <summary>

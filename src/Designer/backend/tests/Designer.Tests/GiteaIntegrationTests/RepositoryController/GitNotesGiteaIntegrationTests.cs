@@ -153,10 +153,7 @@ public class GitNotesGiteaIntegrationTests : GiteaIntegrationTestsBase<CopyAppGi
         Assert.Equal(HttpStatusCode.OK, pullResponse.StatusCode);
 
         // Add a new file and try to push with designer
-        await File.WriteAllTextAsync(
-            $"{CreatedFolderPath}/test3.txt",
-            "I am a new file created directly with gitea"
-        );
+        await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file created directly with gitea");
         using var commitAndPushContent = new StringContent(
             GetCommitInfoJson("test commit", org, targetRepo),
             Encoding.UTF8,
@@ -191,10 +188,7 @@ public class GitNotesGiteaIntegrationTests : GiteaIntegrationTestsBase<CopyAppGi
         Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
 
         // Add a new file and try to push with designer
-        await File.WriteAllTextAsync(
-            $"{CreatedFolderPath}/test3.txt",
-            "I am a new file created directly with gitea"
-        );
+        await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file created directly with gitea");
 
         // Try pull file with designer endpoint
         using HttpResponseMessage pullResponse = await HttpClient.GetAsync(

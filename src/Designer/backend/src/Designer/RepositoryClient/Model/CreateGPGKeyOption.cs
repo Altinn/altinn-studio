@@ -89,7 +89,7 @@ public partial class CreateGPGKeyOption : IEquatable<CreateGPGKeyOption>, IValid
         }
 
         return this.ArmoredPublicKey == input.ArmoredPublicKey
-               || (this.ArmoredPublicKey != null && this.ArmoredPublicKey.Equals(input.ArmoredPublicKey));
+            || (this.ArmoredPublicKey != null && this.ArmoredPublicKey.Equals(input.ArmoredPublicKey));
     }
 
     /// <summary>

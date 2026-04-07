@@ -181,11 +181,7 @@ public class PolicyController : ControllerBase
 
     [HttpGet]
     [Route("accesspackageoptions")]
-    public async Task<ActionResult> GetAccessPackageOptions(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
+    public async Task<ActionResult> GetAccessPackageOptions(string org, string app, CancellationToken cancellationToken)
     {
         List<AccessPackageAreaGroup> accessPackageOptions = await _policyOptions.GetAccessPackageOptions(
             cancellationToken

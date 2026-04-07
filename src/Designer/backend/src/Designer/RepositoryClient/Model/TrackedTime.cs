@@ -116,10 +116,10 @@ public partial class TrackedTime : IEquatable<TrackedTime>, IValidatableObject
         }
 
         return (this.Created == input.Created || (this.Created != null && this.Created.Equals(input.Created)))
-               && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
-               && (this.IssueId == input.IssueId || (this.IssueId != null && this.IssueId.Equals(input.IssueId)))
-               && (this.Time == input.Time || (this.Time != null && this.Time.Equals(input.Time)))
-               && (this.UserId == input.UserId || (this.UserId != null && this.UserId.Equals(input.UserId)));
+            && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+            && (this.IssueId == input.IssueId || (this.IssueId != null && this.IssueId.Equals(input.IssueId)))
+            && (this.Time == input.Time || (this.Time != null && this.Time.Equals(input.Time)))
+            && (this.UserId == input.UserId || (this.UserId != null && this.UserId.Equals(input.UserId)));
     }
 
     /// <summary>

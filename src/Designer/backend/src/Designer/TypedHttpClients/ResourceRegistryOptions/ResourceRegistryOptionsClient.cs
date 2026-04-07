@@ -33,10 +33,7 @@ public class ResourceRegistryOptionsClients : IResourceRegistryOptions
         {
             HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
             string content = await response.Content.ReadAsStringAsync(cancellationToken);
-            eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(
-                content,
-                _dataNorgeSerilizerOptions
-            );
+            eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(content, _dataNorgeSerilizerOptions);
             return eurovoc;
         }
         catch (Exception ex)

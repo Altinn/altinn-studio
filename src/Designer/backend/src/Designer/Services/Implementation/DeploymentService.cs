@@ -501,10 +501,7 @@ public class DeploymentService : IDeploymentService
             return false;
         }
 
-        await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(
-            editingContext,
-            environment
-        );
+        await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(editingContext, environment);
         _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
 
         return true;
@@ -666,8 +663,7 @@ public class DeploymentService : IDeploymentService
             new()
             {
                 Type = "mrkdwn",
-                Text =
-                    $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow())}|Grafana>",
+                Text = $"<{GrafanaPodLogsUrl(org, environment, app, startedDate, _timeProvider.GetUtcNow())}|Grafana>",
             },
         };
 
@@ -738,9 +734,7 @@ public class DeploymentService : IDeploymentService
         DateTimeOffset finishedDate
     )
     {
-        var baseDomain = environment.IsProd()
-            ? $"https://{org}.apps.altinn.no"
-            : $"https://{org}.apps.tt02.altinn.no";
+        var baseDomain = environment.IsProd() ? $"https://{org}.apps.altinn.no" : $"https://{org}.apps.tt02.altinn.no";
 
         var path = "/monitor/d/ae1906c2hbjeoe/pod-console-error-logs";
 

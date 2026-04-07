@@ -16,8 +16,7 @@ public class DeleteMetadataForAttachmentTests
     : DesignerEndpointsTestsBase<DeleteMetadataForAttachmentTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/metadata";
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
 
     public DeleteMetadataForAttachmentTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

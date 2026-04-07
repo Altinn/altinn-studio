@@ -187,40 +187,29 @@ public partial class GPGKey : IEquatable<GPGKey>, IValidatableObject
         }
 
         return (
-                   this.CanCertify == input.CanCertify
-                   || (this.CanCertify != null && this.CanCertify.Equals(input.CanCertify))
-               )
-               && (
-                   this.CanEncryptComms == input.CanEncryptComms
-                   || (this.CanEncryptComms != null && this.CanEncryptComms.Equals(input.CanEncryptComms))
-               )
-               && (
-                   this.CanEncryptStorage == input.CanEncryptStorage
-                   || (this.CanEncryptStorage != null && this.CanEncryptStorage.Equals(input.CanEncryptStorage))
-               )
-               && (this.CanSign == input.CanSign || (this.CanSign != null && this.CanSign.Equals(input.CanSign)))
-               && (
-                   this.CreatedAt == input.CreatedAt
-                   || (this.CreatedAt != null && this.CreatedAt.Equals(input.CreatedAt))
-               )
-               && (this.Emails == input.Emails || (this.Emails != null && this.Emails.SequenceEqual(input.Emails)))
-               && (
-                   this.ExpiresAt == input.ExpiresAt
-                   || (this.ExpiresAt != null && this.ExpiresAt.Equals(input.ExpiresAt))
-               )
-               && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
-               && (this.KeyId == input.KeyId || (this.KeyId != null && this.KeyId.Equals(input.KeyId)))
-               && (
-                   this.PrimaryKeyId == input.PrimaryKeyId
-                   || (this.PrimaryKeyId != null && this.PrimaryKeyId.Equals(input.PrimaryKeyId))
-               )
-               && (
-                   this.PublicKey == input.PublicKey
-                   || (this.PublicKey != null && this.PublicKey.Equals(input.PublicKey))
-               )
-               && (
-                   this.Subkeys == input.Subkeys || (this.Subkeys != null && this.Subkeys.SequenceEqual(input.Subkeys))
-               );
+                this.CanCertify == input.CanCertify
+                || (this.CanCertify != null && this.CanCertify.Equals(input.CanCertify))
+            )
+            && (
+                this.CanEncryptComms == input.CanEncryptComms
+                || (this.CanEncryptComms != null && this.CanEncryptComms.Equals(input.CanEncryptComms))
+            )
+            && (
+                this.CanEncryptStorage == input.CanEncryptStorage
+                || (this.CanEncryptStorage != null && this.CanEncryptStorage.Equals(input.CanEncryptStorage))
+            )
+            && (this.CanSign == input.CanSign || (this.CanSign != null && this.CanSign.Equals(input.CanSign)))
+            && (this.CreatedAt == input.CreatedAt || (this.CreatedAt != null && this.CreatedAt.Equals(input.CreatedAt)))
+            && (this.Emails == input.Emails || (this.Emails != null && this.Emails.SequenceEqual(input.Emails)))
+            && (this.ExpiresAt == input.ExpiresAt || (this.ExpiresAt != null && this.ExpiresAt.Equals(input.ExpiresAt)))
+            && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+            && (this.KeyId == input.KeyId || (this.KeyId != null && this.KeyId.Equals(input.KeyId)))
+            && (
+                this.PrimaryKeyId == input.PrimaryKeyId
+                || (this.PrimaryKeyId != null && this.PrimaryKeyId.Equals(input.PrimaryKeyId))
+            )
+            && (this.PublicKey == input.PublicKey || (this.PublicKey != null && this.PublicKey.Equals(input.PublicKey)))
+            && (this.Subkeys == input.Subkeys || (this.Subkeys != null && this.Subkeys.SequenceEqual(input.Subkeys)));
     }
 
     /// <summary>

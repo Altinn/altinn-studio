@@ -56,11 +56,7 @@ public class AltinnGitRepositoryTests
     public void Constructor_InValidParametersCorrectPath_ShouldFail(string org, string repository, string developer)
     {
         string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-        string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(
-            "ttd",
-            "hvem-er-hvem",
-            "testUser"
-        );
+        string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
 
         Assert.Throws<ArgumentException>(() =>
             new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
@@ -95,13 +91,7 @@ public class AltinnGitRepositoryTests
         string repositoryDirectory = Path.Combine(repositoriesRootDirectory, "..", "Deployments");
 
         Assert.Throws<ArgumentException>(() =>
-            new AltinnGitRepository(
-                "ttd",
-                "hvem-er-hvem",
-                "testUser",
-                repositoriesRootDirectory,
-                repositoryDirectory
-            )
+            new AltinnGitRepository("ttd", "hvem-er-hvem", "testUser", repositoriesRootDirectory, repositoryDirectory)
         );
     }
 
@@ -127,9 +117,7 @@ public class AltinnGitRepositoryTests
         {
             var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
             Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
-            Assert.True(
-                altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio", "settings.json"))
-            );
+            Assert.True(altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio", "settings.json")));
         }
         finally
         {

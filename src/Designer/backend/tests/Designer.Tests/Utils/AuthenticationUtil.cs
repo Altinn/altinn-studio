@@ -51,9 +51,7 @@ public static class AuthenticationUtil
             .Setup(x => x.HttpContext.RequestServices.GetService(typeof(IAuthenticationService)))
             .Returns(authenticationServiceMock.Object);
 
-        var authResult = AuthenticateResult.Success(
-            new AuthenticationTicket(GetTestClaimsPrincipal(username), scheme)
-        );
+        var authResult = AuthenticateResult.Success(new AuthenticationTicket(GetTestClaimsPrincipal(username), scheme));
 
         authResult.Properties.StoreTokens([new AuthenticationToken { Name = tokenName, Value = tokenValue }]);
 

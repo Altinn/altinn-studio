@@ -152,16 +152,11 @@ public class TextsService : ITextsService
             );
             if (textResourceContainsKey is null)
             {
-                textResourceObject.Resources.Insert(
-                    0,
-                    new TextResourceElement() { Id = kvp.Key, Value = kvp.Value }
-                );
+                textResourceObject.Resources.Insert(0, new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
             }
             else
             {
-                int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(
-                    textResourceContainsKey
-                );
+                int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
                 if (textResourceContainsKey.Variables == null)
                 {
                     textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement

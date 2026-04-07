@@ -381,10 +381,7 @@ public static class JsonSchemaAssertions
         {
             if (!actual.Definitions.TryGetValue(key, out JsonSchema actualProperty))
             {
-                throw ContainsException.ForKeyNotFound(
-                    key,
-                    string.Join(',', actual.Definitions.Select(x => x.Key))
-                );
+                throw ContainsException.ForKeyNotFound(key, string.Join(',', actual.Definitions.Select(x => x.Key)));
             }
 
             IsEquivalentTo(value, actualProperty);
@@ -408,10 +405,7 @@ public static class JsonSchemaAssertions
         {
             if (!actual.Definitions.TryGetValue(key, out JsonSchema actualProperty))
             {
-                throw ContainsException.ForKeyNotFound(
-                    key,
-                    string.Join(',', actual.Definitions.Select(x => x.Key))
-                );
+                throw ContainsException.ForKeyNotFound(key, string.Join(',', actual.Definitions.Select(x => x.Key)));
             }
 
             IsEquivalentTo(value, actualProperty);

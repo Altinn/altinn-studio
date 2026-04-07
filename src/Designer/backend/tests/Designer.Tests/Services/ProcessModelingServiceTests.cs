@@ -23,10 +23,7 @@ public class ProcessModelingServiceTests : FluentTestsBase<ProcessModelingServic
         _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
-        _appDevelopmentService = new AppDevelopmentService(
-            _altinnGitRepositoryFactory,
-            schemaModelServiceMock.Object
-        );
+        _appDevelopmentService = new AppDevelopmentService(_altinnGitRepositoryFactory, schemaModelServiceMock.Object);
     }
 
     [Theory]

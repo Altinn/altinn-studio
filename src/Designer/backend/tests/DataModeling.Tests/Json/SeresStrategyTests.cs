@@ -245,10 +245,7 @@ public class SeresStrategyTests
 
         var metadata = analyzer.AnalyzeSchema(schema);
 
-        Assert.Contains(
-            CompatibleXsdType.ComplexContentExtension,
-            metadata.GetCompatibleTypes(JsonPointer.Parse("#"))
-        );
+        Assert.Contains(CompatibleXsdType.ComplexContentExtension, metadata.GetCompatibleTypes(JsonPointer.Parse("#")));
         Assert.Contains(
             CompatibleXsdType.ComplexType,
             metadata.GetCompatibleTypes(JsonPointer.Parse("#/$defs/myBase"))

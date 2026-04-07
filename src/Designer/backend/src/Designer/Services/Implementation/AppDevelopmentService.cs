@@ -302,11 +302,11 @@ public class AppDevelopmentService : IAppDevelopmentService
                 cancellationToken
             );
             return applicationMetadata
-                       .DataTypes.FirstOrDefault(data =>
-                           data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef)
-                       )
-                       ?.Id
-                   ?? string.Empty;
+                    .DataTypes.FirstOrDefault(data =>
+                        data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef)
+                    )
+                    ?.Id
+                ?? string.Empty;
         }
 
         LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
@@ -315,10 +315,7 @@ public class AppDevelopmentService : IAppDevelopmentService
         return foundLayoutSet.DataType;
     }
 
-    private IEnumerable<string> GetAppMetadataModelIds(
-        ApplicationMetadata applicationMetadata,
-        bool onlyUnReferenced
-    )
+    private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata, bool onlyUnReferenced)
     {
         var appMetaDataDataTypes = applicationMetadata.DataTypes.Where(data =>
             data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef)
@@ -326,9 +323,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 
         if (onlyUnReferenced)
         {
-            var unReferencedDataTypes = appMetaDataDataTypes.Where(dataType =>
-                string.IsNullOrEmpty(dataType.TaskId)
-            );
+            var unReferencedDataTypes = appMetaDataDataTypes.Where(dataType => string.IsNullOrEmpty(dataType.TaskId));
             return unReferencedDataTypes.Select(datatype => datatype.Id);
         }
 
@@ -361,9 +356,9 @@ public class AppDevelopmentService : IAppDevelopmentService
     private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
     {
         return definitions
-                   .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
-                   ?.ExtensionElements?.TaskExtension?.TaskType
-               ?? string.Empty;
+                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
+                ?.ExtensionElements?.TaskExtension?.TaskType
+            ?? string.Empty;
     }
 
     public async Task<LayoutSetsModel> GetLayoutSetsExtended(
@@ -893,9 +888,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 
         try
         {
-            indexFilePath = altinnAppGitRepository
-                .FindFiles(new[] { "App/views/Home/Index.cshtml" })
-                .FirstOrDefault();
+            indexFilePath = altinnAppGitRepository.FindFiles(new[] { "App/views/Home/Index.cshtml" }).FirstOrDefault();
         }
         catch (DirectoryNotFoundException)
         {
@@ -903,7 +896,7 @@ public class AppDevelopmentService : IAppDevelopmentService
         }
 
         return indexFilePath is not null
-               && AppFrontendVersionHelper.TryGetFrontendVersionFromIndexFile(indexFilePath, out version);
+            && AppFrontendVersionHelper.TryGetFrontendVersionFromIndexFile(indexFilePath, out version);
     }
 
     public async Task AddComponentToLayout(
@@ -1032,8 +1025,8 @@ public class AppDevelopmentService : IAppDevelopmentService
                         }
                         else
                         {
-                            Reference updatedReference = updatedComponentsFromCurrentLayoutSet.FirstOrDefault(
-                                item => item.Id == componentId
+                            Reference updatedReference = updatedComponentsFromCurrentLayoutSet.FirstOrDefault(item =>
+                                item.Id == componentId
                             );
                             if (updatedReference != null)
                             {
@@ -1088,9 +1081,7 @@ public class AppDevelopmentService : IAppDevelopmentService
                                     string taskId = target["taskId"]?.GetValue<string>();
                                     string layoutSetId = string.IsNullOrEmpty(taskId)
                                         ? layoutSet.Id
-                                        : layoutSets
-                                            ?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)
-                                            ?.Id;
+                                        : layoutSets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
 
                                     if (
                                         (
@@ -1138,9 +1129,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 
                                         if (!string.IsNullOrEmpty(taskId))
                                         {
-                                            updatedReference = updatedTasks.FirstOrDefault(item =>
-                                                item.Id == taskId
-                                            );
+                                            updatedReference = updatedTasks.FirstOrDefault(item => item.Id == taskId);
                                             if (updatedReference != null)
                                             {
                                                 target["taskId"] = updatedReference.NewId;
@@ -1158,8 +1147,7 @@ public class AppDevelopmentService : IAppDevelopmentService
                                                 ?.GetValue<string>();
                                             if (
                                                 deletedComponents.Exists(item =>
-                                                    item.LayoutSetName == layoutSetId
-                                                    && item.Id == overrideComponentId
+                                                    item.LayoutSetName == layoutSetId && item.Id == overrideComponentId
                                                 )
                                             )
                                             {
@@ -1168,10 +1156,8 @@ public class AppDevelopmentService : IAppDevelopmentService
                                             }
                                             else
                                             {
-                                                Reference updatedReference = updatedComponents.FirstOrDefault(
-                                                    item =>
-                                                        item.LayoutSetName == layoutSetId
-                                                        && item.Id == overrideComponentId
+                                                Reference updatedReference = updatedComponents.FirstOrDefault(item =>
+                                                    item.LayoutSetName == layoutSetId && item.Id == overrideComponentId
                                                 );
                                                 if (updatedReference != null)
                                                 {
@@ -1204,12 +1190,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 
                 if (hasLayoutChanges)
                 {
-                    await altinnAppGitRepository.SaveLayout(
-                        layoutSet.Id,
-                        layout.Key,
-                        layout.Value,
-                        cancellationToken
-                    );
+                    await altinnAppGitRepository.SaveLayout(layoutSet.Id, layout.Key, layout.Value, cancellationToken);
                     hasChanges = true;
                 }
             }

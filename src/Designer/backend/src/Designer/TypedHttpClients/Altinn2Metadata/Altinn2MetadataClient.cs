@@ -40,9 +40,7 @@ public class Altinn2MetadataClient : IAltinn2MetadataClient
         response.EnsureSuccessStatusCode();
 
         string contentString = await response.Content.ReadAsStringAsync();
-        ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(
-            contentString
-        );
+        ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(contentString);
         return serviceResource;
     }
 

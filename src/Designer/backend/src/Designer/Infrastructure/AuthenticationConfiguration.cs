@@ -160,10 +160,7 @@ public static class AuthenticationConfiguration
     )
     {
         var oidcSettings = configuration.GetSection(nameof(OidcLoginSettings)).Get<OidcLoginSettings>();
-        if (
-            !string.IsNullOrWhiteSpace(oidcSettings.ClientId)
-            && !string.IsNullOrWhiteSpace(oidcSettings.ClientSecret)
-        )
+        if (!string.IsNullOrWhiteSpace(oidcSettings.ClientId) && !string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
         {
             return oidcSettings;
         }
@@ -175,9 +172,7 @@ public static class AuthenticationConfiguration
             oidcSettings.ClientSecret = clientSecret;
         }
 
-        if (
-            string.IsNullOrWhiteSpace(oidcSettings.ClientId) || string.IsNullOrWhiteSpace(oidcSettings.ClientSecret)
-        )
+        if (string.IsNullOrWhiteSpace(oidcSettings.ClientId) || string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
         {
             throw new ArgumentException("ClientId or ClientSecret is missing in the configuration");
         }

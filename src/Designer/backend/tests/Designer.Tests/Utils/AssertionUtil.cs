@@ -22,11 +22,7 @@ public static class AssertionUtil
     /// <param name="expected">A collection of expected instances</param>
     /// <param name="actual">The collection of actual instances</param>
     /// <param name="assertMethod">The assertion method to be used</param>
-    public static void AssertCollections<T>(
-        ICollection<T> expected,
-        ICollection<T> actual,
-        Action<T, T> assertMethod
-    )
+    public static void AssertCollections<T>(ICollection<T> expected, ICollection<T> actual, Action<T, T> assertMethod)
     {
         if (expected == null)
         {
@@ -108,10 +104,7 @@ public static class AssertionUtil
             expected.GetResourceAttributes().Attributes.Count,
             actual.GetResourceAttributes().Attributes.Count
         );
-        Assert.Equal(
-            expected.GetSubjectAttributes().Attributes.Count,
-            actual.GetSubjectAttributes().Attributes.Count
-        );
+        Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
         AssertEqual(expected.Attributes, actual.Attributes);
     }
 
@@ -185,10 +178,7 @@ public static class AssertionUtil
         AssertXacmlAttriuteDesignator(expected.AttributeDesignator, actual.AttributeDesignator);
     }
 
-    public static void AssertXacmlAttriuteDesignator(
-        XacmlAttributeDesignator expected,
-        XacmlAttributeDesignator actual
-    )
+    public static void AssertXacmlAttriuteDesignator(XacmlAttributeDesignator expected, XacmlAttributeDesignator actual)
     {
         Assert.Equal(expected.Category, actual.Category);
         Assert.Equal(expected.DataType, actual.DataType);
@@ -223,15 +213,9 @@ public static class AssertionUtil
 
     public static void AssertEqualTo<TType>(TType expected, TType actual)
     {
-        JsonSerializerOptions options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        };
+        JsonSerializerOptions options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         Assert.True(
-            JsonUtils.DeepEquals(
-                JsonSerializer.Serialize(expected, options),
-                JsonSerializer.Serialize(actual, options)
-            )
+            JsonUtils.DeepEquals(JsonSerializer.Serialize(expected, options), JsonSerializer.Serialize(actual, options))
         );
     }
 
@@ -423,10 +407,7 @@ public static class AssertionUtil
         AssertEqual(expected.AttributeValues, actual.AttributeValues);
     }
 
-    private static void AssertEqual(
-        ICollection<XacmlAttributeValue> expected,
-        ICollection<XacmlAttributeValue> actual
-    )
+    private static void AssertEqual(ICollection<XacmlAttributeValue> expected, ICollection<XacmlAttributeValue> actual)
     {
         List<XacmlAttributeValue> expectedList = expected.ToList();
         List<XacmlAttributeValue> actualList = actual.ToList();

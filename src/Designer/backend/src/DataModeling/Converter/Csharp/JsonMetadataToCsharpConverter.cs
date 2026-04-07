@@ -33,8 +33,7 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
 
         var rootElementType = serviceMetadata.GetRootElement();
         string modelNamespace =
-            _generationSettings.ModelNamespace
-            + (separateNamespaces ? $".{rootElementType.TypeName}" : string.Empty);
+            _generationSettings.ModelNamespace + (separateNamespaces ? $".{rootElementType.TypeName}" : string.Empty);
 
         CreateModelFromMetadataRecursive(
             classes,
@@ -216,12 +215,7 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
         else
         {
             elementOrder += 1;
-            AddXmlElementAnnotation(
-                element,
-                classBuilder,
-                elementOrder,
-                !isValueType && (element.Nillable ?? false)
-            );
+            AddXmlElementAnnotation(element, classBuilder, elementOrder, !isValueType && (element.Nillable ?? false));
 
             // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
             // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -397,13 +391,13 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
             {
                 classBuilder.AppendLine(
                     Indent(2)
-                    + "public "
-                    + dataType
-                    + " "
-                    + element.Name
-                    + " { get; set; } = "
-                    + element.FixedValue
-                    + ";\n"
+                        + "public "
+                        + dataType
+                        + " "
+                        + element.Name
+                        + " { get; set; } = "
+                        + element.FixedValue
+                        + ";\n"
                 );
             }
         }
@@ -567,9 +561,7 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
                 );
                 break;
             case BaseValueType.GMonth:
-                classBuilder.AppendLine(
-                    Indent(2) + "[RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]"
-                );
+                classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
                 break;
             case BaseValueType.GDay:
                 classBuilder.AppendLine(
@@ -579,25 +571,25 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
             case BaseValueType.Time:
                 classBuilder.AppendLine(
                     Indent(2)
-                    + "[RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\""
-                    + errorMessage
-                    + ")]"
+                        + "[RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\""
+                        + errorMessage
+                        + ")]"
                 );
                 break;
             case BaseValueType.TimePeriod:
                 classBuilder.AppendLine(
                     Indent(2)
-                    + "[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\""
-                    + errorMessage
-                    + ")]"
+                        + "[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\""
+                        + errorMessage
+                        + ")]"
                 );
                 break;
             case BaseValueType.Date:
                 classBuilder.AppendLine(
                     Indent(2)
-                    + "[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$\""
-                    + errorMessage
-                    + ")]"
+                        + "[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$\""
+                        + errorMessage
+                        + ")]"
                 );
                 break;
         }
@@ -638,17 +630,17 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
         return typeName switch
         {
             BaseValueType.String
-                or BaseValueType.NormalizedString
-                or BaseValueType.Token
-                or BaseValueType.GDay
-                or BaseValueType.GYear
-                or BaseValueType.GYearMonth
-                or BaseValueType.GMonth
-                or BaseValueType.Time
-                or BaseValueType.TimePeriod
-                or BaseValueType.Date
-                or BaseValueType.AnyURI
-                or null => ("string", false),
+            or BaseValueType.NormalizedString
+            or BaseValueType.Token
+            or BaseValueType.GDay
+            or BaseValueType.GYear
+            or BaseValueType.GYearMonth
+            or BaseValueType.GMonth
+            or BaseValueType.Time
+            or BaseValueType.TimePeriod
+            or BaseValueType.Date
+            or BaseValueType.AnyURI
+            or null => ("string", false),
             BaseValueType.Int => ("int", true),
             BaseValueType.Short => ("short", true),
             BaseValueType.Decimal => ("decimal", true),
@@ -683,7 +675,7 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
         classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"altinnRowId\")]");
         classBuilder.AppendLine(
             Indent(2)
-            + "[System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]"
+                + "[System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]"
         );
         classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
         classBuilder.AppendLine(Indent(2) + "public Guid AltinnRowId { get; set; }");

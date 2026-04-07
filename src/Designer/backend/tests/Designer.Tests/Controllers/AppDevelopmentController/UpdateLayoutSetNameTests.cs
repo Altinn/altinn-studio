@@ -24,12 +24,7 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-    public async Task UpdateLayoutSetName_ReturnsOk(
-        string org,
-        string app,
-        string developer,
-        string oldLayoutSetName
-    )
+    public async Task UpdateLayoutSetName_ReturnsOk(string org, string app, string developer, string oldLayoutSetName)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -71,11 +66,7 @@ public class UpdateLayoutSetNameTests(WebApplicationFactory<Program> factory)
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(
-                $"\"{ExistingLayoutSetName}\"",
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            ),
+            Content = new StringContent($"\"{ExistingLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);

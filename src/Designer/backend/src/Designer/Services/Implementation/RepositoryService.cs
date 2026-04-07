@@ -368,12 +368,7 @@ public class RepositoryService : IRepository
         var options = new CreateRepoOption(targetRepository);
         string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
         AltinnAuthenticatedRepoEditingContext sourceContext =
-            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                org,
-                sourceRepository,
-                developer,
-                token
-            );
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, sourceRepository, developer, token);
         AltinnAuthenticatedRepoEditingContext targetContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
                 targetOrg,
@@ -469,10 +464,7 @@ public class RepositoryService : IRepository
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="options">the options for creating a repository</param>
     /// <returns>The newly created repository</returns>
-    public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(
-        string org,
-        CreateRepoOption options
-    )
+    public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, CreateRepoOption options)
     {
         return await _giteaClient.CreateRepository(org, options);
     }
@@ -621,12 +613,11 @@ public class RepositoryService : IRepository
                 try
                 {
                     using FileStream stream = File.OpenRead(fullPath);
-                    ServiceResource result =
-                        await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(
-                            stream,
-                            _serializerOptions,
-                            cancellationToken
-                        );
+                    ServiceResource result = await System.Text.Json.JsonSerializer.DeserializeAsync<ServiceResource>(
+                        stream,
+                        _serializerOptions,
+                        cancellationToken
+                    );
 
                     sw.Stop();
                     // Structured log: file path, file name and elapsed ms

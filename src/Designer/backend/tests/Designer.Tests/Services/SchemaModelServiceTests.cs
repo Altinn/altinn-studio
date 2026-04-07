@@ -381,9 +381,7 @@ public class SchemaModelServiceTests
         await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         try
         {
-            var xsdStream = SharedResourcesHelper.LoadTestData(
-                "Model/XmlSchema/General/SimpleValidNonSeresSchema.xsd"
-            );
+            var xsdStream = SharedResourcesHelper.LoadTestData("Model/XmlSchema/General/SimpleValidNonSeresSchema.xsd");
             var schemaName = "SimpleValidNonSeresSchema";
             var fileName = $"{schemaName}.xsd";
             var relativeDirectory = "App/models";

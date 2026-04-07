@@ -39,9 +39,7 @@ public static class Compiler
                 )
             )
             .AddReferences(
-                MetadataReference.CreateFromFile(
-                    typeof(System.Text.Json.JsonElement).GetTypeInfo().Assembly.Location
-                )
+                MetadataReference.CreateFromFile(typeof(System.Text.Json.JsonElement).GetTypeInfo().Assembly.Location)
             )
             .AddReferences(MetadataReference.CreateFromFile(typeof(RangeAttribute).GetTypeInfo().Assembly.Location))
             .AddSyntaxTrees(syntaxTree);
@@ -55,9 +53,7 @@ public static class Compiler
             {
                 "CS8019", // CS8019: Unnecessary using directive.
             };
-            var diagnostics = result
-                .Diagnostics.Where(d => !ignoredDiagnostics.Contains(d.Descriptor.Id))
-                .ToArray();
+            var diagnostics = result.Diagnostics.Where(d => !ignoredDiagnostics.Contains(d.Descriptor.Id)).ToArray();
             if (diagnostics.Any())
             {
                 List<string> customErrorMessages = new();
@@ -65,13 +61,11 @@ public static class Compiler
                 {
                     customErrorMessages.Add(
                         diagnostic.Id
-                        + ""
-                        + diagnostic.GetMessage()
-                        + csharpCode[
-                            (diagnostic.Location.SourceSpan.Start - 10)..(
-                                diagnostic.Location.SourceSpan.End + 10
-                            )
-                        ]
+                            + ""
+                            + diagnostic.GetMessage()
+                            + csharpCode[
+                                (diagnostic.Location.SourceSpan.Start - 10)..(diagnostic.Location.SourceSpan.End + 10)
+                            ]
                     );
                 }
 

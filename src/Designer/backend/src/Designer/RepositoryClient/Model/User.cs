@@ -127,10 +127,10 @@ public partial class User : IEquatable<User>, IValidatableObject
         }
 
         return (AvatarUrl == input.AvatarUrl || (AvatarUrl != null && AvatarUrl.Equals(input.AvatarUrl)))
-               && (Email == input.Email || (Email != null && Email.Equals(input.Email)))
-               && (FullName == input.FullName || (FullName != null && FullName.Equals(input.FullName)))
-               && (Id == input.Id || (Id != null && Id.Equals(input.Id)))
-               && (Login == input.Login || (Login != null && Login.Equals(input.Login)));
+            && (Email == input.Email || (Email != null && Email.Equals(input.Email)))
+            && (FullName == input.FullName || (FullName != null && FullName.Equals(input.FullName)))
+            && (Id == input.Id || (Id != null && Id.Equals(input.Id)))
+            && (Login == input.Login || (Login != null && Login.Equals(input.Login)));
     }
 
     /// <summary>

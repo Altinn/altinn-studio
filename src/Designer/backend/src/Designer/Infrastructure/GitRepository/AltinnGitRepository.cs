@@ -138,8 +138,7 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
         }
         else
         {
-            (AltinnStudioSettings altinnStudioSettings, bool needsSaving) =
-                await MigrateExistingAltinnStudioSettings();
+            (AltinnStudioSettings altinnStudioSettings, bool needsSaving) = await MigrateExistingAltinnStudioSettings();
 
             if (needsSaving)
             {
@@ -168,7 +167,7 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     private async Task<(
         AltinnStudioSettings AltinnStudioSettinngs,
         bool NeedsSaving
-        )> MigrateExistingAltinnStudioSettings()
+    )> MigrateExistingAltinnStudioSettings()
     {
         string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
         AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(

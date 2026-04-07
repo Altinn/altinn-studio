@@ -324,10 +324,7 @@ public static class XmlSchemaAssertions
         IsEquivalentTo(expected.AnyAttribute, actual.AnyAttribute);
     }
 
-    private static void Equal(
-        XmlSchemaComplexContentRestriction expected,
-        XmlSchemaComplexContentRestriction actual
-    )
+    private static void Equal(XmlSchemaComplexContentRestriction expected, XmlSchemaComplexContentRestriction actual)
     {
         AnnotatedEqual(expected, actual);
         Assert.Equal(expected.BaseTypeName, actual.BaseTypeName);

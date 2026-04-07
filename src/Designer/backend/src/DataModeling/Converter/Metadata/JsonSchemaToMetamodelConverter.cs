@@ -651,10 +651,7 @@ public class JsonSchemaToMetamodelConverter
         BaseValueType parsedBaseValueType = BaseValueType.String;
         bool parseSuccess = false;
 
-        if (
-            subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword)
-            && !string.IsNullOrEmpty(xsdTypeKeyword.Value)
-        )
+        if (subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword) && !string.IsNullOrEmpty(xsdTypeKeyword.Value))
         {
             parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
         }
@@ -677,10 +674,7 @@ public class JsonSchemaToMetamodelConverter
     {
         BaseValueType baseValueType = BaseValueType.String;
 
-        if (
-            subSchema.TryGetKeyword(out FormatKeyword formatKeyword)
-            && !string.IsNullOrEmpty(formatKeyword.Value.Key)
-        )
+        if (subSchema.TryGetKeyword(out FormatKeyword formatKeyword) && !string.IsNullOrEmpty(formatKeyword.Value.Key))
         {
             var format = formatKeyword.Value.Key;
             switch (format)

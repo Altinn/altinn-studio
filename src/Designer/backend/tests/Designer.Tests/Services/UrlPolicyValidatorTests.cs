@@ -10,11 +10,7 @@ public class UrlPolicyValidatorTests
     public void IsAllowed_WhenBlockedDomainButWildcardAllowListMatches_ShouldReturnTrue()
     {
         var validator = new UrlPolicyValidator(
-            new UrlValidationSettings
-            {
-                AllowedList = ["example.com/repos/*/wwwroot/*"],
-                BlockedList = ["example.com"],
-            }
+            new UrlValidationSettings { AllowedList = ["example.com/repos/*/wwwroot/*"], BlockedList = ["example.com"] }
         );
 
         bool isAllowed = validator.IsAllowed(
@@ -100,11 +96,7 @@ public class UrlPolicyValidatorTests
     public void IsAllowed_WhenSubdomainIsExplicitlyAllowed_ShouldReturnTrue()
     {
         var validator = new UrlPolicyValidator(
-            new UrlValidationSettings
-            {
-                AllowedList = ["sub.example.com/allowedpath*"],
-                BlockedList = ["example.com"],
-            }
+            new UrlValidationSettings { AllowedList = ["sub.example.com/allowedpath*"], BlockedList = ["example.com"] }
         );
 
         bool isAllowed = validator.IsAllowed("https://sub.example.com/allowedpath/image.png");

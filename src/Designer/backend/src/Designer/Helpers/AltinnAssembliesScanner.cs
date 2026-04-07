@@ -76,8 +76,8 @@ public static class AltinnAssembliesScanner
     private static bool IsAltinnLibrary(RuntimeLibrary library)
     {
         return library.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase)
-               || library.Dependencies.Any(d =>
-                   d.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase)
-               );
+            || library.Dependencies.Any(d =>
+                d.Name.StartsWith(AltinnAssemblyIdentifier, StringComparison.OrdinalIgnoreCase)
+            );
     }
 }

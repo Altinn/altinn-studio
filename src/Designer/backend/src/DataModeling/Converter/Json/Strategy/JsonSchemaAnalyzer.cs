@@ -298,10 +298,7 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
 
         // If we have 2 or more sub-schema's and one of them has a valid type of null, it should
         // be represented as a nillable element in the XSD.
-        if (
-            typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword)
-            && typeKeyword.Type == SchemaValueType.Null
-        )
+        if (typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Null)
         {
             var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
             valueSchema = refKeywordSubSchema;
@@ -320,8 +317,8 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
     protected static bool HasTypeKeywordWithNullAndOtherTypes(JsonSchema schema)
     {
         return schema.TryGetKeyword(out TypeKeyword typeKeywordSingle)
-               && typeKeywordSingle.Type.HasFlag(SchemaValueType.Null)
-               && typeKeywordSingle.Type > SchemaValueType.Null;
+            && typeKeywordSingle.Type.HasFlag(SchemaValueType.Null)
+            && typeKeywordSingle.Type > SchemaValueType.Null;
     }
 
     /// <summary>
@@ -441,7 +438,7 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
             }
 
             return IsValidSimpleTypeOrSimpleTypeRestriction(typeSchema)
-                   && prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
+                && prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
         });
 
         if (attributePropertiesCount != (properties.Properties.Count - 1))
@@ -562,9 +559,7 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
         return hasValueProperty;
     }
 
-    private static List<(string PropertyName, JsonSchema PropertySchema)> FindSimpleContentProperties(
-        JsonSchema schema
-    )
+    private static List<(string PropertyName, JsonSchema PropertySchema)> FindSimpleContentProperties(JsonSchema schema)
     {
         var properties = new List<(string PropertyName, JsonSchema PropertySchema)>();
 
@@ -661,10 +656,8 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
         {
             SchemaValueType.Object or SchemaValueType.Null => false,
             SchemaValueType.Array => false,
-            SchemaValueType.Boolean
-                or SchemaValueType.String
-                or SchemaValueType.Number
-                or SchemaValueType.Integer => true,
+            SchemaValueType.Boolean or SchemaValueType.String or SchemaValueType.Number or SchemaValueType.Integer =>
+                true,
             _ => false,
         };
     }

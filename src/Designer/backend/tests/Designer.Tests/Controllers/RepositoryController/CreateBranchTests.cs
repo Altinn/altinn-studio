@@ -43,11 +43,7 @@ public class CreateBranchTests
         // Arrange
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
         var expectedBranch = new Branch { Name = branchName };
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock.Setup(x => x.CreateBranch(editingContext, branchName)).ReturnsAsync(expectedBranch);
 
@@ -75,11 +71,7 @@ public class CreateBranchTests
     {
         // Arrange
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock
             .Setup(x => x.CreateBranch(editingContext, branchName))

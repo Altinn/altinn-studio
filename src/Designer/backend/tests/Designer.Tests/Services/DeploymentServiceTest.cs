@@ -66,9 +66,7 @@ public class DeploymentServiceTest
         _releaseRepository = new Mock<IReleaseRepository>();
         _environementsService = new Mock<IEnvironmentsService>();
         _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
-        _environementsService
-            .Setup(req => req.GetEnvironments())
-            .ReturnsAsync(GetEnvironments("environments.json"));
+        _environementsService.Setup(req => req.GetEnvironments()).ReturnsAsync(GetEnvironments("environments.json"));
         _applicationInformationService = new Mock<IApplicationInformationService>();
         _mediatrMock = new Mock<IPublisher>();
         _gitOpsConfigurationManager = new Mock<IGitOpsConfigurationManager>();
@@ -76,11 +74,7 @@ public class DeploymentServiceTest
         _runtimeGatewayClient = new Mock<IRuntimeGatewayClient>();
         _runtimeGatewayClient
             .Setup(rgc =>
-                rgc.GetAppDeployments(
-                    It.IsAny<string>(),
-                    It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<CancellationToken>()
-                )
+                rgc.GetAppDeployments(It.IsAny<string>(), It.IsAny<AltinnEnvironment>(), It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(
                 (string org, AltinnEnvironment environment, CancellationToken _) =>
@@ -118,9 +112,7 @@ public class DeploymentServiceTest
             .Returns(Task.CompletedTask);
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _deploymentRepository
@@ -156,10 +148,7 @@ public class DeploymentServiceTest
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
         // Act
-        DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(
-            authenticatedContext,
-            deploymentModel
-        );
+        DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
         // Assert
         Assert.NotNull(deploymentEntity);
@@ -233,9 +222,7 @@ public class DeploymentServiceTest
             .Returns(Task.CompletedTask);
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _deploymentRepository
@@ -315,11 +302,7 @@ public class DeploymentServiceTest
         );
 
         // Act
-        SearchResults<DeploymentEntity> results = await deploymentService.GetAsync(
-            org,
-            app,
-            new DocumentQueryModel()
-        );
+        SearchResults<DeploymentEntity> results = await deploymentService.GetAsync(org, app, new DocumentQueryModel());
 
         // Assert
         Assert.Equal(8, results.Results.Count());
@@ -361,10 +344,7 @@ public class DeploymentServiceTest
 
         _gitOpsConfigurationManager
             .Setup(gm =>
-                gm.AddAppToGitOpsConfigurationAsync(
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    It.IsAny<AltinnEnvironment>()
-                )
+                gm.AddAppToGitOpsConfigurationAsync(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<AltinnEnvironment>())
             )
             .Returns(Task.CompletedTask);
 
@@ -389,9 +369,7 @@ public class DeploymentServiceTest
             .Returns(Task.CompletedTask);
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _deploymentRepository
@@ -531,9 +509,7 @@ public class DeploymentServiceTest
             .Returns(Task.CompletedTask);
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _deploymentRepository
@@ -651,9 +627,7 @@ public class DeploymentServiceTest
             .Returns(Task.CompletedTask);
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _deploymentRepository
@@ -977,11 +951,7 @@ public class DeploymentServiceTest
         _deploymentRepository.Verify(r => r.GetPendingDecommission(org, app, env), Times.Once);
         _runtimeGatewayClient.Verify(
             rgc =>
-                rgc.GetAppDeployments(
-                    It.IsAny<string>(),
-                    It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<CancellationToken>()
-                ),
+                rgc.GetAppDeployments(It.IsAny<string>(), It.IsAny<AltinnEnvironment>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
         _runtimeGatewayClient.Verify(
@@ -1356,11 +1326,7 @@ public class DeploymentServiceTest
 
         _runtimeGatewayClient.Verify(
             rgc =>
-                rgc.GetAppDeployments(
-                    It.IsAny<string>(),
-                    It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<CancellationToken>()
-                ),
+                rgc.GetAppDeployments(It.IsAny<string>(), It.IsAny<AltinnEnvironment>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
 
@@ -1700,9 +1666,7 @@ public class DeploymentServiceTest
             .Returns(Task.CompletedTask);
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _deploymentRepository
@@ -1803,9 +1767,7 @@ public class DeploymentServiceTest
             .Returns(Task.CompletedTask);
 
         _azureDevOpsBuildClient
-            .Setup(b =>
-                b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetBuild());
 
         _deploymentRepository

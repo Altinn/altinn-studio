@@ -7,9 +7,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController;
 
-public class OrgReposTests
-    : DesignerEndpointsTestsBase<OrgReposTests>,
-        IClassFixture<WebApplicationFactory<Program>>
+public class OrgReposTests : DesignerEndpointsTestsBase<OrgReposTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix => "/designer/api/repos";
 

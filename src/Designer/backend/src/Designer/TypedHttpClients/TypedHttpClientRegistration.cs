@@ -129,10 +129,7 @@ public static class TypedHttpClientRegistration
         // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
     }
 
-    private static IHttpClientBuilder AddGiteaTypedHttpClient(
-        this IServiceCollection services,
-        IConfiguration config
-    )
+    private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)
     {
         bool studioOidcEnabled =
             config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
@@ -281,9 +278,7 @@ public static class TypedHttpClientRegistration
                 MaskinPortenHttpClient.HttpClientName,
                 (serviceProvider, httpClient) =>
                 {
-                    var options = serviceProvider
-                        .GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>()
-                        .Value;
+                    var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
                     httpClient.BaseAddress = new Uri(options.BaseUrl);
                 }
             )

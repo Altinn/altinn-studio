@@ -85,10 +85,7 @@ public class AltinnAppGitRepositoryTests : IDisposable
         Assert.False(applicationMetadata.AutoDeleteOnProcessEnd);
         Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.0883842Z").ToUniversalTime(), applicationMetadata.Created);
         Assert.Equal("Ronny", applicationMetadata.CreatedBy);
-        Assert.Equal(
-            DateTime.Parse("2021-04-08T17:42:09.08847Z").ToUniversalTime(),
-            applicationMetadata.LastChanged
-        );
+        Assert.Equal(DateTime.Parse("2021-04-08T17:42:09.08847Z").ToUniversalTime(), applicationMetadata.LastChanged);
         Assert.Equal("Ronny", applicationMetadata.LastChangedBy);
     }
 

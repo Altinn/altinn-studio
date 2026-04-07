@@ -17,11 +17,7 @@ public interface IResourceRegistry
     /// <param name="env">The environment the resource should be published to</param>
     /// <param name="policyContent">The policy file content that goes with the resource</param>
     /// <returns></returns>
-    Task<ActionResult> PublishServiceResource(
-        ServiceResource serviceResource,
-        string env,
-        byte[] policyContent = null
-    );
+    Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, byte[] policyContent = null);
 
     Task<List<ServiceResource>> GetServiceResourceList(
         string env,
@@ -54,20 +50,12 @@ public interface IResourceRegistry
     /// <summary>
     /// Get Resource from Altinn 2 service
     /// </summary>
-    Task<ServiceResource> GetServiceResourceFromService(
-        string serviceCode,
-        int serviceEditionCode,
-        string environment
-    );
+    Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment);
 
     /// <summary>
     /// Get the number of delegations of Altinn 2 service
     /// </summary>
-    Task<DelegationCountOverview> GetDelegationCount(
-        string serviceCode,
-        int serviceEditionCode,
-        string environment
-    );
+    Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment);
 
     /// <summary>
     /// Start migration batch of Altinn 2 delegations to Altinn 3
@@ -77,12 +65,7 @@ public interface IResourceRegistry
     /// <summary>
     /// Get Policy from Altinn 2 Service
     /// </summary>
-    Task<XacmlPolicy> GetXacmlPolicy(
-        string serviceCode,
-        int serviceEditionCode,
-        string identifier,
-        string environment
-    );
+    Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);
 
     /// <summary>
     /// Get Policy from Altinn 3 resource
@@ -115,12 +98,7 @@ public interface IResourceRegistry
     /// <param name="env">Chosen environment</param>
     /// <param name="page">Full page url, if requesting any other page than the first page</param>
     /// <returns>The access list, if it exists in the given environment for the given organization. Access list members are returned</returns>
-    Task<PagedAccessListMembersResponse> GetAccessListMembers(
-        string org,
-        string identifier,
-        string env,
-        string page
-    );
+    Task<PagedAccessListMembersResponse> GetAccessListMembers(string org, string identifier, string env, string page);
 
     /// <summary>
     /// Gets all access lists for an organization in a given environment
@@ -159,12 +137,7 @@ public interface IResourceRegistry
     /// <param name="env">Chosen environment</param>
     /// <param name="accessList">New data with name and description of access list</param>
     /// <returns>The updated access list</returns>
-    Task<ActionResult<AccessList>> UpdateAccessList(
-        string org,
-        string identifier,
-        string env,
-        AccessList accessList
-    );
+    Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, AccessList accessList);
 
     /// <summary>
     /// Add a new party as access list member

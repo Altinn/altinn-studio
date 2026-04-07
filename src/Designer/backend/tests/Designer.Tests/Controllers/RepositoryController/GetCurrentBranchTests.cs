@@ -44,11 +44,7 @@ public class GetCurrentBranchTests
         // Arrange
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
         var expectedBranchInfo = new CurrentBranchInfo { BranchName = branchName };
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock.Setup(x => x.GetCurrentBranch(editingContext)).Returns(expectedBranchInfo);
 
@@ -70,11 +66,7 @@ public class GetCurrentBranchTests
         string org = "ttd";
         string repo = "non-existing-repo";
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            repo,
-            "testUser"
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
         _sourceControlMock
             .Setup(x => x.GetCurrentBranch(editingContext))

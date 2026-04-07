@@ -15,8 +15,7 @@ public class GetApplicationMetadataTests
     : DesignerEndpointsTestsBase<GetApplicationMetadataTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/metadata";
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
 
     public GetApplicationMetadataTests(WebApplicationFactory<Program> factory)
         : base(factory) { }

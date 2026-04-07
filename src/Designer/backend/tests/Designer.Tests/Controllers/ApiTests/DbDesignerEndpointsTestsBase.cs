@@ -12,10 +12,7 @@ public abstract class DbDesignerEndpointsTestsBase<TControllerTest> : DesignerEn
 {
     protected readonly DesignerDbFixture DesignerDbFixture;
 
-    protected DbDesignerEndpointsTestsBase(
-        WebApplicationFactory<Program> factory,
-        DesignerDbFixture designerDbFixture
-    )
+    protected DbDesignerEndpointsTestsBase(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory)
     {
         DesignerDbFixture = designerDbFixture;

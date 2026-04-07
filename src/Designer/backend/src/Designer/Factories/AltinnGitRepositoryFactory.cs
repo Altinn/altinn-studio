@@ -46,13 +46,7 @@ public class AltinnGitRepositoryFactory : IAltinnGitRepositoryFactory
     public AltinnAppGitRepository GetAltinnAppGitRepository(string org, string repository, string developer)
     {
         var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-        return new AltinnAppGitRepository(
-            org,
-            repository,
-            developer,
-            _repositoriesRootDirectory,
-            repositoryDirectory
-        );
+        return new AltinnAppGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
     }
 
     /// <summary>
@@ -81,12 +75,6 @@ public class AltinnGitRepositoryFactory : IAltinnGitRepositoryFactory
     public AltinnOrgGitRepository GetAltinnOrgGitRepository(string org, string repository, string developer)
     {
         var repositoryDirectory = GetRepositoryPath(org, repository, developer);
-        return new AltinnOrgGitRepository(
-            org,
-            repository,
-            developer,
-            _repositoriesRootDirectory,
-            repositoryDirectory
-        );
+        return new AltinnOrgGitRepository(org, repository, developer, _repositoriesRootDirectory, repositoryDirectory);
     }
 }

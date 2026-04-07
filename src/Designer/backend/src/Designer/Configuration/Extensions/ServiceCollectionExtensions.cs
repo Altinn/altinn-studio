@@ -52,10 +52,10 @@ public static class ServiceCollectionExtensions
             .MakeGenericMethod(optionType);
         var configureSettingsMethodByType =
             (Func<IServiceCollection, IConfiguration, string, IServiceCollection>)
-            Delegate.CreateDelegate(
-                typeof(Func<IServiceCollection, IConfiguration, string, IServiceCollection>),
-                genericMethodTemplate
-            );
+                Delegate.CreateDelegate(
+                    typeof(Func<IServiceCollection, IConfiguration, string, IServiceCollection>),
+                    genericMethodTemplate
+                );
 
         return configureSettingsMethodByType(services, configuration, section);
     }

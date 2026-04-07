@@ -30,11 +30,7 @@ public partial class PayloadUser
     /// <param name="email">Email.</param>
     /// <param name="name">Full name of the commit author.</param>
     /// <param name="username">Username.</param>
-    public PayloadUser(
-        string email = default(string),
-        string name = default(string),
-        string username = default(string)
-    )
+    public PayloadUser(string email = default(string), string name = default(string), string username = default(string))
     {
         this.Email = email;
         this.Name = name;

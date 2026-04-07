@@ -46,11 +46,7 @@ public class CheckoutBranchTests
     {
         // Arrange
         string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
-        var expectedRepoStatus = new RepoStatus
-        {
-            RepositoryStatus = RepositoryStatus.Ok,
-            CurrentBranch = branchName,
-        };
+        var expectedRepoStatus = new RepoStatus { RepositoryStatus = RepositoryStatus.Ok, CurrentBranch = branchName };
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
                 org,
@@ -79,10 +75,7 @@ public class CheckoutBranchTests
         Assert.NotNull(responseContent);
         Assert.Equal(branchName, responseContent.CurrentBranch);
         Assert.Equal(RepositoryStatus.Ok, responseContent.RepositoryStatus);
-        _sourceControlMock.Verify(
-            x => x.CheckoutBranchWithValidation(authenticatedContext, branchName),
-            Times.Once
-        );
+        _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
     }
 
     [Theory]
@@ -142,10 +135,7 @@ public class CheckoutBranchTests
         Assert.Equal(currentBranch, responseContent.CurrentBranch);
         Assert.Equal(targetBranch, responseContent.TargetBranch);
         Assert.Equal(2, responseContent.UncommittedFiles.Count);
-        _sourceControlMock.Verify(
-            x => x.CheckoutBranchWithValidation(authenticatedContext, targetBranch),
-            Times.Once
-        );
+        _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, targetBranch), Times.Once);
     }
 
     [Theory]
@@ -170,11 +160,7 @@ public class CheckoutBranchTests
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         _sourceControlMock.Verify(
-            x =>
-                x.CheckoutBranchWithValidation(
-                    It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
-                    It.IsAny<string>()
-                ),
+            x => x.CheckoutBranchWithValidation(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -197,10 +183,7 @@ public class CheckoutBranchTests
 
         _sourceControlMock
             .Setup(x =>
-                x.CheckoutBranchWithValidation(
-                    It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
-                    It.IsAny<string>()
-                )
+                x.CheckoutBranchWithValidation(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>())
             )
             .Throws(new LibGit2Sharp.NotFoundException("Branch not found"));
 
@@ -216,9 +199,6 @@ public class CheckoutBranchTests
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        _sourceControlMock.Verify(
-            x => x.CheckoutBranchWithValidation(authenticatedContext, branchName),
-            Times.Once
-        );
+        _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
     }
 }

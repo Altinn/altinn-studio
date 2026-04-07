@@ -67,10 +67,7 @@ public class LayoutService(
         pages.Order.Add(pageId);
         await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
-        LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(
-            editingContext,
-            layoutSetId
-        );
+        LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
         await mediatr.Publish(
             new LayoutPageAddedEvent
             {
@@ -242,10 +239,7 @@ public class LayoutService(
             );
         }
         var createdPages = order.Except(originalOrder).ToList();
-        LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(
-            editingContext,
-            layoutSetId
-        );
+        LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
         foreach (string pageId in createdPages)
         {
             AltinnPageLayout altinnPageLayout = new();
@@ -281,9 +275,7 @@ public class LayoutService(
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
         if (layoutSettings.Pages is not PagesWithOrder pages)
         {
-            throw new InvalidOperationException(
-                "Cannot convert layout to use page groups. Layout does not use order."
-            );
+            throw new InvalidOperationException("Cannot convert layout to use page groups. Layout does not use order.");
         }
         List<string> pageOrder = pages.Order;
         var pagesWithGroups = layoutSettings.Pages.ToPagesWithGroups();

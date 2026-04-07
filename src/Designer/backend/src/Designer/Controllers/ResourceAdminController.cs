@@ -545,12 +545,7 @@ public class ResourceAdminController : ControllerBase
     [HttpGet]
     [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
     [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
-    public async Task<ActionResult> GetDelegationCount(
-        string org,
-        string serviceCode,
-        int serviceEdition,
-        string env
-    )
+    public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
     {
         List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(env.ToLower(), true);
         bool serviceExists = allResources.Any(x => x.Identifier.Equals($"se_{serviceCode}_{serviceEdition}"));
@@ -569,11 +564,7 @@ public class ResourceAdminController : ControllerBase
             return new UnauthorizedResult();
         }
 
-        DelegationCountOverview overview = await _resourceRegistry.GetDelegationCount(
-            serviceCode,
-            serviceEdition,
-            env
-        );
+        DelegationCountOverview overview = await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
         return Ok(overview);
     }
 
@@ -696,10 +687,7 @@ public class ResourceAdminController : ControllerBase
 
             if (fullResource != null)
             {
-                orgList.Orgs.TryGetValue(
-                    fullResource.HasCompetentAuthority.Orgcode.ToLower(),
-                    out Org organization
-                );
+                orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
 
                 result.Add(
                     new AccessPackageService()
@@ -769,8 +757,7 @@ public class ResourceAdminController : ControllerBase
             {
                 linkServices = unfiltered
                     .Where(a =>
-                        a.ServiceOwnerCode.ToLower().Equals(org.ToLower())
-                        || a.ServiceOwnerCode.ToLower().Equals("acn")
+                        a.ServiceOwnerCode.ToLower().Equals(org.ToLower()) || a.ServiceOwnerCode.ToLower().Equals("acn")
                     )
                     .ToList();
             }
@@ -829,9 +816,7 @@ public class ResourceAdminController : ControllerBase
         {
             if (
                 resource.ResourceReferences == null
-                || !resource.ResourceReferences.Any(
-                    (x) => x.ReferenceType == ResourceReferenceType.MaskinportenScope
-                )
+                || !resource.ResourceReferences.Any((x) => x.ReferenceType == ResourceReferenceType.MaskinportenScope)
             )
             {
                 ModelState.AddModelError(
@@ -914,13 +899,7 @@ public class ResourceAdminController : ControllerBase
         if (repository == $"{org}-resources")
         {
             string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
-            ActionResult publishResult = await _repository.PublishResource(
-                org,
-                repository,
-                id,
-                env,
-                xacmlPolicyPath
-            );
+            ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
             _memoryCache.Remove($"resourcelist_${env}");
             return publishResult;
         }
@@ -1009,10 +988,7 @@ public class ResourceAdminController : ControllerBase
         if (OrgUtil.IsTestEnv(loggedInOrg))
         {
             return isOwnedByOrg
-                   || resource.HasCompetentAuthority.Orgcode.Equals(
-                       "acn",
-                       StringComparison.InvariantCultureIgnoreCase
-                   );
+                || resource.HasCompetentAuthority.Orgcode.Equals("acn", StringComparison.InvariantCultureIgnoreCase);
         }
 
         return isOwnedByOrg;

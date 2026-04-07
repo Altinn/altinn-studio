@@ -284,12 +284,7 @@ public class XmlSchemaToJsonSchemaConverter : IXmlSchemaToJsonSchemaConverter
         AddUnhandledAttributes(item, builder);
     }
 
-    private void HandleSimpleType(
-        XmlSchemaSimpleType schemaType,
-        bool optional,
-        bool array,
-        JsonSchemaBuilder builder
-    )
+    private void HandleSimpleType(XmlSchemaSimpleType schemaType, bool optional, bool array, JsonSchemaBuilder builder)
     {
         switch (schemaType.Content)
         {
@@ -665,11 +660,7 @@ public class XmlSchemaToJsonSchemaConverter : IXmlSchemaToJsonSchemaConverter
         foreach (XmlSchemaElement element in all.Items.Cast<XmlSchemaElement>())
         {
             string name = element.Name ?? element.RefName.Name;
-            properties.Add(
-                name,
-                ConvertSchemaElement(element, optional, array),
-                !optional && element.MinOccurs > 0
-            );
+            properties.Add(name, ConvertSchemaElement(element, optional, array), !optional && element.MinOccurs > 0);
         }
 
         properties.Build(builder);
@@ -721,12 +712,7 @@ public class XmlSchemaToJsonSchemaConverter : IXmlSchemaToJsonSchemaConverter
         steps.BuildWithAllOf(builder);
     }
 
-    private void HandleSimpleContent(
-        XmlSchemaSimpleContent item,
-        bool optional,
-        bool array,
-        JsonSchemaBuilder builder
-    )
+    private void HandleSimpleContent(XmlSchemaSimpleContent item, bool optional, bool array, JsonSchemaBuilder builder)
     {
         HandleAnnotation(item, builder);
 

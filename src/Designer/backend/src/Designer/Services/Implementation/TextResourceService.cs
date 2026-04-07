@@ -94,8 +94,7 @@ public class TextResourceService : ITextResourceService
 
                 try
                 {
-                    PlatformStorageModels.TextResource content =
-                        data.Deserialize<PlatformStorageModels.TextResource>();
+                    PlatformStorageModels.TextResource content = data.Deserialize<PlatformStorageModels.TextResource>();
                     await _storageTextResourceClient.Upsert(org, app, content, envName);
                 }
                 catch (SerializationException e)

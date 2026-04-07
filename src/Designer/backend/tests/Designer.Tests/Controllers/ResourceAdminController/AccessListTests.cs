@@ -72,12 +72,7 @@ public class AccessListTests
 
         ResourceRegistryMock
             .Setup(r =>
-                r.GetResourceAccessLists(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>()
-                )
+                r.GetResourceAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
             )
             .ReturnsAsync(new PagedAccessListResponse());
 
@@ -157,12 +152,7 @@ public class AccessListTests
 
         ResourceRegistryMock
             .Setup(r =>
-                r.UpdateAccessList(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<AccessList>()
-                )
+                r.UpdateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>())
             )
             .ReturnsAsync(list);
         httpRequestMessage.Content = new StringContent(
@@ -252,12 +242,7 @@ public class AccessListTests
 
         ResourceRegistryMock
             .Setup(r =>
-                r.AddResourceAccessList(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>()
-                )
+                r.AddResourceAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
             )
             .ReturnsAsync(HttpStatusCode.OK);
 

@@ -109,10 +109,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
         PagesDto pagesDto = PagesDto.From(layoutSettings);
 
         PageDto existingPage =
-            pagesDto
-                .Groups?.Where(g => g?.Pages != null)
-                .SelectMany(g => g.Pages)
-                .FirstOrDefault(p => p?.Id == pageId)
+            pagesDto.Groups?.Where(g => g?.Pages != null).SelectMany(g => g.Pages).FirstOrDefault(p => p?.Id == pageId)
             ?? pagesDto.Pages?.FirstOrDefault(p => p?.Id == pageId);
 
         if (existingPage == null)
@@ -162,11 +159,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            app,
-            developer
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         await layoutService.UpdatePageOrder(editingContext, layoutSetId, pages.ToBusiness());
         return Ok();
     }
@@ -184,11 +177,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            app,
-            developer
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         try
         {
             await layoutService.ConvertPagesToPageGroups(editingContext, layoutSetId);
@@ -213,11 +202,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-            org,
-            app,
-            developer
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         try
         {
             await layoutService.ConvertPageGroupsToPages(editingContext, layoutSetId);

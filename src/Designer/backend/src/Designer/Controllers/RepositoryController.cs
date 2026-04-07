@@ -162,9 +162,7 @@ public class RepositoryController : ControllerBase
         string targetOrg
     )
     {
-        if (
-            !string.IsNullOrWhiteSpace(targetOrg) && !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(targetOrg)
-        )
+        if (!string.IsNullOrWhiteSpace(targetOrg) && !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(targetOrg))
         {
             return (false, BadRequest($"{targetOrg} is not a valid name for an organization."));
         }
@@ -586,10 +584,7 @@ public class RepositoryController : ControllerBase
         string token = await HttpContext.GetDeveloperAppTokenAsync();
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
-        RepoStatus repoStatus = _sourceControl.CheckoutBranchWithValidation(
-            authenticatedContext,
-            request.BranchName
-        );
+        RepoStatus repoStatus = _sourceControl.CheckoutBranchWithValidation(authenticatedContext, request.BranchName);
         return Ok(repoStatus);
     }
 

@@ -92,8 +92,8 @@ public partial class Email : IEquatable<Email>, IValidatableObject
         }
 
         return (this.EmailId == input.EmailId || (this.EmailId != null && this.EmailId.Equals(input.EmailId)))
-               && (this.Primary == input.Primary || (this.Primary != null && this.Primary.Equals(input.Primary)))
-               && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
+            && (this.Primary == input.Primary || (this.Primary != null && this.Primary.Equals(input.Primary)))
+            && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
     }
 
     /// <summary>

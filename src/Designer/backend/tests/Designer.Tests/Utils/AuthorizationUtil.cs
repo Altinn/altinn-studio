@@ -69,9 +69,7 @@ public static class AuthorizationUtil
 
     internal static string GetPolicyPath()
     {
-        string unitTestFolder = Path.GetDirectoryName(
-            new Uri(typeof(AuthorizationUtil).Assembly.Location).LocalPath
-        );
+        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AuthorizationUtil).Assembly.Location).LocalPath);
         return Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Authorization", "Policies", "Xacml");
     }
 }
