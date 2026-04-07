@@ -1,15 +1,16 @@
 #nullable disable
-using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
+using CoreAppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 
 namespace Altinn.App.Api.Models;
 
 /// <summary>
-/// Represents the response from an API endpoint providing a list of key-value properties.
+/// Represents an instance response with enriched process state including authorized actions,
+/// read/write access, element types, and process task metadata.
 /// </summary>
-public sealed class InstanceResponse
+public sealed class EnrichedInstanceResponse
 {
     /// <summary>
     /// The unique id of the instance {instanceOwnerId}/{instanceGuid}.
@@ -47,9 +48,9 @@ public sealed class InstanceResponse
     public required DateTime? VisibleAfter { get; init; }
 
     /// <summary>
-    /// An object containing the instance process state.
+    /// An object containing the enriched instance process state with authorized actions.
     /// </summary>
-    public required ProcessState Process { get; init; }
+    public required CoreAppProcessState Process { get; init; }
 
     /// <summary>
     /// The type of finished status of the instance.
@@ -102,9 +103,13 @@ public sealed class InstanceResponse
         return JsonConvert.SerializeObject(this);
     }
 
-    internal static InstanceResponse From(Instance instance, Party instanceOwnerParty)
+    internal static EnrichedInstanceResponse From(
+        Instance instance,
+        Party instanceOwnerParty,
+        CoreAppProcessState processState
+    )
     {
-        return new InstanceResponse
+        return new EnrichedInstanceResponse
         {
             Id = instance.Id,
             InstanceOwner = new InstanceOwnerResponse
@@ -121,7 +126,7 @@ public sealed class InstanceResponse
             SelfLinks = instance.SelfLinks,
             DueBefore = instance.DueBefore,
             VisibleAfter = instance.VisibleAfter,
-            Process = instance.Process,
+            Process = processState,
             Status = instance.Status,
             CompleteConfirmations = instance.CompleteConfirmations,
             Data = instance.Data,
@@ -131,109 +136,6 @@ public sealed class InstanceResponse
             CreatedBy = instance.CreatedBy,
             LastChanged = instance.LastChanged,
             LastChangedBy = instance.LastChangedBy,
-        };
-    }
-}
-
-/// <summary>
-/// Represents information to identify the owner of an instance.
-/// </summary>
-public sealed class InstanceOwnerResponse
-{
-    /// <summary>
-    /// The party id of the instance owner (also called instance owner party id).
-    /// </summary>
-    public required string PartyId { get; init; }
-
-    /// <summary>
-    /// Person number (national identification number) of the party. Null if the party is not a person.
-    /// </summary>
-    public required string PersonNumber { get; init; }
-
-    /// <summary>
-    /// The organisation number of the party. Null if the party is not an organisation.
-    /// </summary>
-    public required string OrganisationNumber { get; init; }
-
-    /// <summary>
-    /// The username of the party. Null if the party is not self identified.
-    /// </summary>
-    public required string Username { get; init; }
-
-    /// <summary>
-    /// The external identifier of a self identified party. Null if the party is not self identified.
-    /// </summary>
-    public string ExternalIdentifier { get; init; }
-
-    /// <summary>
-    /// Party information for the instance owner.
-    /// </summary>
-    public required PartyResponse Party { get; init; }
-}
-
-/// <summary>
-/// Class representing a party
-/// </summary>
-public sealed class PartyResponse
-{
-    /// <summary>
-    /// The ID of the party
-    /// </summary>
-    public required int PartyId { get; init; }
-
-    /// <summary>
-    /// The UUID of the party
-    /// </summary>
-    public required Guid? PartyUuid { get; init; }
-
-    /// <summary>
-    /// The type of party
-    /// </summary>
-    public required PartyType PartyTypeName { get; init; }
-
-    /// <summary>
-    /// Person number (national identification number) of the party. Null if the party is not a person.
-    /// </summary>
-    public required string SSN { get; init; }
-
-    /// <summary>
-    /// The organisation number of the party. Null if the party is not an organisation.
-    /// </summary>
-    public required string OrgNumber { get; init; }
-
-    /// <summary>
-    /// The UnitType
-    /// </summary>
-    public required string UnitType { get; init; }
-
-    /// <summary>
-    /// The Name
-    /// </summary>
-    public required string Name { get; init; }
-
-    /// <summary>
-    /// The IsDeleted
-    /// </summary>
-    public required bool IsDeleted { get; init; }
-
-    /// <summary>
-    /// Returns a PartyResponse dto from a Party object.
-    /// </summary>
-    /// <param name="party">The party object to convert.</param>
-    /// <returns>A PartyResponse object.</returns>
-    /// <remarks>Normalizes strings to null if they are empty or null.</remarks>
-    internal static PartyResponse From(Party party)
-    {
-        return new PartyResponse
-        {
-            PartyId = party.PartyId,
-            PartyUuid = party.PartyUuid,
-            PartyTypeName = party.PartyTypeName,
-            SSN = string.IsNullOrEmpty(party.SSN) ? null : party.SSN,
-            OrgNumber = string.IsNullOrEmpty(party.OrgNumber) ? null : party.OrgNumber,
-            UnitType = string.IsNullOrEmpty(party.UnitType) ? null : party.UnitType,
-            Name = string.IsNullOrEmpty(party.Name) ? null : party.Name,
-            IsDeleted = party.IsDeleted,
         };
     }
 }
