@@ -59,7 +59,21 @@ async def start_agent(
 
         sink.register_developer_session(developer, req.session_id)
         log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
-        
+
+        # MCP gate — workflow mode requires MCP, check before creating artifacts
+        if req.allow_app_changes:
+            from agents.services.mcp import get_mcp_client
+            mcp = get_mcp_client()
+            try:
+                await mcp.check_server_status()
+            except Exception as ping_err:
+                log.warning(f"🔌 MCP health ping failed: {ping_err}")
+                mcp._mark_disconnected(error=ping_err)
+                raise HTTPException(
+                    status_code=503,
+                    detail="MCP server is not available. Please retry shortly.",
+                ) from ping_err
+
         # Clone the repository for this session
         repo_manager = get_repo_manager()
         repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, developer=developer)
@@ -238,7 +252,7 @@ async def start_agent(
             _active_tasks.add(task)
             task.add_done_callback(_active_tasks.discard)
         else:
-            # Normal workflow mode - make changes
+            # Normal workflow mode - make changes (MCP already verified above)
             log.info(f"🔧 Workflow mode enabled for session {req.session_id}")
             
             # Load conversation history from previous interactions in this session
