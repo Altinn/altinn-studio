@@ -48,7 +48,6 @@ const { setScreenWidth } = mockMediaQuery(992);
 
 describe('InstanceSelection', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     // Set screen size to desktop
     setScreenWidth(1200);
   });

@@ -18,7 +18,7 @@ describe('Lang', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
   afterAll(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should work properly', async () => {
