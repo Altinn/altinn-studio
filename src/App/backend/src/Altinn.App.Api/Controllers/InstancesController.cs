@@ -189,12 +189,86 @@ public class InstancesController : ControllerBase
                 );
             }
 
+            var instanceOwnerParty = await _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
+
+            var dto = InstanceResponse.From(
+                await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
+                instanceOwnerParty
+            );
+
+            return Ok(dto);
+        }
+        catch (Exception exception)
+        {
+            return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
+        }
+    }
+
+    /// <summary>
+    /// Gets an instance object from storage with enriched process state including authorized actions,
+    /// read/write access, element types, and process task metadata.
+    /// </summary>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="cancellationToken">cancellation token</param>
+    /// <returns>the instance with enriched process state</returns>
+    [Authorize]
+    [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/enriched")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> GetEnriched(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
+    {
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid,
+            "read"
+        );
+
+        if (!enforcementResult.Authorized)
+        {
+            return Forbidden(enforcementResult);
+        }
+
+        try
+        {
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                ct: cancellationToken
+            );
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+            string? userOrgClaim = User.GetOrg();
+
+            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
+            {
+                await _instanceClient.UpdateReadStatus(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    "read",
+                    ct: cancellationToken
+                );
+            }
+
             var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
             var processStateTask = _processStateEnricher.Enrich(instance, instance.Process, User);
 
             await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 
-            var dto = InstanceResponse.From(
+            var dto = EnrichedInstanceResponse.From(
                 await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
                 await instanceOwnerPartyTask,
                 await processStateTask
@@ -204,7 +278,7 @@ public class InstancesController : ControllerBase
         }
         catch (Exception exception)
         {
-            return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
+            return ExceptionResponse(exception, $"Get enriched instance {instanceOwnerPartyId}/{instanceGuid} failed");
         }
     }
 
@@ -464,11 +538,9 @@ public class InstancesController : ControllerBase
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
-        var processState = await _processStateEnricher.Enrich(instance, instance.Process, User);
         var dto = InstanceResponse.From(
             await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
-            party,
-            processState
+            party
         );
 
         return Created(url, dto);
@@ -765,8 +837,7 @@ public class InstancesController : ControllerBase
         SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
         string url = instance.SelfLinks.Apps;
 
-        var processState = await _processStateEnricher.Enrich(instance, instance.Process, User);
-        var dto = InstanceResponse.From(instance, party, processState);
+        var dto = InstanceResponse.From(instance, party);
 
         return Created(url, dto);
     }
