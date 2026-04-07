@@ -32,7 +32,7 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
   } = useDeleteUserApiKeyMutation();
 
   const sortedApiKeys = useMemo(
-    () => [...(apiKeys ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    () => [...(apiKeys ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     [apiKeys],
   );
 
