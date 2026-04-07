@@ -23,8 +23,6 @@ public class EngineEndpointTests
     private static WorkflowEnqueueRequest _defaultWorkflowRequest =>
         new()
         {
-            Namespace = DefaultNamespace,
-            IdempotencyKey = "default-idempotency-key",
             Workflows =
             [
                 new WorkflowRequest
@@ -34,6 +32,13 @@ public class EngineEndpointTests
                 },
             ],
         };
+
+    private static DefaultHttpContext CreateHttpContext(string idempotencyKey = "default-idempotency-key")
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Headers[WorkflowMetadataConstants.Headers.IdempotencyKey] = idempotencyKey;
+        return httpContext;
+    }
 
     // === EnqueueWorkflows Handler Tests ===
 
@@ -66,9 +71,11 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
+            CreateHttpContext(),
             CancellationToken.None
         );
 
@@ -110,9 +117,11 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
+            CreateHttpContext(),
             CancellationToken.None
         );
 
@@ -142,9 +151,11 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
+            CreateHttpContext(),
             CancellationToken.None
         );
 
@@ -170,9 +181,11 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
+            CreateHttpContext(),
             CancellationToken.None
         );
 
@@ -187,8 +200,6 @@ public class EngineEndpointTests
         // Arrange — create a request with a dependency cycle
         var request = new WorkflowEnqueueRequest
         {
-            Namespace = DefaultNamespace,
-            IdempotencyKey = "cycle-key",
             Workflows =
             [
                 new WorkflowRequest
@@ -221,9 +232,11 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             request,
             engineMock.Object,
             TimeProvider.System,
+            CreateHttpContext(idempotencyKey: "cycle-key"),
             CancellationToken.None
         );
 
@@ -255,16 +268,18 @@ public class EngineEndpointTests
                     {
                         Ref = "wf-1",
                         DatabaseId = Guid.NewGuid(),
-                        Namespace = WorkflowNamespace.Default,
+                        Namespace = DefaultNamespace,
                     },
                 ])
             );
 
         // Act
         await EngineRequestHandlers.EnqueueWorkflows(
+            DefaultNamespace,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
+            CreateHttpContext(),
             CancellationToken.None
         );
 
@@ -341,7 +356,7 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task ListWorkflows_UsesNamespaceFromQueryParams()
+    public async Task ListWorkflows_UsesNamespaceFromRoute()
     {
         // Arrange
         string? capturedNamespace = null;
@@ -369,7 +384,7 @@ public class EngineEndpointTests
             CancellationToken.None
         );
 
-        // Assert — handler passes namespace from query to repository
+        // Assert — handler passes namespace from route to repository
         Assert.Equal(DefaultNamespace, capturedNamespace);
     }
 
@@ -390,10 +405,13 @@ public class EngineEndpointTests
 
         var workflowGuid = Guid.NewGuid();
         var repositoryMock = new Mock<IEngineRepository>();
-        repositoryMock.Setup(r => r.GetWorkflow(workflowGuid, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
+        repositoryMock
+            .Setup(r => r.GetWorkflow(workflowGuid, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(workflow);
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
+            DefaultNamespace,
             workflowGuid,
             repositoryMock.Object,
             CancellationToken.None
@@ -412,11 +430,12 @@ public class EngineEndpointTests
         // Arrange
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetWorkflow(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetWorkflow(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Workflow?)null);
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
+            DefaultNamespace,
             Guid.NewGuid(),
             repositoryMock.Object,
             CancellationToken.None
@@ -433,27 +452,17 @@ public class EngineEndpointTests
     {
         // Arrange
         var workflowId = Guid.NewGuid();
-        var repo = new Mock<IEngineRepository>();
-        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        var tracker = new InFlightTracker(TimeProvider.System);
-        var workflow = new Workflow
-        {
-            OperationId = "test",
-            IdempotencyKey = "test-key",
-            Namespace = "test-ns",
-            Steps = [],
-        };
-        using var cts = new CancellationTokenSource();
-        tracker.TryAdd(workflowId, cts, workflow);
+        var now = DateTimeOffset.UtcNow;
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CancelWorkflowResult.Requested(workflowId, now, CanceledImmediately: true));
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
             workflowId,
-            repo.Object,
-            tracker,
-            TimeProvider.System,
+            engine.Object,
             CancellationToken.None
         );
 
@@ -469,18 +478,17 @@ public class EngineEndpointTests
     {
         // Arrange
         var workflowId = Guid.NewGuid();
-        var repo = new Mock<IEngineRepository>();
-        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        var tracker = new InFlightTracker(TimeProvider.System);
+        var now = DateTimeOffset.UtcNow;
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CancelWorkflowResult.Requested(workflowId, now, CanceledImmediately: false));
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
             workflowId,
-            repo.Object,
-            tracker,
-            TimeProvider.System,
+            engine.Object,
             CancellationToken.None
         );
 
@@ -495,20 +503,16 @@ public class EngineEndpointTests
     {
         // Arrange
         var workflowId = Guid.NewGuid();
-        var repo = new Mock<IEngineRepository>();
-        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-        repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new WorkflowCancellationInfo(PersistentItemStatus.Completed, null));
-
-        var tracker = new InFlightTracker(TimeProvider.System);
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CancelWorkflowResult.TerminalState());
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
             workflowId,
-            repo.Object,
-            tracker,
-            TimeProvider.System,
+            engine.Object,
             CancellationToken.None
         );
 
@@ -523,20 +527,16 @@ public class EngineEndpointTests
     {
         // Arrange
         var workflowId = Guid.NewGuid();
-        var repo = new Mock<IEngineRepository>();
-        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-        repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((WorkflowCancellationInfo?)null);
-
-        var tracker = new InFlightTracker(TimeProvider.System);
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CancelWorkflowResult.NotFound());
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
             workflowId,
-            repo.Object,
-            tracker,
-            TimeProvider.System,
+            engine.Object,
             CancellationToken.None
         );
 
@@ -545,25 +545,21 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task CancelWorkflow_AlreadyCancelling_Returns200WithOriginalTimestamp()
+    public async Task CancelWorkflow_AlreadyCancelling_ReturnsAcceptedWithOriginalTimestamp()
     {
         // Arrange
         var workflowId = Guid.NewGuid();
         var originalTimestamp = DateTimeOffset.UtcNow.AddMinutes(-1);
-        var repo = new Mock<IEngineRepository>();
-        repo.Setup(r => r.RequestCancellation(workflowId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false); // Idempotency guard: already flagged
-        repo.Setup(r => r.GetCancellationInfo(workflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new WorkflowCancellationInfo(PersistentItemStatus.Processing, originalTimestamp));
-
-        var tracker = new InFlightTracker(TimeProvider.System);
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.CancelWorkflow(workflowId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CancelWorkflowResult.AlreadyRequested(workflowId, originalTimestamp));
 
         // Act
         var result = await EngineRequestHandlers.CancelWorkflow(
+            DefaultNamespace,
             workflowId,
-            repo.Object,
-            tracker,
-            TimeProvider.System,
+            engine.Object,
             CancellationToken.None
         );
 
@@ -573,5 +569,115 @@ public class EngineEndpointTests
         Assert.Equal(workflowId, accepted.Value.WorkflowId);
         Assert.Equal(originalTimestamp, accepted.Value.CancellationRequestedAt);
         Assert.False(accepted.Value.CanceledImmediately);
+    }
+
+    // -- Resume Workflow --
+
+    [Fact]
+    public async Task ResumeWorkflow_Succeeded_Returns200()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.ResumeWorkflow(workflowId, It.IsAny<string>(), false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResult.Resumed(workflowId, now, []));
+
+        // Act
+        var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
+            workflowId,
+            cascade: false,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var ok = Assert.IsType<Ok<ResumeWorkflowResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(workflowId, ok.Value.WorkflowId);
+        Assert.Equal(now, ok.Value.ResumedAt);
+        Assert.Empty(ok.Value.CascadeResumed);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_WithCascade_Returns200WithCascadeIds()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var cascadeId = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e => e.ResumeWorkflow(workflowId, It.IsAny<string>(), true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResult.Resumed(workflowId, now, [cascadeId]));
+
+        // Act
+        var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
+            workflowId,
+            cascade: true,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var ok = Assert.IsType<Ok<ResumeWorkflowResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Single(ok.Value.CascadeResumed);
+        Assert.Equal(cascadeId, ok.Value.CascadeResumed[0]);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_NotFound_Returns404()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.ResumeWorkflow(workflowId, It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ResumeWorkflowResult.NotFound());
+
+        // Act
+        var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
+            workflowId,
+            cascade: false,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task ResumeWorkflow_NotResumable_Returns409()
+    {
+        // Arrange
+        var workflowId = Guid.NewGuid();
+        var engine = new Mock<IEngine>();
+        engine
+            .Setup(e =>
+                e.ResumeWorkflow(workflowId, It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ResumeWorkflowResult.NotResumable(PersistentItemStatus.Completed));
+
+        // Act
+        var result = await EngineRequestHandlers.ResumeWorkflow(
+            DefaultNamespace,
+            workflowId,
+            cascade: false,
+            engine.Object,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        var conflict = Assert.IsType<Conflict<ProblemDetails>>(result.Result);
+        Assert.NotNull(conflict.Value);
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.Value.Status);
     }
 }

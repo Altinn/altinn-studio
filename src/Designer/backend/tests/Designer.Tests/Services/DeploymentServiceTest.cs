@@ -1719,6 +1719,7 @@ namespace Designer.Tests.Services
                         It.Is<string>(n => n.StartsWith("deploy-")),
                         Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                         It.IsAny<DateTimeOffset>(),
+                        It.IsAny<string>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -1771,6 +1772,7 @@ namespace Designer.Tests.Services
                         It.Is<string>(n => n.StartsWith("deploy-")),
                         Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                         It.IsAny<DateTimeOffset>(),
+                        It.IsAny<string>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
@@ -1857,6 +1859,7 @@ namespace Designer.Tests.Services
                         It.IsAny<string>(),
                         It.IsAny<Altinn.Studio.Designer.Models.ApiKey.ApiKeyType>(),
                         It.IsAny<DateTimeOffset>(),
+                        It.IsAny<string>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Never

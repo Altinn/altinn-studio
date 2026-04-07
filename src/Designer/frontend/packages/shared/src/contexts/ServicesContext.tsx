@@ -17,6 +17,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import { Link } from '@digdir/designsystemet-react';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
@@ -70,9 +71,11 @@ const handleError = (
 
   const errorCode = error?.response?.data?.errorCode;
   const detail = error?.response?.data?.detail;
-  const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
+  const isSessionExpiredError =
+    error?.response?.status === ServerCodes.Unauthorized &&
+    errorCode === ApiErrorCodes.SessionExpired;
 
-  if (unAuthorizedErrorCode) {
+  if (isSessionExpiredError) {
     return renderToast(errorCode || 'Unauthorized', detail, {
       onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
       autoClose: LOG_OUT_TIMER_MS,

@@ -41,7 +41,7 @@ describe('fetching new data from models', () => {
     });
 
     cy.gotoNavPage('Side6');
-    cy.findByRole('radio', { name: /kåre/i }).dsCheck();
+    cy.findByRole('radio', { name: /kåre/i }).check();
     cy.waitUntilSaved();
     cy.findByText(/Du må rette disse feilene før du kan gå videre/i).should('not.exist');
 

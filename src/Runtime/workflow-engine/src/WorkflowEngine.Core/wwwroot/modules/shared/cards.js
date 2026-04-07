@@ -38,7 +38,7 @@ export const traceIconHTML = (traceId) => traceLink(traceId, 'Engine trace in Gr
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
 export const stateIconHTML = (wf) =>
-    `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.databaseId)}')" title="View state trail">&#123;&#125;</a>`;
+    `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.databaseId)}','${esc(wf.namespace)}')" title="View state trail">&#123;&#125;</a>`;
 
 /** @param {Event} e @param {string} text */
 window.copyText = async (e, text) => {
@@ -168,7 +168,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
         const dotTitle = sub
             ? `${step.commandDetail} [${sub}] (${step.status})`
             : `${step.commandDetail} (${step.status})`;
-        html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${esc(wf.databaseId)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')" title="${esc(dotTitle)}"></span>`;
+        html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${esc(wf.databaseId)}','${esc(wf.namespace)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')" title="${esc(dotTitle)}"></span>`;
     }
     html += `</div>`;
 

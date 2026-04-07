@@ -2,7 +2,7 @@ name: Runtime Workflow Engine App - Build and test
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/common/**'
       - 'src/Runtime/workflow-engine/src/**'
@@ -16,10 +16,16 @@ on:
       - '.github/workflows/runtime-workflow-engine-app-tests.yaml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: src/Runtime/workflow-engine-app/

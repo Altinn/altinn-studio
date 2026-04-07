@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent
@@ -26,6 +26,11 @@ async def handle(state: AgentState) -> AgentState:
         Updated agent state
     """
     log.info("🔍 Verifier node executing")
+    sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={"message": "Verifying changes..."},
+    ))
 
     # Check if workflow should stop
     if state.next_action == "stop":
@@ -37,7 +42,11 @@ async def handle(state: AgentState) -> AgentState:
             log.info("⏭️ Skipping verification - no files were changed")
             state.tests_passed = True  # No changes means no failures
             state.verify_notes = ["No verification needed - no changes were made"]
-            state.next_action = "stop"  # Stop the workflow since no changes were made
+            if state.mcp_degraded:
+                # Let reviewer run so it can append the degraded warning
+                state.next_action = "review"
+            else:
+                state.next_action = "stop"
             return state
 
         # Use MCP verification with auto-fix loop
@@ -76,7 +85,7 @@ async def handle(state: AgentState) -> AgentState:
                 log.warning(f"❌ Validation failed after {max_fix_attempts} attempts")
                 if state.tests_passed is not False:  # Only set to False if not already False
                     state.tests_passed = False
-                state.verify_notes = (state.verify_notes or []) + [str(error) for error in result.errors]
+                state.verify_notes = (state.verify_notes or []) + _collect_error_strings(result)
                 break
             
             log.warning(f"⚠️ Validation failed (attempt {fix_attempt}/{max_fix_attempts}), attempting auto-fix...")
@@ -87,11 +96,28 @@ async def handle(state: AgentState) -> AgentState:
             if not fix_applied:
                 log.warning("Could not generate auto-fix, stopping attempts")
                 state.tests_passed = False
-                state.verify_notes = (state.verify_notes or []) + [str(error) for error in result.errors]
+                state.verify_notes = (state.verify_notes or []) + _collect_error_strings(result)
                 break
             
             log.info("✅ Auto-fix applied, re-running verification...")
         
+        # Spec validation: check generated output against FormSpec
+        # NOTE: These are soft warnings only — fuzzy label matching is unreliable
+        # and should never block a commit. They are included in verify_notes so the
+        # reviewer LLM can mention them, but they do NOT affect tests_passed.
+        if state.form_spec:
+            spec_notes = _validate_against_spec(state.form_spec, state.repo_path)
+            if spec_notes:
+                log.warning(f"⚠️ Spec validation found {len(spec_notes)} soft warnings (will not block commit)")
+                for note in spec_notes:
+                    log.warning(f"  - {note}")
+                state.verify_notes = (state.verify_notes or []) + [
+                    f"[soft warning] {note}" for note in spec_notes
+                ]
+            else:
+                log.info("✅ Spec validation passed — all spec fields accounted for")
+                state.verify_notes = (state.verify_notes or []) + ["Spec validation passed"]
+
         state.next_action = "review"
 
         
@@ -111,6 +137,9 @@ async def handle(state: AgentState) -> AgentState:
 async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
     """
     Attempt to automatically fix validation errors.
+    
+    Uses deterministic fixes for known error patterns (e.g. duplicate resource IDs)
+    and falls back to LLM-based fix generation for everything else.
     
     Args:
         state: Current agent state
@@ -159,21 +188,25 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
         
         log.info(f"Found {len(validation_errors)} validation errors to fix")
         
-        # Determine which files need fixing
-        for error in validation_errors:
-            if isinstance(error, dict) and "path" in error:
-                # The path format is like "data.layout.0" - we need the actual file
-                # We'll use the first changed file that's a layout file
-                for changed_file in state.changed_files:
-                    if "layout" in changed_file:
-                        affected_files.add(changed_file)
-                        break
+        # ── Deterministic fixes (no LLM needed) ──────────────────────────
+        deterministic_fixed = _apply_deterministic_fixes(
+            state.repo_path, state.repo_facts or {}, validation_errors
+        )
+        if deterministic_fixed:
+            log.info(f"🧹 Deterministic fix applied for {len(deterministic_fixed)} error(s)")
+            return True
         
-        if not affected_files:
-            # Default to first changed file
-            affected_files.add(state.changed_files[0])
+        # ── LLM-based fix (fallback for other errors) ────────────────────
+        # Collect affected files from tool results (each has a "file" key)
+        for tool_result in verification_result.tool_results:
+            file_from_tool = tool_result.get("file")
+            if file_from_tool:
+                affected_files.add(file_from_tool)
         
-        # Generate fix patch using LLM
+        # Also include all changed files — the LLM needs full context
+        for changed_file in state.changed_files:
+            affected_files.add(changed_file)
+        
         fix_patch = await _generate_fix_patch(
             state.repo_path,
             list(affected_files),
@@ -185,15 +218,12 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
             log.warning("Failed to generate fix patch")
             return False
         
-        # Apply the fix patch
         from agents.services.git import git_ops
         
-        # Normalize "op" to "operation" for git_ops.apply compatibility
         for change in fix_patch.get("changes", []):
             if "op" in change and "operation" not in change:
                 change["operation"] = change.pop("op")
         
-        # Skip reset for auto-fix - we want to build on existing changes, not wipe them
         fix_patch["skip_reset"] = True
         
         log.info(f"Applying auto-fix patch with {len(fix_patch['changes'])} changes")
@@ -206,43 +236,131 @@ async def _attempt_auto_fix(state: AgentState, verification_result) -> bool:
         return False
 
 
+def _collect_error_strings(result) -> list[str]:
+    """Collect human-readable error strings from a verification result.
+
+    Pulls from ``result.errors`` first, then falls back to extracting
+    messages from ``result.tool_results`` so structured errors are never
+    silently dropped.
+    """
+    import json as _json
+
+    notes: list[str] = []
+    if result.errors:
+        notes.extend(_error_to_str(e) for e in result.errors)
+
+    # Also harvest errors embedded in tool_results (MCP may put them there)
+    for tr in getattr(result, "tool_results", []):
+        rd = tr.get("result", {})
+        # Normalise various MCP response shapes to a dict
+        if hasattr(rd, "structured_content"):
+            rd = rd.structured_content
+        elif hasattr(rd, "text"):
+            try:
+                rd = _json.loads(rd.text)
+            except Exception:
+                continue
+        elif isinstance(rd, list) and rd:
+            first = rd[0]
+            if hasattr(first, "text"):
+                try:
+                    rd = _json.loads(first.text)
+                except Exception:
+                    continue
+            elif isinstance(first, dict):
+                rd = first
+            else:
+                continue
+        if not isinstance(rd, dict):
+            continue
+        for err in rd.get("validation_errors", []) + rd.get("errors", []):
+            s = _error_to_str(err)
+            if s and s not in notes:
+                notes.append(s)
+
+    return notes if notes else ["Verification failed (no structured error details available)"]
+
+
+_DUPLICATE_RESOURCE_ID_PATTERN = "Duplicate resource IDs"
+
+
+def _apply_deterministic_fixes(
+    repo_path: str, repo_facts: Dict[str, Any], validation_errors: list
+) -> list[str]:
+    """Apply deterministic (non-LLM) fixes for known error patterns.
+    
+    Returns list of error descriptions that were fixed.  Empty list = nothing fixed.
+    """
+    from agents.services.git import git_ops
+
+    fixed: list[str] = []
+
+    # Pattern: "Duplicate resource IDs: ['app.field.sendIn']"
+    resource_files = repo_facts.get("resources", [])
+    if not resource_files:
+        # Fallback: discover resource files from the repo
+        texts_dir = Path(repo_path) / "App" / "config" / "texts"
+        if texts_dir.exists():
+            resource_files = [
+                str(p.relative_to(repo_path))
+                for p in texts_dir.glob("resource.*.json")
+            ]
+    has_duplicate_id_error = any(
+        _DUPLICATE_RESOURCE_ID_PATTERN in _error_to_str(e)
+        for e in validation_errors
+    )
+    if has_duplicate_id_error and resource_files:
+        deduped = git_ops.deduplicate_resource_ids(repo_path, resource_files)
+        if deduped:
+            for f in deduped:
+                fixed.append(f"Deduplicated resource IDs in {f}")
+
+    return fixed
+
+
+def _error_to_str(error) -> str:
+    """Normalise a validation error (dict or str) to a string for pattern matching."""
+    if isinstance(error, str):
+        return error
+    if isinstance(error, dict):
+        return error.get("message", "") or str(error)
+    return str(error)
+
+
 async def _generate_fix_patch(
     repo_path: str,
     affected_files: list[str],
     validation_errors: list,
     state: AgentState
 ) -> Dict[str, Any]:
-    """
-    Generate a fix patch for validation errors using LLM.
-    
-    Args:
-        repo_path: Path to repository
-        affected_files: List of files with validation errors
-        validation_errors: Structured validation errors
-        state: Current agent state
-        
-    Returns:
-        Patch data dictionary with fix changes
+    """Generate a fix patch for validation errors using LLM.
+
+    Reads the current on-disk contents of every affected file so the LLM can
+    produce exact ``replace_text`` or structural JSON patches.
     """
     try:
-        # Read current file contents
+        # Read current file contents — include ALL affected files
         file_contents = {}
         for file_path in affected_files:
             full_path = Path(repo_path) / file_path
             if full_path.exists():
                 with open(full_path, 'r', encoding='utf-8') as f:
                     file_contents[file_path] = f.read()
-        
-        # Format validation errors for LLM
+
+        if not file_contents:
+            log.warning("No file contents available for LLM fixer")
+            return {}
+
+        # Format validation errors — include file association when available
         errors_summary = []
         for error in validation_errors:
             if isinstance(error, dict):
-                path = error.get("path", "unknown")
+                path = error.get("path", "")
                 message = error.get("message", str(error))
                 errors_summary.append(f"- Path: {path}, Error: {message}")
             else:
                 errors_summary.append(f"- {str(error)}")
-        
+
         client = LLMClient(role="validator_fixer")
 
         system_prompt, lf_prompt = get_prompt_with_langfuse("verifier_error_fixer")
@@ -253,7 +371,7 @@ async def _generate_fix_patch(
         )
 
         response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
-        
+
         # Parse JSON response
         clean = response.strip()
         if clean.startswith("```json"):
@@ -263,12 +381,98 @@ async def _generate_fix_patch(
         if clean.endswith("```"):
             clean = clean[:-3]
         clean = clean.strip()
-        
+
         patch_data = json.loads(clean)
-        
+
         log.info(f"Generated fix patch with {len(patch_data.get('changes', []))} changes")
         return patch_data
-        
+
     except Exception as e:
         log.error(f"Failed to generate fix patch: {e}", exc_info=True)
         return {}
+
+
+def _validate_against_spec(form_spec, repo_path: str) -> List[str]:
+    """Validate generated layout files against the FormSpec.
+    
+    Checks:
+    1. All spec pages have corresponding layout files
+    2. All spec fields have corresponding components in the layout
+    3. Settings.json includes all pages in order
+    
+    Returns list of warning strings (empty = all good).
+    """
+    notes = []
+    
+    try:
+        layouts_dir = Path(repo_path) / "App" / "ui" / "form" / "layouts"
+        
+        # Check 1: All spec pages have layout files
+        for page in form_spec.pages:
+            layout_file = layouts_dir / f"{page.page_name}.json"
+            if not layout_file.exists():
+                notes.append(f"Spec page '{page.page_name}' ({page.title}) has no layout file")
+                continue
+            
+            # Check 2: All spec fields have components in the layout
+            try:
+                with open(layout_file, 'r') as f:
+                    layout_data = json.loads(f.read())
+                
+                components = layout_data.get("data", {}).get("layout", [])
+                component_ids = {c.get("id", "").lower() for c in components}
+                
+                # Also collect text resource binding values for matching
+                text_bindings = set()
+                for c in components:
+                    trb = c.get("textResourceBindings", {})
+                    if isinstance(trb, dict):
+                        for val in trb.values():
+                            if isinstance(val, str):
+                                text_bindings.add(val.lower())
+                
+                for field in page.fields:
+                    if field.field_type in ("header", "paragraph"):
+                        continue  # Static elements don't need strict matching
+                    
+                    # Try to find the field by ID or by label match in text bindings
+                    field_id_lower = field.id.lower()
+                    found = any(
+                        field_id_lower in cid or cid in field_id_lower
+                        for cid in component_ids
+                    )
+                    if not found:
+                        # Check if any text binding references this field's label
+                        label_lower = field.label.lower()
+                        found = any(label_lower in tb for tb in text_bindings)
+                    
+                    if not found:
+                        notes.append(
+                            f"Spec field '{field.label}' (page {page.page_name}) "
+                            f"not found in layout components"
+                        )
+            except (json.JSONDecodeError, IOError) as e:
+                notes.append(f"Could not read layout file {page.page_name}.json: {e}")
+        
+        # Check 3: Settings.json includes all pages
+        settings_path = Path(repo_path) / "App" / "ui" / "form" / "Settings.json"
+        if settings_path.exists():
+            try:
+                with open(settings_path, 'r') as f:
+                    settings = json.loads(f.read())
+                
+                order = settings.get("pages", {}).get("order", [])
+                order_lower = {p.lower() for p in order}
+                
+                for page in form_spec.pages:
+                    if page.page_name.lower() not in order_lower:
+                        notes.append(
+                            f"Spec page '{page.page_name}' missing from Settings.json order"
+                        )
+            except (json.JSONDecodeError, IOError) as e:
+                notes.append(f"Could not read Settings.json: {e}")
+        
+    except Exception as e:
+        notes.append(f"Spec validation error: {e}")
+    
+    return notes

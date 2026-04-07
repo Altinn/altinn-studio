@@ -74,7 +74,7 @@
   "packageManager": "yarn@4.12.0",
   "private": true,
   "scripts": {
-    "build": "yarn workspaces foreach -A -p run build",
+    "build": "yarn workspaces foreach -A -p --include 'src/Designer/**' run build",
     "lint": "eslint \"**/*.ts*\"",
     "lint:fix": "yarn run lint --fix",
     "codestyle:check": "prettier . --check",
@@ -89,7 +89,7 @@
     "start-resourceadm": "yarn workspace resourceadm start",
     "start-studio-root": "yarn workspace studio-root start",
     "start-admin": "yarn workspace admin start",
-    "start-user-settings": "yarn workspace user-settings start",
+    "start-settings": "yarn workspace settings start",
     "stats": "node stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=jest.config.js",

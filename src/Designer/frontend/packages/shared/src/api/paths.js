@@ -213,6 +213,7 @@ export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
 export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
 export const altinityWebSocketHub = () => '/hubs/altinity';
+export const altinityAttachmentsUploadPath = () => `/designer/api/altinity/attachments`;
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
@@ -226,3 +227,8 @@ export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GE
 // User settings
 export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
 export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
+
+// Org settings
+export const contactPointsPath = (org) => `${apiBasePath}/v1/orgs/${org}/contact-points`; // Get, Post
+export const contactPointPath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}`; // Put, Delete
+export const contactPointActivePath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}/active`; // Patch

@@ -7,7 +7,6 @@ on:
       - '.github/workflows/template-docker-push.yaml'
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
-      - '.github/workflows/template-short-sha.yaml'
       - 'src/Designer/backend/**'
       - 'src/Designer/frontend/**'
       - 'src/Designer/Dockerfile'
@@ -27,9 +26,6 @@ permissions:
       contents: read
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
@@ -38,7 +34,6 @@ jobs:
       override-default-studio-environments: staging,preapproved-prod
 
   determine-tag:
-    needs: get-short-sha
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.determine-tag.outputs.tag }}
@@ -46,15 +41,16 @@ jobs:
       - name: Determine tag
         id: determine-tag
         run: |
+          SHORT_SHA="${GITHUB_SHA::10}"
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "tag=${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+            echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           else
             sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-' | tr '_' '-')
-            echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+            echo "tag=${sanitized_branch_name}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           fi
 
   docker-build-push:
-    needs: [get-short-sha, determine-tag]
+    needs: determine-tag
     uses: ./.github/workflows/template-docker-push.yaml
     with:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
@@ -70,7 +66,7 @@ jobs:
       build-args: DESIGNER_VERSION=${{ needs.determine-tag.outputs.tag }}
 
   db-migrations-docker-build-push:
-    needs: [get-short-sha, determine-tag]
+    needs: determine-tag
     uses: ./.github/workflows/template-docker-push.yaml
     with:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
@@ -85,7 +81,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   helm-push:
-    needs: [get-short-sha, determine-tag]
+    needs: determine-tag
     uses: ./.github/workflows/template-helm-push.yaml
     with:
       tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version

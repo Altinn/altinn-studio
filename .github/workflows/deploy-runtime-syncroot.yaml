@@ -20,9 +20,6 @@ permissions:
   actions: write
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-rings-array:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
@@ -30,13 +27,12 @@ jobs:
 
   push-syncroot-artifact:
     name: Push syncroot as OCI artifact
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
     outputs:
-      short-sha: ${{ needs.get-short-sha.outputs.short-sha }}
+      short-sha: ${{ steps.vars.outputs.short-sha }}
     defaults:
       run:
         working-directory: ./infra/runtime
@@ -44,6 +40,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0 # Shallow clone
+
+      - name: Set vars
+        id: vars
+        run: echo "short-sha=${GITHUB_SHA::10}" >> "$GITHUB_OUTPUT"
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -61,7 +61,7 @@ jobs:
       - name: push artifact
         run: |
           cd syncroot/
-          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ needs.get-short-sha.outputs.short-sha }} \
+          flux push artifact oci://altinncr.azurecr.io/studio-apps/syncroot:${{ steps.vars.outputs.short-sha }} \
             --provider=generic \
             --reproducible \
             --path="." \

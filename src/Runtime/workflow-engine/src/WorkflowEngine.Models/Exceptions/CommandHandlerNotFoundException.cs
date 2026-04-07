@@ -1,3 +1,5 @@
+#pragma warning disable CA1032 // Standard exception constructors are intentionally omitted — this exception requires domain-specific parameters
+
 namespace WorkflowEngine.Models.Exceptions;
 
 /// <summary>
