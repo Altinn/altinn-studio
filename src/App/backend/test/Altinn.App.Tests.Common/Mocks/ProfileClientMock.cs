@@ -24,4 +24,9 @@ public class ProfileClientMock : IProfileClient
     {
         throw new NotImplementedException();
     }
+
+    public Task<UserProfile?> GetUserProfile(Guid userUuid)
+    {
+        throw new NotImplementedException();
+    }
 }

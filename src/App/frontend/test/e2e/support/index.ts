@@ -13,6 +13,7 @@ import 'test/e2e/support/snapshot';
 
 import failOnConsoleError from 'cypress-fail-on-console-error';
 import installLogsCollector from 'cypress-terminal-report/src/installLogsCollector';
+import dotenv from 'dotenv';
 import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
@@ -58,4 +59,7 @@ Cypress.Commands.add('ignoreConsoleMessages', (consoleMessages: ConsoleMessage[]
   });
 });
 
-installLogsCollector();
+const env = dotenv.config({ quiet: true }).parsed || {};
+if (env.CYPRESS_LOGS_COLLECTOR === 'true') {
+  installLogsCollector();
+}

@@ -204,6 +204,26 @@ public class TestFunctions
     public async Task StringLength_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
+    [SharedTestCases("plus")]
+    public async Task Plus_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("minus")]
+    public async Task Minus_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("multiply")]
+    public async Task Multiply_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("divide")]
+    public async Task Divide_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
     [SharedTest("round")]
     public async Task Round_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
@@ -237,10 +257,15 @@ public class TestFunctions
     private async Task RunTestCase(string testName, string folder)
     {
         var test = await LoadTestCase(testName, folder);
-        _output.WriteLine(test.Name);
+        await RunTestCase(testName, test);
+    }
+
+    private async Task RunTestCase(string testName, ExpressionTestCaseRoot test)
+    {
+        _output.WriteLine(testName);
         _output.WriteLine($"{test.Folder}{Path.DirectorySeparatorChar}{test.Filename}");
-        _output.WriteLine(test.RawJson);
-        _output.WriteLine(test.FullPath);
+        _output.WriteLine(test.RawJson ?? "");
+        _output.WriteLine(test.FullPath ?? "");
 
         IInstanceDataAccessor dataAccessor;
         List<DataType> dataTypes = new();
@@ -316,16 +341,16 @@ public class TestFunctions
             componentModel = new LayoutModel([layout], null);
         }
 
-        var appRewourcesMock = new Mock<IAppResources>(MockBehavior.Strict);
+        var appResourcesMock = new Mock<IAppResources>(MockBehavior.Strict);
 
         var language = test.ProfileSettings?.Language ?? "nb";
-        appRewourcesMock
+        appResourcesMock
             .Setup(ar => ar.GetTexts(It.IsAny<string>(), It.IsAny<string>(), language))
             .ReturnsAsync(new TextResource() { Resources = test.TextResources ?? [] });
 
         var translationService = new TranslationService(
             new Core.Models.AppIdentifier("org", "app"),
-            appRewourcesMock.Object,
+            appResourcesMock.Object,
             FakeLoggerXunit.Get<TranslationService>(_output)
         );
 
@@ -385,6 +410,7 @@ public class TestFunctions
         object?[]? positionalArguments
     )
     {
+        _output.WriteLine(test.Name ?? "");
         if (test.ExpectsFailure is not null)
         {
             _output.WriteLine($"Expecting failure: {test.ExpectsFailure}");
@@ -422,7 +448,6 @@ public class TestFunctions
                 break;
             case JsonValueKind.True:
                 Assert.True(result as bool?);
-                result.Should().Be(true);
                 break;
             case JsonValueKind.False:
                 Assert.False(result as bool?);
@@ -457,7 +482,10 @@ public class TestFunctions
         var testMethods = this.GetType()
             .GetMethods()
             .Select(m =>
-                m.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(SharedTestAttribute))
+                m.CustomAttributes.FirstOrDefault(ca =>
+                        ca.AttributeType == typeof(SharedTestAttribute)
+                        || ca.AttributeType == typeof(SharedTestCasesAttribute)
+                    )
                     ?.ConstructorArguments.FirstOrDefault()
                     .Value
             )
@@ -473,3 +501,7 @@ public class SharedTestAttribute(string folder)
     : FileNamesInFolderDataAttribute(
         Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions", folder)
     ) { }
+
+// Can be used when you only want to run the tests listed in the testCases array in the json file
+public class SharedTestCasesAttribute(string folder)
+    : TestCasesAttribute(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions", folder)) { }

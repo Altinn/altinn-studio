@@ -32,6 +32,8 @@ internal partial class AppResourceId
 
     internal string Value => $"app_{Org}_{App}";
 
+    internal string AsUrn => $"urn:altinn:resource:{Value}";
+
     internal static bool IsResourceId(AppResourceId? resourceId)
     {
         return resourceId != null && AppIdRegex().IsMatch(resourceId.Value);

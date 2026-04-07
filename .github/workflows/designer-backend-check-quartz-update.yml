@@ -80,20 +80,15 @@ jobs:
 
           quartz_version="${{ steps.get-quartz-version.outputs.quartz-version }}"
 
-          download_url=$(curl -fsSL "https://api.github.com/repos/quartznet/quartznet/releases/tags/v$quartz_version" | \
-            jq -r --arg version "$quartz_version" '.assets // [] | map(select(.name | contains("Quartz.NET-" + $version + ".zip"))) | .[0].browser_download_url // empty')
+          sql_url="https://raw.githubusercontent.com/quartznet/quartznet/v$quartz_version/database/tables/tables_postgres.sql"
 
-          if [ -z "$download_url" ]; then
-            echo "Could not find release asset Quartz.NET-$quartz_version.zip for quartznet/quartznet tag v$quartz_version."
+          mkdir -p qdwn
+          if ! curl -fsSL -o qdwn/tables_postgres.sql "$sql_url"; then
+            echo "Could not fetch tables_postgres.sql from quartznet/quartznet tag v$quartz_version."
             exit 1
           fi
 
-          mkdir -p qdwn
-          curl -fL -o qdwn/quartz.zip "$download_url"
-          unzip -q qdwn/quartz.zip -d qdwn
-          rm qdwn/quartz.zip
-
-          diff_output=$(diff -b "${{ env.tables-file }}" qdwn/database/tables/tables_postgres.sql || true)
+          diff_output=$(diff -b "${{ env.tables-file }}" qdwn/tables_postgres.sql || true)
 
           if [ -n "$diff_output" ]; then
             echo "Quartz version that you are trying to update to requires new database migration scripts."

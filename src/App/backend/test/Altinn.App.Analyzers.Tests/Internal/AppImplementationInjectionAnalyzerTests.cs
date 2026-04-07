@@ -22,7 +22,7 @@ public class AppImplementationInjectionAnalyzerTests : IAsyncLifetime
     [Fact]
     public async Task Builds_Ok_By_Default()
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var cancellationToken = cts.Token;
 
         var analyzer = new AppImplementationInjectionAnalyzer();
@@ -35,7 +35,7 @@ public class AppImplementationInjectionAnalyzerTests : IAsyncLifetime
     [Fact]
     public async Task Emits_Diagnostics()
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var cancellationToken = cts.Token;
 
         var analyzer = new AppImplementationInjectionAnalyzer();

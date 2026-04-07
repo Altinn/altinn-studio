@@ -62,7 +62,16 @@ public class ValidateControllerTests
         Instance instance = new Instance { Id = "instanceId", Process = null };
 
         _instanceClientMock
-            .Setup(i => i.GetInstance(App, Org, InstanceOwnerPartyId, _instanceId))
+            .Setup(i =>
+                i.GetInstance(
+                    App,
+                    Org,
+                    InstanceOwnerPartyId,
+                    _instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instance);
 
         await using var sp = _services.BuildStrictServiceProvider();
@@ -91,7 +100,16 @@ public class ValidateControllerTests
         };
 
         _instanceClientMock
-            .Setup(i => i.GetInstance(App, Org, InstanceOwnerPartyId, _instanceId))
+            .Setup(i =>
+                i.GetInstance(
+                    App,
+                    Org,
+                    InstanceOwnerPartyId,
+                    _instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instance);
 
         await using var sp = _services.BuildStrictServiceProvider();
@@ -136,7 +154,16 @@ public class ValidateControllerTests
         };
 
         _instanceClientMock
-            .Setup(i => i.GetInstance(App, Org, InstanceOwnerPartyId, _instanceId))
+            .Setup(i =>
+                i.GetInstance(
+                    App,
+                    Org,
+                    InstanceOwnerPartyId,
+                    _instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instance);
 
         _validationServiceMock
@@ -168,7 +195,16 @@ public class ValidateControllerTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "dummy" } },
         };
         _instanceClientMock
-            .Setup(i => i.GetInstance(App, Org, InstanceOwnerPartyId, _instanceId))
+            .Setup(i =>
+                i.GetInstance(
+                    App,
+                    Org,
+                    InstanceOwnerPartyId,
+                    _instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instance);
 
         List<ValidationIssueWithSource> empty = [];
@@ -228,7 +264,16 @@ public class ValidateControllerTests
         PlatformHttpException exception = await PlatformHttpException.CreateAsync(updateProcessResult);
 
         _instanceClientMock
-            .Setup(i => i.GetInstance(App, Org, InstanceOwnerPartyId, _instanceId))
+            .Setup(i =>
+                i.GetInstance(
+                    App,
+                    Org,
+                    InstanceOwnerPartyId,
+                    _instanceId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(instance);
 
         _validationServiceMock

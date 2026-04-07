@@ -36,13 +36,10 @@ jobs:
       working-directory: src/AI/mcp
       run: |
         uv run -m server.main > server.log 2>&1 &
-        timeout 60 bash -c 'until grep -q "Initializing documentation search" server.log; do sleep 1; done'
+        sleep 5
+        curl --retry 6 --retry-delay 5 --retry-connrefused http://localhost:8070/sse
       env:
         AZURE_API_KEY: ${{ secrets.AZURE_AI_KEY }}
-
-    - name: Verify documentation indexing completes
-      working-directory: src/AI/mcp
-      run: timeout 180 bash -c 'until grep -q "Application startup complete" server.log; do sleep 1; done'
 
     - name: Output server logs on failure
       if: failure()

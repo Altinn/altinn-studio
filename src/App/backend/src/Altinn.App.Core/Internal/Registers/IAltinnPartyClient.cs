@@ -27,4 +27,11 @@ public interface IAltinnPartyClient
     /// <param name="urn">The URN to look up.</param>
     /// <returns>The partyId for the given URN, or null if not found.</returns>
     Task<int?> GetPartyIdByUrn(string urn);
+
+    /// <summary>
+    /// Looks up a partyUuid by a URN. The URN should be in the format urn:altinn:personnumber:12345678901 or urn:altinn:orgnumber:987654321.
+    /// </summary>
+    /// <param name="urn">The URN to look up.</param>
+    /// <returns>The partyUuid for the given URN, or null if not found.</returns>
+    Task<Guid?> GetPartyUuidByUrn(string urn);
 }
