@@ -73,7 +73,7 @@ internal sealed class TunnelWorker : BackgroundService
         using var socket = new ClientWebSocket();
         if (_logger.IsEnabled(LogLevel.Information))
             _logger.LogInformation("Connecting app tunnel to {Url}", tunnelUrl);
-        await socket.ConnectAsync(new Uri(tunnelUrl, UriKind.Absolute), cancellationToken);
+        await ConnectTunnelSocket(socket, tunnelUrl, cancellationToken);
         _state.SetConnected(true);
         _logger.LogInformation("App tunnel connected");
 
@@ -100,6 +100,31 @@ internal sealed class TunnelWorker : BackgroundService
             _state.SetConnected(false);
             sendLock.Dispose();
             _logger.LogInformation("App tunnel disconnected");
+        }
+    }
+
+    private async Task ConnectTunnelSocket(
+        ClientWebSocket socket,
+        string tunnelUrl,
+        CancellationToken cancellationToken
+    )
+    {
+        using var connectTimeout = new CancellationTokenSource(_options.ConnectTimeout);
+        using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            connectTimeout.Token
+        );
+
+        try
+        {
+            await socket.ConnectAsync(new Uri(tunnelUrl, UriKind.Absolute), linkedCancellation.Token);
+        }
+        catch (OperationCanceledException)
+            when (!cancellationToken.IsCancellationRequested && connectTimeout.IsCancellationRequested)
+        {
+            throw new TimeoutException(
+                $"timed out connecting app tunnel to {tunnelUrl} after {_options.ConnectTimeout}"
+            );
         }
     }
 

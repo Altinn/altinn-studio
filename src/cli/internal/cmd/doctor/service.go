@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os/exec"
 	"sort"
 
@@ -66,6 +67,8 @@ type Service struct {
 	lookPath        func(file string) (string, error)
 	versionOutput   func(ctx context.Context, name string) ([]byte, error)
 	containerDetect func(ctx context.Context) (container.ContainerClient, error)
+	lookupIP        func(ctx context.Context, host string) ([]net.IP, error)
+	dialContext     func(ctx context.Context, network, address string) (net.Conn, error)
 }
 
 // Report is the doctor application-layer output model.
@@ -122,15 +125,26 @@ type ContainerTool struct {
 
 // Network contains network diagnostics and cache/probe data.
 type Network struct {
-	Mode         string `json:"mode"`
-	HostGateway  string `json:"hostGateway,omitempty"`
-	HostDNS      string `json:"hostDns,omitempty"`
-	ContainerDNS string `json:"containerDns,omitempty"`
-	PingOK       *bool  `json:"pingOk,omitempty"`
-	CacheExists  *bool  `json:"cacheExists,omitempty"`
-	CacheFresh   *bool  `json:"cacheFresh,omitempty"`
-	CacheAge     string `json:"cacheAge,omitempty"`
-	Error        string `json:"error,omitempty"`
+	Mode              string          `json:"mode"`
+	HostGateway       string          `json:"hostGateway,omitempty"`
+	HostDNS           string          `json:"hostDns,omitempty"`
+	ContainerDNS      string          `json:"containerDns,omitempty"`
+	LocalhostAddrs    []string        `json:"localhostAddrs,omitempty"`
+	LocalhostError    string          `json:"localhostError,omitempty"`
+	LoopbackEndpoints []LoopbackProbe `json:"loopbackEndpoints,omitempty"`
+	PingOK            *bool           `json:"pingOk,omitempty"`
+	CacheExists       *bool           `json:"cacheExists,omitempty"`
+	CacheFresh        *bool           `json:"cacheFresh,omitempty"`
+	CacheAge          string          `json:"cacheAge,omitempty"`
+	Error             string          `json:"error,omitempty"`
+}
+
+// LoopbackProbe describes reachability for one loopback endpoint.
+type LoopbackProbe struct {
+	Endpoint  string `json:"endpoint"`
+	Family    string `json:"family"`
+	Error     string `json:"error,omitempty"`
+	Reachable bool   `json:"reachable"`
 }
 
 // Auth contains authentication status summary for configured environments.
@@ -180,6 +194,13 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 		lookPath:        exec.LookPath,
 		versionOutput:   commandVersionOutput,
 		containerDetect: container.Detect,
+		lookupIP: func(ctx context.Context, host string) ([]net.IP, error) {
+			return net.DefaultResolver.LookupIP(ctx, "ip", host)
+		},
+		dialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+			var dialer net.Dialer
+			return dialer.DialContext(ctx, network, address)
+		},
 	}
 }
 

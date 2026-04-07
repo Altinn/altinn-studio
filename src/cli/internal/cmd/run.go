@@ -99,7 +99,7 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 }
 
 func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []string) error {
-	spec := c.service.BuildDotnetRunSpec(appPath, args, os.Environ())
+	spec := c.service.BuildDotnetRunSpec(ctx, appPath, args, os.Environ())
 
 	c.out.Verbosef("Running: dotnet %v", spec.Args)
 

@@ -9,6 +9,24 @@ import (
 	repocontext "altinn.studio/studioctl/internal/context"
 )
 
+// TODO: this should come from the "current env"
+const localtestLoopbackHost = "127.0.0.1"
+
+var localtestEnvDefaults = map[string]string{
+	"AppSettings__OpenIdWellKnownEndpoint":          "http://" + localtestLoopbackHost + ":5101/authentication/api/v1/openid/",
+	"OTEL_EXPORTER_OTLP_ENDPOINT":                   "http://" + localtestLoopbackHost + ":4317",
+	"PlatformSettings__ApiStorageEndpoint":          "http://" + localtestLoopbackHost + ":5101/storage/api/v1/",
+	"PlatformSettings__ApiRegisterEndpoint":         "http://" + localtestLoopbackHost + ":5101/register/api/v1/",
+	"PlatformSettings__ApiProfileEndpoint":          "http://" + localtestLoopbackHost + ":5101/profile/api/v1/",
+	"PlatformSettings__ApiAuthenticationEndpoint":   "http://" + localtestLoopbackHost + ":5101/authentication/api/v1/",
+	"PlatformSettings__ApiAuthorizationEndpoint":    "http://" + localtestLoopbackHost + ":5101/authorization/api/v1/",
+	"PlatformSettings__ApiEventsEndpoint":           "http://" + localtestLoopbackHost + ":5101/events/api/v1/",
+	"PlatformSettings__ApiPdf2Endpoint":             "http://" + localtestLoopbackHost + ":5300/pdf",
+	"PlatformSettings__ApiNotificationEndpoint":     "http://" + localtestLoopbackHost + ":5101/notifications/api/v1/",
+	"PlatformSettings__ApiCorrespondenceEndpoint":   "http://" + localtestLoopbackHost + ":5101/correspondence/api/v1/",
+	"PlatformSettings__ApiAccessManagementEndpoint": "http://" + localtestLoopbackHost + ":5101/accessmanagement/api/v1/",
+}
+
 // Service contains run command logic.
 type Service struct{}
 
@@ -37,18 +55,27 @@ func (s *Service) ResolveApp(ctx context.Context, appPath string) (repocontext.D
 }
 
 // BuildDotnetRunSpec builds arguments/environment for `dotnet run`.
-func (s *Service) BuildDotnetRunSpec(appPath string, args, env []string) DotnetRunSpec {
+func (s *Service) BuildDotnetRunSpec(_ context.Context, appPath string, args, env []string) DotnetRunSpec {
 	dotnetArgs := make([]string, 0, 3+len(args))
 	dotnetArgs = append(dotnetArgs, "run", "--project", filepath.Join(appPath, "App"))
 	dotnetArgs = append(dotnetArgs, args...)
 
 	resolvedEnv := appendEnvIfUnset(env, "ASPNETCORE_ENVIRONMENT", "Development")
+	resolvedEnv = appendLocaltestEnvIfUnset(resolvedEnv)
 
 	return DotnetRunSpec{
 		Args: dotnetArgs,
 		Dir:  appPath,
 		Env:  resolvedEnv,
 	}
+}
+
+func appendLocaltestEnvIfUnset(env []string) []string {
+	resolved := env
+	for key, value := range localtestEnvDefaults {
+		resolved = appendEnvIfUnset(resolved, key, value)
+	}
+	return resolved
 }
 
 func appendEnvIfUnset(env []string, key, value string) []string {

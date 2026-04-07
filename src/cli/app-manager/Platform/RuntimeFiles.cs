@@ -6,11 +6,6 @@ internal static class RuntimeFiles
 
     public static void PrepareIpcArtifacts(IConfiguration configuration)
     {
-        if (OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
         var unixSocketPath = configuration[UnixSocketPathKey];
         if (string.IsNullOrWhiteSpace(unixSocketPath))
         {
@@ -27,10 +22,7 @@ internal static class RuntimeFiles
     {
         lifetime.ApplicationStopping.Register(() =>
         {
-            if (!OperatingSystem.IsWindows())
-            {
-                TryDelete(configuration[UnixSocketPathKey]);
-            }
+            TryDelete(configuration[UnixSocketPathKey]);
         });
     }
 

@@ -31,6 +31,7 @@ const (
 	flavorDocker         = "Docker"
 	flavorPodman         = "Podman"
 	flavorUnknown        = "Unknown"
+	localtestServicePort = "5101"
 )
 
 // ErrInvalidResourceLayout is returned when required host paths are missing or have wrong type.
@@ -48,13 +49,14 @@ type RuntimeConfig struct {
 
 // ContainerSpec defines a container to run.
 type ContainerSpec struct {
-	Name         string
-	Ports        []types.PortMapping
-	Environment  map[string]string
-	Volumes      []types.VolumeMount
-	ExtraHosts   []string
-	Dependencies []string
-	Command      []string
+	Name           string
+	Ports          []types.PortMapping
+	Environment    map[string]string
+	Volumes        []types.VolumeMount
+	ExtraHosts     []string
+	NetworkAliases []string
+	Dependencies   []string
+	Command        []string
 }
 
 // ContainerStatus describes one localtest container.
@@ -92,16 +94,17 @@ func newContainerSpec(
 	ports []types.PortMapping,
 	env map[string]string,
 	volumes []types.VolumeMount,
-	extraHosts, deps, cmd []string,
+	extraHosts, networkAliases, deps, cmd []string,
 ) ContainerSpec {
 	return ContainerSpec{
-		Name:         name,
-		Ports:        ports,
-		Environment:  env,
-		Volumes:      volumes,
-		ExtraHosts:   extraHosts,
-		Dependencies: deps,
-		Command:      cmd,
+		Name:           name,
+		Ports:          ports,
+		Environment:    env,
+		Volumes:        volumes,
+		ExtraHosts:     extraHosts,
+		NetworkAliases: networkAliases,
+		Dependencies:   deps,
+		Command:        cmd,
 	}
 }
 
@@ -121,10 +124,9 @@ func newContainerStatus(name, status string) ContainerStatus {
 }
 
 func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
-	extraHosts := []string{
+	hostExtraHosts := []string{
 		"host.docker.internal:" + cfg.HostGateway,
 		"host.containers.internal:" + cfg.HostGateway,
-		networking.LocalDomain + ":" + cfg.HostGateway,
 	}
 
 	dotnetEnv := localtestEnvironment(cfg.Platform)
@@ -133,8 +135,8 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 		newContainerSpec(
 			ContainerLocaltest,
 			[]types.PortMapping{
-				newPort(cfg.LoadBalancerPort, "5101"), // Main port
-				newPort("5101", "5101"),               // Internal port
+				newPort(cfg.LoadBalancerPort, localtestServicePort), // Main port
+				newPort(localtestServicePort, localtestServicePort), // Internal port
 			},
 			map[string]string{
 				"DOTNET_ENVIRONMENT":                 dotnetEnv,
@@ -146,7 +148,8 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				newVolume(filepath.Join(dataDir, "testdata"), "/testdata"),
 				newVolume(filepath.Join(dataDir, "AltinnPlatformLocal"), "/AltinnPlatformLocal"),
 			},
-			extraHosts,
+			hostExtraHosts,
+			[]string{networking.LocalDomain},
 			nil,
 			nil,
 		),
@@ -157,10 +160,12 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				"TZ":                             "Europe/Oslo",
 				"PDF3_ENVIRONMENT":               "localtest",
 				"PDF3_QUEUE_SIZE":                "3",
-				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
+				// pdf3 reaches localtest over the container network, not through the host-published load balancer port.
+				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + localtestServicePort,
 			},
 			nil,
-			extraHosts,
+			hostExtraHosts,
+			nil,
 			[]string{ContainerLocaltest},
 			nil,
 		),
@@ -198,6 +203,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			},
 			nil,
 			nil,
+			nil,
 			[]string{"-config.file=/etc/tempo.yaml", "-log.level=error"},
 		),
 		newContainerSpec(
@@ -207,6 +213,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]types.VolumeMount{
 				newVolume(filepath.Join(infraDir, "mimir.yaml"), "/etc/mimir.yaml"),
 			},
+			nil,
 			nil,
 			nil,
 			[]string{"-config.file=/etc/mimir.yaml", "-target=all", "-log.level=error"},
@@ -220,6 +227,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			},
 			nil,
 			nil,
+			nil,
 			[]string{"-config.file=/etc/loki.yaml", "-target=all", "-log.level=error"},
 		),
 		newContainerSpec(
@@ -229,6 +237,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]types.VolumeMount{
 				newVolume(filepath.Join(infraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
 			},
+			nil,
 			nil,
 			[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
 			[]string{"--config=/etc/otel-collector.yaml"},
@@ -257,6 +266,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				newVolume(filepath.Join(infraDir, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
 			},
 			extraHosts,
+			nil,
 			[]string{
 				ContainerMonitoringOtelCollector,
 				ContainerMonitoringMimir,
@@ -459,17 +469,18 @@ func newContainerResource(
 	}
 
 	return &resource.Container{
-		Name:          spec.Name,
-		Image:         resource.Ref(imageRes),
-		Networks:      []resource.ResourceRef{network},
-		Ports:         spec.Ports,
-		Volumes:       spec.Volumes,
-		Env:           toEnvSlice(spec.Environment),
-		Labels:        labels,
-		Command:       spec.Command,
-		ExtraHosts:    spec.ExtraHosts,
-		RestartPolicy: "",
-		User:          user,
+		Name:           spec.Name,
+		Image:          resource.Ref(imageRes),
+		Networks:       []resource.ResourceRef{network},
+		Ports:          spec.Ports,
+		Volumes:        spec.Volumes,
+		Env:            toEnvSlice(spec.Environment),
+		Labels:         labels,
+		Command:        spec.Command,
+		ExtraHosts:     spec.ExtraHosts,
+		NetworkAliases: spec.NetworkAliases,
+		RestartPolicy:  "",
+		User:           user,
 	}
 }
 

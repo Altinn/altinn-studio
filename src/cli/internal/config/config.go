@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"hash/crc32"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -202,11 +201,6 @@ func resolveSocketDir(flagValue, home string) (string, error) {
 // AppManagerSocketPath returns the path to the app-manager Unix socket.
 func (c *Config) AppManagerSocketPath() string {
 	return filepath.Join(c.SocketDir, "app-manager.sock")
-}
-
-// AppManagerNamedPipeName returns the Windows named pipe name for app-manager.
-func (c *Config) AppManagerNamedPipeName() string {
-	return fmt.Sprintf("altinn-studio-app-manager-%08x", crc32.ChecksumIEEE([]byte(c.Home)))
 }
 
 // AppManagerPIDPath returns the path to the persisted app-manager runtime state file.

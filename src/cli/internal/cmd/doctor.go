@@ -273,6 +273,8 @@ func (c *DoctorCommand) renderDoctorCachedNetworkSection(sec *ui.Section, networ
 		}
 		sec.KeyValue("Cache", doctorCacheStateLabel(network))
 	}
+
+	c.renderDoctorLocalhostSection(sec, network)
 }
 
 func doctorCacheStateLabel(network *doctorsvc.Network) string {
@@ -294,26 +296,54 @@ func doctorCacheStateLabel(network *doctorsvc.Network) string {
 func (c *DoctorCommand) renderDoctorActiveNetworkSection(sec *ui.Section, network *doctorsvc.Network) {
 	if network.Error != "" {
 		sec.KeyValueStatus(false, "Host Gateway", network.Error)
-		return
+	} else {
+		sec.KeyValueStatus(true, "Host Gateway", network.HostGateway)
+		if network.PingOK != nil && *network.PingOK {
+			sec.KeyValueStatus(true, "Connectivity", "ping ok")
+		} else {
+			sec.KeyValueStatus(false, "Connectivity", "ping failed")
+		}
+
+		if network.HostDNS != "" {
+			sec.KeyValueStatus(true, "Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
+		} else {
+			sec.KeyValueStatus(false, "Host DNS", networking.LocalDomain+" unresolvable")
+		}
+
+		if network.ContainerDNS != "" {
+			sec.KeyValueStatus(true, "Container DNS", networking.LocalDomain+" -> "+network.ContainerDNS)
+		} else {
+			sec.KeyValueStatus(false, "Container DNS", networking.LocalDomain+" unresolvable")
+		}
 	}
 
-	sec.KeyValueStatus(true, "Host Gateway", network.HostGateway)
-	if network.PingOK != nil && *network.PingOK {
-		sec.KeyValueStatus(true, "Connectivity", "ping ok")
-	} else {
-		sec.KeyValueStatus(false, "Connectivity", "ping failed")
-	}
+	c.renderDoctorLocalhostSection(sec, network)
+	c.renderDoctorLoopbackSection(sec, network)
+}
 
-	if network.HostDNS != "" {
-		sec.KeyValueStatus(true, "Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
-	} else {
-		sec.KeyValueStatus(false, "Host DNS", networking.LocalDomain+" unresolvable")
+func (c *DoctorCommand) renderDoctorLocalhostSection(sec *ui.Section, network *doctorsvc.Network) {
+	switch {
+	case network.LocalhostError != "":
+		sec.KeyValueStatus(false, "Localhost", network.LocalhostError)
+	case len(network.LocalhostAddrs) == 0:
+		sec.KeyValueStatus(false, "Localhost", "unresolvable")
+	default:
+		sec.KeyValueStatus(true, "Localhost", "localhost -> "+strings.Join(network.LocalhostAddrs, ", "))
 	}
+}
 
-	if network.ContainerDNS != "" {
-		sec.KeyValueStatus(true, "Container DNS", networking.LocalDomain+" -> "+network.ContainerDNS)
-	} else {
-		sec.KeyValueStatus(false, "Container DNS", networking.LocalDomain+" unresolvable")
+func (c *DoctorCommand) renderDoctorLoopbackSection(sec *ui.Section, network *doctorsvc.Network) {
+	for _, probe := range network.LoopbackEndpoints {
+		label := "Loopback " + strings.ToUpper(probe.Family)
+		if probe.Reachable {
+			sec.KeyValueStatus(true, label, probe.Endpoint+" reachable")
+			continue
+		}
+		msg := probe.Endpoint + " unreachable"
+		if probe.Error != "" {
+			msg += " (" + probe.Error + ")"
+		}
+		sec.KeyValueStatus(false, label, msg)
 	}
 }
 

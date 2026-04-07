@@ -31,6 +31,10 @@ internal static class ServiceCollectionExtensions
             {
                 options.Url = configuration["Tunnel:Url"];
                 options.UpstreamUrl = configuration["Tunnel:UpstreamUrl"] ?? options.UpstreamUrl;
+                if (int.TryParse(configuration["Tunnel:ConnectTimeoutSeconds"], out var timeoutSeconds))
+                {
+                    options.ConnectTimeout = TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds));
+                }
             });
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<TunnelOptions>>().Value);
         services.AddSingleton<TunnelState>();

@@ -3,15 +3,27 @@ package doctor
 import (
 	"context"
 	"fmt"
+	"net"
+	"slices"
 	"strconv"
 	"time"
 
-	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/networking"
+)
+
+const (
+	doctorLocalhostName  = "localhost"
+	localtestPort        = "5101"
+	loopbackProbeTimeout = time.Second
 )
 
 func (s *Service) buildNetwork(ctx context.Context, runChecks bool) *Network {
 	var network Network
+	network.LocalhostAddrs, network.LocalhostError = s.resolveLocalhost(ctx)
+
+	if runChecks {
+		network.LoopbackEndpoints = s.probeLoopbackEndpoints(ctx)
+	}
 
 	if !runChecks {
 		status := networking.GetCacheStatus(s.cfg.Home)
@@ -26,7 +38,7 @@ func (s *Service) buildNetwork(ctx context.Context, runChecks bool) *Network {
 		return &network
 	}
 
-	client, err := container.Detect(ctx)
+	client, err := s.containerDetect(ctx)
 	if err != nil {
 		network.Mode = networkModeChecks
 		network.Error = fmt.Sprintf("no container runtime: %v", err)
@@ -53,6 +65,67 @@ func (s *Service) buildNetwork(ctx context.Context, runChecks bool) *Network {
 	network.ContainerDNS = metadata.LocalDNS
 	network.PingOK = &pingOK
 	return &network
+}
+
+func (s *Service) resolveLocalhost(ctx context.Context) ([]string, string) {
+	if s == nil || s.lookupIP == nil {
+		return nil, "resolver unavailable"
+	}
+
+	ips, err := s.lookupIP(ctx, doctorLocalhostName)
+	if err != nil {
+		return nil, err.Error()
+	}
+
+	if len(ips) == 0 {
+		return nil, ""
+	}
+
+	addrs := make([]string, 0, len(ips))
+	seen := make(map[string]struct{}, len(ips))
+	for _, ip := range ips {
+		if ip == nil {
+			continue
+		}
+		addr := ip.String()
+		if _, ok := seen[addr]; ok {
+			continue
+		}
+		seen[addr] = struct{}{}
+		addrs = append(addrs, addr)
+	}
+	slices.Sort(addrs)
+	return addrs, ""
+}
+
+func (s *Service) probeLoopbackEndpoints(ctx context.Context) []LoopbackProbe {
+	if s == nil || s.dialContext == nil {
+		return nil
+	}
+
+	probes := []LoopbackProbe{
+		{Family: "ipv4", Endpoint: net.JoinHostPort("127.0.0.1", localtestPort)},
+		{Family: "ipv6", Endpoint: net.JoinHostPort("::1", localtestPort)},
+	}
+
+	for i := range probes {
+		networkName := "tcp4"
+		if probes[i].Family == "ipv6" {
+			networkName = "tcp6"
+		}
+
+		probeCtx, cancel := context.WithTimeout(ctx, loopbackProbeTimeout)
+		conn, err := s.dialContext(probeCtx, networkName, probes[i].Endpoint)
+		cancel()
+		if err != nil {
+			probes[i].Error = err.Error()
+			continue
+		}
+		probes[i].Reachable = true
+		_ = conn.Close()
+	}
+
+	return probes
 }
 
 // formatDuration formats a duration in human-readable form.

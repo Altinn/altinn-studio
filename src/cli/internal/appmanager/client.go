@@ -29,7 +29,6 @@ const (
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
 	appManagerUnixSocketEnv = "APP_MANAGER_UNIX_SOCKET_PATH"
-	appManagerPipeNameEnv   = "APP_MANAGER_NAMED_PIPE_NAME"
 	appManagerTunnelURLEnv  = "Tunnel__Url"
 	appManagerUpstreamEnv   = "Tunnel__UpstreamUrl"
 
@@ -42,7 +41,6 @@ const (
 type startConfig struct {
 	BinaryPath     string `json:"binaryPath"`
 	WorkingDir     string `json:"workingDir"`
-	NamedPipeName  string `json:"namedPipeName,omitempty"`
 	UnixSocketPath string `json:"unixSocketPath,omitempty"`
 	TunnelURL      string `json:"tunnelUrl"`
 	UpstreamURL    string `json:"upstreamUrl"`
@@ -236,10 +234,30 @@ func EnsureStarted(ctx context.Context, cfg *config.Config, loadBalancerPort, lo
 	}
 
 	if ok {
-		if state.Start != desired {
+		running, err := isProcessRunning(state.PID)
+		if err != nil {
+			return fmt.Errorf("check persisted app-manager pid %d: %w", state.PID, err)
+		}
+
+		if !running {
 			if err := removeAppManagerState(cfg); err != nil {
 				return fmt.Errorf("remove stale app-manager pid file: %w", err)
 			}
+			return startProcess(ctx, cfg, desired)
+		}
+
+		if state.Start == desired {
+			status, err := waitForHealthy(ctx, cfg, client)
+			if err == nil {
+				return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+			}
+		}
+
+		if err := killProcess(state.PID); err != nil {
+			return fmt.Errorf("stop persisted app-manager pid %d: %w", state.PID, err)
+		}
+		if err := removeAppManagerState(cfg); err != nil {
+			return fmt.Errorf("remove stale app-manager pid file: %w", err)
 		}
 	}
 
@@ -292,13 +310,20 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	cmd.Env = append(
 		os.Environ(),
 		appManagerUnixSocketEnv+"="+startConfig.UnixSocketPath,
-		appManagerPipeNameEnv+"="+startConfig.NamedPipeName,
 	)
 	if startConfig.TunnelURL != "" {
 		cmd.Env = append(cmd.Env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
 	}
 	cmd.Env = append(cmd.Env, appManagerUpstreamEnv+"="+startConfig.UpstreamURL)
-	cmd.Stdin = nil
+	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
+	if err != nil {
+		return fmt.Errorf("open null device: %w", err)
+	}
+	defer ignoreError(devNull.Close())
+
+	cmd.Stdin = devNull
+	cmd.Stdout = devNull
+	cmd.Stderr = devNull
 	applyProcessAttrs(cmd)
 
 	if err := cmd.Start(); err != nil {
@@ -372,7 +397,6 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, localAppURL string) 
 	return startConfig{
 		BinaryPath:     cfg.AppManagerBinaryPath(),
 		WorkingDir:     cfg.Home,
-		NamedPipeName:  cfg.AppManagerNamedPipeName(),
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      TunnelURL(loadBalancerPort),
 		UpstreamURL:    rewriteHostLocalAppURL(localAppURL),
@@ -384,7 +408,6 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 	return startConfig{
 		BinaryPath:     cfg.AppManagerBinaryPath(),
 		WorkingDir:     cfg.Home,
-		NamedPipeName:  cfg.AppManagerNamedPipeName(),
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      status.Tunnel.URL,
 		UpstreamURL:    status.Tunnel.UpstreamURL,
@@ -527,7 +550,6 @@ func zeroRuntimeState() runtimeState {
 		Start: startConfig{
 			BinaryPath:     "",
 			WorkingDir:     "",
-			NamedPipeName:  "",
 			UnixSocketPath: "",
 			TunnelURL:      "",
 			UpstreamURL:    "",
