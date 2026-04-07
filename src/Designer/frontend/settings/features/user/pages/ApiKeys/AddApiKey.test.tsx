@@ -9,18 +9,25 @@ import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import { toast } from 'react-toastify';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
+import { formatLocalDate } from './AddApiKeyDialog/AddApiKeyDialog';
 
 jest.mock('react-toastify', () => ({
   ...jest.requireActual('react-toastify'),
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
-const todayUtc = new Date().toISOString().split('T')[0];
+const today = formatLocalDate(new Date());
+
+const maxExpiresAt = (() => {
+  const d = new Date();
+  d.setDate(d.getDate() + 365);
+  return formatLocalDate(d);
+})();
 
 const validExpiresAt = (() => {
-  const d = new Date(todayUtc);
-  d.setUTCDate(d.getUTCDate() + 100);
-  return d.toISOString().split('T')[0];
+  const d = new Date();
+  d.setDate(d.getDate() + 100);
+  return formatLocalDate(d);
 })();
 
 const mockApiKeys: UserApiKey[] = [
@@ -94,29 +101,19 @@ describe('AddApiKey', () => {
   });
 
   it('sets min to today and max to 365 days from today on the expiry input', async () => {
-    const maxUtc = (() => {
-      const d = new Date(todayUtc);
-      d.setUTCDate(d.getUTCDate() + 365);
-      return d.toISOString().split('T')[0];
-    })();
     const user = userEvent.setup();
     renderAddApiKey();
     await openDialog(user);
     const expiryInput = getExpiryInput();
-    expect(expiryInput).toHaveAttribute('min', todayUtc);
-    expect(expiryInput).toHaveAttribute('max', maxUtc);
+    expect(expiryInput).toHaveAttribute('min', today);
+    expect(expiryInput).toHaveAttribute('max', maxExpiresAt);
   });
 
   it('defaults the expiry input to the max date (365 days from today)', async () => {
-    const maxUtc = (() => {
-      const d = new Date(todayUtc);
-      d.setUTCDate(d.getUTCDate() + 365);
-      return d.toISOString().split('T')[0];
-    })();
     const user = userEvent.setup();
     renderAddApiKey();
     await openDialog(user);
-    expect(getExpiryInput()).toHaveValue(maxUtc);
+    expect(getExpiryInput()).toHaveValue(maxExpiresAt);
   });
 
   it('shows required error only for name when submitting with default expiry', async () => {
@@ -128,11 +125,6 @@ describe('AddApiKey', () => {
   });
 
   it('resets expiry to the max date after successful api key creation', async () => {
-    const maxUtc = (() => {
-      const d = new Date(todayUtc);
-      d.setUTCDate(d.getUTCDate() + 365);
-      return d.toISOString().split('T')[0];
-    })();
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
@@ -142,7 +134,7 @@ describe('AddApiKey', () => {
     await screen.findByDisplayValue('secret-key-value');
     await user.click(screen.getByRole('button', { name: textMock('general.close') }));
     await openDialog(user);
-    expect(getExpiryInput()).toHaveValue(maxUtc);
+    expect(getExpiryInput()).toHaveValue(maxExpiresAt);
   });
 
   it('shows duplicate name error when name already exists', async () => {
@@ -168,6 +160,10 @@ describe('AddApiKey', () => {
     expect(
       await screen.findByText(textMock('settings.user.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
+    await user.type(getNameInput(), ' 2');
+    expect(
+      screen.queryByText(textMock('settings.user.api_keys.error_duplicate_name')),
+    ).not.toBeInTheDocument();
   });
 
   it('calls addUserApiKey with correct payload', async () => {

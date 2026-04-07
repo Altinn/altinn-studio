@@ -117,6 +117,7 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
                 onEdit={() => openEditDialog(channel)}
                 onDelete={() => deleteChannel(channel.id)}
                 editAriaLabel={t('settings.orgs.contact_points.dialog_edit_slack_title')}
+                itemName={channel.name}
               />
             </StudioTable.Row>
           ))}

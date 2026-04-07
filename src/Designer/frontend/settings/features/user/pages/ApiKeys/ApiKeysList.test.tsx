@@ -91,10 +91,10 @@ describe('ApiKeysList', () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     renderApiKeysList();
 
-    const deleteButtons = screen.getAllByRole('button', {
-      name: textMock('settings.user.api_keys.delete'),
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('settings.user.api_keys.delete', { name: mockApiKeys[0].name }),
     });
-    await user.click(deleteButtons[0]);
+    await user.click(deleteButton);
 
     expect(queriesMock.deleteUserApiKey).toHaveBeenCalled();
     jest.restoreAllMocks();
@@ -107,12 +107,12 @@ describe('ApiKeysList', () => {
       deleteUserApiKey: jest.fn().mockReturnValue(new Promise(() => {})),
     });
 
-    const deleteButtons = screen.getAllByRole('button', {
-      name: textMock('settings.user.api_keys.delete'),
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('settings.user.api_keys.delete', { name: mockApiKeys[0].name }),
     });
-    await user.click(deleteButtons[0]);
+    await user.click(deleteButton);
 
-    expect(deleteButtons[0]).toBeDisabled();
+    expect(deleteButton).toBeDisabled();
     jest.restoreAllMocks();
   });
 });

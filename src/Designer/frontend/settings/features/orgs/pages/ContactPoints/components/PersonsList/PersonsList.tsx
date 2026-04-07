@@ -123,6 +123,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
                   onEdit={() => openEditDialog(person)}
                   onDelete={() => deletePerson(person.id)}
                   editAriaLabel={t('settings.orgs.contact_points.dialog_edit_person_title')}
+                  itemName={person.name}
                 />
               </StudioTable.Row>
             );

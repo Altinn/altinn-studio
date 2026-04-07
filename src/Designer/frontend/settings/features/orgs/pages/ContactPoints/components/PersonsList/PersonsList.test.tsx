@@ -121,8 +121,9 @@ describe('PersonsList', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderPersonsList({ persons: [person1] });
-    const deleteButtons = screen.getAllByRole('button');
-    const deleteButton = deleteButtons.find((btn) => btn.getAttribute('data-color') === 'danger')!;
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('settings.orgs.contact_points.delete', { name: person1.name }),
+    });
     await user.click(deleteButton);
     expect(queriesMock.deleteContactPoint).toHaveBeenCalledWith(testOrg, 'person-1');
   });

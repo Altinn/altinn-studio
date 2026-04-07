@@ -117,8 +117,9 @@ describe('SlackChannelsList', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderSlackChannelsList({ channels: [channel1] });
-    const deleteButtons = screen.getAllByRole('button');
-    const deleteButton = deleteButtons.find((btn) => btn.getAttribute('data-color') === 'danger')!;
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('settings.orgs.contact_points.delete', { name: channel1.name }),
+    });
     await user.click(deleteButton);
     expect(queriesMock.deleteContactPoint).toHaveBeenCalledWith(testOrg, 'slack-1');
   });

@@ -23,11 +23,17 @@ import { StudioCloseIcon } from '@studio/icons';
 
 const MAX_USER_API_KEY_EXPIRY_DAYS = 365;
 
+export const formatLocalDate = (date: Date): string =>
+  [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+
 export const computeMaxExpiresAt = (): string => {
-  const todayUtc = new Date().toISOString().split('T')[0];
-  const maxDate = new Date(todayUtc);
-  maxDate.setUTCDate(maxDate.getUTCDate() + MAX_USER_API_KEY_EXPIRY_DAYS);
-  return maxDate.toISOString().split('T')[0];
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + MAX_USER_API_KEY_EXPIRY_DAYS);
+  return formatLocalDate(maxDate);
 };
 
 type AddApiKeyDialogProps = {
@@ -47,11 +53,16 @@ export const AddApiKeyDialog = ({
   const [submitted, setSubmitted] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
 
-  const { mutate: addUserApiKey, isPending, error } = useAddUserApiKeyMutation();
+  const {
+    mutate: addUserApiKey,
+    isPending,
+    error,
+    reset: resetMutation,
+  } = useAddUserApiKeyMutation();
   const { data: apiKeys } = useUserApiKeysQuery();
   const queryClient = useQueryClient();
 
-  const todayUtc = new Date().toISOString().split('T')[0];
+  const today = formatLocalDate(new Date());
   const maxExpiresAtString = computeMaxExpiresAt();
 
   const isDuplicateName =
@@ -139,7 +150,10 @@ export const AddApiKeyDialog = ({
           <StudioTextfield
             label={t('settings.user.api_keys.name')}
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              resetMutation();
+            }}
             required
             tagText={t('general.required')}
             error={
@@ -154,7 +168,7 @@ export const AddApiKeyDialog = ({
             type='date'
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            min={todayUtc}
+            min={today}
             max={maxExpiresAtString}
             required
             tagText={t('general.required')}
