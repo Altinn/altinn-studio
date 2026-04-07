@@ -28,7 +28,7 @@ export class InstanceApi {
     instanceGuid: string;
   }): Promise<IInstanceWithProcess> {
     const { data: instance } = await axiosInstance.get<IInstanceWithProcess>(
-      `/instances/${instanceOwnerPartyId}/${instanceGuid}`,
+      `/instances/${instanceOwnerPartyId}/${instanceGuid}/enriched`,
     );
     return instance;
   }
