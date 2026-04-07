@@ -145,6 +145,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         #endregion
 
+        private bool CreateResourceRepoMetadata(ModelMetadata serviceMetadata)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+
+            string orgPath = _settings.GetOrgPath(serviceMetadata.Org, developer);
+            string appPath = Path.Combine(orgPath, serviceMetadata.RepositoryName);
+
+            Directory.CreateDirectory(orgPath);
+            Directory.CreateDirectory(appPath);
+
+            CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
+
+            return true;
+        }
+
         /// <summary>
         /// Returns the path to the app folder
         /// </summary>
@@ -312,6 +327,58 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     // Cleanup repository on failure
                     await DeleteRepository(org, serviceConfig.RepositoryName);
+                    throw;
+                }
+            }
+
+            return repository;
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> CreateResourcesRepo(string org)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string repoName = $"{org}-resources";
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repoName, developer, token);
+            string repoPath = _settings.GetServicePath(org, repoName, developer);
+            var options = new CreateRepoOption(repoName);
+
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
+
+            if (repository != null && repository.RepositoryCreatedStatus == HttpStatusCode.Created)
+            {
+                if (Directory.Exists(repoPath))
+                {
+                    FireDeletionOfLocalRepo(org, repoName, developer);
+                }
+
+                _sourceControl.CloneRemoteRepository(authenticatedContext);
+
+                try
+                {
+                    // Create initial resource repo files (.gitignore)
+                    ModelMetadata metadata = new()
+                    {
+                        Org = org,
+                        ServiceName = repoName,
+                        RepositoryName = repoName,
+                    };
+                    CreateResourceRepoMetadata(metadata);
+
+                    CommitInfo commitInfo = new()
+                    {
+                        Org = org,
+                        Repository = repoName,
+                        Message = "Resources repository created",
+                    };
+                    _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
+                }
+                catch (Exception)
+                {
+                    // Cleanup repository on failure
+                    await DeleteRepository(org, repoName);
                     throw;
                 }
             }

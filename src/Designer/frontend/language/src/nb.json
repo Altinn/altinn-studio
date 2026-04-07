@@ -496,6 +496,8 @@
   "dashboard.apps": "Apper",
   "dashboard.clear_search": "Tøm søkefeltet",
   "dashboard.copy_application": "Kopier app",
+  "dashboard.create_resources_repo": "Opprett ressurs-repository",
+  "dashboard.create_resources_repo_error": "Kunne ikke opprette ressurs-repository",
   "dashboard.create_service_btn": "Opprett app",
   "dashboard.created_by": "Opprettet av",
   "dashboard.creating_your_service": "Oppretter appen din",

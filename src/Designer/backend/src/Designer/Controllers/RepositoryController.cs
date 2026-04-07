@@ -257,6 +257,34 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action used to create resources repo
+        /// </summary>
+        /// <param name="org">The organization for which the resources repo is to be created.</param>
+        /// <returns>
+        /// An indication if resources repo was created successful or not.
+        /// </returns>
+        [Authorize]
+        [HttpPost]
+        [Route("create-resources-repo")]
+        public async Task<ActionResult<RepositoryModel>> CreateResourcesRepo([FromQuery] string org)
+        {
+            try
+            {
+                var repositoryResult = await _repository.CreateResourcesRepo(org);
+
+                if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+                {
+                    return Created(repositoryResult.CloneUrl, repositoryResult);
+                }
+                return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
+            }
+            catch (CustomTemplateException ex)
+            {
+                return BadRequest(new { error = nameof(CustomTemplateException), message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Returns a given app repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

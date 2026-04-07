@@ -73,6 +73,7 @@ import {
   contactPointPath,
   contactPointActivePath,
   validateNavigationPageSettingsPath,
+  createResourcesRepoPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -184,6 +185,7 @@ export const updateValidationOnNavigationLayoutSets = (org: string, app: string,
 export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
 
 // Resourceadm
+export const createResourcesRepo = (org: string) => post(createResourcesRepoPath(org));
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const importResourceFromAltinn2 = (org: string, environment: string, code: string, edition: string, payload: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, code, edition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
 export const importResourceFromAltinn3 = (org: string, resourceId: string, environment: string) => post<Resource>(importResourceFromAltinn3Path(org, resourceId, environment));

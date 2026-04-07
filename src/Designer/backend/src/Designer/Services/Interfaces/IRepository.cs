@@ -37,6 +37,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         );
 
         /// <summary>
+        /// Creates a new resources repository under the given <paramref name="org">org</paramref>.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the resources repository.</param>
+        /// <returns>The repository created in gitea</returns>
+        Task<RepositoryClient.Model.Repository> CreateResourcesRepo(string org);
+
+        /// <summary>
         /// Copies a repository within an organisation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

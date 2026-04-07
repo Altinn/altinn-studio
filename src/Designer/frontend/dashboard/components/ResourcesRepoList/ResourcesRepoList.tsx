@@ -7,11 +7,13 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioButton } from '@studio/components';
 import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import type { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
+import { useCreateResourcesRepoMutation } from 'resourceadm/hooks/mutations/useCreateResourcesRepo';
+import { useUserOrgPermissionQuery } from 'dashboard/hooks/queries/useUserOrgPermissionsQuery';
 
 type ResourcesRepoListProps = {
   user: User;
@@ -33,7 +35,7 @@ export const ResourcesRepoList = ({
   });
 
   // check if the -resources repo exists before attempting to load resources and render <ResourceTable>
-  const { data: resourcesRepos } = useSearchReposQuery({
+  const { data: resourcesRepos, isLoading: isLoadingRepos } = useSearchReposQuery({
     uid: uid as number,
     keyword: '-resources',
     page: 1,
@@ -45,7 +47,33 @@ export const ResourcesRepoList = ({
     isError: isResourceListError,
   } = useGetResourceListQuery(selectedContext, !resourcesRepos?.data.length);
 
+  const {
+    mutate: createResourcesRepo,
+    isPending: isCreatingResourcesRepo,
+    error: createRepoError,
+  } = useCreateResourcesRepoMutation(selectedContext);
+
+  const { data: userOrgPermission } = useUserOrgPermissionQuery(selectedContext, {
+    enabled: Boolean(selectedContext),
+  });
+
   if (!resourcesRepos?.data.length) {
+    if (userOrgPermission?.canCreateOrgRepo) {
+      return (
+        <>
+          {createRepoError && (
+            <Alert severity='danger'>{t('dashboard.create_resources_repo_error')}</Alert>
+          )}
+          <StudioButton
+            onClick={() => createResourcesRepo()}
+            loading={isCreatingResourcesRepo || isLoadingRepos}
+          >
+            {t('dashboard.create_resources_repo')}
+          </StudioButton>
+        </>
+      );
+    }
+
     return null;
   }
 
