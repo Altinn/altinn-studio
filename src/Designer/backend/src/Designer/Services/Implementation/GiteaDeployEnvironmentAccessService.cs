@@ -16,31 +16,67 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
     public async Task GrantAccessAsync(
         string org,
         string username,
-        string environment,
+        IEnumerable<string> environments,
         CancellationToken cancellationToken = default
     )
     {
-        Team team = await ResolveDeployTeamAsync(org, environment, cancellationToken);
-        await giteaClient.AddTeamMemberAsync(team.Id, username, cancellationToken);
+        List<Team> teams = await ResolveDeployTeamsAsync(org, environments, cancellationToken);
+        foreach (Team team in teams)
+        {
+            await giteaClient.AddTeamMemberAsync(team.Id, username, cancellationToken);
+        }
     }
 
     public async Task RevokeAccessAsync(
         string org,
         string username,
-        string environment,
+        IEnumerable<string> environments,
         CancellationToken cancellationToken = default
     )
     {
-        Team team = await ResolveDeployTeamAsync(org, environment, cancellationToken);
-        await giteaClient.RemoveTeamMemberAsync(team.Id, username, cancellationToken);
+        List<Team> teams = await ResolveDeployTeamsAsync(org, environments, cancellationToken);
+        foreach (Team team in teams)
+        {
+            await giteaClient.RemoveTeamMemberAsync(team.Id, username, cancellationToken);
+        }
     }
 
-    private async Task<Team> ResolveDeployTeamAsync(string org, string environment, CancellationToken cancellationToken)
+    public async Task<List<string>> GetDeployEnvironmentsAsync(
+        string org,
+        string username,
+        CancellationToken cancellationToken = default
+    )
     {
         List<Team> orgTeams = await giteaClient.GetOrgTeamsAsync(org, cancellationToken);
-        string teamName = $"{DeployTeamPrefix}{environment}";
 
-        return orgTeams.FirstOrDefault(t => t.Name.Equals(teamName, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException($"Deploy team '{teamName}' not found in org '{org}'.");
+        List<Team> deployTeams =
+        [
+            .. orgTeams.Where(t => t.Name.StartsWith(DeployTeamPrefix, StringComparison.OrdinalIgnoreCase)),
+        ];
+
+        bool[] memberships = await Task.WhenAll(
+            deployTeams.Select(t => giteaClient.IsTeamMemberAsync(t.Id, username, cancellationToken))
+        );
+
+        return [.. deployTeams.Where((_, i) => memberships[i]).Select(t => t.Name[DeployTeamPrefix.Length..])];
+    }
+
+    private async Task<List<Team>> ResolveDeployTeamsAsync(
+        string org,
+        IEnumerable<string> environments,
+        CancellationToken cancellationToken
+    )
+    {
+        List<Team> orgTeams = await giteaClient.GetOrgTeamsAsync(org, cancellationToken);
+        return
+        [
+            .. environments
+                .Select(env =>
+                {
+                    string teamName = $"{DeployTeamPrefix}{env}";
+                    return orgTeams.FirstOrDefault(t => t.Name.Equals(teamName, StringComparison.OrdinalIgnoreCase));
+                })
+                .OfType<Team>(),
+        ];
     }
 }

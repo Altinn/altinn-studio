@@ -235,9 +235,7 @@ export const contactPointActivePath = (org, id) => `${apiBasePath}/v1/orgs/${org
 
 // Org settings - Bot accounts
 export const botAccountsPath = (org) => `${apiBasePathV1}/orgs/${org}/bot-accounts`; // Get, Post
-export const botAccountPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}`; // Get
+export const botAccountPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}`; // Get, Put
 export const botAccountDeactivatePath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/deactivate`; // Post
 export const botAccountApiKeysPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys`; // Get, Post
 export const botAccountApiKeyPath = (org, id, keyId) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys/${keyId}`; // Delete
-export const botAccountTeamsPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/teams`; // Post
-export const botAccountTeamPath = (org, id, environment) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/teams/${environment}`; // Delete

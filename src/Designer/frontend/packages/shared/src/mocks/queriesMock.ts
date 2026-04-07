@@ -391,6 +391,5 @@ export const queriesMock: ServicesContextProps = {
   deactivateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
   createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   revokeBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
-  addBotAccountToTeam: jest.fn().mockImplementation(() => Promise.resolve()),
-  removeBotAccountFromTeam: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateBotAccountTeams: jest.fn().mockImplementation(() => Promise.resolve()),
 };

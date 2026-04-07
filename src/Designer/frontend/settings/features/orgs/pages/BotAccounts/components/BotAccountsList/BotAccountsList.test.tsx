@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'admin/testing/mocks';
+import { renderWithProviders } from 'settings/testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { BotAccountsList } from './BotAccountsList';
@@ -9,16 +9,6 @@ import type { BotAccount } from 'app-shared/types/BotAccount';
 jest.mock('../BotAccountApiKeysList/BotAccountApiKeysList', () => ({
   BotAccountApiKeysList: ({ botAccountId }: { botAccountId: string }) => (
     <div>BotAccountApiKeysList ({botAccountId})</div>
-  ),
-}));
-
-jest.mock('../CreateBotAccountDialog/CreateBotAccountDialog', () => ({
-  CreateBotAccountDialog: ({ onSave, onClose }: { onSave: () => void; onClose: () => void }) => (
-    <div>
-      <div>CreateBotAccountDialog</div>
-      <button onClick={onSave}>Save</button>
-      <button onClick={onClose}>Cancel</button>
-    </div>
   ),
 }));
 
@@ -31,6 +21,7 @@ const activeBotAccount: BotAccount = {
   deactivated: false,
   created: '2024-01-15T10:00:00Z',
   createdByUsername: 'testuser',
+  deployEnvironments: ['tt02'],
 };
 
 const deactivatedBotAccount: BotAccount = {
@@ -40,6 +31,7 @@ const deactivatedBotAccount: BotAccount = {
   deactivated: true,
   created: '2023-06-01T08:00:00Z',
   createdByUsername: null,
+  deployEnvironments: [],
 };
 
 const defaultProps = {
@@ -79,35 +71,21 @@ describe('BotAccountsList', () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('columnheader', { name: textMock('settings.orgs.bot_accounts.col_status') }),
+      screen.getByRole('columnheader', {
+        name: textMock('settings.orgs.bot_accounts.col_environments'),
+      }),
     ).toBeInTheDocument();
   });
 
-  it('renders a row per bot account', () => {
+  it('renders active bot accounts', () => {
     renderBotAccountsList({ botAccounts: [activeBotAccount, deactivatedBotAccount] });
     expect(screen.getByText('ttd-bot-deploy')).toBeInTheDocument();
-    expect(screen.getByText('ttd-bot-old')).toBeInTheDocument();
+    expect(screen.queryByText('ttd-bot-old')).not.toBeInTheDocument();
   });
 
-  it('shows active tag for active bot accounts', () => {
-    renderBotAccountsList({ botAccounts: [activeBotAccount] });
-    expect(
-      screen.getByText(textMock('settings.orgs.bot_accounts.status_active')),
-    ).toBeInTheDocument();
-  });
-
-  it('shows deactivated tag for deactivated bot accounts', () => {
+  it('does not show deactivated bot accounts', () => {
     renderBotAccountsList({ botAccounts: [deactivatedBotAccount] });
-    expect(
-      screen.getByText(textMock('settings.orgs.bot_accounts.status_deactivated')),
-    ).toBeInTheDocument();
-  });
-
-  it('does not show deactivate button for deactivated bot accounts', () => {
-    renderBotAccountsList({ botAccounts: [deactivatedBotAccount] });
-    expect(
-      screen.queryByRole('button', { name: textMock('settings.orgs.bot_accounts.deactivate') }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('ttd-bot-old')).not.toBeInTheDocument();
   });
 
   it('expands API keys section when expand button is clicked', async () => {
@@ -137,32 +115,27 @@ describe('BotAccountsList', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('opens create dialog when add button is clicked', async () => {
+  it('calls createBotAccount when saving from the add dialog', async () => {
     const user = userEvent.setup();
     renderBotAccountsList();
     await user.click(getAddButton());
-    expect(screen.getByText('CreateBotAccountDialog')).toBeInTheDocument();
-  });
-
-  it('calls createBotAccount when saving from the dialog', async () => {
-    const user = userEvent.setup();
-    renderBotAccountsList();
-    await user.click(getAddButton());
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    const saveButton = screen.getByRole('button', {
+      name: textMock('settings.orgs.bot_accounts.create'),
+    });
+    await user.click(saveButton);
     expect(queriesMock.createBotAccount).toHaveBeenCalledWith(
       testOrg,
       expect.objectContaining({ name: '' }),
     );
   });
 
-  it('calls deactivateBotAccount when deactivate is confirmed', async () => {
+  it('calls deactivateBotAccount when delete is confirmed', async () => {
     const user = userEvent.setup();
     renderBotAccountsList({ botAccounts: [activeBotAccount] });
-    const deactivateButtons = screen.getAllByRole('button');
-    const deactivateButton = deactivateButtons.find(
-      (btn) => btn.getAttribute('data-color') === 'danger',
-    )!;
-    await user.click(deactivateButton);
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('settings.orgs.bot_accounts.delete'),
+    });
+    await user.click(deleteButton);
     expect(queriesMock.deactivateBotAccount).toHaveBeenCalledWith(testOrg, activeBotAccount.id);
   });
 });

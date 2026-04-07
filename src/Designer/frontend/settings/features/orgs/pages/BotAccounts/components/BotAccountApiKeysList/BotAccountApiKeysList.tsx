@@ -90,55 +90,46 @@ export const BotAccountApiKeysList = ({
       <StudioHeading level={4} className={classes.heading}>
         {t('settings.orgs.bot_accounts.api_keys_heading')}
       </StudioHeading>
-      {apiKeys && apiKeys.length > 0 ? (
-        <StudioTable className={classes.table}>
-          <StudioTable.Head>
-            <StudioTable.Row>
-              <StudioTable.HeaderCell>
-                {t('settings.orgs.bot_accounts.col_api_key_name')}
-              </StudioTable.HeaderCell>
-              <StudioTable.HeaderCell>
-                {t('settings.orgs.bot_accounts.col_api_key_expires_at')}
-              </StudioTable.HeaderCell>
-              <StudioTable.HeaderCell>
-                {t('settings.orgs.bot_accounts.col_api_key_created_at')}
-              </StudioTable.HeaderCell>
-              <StudioTable.HeaderCell />
+      <StudioTable className={classes.table}>
+        <StudioTable.Head>
+          <StudioTable.Row>
+            <StudioTable.HeaderCell>
+              {t('settings.orgs.bot_accounts.col_api_key_name')}
+            </StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>
+              {t('settings.orgs.bot_accounts.col_api_key_expires_at')}
+            </StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>
+              {t('settings.orgs.bot_accounts.col_api_key_created_at')}
+            </StudioTable.HeaderCell>
+            <StudioTable.HeaderCell />
+          </StudioTable.Row>
+        </StudioTable.Head>
+        <StudioTable.Body>
+          {apiKeys.map((apiKey) => (
+            <StudioTable.Row key={apiKey.id}>
+              <StudioTable.Cell>{apiKey.name}</StudioTable.Cell>
+              <StudioTable.Cell>
+                {new Date(apiKey.expiresAt).toLocaleDateString()}
+                {new Date(apiKey.expiresAt) < now && (
+                  <StudioTag data-color='danger' className={classes.expiredTag}>
+                    {t('settings.orgs.bot_accounts.api_key_expired')}
+                  </StudioTag>
+                )}
+              </StudioTable.Cell>
+              <StudioTable.Cell>{new Date(apiKey.createdAt).toLocaleDateString()}</StudioTable.Cell>
+              <StudioTable.Cell className={classes.actionsCell}>
+                <StudioDeleteButton
+                  aria-label={t('settings.orgs.bot_accounts.api_key_delete')}
+                  onDelete={() => revokeApiKey(apiKey.id)}
+                  confirmMessage={t('settings.orgs.bot_accounts.api_key_delete_confirm')}
+                  disabled={isRevoking && revokingKeyId === apiKey.id}
+                />
+              </StudioTable.Cell>
             </StudioTable.Row>
-          </StudioTable.Head>
-          <StudioTable.Body>
-            {apiKeys.map((apiKey) => (
-              <StudioTable.Row key={apiKey.id}>
-                <StudioTable.Cell>{apiKey.name}</StudioTable.Cell>
-                <StudioTable.Cell>
-                  {new Date(apiKey.expiresAt).toLocaleDateString()}
-                  {new Date(apiKey.expiresAt) < now && (
-                    <StudioTag data-color='danger' className={classes.expiredTag}>
-                      {t('settings.orgs.bot_accounts.api_key_expired')}
-                    </StudioTag>
-                  )}
-                </StudioTable.Cell>
-                <StudioTable.Cell>
-                  {new Date(apiKey.createdAt).toLocaleDateString()}
-                </StudioTable.Cell>
-                <StudioTable.Cell>
-                  <StudioDeleteButton
-                    onDelete={() => revokeApiKey(apiKey.id)}
-                    confirmMessage={t('settings.orgs.bot_accounts.api_key_revoke_confirm')}
-                    disabled={isRevoking && revokingKeyId === apiKey.id}
-                  >
-                    {t('settings.orgs.bot_accounts.api_key_revoke')}
-                  </StudioDeleteButton>
-                </StudioTable.Cell>
-              </StudioTable.Row>
-            ))}
-          </StudioTable.Body>
-        </StudioTable>
-      ) : (
-        <StudioParagraph className={classes.noApiKeys}>
-          {t('settings.orgs.bot_accounts.no_api_keys')}
-        </StudioParagraph>
-      )}
+          ))}
+        </StudioTable.Body>
+      </StudioTable>
       <AddButton onClick={openDialog}>{t('settings.orgs.bot_accounts.add_api_key')}</AddButton>
       <CreateApiKeyDialog
         dialogRef={dialogRef}

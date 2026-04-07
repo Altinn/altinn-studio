@@ -1,7 +1,7 @@
 .actionsCell {
   display: flex;
-  align-items: center;
-  gap: var(--fds-spacing-1);
+  justify-content: flex-end;
+  gap: var(--ds-size-3);
 }
 
 .detailCell {

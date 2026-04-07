@@ -2,45 +2,50 @@ import type { ReactElement, RefObject } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  StudioCheckbox,
   StudioCheckboxGroup,
-  useStudioCheckboxGroup,
   StudioDialog,
   StudioTextfield,
   StudioHeading,
   StudioParagraph,
   StudioFormActions,
 } from '@studio/components';
-import classes from './CreateBotAccountDialog.module.css';
+import classes from './BotAccountDialog.module.css';
 
 const nameRegex = /^[a-z0-9_]+$/;
 const nameMaxLength = 100;
 
-export type CreateBotAccountForm = {
+export type BotAccountForm = {
   name: string;
   deployEnvironments: string[];
 };
 
-type CreateBotAccountDialogProps = {
+type BotAccountDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>;
-  form: CreateBotAccountForm;
+  form: BotAccountForm;
   availableEnvironments: string[];
-  onFieldChange: (field: keyof CreateBotAccountForm, value: string | string[]) => void;
+  onFieldChange: (field: keyof BotAccountForm, value: string | string[]) => void;
   onSave: () => void;
   onClose: () => void;
+  isEditing: boolean;
   isSaving: boolean;
 };
 
-export const CreateBotAccountDialog = ({
+export const BotAccountDialog = ({
   dialogRef,
   form,
   availableEnvironments,
   onFieldChange,
   onSave,
   onClose,
+  isEditing,
   isSaving,
-}: CreateBotAccountDialogProps): ReactElement => {
+}: BotAccountDialogProps): ReactElement => {
   const { t } = useTranslation();
   const [submitted, setSubmitted] = useState(false);
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(
+    form.deployEnvironments.map((e) => e.toLowerCase()),
+  );
 
   const nameError =
     submitted && !form.name
@@ -49,7 +54,7 @@ export const CreateBotAccountDialog = ({
         ? t('settings.orgs.bot_accounts.error_name_invalid')
         : undefined;
 
-  const isValid = !!form.name && nameRegex.test(form.name);
+  const isValid = isEditing || (!!form.name && nameRegex.test(form.name));
 
   const handleSave = () => {
     setSubmitted(true);
@@ -61,18 +66,22 @@ export const CreateBotAccountDialog = ({
     onClose();
   };
 
-  const { getCheckboxProps } = useStudioCheckboxGroup({
-    value: form.deployEnvironments,
-    onChange: (value) => onFieldChange('deployEnvironments', value),
-    name: 'botAccountEnvironments',
-  });
+  const handleEnvironmentChange = (env: string, checked: boolean) => {
+    const next = checked
+      ? [...selectedEnvironments, env]
+      : selectedEnvironments.filter((e) => e !== env);
+    setSelectedEnvironments(next);
+    onFieldChange('deployEnvironments', next);
+  };
+
+  const title = isEditing
+    ? t('settings.orgs.bot_accounts.edit_dialog_title')
+    : t('settings.orgs.bot_accounts.create_dialog_title');
 
   return (
     <StudioDialog ref={dialogRef} onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
-        <StudioHeading level={2}>
-          {t('settings.orgs.bot_accounts.create_dialog_title')}
-        </StudioHeading>
+        <StudioHeading level={2}>{title}</StudioHeading>
         <StudioParagraph>{t('settings.orgs.bot_accounts.create_dialog_subtitle')}</StudioParagraph>
         <div className={classes.fields}>
           <StudioTextfield
@@ -80,8 +89,9 @@ export const CreateBotAccountDialog = ({
             value={form.name}
             onChange={(e) => onFieldChange('name', e.target.value)}
             maxLength={nameMaxLength}
-            required
-            tagText={t('general.required')}
+            required={!isEditing}
+            tagText={isEditing ? undefined : t('general.required')}
+            readOnly={isEditing}
             error={nameError}
           />
           {availableEnvironments.length > 0 && (
@@ -91,10 +101,11 @@ export const CreateBotAccountDialog = ({
             >
               <div className={classes.environmentOptions}>
                 {availableEnvironments.map((env) => (
-                  <StudioCheckboxGroup.Item
+                  <StudioCheckbox
                     key={env}
                     label={env}
-                    getCheckboxProps={getCheckboxProps(env)}
+                    checked={selectedEnvironments.includes(env)}
+                    onChange={(e) => handleEnvironmentChange(env, e.target.checked)}
                   />
                 ))}
               </div>
@@ -102,7 +113,12 @@ export const CreateBotAccountDialog = ({
           )}
         </div>
         <StudioFormActions
-          primary={{ label: t('settings.orgs.bot_accounts.create'), onClick: handleSave }}
+          primary={{
+            label: isEditing
+              ? t('settings.orgs.bot_accounts.save')
+              : t('settings.orgs.bot_accounts.create'),
+            onClick: handleSave,
+          }}
           secondary={{ label: t('settings.orgs.bot_accounts.cancel'), onClick: handleClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}

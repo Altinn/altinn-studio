@@ -246,4 +246,13 @@ public interface IGiteaClient
     /// <param name="username">The username to remove.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks whether a user is a member of a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="username">The username to check.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>True if the user is a member of the team, false otherwise.</returns>
+    Task<bool> IsTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
 }

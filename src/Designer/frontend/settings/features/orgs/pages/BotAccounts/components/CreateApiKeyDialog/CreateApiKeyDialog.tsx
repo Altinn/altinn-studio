@@ -76,6 +76,7 @@ export const CreateApiKeyDialog = ({
         toast.success(t('settings.orgs.bot_accounts.api_key_copy_success'), {
           toastId: 'settings.orgs.bot_accounts.api_key_copy_success',
         });
+        handleClose();
       },
       () => {
         toast.error(t('settings.orgs.bot_accounts.api_key_copy_error'), {
@@ -85,79 +86,78 @@ export const CreateApiKeyDialog = ({
     );
   };
 
+  if (newApiKey) {
+    return (
+      <StudioDialog ref={dialogRef} closeButton={false}>
+        <StudioDialog.Block className={classes.keyDialogBlock}>
+          <StudioAlert data-color='success' className={classes.keyDialogAlert}>
+            <StudioButton
+              variant='tertiary'
+              icon={<StudioCloseIcon />}
+              onClick={handleClose}
+              aria-label={t('general.close')}
+              className={classes.keyDialogCloseButton}
+            />
+            <StudioHeading level={2}>
+              {t('settings.user.api_keys.new_api_key_dialog_title')}
+            </StudioHeading>
+            <StudioParagraph>
+              {t('settings.user.api_keys.new_api_key_dialog_warning')}
+            </StudioParagraph>
+            <StudioTextfield
+              readOnly
+              value={newApiKey}
+              label={t('settings.user.api_keys.api_key')}
+            />
+            <StudioButton icon={<ClipboardIcon />} onClick={handleCopyKey} data-color='success'>
+              {t('settings.user.api_keys.copy')}
+            </StudioButton>
+          </StudioAlert>
+        </StudioDialog.Block>
+      </StudioDialog>
+    );
+  }
+
   return (
     <StudioDialog ref={dialogRef} onClose={handleClose}>
       <StudioDialog.Block className={classes.dialogBlock}>
         <StudioHeading level={2}>
           {t('settings.orgs.bot_accounts.create_api_key_dialog_title')}
         </StudioHeading>
-        {newApiKey ? (
-          <div className={classes.newApiKeySection}>
-            <StudioAlert data-color='success' className={classes.newApiKeyAlert}>
-              <StudioButton
-                variant='tertiary'
-                icon={<StudioCloseIcon />}
-                onClick={onDismissNewApiKey}
-                aria-label={t('general.close')}
-                className={classes.closeButton}
-              />
-              <StudioHeading level={3}>
-                {t('settings.orgs.bot_accounts.api_key_created_title')}
-              </StudioHeading>
-              <StudioParagraph>
-                {t('settings.orgs.bot_accounts.api_key_created_warning')}
-              </StudioParagraph>
-              <StudioTextfield
-                readOnly
-                value={newApiKey}
-                label={t('settings.orgs.bot_accounts.api_key_value_label')}
-              />
-              <StudioButton icon={<ClipboardIcon />} onClick={handleCopyKey}>
-                {t('settings.orgs.bot_accounts.api_key_copy')}
-              </StudioButton>
-            </StudioAlert>
-            <StudioButton variant='secondary' onClick={handleClose}>
-              {t('settings.orgs.bot_accounts.close')}
-            </StudioButton>
-          </div>
-        ) : (
-          <>
-            <StudioParagraph>
-              {t('settings.orgs.bot_accounts.create_api_key_dialog_subtitle')}
-            </StudioParagraph>
-            <div className={classes.fields}>
-              <StudioTextfield
-                label={t('settings.orgs.bot_accounts.api_key_field_name')}
-                value={form.name}
-                onChange={(e) => onFieldChange('name', e.target.value)}
-                maxLength={100}
-                required
-                tagText={t('general.required')}
-                error={nameError}
-              />
-              <StudioTextfield
-                label={t('settings.orgs.bot_accounts.api_key_field_expires_at')}
-                type='date'
-                value={form.expiresAt}
-                onChange={(e) => onFieldChange('expiresAt', e.target.value)}
-                min={todayUtc}
-                max={maxExpiresAt}
-                required
-                tagText={t('general.required')}
-                error={expiresAtError}
-              />
-            </div>
-            <StudioFormActions
-              primary={{
-                label: t('settings.orgs.bot_accounts.create_api_key'),
-                onClick: handleSave,
-              }}
-              secondary={{ label: t('settings.orgs.bot_accounts.cancel'), onClick: handleClose }}
-              isLoading={isSaving}
-              className={classes.actionsWrapper}
-            />
-          </>
-        )}
+        <StudioParagraph>
+          {t('settings.orgs.bot_accounts.create_api_key_dialog_subtitle')}
+        </StudioParagraph>
+        <div className={classes.fields}>
+          <StudioTextfield
+            label={t('settings.orgs.bot_accounts.api_key_field_name')}
+            value={form.name}
+            onChange={(e) => onFieldChange('name', e.target.value)}
+            maxLength={100}
+            required
+            tagText={t('general.required')}
+            error={nameError}
+          />
+          <StudioTextfield
+            label={t('settings.orgs.bot_accounts.api_key_field_expires_at')}
+            type='date'
+            value={form.expiresAt}
+            onChange={(e) => onFieldChange('expiresAt', e.target.value)}
+            min={todayUtc}
+            max={maxExpiresAt}
+            required
+            tagText={t('general.required')}
+            error={expiresAtError}
+          />
+        </div>
+        <StudioFormActions
+          primary={{
+            label: t('settings.orgs.bot_accounts.create_api_key'),
+            onClick: handleSave,
+          }}
+          secondary={{ label: t('settings.orgs.bot_accounts.cancel'), onClick: handleClose }}
+          isLoading={isSaving}
+          className={classes.actionsWrapper}
+        />
       </StudioDialog.Block>
     </StudioDialog>
   );

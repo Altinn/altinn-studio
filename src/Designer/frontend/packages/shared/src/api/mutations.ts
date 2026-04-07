@@ -74,11 +74,10 @@ import {
   contactPointActivePath,
   validateNavigationPageSettingsPath,
   botAccountsPath,
+  botAccountPath,
   botAccountDeactivatePath,
   botAccountApiKeysPath,
   botAccountApiKeyPath,
-  botAccountTeamsPath,
-  botAccountTeamPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -261,5 +260,4 @@ export const createBotAccount = (org: string, payload: CreateBotAccountRequest):
 export const deactivateBotAccount = (org: string, id: string): Promise<void> => post(botAccountDeactivatePath(org, id), {});
 export const createBotAccountApiKey = (org: string, botAccountId: string, payload: CreateBotAccountApiKeyRequest): Promise<CreateBotAccountApiKeyResponse> => post(botAccountApiKeysPath(org, botAccountId), payload);
 export const revokeBotAccountApiKey = (org: string, botAccountId: string, keyId: number): Promise<void> => del(botAccountApiKeyPath(org, botAccountId, keyId));
-export const addBotAccountToTeam = (org: string, botAccountId: string, environment: string): Promise<void> => post(botAccountTeamsPath(org, botAccountId), { environment });
-export const removeBotAccountFromTeam = (org: string, botAccountId: string, environment: string): Promise<void> => del(botAccountTeamPath(org, botAccountId, environment));
+export const updateBotAccountTeams = (org: string, botAccountId: string, deployEnvironments: string[]): Promise<void> => put(botAccountPath(org, botAccountId), { deployEnvironments });

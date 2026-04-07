@@ -1,5 +1,9 @@
 .addButtonWrapper {
   display: flex;
-  justify-content: flex-start;
-  margin-top: var(--fds-spacing-3);
+  justify-content: center;
+}
+
+.addButton {
+  max-width: 400px;
+  flex: 1;
 }

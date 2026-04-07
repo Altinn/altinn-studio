@@ -5,6 +5,7 @@ export type BotAccount = {
   deactivated: boolean;
   created: string;
   createdByUsername: string | null;
+  deployEnvironments: string[];
 };
 
 export type CreateBotAccountRequest = {
