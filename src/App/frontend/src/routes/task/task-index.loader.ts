@@ -5,6 +5,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 import { getUiConfig } from 'src/features/form/ui';
 import { processQueries } from 'src/features/instance/useProcessQuery';
+import { ProcessTaskType } from 'src/types';
 import { computeStartUrl, getRawFirstPage, getTaskTypeForLoader } from 'src/utils/computeStartUrl';
 
 export function taskIndexLoader(queryClient: QueryClient) {
@@ -20,6 +21,10 @@ export function taskIndexLoader(queryClient: QueryClient) {
     const taskType = getTaskTypeForLoader(processData, taskId, false, uiFolders);
     const firstPage = getRawFirstPage(taskId);
     const queryKeys = new URL(request.url).search;
+
+    if (taskType !== ProcessTaskType.Data || !firstPage) {
+      return null;
+    }
 
     const startUrl = computeStartUrl({
       instanceOwnerPartyId,
