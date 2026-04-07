@@ -13,6 +13,21 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+MCP_ERROR_PHRASES = [
+    "failed to connect",
+    "connection refused",
+    "connection reset",
+    "all connection attempts failed",
+    "mcp server",
+    "planning guidance missing",
+]
+
+
+def _is_mcp_exception(exc: Exception) -> bool:
+    """Check if an exception is related to MCP connectivity."""
+    msg = str(exc).lower()
+    return any(phrase in msg for phrase in MCP_ERROR_PHRASES)
+
 
 async def handle(state: AgentState) -> AgentState:
     """Execute the complete actor workflow pipeline and apply the resulting patch."""
@@ -141,6 +156,15 @@ async def handle(state: AgentState) -> AgentState:
         log.info(f"🔧 Applying patch with {len(normalized_patch_data.get('changes', []))} changes to {len(normalized_patch_data.get('files', []))} files")
         git_ops.apply(normalized_patch_data, state.repo_path)
         
+        # Deduplicate resource IDs only in files touched by this patch
+        all_resource_files = set((state.repo_facts or {}).get("resources", []))
+        patch_files = {c.get("file", "") for c in normalized_patch_data.get("changes", [])}
+        touched_resource_files = list(all_resource_files & patch_files)
+        if touched_resource_files:
+            deduped = git_ops.deduplicate_resource_ids(state.repo_path, touched_resource_files)
+            if deduped:
+                log.info(f"🧹 Deduplicated resource IDs in {len(deduped)} file(s): {deduped}")
+        
         # Check for Source of Truth files that need sync (deduplicated)
         modified_sot_files = list(set(
             change.get("file", "")
@@ -268,15 +292,19 @@ async def handle(state: AgentState) -> AgentState:
 
     except Exception as exc:
         log.error(f"Actor node failed: {exc}", exc_info=True)
-        state.next_action = "stop"
-        sink.send(
-            AgentEvent(
-                type="error",
-                session_id=state.session_id,
-                data={"message": f"Actor failed: {exc}"},
+        if state.mcp_degraded and _is_mcp_exception(exc):
+            # MCP was down and this is an MCP-related error — let reviewer handle it
+            log.info("MCP degraded (MCP-related error) — skipping actor error event, reviewer will handle")
+            state.next_action = "review"
+        else:
+            state.next_action = "stop"
+            sink.send(
+                AgentEvent(
+                    type="error",
+                    session_id=state.session_id,
+                    data={"message": f"Actor failed: {exc}"},
+                )
             )
-        )
-        state.next_action = "stop"
 
     return state
 
