@@ -63,3 +63,64 @@ function updateMultiLanguageText(
     [language]: value,
   };
 }
+
+export function extractLanguageCodes(codeList: CodeList): string[] {
+  const allCodes = codeList.reduce(
+    (languageCodes, item) => [...languageCodes, ...extractLanguageCodesFromItem(item)],
+    [],
+  );
+  return ArrayUtils.removeDuplicates(allCodes);
+}
+
+function extractLanguageCodesFromItem(item: CodeListItem): string[] {
+  const labelCodes = extractLanguageCodesFromTextInstance(item.label || {});
+  const descriptionCodes = extractLanguageCodesFromTextInstance(item.description || {});
+  const helpTextCodes = extractLanguageCodesFromTextInstance(item.helpText || {});
+  const allCodes = labelCodes.concat(descriptionCodes).concat(helpTextCodes);
+  return ArrayUtils.removeDuplicates(allCodes);
+}
+
+function extractLanguageCodesFromTextInstance(textInstance: MultiLanguageText): string[] {
+  return Object.keys(textInstance);
+}
+
+export function addLanguage(codeList: CodeList, languageCode: string): CodeList {
+  return codeList.map((item) => addLanguageToItem(item, languageCode));
+}
+
+function addLanguageToItem(item: CodeListItem, languageCode: string): CodeListItem {
+  return {
+    ...item,
+    label: addLanguageToTextInstance(item.label || {}, languageCode),
+  };
+}
+
+function addLanguageToTextInstance(
+  textInstance: MultiLanguageText,
+  languageCode: string,
+): MultiLanguageText {
+  return languageCode in textInstance ? textInstance : { ...textInstance, [languageCode]: '' };
+}
+
+export function removeLanguage(codeList: CodeList, languageCode: string): CodeList {
+  return codeList.map((item) => removeLanguageFromItem(item, languageCode));
+}
+
+function removeLanguageFromItem(item: CodeListItem, languageCode: string): CodeListItem {
+  const newItem = { ...item };
+  if ('label' in item) newItem.label = removeLanguageFromTextInstance(item.label!, languageCode);
+  if ('description' in item)
+    newItem.description = removeLanguageFromTextInstance(item.description!, languageCode);
+  if ('helpText' in item)
+    newItem.helpText = removeLanguageFromTextInstance(item.helpText!, languageCode);
+  return newItem;
+}
+
+function removeLanguageFromTextInstance(
+  textInstance: MultiLanguageText,
+  languageCode: string,
+): MultiLanguageText {
+  const newInstance = { ...textInstance };
+  delete newInstance[languageCode];
+  return newInstance;
+}
