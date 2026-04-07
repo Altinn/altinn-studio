@@ -65,7 +65,9 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
                 appMetadata.AppIdentifier.App,
                 appMetadata.AppIdentifier.Org,
                 context.InstanceIdentifier.InstanceOwnerPartyId,
-                context.InstanceIdentifier.InstanceGuid
+                context.InstanceIdentifier.InstanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
             );
             var dataTypes = flowElement
                 .ExtensionElements
@@ -100,7 +102,9 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
         await using var data = await _dataClient.GetBinaryData(
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
-            Guid.Parse(dataElement.Id)
+            Guid.Parse(dataElement.Id),
+            authenticationMethod: null,
+            CancellationToken.None
         );
         try
         {

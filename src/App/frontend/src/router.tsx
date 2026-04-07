@@ -7,6 +7,7 @@ import { AppLayout } from 'src/AppLayout';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
+import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
 import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
@@ -20,7 +21,6 @@ import { Component as PageRoute } from 'src/routes/page/page.route';
 import { partySelectionLoader } from 'src/routes/party-selection/party-selection.loader';
 import { Component as PartySelectionRoute } from 'src/routes/party-selection/party-selection.route';
 import { Component as ProcessEndRoute } from 'src/routes/process-end/process-end.route';
-import { taskLoader } from 'src/routes/task/task.loader';
 import { Component as TaskRoute } from 'src/routes/task/task.route';
 import { taskIndexLoader } from 'src/routes/task/task-index.loader';
 import { routes } from 'src/routesBuilder';
@@ -53,13 +53,15 @@ export function createRouter(queryClient: QueryClient) {
             path: routes.instance,
             Component: InstanceRoute,
             loader: instanceLoader(queryClient),
+            shouldRevalidate: ({ currentParams, nextParams }) =>
+              currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
+              currentParams.instanceGuid !== nextParams.instanceGuid,
             children: [
               { index: true, loader: instanceIndexLoader(queryClient) },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
                 Component: TaskRoute,
-                loader: taskLoader(queryClient),
                 children: [
                   { index: true, loader: taskIndexLoader(queryClient) },
                   {
@@ -85,11 +87,11 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient),
+            loader: instanceSelectionLoader(queryClient, partyApi),
           },
           {
             path: routes.partySelection,
-            loader: partySelectionLoader(queryClient),
+            loader: partySelectionLoader(queryClient, partyApi),
             children: [
               { index: true, Component: PartySelectionRoute },
               { path: '*', Component: PartySelectionRoute },

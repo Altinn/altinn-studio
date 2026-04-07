@@ -565,7 +565,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         if (saveToDataType is not null)
         {
             var instanceClient = Services.GetRequiredService<IInstanceClient>();
-            var instance = await instanceClient.GetInstance(App, Org, InstanceOwnerPartyId, _instanceGuid);
+            var instance = await instanceClient.GetInstance(
+                App,
+                Org,
+                InstanceOwnerPartyId,
+                _instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
             var copyDataGuid = Guid.Parse(instance.Data.Single(de => de.DataType == saveToDataType).Id);
             dataPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, copyDataGuid);
         }

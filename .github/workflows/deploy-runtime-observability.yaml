@@ -20,9 +20,6 @@ permissions:
   contents: read
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   construct-rings-array:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
@@ -30,19 +27,21 @@ jobs:
 
   push-observability-artifact:
     name: Push observability as OCI artifact
-    needs: get-short-sha
     runs-on: ubuntu-latest
     environment: dev
     env:
       REGISTRY_NAME: altinncr
-      CONFIG_REPO: altinncr.azurecr.io/studio-apps/runtime-observability:${{ needs.get-short-sha.outputs.short-sha }}
     outputs:
-      config-repo: altinncr.azurecr.io/studio-apps/runtime-observability:${{ needs.get-short-sha.outputs.short-sha }}
+      config-repo: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
         working-directory: infra/observability
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
+        run: echo "config-repo=altinncr.azurecr.io/studio-apps/runtime-observability:${GITHUB_SHA::10}" >> "$GITHUB_OUTPUT"
 
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -62,7 +61,7 @@ jobs:
 
       - name: push artifact
         run: |
-          flux push artifact oci://${{ env.CONFIG_REPO }} \
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \
             --reproducible \
             --path="./dist/runtime" \

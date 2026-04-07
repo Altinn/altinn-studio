@@ -42,6 +42,7 @@ export function useCreateAndCheckoutBranch(
     onOtherError: () => {
       setCreateError(t('branching.new_branch_dialog.error_generic'));
     },
+    onSuccess: () => window.location.reload(),
   });
 
   const createAndCheckoutBranch = (branchName: string) => {

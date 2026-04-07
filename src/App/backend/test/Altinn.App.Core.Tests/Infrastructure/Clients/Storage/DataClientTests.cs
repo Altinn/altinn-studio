@@ -243,7 +243,10 @@ public class DataClientTests
                 "catstories",
                 "application/pdf",
                 "a cats story.pdf",
-                stream
+                stream,
+                generatedFromTask: null,
+                authenticationMethod: null,
+                CancellationToken.None
             )
         );
 
@@ -329,7 +332,9 @@ public class DataClientTests
                 "application/json",
                 "test.json",
                 dataGuid,
-                new MemoryStream()
+                new MemoryStream(),
+                authenticationMethod: null,
+                CancellationToken.None
             )
         );
         invocations.Should().Be(1);
@@ -360,7 +365,9 @@ public class DataClientTests
                 "application/json",
                 "test.json",
                 dataGuid,
-                new MemoryStream()
+                new MemoryStream(),
+                authenticationMethod: null,
+                CancellationToken.None
             )
         );
         invocations.Should().Be(1);
@@ -462,7 +469,9 @@ public class DataClientTests
             await fixture.DataClient.GetBinaryData(
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
-                dataGuid
+                dataGuid,
+                authenticationMethod: null,
+                CancellationToken.None
             )
         );
         invocations.Should().Be(1);
@@ -577,7 +586,10 @@ public class DataClientTests
             await fixture.DataClient.GetBinaryDataStream(
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
-                dataGuid
+                dataGuid,
+                authenticationMethod: null,
+                timeout: null,
+                CancellationToken.None
             )
         );
         invocations.Should().Be(1);
@@ -618,7 +630,8 @@ public class DataClientTests
             "app",
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
-            authenticationMethod: testCase?.AuthenticationMethod
+            authenticationMethod: testCase?.AuthenticationMethod,
+            CancellationToken.None
         );
         invocations.Should().Be(1);
         AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Get, expectedAuth: testCase?.ExpectedToken);
@@ -674,7 +687,9 @@ public class DataClientTests
                 "ttd",
                 "app",
                 instanceIdentifier.InstanceOwnerPartyId,
-                instanceIdentifier.InstanceGuid
+                instanceIdentifier.InstanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
             )
         );
         invocations.Should().Be(1);
@@ -709,7 +724,9 @@ public class DataClientTests
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
             dataGuid,
-            delay: false
+            delay: false,
+            authenticationMethod: null,
+            CancellationToken.None
         );
         invocations.Should().Be(1);
         AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Delete);
@@ -744,7 +761,9 @@ public class DataClientTests
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
                 dataGuid,
-                delay: false
+                delay: false,
+                authenticationMethod: null,
+                CancellationToken.None
             )
         );
         invocations.Should().Be(1);

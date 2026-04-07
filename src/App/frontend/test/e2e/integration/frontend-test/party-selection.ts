@@ -16,9 +16,9 @@ describe('Party selection', () => {
     cy.findByText('underenhet').click();
     cy.contains(appFrontend.partySelection.subUnits, 'Bergen').should('be.visible');
     cy.contains(appFrontend.partySelection.party, 'slettet').should('not.exist');
-    cy.findByRole('checkbox', { name: /Vis slettede/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /Vis slettede/i }).check();
     cy.contains(appFrontend.partySelection.party, 'slettet').should('be.visible');
-    cy.findByRole('checkbox', { name: /Vis underenheter/i }).dsCheck();
+    cy.findByRole('checkbox', { name: /Vis underenheter/i }).check();
     cy.findByText('underenhet').click();
     cy.get(appFrontend.partySelection.search).type('DDG');
     cy.get(appFrontend.partySelection.party).should('have.length', 1).contains('DDG');

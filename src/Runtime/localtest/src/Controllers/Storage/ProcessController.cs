@@ -31,7 +31,7 @@ public class ProcessController : ControllerBase
     private readonly IInstanceEventRepository _instanceEventRepository;
     private readonly IInstanceAndEventsRepository _instanceAndEventsRepository;
     private readonly string _storageBaseAndHost;
-    private readonly IAuthorization _authorizationService;
+    private readonly IProcessAuthorizer _processAuthorizer;
     private readonly IInstanceEventService _instanceEventService;
 
     /// <summary>
@@ -41,14 +41,14 @@ public class ProcessController : ControllerBase
     /// <param name="instanceEventRepository">the instance event repository service</param>
     /// <param name="instanceAndEventsRepository">the instance and events repository</param>
     /// <param name="generalsettings">the general settings</param>
-    /// <param name="authorizationService">the authorization service</param>
+    /// <param name="processAuthorizer">the process authorizer</param>
     /// <param name="instanceEventService">the instance event service</param>
     public ProcessController(
         IInstanceRepository instanceRepository,
         IInstanceEventRepository instanceEventRepository,
         IInstanceAndEventsRepository instanceAndEventsRepository,
         IOptions<GeneralSettings> generalsettings,
-        IAuthorization authorizationService,
+        IProcessAuthorizer processAuthorizer,
         IInstanceEventService instanceEventService
     )
     {
@@ -56,7 +56,7 @@ public class ProcessController : ControllerBase
         _instanceEventRepository = instanceEventRepository;
         _instanceAndEventsRepository = instanceAndEventsRepository;
         _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
-        _authorizationService = authorizationService;
+        _processAuthorizer = processAuthorizer;
         _instanceEventService = instanceEventService;
     }
 
@@ -92,12 +92,7 @@ public class ProcessController : ControllerBase
             return NotFound();
         }
 
-        bool atLeastOneActionAuthorized = await AuthorizeProcessNext(
-            processState,
-            existingInstance
-        );
-
-        if (!atLeastOneActionAuthorized)
+        if (!await _processAuthorizer.AuthorizeProcessNext(existingInstance, processState))
         {
             return Forbid();
         }
@@ -171,12 +166,7 @@ public class ProcessController : ControllerBase
 
         ProcessState processState = processStateUpdate.State;
 
-        bool atLeastOneActionAuthorized = await AuthorizeProcessNext(
-            processState,
-            existingInstance
-        );
-
-        if (!atLeastOneActionAuthorized)
+        if (!await _processAuthorizer.AuthorizeProcessNext(existingInstance, processState))
         {
             return Forbid();
         }
@@ -306,79 +296,4 @@ public class ProcessController : ControllerBase
         existingInstance.LastChanged = DateTime.UtcNow;
     }
 
-    private async Task<bool> AuthorizeProcessNext(
-        ProcessState processState,
-        Instance existingInstance
-    )
-    {
-        (string[] actionsThatAllowProcessNext, string? taskId) = GetActionsToAuthorize(
-            processState,
-            existingInstance
-        );
-
-        foreach (string action in actionsThatAllowProcessNext)
-        {
-            bool actionIsAuthorized = await _authorizationService.AuthorizeInstanceAction(
-                existingInstance,
-                action,
-                taskId
-            );
-            if (actionIsAuthorized)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static (string[] Actions, string? TaskId) GetActionsToAuthorize(
-        ProcessState processState,
-        Instance existingInstance
-    )
-    {
-        string? taskId = existingInstance.Process?.CurrentTask?.ElementId;
-        string? altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
-
-        if (processState?.CurrentTask?.FlowType == "AbandonCurrentMoveToNext")
-        {
-            return (["reject"], taskId);
-        }
-
-        // Think this IF is related to gateways, but not sure.
-        if (
-            processState?.CurrentTask?.FlowType is not null
-            && processState.CurrentTask.FlowType != "CompleteCurrentMoveToNext"
-        )
-        {
-            altinnTaskType = processState.CurrentTask.AltinnTaskType;
-            taskId = processState.CurrentTask.ElementId;
-        }
-
-        string[] actionsThatAllowProcessNextForTaskType = GetActionsThatAllowProcessNextForTaskType(
-            altinnTaskType
-        );
-
-        return (actionsThatAllowProcessNextForTaskType, taskId);
-    }
-
-    /// <summary>
-    /// Get all actions that allow process next for the given task type. Meant to be used to authorize the process next when no action is provided.
-    /// </summary>
-    /// <remarks>To allow process next for a custom action, user needs to have access to an action with the same name as the task type in the policy.</remarks>
-    public static string[] GetActionsThatAllowProcessNextForTaskType(string? taskType)
-    {
-        return taskType switch
-        {
-            null => [],
-            "data" or "feedback" or "pdf" or "eFormidling" or "fiksArkiv" or "subformPdf" =>
-            [
-                "write",
-            ],
-            "payment" => ["pay", "write"],
-            "confirmation" => ["confirm"],
-            "signing" => ["sign", "write"],
-            _ => [taskType],
-        };
-    }
 }

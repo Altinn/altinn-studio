@@ -696,7 +696,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             await _instanceClient.UpdatePresentationTexts(
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedTexts }
+                new PresentationTexts { Texts = updatedTexts },
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             // Maintain local copy of presentation texts
@@ -725,7 +727,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             await _instanceClient.UpdateDataValues(
                 int.Parse(Instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(Instance.Id.Split("/")[1]),
-                new DataValues { Values = updatedValues }
+                new DataValues { Values = updatedValues },
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             // Maintain local copy of data values
