@@ -61,7 +61,6 @@ export const AddApiKeyDialog = ({
   const queryClient = useQueryClient();
 
   const today = formatLocalDate(new Date());
-  const maxExpiresAtString = computeMaxExpiresAt();
 
   const isDuplicateName =
     apiKeys?.some((apiKey) => apiKey.name === name) ||
@@ -86,17 +85,13 @@ export const AddApiKeyDialog = ({
     );
   };
 
-  const handleClose = () => {
-    onClose();
-  };
-
   const handleCopy = () => {
     navigator.clipboard.writeText(newApiKey!).then(
       () => {
         toast.success(t('settings.user.api_keys.copy_success'), {
           toastId: 'settings.user.api_keys.copy_success',
         });
-        handleClose();
+        onClose();
       },
       () => {
         toast.error(t('settings.user.api_keys.copy_error'), {
@@ -114,7 +109,7 @@ export const AddApiKeyDialog = ({
             <StudioButton
               variant='tertiary'
               icon={<StudioCloseIcon />}
-              onClick={handleClose}
+              onClick={onClose}
               aria-label={t('general.close')}
               className={classes.keyDialogCloseButton}
             />
@@ -139,7 +134,7 @@ export const AddApiKeyDialog = ({
   }
 
   return (
-    <StudioDialog open onClose={handleClose}>
+    <StudioDialog open onClose={onClose}>
       <StudioDialog.Block className={classes.addDialogBlock}>
         <StudioHeading level={2}>{t('settings.user.api_keys.add')}</StudioHeading>
         <div className={classes.fields}>
@@ -165,7 +160,7 @@ export const AddApiKeyDialog = ({
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
             min={today}
-            max={maxExpiresAtString}
+            max={computeMaxExpiresAt()}
             required
             tagText={t('general.required')}
             error={submitted && !expiresAt ? t('validation_errors.required') : undefined}
@@ -174,7 +169,7 @@ export const AddApiKeyDialog = ({
         </div>
         <StudioFormActions
           primary={{ label: t('general.add'), onClick: handleAdd }}
-          secondary={{ label: t('general.cancel'), onClick: handleClose }}
+          secondary={{ label: t('general.cancel'), onClick: onClose }}
           isLoading={isPending}
         />
       </StudioDialog.Block>

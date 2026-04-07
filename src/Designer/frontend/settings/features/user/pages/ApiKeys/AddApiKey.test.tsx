@@ -124,6 +124,15 @@ describe('AddApiKey', () => {
     expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(1);
   });
 
+  it('shows required error for expiry when submitting with empty expiry', async () => {
+    const user = userEvent.setup();
+    renderAddApiKey();
+    await openDialog(user);
+    await user.clear(getExpiryInput());
+    await user.click(getSubmitButton());
+    expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(2);
+  });
+
   it('resets expiry to the max date after successful api key creation', async () => {
     const user = userEvent.setup();
     const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
