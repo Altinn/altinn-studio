@@ -41,6 +41,7 @@ src/features/language/LangDataSourcesProvider.tsx
 src/features/language/LangToolsStore.tsx
 src/features/language/LanguageProvider.tsx
 src/features/language/textResources/
+src/features/navigation/useNavigateToPageWithValidation.ts
 src/features/options/CodeListsProvider.tsx
 src/features/orgs/OrgsProvider.tsx
 src/features/profile/ProfileProvider.tsx
@@ -49,6 +50,7 @@ src/hooks/useWaitForState.ts
 src/index.tsx
 src/layout/Group/SummaryGroupComponent.test.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
+src/layout/NavigationButtons/NavigationButtonsComponent.test.tsx
 src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.test.tsx
 src/layout/RepeatingGroup/Summary/__snapshots__/SummaryRepeatingGroup.test.tsx.snap
 src/queries/appPrefetcher.ts
