@@ -22,10 +22,9 @@ import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 export type PreviewProps = {
   collapsed: boolean;
   onCollapseToggle: () => void;
-  hidePreview?: boolean;
 };
 
-export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewProps) => {
+export const Preview = ({ collapsed, onCollapseToggle }: PreviewProps) => {
   const { t } = useTranslation();
   const { selectedFormLayoutName } = useAppContext();
   const noPageSelected =
@@ -44,25 +43,7 @@ export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewPro
         className={classes.toolbar}
         onCollapseToggle={onCollapseToggle}
       />
-      {noPageSelected ? (
-        <NoSelectedPageMessage />
-      ) : (
-        <>
-          {hidePreview && (
-            <div
-              style={{
-                display: 'block',
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                top: 0,
-                left: 0,
-              }}
-            ></div>
-          )}
-          <PreviewFrame />
-        </>
-      )}
+      {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
     </div>
   );
 };
