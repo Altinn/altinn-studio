@@ -3,12 +3,12 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
 export type IndexLoaderError =
@@ -23,7 +23,7 @@ function isStateless(): boolean {
   return entryType !== 'new-instance' && entryType !== 'select-instance';
 }
 
-export function indexLoader(queryClient: QueryClient) {
+export function indexLoader(queryClient: QueryClient, instanceApi: InstanceApi) {
   return async function loader(_: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
     if (isStateless()) {
       return null;
@@ -37,11 +37,11 @@ export function indexLoader(queryClient: QueryClient) {
 
     try {
       if (entryType === 'new-instance') {
-        return await createInstanceAndRedirect();
+        return await createInstanceAndRedirect(instanceApi);
       }
 
       if (entryType === 'select-instance') {
-        return await handleSelectInstance(queryClient);
+        return await handleSelectInstance(queryClient, instanceApi);
       }
     } catch (error) {
       return toLoaderError(error);
@@ -51,11 +51,15 @@ export function indexLoader(queryClient: QueryClient) {
   };
 }
 
-async function handleSelectInstance(queryClient: QueryClient): Promise<Response> {
-  const activeInstances = await prefetchActiveInstances(queryClient, String(GlobalData.getSelectedParty()!.partyId));
+async function handleSelectInstance(queryClient: QueryClient, instanceApi: InstanceApi): Promise<Response> {
+  const activeInstances = await prefetchActiveInstances(
+    queryClient,
+    String(GlobalData.getSelectedParty()!.partyId),
+    instanceApi,
+  );
 
   if (activeInstances.length === 0) {
-    return await createInstanceAndRedirect();
+    return await createInstanceAndRedirect(instanceApi);
   }
 
   if (activeInstances.length === 1) {
@@ -66,8 +70,8 @@ async function handleSelectInstance(queryClient: QueryClient): Promise<Response>
   return redirect('/instance-selection');
 }
 
-async function createInstanceAndRedirect(): Promise<Response> {
-  const instance = await InstanceApi.create({ instanceOwnerPartyId: GlobalData.getSelectedParty()!.partyId });
+async function createInstanceAndRedirect(instanceApi: InstanceApi): Promise<Response> {
+  const instance = await instanceApi.create({ instanceOwnerPartyId: GlobalData.getSelectedParty()!.partyId });
   const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(instance.id);
   return redirect(buildInstanceUrl(instanceOwnerPartyId, instanceGuid));
 }

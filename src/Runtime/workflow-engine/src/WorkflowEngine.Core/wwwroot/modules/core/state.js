@@ -162,9 +162,15 @@ export const parseTransition = (wf) => {
     const rest = wf.operationId.slice(colon + 1);
     let arrow = rest.indexOf('\u2192');
     let len = 1;
-    if (arrow < 0) { arrow = rest.indexOf('->'); len = 2; }
+    if (arrow < 0) {
+        arrow = rest.indexOf('->');
+        len = 2;
+    }
     if (arrow < 0) return null;
-    return { from: rest.slice(0, arrow).trim() || 'Start Event', to: rest.slice(arrow + len).trim() || 'End Event' };
+    return {
+        from: rest.slice(0, arrow).trim() || 'Start Event',
+        to: rest.slice(arrow + len).trim() || 'End Event',
+    };
 };
 
 const TASK_END_COMMANDS = new Set([
