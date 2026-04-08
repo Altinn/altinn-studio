@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+public class PagedAccessListResponse
 {
-    public class PagedAccessListResponse
-    {
-        public IEnumerable<AccessList>? Data { get; set; }
-        public string? NextPage { get; set; }
-    }
+    public IEnumerable<AccessList>? Data { get; set; }
+    public string? NextPage { get; set; }
 }

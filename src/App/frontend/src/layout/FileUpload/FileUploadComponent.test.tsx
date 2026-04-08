@@ -10,7 +10,6 @@ import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -534,13 +533,6 @@ describe('File uploading components', () => {
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
 
-    jest.mocked(InstanceApi.getInstance).mockImplementation(async () => ({
-      ...getInstanceDataMock((i) => {
-        i.data.push(...attachments);
-      }),
-      process: getProcessDataMock(),
-    }));
-
     window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
       a.dataTypes.push({
         id,
@@ -586,6 +578,16 @@ describe('File uploading components', () => {
             headers: {},
           } as AxiosResponse<IRawOption[], unknown>),
         ...queries,
+      },
+      apis: {
+        instanceApi: {
+          getInstance: async () => ({
+            ...getInstanceDataMock((i) => {
+              i.data.push(...attachments);
+            }),
+            process: getProcessDataMock(),
+          }),
+        },
       },
     });
 
