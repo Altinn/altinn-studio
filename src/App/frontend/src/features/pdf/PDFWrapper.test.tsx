@@ -9,7 +9,6 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
@@ -36,7 +35,7 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
       p.processTasks = [p.currentTask!];
     }),
   );
-  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => {
+  const getInstanceMock = jest.fn(async () => {
     const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
     return {
       ...getInstanceDataMock(
@@ -78,6 +77,11 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
           obj.layouts = {};
         }),
       ...queriesOverride,
+    },
+    apis: {
+      instanceApi: {
+        getInstance: getInstanceMock,
+      },
     },
   });
 };

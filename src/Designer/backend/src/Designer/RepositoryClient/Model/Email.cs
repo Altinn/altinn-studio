@@ -15,124 +15,123 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// Email an email address belonging to a user
+/// </summary>
+[DataContract]
+public partial class Email : IEquatable<Email>, IValidatableObject
 {
     /// <summary>
-    /// Email an email address belonging to a user
+    /// Initializes a new instance of the <see cref="Email" /> class.
     /// </summary>
-    [DataContract]
-    public partial class Email : IEquatable<Email>, IValidatableObject
+    /// <param name="email">_Email.</param>
+    /// <param name="primary">Primary.</param>
+    /// <param name="verified">Verified.</param>
+    public Email(string email = default(string), bool? primary = default(bool?), bool? verified = default(bool?))
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Email" /> class.
-        /// </summary>
-        /// <param name="email">_Email.</param>
-        /// <param name="primary">Primary.</param>
-        /// <param name="verified">Verified.</param>
-        public Email(string email = default(string), bool? primary = default(bool?), bool? verified = default(bool?))
+        this.EmailId = email;
+        this.Primary = primary;
+        this.Verified = verified;
+    }
+
+    /// <summary>
+    /// Gets or Sets _Email
+    /// </summary>
+    [DataMember(Name = "email", EmitDefaultValue = false)]
+    public string EmailId { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Primary
+    /// </summary>
+    [DataMember(Name = "primary", EmitDefaultValue = false)]
+    public bool? Primary { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Verified
+    /// </summary>
+    [DataMember(Name = "verified", EmitDefaultValue = false)]
+    public bool? Verified { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class Email {\n");
+        sb.Append("  _Email: ").Append(EmailId).Append("\n");
+        sb.Append("  Primary: ").Append(Primary).Append("\n");
+        sb.Append("  Verified: ").Append(Verified).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return this.Equals(input as Email);
+    }
+
+    /// <summary>
+    /// Returns true if Email instances are equal
+    /// </summary>
+    /// <param name="input">Instance of Email to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(Email input)
+    {
+        if (input == null)
         {
-            this.EmailId = email;
-            this.Primary = primary;
-            this.Verified = verified;
+            return false;
         }
 
-        /// <summary>
-        /// Gets or Sets _Email
-        /// </summary>
-        [DataMember(Name = "email", EmitDefaultValue = false)]
-        public string EmailId { get; set; }
+        return (this.EmailId == input.EmailId || (this.EmailId != null && this.EmailId.Equals(input.EmailId)))
+            && (this.Primary == input.Primary || (this.Primary != null && this.Primary.Equals(input.Primary)))
+            && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
+    }
 
-        /// <summary>
-        /// Gets or Sets Primary
-        /// </summary>
-        [DataMember(Name = "primary", EmitDefaultValue = false)]
-        public bool? Primary { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Verified
-        /// </summary>
-        [DataMember(Name = "verified", EmitDefaultValue = false)]
-        public bool? Verified { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
         {
-            var sb = new StringBuilder();
-            sb.Append("class Email {\n");
-            sb.Append("  _Email: ").Append(EmailId).Append("\n");
-            sb.Append("  Primary: ").Append(Primary).Append("\n");
-            sb.Append("  Verified: ").Append(Verified).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return this.Equals(input as Email);
-        }
-
-        /// <summary>
-        /// Returns true if Email instances are equal
-        /// </summary>
-        /// <param name="input">Instance of Email to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(Email input)
-        {
-            if (input == null)
+            int hashCode = 41;
+            if (this.EmailId != null)
             {
-                return false;
+                hashCode = (hashCode * 59) + this.EmailId.GetHashCode();
             }
 
-            return (this.EmailId == input.EmailId || (this.EmailId != null && this.EmailId.Equals(input.EmailId)))
-                && (this.Primary == input.Primary || (this.Primary != null && this.Primary.Equals(input.Primary)))
-                && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
-        }
-
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
+            if (this.Primary != null)
             {
-                int hashCode = 41;
-                if (this.EmailId != null)
-                {
-                    hashCode = (hashCode * 59) + this.EmailId.GetHashCode();
-                }
-
-                if (this.Primary != null)
-                {
-                    hashCode = (hashCode * 59) + this.Primary.GetHashCode();
-                }
-
-                if (this.Verified != null)
-                {
-                    hashCode = (hashCode * 59) + this.Verified.GetHashCode();
-                }
-
-                return hashCode;
+                hashCode = (hashCode * 59) + this.Primary.GetHashCode();
             }
-        }
 
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
+            if (this.Verified != null)
+            {
+                hashCode = (hashCode * 59) + this.Verified.GetHashCode();
+            }
+
+            return hashCode;
         }
+    }
+
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

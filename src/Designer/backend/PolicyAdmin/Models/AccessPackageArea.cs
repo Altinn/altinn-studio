@@ -1,19 +1,18 @@
 #nullable enable
 
-namespace PolicyAdmin.Models
+namespace PolicyAdmin.Models;
+
+public class AccessPackageArea
 {
-    public class AccessPackageArea
-    {
-        public required string Id { get; set; }
+    public required string Id { get; set; }
 
-        public required string Urn { get; set; }
+    public required string Urn { get; set; }
 
-        public required string Name { get; set; }
+    public required string Name { get; set; }
 
-        public string? Description { get; set; }
+    public string? Description { get; set; }
 
-        public string? IconUrl { get; set; }
+    public string? IconUrl { get; set; }
 
-        public IEnumerable<AccessPackageOption> Packages { get; set; } = [];
-    }
+    public IEnumerable<AccessPackageOption> Packages { get; set; } = [];
 }

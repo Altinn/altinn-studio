@@ -8,7 +8,6 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -59,10 +58,6 @@ async function render(props: TestProps) {
     obj.folders.Task_1.defaultDataType = props.defaultDataModel;
   });
   window.altinnAppGlobalData.textResources!.resources = props.textResources;
-
-  jest
-    .mocked(InstanceApi.getInstance)
-    .mockImplementationOnce(async () => ({ ...instanceData, process: getProcessDataMock() }));
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {
@@ -149,6 +144,11 @@ async function render(props: TestProps) {
         throw new Error(
           `No form data mocked for testing (modelName = ${modelName}), or statically fetchable data model fetched via API.`,
         );
+      },
+    },
+    apis: {
+      instanceApi: {
+        getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
       },
     },
   });

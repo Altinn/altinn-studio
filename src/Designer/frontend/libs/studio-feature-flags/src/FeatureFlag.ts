@@ -5,6 +5,5 @@ export enum FeatureFlag {
   Maskinporten = 'maskinporten',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   NewCodeLists = 'newCodeLists',
-  ValidateNavigation = 'validateNavigation',
   AiAssistant = 'aiAssistant',
 }

@@ -12,43 +12,33 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "mcp==1.26.0",
-    "fastmcp>=2.0.0,<3.0.0",
-    "pydantic==2.12.5",
-    "pydantic-core==2.41.5",
-    "pydantic-settings==2.13.1",
-    "python-dotenv==1.2.2",
-    "fastapi==0.131.0",
-    "uvicorn==0.41.0",
-    "jinja2==3.1.6",
-    "httpx==0.28.1",
-    "typer==0.24.1",
-    "python-multipart==0.0.22",
-    "requests==2.32.5",
-    "starlette==0.52.1",
-    "typing-extensions==4.15.0",
-    "anyio==4.12.1",
-    "idna==3.11",
-    "sniffio==1.3.1",
-    "click==8.3.1",
-    "h11==0.16.0",
-    "markupsafe==3.0.3",
-    "httpcore==1.0.9",
-    "certifi==2025.11.12",
-    "colorlog==6.10.1",
-    "langchain==1.2.10",
-    "langchain-core==1.2.17",
-    "langchain-openai==1.1.10",
-    "numpy>=1.25.0",
-    "langgraph",
-    "langwatch",
-    "langfuse>=2.0.0",
-    "jsonschema",
-    "langchain-community",
-    "scikit-learn>=1.3.0",
-    "beautifulsoup4>=4.12.0",
+    # Core MCP framework
+    "fastmcp>=3.1.1",
+    "mcp>=1.26.0",
+
+    # Server
+    "uvicorn>=0.42.0",
+    "starlette>=1.0.0",
+
+    # Configuration & HTTP
+    "python-dotenv>=1.2.2",
+    "requests>=2.33.0",
+
+    # Schema validation
+    "jsonschema>=4.26.0",
+
+    # LLM & AI
+    "langchain-core>=1.2.23",
+    "langchain-openai>=1.1.12",
+    "langchain-community>=0.4.1",
+    "langgraph>=1.1.3",
+    "langfuse>=3.0.0",
+
+    # Data & parsing
+    "numpy>=2.4.4",
+    "scikit-learn>=1.8.0",
+    "beautifulsoup4>=4.14.3",
     "defusedxml>=0.7.1",
-    "authlib>=1.6.9",
 ]
 
 [project.optional-dependencies]
