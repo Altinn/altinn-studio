@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -11,8 +12,8 @@ import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -78,6 +79,7 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
   const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
   const location = useLocation();
 
+  const processNextKey = getProcessNextMutationKey();
   const queryClient = useQueryClient();
   const isRunningProcessNext = queryClient.isMutating({ mutationKey: processNextMutationKeyPrefix });
   const isNavigating = useIsNavigating();
@@ -99,17 +101,17 @@ export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTa
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskId = useNavigationParam('taskId');
-  const { data: process } = useProcessQuery();
   const isWrongTask = useIsWrongTask(taskId);
-
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
+  const isRunningProcessNext = useIsRunningProcessNext();
 
-  if (!process) {
+  if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
   }
 
   if (taskType === ProcessTaskType.Archived && taskId !== TaskKeys.CustomReceipt) {
+    // Someone else will redirect us to the receipt shortly. If a CustomReceipt is set up, we'll end back here.
     return <Loader reason='redirect-to-receipt' />;
   }
 
@@ -164,7 +166,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
 export const ComponentRouting = () => {
   const componentId = useNavigationParam('componentId');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
 
   // Wait for props to sync, needed for now
   if (!componentId) {
@@ -203,4 +205,22 @@ function useIsWrongTask(taskId: string | undefined) {
   }
 
   return currentTaskId !== taskId;
+}
+
+function isRunningProcessNext(queryClient: QueryClient) {
+  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
+}
+
+function useIsRunningProcessNext() {
+  const queryClient = useQueryClient();
+  const [isMutating, setIsMutating] = useState<boolean | null>(null);
+
+  // Intentionally wrapped in a useEffect() and saved as a state. If this happens, we'll seemingly be locked out
+  // with a <Loader /> forever, but when this happens, we also know we'll be re-rendered soon. This is only meant to
+  // block rendering when we're calling process/next.
+  useEffect(() => {
+    setIsMutating(isRunningProcessNext(queryClient));
+  }, [queryClient]);
+
+  return isMutating;
 }

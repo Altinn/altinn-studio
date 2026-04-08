@@ -30,7 +30,7 @@ internal sealed class BootstrapGlobalService(
     IHttpContextAccessor _httpContextAccessor,
     IAltinnCdnClient _altinnCdnClient,
     ILogger<BootstrapGlobalService> _logger
-) : IBootstrapGlobalService
+)
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

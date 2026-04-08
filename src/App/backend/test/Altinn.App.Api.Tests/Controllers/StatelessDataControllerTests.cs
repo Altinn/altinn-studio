@@ -41,10 +41,17 @@ public class StatelessDataControllerTests
             var services = new ServiceCollection();
             services.AddLogging(builder => builder.AddProvider(NullLoggerProvider.Instance));
             services.AddAppImplementationFactory();
+            var formDataReader = new Mock<IFormDataReader>();
+            formDataReader
+                .Setup(x =>
+                    x.ReadStatelessFormData(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<InstanceOwner?>())
+                )
+                .Returns(Task.CompletedTask);
 
             services.AddSingleton(new Mock<IAppModel>().Object);
             services.AddSingleton(new Mock<IAppResources>().Object);
             services.AddSingleton(new Mock<IDataProcessor>().Object);
+            services.AddSingleton(formDataReader.Object);
             services.AddSingleton(new Mock<IPrefill>().Object);
             services.AddSingleton(new Mock<IAltinnPartyClient>().Object);
             services.AddSingleton(new Mock<IPDP>().Object);
@@ -345,11 +352,12 @@ public class StatelessDataControllerTests
                 )
             );
         fixture
-            .Mock<IDataProcessor>()
-            .Verify(a => a.ProcessDataRead(It.IsAny<Instance>(), null, It.IsAny<DummyModel>(), null));
+            .Mock<IFormDataReader>()
+            .Verify(a => a.ReadStatelessFormData(It.IsAny<DummyModel>(), null, It.IsAny<InstanceOwner?>()));
         fixture.Mock<IAppResources>().VerifyNoOtherCalls();
         fixture.Mock<IPDP>().VerifyNoOtherCalls();
         fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
+        fixture.Mock<IFormDataReader>().VerifyNoOtherCalls();
         fixture.Mock<IPrefill>().VerifyNoOtherCalls();
         fixture.Mock<IAltinnPartyClient>().VerifyNoOtherCalls();
     }

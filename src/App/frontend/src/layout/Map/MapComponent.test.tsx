@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -53,9 +54,12 @@ describe('MapComponent', () => {
   it('should show correct footer text when location is set', async () => {
     await render({
       queries: {
-        fetchFormData: async () => ({
-          myCoords: '59.2641592,10.4036248',
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              myCoords: '59.2641592,10.4036248',
+            };
+          }),
       },
     });
 
@@ -66,9 +70,12 @@ describe('MapComponent', () => {
   it('should show marker when marker is set', async () => {
     await render({
       queries: {
-        fetchFormData: async () => ({
-          myCoords: '59.2641592,10.4036248',
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              myCoords: '59.2641592,10.4036248',
+            };
+          }),
       },
     });
     expect(screen.queryByRole('button', { name: 'Marker' })).toBeInTheDocument();

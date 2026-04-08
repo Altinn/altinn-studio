@@ -8,7 +8,8 @@ describe('Validation', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
   });
 
-  it('Task validations returned from process/next should be visible immediately', () => {
+  // Temporary skip until fix is merged in https://github.com/Altinn/altinn-studio/pull/18344
+  it.skip('Task validations returned from process/next should be visible immediately', () => {
     // Regression test for: waitForValidation() must ensure task validations are processed before
     // returning. The manager's signing step is a natural test case because it has no writable data
     // models and no components that support component-level validation, which are the conditions

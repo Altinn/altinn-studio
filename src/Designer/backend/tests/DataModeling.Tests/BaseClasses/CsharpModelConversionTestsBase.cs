@@ -9,83 +9,79 @@ using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Metamodel;
 using SharedResources.Tests;
 
-namespace DataModeling.Tests.BaseClasses
+namespace DataModeling.Tests.BaseClasses;
+
+public class CsharpModelConversionTestsBase<TTestType> : SchemaConversionTestsBase<TTestType>
+    where TTestType : CsharpModelConversionTestsBase<TTestType>
 {
-    public class CsharpModelConversionTestsBase<TTestType> : SchemaConversionTestsBase<TTestType>
-        where TTestType : CsharpModelConversionTestsBase<TTestType>
+    protected ModelMetadata ModelMetadata { get; set; }
+
+    protected string CSharpClasses { get; set; }
+
+    protected Assembly CompiledAssembly { get; set; }
+
+    protected virtual void JsonToMetamodelKeywordProcessedHandler(object sender, KeywordProcessedEventArgs e) { }
+
+    protected virtual void JsonToMetamodelSubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e) { }
+
+    protected TTestType ConvertedJsonSchemaConvertedToModelMetadata()
     {
-        protected ModelMetadata ModelMetadata { get; set; }
+        var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(ConvertedJsonSchema);
+        var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
+        metamodelConverter.KeywordProcessed += JsonToMetamodelKeywordProcessedHandler;
+        metamodelConverter.SubSchemaProcessed += JsonToMetamodelSubSchemaProcessedHandler;
 
-        protected string CSharpClasses { get; set; }
+        string jsonSchemaString = JsonSerializer.Serialize(
+            ConvertedJsonSchema,
+            new JsonSerializerOptions()
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
+                WriteIndented = true,
+            }
+        );
 
-        protected Assembly CompiledAssembly { get; set; }
+        ModelMetadata = metamodelConverter.Convert(jsonSchemaString);
+        return this as TTestType;
+    }
 
-        protected virtual void JsonToMetamodelKeywordProcessedHandler(object sender, KeywordProcessedEventArgs e) { }
+    protected TTestType LoadedJsonSchemaConvertedToModelMetadata()
+    {
+        var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(LoadedJsonSchema);
+        var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
 
-        protected virtual void JsonToMetamodelSubSchemaProcessedHandler(
-            object sender,
-            SubSchemaProcessedEventArgs e
-        ) { }
+        string jsonSchemaString = SerializeJsonSchema(LoadedJsonSchema);
 
-        protected TTestType ConvertedJsonSchemaConvertedToModelMetadata()
-        {
-            var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(ConvertedJsonSchema);
-            var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
-            metamodelConverter.KeywordProcessed += JsonToMetamodelKeywordProcessedHandler;
-            metamodelConverter.SubSchemaProcessed += JsonToMetamodelSubSchemaProcessedHandler;
+        ModelMetadata = metamodelConverter.Convert(jsonSchemaString);
+        return this as TTestType;
+    }
 
-            string jsonSchemaString = JsonSerializer.Serialize(
-                ConvertedJsonSchema,
-                new JsonSerializerOptions()
-                {
-                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-                    WriteIndented = true,
-                }
-            );
+    protected TTestType ModelMetadataLoaded(string jsonSchemaPath)
+    {
+        string metamodelString = SharedResourcesHelper.LoadTestDataAsString(jsonSchemaPath);
+        ModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(
+            metamodelString,
+            new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() },
+            }
+        );
+        return this as TTestType;
+    }
 
-            ModelMetadata = metamodelConverter.Convert(jsonSchemaString);
-            return this as TTestType;
-        }
+    protected TTestType ModelMetadataConvertedToCsharpClass()
+    {
+        CSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(
+            ModelMetadata,
+            separateNamespaces: false,
+            useNullableReferenceTypes: false
+        );
+        return this as TTestType;
+    }
 
-        protected TTestType LoadedJsonSchemaConvertedToModelMetadata()
-        {
-            var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(LoadedJsonSchema);
-            var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
-
-            string jsonSchemaString = SerializeJsonSchema(LoadedJsonSchema);
-
-            ModelMetadata = metamodelConverter.Convert(jsonSchemaString);
-            return this as TTestType;
-        }
-
-        protected TTestType ModelMetadataLoaded(string jsonSchemaPath)
-        {
-            string metamodelString = SharedResourcesHelper.LoadTestDataAsString(jsonSchemaPath);
-            ModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(
-                metamodelString,
-                new JsonSerializerOptions()
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter() },
-                }
-            );
-            return this as TTestType;
-        }
-
-        protected TTestType ModelMetadataConvertedToCsharpClass()
-        {
-            CSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(
-                ModelMetadata,
-                separateNamespaces: false,
-                useNullableReferenceTypes: false
-            );
-            return this as TTestType;
-        }
-
-        protected TTestType CSharpClassesCompiledToAssembly()
-        {
-            CompiledAssembly = Compiler.CompileToAssembly(CSharpClasses);
-            return this as TTestType;
-        }
+    protected TTestType CSharpClassesCompiledToAssembly()
+    {
+        CompiledAssembly = Compiler.CompileToAssembly(CSharpClasses);
+        return this as TTestType;
     }
 }
