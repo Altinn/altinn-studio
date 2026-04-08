@@ -6,20 +6,19 @@ import type { JSONSchema7 } from 'json-schema';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import * as UseBindingSchema from 'src/features/datamodel/useBindingSchema';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
-import { Validation } from 'src/features/validation/validationContext';
 import type { IDataType } from 'src/types/shared';
 
 describe('SchemaValidation', () => {
   describe('format validation', () => {
     beforeEach(() => {
-      jest.spyOn(FD, 'useDebounced').mockRestore();
+      jest.spyOn(FormStore.data, 'useDebounced').mockRestore();
       jest.spyOn(FormBootstrap, 'useDataModelSchema').mockRestore();
       jest.spyOn(UseBindingSchema, 'useDataModelType').mockRestore();
-      jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
+      jest.spyOn(FormStore.validation, 'useUpdateDataModelValidations').mockRestore();
     });
 
     const formatTests = [
@@ -258,7 +257,7 @@ describe('SchemaValidation', () => {
             const rootElementPath = '';
             const validator = createValidator(schema);
 
-            jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
+            jest.spyOn(FormStore.data, 'useDebounced').mockReturnValue(formData);
             jest
               .spyOn(FormBootstrap, 'useDataModelSchema')
               .mockReturnValue({ schema, rootElementPath, validator } as DataModelSchemaResult);
@@ -267,7 +266,7 @@ describe('SchemaValidation', () => {
 
             const updateDataModelValidations = jest.fn();
             jest
-              .spyOn(Validation, 'useUpdateDataModelValidations')
+              .spyOn(FormStore.validation, 'useUpdateDataModelValidations')
               .mockImplementation(() => updateDataModelValidations);
 
             render(<SchemaValidation dataType='mockDataType' />);

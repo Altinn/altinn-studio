@@ -8,8 +8,8 @@ import { isAxiosError } from 'axios';
 import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -41,7 +41,7 @@ type UpdatedValidationIssues = {
   [dataElementId: string]: BackendValidationIssueGroups;
 };
 
-type FormDataLocking = ReturnType<typeof FD.useLocking>;
+type FormDataLocking = ReturnType<typeof FormStore.data.useLocking>;
 type FormDataLock = Awaited<ReturnType<FormDataLocking>>;
 
 export type ActionResult = {
@@ -200,7 +200,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
     'CustomButton',
   );
 
-  const acquireLock = FD.useLocking(id);
+  const acquireLock = FormStore.data.useLocking(id);
   const isAuthorized = useIsAuthorized();
   const { handleClientActions } = useHandleClientActions();
   const { mutateAsync: handleServerAction, error } = useMutation({

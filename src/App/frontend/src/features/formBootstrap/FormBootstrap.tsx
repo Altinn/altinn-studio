@@ -10,12 +10,10 @@ export const FormBootstrap = {
   useLayouts: () => FormProviderHooks.useBootstrap().layouts,
   useLaxLayouts: () => FormProviderHooks.useLaxBootstrap()?.layouts,
   useLayoutLookups: () => FormProviderHooks.useBootstrap().layoutLookups,
-  useLaxLayoutLookups: () => FormProviderHooks.useLaxBootstrap()?.layoutLookups,
   useHiddenLayoutsExpressions: () => FormProviderHooks.useBootstrap().hiddenLayoutsExpressions,
   useLaxHiddenLayoutsExpressions: () => FormProviderHooks.useLaxBootstrap()?.hiddenLayoutsExpressions,
   useExpandedWidthLayouts: () => FormProviderHooks.useBootstrap().expandedWidthLayouts,
 
-  useDataModels: () => FormProviderHooks.useBootstrap().dataModels,
   useDefaultDataType: () => {
     const uiFolder = FormProviderHooks.useBootstrap().uiFolder;
     return getUiFolderSettings(uiFolder)?.defaultDataType;
@@ -48,13 +46,6 @@ export const FormBootstrap = {
       }).data ?? Object.keys(dataModels)
     );
   },
-  useInitialData: () => {
-    const dataModels = FormProviderHooks.useBootstrap().dataModels;
-    return useMemo(
-      () => Object.fromEntries(Object.entries(dataModels).map(([dataType, info]) => [dataType, info.initialData])),
-      [dataModels],
-    );
-  },
   useDataModelSchema: (dataType: string) => FormProviderHooks.useBootstrap().dataModels[dataType]?.schemaResult,
   useSchemaLookup: () => {
     const dataModels = FormProviderHooks.useBootstrap().dataModels;
@@ -79,11 +70,7 @@ export const FormBootstrap = {
   },
   useExpressionValidationConfig: (dataType: string) =>
     FormProviderHooks.useBootstrap().dataModels[dataType]?.expressionValidationConfig,
-  useDefaultDataElementId: () => {
-    const { dataModels, uiFolder } = FormProviderHooks.useBootstrap();
-    const defaultDataType = getUiFolderSettings(uiFolder)?.defaultDataType;
-    return defaultDataType ? (dataModels[defaultDataType]?.dataElementId ?? null) : null;
-  },
+
   useDataElementIdForDataType: (dataType: string) =>
     FormProviderHooks.useBootstrap().dataModels[dataType]?.dataElementId,
   useGetDataElementIdForDataType: () => {
@@ -99,5 +86,5 @@ export const FormBootstrap = {
   },
 
   useStaticOptionsMap: () => FormProviderHooks.useBootstrap().staticOptions,
-  useInitialValidationIssues: () => FormProviderHooks.useBootstrap().validationIssues,
+  useAllInitialValidationIssues: () => FormProviderHooks.useLaxBootstrap()?.allInitialValidations,
 };

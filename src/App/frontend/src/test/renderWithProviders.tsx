@@ -22,7 +22,6 @@ import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormProvider';
-import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
@@ -200,7 +199,6 @@ export const makeFormDataMethodProxies = (
     lock: makeProxy('lock', ref),
     nextLock: makeProxy('nextLock', ref),
     requestManualSave: makeProxy('requestManualSave', ref),
-    setLastValidationIssues: makeProxy('setLastValidationIssues', ref),
   };
 
   const proxies: FormDataWriteProxies = Object.fromEntries(
@@ -323,17 +321,15 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <UiConfigProvider>
-          <PageNavigationProvider>
-            <Router>
-              <AppComponentsBridge>
-                <NavigationEffectProvider>
-                  <GlobalFormDataReadersProvider>
-                    <PartyProvider>{children}</PartyProvider>
-                  </GlobalFormDataReadersProvider>
-                </NavigationEffectProvider>
-              </AppComponentsBridge>
-            </Router>
-          </PageNavigationProvider>
+          <Router>
+            <AppComponentsBridge>
+              <NavigationEffectProvider>
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>{children}</PartyProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationEffectProvider>
+            </AppComponentsBridge>
+          </Router>
         </UiConfigProvider>
       </AppQueriesProvider>
     </ApiProvider>
