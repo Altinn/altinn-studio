@@ -111,11 +111,7 @@ describe('ResourceDeployEnvCard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(
-          textMock('resourceadm.resource_publish_no_access', {
-            envName: textMock(mockTestEnv.label),
-          }),
-        ),
+        screen.getByText(textMock('resourceadm.resource_publish_no_access')),
       ).toBeInTheDocument();
     });
   });

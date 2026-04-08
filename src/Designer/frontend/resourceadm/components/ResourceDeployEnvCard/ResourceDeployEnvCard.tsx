@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
 import {
@@ -90,7 +90,16 @@ export const ResourceDeployEnvCard = ({
           {hasNoPublishAccess && (
             <StudioAlert data-color='danger'>
               <StudioParagraph>
-                {t('resourceadm.resource_publish_no_access', { envName: t(env.label) })}
+                <Trans
+                  i18nKey='resourceadm.resource_publish_no_access'
+                  values={{ envName: t(env.label) }}
+                >
+                  <a
+                    href='https://docs.altinn.studio/nb/authorization/guides/resource-owner/create-resource-resource-admin/#rettighet-til-å-publisere'
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  />
+                </Trans>
               </StudioParagraph>
             </StudioAlert>
           )}
