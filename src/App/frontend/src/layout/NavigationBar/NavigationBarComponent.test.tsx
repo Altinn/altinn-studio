@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
@@ -28,77 +29,80 @@ const render = async () => {
     },
     initialPage: 'page1',
     queries: {
-      fetchLayouts: async () => ({
-        page1: {
-          data: {
-            layout: [
-              {
-                id: 'nav1',
-                type: 'NavigationBar',
-              },
-              {
-                id: 'd966374c-5e22-4b87-9581-0d3d1ccd40ed',
-                type: 'Input',
-                textResourceBindings: {
-                  title: 'page1',
-                },
-                dataModelBindings: {
-                  simpleBinding: { dataType: defaultDataTypeMock, field: 'InternInformasjon.periodeFritekst' },
-                },
-                required: true,
-                readOnly: false,
-              },
-            ],
-          },
-        },
-        page2: {
-          data: {
-            layout: [
-              {
-                id: 'nav2',
-                type: 'NavigationBar',
-              },
-              {
-                id: '0be94b72-f885-48e6-bd43-e64839a62708',
-                type: 'Input',
-                textResourceBindings: {
-                  title: 'page2',
-                },
-                dataModelBindings: {
-                  simpleBinding: { dataType: defaultDataTypeMock, field: 'InternInformasjon.raNummer' },
-                },
-                required: true,
-                readOnly: false,
-              },
-            ],
-          },
-        },
-        page3: {
-          data: {
-            layout: [
-              {
-                id: 'nav3',
-                type: 'NavigationBar',
-              },
-              {
-                id: '0bb8b04f-1d57-4c55-94a8-b53290c692d7',
-                type: 'Input',
-                textResourceBindings: {
-                  title: 'page3',
-                },
-                dataModelBindings: {
-                  simpleBinding: {
-                    dataType: defaultDataTypeMock,
-                    field: 'InternInformasjon.sendtFraSluttbrukersystem',
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            page1: {
+              data: {
+                layout: [
+                  {
+                    id: 'nav1',
+                    type: 'NavigationBar',
                   },
-                },
-                required: true,
-                readOnly: false,
+                  {
+                    id: 'd966374c-5e22-4b87-9581-0d3d1ccd40ed',
+                    type: 'Input',
+                    textResourceBindings: {
+                      title: 'page1',
+                    },
+                    dataModelBindings: {
+                      simpleBinding: { dataType: defaultDataTypeMock, field: 'InternInformasjon.periodeFritekst' },
+                    },
+                    required: true,
+                    readOnly: false,
+                  },
+                ],
               },
-            ],
-          },
-        },
-      }),
+            },
+            page2: {
+              data: {
+                layout: [
+                  {
+                    id: 'nav2',
+                    type: 'NavigationBar',
+                  },
+                  {
+                    id: '0be94b72-f885-48e6-bd43-e64839a62708',
+                    type: 'Input',
+                    textResourceBindings: {
+                      title: 'page2',
+                    },
+                    dataModelBindings: {
+                      simpleBinding: { dataType: defaultDataTypeMock, field: 'InternInformasjon.raNummer' },
+                    },
+                    required: true,
+                    readOnly: false,
+                  },
+                ],
+              },
+            },
+            page3: {
+              data: {
+                layout: [
+                  {
+                    id: 'nav3',
+                    type: 'NavigationBar',
+                  },
+                  {
+                    id: '0bb8b04f-1d57-4c55-94a8-b53290c692d7',
+                    type: 'Input',
+                    textResourceBindings: {
+                      title: 'page3',
+                    },
+                    dataModelBindings: {
+                      simpleBinding: {
+                        dataType: defaultDataTypeMock,
+                        field: 'InternInformasjon.sendtFraSluttbrukersystem',
+                      },
+                    },
+                    required: true,
+                    readOnly: false,
+                  },
+                ],
+              },
+            },
+          };
+        }),
     },
   });
 };

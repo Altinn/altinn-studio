@@ -4,6 +4,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
@@ -60,12 +61,17 @@ const render = async ({
       ...component,
     },
     queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = formData
+            ? { selectedValues: formData, ...groupData }
+            : { ...groupData };
+        }),
       fetchOptions: () =>
         options
           ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
             Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
-      fetchFormData: async () => (formData ? { selectedValues: formData, ...groupData } : { ...groupData }),
       ...queries,
     },
   });

@@ -1,125 +1,124 @@
 using System.Collections.Generic;
 using Json.Pointer;
 
-namespace Altinn.Studio.DataModeling.Converter.Json
+namespace Altinn.Studio.DataModeling.Converter.Json;
+
+/// <summary>
+/// Contains information about the Json Schema as relates to an xsd schema
+/// </summary>
+public class JsonSchemaXsdMetadata
 {
+    private static readonly ISet<CompatibleXsdType> s_empty = new HashSet<CompatibleXsdType>();
+
+    private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _types;
+    private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _incompatibleTypes;
+
     /// <summary>
-    /// Contains information about the Json Schema as relates to an xsd schema
+    /// The origin of the schema ie. Seres, OR, Standard or Unknown
     /// </summary>
-    public class JsonSchemaXsdMetadata
+    public string SchemaOrigin { get; set; } = "Unknown";
+
+    /// <summary>
+    /// Placeholder
+    /// </summary>
+    public string MessageName { get; set; }
+
+    /// <summary>
+    /// Placeholder
+    /// </summary>
+    public string MessageTypeName { get; set; }
+
+    /// <summary>
+    /// Is the content of the schema directly in root or does it refer to an element in $defs/definitions
+    /// </summary>
+    public bool HasInlineRoot { get; set; }
+
+    /// <summary>
+    /// Construct a new instance of this type
+    /// </summary>
+    public JsonSchemaXsdMetadata()
     {
-        private static readonly ISet<CompatibleXsdType> s_empty = new HashSet<CompatibleXsdType>();
+        _types = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
+        _incompatibleTypes = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
+    }
 
-        private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _types;
-        private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _incompatibleTypes;
-
-        /// <summary>
-        /// The origin of the schema ie. Seres, OR, Standard or Unknown
-        /// </summary>
-        public string SchemaOrigin { get; set; } = "Unknown";
-
-        /// <summary>
-        /// Placeholder
-        /// </summary>
-        public string MessageName { get; set; }
-
-        /// <summary>
-        /// Placeholder
-        /// </summary>
-        public string MessageTypeName { get; set; }
-
-        /// <summary>
-        /// Is the content of the schema directly in root or does it refer to an element in $defs/definitions
-        /// </summary>
-        public bool HasInlineRoot { get; set; }
-
-        /// <summary>
-        /// Construct a new instance of this type
-        /// </summary>
-        public JsonSchemaXsdMetadata()
+    /// <summary>
+    /// Add compatible types to the give path
+    /// </summary>
+    /// <param name="path">the path to the element in JSON schema</param>
+    /// <param name="types">The type(s) to add as compatible</param>
+    public void AddCompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
+    {
+        if (!_types.TryGetValue(path, out var compatibleTypes))
         {
-            _types = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
-            _incompatibleTypes = new Dictionary<JsonPointer, HashSet<CompatibleXsdType>>();
+            compatibleTypes = new HashSet<CompatibleXsdType>();
+            _types.Add(path, compatibleTypes);
         }
 
-        /// <summary>
-        /// Add compatible types to the give path
-        /// </summary>
-        /// <param name="path">the path to the element in JSON schema</param>
-        /// <param name="types">The type(s) to add as compatible</param>
-        public void AddCompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
+        foreach (var type in types)
         {
-            if (!_types.TryGetValue(path, out var compatibleTypes))
-            {
-                compatibleTypes = new HashSet<CompatibleXsdType>();
-                _types.Add(path, compatibleTypes);
-            }
+            compatibleTypes.Add(type);
+        }
+    }
 
-            foreach (var type in types)
-            {
-                compatibleTypes.Add(type);
-            }
+    /// <summary>
+    /// Add incompatible types to the give path.
+    /// </summary>
+    /// <param name="path">the path to the element in JSON schema</param>
+    /// <param name="types">The type(s) to add as incompatible</param>
+    public void AddIncompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
+    {
+        if (!_incompatibleTypes.TryGetValue(path, out var incompatibleTypes))
+        {
+            incompatibleTypes = new HashSet<CompatibleXsdType>();
+            _incompatibleTypes.Add(path, incompatibleTypes);
         }
 
-        /// <summary>
-        /// Add incompatible types to the give path.
-        /// </summary>
-        /// <param name="path">the path to the element in JSON schema</param>
-        /// <param name="types">The type(s) to add as incompatible</param>
-        public void AddIncompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
+        foreach (var type in types)
         {
-            if (!_incompatibleTypes.TryGetValue(path, out var incompatibleTypes))
-            {
-                incompatibleTypes = new HashSet<CompatibleXsdType>();
-                _incompatibleTypes.Add(path, incompatibleTypes);
-            }
+            incompatibleTypes.Add(type);
+        }
+    }
 
-            foreach (var type in types)
-            {
-                incompatibleTypes.Add(type);
-            }
+    /// <summary>
+    /// Remove compatible types from the give path
+    /// </summary>
+    /// <param name="path">the path to the element in JSON schema</param>
+    /// <param name="types">The type(s) to remove as compatible</param>
+    public void RemoveCompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
+    {
+        if (!_types.TryGetValue(path, out var compatibleTypes))
+        {
+            return;
         }
 
-        /// <summary>
-        /// Remove compatible types from the give path
-        /// </summary>
-        /// <param name="path">the path to the element in JSON schema</param>
-        /// <param name="types">The type(s) to remove as compatible</param>
-        public void RemoveCompatibleTypes(JsonPointer path, params CompatibleXsdType[] types)
+        foreach (var type in types)
         {
-            if (!_types.TryGetValue(path, out var compatibleTypes))
-            {
-                return;
-            }
+            compatibleTypes.Remove(type);
+        }
+    }
 
-            foreach (var type in types)
-            {
-                compatibleTypes.Remove(type);
-            }
+    /// <summary>
+    /// Get the xsd types that are compatible with this JSON schema element
+    /// </summary>
+    /// <param name="path">The path to the element</param>
+    /// <returns>A list of compatible types for the JSON schema element</returns>
+    public ISet<CompatibleXsdType> GetCompatibleTypes(JsonPointer path)
+    {
+        var success = _types.TryGetValue(path, out HashSet<CompatibleXsdType> compatibleTypes);
+
+        if (success)
+        {
+            compatibleTypes.ExceptWith(GetIncompatibleTypes(path));
         }
 
-        /// <summary>
-        /// Get the xsd types that are compatible with this JSON schema element
-        /// </summary>
-        /// <param name="path">The path to the element</param>
-        /// <returns>A list of compatible types for the JSON schema element</returns>
-        public ISet<CompatibleXsdType> GetCompatibleTypes(JsonPointer path)
-        {
-            var success = _types.TryGetValue(path, out HashSet<CompatibleXsdType> compatibleTypes);
+        return success ? compatibleTypes : s_empty;
+    }
 
-            if (success)
-            {
-                compatibleTypes.ExceptWith(GetIncompatibleTypes(path));
-            }
-
-            return success ? compatibleTypes : s_empty;
-        }
-
-        private ISet<CompatibleXsdType> GetIncompatibleTypes(JsonPointer path)
-        {
-            return _incompatibleTypes.TryGetValue(path, out HashSet<CompatibleXsdType> incompatibleTypes)
-                ? incompatibleTypes
-                : s_empty;
-        }
+    private ISet<CompatibleXsdType> GetIncompatibleTypes(JsonPointer path)
+    {
+        return _incompatibleTypes.TryGetValue(path, out HashSet<CompatibleXsdType> incompatibleTypes)
+            ? incompatibleTypes
+            : s_empty;
     }
 }
