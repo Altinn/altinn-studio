@@ -48,7 +48,7 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
             flexGrow: containerSize,
             maxWidth: collapsed ? collapsedSize : maximumSize,
             minWidth: collapsed ? collapsedSize : minimumSize,
-            /* Disables pointer events while resizing so that iFrames don't swallow the mouse event needed to release the drag */
+            /* Ensures iFrames don't swallow the mouseup event needed to release the drag */
             pointerEvents: isResizing ? 'none' : undefined,
           }}
           ref={ref}
