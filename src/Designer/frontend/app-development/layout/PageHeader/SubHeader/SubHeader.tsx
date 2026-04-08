@@ -19,6 +19,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
+import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -103,16 +104,33 @@ const ProblemStatusIndicator = () => {
     );
   }
 
-  const members = validationResult ? Object.entries(validationResult.errors) : [];
-  const validationSeverity: 'INFO' | 'WARNING' | 'ERROR' = 'WARNING'; // TODO: determine severity based on validation result errors
-  const icon =
-    validationSeverity === 'WARNING' ? (
-      <ExclamationmarkTriangleIcon />
-    ) : (
-      <SectionHeaderWarningIcon />
-    );
+  const getValidationStatus = (): ValidationStatus => {
+    const errorKeys = Object.keys(validationResult.errors);
+    const hasCriticalErrors = appHasCriticalValidationErrors(errorKeys);
+    return hasCriticalErrors ? ValidationStatus.ERROR : ValidationStatus.WARNING;
+  };
 
-  const dataColor = validationSeverity === 'WARNING' ? 'warning' : 'danger';
+  const getStatusIcon = (status: ValidationStatus) => {
+    switch (status) {
+      case ValidationStatus.INFO:
+        return null;
+      case ValidationStatus.WARNING:
+        return <ExclamationmarkTriangleIcon />;
+      case ValidationStatus.ERROR:
+        return <SectionHeaderWarningIcon />;
+    }
+  };
+
+  const members = validationResult ? Object.entries(validationResult.errors) : [];
+  enum ValidationStatus {
+    INFO = 'INFO',
+    WARNING = 'WARNING',
+    ERROR = 'ERROR',
+  }
+  const validationSeverity = getValidationStatus();
+  const icon = getStatusIcon(validationSeverity);
+
+  const dataColor = validationSeverity === ValidationStatus.WARNING ? 'warning' : 'danger';
   return (
     <StudioDialog.TriggerContext>
       <StudioDialog.Trigger

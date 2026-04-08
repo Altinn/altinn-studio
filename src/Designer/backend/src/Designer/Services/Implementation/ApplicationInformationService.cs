@@ -131,7 +131,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 ServiceResource serviceResource = applicationMetadata
                     .ToServiceResource()
-                    .WithOrgInformation(org, orgListOrg);
+                    .WithOrgInformation(org, orgListOrg)
+                    .WithDefaultTranslations();
 
                 string policyString = await _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(
                     org,

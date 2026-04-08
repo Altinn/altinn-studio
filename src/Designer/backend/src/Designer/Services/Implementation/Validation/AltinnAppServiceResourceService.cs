@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -70,6 +71,16 @@ public static class AltinnAppServiceResourceValidator
         else
         {
             ValidateTranslatedString(errors, "description", resource.Description);
+        }
+
+        if (resource.Delegable == null)
+        {
+            AddError(errors, "access.delegable", Required);
+        }
+
+        if (resource.Visible == null)
+        {
+            AddError(errors, "access.visible", Required);
         }
 
         if (resource.Delegable == true)
@@ -164,8 +175,8 @@ public static class ApplicationMetadataMapper
             Description = applicationmetadata?.Description?.ToDictionary(),
             ContactPoints = applicationmetadata?.ContactPoints?.ToServiceContactPoints(),
             RightDescription = applicationmetadata?.Access?.RightDescription?.ToDictionary(),
-            Delegable = applicationmetadata?.Access?.Delegable ?? false,
-            Visible = applicationmetadata?.Access?.Visible ?? false,
+            Delegable = applicationmetadata?.Access?.Delegable,
+            Visible = applicationmetadata?.Access?.Visible,
             AvailableForType = applicationmetadata?.Access?.AvailableForType,
         };
     }
@@ -178,6 +189,44 @@ public static class ApplicationMetadataMapper
             Organization = orgListOrg?.Orgnr,
             Orgcode = org,
         };
+        return serviceResource;
+    }
+
+    /// <summary>
+    /// Fills in missing English translations with the Norwegian Bokmål translation if available, to ensure that the service
+    /// resource has English translations which is a requirement in the service resource specification, while not requiring app developers to provide
+    /// English translations if they only have Norwegian translations.
+    /// </summary>
+    /// <param name="serviceResource">The service resource to fill in default translations for.</param>
+    /// <returns>The service resource with default translations filled in.</returns>
+    public static ServiceResource WithDefaultTranslations(this ServiceResource serviceResource)
+    {
+        if (serviceResource.Title == null || serviceResource.Description == null)
+        {
+            return serviceResource;
+        }
+
+        // English is required in the service resource, but techically not required by law as Bokmål and Nynorsk are.
+        // Many apps only have Norwegian translations. To avoid having to require English translations in all apps,
+        // we default the English title to the Norwegian title if the English title is missing.
+        if (serviceResource.Title["en"] == null && serviceResource.Title["nb"] != null)
+        {
+            serviceResource.Title["en"] = serviceResource.Title["nb"];
+        }
+
+        if (serviceResource.Description["en"] == null && serviceResource.Description["nb"] != null)
+        {
+            serviceResource.Description["en"] = serviceResource.Description["nb"];
+        }
+
+        if (serviceResource.Delegable == true && serviceResource.RightDescription != null)
+        {
+            if (serviceResource.RightDescription["en"] == null && serviceResource.RightDescription["nb"] != null)
+            {
+                serviceResource.RightDescription["en"] = serviceResource.RightDescription["nb"];
+            }
+        }
+
         return serviceResource;
     }
 
