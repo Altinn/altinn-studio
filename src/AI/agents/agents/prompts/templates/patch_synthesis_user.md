@@ -95,6 +95,11 @@ Without NavigationButtons, users CANNOT navigate between pages and the form is b
 CURRENT MODEL SCHEMA (for datamodel updates):
 {{current_model_content}}
 
+CURRENT TEXT RESOURCES (existing IDs per file):
+{{current_resource_content}}
+
+🚨 CRITICAL: Do NOT insert a text resource entry if its "id" already exists in the SAME file. Only add NEW entries with unique IDs per file. IDs shared across locale files (e.g. resource.nb.json and resource.nn.json) are expected.
+
 REPOSITORY FACTS SUMMARY:
 {{repo_summary}}
 

@@ -7,6 +7,7 @@ import { AppLayout } from 'src/AppLayout';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting, NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
+import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
@@ -35,7 +36,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.root,
             Component: IndexRoute,
-            loader: indexLoader(queryClient),
+            loader: indexLoader(queryClient, instanceApi),
 
             children: [
               {
@@ -52,14 +53,14 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instance,
             Component: InstanceRoute,
-            loader: instanceLoader,
+            loader: instanceLoader(instanceApi),
             children: [
               { index: true, element: <NavigateToStartUrl /> },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
                 Component: TaskRoute,
-                loader: taskLoader(queryClient),
+                loader: taskLoader(queryClient, instanceApi),
                 children: [
                   { index: true, element: <NavigateToStartUrl forceCurrentTask={false} /> },
                   {

@@ -1,6 +1,6 @@
 """MCP (Model Context Protocol) services for agent communication and tool execution."""
 
-from .mcp_client import MCPClient, get_mcp_client, check_mcp_server_startup
+from .mcp_client import MCPClient, get_mcp_client, start_mcp_connection_loop
 from .mcp_verification import MCPVerifier, MCPVerificationResult
 from .patch_generator import PatchGenerator
 from .tool_execution import execute_tool
@@ -14,5 +14,5 @@ __all__ = [
     "PatchGenerator",
     "execute_tool",
     "plan_atomic_step",
-    "check_mcp_server_startup"
+    "start_mcp_connection_loop"
 ]

@@ -1,8 +1,7 @@
-﻿namespace Altinn.Studio.Designer.Models
+﻿namespace Altinn.Studio.Designer.Models;
+
+public class CreateAccessListModel
 {
-    public class CreateAccessListModel
-    {
-        public required string Name { get; set; }
-        public string? Description { get; set; }
-    }
+    public required string Name { get; set; }
+    public string? Description { get; set; }
 }

@@ -3,7 +3,7 @@ import type { IFooterLayout } from 'src/features/footer/types';
 import type { UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrgName } from 'src/global';
-import type { IAppLanguage, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
+import type { IAppLanguage, IApplicationSettings, IParty, IPlatformFrontendSettings, IProfile } from 'src/types/shared';
 
 /**
  * Static accessor for global application data set on `window` by the host page.
@@ -46,6 +46,10 @@ export class GlobalData {
 
   static get frontendSettings(): IApplicationSettings {
     return window.altinnAppGlobalData.frontendSettings;
+  }
+
+  static get platformFrontendSettings(): IPlatformFrontendSettings {
+    return window.altinnAppGlobalData.platformFrontendSettings;
   }
 
   static get ui(): UiConfig {

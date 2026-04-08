@@ -40,7 +40,7 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 ### Ports & URLs
 
 | Service    | URL                                                             | Notes                                                   |
-|------------|-----------------------------------------------------------------|---------------------------------------------------------|
+| ---------- | --------------------------------------------------------------- | ------------------------------------------------------- |
 | Engine API | [http://localhost:8080](http://localhost:8080)                  | Swagger UI at [/swagger](http://localhost:8080/swagger) |
 | Grafana    | [http://localhost:7070](http://localhost:7070)                  | Dashboards, logs, traces, metrics                       |
 | WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |

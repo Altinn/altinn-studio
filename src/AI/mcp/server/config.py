@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# MCP Path Configuration
+MCP_ROOT_PATH = os.getenv("MCP_ROOT_PATH", "")
+
 # Azure OpenAI Configuration
 AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
 API_KEY = os.getenv("AZURE_API_KEY", "")
