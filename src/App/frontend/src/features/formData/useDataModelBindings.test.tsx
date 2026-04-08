@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -95,16 +96,19 @@ describe('useDataModelBindings', () => {
     return await renderWithInstanceAndLayout({
       renderer: <DummyComponent />,
       queries: {
-        fetchFormData: async () => formData,
-        fetchDataModelSchema: async () => ({
-          type: 'object',
-          properties: {
-            stringyField: { type: 'string' },
-            decimalField: { type: 'number' },
-            integerField: { type: 'integer' },
-            booleanField: { type: 'boolean' },
-          },
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = formData;
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: {
+                stringyField: { type: 'string' },
+                decimalField: { type: 'number' },
+                integerField: { type: 'integer' },
+                booleanField: { type: 'boolean' },
+              },
+            };
+          }),
       },
     });
   }

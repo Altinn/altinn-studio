@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { type BackendValidationIssue } from 'src/features/validation';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
@@ -485,8 +486,11 @@ describe('SummaryComponent', () => {
       renderer: <SummaryComponent2 baseComponentId='mySummary2' />,
       initialPage: currentPageId,
       queries: {
-        fetchLayouts: async () => layout,
-        fetchBackendValidations: async () => validationIssues,
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+          }),
       },
     });
   };
