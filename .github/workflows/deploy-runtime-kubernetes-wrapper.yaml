@@ -24,11 +24,7 @@ permissions:
   packages: write
 
 jobs:
-  get-short-sha:
-    uses: ./.github/workflows/template-short-sha.yaml
-
   docker-build-push:
-    needs: get-short-sha
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,7 +50,7 @@ jobs:
 
       - name: Build docker image
         run: |
-          SHA="${{ needs.get-short-sha.outputs.short-sha }}"
+          SHA="${GITHUB_SHA::10}"
           IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
           docker build --platform linux/amd64,linux/arm64 src/Runtime/kubernetes-wrapper \
             -f src/Runtime/kubernetes-wrapper/src/Dockerfile \
@@ -62,14 +58,13 @@ jobs:
 
       - name: Push docker image
         run: |
-          SHA="${{ needs.get-short-sha.outputs.short-sha }}"
+          SHA="${GITHUB_SHA::10}"
           IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
           docker push "${IMAGE_BASE}:${SHA}"
 
   push-config-artifact:
     name: Push kubernetes-wrapper config artifact
     needs:
-      - get-short-sha
       - docker-build-push
     runs-on: ubuntu-latest
     environment: dev
@@ -84,7 +79,7 @@ jobs:
       - name: Set vars
         id: vars
         run: |
-          SHA="${{ needs.get-short-sha.outputs.short-sha }}"
+          SHA="${GITHUB_SHA::10}"
           echo "config-repo=ghcr.io/altinn/altinn-studio/kubernetes-wrapper-repo:${SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
@@ -96,9 +91,9 @@ jobs:
       - name: Patch base with image tag
         working-directory: src/Runtime/kubernetes-wrapper/infra/kustomize
         run: |
-          export GHCR_IMAGE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper:${{ needs.get-short-sha.outputs.short-sha }}"
-          export RUNTIME_IMAGE="altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/kubernetes-wrapper:${{ needs.get-short-sha.outputs.short-sha }}"
-          export IMAGE_TAG="${{ needs.get-short-sha.outputs.short-sha }}"
+          export GHCR_IMAGE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper:${GITHUB_SHA::10}"
+          export RUNTIME_IMAGE="altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/kubernetes-wrapper:${GITHUB_SHA::10}"
+          export IMAGE_TAG="${GITHUB_SHA::10}"
           yq -i '.metadata.annotations["altinn.studio/image"] = env(GHCR_IMAGE)' base/deployment.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' base/deployment.yaml
           yq -i '.metadata.annotations["altinn.studio/image"] = env(RUNTIME_IMAGE)' runtime/overlay/image-annotation-patch.yaml

@@ -7,6 +7,7 @@ import { HttpResponseUtils } from '../../utils/httpResponseUtils';
 interface UseCheckoutWithUncommittedChangesOptions {
   onUncommittedChanges: (error: UncommittedChangesError) => void;
   onOtherError?: (error: AxiosError) => void;
+  onSuccess?: () => void;
 }
 
 export const useCheckoutWithUncommittedChangesHandling = (
@@ -14,12 +15,10 @@ export const useCheckoutWithUncommittedChangesHandling = (
   app: string,
   options: UseCheckoutWithUncommittedChangesOptions,
 ): UseMutationResult<RepoStatus, AxiosError, string> => {
-  const { onUncommittedChanges, onOtherError } = options;
+  const { onUncommittedChanges, onOtherError, onSuccess } = options;
 
   return useCheckoutBranchMutation(org, app, {
-    onSuccess: async () => {
-      location.reload();
-    },
+    onSuccess,
     onError: (error: AxiosError<UncommittedChangesError>) => {
       if (HttpResponseUtils.isConflict(error) && error.response?.data) {
         onUncommittedChanges(error.response.data);

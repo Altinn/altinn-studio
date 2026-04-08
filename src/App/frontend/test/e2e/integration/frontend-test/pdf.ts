@@ -5,7 +5,7 @@ import { Likert } from 'test/e2e/pageobjects/likert';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
@@ -51,7 +51,7 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(7);
+          expect(intercepts.length).to.be.greaterThan(5);
           for (const intercept of intercepts) {
             const { request } = intercept;
             const reqInfo = `${intercept.browserRequestId} ${intercept.routeId} ${request.method} ${request.url.split(domain)[1]}`;
@@ -360,35 +360,33 @@ describe('PDF', () => {
       data.ui.folders.Task_5.pages.pdfLayoutName = pdfLayoutName;
     });
 
-    cy.intercept('GET', '**/layouts/**', (req) =>
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
       req.on('response', (res) => {
-        const body: ILayoutCollection = JSON.parse(res.body);
-        res.send({
-          ...body,
-          [pdfLayoutName]: {
-            data: {
-              layout: [
-                {
-                  id: 'title',
-                  type: 'Header',
-                  textResourceBindings: { title: 'This is a custom PDF' },
-                  size: 'L',
+        const body = res.body as FormBootstrapResponse;
+        body.layouts[pdfLayoutName] = {
+          data: {
+            layout: [
+              {
+                id: 'title',
+                type: 'Header',
+                textResourceBindings: { title: 'This is a custom PDF' },
+                size: 'L',
+              },
+              {
+                id: 'datalist',
+                type: 'Summary2',
+                target: {
+                  taskId: 'Task_5',
+                  type: 'layoutSet',
                 },
-                {
-                  id: 'datalist',
-                  type: 'Summary2',
-                  target: {
-                    taskId: 'Task_5',
-                    type: 'layoutSet',
-                  },
-                  showPageInAccordion: false,
-                },
-              ],
-            },
+                showPageInAccordion: false,
+              },
+            ],
           },
-        });
-      }),
-    );
+        };
+        res.send(body);
+      });
+    });
 
     cy.gotoAndComplete('datalist');
 
@@ -442,29 +440,27 @@ describe('PDF', () => {
 
   // Used to cause a crash, @see https://github.com/Altinn/app-frontend-react/pull/2019
   it('Grid in Group should display correctly', { retries: 0 }, () => {
-    cy.intercept('GET', '**/layouts/**', (req) => {
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
       req.on('response', (res) => {
-        const body: ILayoutCollection = JSON.parse(res.body);
-        res.send({
-          ...body,
-          grid: {
-            ...body.grid,
-            data: {
-              ...body.grid.data,
-              layout: [
-                {
-                  id: 'gridGroup',
-                  type: 'Group',
-                  textResourceBindings: {
-                    title: 'Grid gruppe',
-                  },
-                  children: ['page3-grid'],
+        const body = res.body as FormBootstrapResponse;
+        body.layouts.grid = {
+          ...body.layouts.grid,
+          data: {
+            ...body.layouts.grid.data,
+            layout: [
+              {
+                id: 'gridGroup',
+                type: 'Group',
+                textResourceBindings: {
+                  title: 'Grid gruppe',
                 },
-                ...body.grid.data.layout,
-              ],
-            },
+                children: ['page3-grid'],
+              },
+              ...body.layouts.grid.data.layout,
+            ],
           },
-        });
+        };
+        res.send(body);
       });
     });
 

@@ -1,19 +1,5 @@
-import React from 'react';
-import type { PropsWithChildren } from 'react';
-
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
-import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
-import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
-import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
-import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
-import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
-import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
-import { PaymentProvider } from 'src/features/payment/PaymentProvider';
-import { ValidationProvider } from 'src/features/validation/validationContext';
-import { useNavigationParam } from 'src/hooks/navigation';
-import { NodesProvider } from 'src/utils/layout/NodesContext';
+import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 
 export interface FormContext {
   // Set this if this form context is provided somewhere it's not expected we should write data to the data model.
@@ -22,62 +8,31 @@ export interface FormContext {
   // prevent any write operations from happening in case components inside try to write new form data, but it will
   // prevent automatic effects from happening.
   readOnly?: boolean;
+  bootstrap: FormBootstrapContextValue;
 }
 
-const { Provider, useLaxCtx } = createContext<FormContext>({
+const { Provider, useLaxCtx, useCtx } = createContext<FormContext>({
   name: 'Form',
   required: true,
 });
 
-export function useIsInFormContext() {
-  return useLaxCtx() !== ContextNotProvided;
-}
-
-/**
- * This helper-context provider is used to provide all the contexts needed for forms to work
- */
-export function FormProvider({ children, readOnly = false }: React.PropsWithChildren<FormContext>) {
-  const isEmbedded = useIsInFormContext();
-  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
-  const instanceGuid = useNavigationParam('instanceGuid');
-  const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
-
-  return (
-    <LoadingRegistryProvider>
-      <LayoutsProvider>
-        <CodeListsProvider>
-          <DataModelsProvider>
-            <PageNavigationProvider>
-              <FormDataWriteProvider>
-                <ValidationProvider>
-                  <NodesProvider
-                    readOnly={readOnly}
-                    isEmbedded={isEmbedded}
-                  >
-                    <PaymentInformationProvider>
-                      <OrderDetailsProvider>
-                        <MaybePaymentProvider hasProcess={hasProcess}>
-                          <Provider value={{ readOnly }}>
-                            <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
-                          </Provider>
-                        </MaybePaymentProvider>
-                      </OrderDetailsProvider>
-                    </PaymentInformationProvider>
-                  </NodesProvider>
-                </ValidationProvider>
-              </FormDataWriteProvider>
-            </PageNavigationProvider>
-          </DataModelsProvider>
-        </CodeListsProvider>
-      </LayoutsProvider>
-    </LoadingRegistryProvider>
-  );
-}
-
-function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasProcess: boolean }>) {
-  if (hasProcess) {
-    return <PaymentProvider>{children}</PaymentProvider>;
-  }
-
-  return children;
-}
+export const FormProviderInternal = Provider;
+export const FormProviderHooks = {
+  useIsInContext() {
+    return useLaxCtx() !== ContextNotProvided;
+  },
+  useBootstrap() {
+    const ctx = useCtx();
+    if (!ctx) {
+      throw new Error('useBootstrap must be used within FormProvider');
+    }
+    return ctx.bootstrap;
+  },
+  useLaxBootstrap() {
+    const ctx = useLaxCtx();
+    if (ctx === ContextNotProvided) {
+      return undefined;
+    }
+    return ctx.bootstrap;
+  },
+};
