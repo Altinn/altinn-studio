@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { MarkerLocationText } from 'src/layout/Map/features/singleMarker/MarkerLocationText';
 import { Map } from 'src/layout/Map/Map';
@@ -11,7 +11,7 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 export function MapComponentSummary({ targetBaseComponentId }: SummaryRendererProps) {
   const markerBinding = useDataModelBindingsFor(targetBaseComponentId, 'Map').simpleBinding;
-  const formData = FD.useDebouncedPick(markerBinding);
+  const formData = FormStore.data.useDebouncedPick(markerBinding);
   const markerLocation = typeof formData === 'string' ? parseLocation(formData) : undefined;
   const markerLocationIsValid = isLocationValid(markerLocation);
 

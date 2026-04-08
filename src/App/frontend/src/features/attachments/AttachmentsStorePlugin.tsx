@@ -13,7 +13,7 @@ import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments'
 import { attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
 import { hasPendingAttachments } from 'src/features/attachments/utils';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { dataModelPairsToObject } from 'src/features/formData/types';
 import {
   useLaxInstanceId,
@@ -26,7 +26,7 @@ import { backendValidationIssueGroupListToObject } from 'src/features/validation
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { doUpdateAttachmentTags } from 'src/queries/queries';
-import { nodesProduce } from 'src/utils/layout/NodesContext';
+import { nodesProduce } from 'src/utils/layout/nodesProduce';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type {
@@ -39,6 +39,7 @@ import type {
 } from 'src/features/attachments/index';
 import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { AttachmentStateInfo } from 'src/features/attachments/types';
+import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DSPropsForSimpleSelector } from 'src/hooks/delayedSelectors';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
@@ -46,8 +47,6 @@ import type { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError'
 import type { CompWithBehavior } from 'src/layout/layout';
 import type { SetTagsRequest } from 'src/queries/queries';
 import type { IData } from 'src/types/shared';
-import type { NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
-import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { NodeData } from 'src/utils/layout/types';
 
 type AttachmentUploadSuccess = {
@@ -128,7 +127,7 @@ export interface AttachmentsStorePluginConfig {
     useAttachments: (nodeId: string) => IAttachment[];
     useFailedAttachments: (nodeId: string) => IFailedAttachment[];
     useAttachmentsSelector: () => AttachmentsSelector;
-    useAttachmentsSelectorProps: () => DSPropsForSimpleSelector<NodesContext, AttachmentsSelector>;
+    useAttachmentsSelectorProps: () => DSPropsForSimpleSelector<FormStoreState, AttachmentsSelector>;
     useWaitUntilUploaded: () => (nodeId: string, attachment: TemporaryAttachment) => Promise<IData | false>;
 
     useHasPendingAttachments: () => boolean;
@@ -149,7 +148,7 @@ const ATTACHMENT_STATE_RESULTS = {
 type ProperData = NodeData<CompWithBehavior<'canHaveAttachments'>>;
 
 export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePluginConfig> {
-  extraFunctions(set: NodeDataPluginSetState): AttachmentsStorePluginConfig['extraFunctions'] {
+  extraFunctions(set: FormStoreSet): AttachmentsStorePluginConfig['extraFunctions'] {
     return {
       attachmentUpload: ({ files, nodeId }) => {
         set(
@@ -287,16 +286,16 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
       },
     };
   }
-  extraHooks(store: NodesStoreFull): AttachmentsStorePluginConfig['extraHooks'] {
+  extraHooks(): AttachmentsStorePluginConfig['extraHooks'] {
     return {
       useAttachmentsUpload() {
-        const upload = store.useSelector((state) => state.attachmentUpload);
-        const uploadFinished = store.useSelector((state) => state.attachmentUploadFinished);
+        const upload = FormStore.raw.useSelector((state) => state.nodes.attachmentUpload);
+        const uploadFinished = FormStore.raw.useSelector((state) => state.nodes.attachmentUploadFinished);
 
         const { mutateAsync: uploadAttachment } = useAttachmentsUploadMutation();
 
         const setAttachmentsInDataModel = useSetAttachmentInDataModel();
-        const lock = FD.useLocking('__attachment__upload__');
+        const lock = FormStore.data.useLocking('__attachment__upload__');
 
         return useCallback(
           async (action) => {
@@ -347,9 +346,9 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         const { mutateAsync: updateTags } = useAttachmentUpdateTagsMutation();
         const optimisticallyUpdateDataElement = useOptimisticallyUpdateDataElement();
         const { lang } = useLanguage();
-        const update = store.useSelector((state) => state.attachmentUpdate);
-        const fulfill = store.useSelector((state) => state.attachmentUpdateFulfilled);
-        const reject = store.useSelector((state) => state.attachmentUpdateRejected);
+        const update = FormStore.raw.useSelector((state) => state.nodes.attachmentUpdate);
+        const fulfill = FormStore.raw.useSelector((state) => state.nodes.attachmentUpdateFulfilled);
+        const reject = FormStore.raw.useSelector((state) => state.nodes.attachmentUpdateRejected);
 
         return useCallback(
           async (action: AttachmentActionUpdate) => {
@@ -382,11 +381,11 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
       useAttachmentsRemove() {
         const { mutateAsync: removeAttachment } = useAttachmentsRemoveMutation();
         const { lang } = useLanguage();
-        const remove = store.useSelector((state) => state.attachmentRemove);
-        const fulfill = store.useSelector((state) => state.attachmentRemoveFulfilled);
-        const reject = store.useSelector((state) => state.attachmentRemoveRejected);
-        const setLeafValue = FD.useSetLeafValue();
-        const removeValueFromList = FD.useRemoveValueFromList();
+        const remove = FormStore.raw.useSelector((state) => state.nodes.attachmentRemove);
+        const fulfill = FormStore.raw.useSelector((state) => state.nodes.attachmentRemoveFulfilled);
+        const reject = FormStore.raw.useSelector((state) => state.nodes.attachmentRemoveRejected);
+        const setLeafValue = FormStore.data.useSetLeafValue();
+        const removeValueFromList = FormStore.data.useRemoveValueFromList();
 
         return useCallback(
           async (action: AttachmentActionRemove) => {
@@ -418,8 +417,8 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         );
       },
       useAttachments(nodeId) {
-        return store.useShallowSelector((state) => {
-          const nodeData = state.nodeData[nodeId];
+        return FormStore.raw.useShallowSelector((state) => {
+          const nodeData = state.nodes.nodeData[nodeId];
           if (nodeData && 'attachments' in nodeData) {
             return Object.values(nodeData.attachments).sort(sortAttachmentsByName);
           }
@@ -428,25 +427,25 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         });
       },
       useAttachmentsSelector() {
-        return store.useDelayedSelector({
+        return FormStore.raw.useDelayedSelector({
           mode: 'simple',
           selector: attachmentSelector,
-        }) satisfies AttachmentsSelector;
+        });
       },
       useAttachmentsSelectorProps() {
-        return store.useDelayedSelectorProps({
+        return FormStore.raw.useDelayedSelectorProps({
           mode: 'simple',
           selector: attachmentSelector,
         });
       },
       useWaitUntilUploaded() {
-        const zustandStore = store.useStore();
-        const waitFor = useWaitForState<IData | false, NodesContext>(zustandStore);
+        const zustandStore = FormStore.raw.useStore();
+        const waitFor = useWaitForState<IData | false, FormStoreState>(zustandStore);
 
         return useCallback(
           (nodeId, attachment) =>
             waitFor((state, setReturnValue) => {
-              const nodeData = state.nodeData[nodeId];
+              const nodeData = state.nodes.nodeData[nodeId];
               if (!nodeData || !('attachments' in nodeData) || !('attachmentsFailedToUpload' in nodeData)) {
                 setReturnValue(false);
                 return true;
@@ -475,13 +474,13 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         );
       },
       useHasPendingAttachments() {
-        const out = store.useLaxSelector(hasPendingAttachments);
+        const out = FormStore.raw.useLaxSelector((state) => hasPendingAttachments(state));
         return out === ContextNotProvided ? false : out;
       },
       useAttachmentState(): AttachmentStateInfo {
-        const out = store.useLaxSelector((state): AttachmentStateInfo => {
-          for (const id of Object.keys(state.nodeData)) {
-            const nodeData = state.nodeData[id];
+        const out = FormStore.raw.useLaxSelector((state): AttachmentStateInfo => {
+          for (const id of Object.keys(state.nodes.nodeData)) {
+            const nodeData = state.nodes.nodeData[id];
             if (!nodeData || !('attachments' in nodeData)) {
               continue;
             }
@@ -507,10 +506,10 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         return out === ContextNotProvided ? ATTACHMENT_STATE_RESULTS.ready : out;
       },
       useAllAttachments() {
-        return store.useMemoSelector((state) => {
+        return FormStore.raw.useMemoSelector((state) => {
           const map: IAttachmentsMap = {};
-          for (const id of Object.keys(state.nodeData)) {
-            const nodeData = state.nodeData[id];
+          for (const id of Object.keys(state.nodes.nodeData)) {
+            const nodeData = state.nodes.nodeData[id];
             if (!nodeData || !('attachments' in nodeData)) {
               continue;
             }
@@ -522,8 +521,8 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         });
       },
       useFailedAttachments(nodeId) {
-        return store.useShallowSelector((state) => {
-          const nodeData = state.nodeData[nodeId];
+        return FormStore.raw.useShallowSelector((state) => {
+          const nodeData = state.nodes.nodeData[nodeId];
           if (nodeData && 'attachmentsFailedToUpload' in nodeData) {
             return Object.values(nodeData.attachmentsFailedToUpload).sort(sortAttachmentsByName);
           }
@@ -532,10 +531,10 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         });
       },
       useDeleteFailedAttachment() {
-        return store.useStaticSelector((state) => state.deleteFailedAttachment);
+        return FormStore.raw.useStaticSelector((state) => state.nodes.deleteFailedAttachment);
       },
       useAddRejectedAttachments() {
-        const addFailedAttachments = store.useStaticSelector((state) => state.addFailedAttachments);
+        const addFailedAttachments = FormStore.raw.useStaticSelector((state) => state.nodes.addFailedAttachments);
         return useCallback(
           (nodeId: string, errors: RejectedFileError[]) => {
             const attachments: IFailedAttachment[] = errors.map((error) => ({
@@ -566,9 +565,9 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
  * @see MaintainSimpleDataModelBinding
  */
 function useSetAttachmentInDataModel() {
-  const setLeafValue = FD.useSetLeafValue();
-  const appendToListUnique = FD.useAppendToListUnique();
-  const debounce = FD.useDebounceImmediately();
+  const setLeafValue = FormStore.data.useSetLeafValue();
+  const appendToListUnique = FormStore.data.useAppendToListUnique();
+  const debounce = FormStore.data.useDebounceImmediately();
 
   return useCallback(
     (attachmentIds: string[], dataModelBindings: IDataModelBindingsSimple | IDataModelBindingsList | undefined) => {

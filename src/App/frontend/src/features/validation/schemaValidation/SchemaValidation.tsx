@@ -4,21 +4,20 @@ import { FrontendValidationSource } from '..';
 import type { FieldValidations } from '..';
 
 import { pointerToDotNotation } from 'src/features/datamodel/notations';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import {
   getErrorCategory,
   getErrorParams,
   getErrorTextKey,
 } from 'src/features/validation/schemaValidation/schemaValidationUtils';
-import { Validation } from 'src/features/validation/validationContext';
 import { getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
 import type { TextReference } from 'src/features/language/useLanguage';
 
 export function SchemaValidation({ dataType }: { dataType: string }) {
-  const updateDataModelValidations = Validation.useUpdateDataModelValidations();
+  const updateDataModelValidations = FormStore.validation.useUpdateDataModelValidations();
 
-  const formData = FD.useDebounced(dataType);
+  const formData = FormStore.data.useDebounced(dataType);
   const { validator, rootElementPath, schema } = FormBootstrap.useDataModelSchema(dataType) ?? {};
   const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
