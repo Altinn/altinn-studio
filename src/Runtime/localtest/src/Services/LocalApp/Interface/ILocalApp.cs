@@ -11,6 +11,8 @@ namespace LocalTest.Services.LocalApp.Interface
 
         Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default);
 
+        Task<Version?> GetAppVersion(string? appId, CancellationToken cancellationToken = default);
+
         Task<Dictionary<string, Application>> GetApplications(CancellationToken cancellationToken = default);
 
         Task<TextResource?> GetTextResource(string org, string app, string language, CancellationToken cancellationToken = default);

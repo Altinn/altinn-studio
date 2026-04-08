@@ -17,6 +17,11 @@ namespace LocalTest.Services.LocalApp.Implementation
 {
     public class LocalAppHttp : ILocalApp
     {
+        private sealed class LocalApplicationMetadata : Application
+        {
+            public string? AltinnNugetVersion { get; set; }
+        }
+
         public static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
             Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
@@ -77,30 +82,15 @@ namespace LocalTest.Services.LocalApp.Implementation
         }
         public async Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
         {
-            // When the AppPathSelection is null, check if there is exactly one app registered. If there are, that's
-            // the default one (not the one on port 5005)
-            if (string.IsNullOrWhiteSpace(appId))
-            {
-                var registeredApps = _appRegistryService.GetAll();
-                if (registeredApps.Count == 1)
-                {
-                    appId = registeredApps.First().Value.AppId;
-                }
-            }
-
-            // This works because we call with checkOrgApp=false later, and when the app is running on port 5005 it will
-            // respond with the correct org/app id. If, however, the app is a registered one it runs on a dynamic port,
-            // and so we have to look it up from the registry instead.
-            appId ??= "dummyOrg/dummyApp";
-            var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
-            {
-                // Cache with very short duration to not slow down page load, where this file can be accessed many many times
-                cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                using var client = CreateClient(appId);
-                return await client.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false", cancellationToken);
-            });
-
+            var content = await GetApplicationMetadataContent(appId, cancellationToken);
             return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
+        }
+
+        public async Task<Version?> GetAppVersion(string? appId, CancellationToken cancellationToken = default)
+        {
+            var content = await GetApplicationMetadataContent(appId, cancellationToken);
+            var metadata = JsonSerializer.Deserialize<LocalApplicationMetadata>(content!, JSON_OPTIONS);
+            return Version.TryParse(metadata?.AltinnNugetVersion, out var version) ? version : null;
         }
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language, CancellationToken cancellationToken = default)
@@ -163,6 +153,32 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
 
             return ret;
+        }
+
+        private async Task<string?> GetApplicationMetadataContent(string? appId, CancellationToken cancellationToken)
+        {
+            // When the AppPathSelection is null, check if there is exactly one app registered. If there are, that's
+            // the default one (not the one on port 5005)
+            if (string.IsNullOrWhiteSpace(appId))
+            {
+                var registeredApps = _appRegistryService.GetAll();
+                if (registeredApps.Count == 1)
+                {
+                    appId = registeredApps.First().Value.AppId;
+                }
+            }
+
+            // This works because we call with checkOrgApp=false later, and when the app is running on port 5005 it will
+            // respond with the correct org/app id. If, however, the app is a registered one it runs on a dynamic port,
+            // and so we have to look it up from the registry instead.
+            appId ??= "dummyOrg/dummyApp";
+            return await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
+            {
+                // Cache with very short duration to not slow down page load, where this file can be accessed many many times
+                cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
+                using var client = CreateClient(appId);
+                return await client.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false", cancellationToken);
+            });
         }
 
         public async Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token, CancellationToken cancellationToken = default)

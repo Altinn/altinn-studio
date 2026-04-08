@@ -27,6 +27,7 @@ namespace LocalTest.Controllers
     [Route("/Home/[action]")]
     public class HomeController : Controller
     {
+        private static readonly Version BrowserRoutingAppVersion = new(10, 0, 0, 0);
         private static readonly TimeSpan LocalAppViewTimeout = TimeSpan.FromSeconds(5);
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
@@ -288,8 +289,15 @@ namespace LocalTest.Controllers
                         xmlDataId,
                         token
                     );
+                    var appVersion = await _localApp.GetAppVersion(
+                        startAppModel.AppPathSelection
+                    );
+                    var instancePath =
+                        appVersion is not null && appVersion < BrowserRoutingAppVersion
+                            ? $"/{app.Id}/#/instance/{newInstance.Id}"
+                            : $"/{app.Id}/instance/{newInstance.Id}";
 
-                    return Redirect($"/{app.Id}/instance/{newInstance.Id}");
+                    return Redirect(instancePath);
                 }
             }
 

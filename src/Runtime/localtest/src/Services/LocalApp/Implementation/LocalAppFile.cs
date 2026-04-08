@@ -16,6 +16,12 @@ namespace LocalTest.Services.LocalApp.Implementation
 {
     public class LocalAppFile : ILocalApp
     {
+        private sealed class LocalApplicationMetadata : Application
+        {
+            [JsonProperty("altinnNugetVersion")]
+            public string? AltinnNugetVersion { get; set; }
+        }
+
         private readonly LocalPlatformSettings _localPlatformSettings;
         public LocalAppFile(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
@@ -42,6 +48,24 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
 
             return null;
+        }
+
+        public async Task<Version?> GetAppVersion(string? appId, CancellationToken cancellationToken = default)
+        {
+            if (appId is null)
+            {
+                throw new ArgumentNullException(nameof(appId), "AppMode = file does not support null as appId");
+            }
+
+            var filename = Path.Join(GetAppConfigFolderPath(appId), "applicationmetadata.json");
+            if (!File.Exists(filename))
+            {
+                return null;
+            }
+
+            var content = await File.ReadAllTextAsync(filename, Encoding.UTF8, cancellationToken);
+            var metadata = JsonConvert.DeserializeObject<LocalApplicationMetadata>(content);
+            return Version.TryParse(metadata?.AltinnNugetVersion, out var version) ? version : null;
         }
 
         public async Task<Dictionary<string, Application>> GetApplications(CancellationToken cancellationToken = default)
