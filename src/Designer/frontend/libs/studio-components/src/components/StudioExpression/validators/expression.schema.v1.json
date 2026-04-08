@@ -59,6 +59,7 @@
         { "$ref": "#/definitions/func-component" },
         { "$ref": "#/definitions/func-dataModel" },
         { "$ref": "#/definitions/func-externalApi" },
+        { "$ref": "#/definitions/func-gatewayAction" },
         { "$ref": "#/definitions/func-displayValue" },
         { "$ref": "#/definitions/func-instanceContext" },
         { "$ref": "#/definitions/func-frontendSettings" },
@@ -190,6 +191,12 @@
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
+    },
+    "func-gatewayAction": {
+      "title": "Gateway action lookup function",
+      "description": "This function will look up a value in the gateway action",
+      "type": "array",
+      "items": [{ "const": "gatewayAction" }]
     },
     "func-countDataElements": {
       "title": "Count data elements function",
