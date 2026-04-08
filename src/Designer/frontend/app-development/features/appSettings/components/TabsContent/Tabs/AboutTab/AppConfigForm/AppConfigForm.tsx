@@ -115,9 +115,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     if (!checked) {
       return undefined;
     }
-    return !oldVal.access?.rightDescription?.nb
-      ? DEFAULT_RIGHTS_DESCRIPTION
-      : (oldVal.access?.rightDescription ?? defaultDescriptionValue);
+    const previous = oldVal.access?.rightDescription ?? defaultDescriptionValue;
+    return {
+      nb: previous.nb || DEFAULT_RIGHTS_DESCRIPTION.nb,
+      nn: previous.nn || DEFAULT_RIGHTS_DESCRIPTION.nn,
+      en: previous.en || DEFAULT_RIGHTS_DESCRIPTION.en,
+    };
   };
 
   const onChangeRightDescription = (updatedLanguage: SupportedLanguage): void => {
