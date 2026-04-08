@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 import { StudioContentMenu, StudioButton, StudioHeading } from '@studio/components';
 import classes from './ThreadColumn.module.css';
-import { InformationIcon, PlusIcon, SidebarLeftIcon } from '@studio/icons';
+import { PlusIcon, SidebarLeftIcon } from '@studio/icons';
+import { AboutAssistantDialog } from './AboutAssistantDialog';
 import type { ChatThread } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 
@@ -54,12 +55,10 @@ export function ThreadColumn({
         </StudioContentMenu>
       </div>
       <div className={classes.aboutSection}>
-        <StudioButton variant='tertiary'>
-          {' '}
-          {/* TODO: "About assistant" button should open a modal */}
-          <InformationIcon />
-          {texts.aboutAssistant}
-        </StudioButton>
+        <AboutAssistantDialog
+          triggerText={texts.aboutAssistant}
+          texts={texts.aboutAssistantDialog}
+        />
       </div>
     </div>
   );
