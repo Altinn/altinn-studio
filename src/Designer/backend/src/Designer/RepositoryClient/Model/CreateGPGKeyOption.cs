@@ -17,108 +17,107 @@ using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// CreateGPGKeyOption options create user GPG key
+/// </summary>
+[DataContract]
+public partial class CreateGPGKeyOption : IEquatable<CreateGPGKeyOption>, IValidatableObject
 {
     /// <summary>
-    /// CreateGPGKeyOption options create user GPG key
+    /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
     /// </summary>
-    [DataContract]
-    public partial class CreateGPGKeyOption : IEquatable<CreateGPGKeyOption>, IValidatableObject
+    [JsonConstructor]
+    protected CreateGPGKeyOption() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
+    /// </summary>
+    /// <param name="armoredPublicKey">An armored GPG key to add (required).</param>
+    public CreateGPGKeyOption(string armoredPublicKey = default(string))
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
-        /// </summary>
-        [JsonConstructor]
-        protected CreateGPGKeyOption() { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
-        /// </summary>
-        /// <param name="armoredPublicKey">An armored GPG key to add (required).</param>
-        public CreateGPGKeyOption(string armoredPublicKey = default(string))
+        // to ensure "ArmoredPublicKey" is required (not null)
+        if (armoredPublicKey == null)
         {
-            // to ensure "ArmoredPublicKey" is required (not null)
-            if (armoredPublicKey == null)
+            throw new InvalidDataException(
+                "ArmoredPublicKey is a required property for CreateGPGKeyOption and cannot be null"
+            );
+        }
+        this.ArmoredPublicKey = armoredPublicKey;
+    }
+
+    /// <summary>
+    /// An armored GPG key to add
+    /// </summary>
+    [DataMember(Name = "armored_public_key", EmitDefaultValue = false)]
+    public string ArmoredPublicKey { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class CreateGPGKeyOption {\n");
+        sb.Append("  ArmoredPublicKey: ").Append(ArmoredPublicKey).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return this.Equals(input as CreateGPGKeyOption);
+    }
+
+    /// <summary>
+    /// Returns true if CreateGPGKeyOption instances are equal
+    /// </summary>
+    /// <param name="input">Instance of CreateGPGKeyOption to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(CreateGPGKeyOption input)
+    {
+        if (input == null)
+        {
+            return false;
+        }
+
+        return this.ArmoredPublicKey == input.ArmoredPublicKey
+            || (this.ArmoredPublicKey != null && this.ArmoredPublicKey.Equals(input.ArmoredPublicKey));
+    }
+
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
+        {
+            int hashCode = 41;
+            if (this.ArmoredPublicKey != null)
             {
-                throw new InvalidDataException(
-                    "ArmoredPublicKey is a required property for CreateGPGKeyOption and cannot be null"
-                );
-            }
-            this.ArmoredPublicKey = armoredPublicKey;
-        }
-
-        /// <summary>
-        /// An armored GPG key to add
-        /// </summary>
-        [DataMember(Name = "armored_public_key", EmitDefaultValue = false)]
-        public string ArmoredPublicKey { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.Append("class CreateGPGKeyOption {\n");
-            sb.Append("  ArmoredPublicKey: ").Append(ArmoredPublicKey).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return this.Equals(input as CreateGPGKeyOption);
-        }
-
-        /// <summary>
-        /// Returns true if CreateGPGKeyOption instances are equal
-        /// </summary>
-        /// <param name="input">Instance of CreateGPGKeyOption to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(CreateGPGKeyOption input)
-        {
-            if (input == null)
-            {
-                return false;
+                hashCode = (hashCode * 59) + this.ArmoredPublicKey.GetHashCode();
             }
 
-            return this.ArmoredPublicKey == input.ArmoredPublicKey
-                || (this.ArmoredPublicKey != null && this.ArmoredPublicKey.Equals(input.ArmoredPublicKey));
+            return hashCode;
         }
+    }
 
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
-            {
-                int hashCode = 41;
-                if (this.ArmoredPublicKey != null)
-                {
-                    hashCode = (hashCode * 59) + this.ArmoredPublicKey.GetHashCode();
-                }
-
-                return hashCode;
-            }
-        }
-
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
-        }
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

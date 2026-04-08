@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
 import { useStudioResizableLayoutContext } from '../hooks/useStudioResizableLayoutContext';
 import type { StudioResizableOrientation } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import classes from './StudioResizableLayoutHandle.module.css';
@@ -9,28 +8,22 @@ import { useStudioResizableLayoutMouseMovement } from '../hooks/useStudioResizab
 export type StudioResizableLayoutHandleProps = {
   orientation: StudioResizableOrientation;
   index: number;
-  onResizing?: (resizing: boolean) => void;
   disableRightHandle?: boolean;
 };
 
 export const StudioResizableLayoutHandle = ({
   orientation,
   index,
-  onResizing,
   disableRightHandle,
 }: StudioResizableLayoutHandleProps): ReactElement => {
-  const { resizeDelta, containerSize } = useStudioResizableLayoutContext(index);
-  const { onMouseDown, isResizing } = useStudioResizableLayoutMouseMovement(
+  const { resizeDelta, containerSize, isResizing, setIsResizing } =
+    useStudioResizableLayoutContext(index);
+  const { onMouseDown } = useStudioResizableLayoutMouseMovement(
     orientation,
-    (delta) => {
-      resizeDelta(index, delta);
-    },
+    (delta) => resizeDelta(index, delta),
+    setIsResizing,
   );
   const { onKeyDown } = useKeyboardControls((delta) => resizeDelta(index, delta));
-
-  useEffect(() => {
-    onResizing?.(isResizing);
-  }, [isResizing, onResizing]);
 
   if (disableRightHandle) {
     return (

@@ -1,9 +1,8 @@
-﻿namespace Altinn.Studio.Designer.Configuration
-{
-    public class CacheSettings
-    {
-        public int DataNorgeApiCacheTimeout { get; set; }
+﻿namespace Altinn.Studio.Designer.Configuration;
 
-        public int OrgListCacheTimeout { get; set; }
-    }
+public class CacheSettings
+{
+    public int DataNorgeApiCacheTimeout { get; set; }
+
+    public int OrgListCacheTimeout { get; set; }
 }
