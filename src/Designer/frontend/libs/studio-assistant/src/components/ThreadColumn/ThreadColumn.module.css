@@ -81,6 +81,8 @@
 }
 
 .aboutSection {
-  align-self: center;
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
   padding: var(--ds-size-4);
 }
