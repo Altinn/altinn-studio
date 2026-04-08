@@ -5,8 +5,8 @@ import dot from 'dot-object';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
@@ -42,7 +42,7 @@ function useDataModelNamesForSubform(dataType: string) {
 }
 
 function useFormDataSelectorForSubform(dataType: string, subformData: unknown) {
-  const formDataSelector = FD.useDebouncedSelector();
+  const formDataSelector = FormStore.data.useDebouncedSelector();
   return useCallback(
     (reference: IDataModelReference) => {
       if (reference.dataType !== dataType) {

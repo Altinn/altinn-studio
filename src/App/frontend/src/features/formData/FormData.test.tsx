@@ -11,9 +11,9 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
-import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -128,11 +128,9 @@ async function statelessRender(props: RenderProps) {
       ),
       renderer: () => (
         <GlobalFormDataReadersProvider>
-          <FormProvider uiFolderOverride='stateless'>
-            <FormDataWriteProxyProvider value={formDataProxies}>
-              <FormDataWriteProvider>{props.renderer}</FormDataWriteProvider>
-            </FormDataWriteProxyProvider>
-          </FormProvider>
+          <FormDataWriteProxyProvider value={formDataProxies}>
+            <FormProvider uiFolderOverride='stateless'>{props.renderer}</FormProvider>
+          </FormDataWriteProxyProvider>
         </GlobalFormDataReadersProvider>
       ),
       queries: {
@@ -320,7 +318,7 @@ describe('FormData', () => {
   }
 
   function HasUnsavedChanges() {
-    const hasUnsavedChanges = FD.useHasUnsavedChanges();
+    const hasUnsavedChanges = FormStore.data.useHasUnsavedChanges();
     return <div data-testid='hasUnsavedChanges'>{hasUnsavedChanges ? 'true' : 'false'}</div>;
   }
 
@@ -341,8 +339,8 @@ describe('FormData', () => {
     });
 
     function LockActionButton({ lockId, renderInfo }: { lockId: string; renderInfo: boolean }) {
-      const lock = FD.useLocking(lockId);
-      const { isLocked, lockedBy } = FD.useLockStatus();
+      const lock = FormStore.data.useLocking(lockId);
+      const { isLocked, lockedBy } = FormStore.data.useLockStatus();
       const [currentLock, setCurrentLock] = useState<Awaited<ReturnType<typeof lock>> | undefined>();
 
       return (
@@ -753,8 +751,8 @@ describe('FormData', () => {
       } = useDataModelBindings({
         simpleBinding: { field: path, dataType },
       });
-      const validValue = dot.pick(path, FD.useDebounced(dataType));
-      const invalidValue = dot.pick(path, FD.useInvalidDebounced(dataType));
+      const validValue = dot.pick(path, FormStore.data.useDebounced(dataType));
+      const invalidValue = dot.pick(path, FormStore.data.useInvalidDebounced(dataType));
 
       return (
         <>

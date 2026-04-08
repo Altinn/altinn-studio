@@ -4,13 +4,13 @@ import type { PropsWithChildren } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
-import { NodesInternal, NodesStore } from 'src/utils/layout/NodesContext';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
@@ -115,7 +115,7 @@ function AddRemoveNode<T extends CompTypes>({
     ],
   );
 
-  const isAdded = NodesInternal.useIsAdded(intermediateItem.id, 'node');
+  const isAdded = FormStore.nodes.useIsAdded(intermediateItem.id, 'node');
 
   const def = getComponentDef(intermediateItem.type);
   const addNode = GeneratorInternal.useAddNode();
@@ -123,7 +123,7 @@ function AddRemoveNode<T extends CompTypes>({
 
   // This state is intentionally not reactive, as we want to commit _what the layout was when this node was created_,
   // so that we don't accidentally remove a node with the same ID from a future/different layout.
-  const layoutsWas = NodesStore.useStaticSelector((s) => s.layouts!);
+  const layoutsWas = FormStore.raw.useStaticSelector((state) => state.nodes.layouts!);
 
   useEffect(() => {
     !isAdded &&

@@ -6,7 +6,7 @@ import { Label } from 'src/app-components/Label/Label';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -45,7 +45,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
   const bindingValidations = useBindingValidationsFor<'Address'>(baseComponentId);
   const componentValidations = useComponentValidationsFor(baseComponentId);
   const { formData, setValue } = useDataModelBindings(dataModelBindings, saveWhileTyping);
-  const debounce = FD.useDebounceImmediately();
+  const debounce = FormStore.data.useDebounceImmediately();
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
   const updatePostPlace = useOurEffectEvent((newPostPlace) => {
@@ -54,7 +54,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
     }
   });
 
-  const zipCodeDebounced = FD.useDebouncedPick(dataModelBindings.zipCode);
+  const zipCodeDebounced = FormStore.data.useDebouncedPick(dataModelBindings.zipCode);
   const slowZip = typeof zipCodeDebounced === 'string' ? zipCodeDebounced : undefined;
   const postPlaceQueryData = usePostPlace(slowZip, !hasValidationErrors(bindingValidations?.zipCode) && !readOnly);
   useEffect(() => updatePostPlace(postPlaceQueryData), [postPlaceQueryData, updatePostPlace]);

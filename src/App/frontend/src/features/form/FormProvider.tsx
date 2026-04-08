@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { createStore } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
@@ -11,22 +14,32 @@ import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSe
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
+import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
-import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
+import { FormDataWriteEffects } from 'src/features/formData/FormDataWrite';
+import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
+import { createFormDataWriteSlice } from 'src/features/formData/FormDataWriteStateMachine';
+import {
+  useOptimisticallyUpdateCachedInstance,
+  useSelectFromInstanceData,
+} from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
-import { ValidationProvider } from 'src/features/validation/validationContext';
+import { useGetCachedInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
+import { createValidationSlice, ValidationEffects } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { isAxiosError } from 'src/utils/isAxiosError';
-import { NodesProvider } from 'src/utils/layout/NodesContext';
+import { createNodesSlice, NodesProvider } from 'src/utils/layout/NodesContext';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import type { FormContext } from 'src/features/form/FormContext';
+import type { FormContext, FormStoreApi, FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
+import type { FormDataSliceProps } from 'src/features/formData/FormDataWrite';
+import type { NodesSliceProps } from 'src/utils/layout/NodesContext';
 
 interface FormProviderProps {
   uiFolderOverride?: string;
@@ -62,6 +75,10 @@ export function FormProvider({
     return null;
   }, [bootstrapBase, layouts]);
 
+  const dataSliceProps = useFormDataSliceProps(bootstrap);
+  const bootstrapBaseRef = useRef(bootstrapBase);
+  const storeRef = useRef<FormStoreApi | undefined>(undefined);
+
   if (!enabled) {
     // No point in trying to render a form here, but this can still happen when FormProvider is applied for all tasks
     // without actually checking the task type (such as in src/index.tsx). Only data-tasks, subforms, custom receipt and
@@ -77,29 +94,30 @@ export function FormProvider({
     return <DisplayError error={error} />;
   }
 
-  if (!bootstrap) {
+  if (!bootstrap || !dataSliceProps) {
     return <Loader reason='bootstrap-form' />;
   }
 
+  if (!storeRef.current || bootstrapBaseRef.current !== bootstrapBase) {
+    // When the bootstrap query changes, or if it's the first render, we should wipe the store and restart. This usually
+    // means we're moved to another task while keeping a similar enough render-tree to cause this to be re-used. The
+    // layouts can change without all of this being reset, however.
+    storeRef.current = createFormStore({ nodes: { isEmbedded, readOnly }, data: dataSliceProps, bootstrap });
+    bootstrapBaseRef.current = bootstrapBase;
+  }
+
   return (
-    <FormProviderInternal value={{ readOnly, bootstrap }}>
+    <FormProviderInternal value={{ readOnly, bootstrap, store: storeRef.current }}>
       {window.Cypress && <UpdateDataElementIdsForCypress />}
-      <FormDataWriteProvider>
-        <ValidationProvider>
-          <NodesProvider
-            readOnly={readOnly}
-            isEmbedded={isEmbedded}
-          >
-            <PageNavigationProvider>
-              <PaymentInformationProvider>
-                <OrderDetailsProvider>
-                  <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
-                </OrderDetailsProvider>
-              </PaymentInformationProvider>
-            </PageNavigationProvider>
-          </NodesProvider>
-        </ValidationProvider>
-      </FormDataWriteProvider>
+      <FormDataWriteEffects />
+      <ValidationEffects />
+      <NodesProvider>
+        <PaymentInformationProvider>
+          <OrderDetailsProvider>
+            <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
+          </OrderDetailsProvider>
+        </PaymentInformationProvider>
+      </NodesProvider>
     </FormProviderInternal>
   );
 }
@@ -150,10 +168,51 @@ function useBoostrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProvi
             dataModels: data.dataModels,
             staticOptions: data.staticOptions,
             validationIssues: data.validationIssues,
+            allInitialValidations: data.allInitialValidations,
           }
         : null,
     [data, uiFolder],
   );
 
   return { error, bootstrap, layouts: data?.layouts, enabled };
+}
+
+function createFormStore({
+  data,
+  nodes,
+  bootstrap,
+}: {
+  data: FormDataSliceProps;
+  nodes: NodesSliceProps;
+  bootstrap: FormBootstrapContextValue;
+}): FormStoreApi {
+  return createStore<FormStoreState>()(
+    immer((set: FormStoreSet) => ({
+      data: createFormDataWriteSlice(data, set),
+      validation: createValidationSlice(bootstrap, set),
+      nodes: createNodesSlice(nodes, set),
+      pageNavigation: createPageNavigationSlice(set),
+    })),
+  );
+}
+
+export function useFormDataSliceProps(bootstrap: FormBootstrapContextValue | null): FormDataSliceProps | undefined {
+  const proxies = useFormDataWriteProxies();
+  const selectFromInstance = useSelectFromInstanceData();
+  const autoSaveBehavior = usePageSettings().autoSaveBehavior;
+  const changeInstance = useOptimisticallyUpdateCachedInstance();
+  const getCachedInitialValidations = useGetCachedInitialValidations();
+
+  if (!bootstrap) {
+    return undefined;
+  }
+
+  return {
+    dataModels: bootstrap.dataModels,
+    autoSaving: !autoSaveBehavior || autoSaveBehavior === 'onChangeFormData',
+    proxies,
+    changeInstance,
+    selectFromInstance,
+    getCachedInitialValidations,
+  };
 }

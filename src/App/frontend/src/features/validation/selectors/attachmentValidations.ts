@@ -2,9 +2,8 @@ import { useMemo } from 'react';
 
 import type { AttachmentValidation, NodeRefValidation } from '..';
 
-import { Validation } from 'src/features/validation/validationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 /**
  * Returns the validations for the given attachment.
@@ -13,9 +12,9 @@ export function useAttachmentValidations(
   baseComponentId: string,
   attachmentId: string | undefined,
 ): NodeRefValidation<AttachmentValidation>[] {
-  const showAll = Validation.useShowAllBackendErrors();
+  const showAll = FormStore.validation.useShowAllBackendErrors();
   const indexedId = useIndexedId(baseComponentId);
-  const validations = NodesInternal.useVisibleValidations(indexedId, showAll);
+  const validations = FormStore.nodes.useVisibleValidations(indexedId, showAll);
 
   return useMemo(() => {
     if (!attachmentId) {

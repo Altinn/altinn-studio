@@ -1,6 +1,6 @@
 import React, { Component, useEffect } from 'react';
 
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { FormStore } from 'src/features/form/FormContext';
 
 interface IErrorBoundary {
   lastError?: Error;
@@ -37,7 +37,7 @@ export class ComponentErrorBoundary extends Component<Props, IErrorBoundary> {
 }
 
 function StoreErrorAndBail({ error, nodeId }: { error: Error; nodeId: string }) {
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     window.logError(`Exception thrown when rendering node "${nodeId}":\n`, error);

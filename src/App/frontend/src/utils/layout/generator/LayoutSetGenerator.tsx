@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentDef } from 'src/layout';
@@ -9,7 +10,6 @@ import {
   useGeneratorErrorBoundaryNodeRef,
 } from 'src/utils/layout/generator/GeneratorErrorBoundary';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
@@ -83,7 +83,7 @@ interface CommonProps {
 }
 
 function AddPage({ name }: CommonProps) {
-  const addPage = NodesInternal.useAddPage();
+  const addPage = FormStore.nodes.useAddPage();
 
   useEffect(() => {
     addPage(name);

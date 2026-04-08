@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { useNodeValidation } from 'src/features/validation/nodeValidation/useNodeValidation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AnyValidation, AttachmentValidation } from 'src/features/validation/index';
 import type { CompExternal, CompIntermediate } from 'src/layout/layout';
 
@@ -42,7 +42,7 @@ function useStoreValidations(baseComponentId: string) {
   const freshValidations = useNodeValidation(baseComponentId);
   const validations = useUpdatedValidations(freshValidations, indexedId);
 
-  const shouldSetValidations = NodesInternal.useNodeData(
+  const shouldSetValidations = FormStore.nodes.useNodeData(
     indexedId,
     undefined,
     (data) => !deepEqual('validations' in data ? data.validations : undefined, validations),
@@ -54,7 +54,7 @@ function useStoreValidations(baseComponentId: string) {
   }, [indexedId, setNodeProp, shouldSetValidations, validations]);
 
   // Reduce visibility as validations are fixed
-  const visibilityToSet = NodesInternal.useNodeData(indexedId, undefined, (data) => {
+  const visibilityToSet = FormStore.nodes.useNodeData(indexedId, undefined, (data) => {
     if (!('validationVisibility' in data)) {
       return undefined;
     }
@@ -73,7 +73,7 @@ function useStoreValidations(baseComponentId: string) {
 
   // Hidden state needs to be set for validations as a temporary solution
   const hidden = useIsHidden(baseComponentId, { respectPageOrder: true });
-  const shouldSetHidden = NodesInternal.useNodeData(indexedId, undefined, (data) =>
+  const shouldSetHidden = FormStore.nodes.useNodeData(indexedId, undefined, (data) =>
     'hidden' in data ? data.hidden !== hidden : true,
   );
 
@@ -83,7 +83,7 @@ function useStoreValidations(baseComponentId: string) {
 }
 
 function useUpdatedValidations(validations: AnyValidation[], nodeId: string) {
-  return NodesInternal.useNodeData(nodeId, undefined, (data) => {
+  return FormStore.nodes.useNodeData(nodeId, undefined, (data) => {
     if (!('validations' in data) || !data.validations) {
       return validations;
     }

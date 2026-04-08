@@ -1,11 +1,11 @@
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStoreState } from 'src/features/form/FormContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getRecursiveValidations, makeComponentIdIndex } from 'src/features/validation/ValidationStorePlugin';
 import { NodeData } from 'src/utils/layout/types';
 import type { NodeRefValidation } from 'src/features/validation';
 import type { ILayouts } from 'src/layout/layout';
-import type { NodesContext } from 'src/utils/layout/NodesContext';
 
 function createNodeWithValidation(id: string, baseId: string, errorMessage: string): NodeData {
   return {
@@ -69,13 +69,13 @@ describe('ValidationStorePlugin', () => {
       };
 
       const lookups = makeLayoutLookups(layouts);
-      const nodeData: NodesContext['nodeData'] = {};
+      const nodeData: FormStoreState['nodes']['nodeData'] = {};
       for (let i = 1; i <= 200; i++) {
         nodeData[`myGroup-${i}`] = createParentNode(`myGroup-${i}`, 'myGroup');
         nodeData[`field1-${i}`] = createNodeWithValidation(`field1-${i}`, 'field1', `Error in row ${i}`);
       }
 
-      const state = { nodeData } as NodesContext;
+      const state = { nodes: { nodeData } } as FormStoreState;
       const baseToIndexedMap = makeComponentIdIndex(state);
       const output: NodeRefValidation[] = [];
 
@@ -133,7 +133,7 @@ describe('ValidationStorePlugin', () => {
       };
 
       const lookups = makeLayoutLookups(layouts);
-      const nodeData: NodesContext['nodeData'] = {};
+      const nodeData: FormStoreState['nodes']['nodeData'] = {};
       for (let parentRow = 1; parentRow <= 20; parentRow++) {
         nodeData[`mainGroup-${parentRow}`] = createParentNode(`mainGroup-${parentRow}`, 'mainGroup');
 
@@ -150,7 +150,7 @@ describe('ValidationStorePlugin', () => {
         }
       }
 
-      const state = { nodeData } as NodesContext;
+      const state = { nodes: { nodeData } } as FormStoreState;
       const baseToIndexedMap = makeComponentIdIndex(state);
       const output: NodeRefValidation[] = [];
 

@@ -16,6 +16,7 @@ import type {
   RawDataModelInfo,
   StaticOptionSet,
 } from 'src/features/formBootstrap/types';
+import type { BackendValidationIssue } from 'src/features/validation';
 
 export interface FormBootstrapQueryOptions {
   enabled: boolean;
@@ -27,6 +28,7 @@ export interface FormBootstrapQueryOptions {
 export interface FormBootstrapQueryResponse extends Omit<FormBootstrapResponse, 'dataModels' | 'staticOptions'> {
   dataModels: ReturnType<typeof processDataModels>;
   staticOptions: ReturnType<typeof processStaticOptions>;
+  allInitialValidations: BackendValidationIssue[];
 }
 
 export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
@@ -56,6 +58,10 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
             ...raw,
             dataModels: processDataModels(raw.dataModels),
             staticOptions: processStaticOptions(raw.staticOptions),
+            allInitialValidations: [
+              ...(raw.validationIssues ?? []),
+              ...Object.values(raw.dataModels).flatMap((dataModel) => dataModel.initialValidationIssues ?? []),
+            ],
           };
         }
       : skipToken,

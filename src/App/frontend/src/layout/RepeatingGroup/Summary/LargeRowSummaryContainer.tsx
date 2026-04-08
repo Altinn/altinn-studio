@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
@@ -11,7 +12,6 @@ import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
@@ -38,7 +38,7 @@ export function LargeRowSummaryContainer({
 }: IDisplayRepAsLargeGroup) {
   const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
   const indexedId = useIndexedId(baseComponentId, true);
-  const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
+  const depth = FormStore.raw.useSelector((state) => state.nodes.nodeData?.[indexedId]?.depth);
   const layoutLookups = FormBootstrap.useLayoutLookups();
   const children = RepGroupHooks.useChildIds(baseComponentId);
   const isHidden = useIsHiddenMulti(children);
