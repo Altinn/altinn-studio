@@ -3,8 +3,8 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
-import type { BackendValidationIssue } from 'src/features/validation';
 
 const appFrontend = new AppFrontend();
 const dataListPage = new Datalist();
@@ -920,22 +920,21 @@ describe('Validation', () => {
       });
     });
 
-    cy.window().then((win) => {
-      cy.intercept('GET', '**/validate**', (req) => {
-        req.on('response', (res) => {
-          const body = res.body as BackendValidationIssue[];
-          body.push({
-            severity: 1,
-            source: 'SomeCustomValidator',
-            field: 'NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value',
-            dataElementId: win.CypressState!.dataElementIds!['ServiceModel-test']!,
-            customTextKey: 'custom_error_too_long',
-            customTextParameters: {
-              max_length: '10',
-              current_length: '19',
-            },
-          });
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
+      req.on('response', (res) => {
+        const body = res.body as FormBootstrapResponse;
+        body.dataModels['ServiceModel-test'].initialValidationIssues!.push({
+          severity: 1,
+          source: 'SomeCustomValidator',
+          field: 'NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value',
+          dataElementId: body.dataModels['ServiceModel-test'].dataElementId!,
+          customTextKey: 'custom_error_too_long',
+          customTextParameters: {
+            max_length: '10',
+            current_length: '19',
+          },
         });
+        res.send(body);
       });
     });
 

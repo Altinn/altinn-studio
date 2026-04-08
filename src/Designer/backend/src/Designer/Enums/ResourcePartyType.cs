@@ -1,24 +1,23 @@
 ﻿using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
-namespace Altinn.Studio.Designer.Enums
+namespace Altinn.Studio.Designer.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ResourcePartyType
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ResourcePartyType
-    {
-        [EnumMember(Value = "PrivatePerson")]
-        PrivatePerson = 0,
+    [EnumMember(Value = "PrivatePerson")]
+    PrivatePerson = 0,
 
-        [EnumMember(Value = "LegalEntityEnterprise")]
-        LegalEntityEnterprise = 1,
+    [EnumMember(Value = "LegalEntityEnterprise")]
+    LegalEntityEnterprise = 1,
 
-        [EnumMember(Value = "Company")]
-        Company = 2,
+    [EnumMember(Value = "Company")]
+    Company = 2,
 
-        [EnumMember(Value = "BankruptcyEstate")]
-        BankruptcyEstate = 3,
+    [EnumMember(Value = "BankruptcyEstate")]
+    BankruptcyEstate = 3,
 
-        [EnumMember(Value = "SelfRegisteredUser")]
-        SelfRegisteredUser = 4,
-    }
+    [EnumMember(Value = "SelfRegisteredUser")]
+    SelfRegisteredUser = 4,
 }

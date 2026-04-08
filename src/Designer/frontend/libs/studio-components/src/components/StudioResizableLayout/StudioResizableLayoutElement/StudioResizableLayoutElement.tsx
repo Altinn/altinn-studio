@@ -11,7 +11,6 @@ export type StudioResizableLayoutElementProps = {
   collapsed?: boolean;
   style?: React.CSSProperties;
 
-  onResizing?: (resizing: boolean) => void;
   disableRightHandle?: boolean;
 
   //** supplied from container **//
@@ -32,13 +31,12 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
       style,
       disableRightHandle,
       index,
-      onResizing,
       hasNeighbour = false,
       children,
     }: StudioResizableLayoutElementProps,
     ref,
   ): ReactElement => {
-    const { orientation, containerSize } = useStudioResizableLayoutContext(index ?? 0);
+    const { orientation, containerSize, isResizing } = useStudioResizableLayoutContext(index ?? 0);
 
     return (
       <>
@@ -50,6 +48,8 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
             flexGrow: containerSize,
             maxWidth: collapsed ? collapsedSize : maximumSize,
             minWidth: collapsed ? collapsedSize : minimumSize,
+            /* Ensures iFrames don't swallow the mouseup event needed to release the drag */
+            pointerEvents: isResizing ? 'none' : undefined,
           }}
           ref={ref}
         >
@@ -59,7 +59,6 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
           <StudioResizableLayoutHandle
             orientation={orientation}
             index={index ?? 0}
-            onResizing={onResizing}
             disableRightHandle={disableRightHandle}
           />
         )}

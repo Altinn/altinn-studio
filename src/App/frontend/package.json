@@ -25,6 +25,8 @@
     "cy:parallel": "cypress-parallel -s cy:run -t 3 -d test/e2e/integration",
     "cy:parallel:docker": "cypress-parallel -s cy:run:docker -t 3 -d test/e2e/integration",
     "tsc": "yarn gen && tsc && tsc --project test/tsconfig.json",
+    "tsc-strict": "yarn gen && tsc --project tsconfig-strict.json",
+    "tsc-strict:error-count": "yarn gen && tsx scripts/tsc-strict-error-count.ts",
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
     "lint": "yarn gen && eslint .",
