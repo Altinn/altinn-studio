@@ -30,7 +30,7 @@ export function AboutAssistantDialog({
           </StudioParagraph>
           <StudioParagraph data-size='sm' spacing>
             {texts.branchInfo}{' '}
-            <StudioLink target='_blank' href={branchDocsUrl}>
+            <StudioLink target='_blank' rel='noopener noreferrer' href={branchDocsUrl}>
               {texts.branchDocsLink} <ExternalLinkIcon />
             </StudioLink>
           </StudioParagraph>
