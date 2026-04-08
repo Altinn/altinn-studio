@@ -1,12 +1,12 @@
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import type { IAttachment } from 'src/features/attachments/index';
-import type { NodesContext } from 'src/utils/layout/NodesContext';
+import type { FormStoreState } from 'src/features/form/FormContext';
 
 const emptyArray = [];
 
 export type AttachmentsSelector = (nodeId: string) => IAttachment[];
-export const attachmentSelector = (nodeId: string) => (state: NodesContext) => {
-  const nodeData = state.nodeData[nodeId];
+export const attachmentSelector = (nodeId: string) => (state: FormStoreState) => {
+  const nodeData = state.nodes.nodeData[nodeId];
   if (!nodeData) {
     return emptyArray;
   }

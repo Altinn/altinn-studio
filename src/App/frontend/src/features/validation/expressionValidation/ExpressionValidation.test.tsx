@@ -5,10 +5,9 @@ import fs from 'node:fs';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
-import { Validation } from 'src/features/validation/validationContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { FieldValidations, IExpressionValidationConfig } from 'src/features/validation';
@@ -70,9 +69,9 @@ function getSharedTests() {
 
 describe('Expression validation shared tests', () => {
   beforeEach(() => {
-    jest.spyOn(FD, 'useDebounced').mockRestore();
+    jest.spyOn(FormStore.data, 'useDebounced').mockRestore();
     jest.spyOn(FormBootstrap, 'useExpressionValidationConfig').mockRestore();
-    jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
+    jest.spyOn(FormStore.validation, 'useUpdateDataModelValidations').mockRestore();
   });
 
   const sharedTests = getSharedTests();
@@ -82,7 +81,9 @@ describe('Expression validation shared tests', () => {
     const updateDataModelValidations = jest.fn((_key, _dataType, validations: FieldValidations) => {
       result = validations;
     });
-    jest.spyOn(Validation, 'useUpdateDataModelValidations').mockImplementation(() => updateDataModelValidations);
+    jest
+      .spyOn(FormStore.validation, 'useUpdateDataModelValidations')
+      .mockImplementation(() => updateDataModelValidations);
     window.altinnAppGlobalData.textResources!.resources = textResources ?? [];
 
     await renderWithInstanceAndLayout({

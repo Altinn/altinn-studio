@@ -7,9 +7,8 @@ import axios from 'axios';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { FormProviderHooks } from 'src/features/form/FormContext';
+import { FormProviderHooks, FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { optionFilter } from 'src/utils/options';
@@ -32,7 +31,7 @@ const InnerDownloadXMLButton = () => {
   const [selectedDataType, setSelectedDataType] = useState(writableDataTypes?.at(0));
   const disabled = !selectedDataType;
 
-  const lock = FD.useLocking('__dev_tools__');
+  const lock = FormStore.data.useLocking('__dev_tools__');
 
   const downloadXML = async () => {
     const dataElementId = selectedDataType ? getDataElementIdForDataType(selectedDataType) : undefined;

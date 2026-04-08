@@ -2,18 +2,18 @@ import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 import { applyPatch } from 'fast-json-patch';
 import { v4 as uuidv4 } from 'uuid';
-import { createStore } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
 
 import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
-import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
-import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
-import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
+import { updateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
+import { updateBackendValidations } from 'src/features/validation/validationContext';
+import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
+import type { FDLeafValue, FormDataSliceProps } from 'src/features/formData/FormDataWrite';
+import type { Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { DebounceReason } from 'src/features/formData/types';
-import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
+import type { InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IInstance } from 'src/types/shared';
@@ -58,9 +58,9 @@ interface LockRequest {
   whenAcquired: (uuid: string) => void;
 }
 
-type FormDataState = {
+export type FormDataSliceState = {
   // Data model state
-  dataModels: { [dataType: string]: DataModelState };
+  models: { [dataType: string]: DataModelState };
 
   // Auto-saving is turned on by default, and will automatically save the data model to the server whenever the
   // debouncedCurrentData model changes. This can be turned off when, for example, you want to save the data model
@@ -76,9 +76,6 @@ type FormDataState = {
   // the way we track when to save the data model to the server. It can also be used to trigger a manual save
   // as a way to immediately save the data model to the server, for example before locking the data model.
   manualSaveRequested: boolean;
-
-  // This contains the validation issues we receive from the server last time we saved the data model.
-  validationIssues: BackendValidationIssueGroups | undefined;
 
   // This is used to track which component is currently blocking the auto-saving feature. If this is set to a string
   // value, auto-saving will be disabled, even if the autoSaving flag is set to true. This is useful when you want
@@ -200,21 +197,16 @@ export interface FormDataMethods {
   lock: (request: LockRequest) => void;
   nextLock: () => void;
   unlock: (key: string, uuid: string, saveResult?: FDActionResult) => void;
-  setLastValidationIssues: (issues: BackendValidationIssueGroups | undefined) => void;
 }
 
-export type FormDataContext = FormDataState & FormDataMethods;
-
 function makeActions(
-  set: (fn: (state: FormDataContext) => void) => void,
-  changeInstance: ChangeInstanceData,
-  selectFromInstance: InstanceDataSelector,
-  schemaLookup: { [dataType: string]: SchemaLookupTool },
+  set: FormStoreSet,
+  { selectFromInstance, dataModels, changeInstance, getCachedInitialValidations }: FormDataSliceProps,
 ): FormDataMethods {
   const debounceOnBlur = getFeature('saveOnBlur').value;
 
-  function setDebounceTimeout(state: FormDataContext, change: FDChange) {
-    state.debounceTimeout = change.debounceTimeout ?? DEFAULT_DEBOUNCE_TIMEOUT;
+  function setDebounceTimeout(state: FormStoreState, change: FDChange) {
+    state.data.debounceTimeout = change.debounceTimeout ?? DEFAULT_DEBOUNCE_TIMEOUT;
   }
 
   /**
@@ -223,8 +215,8 @@ function makeActions(
    * as deepEqual is a fairly expensive operation, and the object references has to be the same for hasUnsavedChanges
    * to work properly.
    */
-  function deduplicateModels(state: FormDataContext) {
-    for (const [dataType, { currentData, debouncedCurrentData, lastSavedData }] of Object.entries(state.dataModels)) {
+  function deduplicateModels(state: FormStoreState) {
+    for (const [dataType, { currentData, debouncedCurrentData, lastSavedData }] of Object.entries(state.data.models)) {
       const models = [
         { key: 'currentData', model: currentData },
         { key: 'debouncedCurrentData', model: debouncedCurrentData },
@@ -244,7 +236,7 @@ function makeActions(
             continue;
           }
           if (deepEqual(modelA.model, modelB.model)) {
-            state.dataModels[dataType][modelB.key] = modelA.model;
+            state.data.models[dataType][modelB.key] = modelA.model;
             modelB.model = modelA.model;
           }
         }
@@ -252,16 +244,23 @@ function makeActions(
     }
   }
 
-  function processChanges(state: FormDataContext, toProcess: FDSaveFinished) {
+  function processChanges(state: FormStoreState, toProcess: FDSaveFinished) {
     const { validationIssues, savedData, newDataModels, instance } = toProcess;
-    state.manualSaveRequested = false;
-    state.validationIssues = validationIssues;
+    state.data.manualSaveRequested = false;
+
+    if (validationIssues) {
+      updateIncrementalValidations(
+        validationIssues,
+        getCachedInitialValidations().cachedInitialValidations,
+        updateBackendValidations(state),
+      );
+    }
 
     if (instance) {
       changeInstance(() => instance);
     }
 
-    for (const [dataType, { dataElementId }] of Object.entries(state.dataModels)) {
+    for (const [dataType, { dataElementId }] of Object.entries(state.data.models)) {
       const next = dataElementId
         ? newDataModels.find((m) => m.dataElementId === dataElementId)?.data // Stateful apps
         : newDataModels.find((m) => m.dataType === dataType)?.data; // Stateless apps
@@ -269,10 +268,10 @@ function makeActions(
         const backendChangesPatch = createPatch({
           prev: savedData[dataType],
           next,
-          current: state.dataModels[dataType].currentData,
+          current: state.data.models[dataType].currentData,
         });
-        applyPatch(state.dataModels[dataType].currentData, backendChangesPatch);
-        state.dataModels[dataType].lastSavedData = next;
+        applyPatch(state.data.models[dataType].currentData, backendChangesPatch);
+        state.data.models[dataType].lastSavedData = next;
 
         // When we've copied over changes into the current model from the backend, we should also debounce this
         // immediately. Some selectors run on the debounced model (such as 'mapping', which should never run on the
@@ -283,57 +282,58 @@ function makeActions(
           debounce(state, `backendChanges`);
         }
       } else {
-        state.dataModels[dataType].lastSavedData = savedData[dataType];
+        state.data.models[dataType].lastSavedData = savedData[dataType];
       }
     }
     deduplicateModels(state);
   }
 
-  function debounce(state: FormDataContext, reason: DebounceReason) {
+  function debounce(state: FormStoreState, reason: DebounceReason) {
     if (reason === 'blur' && !debounceOnBlur) {
       return;
     }
 
-    for (const dataType of Object.keys(state.dataModels)) {
-      state.dataModels[dataType].invalidDebouncedCurrentData = state.dataModels[dataType].invalidCurrentData;
-      if (deepEqual(state.dataModels[dataType].debouncedCurrentData, state.dataModels[dataType].currentData)) {
-        state.dataModels[dataType].debouncedCurrentData = state.dataModels[dataType].currentData;
+    for (const dataType of Object.keys(state.data.models)) {
+      state.data.models[dataType].invalidDebouncedCurrentData = state.data.models[dataType].invalidCurrentData;
+      if (deepEqual(state.data.models[dataType].debouncedCurrentData, state.data.models[dataType].currentData)) {
+        state.data.models[dataType].debouncedCurrentData = state.data.models[dataType].currentData;
         continue;
       }
 
-      state.dataModels[dataType].debouncedCurrentData = state.dataModels[dataType].currentData;
+      state.data.models[dataType].debouncedCurrentData = state.data.models[dataType].currentData;
     }
   }
 
   function setValue(props: {
     reference: IDataModelReference;
     newValue: FDLeafValue;
-    state: FormDataContext;
+    state: FormStoreState;
   }): FDSetValueSuccessful | typeof FDSetValueUnset {
     const { reference, newValue, state } = props;
     if (newValue === '' || newValue === null || newValue === undefined) {
-      const prevValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
-      const prevInvalidValue = dot.pick(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
+      const prevValue = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
+      const prevInvalidValue = dot.pick(reference.field, state.data.models[reference.dataType].invalidCurrentData);
 
       // We conflate null and undefined, so no need to set to null or undefined if the value is
       // already null or undefined
       if (prevValue !== null && prevValue !== undefined) {
-        dot.delete(reference.field, state.dataModels[reference.dataType].currentData);
+        dot.delete(reference.field, state.data.models[reference.dataType].currentData);
       }
       if (prevInvalidValue !== null && prevInvalidValue !== undefined) {
-        dot.delete(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
+        dot.delete(reference.field, state.data.models[reference.dataType].invalidCurrentData);
       }
       return FDSetValueUnset;
     } else {
-      const hadError = dot.pick(reference.field, state.dataModels[reference.dataType].invalidCurrentData) !== undefined;
-      const schema = schemaLookup[reference.dataType].getSchemaForPath(reference.field)[0];
+      const hadError =
+        dot.pick(reference.field, state.data.models[reference.dataType].invalidCurrentData) !== undefined;
+      const schema = dataModels[reference.dataType].schemaResult.lookupTool.getSchemaForPath(reference.field)[0];
       const { newValue: convertedValue, error } = convertData(newValue, schema);
       if (error) {
-        dot.delete(reference.field, state.dataModels[reference.dataType].currentData);
-        dot.str(reference.field, newValue, state.dataModels[reference.dataType].invalidCurrentData);
+        dot.delete(reference.field, state.data.models[reference.dataType].currentData);
+        dot.str(reference.field, newValue, state.data.models[reference.dataType].invalidCurrentData);
       } else {
-        dot.delete(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
-        dot.str(reference.field, convertedValue, state.dataModels[reference.dataType].currentData);
+        dot.delete(reference.field, state.data.models[reference.dataType].invalidCurrentData);
+        dot.str(reference.field, convertedValue, state.data.models[reference.dataType].currentData);
       }
       return { newValue, convertedValue, error, hadError };
     }
@@ -346,7 +346,7 @@ function makeActions(
       }),
     cancelSave: () =>
       set((state) => {
-        state.manualSaveRequested = false;
+        state.data.manualSaveRequested = false;
         deduplicateModels(state);
       }),
     saveFinished: (props) =>
@@ -355,12 +355,12 @@ function makeActions(
       }),
     setLeafValue: ({ reference, newValue, callback, ...rest }) =>
       set((state) => {
-        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           callback?.(FDSetValueReadOnly);
           return;
         }
-        const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+        const existingValue = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
         if (existingValue === newValue) {
           callback?.(FDSetValueEqual);
           return;
@@ -375,11 +375,12 @@ function makeActions(
     // list items are immediate.
     appendToListUnique: ({ reference, newValue }) =>
       set((state) => {
-        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
+        const dataState = state.data;
+        if (!isWritable(dataState.models[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
-        const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+        const existingValue = dot.pick(reference.field, dataState.models[reference.dataType].currentData);
         if (Array.isArray(existingValue) && existingValue.includes(newValue)) {
           return;
         }
@@ -387,17 +388,17 @@ function makeActions(
         if (Array.isArray(existingValue)) {
           existingValue.push(newValue);
         } else {
-          dot.str(reference.field, [newValue], state.dataModels[reference.dataType].currentData);
+          dot.str(reference.field, [newValue], dataState.models[reference.dataType].currentData);
         }
       }),
     appendToList: ({ reference, newValue }) =>
       set((state) => {
-        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
         if (typeof newValue === 'object') {
-          const model = state.dataModels[reference.dataType].currentData;
+          const model = state.data.models[reference.dataType].currentData;
           const existingValue = dot.pick(reference.field, model);
           const nextIndex = Array.isArray(existingValue) ? existingValue.length : 0;
           const flatObject = dot.dot(newValue);
@@ -411,8 +412,8 @@ function makeActions(
         }
 
         const models = [
-          state.dataModels[reference.dataType].currentData,
-          state.dataModels[reference.dataType].debouncedCurrentData,
+          state.data.models[reference.dataType].currentData,
+          state.data.models[reference.dataType].debouncedCurrentData,
         ];
 
         for (const model of models) {
@@ -426,11 +427,11 @@ function makeActions(
       }),
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
-        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
-        const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+        const existingValue = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
         if (index >= existingValue.length) {
           return;
         }
@@ -440,11 +441,11 @@ function makeActions(
 
     removeValueFromList: ({ reference, value }) =>
       set((state) => {
-        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
-        const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+        const existingValue = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
         if (!existingValue.includes(value)) {
           return;
         }
@@ -453,7 +454,7 @@ function makeActions(
       }),
     removeFromListCallback: ({ reference, startAtIndex, callback }) =>
       set((state) => {
-        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -462,8 +463,8 @@ function makeActions(
           // and debounced data models, the row would linger for a while in the UI, and we'd have intricate problems
           // to solve, like fetching options (which use the debounced data model when mapping form data into the URL),
           // which then would stall updating options and might cause deletion of stale option values before debounce.
-          state.dataModels[reference.dataType].currentData,
-          state.dataModels[reference.dataType].debouncedCurrentData,
+          state.data.models[reference.dataType].currentData,
+          state.data.models[reference.dataType].debouncedCurrentData,
         ];
         for (const model of models) {
           const existingValue = dot.pick(reference.field, model);
@@ -497,12 +498,12 @@ function makeActions(
       set((state) => {
         const changedTypes = new Set<string>();
         for (const { reference, newValue } of changes) {
-          if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
+          if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
             window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
             continue;
           }
 
-          const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+          const existingValue = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
           if (existingValue === newValue) {
             continue;
           }
@@ -513,33 +514,33 @@ function makeActions(
       }),
     requestManualSave: (setTo = true) =>
       set((state) => {
-        state.manualSaveRequested = setTo;
+        state.data.manualSaveRequested = setTo;
       }),
     lock: (request) =>
       set((state) => {
-        if (state.lockedBy) {
-          state.lockQueue.push(request);
+        if (state.data.lockedBy) {
+          state.data.lockQueue.push(request);
           return;
         }
         const uuid = uuidv4();
-        state.lockedBy = `${request.key} (${uuid})`;
+        state.data.lockedBy = `${request.key} (${uuid})`;
         request.whenAcquired(uuid);
       }),
     nextLock: () =>
       set((state) => {
-        const next = state.lockQueue.shift();
+        const next = state.data.lockQueue.shift();
         if (next) {
           const uuid = uuidv4();
-          state.lockedBy = `${next.key} (${uuid})`;
+          state.data.lockedBy = `${next.key} (${uuid})`;
           next.whenAcquired(uuid);
         }
       }),
     unlock: (key, uuid, actionResult) =>
       set((state) => {
         const expected = `${key} (${uuid})`;
-        if (state.lockedBy !== expected) {
+        if (state.data.lockedBy !== expected) {
           throw new Error(
-            `Tried to unlock with an invalid UUID (state is locked by ${state.lockedBy}, but ${expected} tried to unlock)`,
+            `Tried to unlock with an invalid UUID (state is locked by ${state.data.lockedBy}, but ${expected} tried to unlock)`,
           );
         }
 
@@ -547,8 +548,8 @@ function makeActions(
         if (actionResult?.updatedDataModels) {
           const newDataModels: UpdatedDataModel[] = [];
           for (const dataElementId of Object.keys(actionResult.updatedDataModels)) {
-            const dataType = Object.keys(state.dataModels).find(
-              (dt) => state.dataModels[dt].dataElementId === dataElementId,
+            const dataType = Object.keys(state.data.models).find(
+              (dt) => state.data.models[dt].dataElementId === dataElementId,
             );
             if (dataType) {
               const data = actionResult.updatedDataModels[dataElementId];
@@ -559,7 +560,7 @@ function makeActions(
           processChanges(state, {
             instance: actionResult.instance,
             newDataModels,
-            savedData: Object.entries(state.dataModels).reduce((savedData, [dataType, { lastSavedData }]) => {
+            savedData: Object.entries(state.data.models).reduce((savedData, [dataType, { lastSavedData }]) => {
               savedData[dataType] = lastSavedData;
               return savedData;
             }, {}),
@@ -570,50 +571,48 @@ function makeActions(
         /** Unlock. If there are more locks in the queue, the next one will be processed by
          * @see FormDataEffects
          */
-        state.lockedBy = undefined;
-      }),
-    setLastValidationIssues: (issues) =>
-      set((state) => {
-        state.validationIssues = issues;
+        state.data.lockedBy = undefined;
       }),
   };
 }
 
-export const createFormDataWriteStore = (
-  initialDataModels: { [dataType: string]: DataModelState },
-  autoSaving: boolean,
-  proxies: FormDataWriteProxies,
-  schemaLookup: { [dataType: string]: SchemaLookupTool },
-  changeInstance: ChangeInstanceData,
-  selectFromInstance: InstanceDataSelector,
-) =>
-  createStore<FormDataContext>()(
-    immer((set) => {
-      const actions = makeActions(set, changeInstance, selectFromInstance, schemaLookup);
-      for (const name of Object.keys(actions)) {
-        const fnName = name as keyof FormDataMethods;
-        const original = actions[fnName];
-        const proxyFn = proxies[fnName] as Proxy<keyof FormDataMethods>;
-        const { proxy, method } = proxyFn(original);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        actions[fnName] = (...args: any[]) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          proxy({ args: args as any, toCall: method });
-        };
-      }
+export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormStoreSet): FormStoreState['data'] {
+  const actions = makeActions(set, props);
+  for (const name of Object.keys(actions)) {
+    const fnName = name as keyof FormDataMethods;
+    const original = actions[fnName];
+    const proxyFn = props.proxies[fnName] as Proxy<keyof FormDataMethods>;
+    const { proxy, method } = proxyFn(original);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    actions[fnName] = (...args: any[]) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      proxy({ args: args as any, toCall: method });
+    };
+  }
 
-      return {
-        dataModels: initialDataModels,
-        autoSaving,
-        lockedBy: undefined,
-        lockQueue: [],
-        debounceTimeout: DEFAULT_DEBOUNCE_TIMEOUT,
-        manualSaveRequested: false,
-        validationIssues: undefined,
-        ...actions,
-      };
-    }),
-  );
+  const models = Object.keys(props.dataModels).reduce((dm, dt) => {
+    const emptyInvalidData = {};
+    dm[dt] = {
+      currentData: props.dataModels[dt].initialData,
+      invalidCurrentData: emptyInvalidData,
+      debouncedCurrentData: props.dataModels[dt].initialData,
+      invalidDebouncedCurrentData: emptyInvalidData,
+      lastSavedData: props.dataModels[dt].initialData,
+      dataElementId: props.dataModels[dt].dataElementId,
+    } satisfies DataModelState;
+    return dm;
+  }, {});
+
+  return {
+    models,
+    autoSaving: props.autoSaving,
+    lockedBy: undefined,
+    lockQueue: [],
+    debounceTimeout: DEFAULT_DEBOUNCE_TIMEOUT,
+    manualSaveRequested: false,
+    ...actions,
+  };
+}
 
 function isWritable(dataElementId: string | null, selectFromInstance: InstanceDataSelector) {
   if (!dataElementId) {

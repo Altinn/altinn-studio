@@ -8,8 +8,8 @@ import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
 import { AppTable } from 'src/app-components/Table/Table';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -35,7 +35,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
     'SimpleTable',
   );
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
-  const removeFromList = FD.useRemoveFromListCallback();
+  const removeFromList = FormStore.data.useRemoveFromListCallback();
   const { title, description, help } = textResourceBindings ?? {};
   const { elementAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);
@@ -44,7 +44,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
   const schemaLookup = FormBootstrap.useSchemaLookup();
   const [showEdit, setShowEdit] = useState(false);
   const [editItemIndex, setEditItemIndex] = useState<number>(-1);
-  const setMultiLeafValues = FD.useSetMultiLeafValues();
+  const setMultiLeafValues = FormStore.data.useSetMultiLeafValues();
   const languageLocale = useCurrentLanguage();
   const { langAsString } = useLanguage();
 

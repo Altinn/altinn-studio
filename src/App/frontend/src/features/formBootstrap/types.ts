@@ -2,6 +2,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type {
   BackendValidationIssue,
@@ -36,11 +37,9 @@ export interface ProcessedDataModelInfo extends Omit<RawDataModelInfo, 'expressi
   schemaResult: DataModelSchemaResult;
 }
 
-export interface FormBootstrapBase {
+export interface FormBootstrapBase extends Omit<FormBootstrapQueryResponse, 'staticOptions' | 'layouts'> {
   uiFolder: string;
-  dataModels: Record<string, ProcessedDataModelInfo>;
   staticOptions: Record<string, StaticOptionSet>;
-  validationIssues?: BackendValidationIssue[] | null;
 }
 
 export interface FormBootstrapContextValue extends FormBootstrapBase {

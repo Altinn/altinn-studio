@@ -9,12 +9,12 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
 function FormDataValue() {
-  const formDataValue = FD.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
+  const formDataValue = FormStore.data.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
   const [delayedValue, setDelayedValue] = useState(formDataValue);
 
   // This will ensure that the validation state gets updated in the error report by the time this value gets written to the DOM

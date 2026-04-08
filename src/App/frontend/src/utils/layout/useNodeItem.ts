@@ -1,4 +1,4 @@
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import { useExpressionResolverProps } from 'src/utils/layout/generator/NodeGenerator';
@@ -91,7 +91,9 @@ export function useFormDataFor<T extends CompTypes>(
   type?: T | ((type: CompTypes) => boolean),
 ): FormDataFromType<T> {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, type) as IDataModelBindings<T>;
-  return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick)) as FormDataFromType<T>;
+  return FormStore.data.useDebouncedSelect((pick) =>
+    getNodeFormDataInner(dataModelBindings, pick),
+  ) as FormDataFromType<T>;
 }
 
 export function useNodeFormDataWhenType<Type extends CompTypes>(
@@ -99,7 +101,7 @@ export function useNodeFormDataWhenType<Type extends CompTypes>(
   type: Type,
 ): IComponentFormData<Type> | undefined {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, type) as IDataModelBindings<Type> | undefined;
-  return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick));
+  return FormStore.data.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick));
 }
 
 function getNodeFormDataInner<T extends CompTypes>(

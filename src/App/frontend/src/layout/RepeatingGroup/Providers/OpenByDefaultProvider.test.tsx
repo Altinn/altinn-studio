@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import {
   RepeatingGroupProvider,
@@ -39,7 +39,7 @@ describe('openByDefault', () => {
     const deleteRow = RepGroupContext.useDeleteRow();
     const { visibleRows, hiddenRows } = useRepeatingGroupRowState();
 
-    const data = FD.useDebouncedPick({ field: 'MyGroup', dataType: defaultDataTypeMock });
+    const data = FormStore.data.useDebouncedPick({ field: 'MyGroup', dataType: defaultDataTypeMock });
     return (
       <>
         <div data-testid='state'>

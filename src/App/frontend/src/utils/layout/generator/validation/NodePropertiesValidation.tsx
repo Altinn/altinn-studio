@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import type { FC } from 'react';
 
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
+import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef, implementsDataModelBindingValidation } from 'src/layout';
 import { GeneratorValidation } from 'src/utils/layout/generator/validation/GenerationValidationContext';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { duplicateStringFilter } from 'src/utils/stringHelper';
 import type { CompDef } from 'src/layout';
 import type { CompTypes, NodeValidationProps } from 'src/layout/layout';
@@ -27,7 +27,7 @@ export function NodePropertiesValidation<T extends CompTypes>(props: NodeValidat
 
 const emptyArray: never[] = [];
 function DataModelValidation<T extends CompTypes>({ externalItem, intermediateItem }: NodeValidationProps<T>) {
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
   const def = getComponentDef(intermediateItem.type);
   const errors =
     implementsDataModelBindingValidation(def, intermediateItem) && window.forceNodePropertiesValidation !== 'off'
@@ -53,7 +53,7 @@ function DataModelValidation<T extends CompTypes>({ externalItem, intermediateIt
 
 function SchemaValidation<T extends CompTypes>({ intermediateItem, externalItem }: NodeValidationProps<T>) {
   const validate = GeneratorValidation.useValidate();
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     if (!validate) {

@@ -6,7 +6,7 @@ import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Label } from 'src/app-components/Label/Label';
 import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -129,7 +129,7 @@ const InputVariant = ({
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting, formValue);
   const variant = getVariantWithFormat(inputVariant, reactNumberFormatConfig?.number);
   const { inputMode, pattern } = getMobileKeyboardProps(variant, autocomplete);
-  const debounce = FD.useDebounceImmediately();
+  const debounce = FormStore.data.useDebounceImmediately();
 
   const descriptionId = getDescriptionId(id);
   const validationsId = `${baseComponentId}-validations`;
