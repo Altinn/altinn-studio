@@ -364,6 +364,7 @@ export const queriesMock: ServicesContextProps = {
   addResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   removeResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   migrateDelegations: jest.fn().mockImplementation(() => Promise.resolve()),
+  createResourcesRepo: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Preview
   createPreviewInstance: jest.fn().mockImplementation(() => Promise.resolve()),

@@ -157,4 +157,47 @@ describe('RepoList', () => {
       '/resourceadm/ttd/ttd-resources/resource/test-ressurs/about',
     );
   });
+
+  test('Should create resources repo when repo does not exist', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+    });
+    renderWithMockServices({
+      searchRepos: jest
+        .fn()
+        .mockResolvedValueOnce({ data: [], ok: true, totalCount: 0, totalPages: 1 })
+        .mockResolvedValueOnce(searchReposResponse),
+      getResourceList: () => Promise.resolve(getResourceListResponse),
+      getUserOrgPermissions: () => Promise.resolve({ canCreateOrgRepo: true }),
+      createResourcesRepo: () => Promise.resolve(),
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(textMock('dashboard.create_resources_repo'))).toBeInTheDocument();
+    });
+    await user.click(screen.getByText(textMock('dashboard.create_resources_repo')));
+
+    expect(
+      screen.getByRole('link', { name: textMock('dashboard.go_to_resources') }),
+    ).toBeInTheDocument();
+  });
+
+  test('Should show error message when creating resources repo fails', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+    });
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve({ data: [], ok: true, totalCount: 0, totalPages: 1 }),
+      getResourceList: () => Promise.resolve(getResourceListResponse),
+      getUserOrgPermissions: () => Promise.resolve({ canCreateOrgRepo: true }),
+      createResourcesRepo: () => Promise.reject(new Error('Failed to create resources repo')),
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(textMock('dashboard.create_resources_repo'))).toBeInTheDocument();
+    });
+    await user.click(screen.getByText(textMock('dashboard.create_resources_repo')));
+
+    expect(screen.getByText(textMock('dashboard.create_resources_repo_error'))).toBeInTheDocument();
+  });
 });
