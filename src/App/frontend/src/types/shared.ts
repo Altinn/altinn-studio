@@ -9,10 +9,6 @@ export interface IAltinnOrg {
   environments: string[];
 }
 
-export interface IAltinnOrgs {
-  [org: string]: IAltinnOrg;
-}
-
 export interface IApplicationLogic {
   allowAnonymousOnStateless?: boolean | null;
   autoCreate?: boolean | null;
@@ -293,6 +289,7 @@ export interface IPlatformFrontendSettings {
   appFrontendCdnBaseUrl: string;
   altinnLogoUrl: string;
   helpCircleIllustrationUrl: string;
+  postalCodesUrl: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

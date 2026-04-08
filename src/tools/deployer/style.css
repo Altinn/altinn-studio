@@ -1,4 +1,8 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
@@ -14,7 +18,10 @@ header {
   border-bottom: 1px solid #30363d;
 }
 
-h1 { font-size: 16px; font-weight: 600; }
+h1 {
+  font-size: 16px;
+  font-weight: 600;
+}
 
 h2 {
   font-size: 13px;
@@ -32,9 +39,17 @@ h2 {
   font-size: 12px;
 }
 
-#last-updated { font-size: 11px; color: #8b949e; }
-#loading { font-size: 11px; color: #d4a72c; }
-.hidden { display: none !important; }
+#last-updated {
+  font-size: 11px;
+  color: #8b949e;
+}
+#loading {
+  font-size: 11px;
+  color: #d4a72c;
+}
+.hidden {
+  display: none !important;
+}
 
 button {
   background: #21262d;
@@ -45,7 +60,9 @@ button {
   cursor: pointer;
   font-size: 11px;
 }
-button:hover { background: #30363d; }
+button:hover {
+  background: #30363d;
+}
 
 /* Pipeline grid */
 
@@ -55,10 +72,19 @@ button:hover { background: #30363d; }
   scrollbar-width: thin;
   scrollbar-color: #484f58 transparent;
 }
-.grid-scroll::-webkit-scrollbar { height: 8px; }
-.grid-scroll::-webkit-scrollbar-track { background: transparent; }
-.grid-scroll::-webkit-scrollbar-thumb { background: #484f58; border-radius: 4px; }
-.grid-scroll::-webkit-scrollbar-thumb:hover { background: #6e7681; }
+.grid-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.grid-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.grid-scroll::-webkit-scrollbar-thumb {
+  background: #484f58;
+  border-radius: 4px;
+}
+.grid-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6e7681;
+}
 
 .pipeline-grid {
   display: grid;
@@ -139,13 +165,20 @@ button:hover { background: #30363d; }
   border-radius: 3px;
   background: #21262d;
 }
-.cell-link:hover { color: #e6edf3; background: #30363d; }
-.cell-link::before { content: '\2197\00a0'; }
+.cell-link:hover {
+  color: #e6edf3;
+  background: #30363d;
+}
+.cell-link::before {
+  content: '\2197\00a0';
+}
 .cell-link-pr {
   font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, monospace;
 }
 
-.empty-dash { color: #484f58; }
+.empty-dash {
+  color: #484f58;
+}
 
 .sha {
   font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, monospace;
@@ -185,8 +218,15 @@ button:hover { background: #30363d; }
   gap: 4px;
 }
 
-.legend-label { color: #e6edf3; font-weight: 600; }
-.legend-sep { width: 1px; height: 12px; background: #30363d; }
+.legend-label {
+  color: #e6edf3;
+  font-weight: 600;
+}
+.legend-sep {
+  width: 1px;
+  height: 12px;
+  background: #30363d;
+}
 
 .legend-dot {
   width: 8px;
@@ -195,25 +235,55 @@ button:hover { background: #30363d; }
   display: inline-block;
 }
 
-.dot-success     { background: #2da44e; }
-.dot-in_progress { background: #d4a72c; }
-.dot-waiting     { background: #538dd7; }
-.dot-queued      { background: #8957b3; }
-.dot-failure     { background: #cf222e; }
-.dot-none        { background: #30363d; }
+.dot-success {
+  background: #2da44e;
+}
+.dot-in_progress {
+  background: #d4a72c;
+}
+.dot-waiting {
+  background: #538dd7;
+}
+.dot-queued {
+  background: #8957b3;
+}
+.dot-failure {
+  background: #cf222e;
+}
+.dot-none {
+  background: #30363d;
+}
 
 /* Status colors on cell halves via left border */
-.half-success     { border-left-color: #2da44e; }
-.half-in_progress { border-left-color: #d4a72c; background: #1a1e24; }
-.half-waiting     { border-left-color: #538dd7; background: #161d28; }
-.half-queued      { border-left-color: #8957b3; background: #1c1824; }
-.half-failure     { border-left-color: #cf222e; }
-.half-none        { border-left-color: #21262d; color: #484f58; }
+.half-success {
+  border-left-color: #2da44e;
+}
+.half-in_progress {
+  border-left-color: #d4a72c;
+  background: #1a1e24;
+}
+.half-waiting {
+  border-left-color: #538dd7;
+  background: #161d28;
+}
+.half-queued {
+  border-left-color: #8957b3;
+  background: #1c1824;
+}
+.half-failure {
+  border-left-color: #cf222e;
+}
+.half-none {
+  border-left-color: #21262d;
+  color: #484f58;
+}
 
 /* Spinner for active (queued / in_progress) deployments */
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinner {
@@ -253,7 +323,6 @@ button:hover { background: #30363d; }
   flex-direction: column;
 }
 
-
 /* Approve action bar */
 
 .approve-bar {
@@ -277,8 +346,14 @@ button:hover { background: #30363d; }
   color: #fff;
   padding: 4px 12px;
 }
-#approve-bar-btn:not(:disabled):hover { background: #3fb950; border-color: #3fb950; }
-#approve-bar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+#approve-bar-btn:not(:disabled):hover {
+  background: #3fb950;
+  border-color: #3fb950;
+}
+#approve-bar-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* Confirmation modal */
 
@@ -305,7 +380,10 @@ button:hover { background: #30363d; }
   gap: 14px;
 }
 
-.modal-box h3 { font-size: 14px; font-weight: 600; }
+.modal-box h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
 
 #confirm-list {
   list-style: none;
@@ -323,7 +401,10 @@ button:hover { background: #30363d; }
   font-size: 12px;
 }
 
-.confirm-service { font-weight: 600; min-width: 120px; }
+.confirm-service {
+  font-weight: 600;
+  min-width: 120px;
+}
 
 .confirm-env {
   color: #8b949e;
@@ -331,7 +412,9 @@ button:hover { background: #30363d; }
   font-size: 11px;
 }
 
-.confirm-sha { color: #484f58; }
+.confirm-sha {
+  color: #484f58;
+}
 
 .modal-footer {
   display: flex;
@@ -345,5 +428,10 @@ button:hover { background: #30363d; }
   color: #fff;
   padding: 4px 14px;
 }
-#confirm-ok:not(:disabled):hover { background: #3fb950; }
-#confirm-ok:disabled { opacity: 0.6; cursor: not-allowed; }
+#confirm-ok:not(:disabled):hover {
+  background: #3fb950;
+}
+#confirm-ok:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

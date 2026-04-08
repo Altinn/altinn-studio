@@ -1,23 +1,22 @@
-namespace Altinn.Studio.DataModeling.Metamodel
+namespace Altinn.Studio.DataModeling.Metamodel;
+
+/// <summary>
+/// Enumeration for the different type of service elements
+/// </summary>
+public enum ElementType
 {
     /// <summary>
-    /// Enumeration for the different type of service elements
+    /// Field element
     /// </summary>
-    public enum ElementType
-    {
-        /// <summary>
-        /// Field element
-        /// </summary>
-        Field,
+    Field,
 
-        /// <summary>
-        /// Group element (can contain several groups and / or fields)
-        /// </summary>
-        Group,
+    /// <summary>
+    /// Group element (can contain several groups and / or fields)
+    /// </summary>
+    Group,
 
-        /// <summary>
-        /// Xml attribute
-        /// </summary>
-        Attribute,
-    }
+    /// <summary>
+    /// Xml attribute
+    /// </summary>
+    Attribute,
 }

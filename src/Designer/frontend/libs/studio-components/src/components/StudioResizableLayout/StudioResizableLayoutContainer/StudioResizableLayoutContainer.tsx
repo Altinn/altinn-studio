@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactElement } from 'react';
-import React, { Children, useEffect, useRef } from 'react';
+import React, { Children, useEffect, useRef, useState } from 'react';
 import classes from './StudioResizableLayoutContainer.module.css';
 import { type StudioResizableLayoutElementProps } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
 import { useStudioResizableLayoutFunctions } from '../hooks/useStudioResizableFunctions';
@@ -32,6 +32,7 @@ const StudioResizableLayoutContainer = ({
     elementRefs.current = elementRefs.current.slice(0, getValidChildren(children).length);
   }, [children]);
 
+  const [isResizing, setIsResizing] = useState(false);
   const { containerSizes, setContainerSizes } = useTrackContainerSizes(localStorageContext);
   const { resizeTo, resizeDelta } = useStudioResizableLayoutFunctions(
     orientation,
@@ -57,7 +58,7 @@ const StudioResizableLayoutContainer = ({
 
   return (
     <StudioResizableLayoutContext.Provider
-      value={{ resizeDelta, resizeTo, orientation, containerSizes }}
+      value={{ resizeDelta, resizeTo, orientation, containerSizes, isResizing, setIsResizing }}
     >
       <div className={`${classes.root} ${flexDirectionClass}`} style={{ ...style }}>
         {renderChildren()}
