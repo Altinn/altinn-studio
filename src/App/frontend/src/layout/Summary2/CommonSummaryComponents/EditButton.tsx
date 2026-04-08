@@ -5,7 +5,7 @@ import { PencilIcon } from '@navikt/aksel-icons';
 import { Button } from 'src/app-components/Button/Button';
 import { translationKey } from 'src/AppComponentsBridge';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -57,8 +57,8 @@ export function EditButton({
 }: EditButtonProps) {
   const navigateToComponent = useNavigateToComponent();
   const { langAsString } = useLanguage();
-  const setReturnToView = useSetReturnToView();
-  const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
+  const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const setNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
   const currentPageId = useCurrentView();
   const pdfModeActive = usePdfModeActive();
   const isMobile = useIsMobile();

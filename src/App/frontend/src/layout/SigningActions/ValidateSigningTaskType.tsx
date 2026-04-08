@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { FormStore } from 'src/features/form/FormContext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { ProcessTaskType } from 'src/types';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 type Props = NodeValidationProps<'SigningActions' | 'SigningDocumentList' | 'SigneeList'>;
@@ -13,7 +13,7 @@ type Props = NodeValidationProps<'SigningActions' | 'SigningDocumentList' | 'Sig
 export function ValidateSigningTaskType(props: Props) {
   const currentTaskType = useTaskTypeFromBackend();
   const isInCurrentTask = useIsInCurrentTask();
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
   const { langAsString } = useLanguage();
   const error = langAsString('signing.wrong_task_error', [props.intermediateItem.type]);
 

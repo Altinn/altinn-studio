@@ -4,7 +4,7 @@ import { Label } from 'src/app-components/Label/Label';
 import { TextArea } from 'src/app-components/TextArea/TextArea';
 import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId } from 'src/components/label/Label';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -36,7 +36,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
     formData: { simpleBinding: value },
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
-  const debounce = FD.useDebounceImmediately();
+  const debounce = FormStore.data.useDebounceImmediately();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });

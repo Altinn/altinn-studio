@@ -15,109 +15,108 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// GPGKeyEmail an email attached to a GPGKey
+/// </summary>
+[DataContract]
+public partial class GPGKeyEmail : IEquatable<GPGKeyEmail>, IValidatableObject
 {
     /// <summary>
-    /// GPGKeyEmail an email attached to a GPGKey
+    /// Initializes a new instance of the <see cref="GPGKeyEmail" /> class.
     /// </summary>
-    [DataContract]
-    public partial class GPGKeyEmail : IEquatable<GPGKeyEmail>, IValidatableObject
+    /// <param name="email">Email.</param>
+    /// <param name="verified">Verified.</param>
+    public GPGKeyEmail(string email = default(string), bool? verified = default(bool?))
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GPGKeyEmail" /> class.
-        /// </summary>
-        /// <param name="email">Email.</param>
-        /// <param name="verified">Verified.</param>
-        public GPGKeyEmail(string email = default(string), bool? verified = default(bool?))
+        this.Email = email;
+        this.Verified = verified;
+    }
+
+    /// <summary>
+    /// Gets or Sets Email
+    /// </summary>
+    [DataMember(Name = "email", EmitDefaultValue = false)]
+    public string Email { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Verified
+    /// </summary>
+    [DataMember(Name = "verified", EmitDefaultValue = false)]
+    public bool? Verified { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class GPGKeyEmail {\n");
+        sb.Append("  Email: ").Append(Email).Append("\n");
+        sb.Append("  Verified: ").Append(Verified).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return this.Equals(input as GPGKeyEmail);
+    }
+
+    /// <summary>
+    /// Returns true if GPGKeyEmail instances are equal
+    /// </summary>
+    /// <param name="input">Instance of GPGKeyEmail to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(GPGKeyEmail input)
+    {
+        if (input == null)
         {
-            this.Email = email;
-            this.Verified = verified;
+            return false;
         }
 
-        /// <summary>
-        /// Gets or Sets Email
-        /// </summary>
-        [DataMember(Name = "email", EmitDefaultValue = false)]
-        public string Email { get; set; }
+        return (this.Email == input.Email || (this.Email != null && this.Email.Equals(input.Email)))
+            && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
+    }
 
-        /// <summary>
-        /// Gets or Sets Verified
-        /// </summary>
-        [DataMember(Name = "verified", EmitDefaultValue = false)]
-        public bool? Verified { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
         {
-            var sb = new StringBuilder();
-            sb.Append("class GPGKeyEmail {\n");
-            sb.Append("  Email: ").Append(Email).Append("\n");
-            sb.Append("  Verified: ").Append(Verified).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return this.Equals(input as GPGKeyEmail);
-        }
-
-        /// <summary>
-        /// Returns true if GPGKeyEmail instances are equal
-        /// </summary>
-        /// <param name="input">Instance of GPGKeyEmail to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(GPGKeyEmail input)
-        {
-            if (input == null)
+            int hashCode = 41;
+            if (this.Email != null)
             {
-                return false;
+                hashCode = (hashCode * 59) + this.Email.GetHashCode();
             }
 
-            return (this.Email == input.Email || (this.Email != null && this.Email.Equals(input.Email)))
-                && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
-        }
-
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
+            if (this.Verified != null)
             {
-                int hashCode = 41;
-                if (this.Email != null)
-                {
-                    hashCode = (hashCode * 59) + this.Email.GetHashCode();
-                }
-
-                if (this.Verified != null)
-                {
-                    hashCode = (hashCode * 59) + this.Verified.GetHashCode();
-                }
-
-                return hashCode;
+                hashCode = (hashCode * 59) + this.Verified.GetHashCode();
             }
-        }
 
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
+            return hashCode;
         }
+    }
+
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

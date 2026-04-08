@@ -12,6 +12,7 @@ using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Features.Correspondence.Extensions;
 using Altinn.App.Core.Features.Maskinporten;
@@ -119,6 +120,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
         services.AddTransient<InternalPatchService>();
+        services.AddTransient<FormBootstrapService>();
 
         services.Configure<KestrelServerOptions>(options =>
         {

@@ -5,13 +5,13 @@ import { EyeSlashIcon } from '@navikt/aksel-icons';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import classes from 'src/features/devtools/components/NodeInspector/ValidationInspector.module.css';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
 import { isValidationVisible } from 'src/features/validation/utils';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AttachmentValidation, NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 
 interface ValidationInspectorProps {
@@ -29,8 +29,8 @@ const categories = [
 
 export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProps) => {
   const indexedId = useIndexedId(baseComponentId);
-  const validations = NodesInternal.useRawValidations(indexedId);
-  const nodeVisibility = NodesInternal.useRawValidationVisibility(indexedId);
+  const validations = FormStore.nodes.useRawValidations(indexedId);
+  const nodeVisibility = FormStore.nodes.useRawValidationVisibility(indexedId);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const type = useExternalItem(baseComponentId).type;
   const attachments = useAttachmentsFor(baseComponentId);

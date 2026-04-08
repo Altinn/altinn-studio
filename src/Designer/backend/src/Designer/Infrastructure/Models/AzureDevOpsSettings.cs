@@ -1,36 +1,35 @@
 #nullable disable
 using Altinn.Studio.Designer.Configuration.Marker;
 
-namespace Altinn.Studio.Designer.Infrastructure.Models
+namespace Altinn.Studio.Designer.Infrastructure.Models;
+
+/// <summary>
+/// Settings for Azure DevOps
+/// </summary>
+public class AzureDevOpsSettings : ISettingsMarker
 {
     /// <summary>
-    /// Settings for Azure DevOps
+    /// Id for a definition that builds an Altinn Studio app
     /// </summary>
-    public class AzureDevOpsSettings : ISettingsMarker
-    {
-        /// <summary>
-        /// Id for a definition that builds an Altinn Studio app
-        /// </summary>
-        public int BuildDefinitionId { get; set; }
+    public int BuildDefinitionId { get; set; }
 
-        /// <summary>
-        /// Id for a definition that deploys an Altinn Studio app
-        /// </summary>
-        public int DeployDefinitionId { get; set; }
+    /// <summary>
+    /// Id for a definition that deploys an Altinn Studio app
+    /// </summary>
+    public int DeployDefinitionId { get; set; }
 
-        /// <summary>
-        /// Id for a definition that undeploy an Altinn Studio app
-        /// </summary>
-        public int DecommissionDefinitionId { get; set; }
+    /// <summary>
+    /// Id for a definition that undeploy an Altinn Studio app
+    /// </summary>
+    public int DecommissionDefinitionId { get; set; }
 
-        /// <summary>
-        /// Id for a definition that manages deploy of an Altinn Studio apps using GitOps
-        /// </summary>
-        public int GitOpsManagerDefinitionId { get; set; }
+    /// <summary>
+    /// Id for a definition that manages deploy of an Altinn Studio apps using GitOps
+    /// </summary>
+    public int GitOpsManagerDefinitionId { get; set; }
 
-        /// <summary>
-        /// Base URI for Azure DevOps
-        /// </summary>
-        public string BaseUri { get; set; }
-    }
+    /// <summary>
+    /// Base URI for Azure DevOps
+    /// </summary>
+    public string BaseUri { get; set; }
 }

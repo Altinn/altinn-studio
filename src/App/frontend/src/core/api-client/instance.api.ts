@@ -19,8 +19,8 @@ export interface Instantiation {
   prefill: Prefill;
 }
 
-export class InstanceApi {
-  public static async getInstance({
+export const instanceApi = {
+  async getInstance({
     instanceOwnerPartyId,
     instanceGuid,
   }: {
@@ -31,14 +31,14 @@ export class InstanceApi {
       `/instances/${instanceOwnerPartyId}/${instanceGuid}`,
     );
     return instance;
-  }
+  },
 
-  public static async getActiveInstances({ partyId }: { partyId: string }): Promise<ISimpleInstance[]> {
+  async getActiveInstances({ partyId }: { partyId: string }): Promise<ISimpleInstance[]> {
     const { data } = await axiosInstance.get<ISimpleInstance[]>(`/instances/${partyId}/active`);
     return data;
-  }
+  },
 
-  public static async create({
+  async create({
     instanceOwnerPartyId,
     language = 'nb',
   }: {
@@ -51,9 +51,9 @@ export class InstanceApi {
     });
     const { data: createdInstance } = await axiosInstance.post<IInstanceWithProcess>(`/instances?${params}`);
     return createdInstance;
-  }
+  },
 
-  public static async createWithPrefill({
+  async createWithPrefill({
     data,
     language = 'nb',
   }: {
@@ -66,5 +66,7 @@ export class InstanceApi {
       data,
     );
     return createdInstance;
-  }
-}
+  },
+};
+
+export type InstanceApi = typeof instanceApi;
