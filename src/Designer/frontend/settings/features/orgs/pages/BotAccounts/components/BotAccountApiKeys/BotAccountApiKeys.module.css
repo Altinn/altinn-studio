@@ -1,3 +1,9 @@
+.apiKeys {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
 .heading {
   margin-bottom: var(--fds-spacing-2);
 }

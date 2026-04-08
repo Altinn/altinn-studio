@@ -1,11 +1,20 @@
 import type { ReactElement } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioError, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
 import { matchPath, useLocation } from 'react-router-dom';
+import type { BotAccount } from 'app-shared/types/BotAccount';
 import { useGetBotAccountsQuery } from './hooks/useGetBotAccountsQuery';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 import { BotAccountsList } from './components/BotAccountsList/BotAccountsList';
+import { BotAccountDialog } from './components/BotAccountDialog/BotAccountDialog';
+import type { BotAccountForm } from './components/BotAccountDialog/BotAccountDialog';
+import { AddButton } from '../../../../components/AddButton/AddButton';
 import classes from './BotAccounts.module.css';
+
+const emptyForm: BotAccountForm = { name: '', deployEnvironments: [] };
+
+type DialogState = { form: BotAccountForm; editingId: string | null } | null;
 
 export const BotAccounts = (): ReactElement => {
   const { t } = useTranslation();
@@ -16,6 +25,19 @@ export const BotAccounts = (): ReactElement => {
   const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org!);
   const { data: orgs } = useOrgListQuery();
   const availableEnvironments = orgs?.[org!]?.environments ?? [];
+
+  const [dialogState, setDialogState] = useState<DialogState>(null);
+  const [highlightId, setHighlightId] = useState<string | undefined>(undefined);
+
+  const openAddDialog = () => setDialogState({ form: emptyForm, editingId: null });
+
+  const openEditDialog = (botAccount: BotAccount) =>
+    setDialogState({
+      form: { name: botAccount.username, deployEnvironments: botAccount.deployEnvironments },
+      editingId: botAccount.id,
+    });
+
+  const closeDialog = () => setDialogState(null);
 
   if (isPending) {
     return <StudioSpinner aria-hidden spinnerTitle={t('settings.orgs.bot_accounts.loading')} />;
@@ -33,13 +55,22 @@ export const BotAccounts = (): ReactElement => {
       <StudioParagraph data-size='md'>
         {t('settings.orgs.bot_accounts.page_description')}
       </StudioParagraph>
-      <section className={classes.section}>
-        <BotAccountsList
+      <StudioHeading level={3}>{t('settings.orgs.bot_accounts.list_heading')}</StudioHeading>
+      <StudioParagraph>{t('settings.orgs.bot_accounts.list_description')}</StudioParagraph>
+      <BotAccountsList org={org!} botAccounts={botAccounts ?? []} onEdit={openEditDialog} highlightId={highlightId} />
+      <AddButton onClick={openAddDialog}>
+        {t('settings.orgs.bot_accounts.add_bot_account')}
+      </AddButton>
+      {dialogState && (
+        <BotAccountDialog
           org={org!}
-          botAccounts={botAccounts ?? []}
+          initialForm={dialogState.form}
           availableEnvironments={availableEnvironments}
+          onClose={closeDialog}
+          editingId={dialogState.editingId}
+          onCreated={(id) => setHighlightId(id)}
         />
-      </section>
+      )}
     </div>
   );
 };

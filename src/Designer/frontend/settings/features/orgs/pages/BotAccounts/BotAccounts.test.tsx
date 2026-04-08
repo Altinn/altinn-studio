@@ -21,9 +21,10 @@ const activeBotAccount: BotAccount = {
   deactivated: false,
   created: '2024-01-15T10:00:00Z',
   createdByUsername: 'testuser',
+  deployEnvironments: [],
 };
 
-const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/ttd/settings']) => {
+const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/orgs/ttd/settings']) => {
   const queryClient = createQueryClientMock();
   if (botAccounts !== undefined) {
     queryClient.setQueryData([QueryKey.BotAccounts, testOrg], botAccounts);
@@ -43,7 +44,7 @@ describe('BotAccounts', () => {
     renderWithProviders(<BotAccounts />, {
       queries: { getBotAccounts },
       queryClient,
-      initialEntries: ['/ttd/settings'],
+      initialEntries: ['/orgs/ttd/settings'],
     });
     await screen.findByText(textMock('settings.orgs.bot_accounts.error'));
     expect(screen.getByText(textMock('settings.orgs.bot_accounts.error'))).toBeInTheDocument();

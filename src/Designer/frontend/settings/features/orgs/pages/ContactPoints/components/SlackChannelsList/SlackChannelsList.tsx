@@ -11,7 +11,7 @@ import { contactPointToSlackChannel } from './slackChannelUtils';
 import { useToggleContactPointActiveMutation } from '../../../../hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from '../../../../hooks/useDeleteContactPointMutation';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
-import { AddButton } from '../AddButton/AddButton';
+import { AddButton } from '../../../../../../components/AddButton/AddButton';
 
 type SlackChannelsListProps = {
   org: string;

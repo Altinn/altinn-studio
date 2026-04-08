@@ -9,7 +9,7 @@ import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import { toast } from 'react-toastify';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
-import { formatLocalDate } from './AddApiKeyDialog/AddApiKeyDialog';
+import { formatLocalDate } from '../../../../components/ApiKeys/ApiKeyDialog';
 
 jest.mock('react-toastify', () => ({
   ...jest.requireActual('react-toastify'),
@@ -53,13 +53,13 @@ const renderApiKeys = (queries: Parameters<typeof renderWithProviders>[1]['queri
 };
 
 const getNameInput = () =>
-  screen.getByLabelText(textMock('settings.user.api_keys.name'), { exact: false });
+  screen.getByLabelText(textMock('settings.api_keys.field_name'), { exact: false });
 
 const getExpiryInput = () =>
-  screen.getByLabelText(textMock('settings.user.api_keys.expires_at'), { exact: false });
+  screen.getByLabelText(textMock('settings.api_keys.field_expires_at'), { exact: false });
 
 const getOpenDialogButton = () =>
-  screen.getByRole('button', { name: textMock('settings.user.api_keys.add') });
+  screen.getByRole('button', { name: textMock('settings.api_keys.add') });
 
 const getSubmitButton = () => {
   const buttons = screen.getAllByRole('button', { name: textMock('general.add') });
@@ -146,7 +146,7 @@ describe('ApiKeys', () => {
     await fillForm(user, 'Existing api key', validExpiresAt);
     await user.click(getSubmitButton());
     expect(
-      screen.getByText(textMock('settings.user.api_keys.error_duplicate_name')),
+      screen.getByText(textMock('settings.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
   });
 
@@ -160,11 +160,11 @@ describe('ApiKeys', () => {
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
     expect(
-      await screen.findByText(textMock('settings.user.api_keys.error_duplicate_name')),
+      await screen.findByText(textMock('settings.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
     await user.type(getNameInput(), ' 2');
     expect(
-      screen.queryByText(textMock('settings.user.api_keys.error_duplicate_name')),
+      screen.queryByText(textMock('settings.api_keys.error_duplicate_name')),
     ).not.toBeInTheDocument();
   });
 
@@ -213,11 +213,11 @@ describe('ApiKeys', () => {
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(screen.getByRole('button', { name: textMock('settings.user.api_keys.copy') }));
+    await user.click(screen.getByRole('button', { name: textMock('settings.api_keys.copy') }));
     expect(writeText).toHaveBeenCalledWith('secret-key-value');
     expect(toast.success).toHaveBeenCalledWith(
-      textMock('settings.user.api_keys.copy_success'),
-      expect.objectContaining({ toastId: 'settings.user.api_keys.copy_success' }),
+      textMock('settings.api_keys.copy_success'),
+      expect.objectContaining({ toastId: 'settings.api_keys.copy_success' }),
     );
   });
 
@@ -230,10 +230,10 @@ describe('ApiKeys', () => {
     await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getSubmitButton());
     await screen.findByDisplayValue('secret-key-value');
-    await user.click(screen.getByRole('button', { name: textMock('settings.user.api_keys.copy') }));
+    await user.click(screen.getByRole('button', { name: textMock('settings.api_keys.copy') }));
     expect(toast.error).toHaveBeenCalledWith(
-      textMock('settings.user.api_keys.copy_error'),
-      expect.objectContaining({ toastId: 'settings.user.api_keys.copy_error' }),
+      textMock('settings.api_keys.copy_error'),
+      expect.objectContaining({ toastId: 'settings.api_keys.copy_error' }),
     );
   });
 });
