@@ -95,7 +95,7 @@ export function AppVisibilityAndDelegationCard({
       </div>
 
       <div className={cn(classes.switchRow, { [classes.switchRowDisabled]: !delegable })}>
-        <StudioParagraph>{visibleLabel}</StudioParagraph>
+        <StudioParagraph className={classes.switchLabel}>{visibleLabel}</StudioParagraph>
         <StudioSwitch
           checked={visible}
           onChange={onChangeVisible}
