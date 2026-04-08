@@ -33,7 +33,7 @@ async function fileExists(path: string) {
   }
 }
 
-let eslint: ESLint | undefined;
+let eslint: ESLint;
 async function getESLint() {
   if (!eslint) {
     const ESLint = await loadESLint();
