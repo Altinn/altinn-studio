@@ -1,29 +1,28 @@
 ﻿#nullable disable
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+/// <summary>
+/// Represents a replacement variable if any element in the text should be replaced.
+/// </summary>
+public class TextResourceVariable
 {
     /// <summary>
-    /// Represents a replacement variable if any element in the text should be replaced.
+    /// Gets or sets the key
     /// </summary>
-    public class TextResourceVariable
-    {
-        /// <summary>
-        /// Gets or sets the key
-        /// </summary>
-        [JsonProperty(PropertyName = "key")]
-        public string Key { get; set; }
+    [JsonProperty(PropertyName = "key")]
+    public string Key { get; set; }
 
-        /// <summary>
-        /// Gets or sets the dataSource
-        /// </summary>
-        [JsonProperty(PropertyName = "dataSource")]
-        public string DataSource { get; set; }
+    /// <summary>
+    /// Gets or sets the dataSource
+    /// </summary>
+    [JsonProperty(PropertyName = "dataSource")]
+    public string DataSource { get; set; }
 
-        /// <summary>
-        /// Gets or sets a default value for the variable
-        /// </summary>
-        [JsonProperty(PropertyName = "defaultValue", NullValueHandling = NullValueHandling.Ignore)]
-        public string DefaultValue { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets a default value for the variable
+    /// </summary>
+    [JsonProperty(PropertyName = "defaultValue", NullValueHandling = NullValueHandling.Ignore)]
+    public string DefaultValue { get; set; }
 }

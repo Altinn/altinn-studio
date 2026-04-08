@@ -1,6 +1,10 @@
 import http from 'k6/http';
 import { sleep } from 'k6';
-import { BASE_URL, requestParams, buildPayload } from '../../workflow-engine/.k6/lib/helpers.js';
+import {
+    BASE_URL,
+    buildRequestParams,
+    buildPayload,
+} from '../../workflow-engine/.k6/lib/helpers.js';
 
 const INTERVAL = parseFloat(__ENV.INTERVAL || '2');
 
@@ -18,7 +22,7 @@ export const options = {
 
 export default function () {
     const body = buildPayload(payloadTemplate);
-    const res = http.post(BASE_URL, body, requestParams);
+    const res = http.post(BASE_URL, body, buildRequestParams());
     console.log(`HTTP ${res.status}`);
     sleep(INTERVAL);
 }

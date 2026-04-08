@@ -59,7 +59,21 @@ async def start_agent(
 
         sink.register_developer_session(developer, req.session_id)
         log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
-        
+
+        # MCP gate — workflow mode requires MCP, check before creating artifacts
+        if req.allow_app_changes:
+            from agents.services.mcp import get_mcp_client
+            mcp = get_mcp_client()
+            try:
+                await mcp.check_server_status()
+            except Exception as ping_err:
+                log.warning(f"🔌 MCP health ping failed: {ping_err}")
+                mcp._mark_disconnected(error=ping_err)
+                raise HTTPException(
+                    status_code=503,
+                    detail="MCP server is not available. Please retry shortly.",
+                ) from ping_err
+
         # Clone the repository for this session
         repo_manager = get_repo_manager()
         repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, developer=developer)
@@ -195,8 +209,32 @@ async def start_agent(
                             with propagate_attributes(user_id=req.org):
                                 result_state_ref = await _run_chat_inner()
                                 if result_state_ref is not None:
-                                    reply = (result_state_ref.assistant_response or {}).get("response", "")
+                                    ar = result_state_ref.assistant_response or {}
+                                    reply = ar.get("response", "")
                                     root_span.update(output={"response": reply[:1000] if reply else ""})
+
+                                    async def _run_no_hallucination_chat() -> None:
+                                        import asyncio as _asyncio
+                                        try:
+                                            from agents.services.evaluation.hallucination_judge import (
+                                                format_sources,
+                                                run_hallucination_judge,
+                                            )
+                                            await run_hallucination_judge(
+                                                user_goal=req.goal,
+                                                agent_response=ar.get("response", ""),
+                                                sources=format_sources(ar.get("sources") or []),
+                                                trace_id=root_span.trace_id,
+                                            )
+                                        except _asyncio.CancelledError:
+                                            raise
+                                        except Exception:
+                                            log.exception("Evaluation pipeline error (no_hallucination, chat mode)")
+
+                                    import asyncio as _asyncio
+                                    eval_task = _asyncio.create_task(_run_no_hallucination_chat())
+                                    _active_tasks.add(eval_task)
+                                    eval_task.add_done_callback(_active_tasks.discard)
                     else:
                         await _run_chat_inner()
                 except Exception as outer_error:
@@ -214,7 +252,7 @@ async def start_agent(
             _active_tasks.add(task)
             task.add_done_callback(_active_tasks.discard)
         else:
-            # Normal workflow mode - make changes
+            # Normal workflow mode - make changes (MCP already verified above)
             log.info(f"🔧 Workflow mode enabled for session {req.session_id}")
             
             # Load conversation history from previous interactions in this session

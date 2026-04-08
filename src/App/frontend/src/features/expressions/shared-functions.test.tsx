@@ -7,7 +7,6 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
@@ -186,9 +185,6 @@ function setupMocks(test: FunctionTest): void {
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
   jest.mocked(fetchProcessState).mockImplementation(async () => createProcess(test) ?? getProcessDataMock());
-  jest
-    .mocked(InstanceApi.getInstance)
-    .mockImplementation(async () => ({ ...createInstanceData(test), process: getProcessDataMock() }));
 }
 
 function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {
@@ -311,6 +307,11 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
       initialPage: context?.currentLayout ?? 'FormLayout',
       renderer,
       queries,
+      apis: {
+        instanceApi: {
+          getInstance: async () => ({ ...createInstanceData(test), process: getProcessDataMock() }),
+        },
+      },
     });
   }
 }
@@ -398,7 +399,7 @@ async function fetchFormData({ dataModel, dataModels }: FunctionTest, url: strin
   throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
 }
 
-async function assertExpr({ expression, expects, expectsFailure, ...rest }: FunctionTestBase) {
+async function assertExpr({ expression, expects, expectsFailure, name: _, ...rest }: FunctionTestBase) {
   // Makes sure we don't end up with any unexpected properties (if there are, these should probably be added as
   // dependencies for the expression in some way)
   expect(Object.keys(rest)).toHaveLength(0);

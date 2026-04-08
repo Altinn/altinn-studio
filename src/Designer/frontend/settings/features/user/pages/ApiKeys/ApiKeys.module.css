@@ -3,3 +3,13 @@
   flex-direction: column;
   gap: var(--ds-size-10);
 }
+
+.addButtonWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.addButton {
+  max-width: 400px;
+  flex: 1;
+}

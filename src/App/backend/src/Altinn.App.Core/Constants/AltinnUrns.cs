@@ -17,6 +17,7 @@ internal static class AltinnUrns
     public const string UserId = "urn:altinn:userid";
     public const string UserName = "urn:altinn:username";
     public const string SelfIdentifiedEmail = "urn:altinn:person:idporten-email";
+    public const string LegacySelfIdentified = "urn:altinn:person:legacy-selfidentified";
     public const string PartyId = "urn:altinn:partyid";
     public const string PartyUuid = "urn:altinn:partyuuid";
     public const string RepresentingPartyId = "urn:altinn:representingpartyid";

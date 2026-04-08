@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
@@ -7,9 +7,7 @@ import { ActionsCell } from '../ActionsCell/ActionsCell';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { SlackChannelDialog } from './SlackChannelDialog/SlackChannelDialog';
 import type { SlackChannel } from './SlackChannelDialog/SlackChannelDialog';
-import { slackChannelToPayload, contactPointToSlackChannel } from './slackChannelUtils';
-import { useAddContactPointMutation } from '../../../../hooks/useAddContactPointMutation';
-import { useUpdateContactPointMutation } from '../../../../hooks/useUpdateContactPointMutation';
+import { contactPointToSlackChannel } from './slackChannelUtils';
 import { useToggleContactPointActiveMutation } from '../../../../hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from '../../../../hooks/useDeleteContactPointMutation';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
@@ -29,47 +27,26 @@ const createEmptySlackChannel = (availableEnvironments: string[]): SlackChannel 
 
 export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): ReactElement => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [channelForm, setChannelForm] = useState<SlackChannel>(createEmptySlackChannel([]));
+  const [isOpen, setIsOpen] = useState(false);
+  const [initialValue, setInitialValue] = useState<SlackChannel>(createEmptySlackChannel([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { mutate: addChannel, isPending: isAdding } = useAddContactPointMutation(org);
-  const { mutate: updateChannel, isPending: isUpdating } = useUpdateContactPointMutation(org);
   const { mutate: toggleActive } = useToggleContactPointActiveMutation(org);
   const { mutate: deleteChannel } = useDeleteContactPointMutation(org);
 
   const { data: orgs } = useOrgListQuery();
   const availableEnvironments = orgs?.[org]?.environments ?? [];
 
-  const isSaving = isAdding || isUpdating;
-
   const openAddDialog = () => {
-    setChannelForm(createEmptySlackChannel(availableEnvironments));
+    setInitialValue(createEmptySlackChannel(availableEnvironments));
     setEditingId(null);
-    dialogRef.current?.showModal();
+    setIsOpen(true);
   };
 
   const openEditDialog = (channel: ContactPoint) => {
-    setChannelForm(contactPointToSlackChannel(channel));
+    setInitialValue(contactPointToSlackChannel(channel));
     setEditingId(channel.id);
-    dialogRef.current?.showModal();
-  };
-
-  const closeDialog = () => {
-    dialogRef.current?.close();
-  };
-
-  const handleFieldChange = (field: keyof SlackChannel, value: string | boolean | string[]) => {
-    setChannelForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = () => {
-    const payload = slackChannelToPayload(channelForm);
-    if (editingId) {
-      updateChannel({ id: editingId, payload }, { onSuccess: closeDialog });
-    } else {
-      addChannel(payload, { onSuccess: closeDialog });
-    }
+    setIsOpen(true);
   };
 
   const handleToggleActive = (channel: ContactPoint) => {
@@ -117,6 +94,7 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
                 onEdit={() => openEditDialog(channel)}
                 onDelete={() => deleteChannel(channel.id)}
                 editAriaLabel={t('settings.orgs.contact_points.dialog_edit_slack_title')}
+                itemName={channel.name}
               />
             </StudioTable.Row>
           ))}
@@ -125,16 +103,15 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
       <AddButton onClick={openAddDialog}>
         {t('settings.orgs.contact_points.add_slack_channel')}
       </AddButton>
-      <SlackChannelDialog
-        dialogRef={dialogRef}
-        channel={channelForm}
-        availableEnvironments={availableEnvironments}
-        onFieldChange={handleFieldChange}
-        onSave={handleSave}
-        onClose={closeDialog}
-        isEditing={editingId !== null}
-        isSaving={isSaving}
-      />
+      {isOpen && (
+        <SlackChannelDialog
+          initialValue={initialValue}
+          availableEnvironments={availableEnvironments}
+          org={org}
+          editingId={editingId}
+          onClose={() => setIsOpen(false)}
+        />
+      )}
     </>
   );
 };

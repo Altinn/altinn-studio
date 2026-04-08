@@ -2,21 +2,20 @@ using System;
 using Json.Pointer;
 using Json.Schema;
 
-namespace Altinn.Studio.DataModeling.Converter.Metadata
+namespace Altinn.Studio.DataModeling.Converter.Metadata;
+
+/// <summary>
+/// Event args added when a sub schema has been processed.
+/// </summary>
+public class SubSchemaProcessedEventArgs : EventArgs
 {
     /// <summary>
-    /// Event args added when a sub schema has been processed.
+    /// The path to the sub schema that was processed.
     /// </summary>
-    public class SubSchemaProcessedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The path to the sub schema that was processed.
-        /// </summary>
-        public JsonPointer Path { get; set; }
+    public JsonPointer Path { get; set; }
 
-        /// <summary>
-        /// The sub schema that was processed.
-        /// </summary>
-        public JsonSchema SubSchema { get; set; }
-    }
+    /// <summary>
+    /// The sub schema that was processed.
+    /// </summary>
+    public JsonSchema SubSchema { get; set; }
 }
