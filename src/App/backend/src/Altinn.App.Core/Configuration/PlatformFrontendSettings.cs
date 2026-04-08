@@ -14,8 +14,7 @@ internal class PlatformFrontendSettings
     /// <summary>
     /// Base URL for the app frontend CDN.
     /// </summary>
-    public Uri AppFrontendCdnBaseUrl { get; set; } =
-        new("https://altinncdn.no/toolkits/altinn-app-frontend");
+    public Uri AppFrontendCdnBaseUrl { get; set; } = new("https://altinncdn.no/toolkits/altinn-app-frontend");
 
     /// <summary>
     /// URL for the Altinn logo SVG.
@@ -25,6 +24,5 @@ internal class PlatformFrontendSettings
     /// <summary>
     /// URL for the help circle illustration SVG.
     /// </summary>
-    public Uri HelpCircleIllustrationUrl { get; set; } =
-        new("https://altinncdn.no/img/illustration-help-circle.svg");
+    public Uri HelpCircleIllustrationUrl { get; set; } = new("https://altinncdn.no/img/illustration-help-circle.svg");
 }
