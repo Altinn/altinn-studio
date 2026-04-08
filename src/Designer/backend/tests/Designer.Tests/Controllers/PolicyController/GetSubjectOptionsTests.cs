@@ -8,38 +8,37 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using PolicyAdmin.Models;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PolicyControllerTests
+namespace Designer.Tests.Controllers.PolicyControllerTests;
+
+public class GetSubjectOptionsTests
+    : DesignerEndpointsTestsBase<GetSubjectOptionsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetSubjectOptionsTests
-        : DesignerEndpointsTestsBase<GetSubjectOptionsTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private readonly string _versionPrefix = "designer/api";
+
+    public GetSubjectOptionsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task Get_SubjectOptions()
     {
-        private readonly string _versionPrefix = "designer/api";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
 
-        public GetSubjectOptionsTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
-
-        [Fact]
-        public async Task Get_SubjectOptions()
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/subjectoptions";
+        List<SubjectOption> subjectionOptions;
+        using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
         {
-            var targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest("ttd", "ttd-resources", "testUser", targetRepository);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy/subjectoptions";
-            List<SubjectOption> subjectionOptions;
-            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
-            {
-                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-
-                subjectionOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(
-                    responseBody,
-                    new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-                );
-            }
-
-            Assert.NotNull(subjectionOptions);
+            subjectionOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(
+                responseBody,
+                new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+            );
         }
+
+        Assert.NotNull(subjectionOptions);
     }
 }

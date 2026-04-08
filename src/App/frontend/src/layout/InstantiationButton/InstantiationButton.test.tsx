@@ -7,12 +7,12 @@ import { userEvent } from '@testing-library/user-event';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 
-const render = async () => {
+const render = async (createWithPrefill: InstanceApi['createWithPrefill']) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
     onEntry: {
       show: 'stateless',
@@ -49,18 +49,23 @@ const render = async () => {
         <InstantiationButtonComponent {...props} />
       </FormProvider>
     ),
+    apis: {
+      instanceApi: {
+        createWithPrefill,
+      },
+    },
   });
 };
 
 describe('InstantiationButton', () => {
   it('should show button and it should be possible to click and start loading', async () => {
-    jest.mocked(InstanceApi.createWithPrefill).mockResolvedValue({
+    const createWithPrefillMock = jest.fn(async () => ({
       ...getInstanceDataMock(),
       id: '512345/abc123',
       process: getProcessDataMock(),
-    });
+    }));
 
-    await render();
+    await render(createWithPrefillMock);
 
     expect(screen.getByText('Instantiate')).toBeInTheDocument();
 
@@ -70,7 +75,7 @@ describe('InstantiationButton', () => {
 
     await userEvent.click(screen.getByRole('button'));
 
-    expect(InstanceApi.createWithPrefill).toHaveBeenCalledTimes(1);
+    expect(createWithPrefillMock).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.getByText('You are now looking at the instance')).toBeInTheDocument();

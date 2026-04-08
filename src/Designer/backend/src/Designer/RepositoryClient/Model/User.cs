@@ -15,171 +15,170 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// User represents a user
+/// </summary>
+[DataContract]
+public partial class User : IEquatable<User>, IValidatableObject
 {
     /// <summary>
-    /// User represents a user
+    /// Initializes a new instance of the <see cref="User"/> class.
     /// </summary>
-    [DataContract]
-    public partial class User : IEquatable<User>, IValidatableObject
+    public User() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="User" /> class.
+    /// </summary>
+    /// <param name="avatarUrl">URL to the user&#39;s avatar.</param>
+    /// <param name="email">Email.</param>
+    /// <param name="fullName">the user&#39;s full name.</param>
+    /// <param name="id">the user&#39;s id.</param>
+    /// <param name="login">the user&#39;s username.</param>
+    public User(
+        string avatarUrl = default(string),
+        string email = default(string),
+        string fullName = default(string),
+        long? id = default(long?),
+        string login = default(string)
+    )
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="User"/> class.
-        /// </summary>
-        public User() { }
+        this.AvatarUrl = avatarUrl;
+        this.Email = email;
+        this.FullName = fullName;
+        this.Id = id;
+        this.Login = login;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="User" /> class.
-        /// </summary>
-        /// <param name="avatarUrl">URL to the user&#39;s avatar.</param>
-        /// <param name="email">Email.</param>
-        /// <param name="fullName">the user&#39;s full name.</param>
-        /// <param name="id">the user&#39;s id.</param>
-        /// <param name="login">the user&#39;s username.</param>
-        public User(
-            string avatarUrl = default(string),
-            string email = default(string),
-            string fullName = default(string),
-            long? id = default(long?),
-            string login = default(string)
-        )
+    /// <summary>
+    /// URL to the user&#39;s avatar
+    /// </summary>
+    [DataMember(Name = "avatar_url", EmitDefaultValue = false)]
+    public string AvatarUrl { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Email
+    /// </summary>
+    [DataMember(Name = "email", EmitDefaultValue = false)]
+    public string Email { get; set; }
+
+    /// <summary>
+    /// the user&#39;s full name
+    /// </summary>
+    [DataMember(Name = "full_name", EmitDefaultValue = false)]
+    public string FullName { get; set; }
+
+    /// <summary>
+    /// the user&#39;s id
+    /// </summary>
+    [DataMember(Name = "id", EmitDefaultValue = false)]
+    public long? Id { get; set; }
+
+    /// <summary>
+    /// the user&#39;s username
+    /// </summary>
+    [DataMember(Name = "login", EmitDefaultValue = false)]
+    public string Login { get; set; }
+
+    /// <summary>
+    /// Sets
+    /// </summary>
+    [DataMember(Name = "userType", EmitDefaultValue = false)]
+    public UserType UserType { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class User {\n");
+        sb.Append("  AvatarUrl: ").Append(AvatarUrl).Append("\n");
+        sb.Append("  Email: ").Append(Email).Append("\n");
+        sb.Append("  FullName: ").Append(FullName).Append("\n");
+        sb.Append("  Id: ").Append(Id).Append("\n");
+        sb.Append("  Login: ").Append(Login).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return Equals(input as User);
+    }
+
+    /// <summary>
+    /// Returns true if User instances are equal
+    /// </summary>
+    /// <param name="input">Instance of User to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(User input)
+    {
+        if (input == null)
         {
-            this.AvatarUrl = avatarUrl;
-            this.Email = email;
-            this.FullName = fullName;
-            this.Id = id;
-            this.Login = login;
+            return false;
         }
 
-        /// <summary>
-        /// URL to the user&#39;s avatar
-        /// </summary>
-        [DataMember(Name = "avatar_url", EmitDefaultValue = false)]
-        public string AvatarUrl { get; set; }
+        return (AvatarUrl == input.AvatarUrl || (AvatarUrl != null && AvatarUrl.Equals(input.AvatarUrl)))
+            && (Email == input.Email || (Email != null && Email.Equals(input.Email)))
+            && (FullName == input.FullName || (FullName != null && FullName.Equals(input.FullName)))
+            && (Id == input.Id || (Id != null && Id.Equals(input.Id)))
+            && (Login == input.Login || (Login != null && Login.Equals(input.Login)));
+    }
 
-        /// <summary>
-        /// Gets or Sets Email
-        /// </summary>
-        [DataMember(Name = "email", EmitDefaultValue = false)]
-        public string Email { get; set; }
-
-        /// <summary>
-        /// the user&#39;s full name
-        /// </summary>
-        [DataMember(Name = "full_name", EmitDefaultValue = false)]
-        public string FullName { get; set; }
-
-        /// <summary>
-        /// the user&#39;s id
-        /// </summary>
-        [DataMember(Name = "id", EmitDefaultValue = false)]
-        public long? Id { get; set; }
-
-        /// <summary>
-        /// the user&#39;s username
-        /// </summary>
-        [DataMember(Name = "login", EmitDefaultValue = false)]
-        public string Login { get; set; }
-
-        /// <summary>
-        /// Sets
-        /// </summary>
-        [DataMember(Name = "userType", EmitDefaultValue = false)]
-        public UserType UserType { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
         {
-            var sb = new StringBuilder();
-            sb.Append("class User {\n");
-            sb.Append("  AvatarUrl: ").Append(AvatarUrl).Append("\n");
-            sb.Append("  Email: ").Append(Email).Append("\n");
-            sb.Append("  FullName: ").Append(FullName).Append("\n");
-            sb.Append("  Id: ").Append(Id).Append("\n");
-            sb.Append("  Login: ").Append(Login).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return Equals(input as User);
-        }
-
-        /// <summary>
-        /// Returns true if User instances are equal
-        /// </summary>
-        /// <param name="input">Instance of User to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(User input)
-        {
-            if (input == null)
+            int hashCode = 41;
+            if (AvatarUrl != null)
             {
-                return false;
+                hashCode = (hashCode * 59) + AvatarUrl.GetHashCode();
             }
 
-            return (AvatarUrl == input.AvatarUrl || (AvatarUrl != null && AvatarUrl.Equals(input.AvatarUrl)))
-                && (Email == input.Email || (Email != null && Email.Equals(input.Email)))
-                && (FullName == input.FullName || (FullName != null && FullName.Equals(input.FullName)))
-                && (Id == input.Id || (Id != null && Id.Equals(input.Id)))
-                && (Login == input.Login || (Login != null && Login.Equals(input.Login)));
-        }
-
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
+            if (Email != null)
             {
-                int hashCode = 41;
-                if (AvatarUrl != null)
-                {
-                    hashCode = (hashCode * 59) + AvatarUrl.GetHashCode();
-                }
-
-                if (Email != null)
-                {
-                    hashCode = (hashCode * 59) + Email.GetHashCode();
-                }
-
-                if (FullName != null)
-                {
-                    hashCode = (hashCode * 59) + FullName.GetHashCode();
-                }
-
-                if (Id != null)
-                {
-                    hashCode = (hashCode * 59) + Id.GetHashCode();
-                }
-
-                if (Login != null)
-                {
-                    hashCode = (hashCode * 59) + Login.GetHashCode();
-                }
-
-                return hashCode;
+                hashCode = (hashCode * 59) + Email.GetHashCode();
             }
-        }
 
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
+            if (FullName != null)
+            {
+                hashCode = (hashCode * 59) + FullName.GetHashCode();
+            }
+
+            if (Id != null)
+            {
+                hashCode = (hashCode * 59) + Id.GetHashCode();
+            }
+
+            if (Login != null)
+            {
+                hashCode = (hashCode * 59) + Login.GetHashCode();
+            }
+
+            return hashCode;
         }
+    }
+
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

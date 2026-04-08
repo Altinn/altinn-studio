@@ -11,30 +11,29 @@
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// Access token
+/// </summary>
+[DataContract]
+public partial class AccessToken
 {
     /// <summary>
-    /// Access token
+    /// Initializes a new instance of the <see cref="AccessToken" /> class.
     /// </summary>
-    [DataContract]
-    public partial class AccessToken
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AccessToken" /> class.
-        /// </summary>
-        [JsonConstructor]
-        protected AccessToken() { }
+    [JsonConstructor]
+    protected AccessToken() { }
 
-        /// <summary>
-        /// Name of the repository to create
-        /// </summary>
-        [DataMember(Name = "name", EmitDefaultValue = false)]
-        public string Name { get; set; }
+    /// <summary>
+    /// Name of the repository to create
+    /// </summary>
+    [DataMember(Name = "name", EmitDefaultValue = false)]
+    public string Name { get; set; }
 
-        /// <summary>
-        /// Name of the repository to create
-        /// </summary>
-        [DataMember(Name = "sha1", EmitDefaultValue = false)]
-        public string Sha1 { get; set; }
-    }
+    /// <summary>
+    /// Name of the repository to create
+    /// </summary>
+    [DataMember(Name = "sha1", EmitDefaultValue = false)]
+    public string Sha1 { get; set; }
 }

@@ -5,7 +5,6 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
@@ -128,13 +127,6 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     });
   });
 
-  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => ({
-    ...getInstanceDataMock((i) => {
-      addAttachment && i.data.push(attachment);
-    }),
-    process: getProcessDataMock(),
-  }));
-
   return await renderWithInstanceAndLayout({
     renderer: (
       <AttachmentSummaryComponent
@@ -157,6 +149,16 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
         availableOptions[url]
           ? Promise.resolve(availableOptions[url])
           : Promise.reject(new Error(`No options available for ${url}`)),
+    },
+    apis: {
+      instanceApi: {
+        getInstance: async () => ({
+          ...getInstanceDataMock((i) => {
+            addAttachment && i.data.push(attachment);
+          }),
+          process: getProcessDataMock(),
+        }),
+      },
     },
   });
 };

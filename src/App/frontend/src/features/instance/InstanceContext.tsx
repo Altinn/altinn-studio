@@ -6,6 +6,7 @@ import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
+import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { invalidateInstanceData } from 'src/core/queries/instance';
@@ -82,12 +83,13 @@ export function useInstanceDataQueryArgs() {
 export function useInstanceDataQuery<R = IInstance>(
   queryOptions: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
+  const instanceApi = useInstanceApi();
   const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
   const hasParams = !!instanceOwnerPartyId && !!instanceGuid;
 
   return useQuery<IInstance, Error, R>({
     ...(hasParams
-      ? instanceDataQuery({ instanceOwnerPartyId, instanceGuid })
+      ? instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi })
       : {
           queryKey: [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
           queryFn: skipToken,

@@ -7,7 +7,6 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
@@ -186,9 +185,6 @@ function setupMocks(test: FunctionTest): void {
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
   jest.mocked(fetchProcessState).mockImplementation(async () => createProcess(test) ?? getProcessDataMock());
-  jest
-    .mocked(InstanceApi.getInstance)
-    .mockImplementation(async () => ({ ...createInstanceData(test), process: getProcessDataMock() }));
 }
 
 function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {
@@ -311,6 +307,11 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
       initialPage: context?.currentLayout ?? 'FormLayout',
       renderer,
       queries,
+      apis: {
+        instanceApi: {
+          getInstance: async () => ({ ...createInstanceData(test), process: getProcessDataMock() }),
+        },
+      },
     });
   }
 }
