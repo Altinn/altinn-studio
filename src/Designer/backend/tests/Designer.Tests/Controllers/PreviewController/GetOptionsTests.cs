@@ -42,28 +42,28 @@ public class GetOptionsTests
         );
     }
 
-        [Fact]
-        public async Task Get_Options_when_code_list_exists_in_organization_library_Ok()
-        {
-            string orgName = "testOrg";
-            string codeListId = "testCodeList";
-            string version = "latest";
-            var orgLibCodeList = GetOrgLibCodeList();
-            _sharedContentClient
-                .Setup(x => x.GetPublishedCodeListForOrg(orgName, codeListId, version, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(orgLibCodeList);
-            string dataPathWithData = $"{Org}/{PreviewApp}/api/options/lib**{orgName}**{codeListId}**{version}";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    [Fact]
+    public async Task Get_Options_when_code_list_exists_in_organization_library_Ok()
+    {
+        string orgName = "testOrg";
+        string codeListId = "testCodeList";
+        string version = "latest";
+        var orgLibCodeList = GetOrgLibCodeList();
+        _sharedContentClient
+            .Setup(x => x.GetPublishedCodeListForOrg(orgName, codeListId, version, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(orgLibCodeList);
+        string dataPathWithData = $"{Org}/{PreviewApp}/api/options/lib**{orgName}**{codeListId}**{version}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            string responseStringWithoutWhitespaces = Regex.Replace(responseBody, @"\s", "");
-            Assert.Equal(
-                @"[{""value"":""testValue"",""label"":""testLabel"",""description"":""testDescription"",""helpText"":""testHelpText""}]",
-                responseStringWithoutWhitespaces
-            );
-        }
+        string responseBody = await response.Content.ReadAsStringAsync();
+        string responseStringWithoutWhitespaces = Regex.Replace(responseBody, @"\s", "");
+        Assert.Equal(
+            @"[{""value"":""testValue"",""label"":""testLabel"",""description"":""testDescription"",""helpText"":""testHelpText""}]",
+            responseStringWithoutWhitespaces
+        );
+    }
 
     [Fact]
     public async Task Get_Options_when_options_exists_for_v4_app_Ok()

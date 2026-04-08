@@ -31,22 +31,22 @@ public class PreviewControllerTestsBase<TTestClass>(WebApplicationFactory<Progra
     protected const string AttachmentGuId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
     protected const string MockedReferrerUrl = "https://studio-mock-url.no";
 
-        protected override void ConfigureTestServices(IServiceCollection services)
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.Configure<SharedContentClientSettings>(c =>
         {
-            base.ConfigureTestServices(services);
-            services.Configure<SharedContentClientSettings>(c =>
-            {
-                c.StorageAccountUrl = "http://test.no";
-                c.StorageContainerName = "storageAccountName";
-            });
-            var cacheServices = services.Where(d => d.ServiceType == typeof(IDistributedCache)).ToList();
-            foreach (ServiceDescriptor serviceDescriptor in cacheServices)
-            {
-                services.Remove(serviceDescriptor);
-            }
-
-            services.AddDistributedMemoryCache();
+            c.StorageAccountUrl = "http://test.no";
+            c.StorageContainerName = "storageAccountName";
+        });
+        var cacheServices = services.Where(d => d.ServiceType == typeof(IDistributedCache)).ToList();
+        foreach (ServiceDescriptor serviceDescriptor in cacheServices)
+        {
+            services.Remove(serviceDescriptor);
         }
+
+        services.AddDistributedMemoryCache();
+    }
 
     protected async Task<Instance> CreateInstance()
     {

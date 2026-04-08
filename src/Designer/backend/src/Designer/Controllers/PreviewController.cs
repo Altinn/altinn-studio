@@ -567,10 +567,7 @@ public partial class PreviewController(
             app,
             developer
         );
-        Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(
-            null,
-            cancellationToken
-        );
+        Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(null, cancellationToken);
         // return as byte array to imitate app backend
         byte[] formLayoutsContent = JsonSerializer.SerializeToUtf8Bytes(formLayouts);
         return new FileContentResult(formLayoutsContent, MimeTypeMap.GetMimeType(".json"));
@@ -617,11 +614,7 @@ public partial class PreviewController(
     /// <returns>Rule handler as string or no content if not found</returns>
     [HttpGet]
     [Route("api/resource/RuleHandler.js")]
-    public async Task<ActionResult<string>> GetRuleHandler(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
+    public async Task<ActionResult<string>> GetRuleHandler(string org, string app, CancellationToken cancellationToken)
     {
         try
         {
@@ -809,8 +802,11 @@ public partial class PreviewController(
             else
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                AltinnAppGitRepository altinnAppGitRepository =
-                    altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    org,
+                    app,
+                    developer
+                );
 
                 string options = await altinnAppGitRepository.GetOptionsList(
                     optionsListIdOrLibraryRef,
@@ -982,8 +978,6 @@ public partial class PreviewController(
         return applicationMetadata;
     }
 
-    [GeneratedRegex(
-        @"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$"
-    )]
+    [GeneratedRegex(@"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$")]
     private static partial Regex LibraryRefRegex();
 }
