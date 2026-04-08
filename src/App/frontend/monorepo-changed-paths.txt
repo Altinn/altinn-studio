@@ -33,8 +33,10 @@ src/features/language/LangDataSourcesProvider.tsx
 src/features/language/LangToolsStore.tsx
 src/features/language/LanguageProvider.tsx
 src/features/language/textResources/
+src/features/navigation/useNavigateToPageWithValidation.ts
 src/features/orgs/OrgsProvider.tsx
 src/features/profile/ProfileProvider.tsx
+src/hooks/usePageValidation.ts
 src/hooks/useWaitForState.ts
 src/index.tsx
 src/layout/Group/__snapshots__/SummaryGroupComponent.test.tsx.snap
