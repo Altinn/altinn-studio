@@ -4,312 +4,269 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.PolicyAdmin.Constants;
 using Altinn.Studio.PolicyAdmin.Models;
 
-namespace Altinn.Studio.PolicyAdmin
+namespace Altinn.Studio.PolicyAdmin;
+
+public static class PolicyConverter
 {
-    public static class PolicyConverter
+    public static ResourcePolicy ConvertPolicy(XacmlPolicy xacmlPolicy)
     {
-        public static ResourcePolicy ConvertPolicy(XacmlPolicy xacmlPolicy)
+        ResourcePolicy policy = new ResourcePolicy();
+        policy.Version = xacmlPolicy.Version;
+        policy.Rules = new List<PolicyRule>();
+
+        foreach (XacmlRule xr in xacmlPolicy.Rules)
         {
-            ResourcePolicy policy = new ResourcePolicy();
-            policy.Version = xacmlPolicy.Version;
-            policy.Rules = new List<PolicyRule>();
+            PolicyRule rule = new PolicyRule();
+            rule.RuleId = xr.RuleId;
+            rule.Description = xr.Description;
 
-            foreach (XacmlRule xr in xacmlPolicy.Rules)
+            rule.Subject = new List<string>();
+            rule.AccessPackages = new List<string>();
+            rule.Actions = new List<string>();
+            rule.Resources = new List<List<string>>();
+
+            if (xr.Target != null)
             {
-                PolicyRule rule = new PolicyRule();
-                rule.RuleId = xr.RuleId;
-                rule.Description = xr.Description;
-
-                rule.Subject = new List<string>();
-                rule.AccessPackages = new List<string>();
-                rule.Actions = new List<string>();
-                rule.Resources = new List<List<string>>();
-
-                if (xr.Target != null)
+                foreach (XacmlAnyOf anyOf in xr.Target.AnyOf)
                 {
-                    foreach (XacmlAnyOf anyOf in xr.Target.AnyOf)
+                    foreach (XacmlAllOf allOf in anyOf.AllOf)
                     {
-                        foreach (XacmlAllOf allOf in anyOf.AllOf)
+                        List<string>? subject = GetRuleSubjects(allOf)
+                            ?.Where(x => !x.StartsWith("urn:altinn:accesspackage"))
+                            .ToList();
+
+                        List<string>? accessPackages = GetRuleSubjects(allOf)
+                            ?.Where(x => x.StartsWith("urn:altinn:accesspackage"))
+                            .ToList();
+
+                        List<string>? resource = GetRuleResources(allOf);
+
+                        List<string>? action = GetRuleActions(allOf);
+
+                        if (subject != null)
                         {
-                            List<string>? subject = GetRuleSubjects(allOf)
-                                ?.Where(x => !x.StartsWith("urn:altinn:accesspackage"))
-                                .ToList();
+                            rule.Subject.AddRange(subject);
+                        }
 
-                            List<string>? accessPackages = GetRuleSubjects(allOf)
-                                ?.Where(x => x.StartsWith("urn:altinn:accesspackage"))
-                                .ToList();
+                        if (accessPackages != null)
+                        {
+                            rule.AccessPackages.AddRange(accessPackages);
+                        }
 
-                            List<string>? resource = GetRuleResources(allOf);
+                        if (action != null)
+                        {
+                            rule.Actions.AddRange(action);
+                        }
 
-                            List<string>? action = GetRuleActions(allOf);
-
-                            if (subject != null)
-                            {
-                                rule.Subject.AddRange(subject);
-                            }
-
-                            if (accessPackages != null)
-                            {
-                                rule.AccessPackages.AddRange(accessPackages);
-                            }
-
-                            if (action != null)
-                            {
-                                rule.Actions.AddRange(action);
-                            }
-
-                            if (resource != null)
-                            {
-                                rule.Resources.Add(resource);
-                            }
+                        if (resource != null)
+                        {
+                            rule.Resources.Add(resource);
                         }
                     }
                 }
-
-                policy.Rules.Add(rule);
             }
 
-            GetObligations(xacmlPolicy, policy);
-
-            return policy;
+            policy.Rules.Add(rule);
         }
 
-        private static void GetObligations(XacmlPolicy xacmlPolicy, ResourcePolicy policy)
+        GetObligations(xacmlPolicy, policy);
+
+        return policy;
+    }
+
+    private static void GetObligations(XacmlPolicy xacmlPolicy, ResourcePolicy policy)
+    {
+        foreach (XacmlObligationExpression obligationExpression in xacmlPolicy.ObligationExpressions)
         {
-            foreach (XacmlObligationExpression obligationExpression in xacmlPolicy.ObligationExpressions)
+            foreach (
+                XacmlAttributeAssignmentExpression attributeAssignmentExpression in obligationExpression.AttributeAssignmentExpressions
+            )
             {
-                foreach (
-                    XacmlAttributeAssignmentExpression attributeAssignmentExpression in obligationExpression.AttributeAssignmentExpressions
-                )
-                {
-                    if (
-                        attributeAssignmentExpression.Category.AbsoluteUri.Equals(
-                            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel
-                        )
+                if (
+                    attributeAssignmentExpression.Category.AbsoluteUri.Equals(
+                        AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel
                     )
+                )
+                {
+                    XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
+                    if (astr != null)
                     {
-                        XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
-                        if (astr != null)
-                        {
-                            policy.RequiredAuthenticationLevelEndUser = astr.Value;
-                        }
+                        policy.RequiredAuthenticationLevelEndUser = astr.Value;
                     }
+                }
 
-                    if (
-                        attributeAssignmentExpression.Category.AbsoluteUri.Equals(
-                            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
-                        )
+                if (
+                    attributeAssignmentExpression.Category.AbsoluteUri.Equals(
+                        AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
                     )
+                )
+                {
+                    XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
+                    if (astr != null)
                     {
-                        XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
-                        if (astr != null)
-                        {
-                            policy.RequiredAuthenticationLevelOrg = astr.Value;
-                        }
+                        policy.RequiredAuthenticationLevelOrg = astr.Value;
                     }
                 }
             }
         }
+    }
 
-        private static List<string>? GetRuleActions(XacmlAllOf allOf)
-        {
-            List<string>? action = null;
+    private static List<string>? GetRuleActions(XacmlAllOf allOf)
+    {
+        List<string>? action = null;
 
-            foreach (
-                XacmlMatch match in allOf.Matches.Where(m =>
-                    m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)
-                )
+        foreach (
+            XacmlMatch match in allOf.Matches.Where(m =>
+                m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)
             )
+        )
+        {
+            if (action == null)
             {
-                if (action == null)
-                {
-                    action = new List<string>();
-                }
-
-                action.Add(match.AttributeValue.Value);
+                action = new List<string>();
             }
 
-            return action;
+            action.Add(match.AttributeValue.Value);
         }
 
-        private static List<string>? GetRuleResources(XacmlAllOf allOf)
-        {
-            List<string>? resource = null;
+        return action;
+    }
 
-            foreach (
-                XacmlMatch match in allOf.Matches.Where(m =>
-                    m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)
-                )
+    private static List<string>? GetRuleResources(XacmlAllOf allOf)
+    {
+        List<string>? resource = null;
+
+        foreach (
+            XacmlMatch match in allOf.Matches.Where(m =>
+                m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)
             )
+        )
+        {
+            if (resource == null)
             {
-                if (resource == null)
-                {
-                    resource = new List<string>();
-                }
-
-                resource.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
+                resource = new List<string>();
             }
 
-            return resource;
+            resource.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
         }
 
-        private static List<string>? GetRuleSubjects(XacmlAllOf allOf)
-        {
-            List<string>? subject = null;
+        return resource;
+    }
 
-            foreach (
-                XacmlMatch match in allOf.Matches.Where(m =>
-                    m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)
-                )
+    private static List<string>? GetRuleSubjects(XacmlAllOf allOf)
+    {
+        List<string>? subject = null;
+
+        foreach (
+            XacmlMatch match in allOf.Matches.Where(m =>
+                m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)
             )
+        )
+        {
+            if (subject == null)
             {
-                if (subject == null)
-                {
-                    subject = new List<string>();
-                }
-
-                subject.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
+                subject = new List<string>();
             }
 
-            return subject;
+            subject.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
         }
 
-        public static XacmlPolicy ConvertPolicy(ResourcePolicy? policyInput)
+        return subject;
+    }
+
+    public static XacmlPolicy ConvertPolicy(ResourcePolicy? policyInput)
+    {
+        XacmlPolicy policyOutput = new XacmlPolicy(
+            new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"),
+            new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides),
+            new XacmlTarget(new List<XacmlAnyOf>())
+        );
+
+        if (policyInput == null)
         {
-            XacmlPolicy policyOutput = new XacmlPolicy(
-                new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"),
-                new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides),
-                new XacmlTarget(new List<XacmlAnyOf>())
-            );
-
-            if (policyInput == null)
-            {
-                return policyOutput;
-            }
-
-            policyOutput.Version = policyInput.Version;
-
-            if (policyInput.Rules != null && policyInput.Rules.Count > 0)
-            {
-                foreach (PolicyRule rule in policyInput.Rules)
-                {
-                    policyOutput.Rules.Add(ConvertRule(rule));
-                }
-            }
-            else
-            {
-                // Add empty rule in XACML since a rule is required when loading document.
-                XacmlRule rule = new XacmlRule("1", XacmlEffectType.Permit);
-                rule.Description = "Empty rule. Not Valid";
-                policyOutput.Rules.Add(rule);
-            }
-
-            if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelEndUser))
-            {
-                policyOutput.ObligationExpressions.Add(
-                    GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser)
-                );
-            }
-
-            if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelOrg))
-            {
-                policyOutput.ObligationExpressions.Add(
-                    GetAuthenticationLevelObligationOrg(policyInput.RequiredAuthenticationLevelOrg)
-                );
-            }
-
             return policyOutput;
         }
 
-        private static XacmlRule ConvertRule(PolicyRule policyRule)
+        policyOutput.Version = policyInput.Version;
+
+        if (policyInput.Rules != null && policyInput.Rules.Count > 0)
         {
-            XacmlRule xacmlRule = new XacmlRule(policyRule.RuleId, XacmlEffectType.Permit);
-            xacmlRule.Description = policyRule.Description;
-
-            List<XacmlAnyOf> ruleAnyOfs = new List<XacmlAnyOf>();
-            List<string> subjects = [];
-            if (policyRule.Subject != null && policyRule.Subject.Count > 0)
+            foreach (PolicyRule rule in policyInput.Rules)
             {
-                subjects.AddRange(policyRule.Subject);
+                policyOutput.Rules.Add(ConvertRule(rule));
             }
-            if (policyRule.AccessPackages != null && policyRule.AccessPackages.Count > 0)
-            {
-                subjects.AddRange(policyRule.AccessPackages);
-            }
-            if (subjects.Count > 0)
-            {
-                ruleAnyOfs.Add(GetSubjectAnyOfs(subjects));
-            }
-
-            if (policyRule.Resources != null && policyRule.Resources.Count > 0)
-            {
-                ruleAnyOfs.Add(GetResourceAnyOfs(policyRule.Resources));
-            }
-
-            if (policyRule.Actions != null && policyRule.Actions.Count > 0)
-            {
-                ruleAnyOfs.Add(GetActionAnyOfs(policyRule.Actions));
-            }
-
-            xacmlRule.Target = new XacmlTarget(ruleAnyOfs);
-
-            return xacmlRule;
+        }
+        else
+        {
+            // Add empty rule in XACML since a rule is required when loading document.
+            XacmlRule rule = new XacmlRule("1", XacmlEffectType.Permit);
+            rule.Description = "Empty rule. Not Valid";
+            policyOutput.Rules.Add(rule);
         }
 
-        private static XacmlAnyOf GetResourceAnyOfs(List<List<string>> resources)
+        if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelEndUser))
         {
-            List<XacmlAllOf> resourceAllOfs = new List<XacmlAllOf>();
-            foreach (List<string> resource in resources)
-            {
-                List<XacmlMatch> matches = new List<XacmlMatch>();
-                foreach (string res in resource)
-                {
-                    int splitLocation = res.LastIndexOf(":");
-                    string attributeDesignator = res.Substring(0, splitLocation);
-                    string attributeValue = res.Substring(splitLocation + 1);
-
-                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
-                        new Uri(XacmlConstants.DataTypes.XMLString)
-                    );
-                    xacmlAttributeValue.Value = attributeValue;
-
-                    XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(
-                        new Uri(attributeDesignator),
-                        new Uri(XacmlConstants.DataTypes.XMLString)
-                    );
-                    xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Resource);
-                    xacmlAttributeDesignator.MustBePresent = false;
-
-                    XacmlMatch xacmlMatch = new XacmlMatch(
-                        new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
-                        xacmlAttributeValue,
-                        xacmlAttributeDesignator
-                    );
-                    matches.Add(xacmlMatch);
-                }
-
-                XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
-                resourceAllOfs.Add(xacmlAllOf);
-            }
-
-            return new XacmlAnyOf(resourceAllOfs);
+            policyOutput.ObligationExpressions.Add(
+                GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser)
+            );
         }
 
-        private static XacmlAnyOf GetSubjectAnyOfs(List<string> subjects)
+        if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelOrg))
         {
-            List<XacmlAllOf> subjectAllOfs = new List<XacmlAllOf>();
-            foreach (string subject in subjects)
-            {
-                List<XacmlMatch> matches = new List<XacmlMatch>();
-                int splitLocation = subject.LastIndexOf(':');
-                if (subject.StartsWith("urn:altinn:access-list", StringComparison.OrdinalIgnoreCase))
-                {
-                    // if using access-list subject, set urn:altinn:access-list as attributeDesignator and <org>:<list_identifier> as attributeValue
-                    splitLocation = subject.Substring(0, splitLocation).LastIndexOf(':');
-                }
+            policyOutput.ObligationExpressions.Add(
+                GetAuthenticationLevelObligationOrg(policyInput.RequiredAuthenticationLevelOrg)
+            );
+        }
 
-                string attributeDesignator = subject.Substring(0, splitLocation);
-                string attributeValue = subject.Substring(splitLocation + 1);
+        return policyOutput;
+    }
+
+    private static XacmlRule ConvertRule(PolicyRule policyRule)
+    {
+        XacmlRule xacmlRule = new XacmlRule(policyRule.RuleId, XacmlEffectType.Permit);
+        xacmlRule.Description = policyRule.Description;
+
+        List<XacmlAnyOf> ruleAnyOfs = new List<XacmlAnyOf>();
+        List<string> subjects = [];
+        if (policyRule.Subject != null && policyRule.Subject.Count > 0)
+        {
+            subjects.AddRange(policyRule.Subject);
+        }
+        if (policyRule.AccessPackages != null && policyRule.AccessPackages.Count > 0)
+        {
+            subjects.AddRange(policyRule.AccessPackages);
+        }
+        if (subjects.Count > 0)
+        {
+            ruleAnyOfs.Add(GetSubjectAnyOfs(subjects));
+        }
+
+        if (policyRule.Resources != null && policyRule.Resources.Count > 0)
+        {
+            ruleAnyOfs.Add(GetResourceAnyOfs(policyRule.Resources));
+        }
+
+        if (policyRule.Actions != null && policyRule.Actions.Count > 0)
+        {
+            ruleAnyOfs.Add(GetActionAnyOfs(policyRule.Actions));
+        }
+
+        xacmlRule.Target = new XacmlTarget(ruleAnyOfs);
+
+        return xacmlRule;
+    }
+
+    private static XacmlAnyOf GetResourceAnyOfs(List<List<string>> resources)
+    {
+        List<XacmlAllOf> resourceAllOfs = new List<XacmlAllOf>();
+        foreach (List<string> resource in resources)
+        {
+            List<XacmlMatch> matches = new List<XacmlMatch>();
+            foreach (string res in resource)
+            {
+                int splitLocation = res.LastIndexOf(":");
+                string attributeDesignator = res.Substring(0, splitLocation);
+                string attributeValue = res.Substring(splitLocation + 1);
 
                 XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
                     new Uri(XacmlConstants.DataTypes.XMLString)
@@ -320,93 +277,139 @@ namespace Altinn.Studio.PolicyAdmin
                     new Uri(attributeDesignator),
                     new Uri(XacmlConstants.DataTypes.XMLString)
                 );
-                xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Subject);
+                xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Resource);
                 xacmlAttributeDesignator.MustBePresent = false;
 
                 XacmlMatch xacmlMatch = new XacmlMatch(
-                    new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase),
+                    new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
                     xacmlAttributeValue,
                     xacmlAttributeDesignator
                 );
                 matches.Add(xacmlMatch);
-
-                XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
-                subjectAllOfs.Add(xacmlAllOf);
             }
 
-            return new XacmlAnyOf(subjectAllOfs);
+            XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
+            resourceAllOfs.Add(xacmlAllOf);
         }
 
-        private static XacmlAnyOf GetActionAnyOfs(List<string> actions)
-        {
-            List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();
+        return new XacmlAnyOf(resourceAllOfs);
+    }
 
-            foreach (string action in actions)
+    private static XacmlAnyOf GetSubjectAnyOfs(List<string> subjects)
+    {
+        List<XacmlAllOf> subjectAllOfs = new List<XacmlAllOf>();
+        foreach (string subject in subjects)
+        {
+            List<XacmlMatch> matches = new List<XacmlMatch>();
+            int splitLocation = subject.LastIndexOf(':');
+            if (subject.StartsWith("urn:altinn:access-list", StringComparison.OrdinalIgnoreCase))
             {
-                List<XacmlMatch> matches = new List<XacmlMatch>();
-                XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
-                    new Uri(XacmlConstants.DataTypes.XMLString)
-                );
-                xacmlAttributeValue.Value = action;
-
-                XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(
-                    new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId),
-                    new Uri(XacmlConstants.DataTypes.XMLString)
-                );
-                xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
-                xacmlAttributeDesignator.MustBePresent = false;
-
-                XacmlMatch xacmlMatch = new XacmlMatch(
-                    new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase),
-                    xacmlAttributeValue,
-                    xacmlAttributeDesignator
-                );
-                matches.Add(xacmlMatch);
-                XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
-                actionAllOfs.Add(xacmlAllOf);
+                // if using access-list subject, set urn:altinn:access-list as attributeDesignator and <org>:<list_identifier> as attributeValue
+                splitLocation = subject.Substring(0, splitLocation).LastIndexOf(':');
             }
 
-            return new XacmlAnyOf(actionAllOfs);
+            string attributeDesignator = subject.Substring(0, splitLocation);
+            string attributeValue = subject.Substring(splitLocation + 1);
+
+            XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
+                new Uri(XacmlConstants.DataTypes.XMLString)
+            );
+            xacmlAttributeValue.Value = attributeValue;
+
+            XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(
+                new Uri(attributeDesignator),
+                new Uri(XacmlConstants.DataTypes.XMLString)
+            );
+            xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Subject);
+            xacmlAttributeDesignator.MustBePresent = false;
+
+            XacmlMatch xacmlMatch = new XacmlMatch(
+                new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase),
+                xacmlAttributeValue,
+                xacmlAttributeDesignator
+            );
+            matches.Add(xacmlMatch);
+
+            XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
+            subjectAllOfs.Add(xacmlAllOf);
         }
 
-        private static XacmlObligationExpression GetAuthenticationLevelObligation(string level)
+        return new XacmlAnyOf(subjectAllOfs);
+    }
+
+    private static XacmlAnyOf GetActionAnyOfs(List<string> actions)
+    {
+        List<XacmlAllOf> actionAllOfs = new List<XacmlAllOf>();
+
+        foreach (string action in actions)
         {
-            XacmlObligationExpression expression = new XacmlObligationExpression(
-                new Uri("urn:altinn:obligation:authenticationLevel1"),
-                XacmlEffectType.Permit
+            List<XacmlMatch> matches = new List<XacmlMatch>();
+            XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
+                new Uri(XacmlConstants.DataTypes.XMLString)
             );
+            xacmlAttributeValue.Value = action;
 
-            XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
-            astr.Value = level;
-
-            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression =
-                new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), astr);
-            xacmlAttributeAssignmentExpression.Category = new Uri(
-                AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel
+            XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(
+                new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId),
+                new Uri(XacmlConstants.DataTypes.XMLString)
             );
-            expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
-            expression.FulfillOn = XacmlEffectType.Permit;
-            return expression;
+            xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
+            xacmlAttributeDesignator.MustBePresent = false;
+
+            XacmlMatch xacmlMatch = new XacmlMatch(
+                new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase),
+                xacmlAttributeValue,
+                xacmlAttributeDesignator
+            );
+            matches.Add(xacmlMatch);
+            XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
+            actionAllOfs.Add(xacmlAllOf);
         }
 
-        private static XacmlObligationExpression GetAuthenticationLevelObligationOrg(string level)
-        {
-            XacmlObligationExpression expression = new XacmlObligationExpression(
-                new Uri("urn:altinn:obligation:authenticationLevel2"),
-                XacmlEffectType.Permit
-            );
+        return new XacmlAnyOf(actionAllOfs);
+    }
 
-            XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
-            astr.Value = level;
+    private static XacmlObligationExpression GetAuthenticationLevelObligation(string level)
+    {
+        XacmlObligationExpression expression = new XacmlObligationExpression(
+            new Uri("urn:altinn:obligation:authenticationLevel1"),
+            XacmlEffectType.Permit
+        );
 
-            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression =
-                new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation2-assignment2"), astr);
-            xacmlAttributeAssignmentExpression.Category = new Uri(
-                AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
-            );
-            expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
-            expression.FulfillOn = XacmlEffectType.Permit;
-            return expression;
-        }
+        XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
+        astr.Value = level;
+
+        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(
+            new Uri("urn:altinn:obligation1-assignment1"),
+            astr
+        );
+        xacmlAttributeAssignmentExpression.Category = new Uri(
+            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel
+        );
+        expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
+        expression.FulfillOn = XacmlEffectType.Permit;
+        return expression;
+    }
+
+    private static XacmlObligationExpression GetAuthenticationLevelObligationOrg(string level)
+    {
+        XacmlObligationExpression expression = new XacmlObligationExpression(
+            new Uri("urn:altinn:obligation:authenticationLevel2"),
+            XacmlEffectType.Permit
+        );
+
+        XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
+        astr.Value = level;
+
+        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(
+            new Uri("urn:altinn:obligation2-assignment2"),
+            astr
+        );
+        xacmlAttributeAssignmentExpression.Category = new Uri(
+            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
+        );
+        expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
+        expression.FulfillOn = XacmlEffectType.Permit;
+        return expression;
     }
 }

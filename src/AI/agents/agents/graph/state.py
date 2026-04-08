@@ -89,5 +89,6 @@ class AgentState(BaseModel):
     changed_files: List[str] = []
     verify_notes: List[str] = []
     tests_passed: Optional[bool] = None
+    mcp_degraded: bool = False  # True when MCP went down mid-request — results may be incomplete
     next_action: Literal["plan", "scan", "spec", "act", "verify", "review", "stop"] = "plan"
     limits: Dict[str, Any] = {"max_files": 50, "max_lines": 2000}  # Altinn apps need multiple files (layout, resources, models)

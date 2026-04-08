@@ -8,47 +8,45 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.ConfigController
+namespace Designer.Tests.Controllers.ConfigController;
+
+public class SetServiceConfigTests
+    : DesignerEndpointsTestsBase<SetServiceConfigTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class SetServiceConfigTests
-        : DesignerEndpointsTestsBase<SetServiceConfigTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
+
+    public SetServiceConfigTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Theory]
+    [InlineData("ttd", "hvem-er-hvem", "testUser")]
+    public async Task SetServiceConfig_OK(string org, string app, string developer)
     {
-        private static string VersionPrefix(string org, string repository) =>
-            $"/designer/api/{org}/{repository}/config";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-        public SetServiceConfigTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        string dataPathWithData = VersionPrefix(org, targetRepository);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
+        httpRequestMessage.Content = JsonContent.Create(
+            new
+            {
+                serviceName = "Alternative-form-name",
+                serviceDescription = "",
+                serviceId = "",
+            }
+        );
 
-        [Theory]
-        [InlineData("ttd", "hvem-er-hvem", "testUser")]
-        public async Task SetServiceConfig_OK(string org, string app, string developer)
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        response.EnsureSuccessStatusCode();
+        ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(
+            TestRepositoriesLocation,
+            org,
+            targetRepository,
+            "testUser"
+        );
 
-            string dataPathWithData = VersionPrefix(org, targetRepository);
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Content = JsonContent.Create(
-                new
-                {
-                    serviceName = "Alternative-form-name",
-                    serviceDescription = "",
-                    serviceId = "",
-                }
-            );
-
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-            ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(
-                TestRepositoriesLocation,
-                org,
-                targetRepository,
-                "testUser"
-            );
-
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-            Assert.Equal("Alternative-form-name", serviceConfiguration.ServiceName);
-        }
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal("Alternative-form-name", serviceConfiguration.ServiceName);
     }
 }

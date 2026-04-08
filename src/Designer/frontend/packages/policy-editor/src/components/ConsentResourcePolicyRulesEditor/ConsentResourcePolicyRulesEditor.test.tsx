@@ -13,6 +13,7 @@ import {
   CONSENT_ACTION,
   REQUEST_CONSENT_ACTION,
 } from '@altinn/policy-editor/constants';
+import type { PolicyRuleCard } from '@altinn/policy-editor/types';
 
 const accessListSubject = {
   id: 'test-liste',
@@ -43,16 +44,17 @@ const accessListSubject2 = {
 };
 
 const resourceId = 'consent-resource';
-const requestConsentRule = {
+const requestConsentRule: PolicyRuleCard = {
   ...emptyPolicyRule,
   subject: [],
   actions: [REQUEST_CONSENT_ACTION],
   ruleId: '1',
   resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
 };
-const acceptConsentRule = {
+const acceptConsentRule: PolicyRuleCard = {
   ...emptyPolicyRule,
-  subject: [],
+  subject: ['urn:altinn:rolecode:s1'],
+  accessPackages: ['urn:altinn:accesspackage:test'],
   actions: [CONSENT_ACTION],
   ruleId: '2',
   resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
@@ -70,7 +72,10 @@ describe('ConsentResourcePolicyRulesEditor', () => {
   });
 
   it('should display error if no subject is set in rule for consenting', () => {
-    renderConsentResourcePolicyRulesEditor({ showAllErrors: true });
+    renderConsentResourcePolicyRulesEditor({
+      showAllErrors: true,
+      policyRules: [requestConsentRule, { ...acceptConsentRule, subject: [], accessPackages: [] }],
+    });
 
     expect(
       screen.getByText(
