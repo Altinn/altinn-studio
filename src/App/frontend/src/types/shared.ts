@@ -9,10 +9,6 @@ export interface IAltinnOrg {
   environments: string[];
 }
 
-export interface IAltinnOrgs {
-  [org: string]: IAltinnOrg;
-}
-
 export interface IApplicationLogic {
   allowAnonymousOnStateless?: boolean | null;
   autoCreate?: boolean | null;
