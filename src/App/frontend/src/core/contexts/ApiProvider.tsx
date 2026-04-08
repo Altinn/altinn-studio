@@ -18,13 +18,14 @@ interface ApiProviderProps extends PropsWithChildren {
 
 const defaultApis: ApiClients = {
   partyApi,
+  instanceApi,
   textResourcesApi,
 };
 
 const { Provider, useCtx } = createContext<ApiClients>({
   name: 'ApiProvider',
   required: false,
-  default: { partyApi, instanceApi },
+  default: { partyApi, instanceApi, textResourcesApi },
 });
 
 export function ApiProvider({ children, apis }: ApiProviderProps) {
