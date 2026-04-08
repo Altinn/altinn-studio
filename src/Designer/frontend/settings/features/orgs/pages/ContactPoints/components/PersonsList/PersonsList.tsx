@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
@@ -7,9 +7,7 @@ import { ActionsCell } from '../ActionsCell/ActionsCell';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { PersonDialog } from './PersonDialog/PersonDialog';
 import type { Person } from './PersonDialog/PersonDialog';
-import { personToPayload, contactPointToPerson } from './personUtils';
-import { useAddContactPointMutation } from '../../../../hooks/useAddContactPointMutation';
-import { useUpdateContactPointMutation } from '../../../../hooks/useUpdateContactPointMutation';
+import { contactPointToPerson } from './personUtils';
 import { useToggleContactPointActiveMutation } from '../../../../hooks/useToggleContactPointActiveMutation';
 import { useDeleteContactPointMutation } from '../../../../hooks/useDeleteContactPointMutation';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
@@ -30,47 +28,26 @@ const createEmptyPerson = (availableEnvironments: string[]): Person => ({
 
 export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [personForm, setPersonForm] = useState<Person>(createEmptyPerson([]));
+  const [isOpen, setIsOpen] = useState(false);
+  const [initialValue, setInitialValue] = useState<Person>(createEmptyPerson([]));
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { mutate: addPerson, isPending: isAdding } = useAddContactPointMutation(org);
-  const { mutate: updatePerson, isPending: isUpdating } = useUpdateContactPointMutation(org);
   const { mutate: toggleActive } = useToggleContactPointActiveMutation(org);
   const { mutate: deletePerson } = useDeleteContactPointMutation(org);
 
   const { data: orgs } = useOrgListQuery();
   const availableEnvironments = orgs?.[org]?.environments ?? [];
 
-  const isSaving = isAdding || isUpdating;
-
   const openAddDialog = () => {
-    setPersonForm(createEmptyPerson(availableEnvironments));
+    setInitialValue(createEmptyPerson(availableEnvironments));
     setEditingId(null);
-    dialogRef.current?.showModal();
+    setIsOpen(true);
   };
 
   const openEditDialog = (person: ContactPoint) => {
-    setPersonForm(contactPointToPerson(person));
+    setInitialValue(contactPointToPerson(person));
     setEditingId(person.id);
-    dialogRef.current?.showModal();
-  };
-
-  const closeDialog = () => {
-    dialogRef.current?.close();
-  };
-
-  const handleFieldChange = (field: keyof Person, value: string | boolean | string[]) => {
-    setPersonForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = () => {
-    const payload = personToPayload(personForm);
-    if (editingId) {
-      updatePerson({ id: editingId, payload }, { onSuccess: closeDialog });
-    } else {
-      addPerson(payload, { onSuccess: closeDialog });
-    }
+    setIsOpen(true);
   };
 
   const handleToggleActive = (person: ContactPoint) => {
@@ -123,6 +100,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
                   onEdit={() => openEditDialog(person)}
                   onDelete={() => deletePerson(person.id)}
                   editAriaLabel={t('settings.orgs.contact_points.dialog_edit_person_title')}
+                  itemName={person.name}
                 />
               </StudioTable.Row>
             );
@@ -130,16 +108,15 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
         </StudioTable.Body>
       </StudioTable>
       <AddButton onClick={openAddDialog}>{t('settings.orgs.contact_points.add_contact')}</AddButton>
-      <PersonDialog
-        dialogRef={dialogRef}
-        person={personForm}
-        availableEnvironments={availableEnvironments}
-        onFieldChange={handleFieldChange}
-        onSave={handleSave}
-        onClose={closeDialog}
-        isEditing={editingId !== null}
-        isSaving={isSaving}
-      />
+      {isOpen && (
+        <PersonDialog
+          initialValue={initialValue}
+          availableEnvironments={availableEnvironments}
+          org={org}
+          editingId={editingId}
+          onClose={() => setIsOpen(false)}
+        />
+      )}
     </>
   );
 };

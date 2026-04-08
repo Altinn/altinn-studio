@@ -63,7 +63,7 @@ export const filterDropdownList = (dropdown, query) => {
     for (const item of dropdown.querySelectorAll('.dropdown-item')) {
         /** @type {HTMLElement} */ (item).classList.toggle(
             'hidden',
-            q !== '' && !/** @type {HTMLElement} */ ((item).dataset.value || '').includes(q),
+            q !== '' && !(/** @type {HTMLElement} */ (item.dataset.value || '').includes(q)),
         );
     }
 };

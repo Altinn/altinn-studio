@@ -27,8 +27,13 @@ def register_tools(mcp: FastMCP) -> List[str]:
     from .resource_tool.wrapper import resource_docs, resource_validate
     from .prefill_tool.wrapper import prefill_docs
     from .dynamic_expression_tool.wrapper import expression_docs
+    from .status_tool.wrapper import server_status
     
     from .types import get_tool_registry
+    
+    # Pre-initialize documentation index in background thread
+    from .planning_tool.doc_search import start_background_indexing
+    start_background_indexing()
     
     registered = []
     

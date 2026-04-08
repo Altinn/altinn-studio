@@ -28,6 +28,7 @@
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
     "lint": "yarn gen && eslint .",
+    "lint:fix": "yarn run lint --fix",
     "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}",
     "lhci": "lhci autorun",
     "k6:check": "tsx test/e2e/k6-browser/check-k6-setup.ts",

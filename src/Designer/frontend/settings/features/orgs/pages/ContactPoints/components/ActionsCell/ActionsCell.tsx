@@ -8,12 +8,14 @@ type ActionsCellProps = {
   onEdit: () => void;
   onDelete: () => void;
   editAriaLabel: string;
+  itemName: string;
 };
 
 export const ActionsCell = ({
   onEdit,
   onDelete,
   editAriaLabel,
+  itemName,
 }: ActionsCellProps): ReactElement => {
   const { t } = useTranslation();
   return (
@@ -25,6 +27,7 @@ export const ActionsCell = ({
         aria-label={editAriaLabel}
       />
       <StudioDeleteButton
+        aria-label={t('settings.orgs.contact_points.delete', { name: itemName })}
         onDelete={onDelete}
         confirmMessage={t('settings.orgs.contact_points.delete_confirm')}
       />
