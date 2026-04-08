@@ -2,20 +2,17 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { fetchFreshInstanceData } from 'src/core/queries/instance';
+import { prefetchInstanceData } from 'src/core/queries/instance';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 
-export function taskLoader(queryClient: QueryClient) {
-  return async function loader({ params }: LoaderFunctionArgs) {
+export function taskLoader(queryClient: QueryClient, instanceApi: InstanceApi) {
+  return function loader({ params }: LoaderFunctionArgs) {
     const { instanceOwnerPartyId, instanceGuid } = params;
-
-    // Always fetch fresh instance data when navigating to a task.
-    // This ensures the cached process state matches the task in the URL,
-    // preventing a flash of the wrong-task error during transitions
-    // (e.g., when Feedback polling detects an external process change).
+    // Fire-and-forget: warm the cache without blocking route rendering.
+    // Instance and process data should already be cached from the parent instance loader.
     if (instanceOwnerPartyId && instanceGuid) {
-      await fetchFreshInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid });
+      prefetchInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid, instanceApi });
     }
-
     return null;
   };
 }

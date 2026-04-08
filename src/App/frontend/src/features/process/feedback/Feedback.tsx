@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { InstanceApi } from 'src/core/api-client/instance.api';
+import { instanceApi } from 'src/core/api-client/instance.api';
 import { useCurrentInstance } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
@@ -28,7 +28,7 @@ export function Feedback() {
     // This avoids updating the shared query cache, which would cause ProcessWrapper
     // to briefly see new process data while the URL still points to the feedback task,
     // resulting in a flash of the NavigationError.
-    const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
+    const instance = await instanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
     const process = instance.process;
 
     let navigateTo: undefined | string;

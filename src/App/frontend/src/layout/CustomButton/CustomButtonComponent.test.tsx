@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CustomAction } from 'src/layout/CustomButton/config.generated';
@@ -125,46 +125,15 @@ type RenderProps = {
 };
 
 async function render({ actions, actionAuthorization }: RenderProps = { actionAuthorization: [] }) {
-  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => ({
-    ...getInstanceDataMock(),
-    process: {
-      started: '2024-01-03T06:52:49.716640678Z',
-      ended: null,
-      endEvent: null,
-      startEvent: '2024-01-03T06:52:49.716640678Z',
-      currentTask: {
-        userActions: [
-          {
-            id: 'read',
-            authorized: true,
-            type: 'ProcessAction',
-          },
-          {
-            id: 'write',
-            authorized: true,
-            type: 'ProcessAction',
-          },
-          {
-            id: 'complete',
-            authorized: false,
-            type: 'ProcessAction',
-          },
-          ...(actionAuthorization ?? []),
-        ],
-        read: true,
-        write: true,
-        flow: 2,
-        started: '2024-01-03T06:37:22.7573522Z',
-        elementId: 'Task_1',
-        elementType: 'Task',
-        name: 'Utfylling',
-        altinnTaskType: 'data',
-        ended: null,
-        validated: null,
-        flowType: 'CompleteCurrentMoveToNext',
-      },
-    },
-  }));
+  const process = getProcessDataMock((p) => {
+    p.currentTask!.userActions = [
+      { id: 'read', authorized: true, type: 'ProcessAction' },
+      { id: 'write', authorized: true, type: 'ProcessAction' },
+      { id: 'complete', authorized: false, type: 'ProcessAction' },
+      ...(actionAuthorization ?? []),
+    ];
+  });
+  const instanceData = { ...getInstanceDataMock(), process };
 
   await renderGenericComponentTest({
     type: 'CustomButton',
@@ -174,6 +143,11 @@ async function render({ actions, actionAuthorization }: RenderProps = { actionAu
         title: 'Custom button',
       },
       actions,
+    },
+    apis: {
+      instanceApi: {
+        getInstance: async () => instanceData,
+      },
     },
   });
 }

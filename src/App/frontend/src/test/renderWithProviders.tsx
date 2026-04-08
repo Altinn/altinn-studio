@@ -11,6 +11,7 @@ import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
@@ -29,6 +30,7 @@ import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffe
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { PartyApi } from 'src/core/api-client/party.api';
 import type { ApiClients } from 'src/core/contexts/ApiProvider';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
@@ -40,6 +42,7 @@ import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/ty
 
 type ApiOverrides = Partial<{
   partyApi: Partial<PartyApi>;
+  instanceApi: Partial<InstanceApi>;
 }>;
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
@@ -146,6 +149,12 @@ const defaultApiMocks: ApiClients = {
   partyApi: {
     getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
     setSelectedParty: async () => 'Party successfully updated',
+  },
+  instanceApi: {
+    getInstance: async () => getInstanceWithProcessMock(),
+    getActiveInstances: async () => [],
+    create: async () => getInstanceWithProcessMock(),
+    createWithPrefill: async () => getInstanceWithProcessMock(),
   },
 };
 
@@ -400,6 +409,10 @@ export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {
     partyApi: {
       ...defaultApiMocks.partyApi,
       ...apis?.partyApi,
+    },
+    instanceApi: {
+      ...defaultApiMocks.instanceApi,
+      ...apis?.instanceApi,
     },
   };
 

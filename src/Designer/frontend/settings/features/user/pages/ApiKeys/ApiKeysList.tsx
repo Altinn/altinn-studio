@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import {
   StudioDeleteButton,
   StudioError,
-  StudioParagraph,
   StudioSpinner,
   StudioTable,
   StudioTag,
@@ -33,7 +32,7 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
   } = useDeleteUserApiKeyMutation();
 
   const sortedApiKeys = useMemo(
-    () => [...(apiKeys ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    () => [...(apiKeys ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     [apiKeys],
   );
 
@@ -43,10 +42,6 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
 
   if (isError) {
     return <StudioError>{t('settings.user.api_keys.error')}</StudioError>;
-  }
-
-  if (sortedApiKeys.length === 0) {
-    return <StudioParagraph>{t('settings.user.api_keys.no_api_keys')}</StudioParagraph>;
   }
 
   const now = new Date();
@@ -81,12 +76,11 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
             </StudioTable.Cell>
             <StudioTable.Cell className={classes.deleteCell}>
               <StudioDeleteButton
+                aria-label={t('settings.user.api_keys.delete', { name: apiKey.name })}
                 onDelete={() => deleteUserApiKey(apiKey.id)}
                 confirmMessage={t('settings.user.api_keys.delete_confirm')}
                 disabled={pendingDeleteApiKey && deletingApiKeyId === apiKey.id}
-              >
-                {t('settings.user.api_keys.delete')}
-              </StudioDeleteButton>
+              />
             </StudioTable.Cell>
           </StudioTable.Row>
         ))}

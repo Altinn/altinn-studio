@@ -2,22 +2,16 @@ import type { LoaderFunctionArgs } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
-import { fetchFreshInstanceData } from 'src/core/queries/instance';
+import { prefetchInstanceData } from 'src/core/queries/instance';
+import type { InstanceApi } from 'src/core/api-client/instance.api';
 
-export type InstanceLoaderResult = null | { error: Error };
-
-export function instanceLoader(queryClient: QueryClient) {
-  return async function loader({ params }: LoaderFunctionArgs): Promise<InstanceLoaderResult> {
+export function instanceLoader(queryClient: QueryClient, instanceApi: InstanceApi) {
+  return function loader({ params }: LoaderFunctionArgs) {
     const { instanceOwnerPartyId, instanceGuid } = params;
 
     if (instanceOwnerPartyId && instanceGuid) {
-      try {
-        await fetchFreshInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid });
-      } catch (error) {
-        return { error: error instanceof Error ? error : new Error(String(error)) };
-      }
+      prefetchInstanceData(queryClient, { instanceOwnerPartyId, instanceGuid, instanceApi });
     }
-
     return null;
   };
 }
