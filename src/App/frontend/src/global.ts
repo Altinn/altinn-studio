@@ -8,6 +8,7 @@ import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IAppLanguage, IApplicationSettings, IParty, IPlatformFrontendSettings, IProfile } from 'src/types/shared';
+
 ///<reference types="cypress-iframe" />
 
 export interface OrgName {
