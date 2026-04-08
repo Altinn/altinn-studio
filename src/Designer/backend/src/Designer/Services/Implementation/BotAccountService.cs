@@ -99,6 +99,12 @@ public class BotAccountService(
                 )
             ?? throw new InvalidOperationException($"Bot account '{botAccountId}' not found in org '{org}'.");
 
+        List<string> deployEnvironments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
+            org,
+            model.Username,
+            cancellationToken
+        );
+
         model.Deactivated = true;
         model.DeactivatedAt = timeProvider.GetUtcNow();
 
@@ -112,6 +118,13 @@ public class BotAccountService(
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await deployEnvironmentAccessService.RevokeAccessAsync(
+            org,
+            model.Username,
+            deployEnvironments,
+            cancellationToken
+        );
     }
 
     public async Task<(string RawKey, ApiKeyModel Key)> CreateApiKeyAsync(
