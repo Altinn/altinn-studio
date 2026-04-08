@@ -166,7 +166,7 @@ describe('AppConfigForm', () => {
     expect(visibleSwitch).toBeDisabled();
   });
 
-  it('sets default right desicription when delegable is toggled on and there is no right description set', async () => {
+  it('sets default right description when delegable is toggled on and there is no right description set', async () => {
     const user = userEvent.setup();
     const saveAppConfig = jest.fn();
     renderAppConfigForm({
@@ -227,7 +227,11 @@ describe('AppConfigForm', () => {
       expect.objectContaining({
         access: expect.objectContaining({
           delegable: false,
-          rightDescription: undefined,
+          rightDescription: {
+            nb: '',
+            nn: '',
+            en: '',
+          },
         }),
       }),
     );

@@ -113,7 +113,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     checked: boolean,
   ): SupportedLanguage => {
     if (!checked) {
-      return undefined;
+      return defaultDescriptionValue;
     }
     const previous = oldVal.access?.rightDescription ?? defaultDescriptionValue;
     return {
