@@ -12,8 +12,6 @@ import type { BotAccountForm } from './components/BotAccountDialog/BotAccountDia
 import { AddButton } from '../../../../components/AddButton/AddButton';
 import classes from './BotAccounts.module.css';
 
-const emptyForm: BotAccountForm = { name: '', deployEnvironments: [] };
-
 type DialogState = { form: BotAccountForm; editingId: string | null } | null;
 
 export const BotAccounts = (): ReactElement => {
@@ -27,9 +25,11 @@ export const BotAccounts = (): ReactElement => {
   const availableEnvironments = orgs?.[org!]?.environments ?? [];
 
   const [dialogState, setDialogState] = useState<DialogState>(null);
-  const [highlightId, setHighlightId] = useState<string | undefined>(undefined);
+  const [newBotId, setNewBotId] = useState<string | undefined>(undefined);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const openAddDialog = () => setDialogState({ form: emptyForm, editingId: null });
+  const openAddDialog = () =>
+    setDialogState({ form: { name: '', deployEnvironments: availableEnvironments }, editingId: null });
 
   const openEditDialog = (botAccount: BotAccount) =>
     setDialogState({
@@ -38,6 +38,8 @@ export const BotAccounts = (): ReactElement => {
     });
 
   const closeDialog = () => setDialogState(null);
+
+  const toggleExpanded = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
 
   if (isPending) {
     return <StudioSpinner aria-hidden spinnerTitle={t('settings.orgs.bot_accounts.loading')} />;
@@ -62,7 +64,9 @@ export const BotAccounts = (): ReactElement => {
           org={org!}
           botAccounts={botAccounts ?? []}
           onEdit={openEditDialog}
-          highlightId={highlightId}
+          highlightId={newBotId}
+          expandedId={expandedId}
+          onToggleExpanded={toggleExpanded}
         />
         <AddButton onClick={openAddDialog}>
           {t('settings.orgs.bot_accounts.add_bot_account')}
@@ -74,7 +78,10 @@ export const BotAccounts = (): ReactElement => {
             availableEnvironments={availableEnvironments}
             onClose={closeDialog}
             editingId={dialogState.editingId}
-            onCreated={(id) => setHighlightId(id)}
+            onCreated={(id) => {
+              setNewBotId(id);
+              setExpandedId(id);
+            }}
           />
         )}
       </div>

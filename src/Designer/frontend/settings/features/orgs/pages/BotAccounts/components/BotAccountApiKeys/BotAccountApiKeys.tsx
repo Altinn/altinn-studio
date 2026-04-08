@@ -65,6 +65,7 @@ export const BotAccountApiKeys = ({ org, botAccountId }: BotAccountApiKeysProps)
           onDelete={revokeApiKey}
           deletingId={isRevoking ? revokingKeyId : undefined}
           highlightId={highlightId}
+          showCreatedBy
         />
         <AddApiKey
           onSave={handleSave}

@@ -15,15 +15,14 @@
   cursor: pointer;
 }
 
+.expandableRow:hover td {
+  background-color: var(--ds-color-background-tinted);
+}
+
 .actionsCell {
   display: flex;
   justify-content: flex-end;
   gap: var(--ds-size-3);
-}
-
-.usernameCell {
-  display: flex;
-  align-items: center;
 }
 
 .username {

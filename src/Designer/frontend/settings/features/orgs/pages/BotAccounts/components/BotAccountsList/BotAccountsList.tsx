@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DateUtils } from '@studio/pure-functions';
 import { StudioTable, StudioButton, StudioDeleteButton, StudioTag } from '@studio/components';
 import { ChevronDownIcon, ChevronRightIcon, StudioEditIcon } from '@studio/icons';
 import type { BotAccount } from 'app-shared/types/BotAccount';
@@ -27,6 +28,8 @@ type BotAccountsListProps = {
   botAccounts: BotAccount[];
   onEdit: (botAccount: BotAccount) => void;
   highlightId?: string;
+  expandedId: string | null;
+  onToggleExpanded: (id: string) => void;
 };
 
 type ApiKeysPreviewCellProps = {
@@ -64,25 +67,12 @@ export const BotAccountsList = ({
   botAccounts,
   onEdit,
   highlightId,
+  expandedId,
+  onToggleExpanded,
 }: BotAccountsListProps): ReactElement => {
   const { t } = useTranslation();
-  const [expandedBotAccountId, setExpandedBotAccountId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!highlightId || expandedBotAccountId === highlightId) {
-      return;
-    }
-
-    if (botAccounts.some((botAccount) => botAccount.id === highlightId)) {
-      setExpandedBotAccountId(highlightId);
-    }
-  }, [highlightId, botAccounts, expandedBotAccountId]);
 
   const { mutate: deactivateBotAccount } = useDeactivateBotAccountMutation(org);
-
-  const toggleExpanded = (botAccountId: string) => {
-    setExpandedBotAccountId((prev) => (prev === botAccountId ? null : botAccountId));
-  };
 
   const sortedBotAccounts = useMemo(
     () =>
@@ -116,7 +106,7 @@ export const BotAccountsList = ({
       <StudioTable.Body>
         {sortedBotAccounts.map((botAccount) => {
           const detailsPanelId = `bot-account-api-keys-${botAccount.id}`;
-          const isExpanded = expandedBotAccountId === botAccount.id;
+          const isExpanded = expandedId === botAccount.id;
 
           return (
             <React.Fragment key={botAccount.id}>
@@ -127,10 +117,10 @@ export const BotAccountsList = ({
                     return;
                   }
 
-                  toggleExpanded(botAccount.id);
+                  onToggleExpanded(botAccount.id);
                 }}
               >
-                <StudioTable.Cell>
+                <StudioTable.Cell className={classes.expandCell}>
                   <StudioButton
                     variant='tertiary'
                     aria-expanded={isExpanded}
@@ -144,10 +134,10 @@ export const BotAccountsList = ({
                       },
                     )}
                     icon={isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                    onClick={() => toggleExpanded(botAccount.id)}
+                    onClick={() => onToggleExpanded(botAccount.id)}
                   />
                 </StudioTable.Cell>
-                <StudioTable.Cell className={classes.usernameCell}>
+                <StudioTable.Cell>
                   <span className={classes.username}>{botAccount.username}</span>
                 </StudioTable.Cell>
                 <EnvironmentsCell
@@ -157,7 +147,7 @@ export const BotAccountsList = ({
                   <ApiKeysPreviewCell org={org} botAccountId={botAccount.id} />
                 </StudioTable.Cell>
                 <StudioTable.Cell>
-                  {new Date(botAccount.created).toLocaleDateString()}
+                  {DateUtils.formatDateDDMMYYYY(botAccount.created)}
                 </StudioTable.Cell>
                 <StudioTable.Cell>{botAccount.createdByUsername ?? '–'}</StudioTable.Cell>
                 <StudioTable.Cell className={classes.actionsCell}>

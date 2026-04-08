@@ -1557,6 +1557,7 @@
   "settings.orgs.heading.description": "Her finner du innstillinger som gjelder for hele organisasjonen.",
   "settings.api_keys.add": "Legg til ny API-nøkkel",
   "settings.api_keys.col_created_at": "Opprettet",
+  "settings.api_keys.col_created_by": "Opprettet av",
   "settings.api_keys.col_expires_at": "Utløper",
   "settings.api_keys.col_name": "Navn",
   "settings.api_keys.copy": "Kopier",
