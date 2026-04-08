@@ -29,7 +29,10 @@ export const BotAccounts = (): ReactElement => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const openAddDialog = () =>
-    setDialogState({ form: { name: '', deployEnvironments: availableEnvironments }, editingId: null });
+    setDialogState({
+      form: { name: '', deployEnvironments: availableEnvironments },
+      editingId: null,
+    });
 
   const openEditDialog = (botAccount: BotAccount) =>
     setDialogState({

@@ -61,11 +61,19 @@ export const ApiKeysList = ({
     <StudioTable>
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.HeaderCell className={classes.nameCell}>{t('settings.api_keys.col_name')}</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell className={classes.narrowCell}>{t('settings.api_keys.col_expires_at')}</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell className={classes.narrowCell}>{t('settings.api_keys.col_created_at')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell className={classes.nameCell}>
+            {t('settings.api_keys.col_name')}
+          </StudioTable.HeaderCell>
+          <StudioTable.HeaderCell className={classes.narrowCell}>
+            {t('settings.api_keys.col_expires_at')}
+          </StudioTable.HeaderCell>
+          <StudioTable.HeaderCell className={classes.narrowCell}>
+            {t('settings.api_keys.col_created_at')}
+          </StudioTable.HeaderCell>
           {showCreatedBy && (
-            <StudioTable.HeaderCell className={classes.narrowCell}>{t('settings.api_keys.col_created_by')}</StudioTable.HeaderCell>
+            <StudioTable.HeaderCell className={classes.narrowCell}>
+              {t('settings.api_keys.col_created_by')}
+            </StudioTable.HeaderCell>
           )}
           <StudioTable.HeaderCell className={classes.deleteCell} />
         </StudioTable.Row>
@@ -89,7 +97,9 @@ export const ApiKeysList = ({
               {DateUtils.formatDateDDMMYYYY(apiKey.createdAt)}
             </StudioTable.Cell>
             {showCreatedBy && (
-              <StudioTable.Cell className={classes.narrowCell}>{apiKey.createdByUsername ?? '–'}</StudioTable.Cell>
+              <StudioTable.Cell className={classes.narrowCell}>
+                {apiKey.createdByUsername ?? '–'}
+              </StudioTable.Cell>
             )}
             <StudioTable.Cell className={classes.deleteCell}>
               <StudioDeleteButton

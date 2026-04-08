@@ -249,15 +249,15 @@ export const discardChanges = async (org: string, app: string): Promise<RepoStat
 export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);
 export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));
 
-// Org settings
+// Org settings - Contact points
 export const addContactPoint = async (org: string, payload: ContactPointPayload): Promise<ContactPoint> => post(contactPointsPath(org), payload);
 export const updateContactPoint = async (org: string, id: string, payload: ContactPointPayload): Promise<ContactPoint> => put(contactPointPath(org, id), payload);
 export const toggleContactPointActive = async (org: string, id: string, isActive: boolean): Promise<void> => patch(contactPointActivePath(org, id), { isActive });
 export const deleteContactPoint = async (org: string, id: string): Promise<void> => del(contactPointPath(org, id));
 
-// Bot accounts
+// Org settings - Bot accounts
 export const createBotAccount = (org: string, payload: CreateBotAccountRequest): Promise<CreateBotAccountResponse> => post(botAccountsPath(org), payload);
 export const deactivateBotAccount = (org: string, id: string): Promise<void> => post(botAccountDeactivatePath(org, id), {});
 export const createBotAccountApiKey = (org: string, botAccountId: string, payload: CreateBotAccountApiKeyRequest): Promise<CreateBotAccountApiKeyResponse> => post(botAccountApiKeysPath(org, botAccountId), payload);
 export const revokeBotAccountApiKey = (org: string, botAccountId: string, keyId: number): Promise<void> => del(botAccountApiKeyPath(org, botAccountId, keyId));
-export const updateBotAccountTeams = (org: string, botAccountId: string, deployEnvironments: string[]): Promise<void> => put(botAccountPath(org, botAccountId), { deployEnvironments });
+export const updateBotAccount = (org: string, botAccountId: string, deployEnvironments: string[]): Promise<void> => put(botAccountPath(org, botAccountId), { deployEnvironments });

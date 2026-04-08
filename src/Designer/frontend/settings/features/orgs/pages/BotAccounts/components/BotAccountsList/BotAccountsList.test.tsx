@@ -38,6 +38,9 @@ const defaultProps = {
   org: testOrg,
   botAccounts: [] as BotAccount[],
   onEdit: jest.fn(),
+  highlightId: undefined as string | undefined,
+  expandedId: null as string | null,
+  onToggleExpanded: jest.fn(),
 };
 
 const renderBotAccountsList = (props: Partial<typeof defaultProps> = {}) =>
@@ -71,33 +74,35 @@ describe('BotAccountsList', () => {
     expect(screen.getByText('ttd-bot-other')).toBeInTheDocument();
   });
 
-  it('expands API keys section when expand button is clicked', async () => {
+  it('calls onToggleExpanded when expand button is clicked', async () => {
     const user = userEvent.setup();
-    renderBotAccountsList({ botAccounts: [activeBotAccount] });
+    const onToggleExpanded = jest.fn();
+    renderBotAccountsList({ botAccounts: [activeBotAccount], onToggleExpanded });
     const expandButton = screen.getByRole('button', {
       name: textMock('settings.orgs.bot_accounts.expand_aria_label', {
         username: activeBotAccount.username,
       }),
     });
     await user.click(expandButton);
+    expect(onToggleExpanded).toHaveBeenCalledWith(activeBotAccount.id);
+  });
+
+  it('shows API keys section when expandedId matches', () => {
+    renderBotAccountsList({ botAccounts: [activeBotAccount], expandedId: activeBotAccount.id });
     expect(screen.getByText(`BotAccountApiKeys (${activeBotAccount.id})`)).toBeInTheDocument();
   });
 
-  it('auto-expands highlighted bot account', () => {
-    renderBotAccountsList({ botAccounts: [activeBotAccount], highlightId: activeBotAccount.id });
-    expect(screen.getByText(`BotAccountApiKeys (${activeBotAccount.id})`)).toBeInTheDocument();
-  });
-
-  it('collapses API keys section when expand button is clicked again', async () => {
-    const user = userEvent.setup();
-    renderBotAccountsList({ botAccounts: [activeBotAccount] });
-    const expandButton = screen.getByRole('button', {
-      name: textMock('settings.orgs.bot_accounts.expand_aria_label', {
-        username: activeBotAccount.username,
-      }),
+  it('shows API keys for expanded bot account', () => {
+    renderBotAccountsList({
+      botAccounts: [activeBotAccount],
+      highlightId: activeBotAccount.id,
+      expandedId: activeBotAccount.id,
     });
-    await user.click(expandButton);
-    await user.click(expandButton);
+    expect(screen.getByText(`BotAccountApiKeys (${activeBotAccount.id})`)).toBeInTheDocument();
+  });
+
+  it('hides API keys section when expandedId does not match', () => {
+    renderBotAccountsList({ botAccounts: [activeBotAccount], expandedId: null });
     expect(
       screen.queryByText(`BotAccountApiKeys (${activeBotAccount.id})`),
     ).not.toBeInTheDocument();

@@ -266,10 +266,10 @@ export const queriesMock: ServicesContextProps = {
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
 
-  // Queries - Org settings
+  // Queries - Org settings - Contact points
   getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
 
-  // Queries - Bot accounts
+  // Queries - Org settings - Bot accounts
   getBotAccounts: jest.fn().mockImplementation(() => Promise.resolve([])),
   getBotAccountApiKeys: jest.fn().mockImplementation(() => Promise.resolve([])),
 
@@ -380,16 +380,16 @@ export const queriesMock: ServicesContextProps = {
   addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 
-  // Mutations - Org settings
+  // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
   updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
   toggleContactPointActive: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
 
-  // Mutations - Bot accounts
+  // Mutations - Org settings - Bot accounts
   createBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
   deactivateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
   createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   revokeBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateBotAccountTeams: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
 };

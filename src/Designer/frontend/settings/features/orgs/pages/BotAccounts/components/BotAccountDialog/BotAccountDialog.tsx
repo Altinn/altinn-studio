@@ -11,7 +11,7 @@ import {
   StudioFormActions,
 } from '@studio/components';
 import { useCreateBotAccountMutation } from '../../hooks/useCreateBotAccountMutation';
-import { useUpdateBotAccountTeamsMutation } from '../../hooks/useUpdateBotAccountTeamsMutation';
+import { useUpdateBotAccountMutation } from '../../hooks/useUpdateBotAccountTeamsMutation';
 import classes from './BotAccountDialog.module.css';
 
 const nameRegex = /^[a-z0-9_]+$/;
@@ -48,7 +48,7 @@ export const BotAccountDialog = ({
   const [submitted, setSubmitted] = useState(false);
 
   const { mutate: createBotAccount, isPending: isCreating } = useCreateBotAccountMutation(org);
-  const { mutate: updateTeams, isPending: isUpdatingTeams } = useUpdateBotAccountTeamsMutation(
+  const { mutate: updateTeams, isPending: isUpdatingTeams } = useUpdateBotAccountMutation(
     org,
     editingId ?? '',
   );
@@ -131,12 +131,10 @@ export const BotAccountDialog = ({
         </div>
         <StudioFormActions
           primary={{
-            label: isEditing
-              ? t('settings.orgs.bot_accounts.save')
-              : t('settings.orgs.bot_accounts.create'),
+            label: isEditing ? t('general.save') : t('general.add'),
             onClick: handleSave,
           }}
-          secondary={{ label: t('settings.orgs.bot_accounts.cancel'), onClick: onClose }}
+          secondary={{ label: t('general.cancel'), onClick: onClose }}
           isLoading={isSaving}
           className={classes.actionsWrapper}
         />
