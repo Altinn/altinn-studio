@@ -2,8 +2,10 @@ import React from 'react';
 
 import fs from 'node:fs';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import { Validation } from 'src/features/validation/validationContext';
@@ -69,7 +71,7 @@ function getSharedTests() {
 describe('Expression validation shared tests', () => {
   beforeEach(() => {
     jest.spyOn(FD, 'useDebounced').mockRestore();
-    jest.spyOn(DataModels, 'useExpressionValidationConfig').mockRestore();
+    jest.spyOn(FormBootstrap, 'useExpressionValidationConfig').mockRestore();
     jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
   });
 
@@ -86,9 +88,12 @@ describe('Expression validation shared tests', () => {
     await renderWithInstanceAndLayout({
       renderer: () => <ExpressionValidation />,
       queries: {
-        fetchLayouts: async () => layouts,
-        fetchCustomValidationConfig: async () => validationConfig,
-        fetchFormData: async () => formData,
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layouts;
+            obj.dataModels[defaultDataTypeMock].expressionValidationConfig = validationConfig;
+            obj.dataModels[defaultDataTypeMock].initialData = formData;
+          }),
       },
     });
 

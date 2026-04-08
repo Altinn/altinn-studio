@@ -8,7 +8,6 @@ import { TasksTable } from '../../TasksTable/TasksTable';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getHiddenTasks } from '../SettingsUtils';
 import { ValidateNavigation } from './ValidateNavigation/ValidateNavigation';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();
@@ -18,8 +17,6 @@ export const SettingsNavigation = (): ReactElement => {
     org,
     app,
   );
-  const displayValidateNavigation = useFeatureFlag(FeatureFlag.ValidateNavigation);
-
   if (tasksIsPending || layoutSetsPending)
     return (
       <StudioSpinner aria-hidden spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />
@@ -46,7 +43,7 @@ export const SettingsNavigation = (): ReactElement => {
         </StudioHeading>
         <TasksTable isNavigationMode={false} tasks={hiddenTasks} allTasks={allTasks} />
       </div>
-      {displayValidateNavigation && <ValidateNavigation />}
+      <ValidateNavigation />
     </div>
   );
 };

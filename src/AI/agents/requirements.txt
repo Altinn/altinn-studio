@@ -1,32 +1,35 @@
 # Web framework
-fastapi>=0.115.14
-uvicorn>=0.35.0
-websockets>=15.0.1
-pydantic>=2.11.7
+fastapi>=0.135.2
+uvicorn>=0.42.0
+websockets>=16.0
+pydantic>=2.12.5
 
 # HTTP client
 httpx>=0.28.1
-httpx-sse>=0.4.1
+httpx-sse>=0.4.3
 
 # Configuration
-python-dotenv>=1.1.1
+python-dotenv>=1.2.2
 
 # Git operations
-GitPython>=3.1.43
+GitPython>=3.1.46
 
 # LLM & Agent framework
-langgraph>=0.6.8
-langchain-core>=0.3.78
-langchain-openai>=0.3.35
-openai>=1.57.2
-anthropic>=0.40.0
+langgraph>=1.1.3
+langchain-core>=1.2.23
+langchain-openai>=1.1.12
+openai>=2.30.0
+anthropic>=0.86.0
 
 # MCP client
-fastmcp>=2.0.0
+fastmcp>=3.1.1
 
 # Observability
 langfuse>=3.0.0
 
 
 # JSON repair for malformed LLM outputs
-json-repair>=0.30.0
+json-repair>=0.58.7
+
+# YAML parsing for prompt frontmatter
+PyYAML>=6.0

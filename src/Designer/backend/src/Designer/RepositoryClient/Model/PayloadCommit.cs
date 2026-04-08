@@ -11,89 +11,88 @@
 
 using System.Runtime.Serialization;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// PayloadCommit represents a commit
+/// </summary>
+[DataContract]
+public partial class PayloadCommit
 {
     /// <summary>
-    /// PayloadCommit represents a commit
+    /// Initializes a new instance of the <see cref="PayloadCommit"/> class.
     /// </summary>
-    [DataContract]
-    public partial class PayloadCommit
+    public PayloadCommit() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PayloadCommit" /> class.
+    /// </summary>
+    /// <param name="author">Author.</param>
+    /// <param name="committer">Committer.</param>
+    /// <param name="id">sha1 hash of the commit.</param>
+    /// <param name="message">Message.</param>
+    /// <param name="timestamp">Timestamp.</param>
+    /// <param name="url">Url.</param>
+    /// <param name="verification">Verification.</param>
+    public PayloadCommit(
+        PayloadUser author = default(PayloadUser),
+        PayloadUser committer = default(PayloadUser),
+        string id = default(string),
+        string message = default(string),
+        string timestamp = default(string),
+        string url = default(string),
+        PayloadCommitVerification verification = default(PayloadCommitVerification)
+    )
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PayloadCommit"/> class.
-        /// </summary>
-        public PayloadCommit() { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PayloadCommit" /> class.
-        /// </summary>
-        /// <param name="author">Author.</param>
-        /// <param name="committer">Committer.</param>
-        /// <param name="id">sha1 hash of the commit.</param>
-        /// <param name="message">Message.</param>
-        /// <param name="timestamp">Timestamp.</param>
-        /// <param name="url">Url.</param>
-        /// <param name="verification">Verification.</param>
-        public PayloadCommit(
-            PayloadUser author = default(PayloadUser),
-            PayloadUser committer = default(PayloadUser),
-            string id = default(string),
-            string message = default(string),
-            string timestamp = default(string),
-            string url = default(string),
-            PayloadCommitVerification verification = default(PayloadCommitVerification)
-        )
-        {
-            this.Author = author;
-            this.Committer = committer;
-            this.Id = id;
-            this.Message = message;
-            this.Timestamp = timestamp;
-            this.Url = url;
-            this.Verification = verification;
-        }
-
-        /// <summary>
-        /// Gets or Sets Author
-        /// </summary>
-        [DataMember(Name = "author", EmitDefaultValue = false)]
-        public PayloadUser Author { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Committer
-        /// </summary>
-        [DataMember(Name = "committer", EmitDefaultValue = false)]
-        public PayloadUser Committer { get; set; }
-
-        /// <summary>
-        /// sha1 hash of the commit
-        /// </summary>
-        /// <value>sha1 value</value>
-        [DataMember(Name = "id", EmitDefaultValue = false)]
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Message
-        /// </summary>
-        [DataMember(Name = "message", EmitDefaultValue = false)]
-        public string Message { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Timestamp
-        /// </summary>
-        [DataMember(Name = "timestamp", EmitDefaultValue = false)]
-        public string Timestamp { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Url
-        /// </summary>
-        [DataMember(Name = "url", EmitDefaultValue = false)]
-        public string Url { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Verification
-        /// </summary>
-        [DataMember(Name = "verification", EmitDefaultValue = false)]
-        public PayloadCommitVerification Verification { get; set; }
+        this.Author = author;
+        this.Committer = committer;
+        this.Id = id;
+        this.Message = message;
+        this.Timestamp = timestamp;
+        this.Url = url;
+        this.Verification = verification;
     }
+
+    /// <summary>
+    /// Gets or Sets Author
+    /// </summary>
+    [DataMember(Name = "author", EmitDefaultValue = false)]
+    public PayloadUser Author { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Committer
+    /// </summary>
+    [DataMember(Name = "committer", EmitDefaultValue = false)]
+    public PayloadUser Committer { get; set; }
+
+    /// <summary>
+    /// sha1 hash of the commit
+    /// </summary>
+    /// <value>sha1 value</value>
+    [DataMember(Name = "id", EmitDefaultValue = false)]
+    public string Id { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Message
+    /// </summary>
+    [DataMember(Name = "message", EmitDefaultValue = false)]
+    public string Message { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Timestamp
+    /// </summary>
+    [DataMember(Name = "timestamp", EmitDefaultValue = false)]
+    public string Timestamp { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Url
+    /// </summary>
+    [DataMember(Name = "url", EmitDefaultValue = false)]
+    public string Url { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Verification
+    /// </summary>
+    [DataMember(Name = "verification", EmitDefaultValue = false)]
+    public PayloadCommitVerification Verification { get; set; }
 }

@@ -7,6 +7,7 @@ import { AppLayout } from 'src/AppLayout';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
+import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
 import { indexLoader } from 'src/routes/index/index.loader';
@@ -21,6 +22,7 @@ import { Component as PageRoute } from 'src/routes/page/page.route';
 import { partySelectionLoader } from 'src/routes/party-selection/party-selection.loader';
 import { Component as PartySelectionRoute } from 'src/routes/party-selection/party-selection.route';
 import { Component as ProcessEndRoute } from 'src/routes/process-end/process-end.route';
+import { taskLoader } from 'src/routes/task/task.loader';
 import { Component as TaskRoute } from 'src/routes/task/task.route';
 import { taskIndexLoader } from 'src/routes/task/task-index.loader';
 import { routes } from 'src/routesBuilder';
@@ -36,7 +38,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.root,
             Component: IndexRoute,
-            loader: indexLoader(queryClient),
+            loader: indexLoader(queryClient, instanceApi),
             children: [
               {
                 path: routes.statelessPage,
@@ -52,7 +54,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instance,
             Component: InstanceRoute,
-            loader: instanceLoader(queryClient),
+            loader: instanceLoader(queryClient, instanceApi),
             shouldRevalidate: ({ currentParams, nextParams }) =>
               currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
               currentParams.instanceGuid !== nextParams.instanceGuid,
@@ -62,6 +64,7 @@ export function createRouter(queryClient: QueryClient) {
               {
                 path: routes.task,
                 Component: TaskRoute,
+                loader: taskLoader(queryClient, instanceApi),
                 children: [
                   { index: true, loader: taskIndexLoader(queryClient) },
                   {

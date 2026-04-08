@@ -8,63 +8,62 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace Altinn.Studio.Designer.Infrastructure.Authorization
-{
-    /// <summary>
-    /// Authorization Handler for AdminPermissionRequirement
-    /// </summary>
-    public class AdminPermissionHandler : AuthorizationHandler<AdminPermissionRequirement>
-    {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGiteaClient _giteaClient;
+namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
-        public AdminPermissionHandler(IHttpContextAccessor httpContextAccessor, IGiteaClient giteaClient)
+/// <summary>
+/// Authorization Handler for AdminPermissionRequirement
+/// </summary>
+public class AdminPermissionHandler : AuthorizationHandler<AdminPermissionRequirement>
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IGiteaClient _giteaClient;
+
+    public AdminPermissionHandler(IHttpContextAccessor httpContextAccessor, IGiteaClient giteaClient)
+    {
+        _httpContextAccessor = httpContextAccessor;
+        _giteaClient = giteaClient;
+    }
+
+    /// <inheritdoc/>
+    protected override async Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        AdminPermissionRequirement requirement
+    )
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null)
         {
-            _httpContextAccessor = httpContextAccessor;
-            _giteaClient = giteaClient;
+            return;
         }
 
-        /// <inheritdoc/>
-        protected override async Task HandleRequirementAsync(
-            AuthorizationHandlerContext context,
-            AdminPermissionRequirement requirement
-        )
+        string? org = httpContext.GetRouteValue("org")?.ToString();
+        string? env = httpContext.GetRouteValue("env")?.ToString();
+        if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(env))
         {
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext == null)
-            {
-                return;
-            }
+            httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            return;
+        }
 
-            string? org = httpContext.GetRouteValue("org")?.ToString();
-            string? env = httpContext.GetRouteValue("env")?.ToString();
-            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(env))
-            {
-                httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return;
-            }
+        string matchTeam = $"Admin-{env}";
+        List<Team>? teams = await _giteaClient.GetTeams();
+        if (teams == null)
+        {
+            context.Fail();
+            return;
+        }
 
-            string matchTeam = $"Admin-{env}";
-            List<Team>? teams = await _giteaClient.GetTeams();
-            if (teams == null)
-            {
-                context.Fail();
-                return;
-            }
+        bool isInTeam = teams.Any(t =>
+            t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+            && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+        );
 
-            bool isInTeam = teams.Any(t =>
-                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
-                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
-            );
-
-            if (isInTeam)
-            {
-                context.Succeed(requirement);
-            }
-            else
-            {
-                context.Fail();
-            }
+        if (isInTeam)
+        {
+            context.Succeed(requirement);
+        }
+        else
+        {
+            context.Fail();
         }
     }
 }
