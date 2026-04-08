@@ -19,6 +19,7 @@ namespace LocalTest.Services.LocalApp.Implementation
     {
         private sealed class LocalApplicationMetadata : Application
         {
+            [JsonPropertyName("altinnNugetVersion")]
             public string? AltinnNugetVersion { get; set; }
         }
 
