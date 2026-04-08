@@ -44,6 +44,7 @@ src/features/language/textResources/
 src/features/options/CodeListsProvider.tsx
 src/features/orgs/OrgsProvider.tsx
 src/features/profile/ProfileProvider.tsx
+src/hooks/usePageValidation.ts
 src/hooks/useWaitForState.ts
 src/index.tsx
 src/layout/Group/SummaryGroupComponent.test.tsx

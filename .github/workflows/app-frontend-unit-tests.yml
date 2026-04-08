@@ -50,6 +50,16 @@ jobs:
       - name: type-check
         run: yarn tsc
 
+      - name: type-check-strict
+        run: |
+          strict_error_count="$(yarn tsc-strict:error-count)"
+          echo "Strict TypeScript error count: ${strict_error_count}"
+
+          if (( strict_error_count >= 308 )); then
+            echo "Strict TypeScript error count is ${strict_error_count}, expected less than 308."
+            exit 1
+          fi
+
       - name: run eslint
         run: yarn lint
 
