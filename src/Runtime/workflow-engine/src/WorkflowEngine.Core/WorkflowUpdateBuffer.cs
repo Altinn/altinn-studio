@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -69,6 +70,8 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     )
     {
         var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
+
+        reason ??= $"workflow.{JsonNamingPolicy.CamelCase.ConvertName(workflow.Status.ToString())}";
 
         using var activity = Metrics.Source.StartActivity(
             "WorkflowUpdateBuffer.Submit",

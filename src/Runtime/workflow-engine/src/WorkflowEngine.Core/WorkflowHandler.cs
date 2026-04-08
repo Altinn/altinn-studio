@@ -52,7 +52,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.canceled");
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
             StopActivity(workflow);
             return;
@@ -67,7 +67,7 @@ internal sealed class WorkflowHandler(
 
             Metrics.WorkflowsFailed.Add(1);
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.dependency_failed");
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
             return;
         }
@@ -95,7 +95,7 @@ internal sealed class WorkflowHandler(
                 }
             }
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.canceled");
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
             StopActivity(workflow);
             throw;
@@ -116,7 +116,7 @@ internal sealed class WorkflowHandler(
                 ]
             );
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None, reason: "workflow.failed");
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
             StopActivity(workflow);
             return;
@@ -142,7 +142,7 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(1);
         }
 
-        await statusWriteBuffer.Submit(workflow, ct, reason: "workflow.completed");
+        await statusWriteBuffer.Submit(workflow, ct);
 
         StopActivity(workflow);
     }
