@@ -348,6 +348,11 @@ namespace Designer.Tests.Mocks
             return Task.CompletedTask;
         }
 
+        public Task<bool> IsTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
         public Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(
             string org,
             string app,

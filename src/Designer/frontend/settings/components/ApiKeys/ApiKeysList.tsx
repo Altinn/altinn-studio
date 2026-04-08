@@ -35,7 +35,6 @@ export const ApiKeysList = ({
   highlightId,
 }: ApiKeysListProps): ReactElement => {
   const { t } = useTranslation();
-  const deleteAriaLabel = (name: string) => t('settings.api_keys.delete', { name });
   const now = new Date();
 
   const sortedApiKeys = useMemo(
@@ -84,7 +83,7 @@ export const ApiKeysList = ({
             </StudioTable.Cell>
             <StudioTable.Cell className={classes.deleteCell}>
               <StudioDeleteButton
-                aria-label={deleteAriaLabel(apiKey.name)}
+                aria-label={t('settings.api_keys.delete', { name: apiKey.name })}
                 onDelete={() => onDelete(apiKey.id)}
                 confirmMessage={t('settings.api_keys.delete_confirm')}
                 disabled={deletingId === apiKey.id}

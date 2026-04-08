@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTable, StudioSwitch, StudioHeading, StudioParagraph } from '@studio/components';
-import { EnvironmentsCell } from '../EnvironmentsCell/EnvironmentsCell';
+import { EnvironmentsCell } from '../../../../../../components/EnvironmentsCell/EnvironmentsCell';
 import { ActionsCell } from '../ActionsCell/ActionsCell';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import { SlackChannelDialog } from './SlackChannelDialog/SlackChannelDialog';

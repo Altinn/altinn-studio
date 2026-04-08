@@ -55,6 +55,11 @@ describe('BotAccountsList', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('columnheader', {
+        name: textMock('settings.orgs.bot_accounts.col_api_keys'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', {
         name: textMock('settings.orgs.bot_accounts.col_environments'),
       }),
     ).toBeInTheDocument();
@@ -75,6 +80,11 @@ describe('BotAccountsList', () => {
       }),
     });
     await user.click(expandButton);
+    expect(screen.getByText(`BotAccountApiKeys (${activeBotAccount.id})`)).toBeInTheDocument();
+  });
+
+  it('auto-expands highlighted bot account', () => {
+    renderBotAccountsList({ botAccounts: [activeBotAccount], highlightId: activeBotAccount.id });
     expect(screen.getByText(`BotAccountApiKeys (${activeBotAccount.id})`)).toBeInTheDocument();
   });
 

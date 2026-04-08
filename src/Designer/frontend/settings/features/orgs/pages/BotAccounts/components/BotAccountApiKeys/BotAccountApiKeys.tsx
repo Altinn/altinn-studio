@@ -8,6 +8,8 @@ import { AddApiKey } from '../../../../../../components/ApiKeys/AddApiKey';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import classes from './BotAccountApiKeys.module.css';
+import { StudioHeading } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 type BotAccountApiKeysProps = {
   org: string;
@@ -15,6 +17,7 @@ type BotAccountApiKeysProps = {
 };
 
 export const BotAccountApiKeys = ({ org, botAccountId }: BotAccountApiKeysProps): ReactElement => {
+  const { t } = useTranslation();
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<number | undefined>(undefined);
 
@@ -50,23 +53,28 @@ export const BotAccountApiKeys = ({ org, botAccountId }: BotAccountApiKeysProps)
   };
 
   return (
-    <div className={classes.apiKeys}>
-      <ApiKeysList
-        apiKeys={apiKeys}
-        isPending={isPending}
-        isError={isError}
-        onDelete={revokeApiKey}
-        deletingId={isRevoking ? revokingKeyId : undefined}
-        highlightId={highlightId}
-      />
-      <AddApiKey
-        onSave={handleSave}
-        isSaving={isCreating}
-        newApiKey={newApiKey}
-        onDialogClose={() => setNewApiKey(null)}
-        isDuplicateName={isDuplicateName}
-        onNameChange={resetCreateApiKey}
-      />
+    <div className={classes.container}>
+      <StudioHeading level={3} data-size='sm'>
+        {t('settings.orgs.bot_accounts.col_api_keys')}
+      </StudioHeading>
+      <div className={classes.content}>
+        <ApiKeysList
+          apiKeys={apiKeys}
+          isPending={isPending}
+          isError={isError}
+          onDelete={revokeApiKey}
+          deletingId={isRevoking ? revokingKeyId : undefined}
+          highlightId={highlightId}
+        />
+        <AddApiKey
+          onSave={handleSave}
+          isSaving={isCreating}
+          newApiKey={newApiKey}
+          onDialogClose={() => setNewApiKey(null)}
+          isDuplicateName={isDuplicateName}
+          onNameChange={resetCreateApiKey}
+        />
+      </div>
     </div>
   );
 };

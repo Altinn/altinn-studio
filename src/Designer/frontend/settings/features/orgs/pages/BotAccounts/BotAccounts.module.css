@@ -1,5 +1,18 @@
-.container {
+.container,
+.heading,
+.content {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
+}
+
+.container {
+  gap: var(--ds-size-10);
+}
+
+.heading {
+  gap: var(--fds-spacing-6);
+}
+
+.content {
+  gap: var(--ds-size-4);
 }

@@ -49,28 +49,35 @@ export const BotAccounts = (): ReactElement => {
 
   return (
     <div className={classes.container}>
-      <StudioHeading level={2} data-size='md'>
-        {t('settings.orgs.bot_accounts.page_heading')}
-      </StudioHeading>
-      <StudioParagraph data-size='md'>
-        {t('settings.orgs.bot_accounts.page_description')}
-      </StudioParagraph>
-      <StudioHeading level={3}>{t('settings.orgs.bot_accounts.list_heading')}</StudioHeading>
-      <StudioParagraph>{t('settings.orgs.bot_accounts.list_description')}</StudioParagraph>
-      <BotAccountsList org={org!} botAccounts={botAccounts ?? []} onEdit={openEditDialog} highlightId={highlightId} />
-      <AddButton onClick={openAddDialog}>
-        {t('settings.orgs.bot_accounts.add_bot_account')}
-      </AddButton>
-      {dialogState && (
-        <BotAccountDialog
+      <div className={classes.heading}>
+        <StudioHeading level={2} data-size='md'>
+          {t('settings.orgs.bot_accounts.page_heading')}
+        </StudioHeading>
+        <StudioParagraph data-size='md'>
+          {t('settings.orgs.bot_accounts.page_description')}
+        </StudioParagraph>
+      </div>
+      <div className={classes.content}>
+        <BotAccountsList
           org={org!}
-          initialForm={dialogState.form}
-          availableEnvironments={availableEnvironments}
-          onClose={closeDialog}
-          editingId={dialogState.editingId}
-          onCreated={(id) => setHighlightId(id)}
+          botAccounts={botAccounts ?? []}
+          onEdit={openEditDialog}
+          highlightId={highlightId}
         />
-      )}
+        <AddButton onClick={openAddDialog}>
+          {t('settings.orgs.bot_accounts.add_bot_account')}
+        </AddButton>
+        {dialogState && (
+          <BotAccountDialog
+            org={org!}
+            initialForm={dialogState.form}
+            availableEnvironments={availableEnvironments}
+            onClose={closeDialog}
+            editingId={dialogState.editingId}
+            onCreated={(id) => setHighlightId(id)}
+          />
+        )}
+      </div>
     </div>
   );
 };

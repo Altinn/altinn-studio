@@ -48,9 +48,13 @@ export const ApiKeys = (): React.ReactElement => {
 
   return (
     <div className={classes.container}>
-      <StudioHeading level={2}>{t('settings.user.api_keys.api_keys')}</StudioHeading>
-      <StudioParagraph>{t('settings.user.api_keys.description')}</StudioParagraph>
-      <div className={classes.apiKeys}>
+      <div className={classes.heading}>
+        <StudioHeading level={2} data-size='md'>
+          {t('settings.user.api_keys.api_keys')}
+        </StudioHeading>
+        <StudioParagraph data-size='md'>{t('settings.user.api_keys.description')}</StudioParagraph>
+      </div>
+      <div className={classes.content}>
         <ApiKeysList
           apiKeys={apiKeys}
           isPending={isPending}

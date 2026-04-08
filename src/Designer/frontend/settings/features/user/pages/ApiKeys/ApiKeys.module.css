@@ -1,11 +1,18 @@
-.container {
+.container,
+.heading,
+.content {
   display: flex;
   flex-direction: column;
+}
+
+.container {
   gap: var(--ds-size-10);
 }
 
-.apiKeys {
-  display: flex;
-  flex-direction: column;
+.heading {
+  gap: var(--fds-spacing-6);
+}
+
+.content {
   gap: var(--ds-size-4);
 }

@@ -57,9 +57,7 @@ export const ApiKeyDialog = ({
   const today = formatLocalDate(new Date());
 
   const duplicateError =
-    submitted && isDuplicateName?.(name)
-      ? t('settings.api_keys.error_duplicate_name')
-      : undefined;
+    submitted && isDuplicateName?.(name) ? t('settings.api_keys.error_duplicate_name') : undefined;
   const requiredNameError = submitted && !name ? t('validation_errors.required') : undefined;
   const nameError = requiredNameError ?? duplicateError;
   const expiresAtError = submitted && !expiresAt ? t('validation_errors.required') : undefined;
@@ -71,7 +69,7 @@ export const ApiKeyDialog = ({
 
   const handleSave = () => {
     setSubmitted(true);
-    if (name && expiresAt && !isDuplicateName?.(name)) onSave(name, expiresAt);
+    if (name && expiresAt && !isDuplicateName?.(name)) onSave(name.trim(), expiresAt);
   };
 
   const handleClose = () => {
