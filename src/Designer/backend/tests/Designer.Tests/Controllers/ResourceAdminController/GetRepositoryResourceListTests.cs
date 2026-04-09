@@ -8,92 +8,91 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers.ResourceAdminController
+namespace Designer.Tests.Controllers.ResourceAdminController;
+
+public class GetRepositoryResourceListTests
+    : ResourceAdminControllerTestsBaseClass<GetRepositoryResourceListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetRepositoryResourceListTests
-        : ResourceAdminControllerTestsBaseClass<GetRepositoryResourceListTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    public GetRepositoryResourceListTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task GetResourceList_OK()
     {
-        public GetRepositoryResourceListTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        // Arrange
+        string uri = $"{VersionPrefix}/ttd/resources/resourcelist";
 
-        [Fact]
-        public async Task GetResourceList_OK()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/resourcelist";
-
-            RepositoryMock
-                .Setup(r =>
-                    r.GetServiceResources(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<System.Threading.CancellationToken>()
-                    )
+        RepositoryMock
+            .Setup(r =>
+                r.GetServiceResources(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<System.Threading.CancellationToken>()
                 )
-                .Returns(
-                    Task.FromResult(
-                        new List<ServiceResource>
+            )
+            .Returns(
+                Task.FromResult(
+                    new List<ServiceResource>
+                    {
+                        new ServiceResource
                         {
-                            new ServiceResource
+                            Identifier = "testresource",
+                            Title = new Dictionary<string, string>(),
+                            Description = new Dictionary<string, string>(),
+                            RightDescription = new Dictionary<string, string>(),
+                            Homepage = "test.no",
+                            Status = string.Empty,
+                            IsPartOf = string.Empty,
+                            ThematicArea = string.Empty,
+                            ResourceReferences = GetTestResourceReferences(),
+                            Delegable = true,
+                            Visible = true,
+                            HasCompetentAuthority = new CompetentAuthority
                             {
-                                Identifier = "testresource",
-                                Title = new Dictionary<string, string>(),
-                                Description = new Dictionary<string, string>(),
-                                RightDescription = new Dictionary<string, string>(),
-                                Homepage = "test.no",
-                                Status = string.Empty,
-                                IsPartOf = string.Empty,
-                                ThematicArea = string.Empty,
-                                ResourceReferences = GetTestResourceReferences(),
-                                Delegable = true,
-                                Visible = true,
-                                HasCompetentAuthority = new CompetentAuthority
-                                {
-                                    Organization = "ttd",
-                                    Orgcode = "test",
-                                    Name = new Dictionary<string, string>(),
-                                },
-                                Keywords = GetTestKeywords(),
-                                ResourceType = ResourceType.Default,
+                                Organization = "ttd",
+                                Orgcode = "test",
+                                Name = new Dictionary<string, string>(),
                             },
-                        }
-                    )
-                );
-
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            // Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        }
-
-        [Fact]
-        public async Task GetResourceList_NoContent()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/orgwithoutrepo/resources/resourcelist";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            RepositoryMock
-                .Setup(r =>
-                    r.GetServiceResources(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<System.Threading.CancellationToken>()
-                    )
+                            Keywords = GetTestKeywords(),
+                            ResourceType = ResourceType.Default,
+                        },
+                    }
                 )
-                .Returns(Task.FromResult(new List<ServiceResource>()));
+            );
 
-            // Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        }
+        // Act
+        using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetResourceList_NoContent()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/orgwithoutrepo/resources/resourcelist";
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+        RepositoryMock
+            .Setup(r =>
+                r.GetServiceResources(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<System.Threading.CancellationToken>()
+                )
+            )
+            .Returns(Task.FromResult(new List<ServiceResource>()));
+
+        // Act
+        using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
     }
 }

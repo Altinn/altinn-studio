@@ -12,157 +12,156 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.ProcessModelingController
+namespace Designer.Tests.Controllers.ProcessModelingController;
+
+public class AddDataTypeToApplicationMetadataTests
+    : DesignerEndpointsTestsBase<AddDataTypeToApplicationMetadataTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class AddDataTypeToApplicationMetadataTests
-        : DesignerEndpointsTestsBase<AddDataTypeToApplicationMetadataTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private static string VersionPrefix(string org, string repository, string dataTypeId, string taskId) =>
+        $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}?taskId={taskId}";
+
+    public AddDataTypeToApplicationMetadataTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Theory]
+    [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1")]
+    public async Task AddDataTypeToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
+        string org,
+        string app,
+        string developer,
+        string dataTypeId,
+        string taskId
+    )
     {
-        private static string VersionPrefix(string org, string repository, string dataTypeId, string taskId) =>
-            $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}?taskId={taskId}";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
 
-        public AddDataTypeToApplicationMetadataTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        var content = new StringContent("[]", Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        using var response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1")]
-        public async Task AddDataTypeToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
-            string org,
-            string app,
-            string developer,
-            string dataTypeId,
-            string taskId
-        )
+        string appMetadataString = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/config/applicationmetadata.json"
+        );
+        Application appMetadata = JsonSerializer.Deserialize<Application>(
+            appMetadataString,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+        );
+        DataType expectedDataType = new()
         {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
-            string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
+            Id = dataTypeId,
+            AllowedContentTypes = new List<string>() { "application/json" },
+            MaxCount = 1,
+            MinCount = 0,
+            TaskId = taskId,
+            EnablePdfCreation = false,
+            EnableFileScan = false,
+            ValidationErrorOnPendingFileScan = false,
+            EnabledFileAnalysers = new List<string>(),
+            EnabledFileValidators = new List<string>(),
+        };
 
-            var content = new StringContent("[]", Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
-            using var response = await HttpClient.SendAsync(request);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(2, appMetadata.DataTypes.Count);
+        AssertionUtil.AssertEqualTo(
+            expectedDataType,
+            appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId)
+        );
+        Assert.Equal(taskId, appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId);
+    }
 
-            string appMetadataString = TestDataHelper.GetFileFromRepo(
-                org,
-                targetRepository,
-                developer,
-                "App/config/applicationmetadata.json"
-            );
-            Application appMetadata = JsonSerializer.Deserialize<Application>(
-                appMetadataString,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-            DataType expectedDataType = new()
-            {
-                Id = dataTypeId,
-                AllowedContentTypes = new List<string>() { "application/json" },
-                MaxCount = 1,
-                MinCount = 0,
-                TaskId = taskId,
-                EnablePdfCreation = false,
-                EnableFileScan = false,
-                ValidationErrorOnPendingFileScan = false,
-                EnabledFileAnalysers = new List<string>(),
-                EnabledFileValidators = new List<string>(),
-            };
+    [Theory]
+    [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1", new[] { "app:owned" })]
+    public async Task AddDataTypeWithAllowedContributorsToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
+        string org,
+        string app,
+        string developer,
+        string dataTypeId,
+        string taskId,
+        string[] allowedContributors
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
 
-            Assert.Equal(2, appMetadata.DataTypes.Count);
-            AssertionUtil.AssertEqualTo(
-                expectedDataType,
-                appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId)
-            );
-            Assert.Equal(taskId, appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId);
-        }
+        string jsonPayload = JsonSerializer.Serialize(allowedContributors.ToList());
+        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        using var response = await HttpClient.SendAsync(request);
 
-        [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1", new[] { "app:owned" })]
-        public async Task AddDataTypeWithAllowedContributorsToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
-            string org,
-            string app,
-            string developer,
-            string dataTypeId,
-            string taskId,
-            string[] allowedContributors
-        )
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        string appMetadataString = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/config/applicationmetadata.json"
+        );
+
+        Application appMetadata = JsonSerializer.Deserialize<Application>(
+            appMetadataString,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+        );
+
+        DataType expectedDataType = new()
         {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
-            string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
+            Id = dataTypeId,
+            AllowedContentTypes = new List<string>() { "application/json" },
+            MaxCount = 1,
+            MinCount = 0,
+            TaskId = taskId,
+            EnablePdfCreation = false,
+            EnableFileScan = false,
+            ValidationErrorOnPendingFileScan = false,
+            EnabledFileAnalysers = new List<string>(),
+            EnabledFileValidators = new List<string>(),
+            AllowedContributors = new List<string> { "app:owned" },
+        };
 
-            string jsonPayload = JsonSerializer.Serialize(allowedContributors.ToList());
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
-            using var response = await HttpClient.SendAsync(request);
+        Assert.Equal(2, appMetadata.DataTypes.Count);
+        AssertionUtil.AssertEqualTo(
+            expectedDataType,
+            appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId)
+        );
+        Assert.Equal(taskId, appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId);
+    }
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    [Theory]
+    [InlineData("ttd", "empty-app", "testUser", "ref-data-as-pdf", "task_1")]
+    public async Task AddDataTypeToApplicationMetadataWhenExists_ShouldNotAddDataTypeAndReturnOK(
+        string org,
+        string app,
+        string developer,
+        string dataTypeId,
+        string taskId
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
+        var content = new StringContent("[]", Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        using var response = await HttpClient.SendAsync(request);
 
-            string appMetadataString = TestDataHelper.GetFileFromRepo(
-                org,
-                targetRepository,
-                developer,
-                "App/config/applicationmetadata.json"
-            );
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            Application appMetadata = JsonSerializer.Deserialize<Application>(
-                appMetadataString,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
+        string appMetadataString = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/config/applicationmetadata.json"
+        );
+        Application appMetadata = JsonSerializer.Deserialize<Application>(
+            appMetadataString,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+        );
 
-            DataType expectedDataType = new()
-            {
-                Id = dataTypeId,
-                AllowedContentTypes = new List<string>() { "application/json" },
-                MaxCount = 1,
-                MinCount = 0,
-                TaskId = taskId,
-                EnablePdfCreation = false,
-                EnableFileScan = false,
-                ValidationErrorOnPendingFileScan = false,
-                EnabledFileAnalysers = new List<string>(),
-                EnabledFileValidators = new List<string>(),
-                AllowedContributors = new List<string> { "app:owned" },
-            };
-
-            Assert.Equal(2, appMetadata.DataTypes.Count);
-            AssertionUtil.AssertEqualTo(
-                expectedDataType,
-                appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId)
-            );
-            Assert.Equal(taskId, appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId);
-        }
-
-        [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "ref-data-as-pdf", "task_1")]
-        public async Task AddDataTypeToApplicationMetadataWhenExists_ShouldNotAddDataTypeAndReturnOK(
-            string org,
-            string app,
-            string developer,
-            string dataTypeId,
-            string taskId
-        )
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
-            string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
-            var content = new StringContent("[]", Encoding.UTF8, "application/json");
-            using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
-            using var response = await HttpClient.SendAsync(request);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string appMetadataString = TestDataHelper.GetFileFromRepo(
-                org,
-                targetRepository,
-                developer,
-                "App/config/applicationmetadata.json"
-            );
-            Application appMetadata = JsonSerializer.Deserialize<Application>(
-                appMetadataString,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            Assert.Single(appMetadata.DataTypes);
-        }
+        Assert.Single(appMetadata.DataTypes);
     }
 }

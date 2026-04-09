@@ -20,15 +20,8 @@ type GlobalDataModifier = (globalData: AltinnAppGlobalData) => void;
  *   metadata.ui.folders = {}
  * });
  */
-export function interceptAltinnAppGlobalData(
-  modifier: GlobalDataModifier,
-  alias = 'htmlWithModifiedAltinnAppGlobalData',
-): void {
-  cy.intercept('GET', '**/ttd/**', (req) => {
-    if (!req.headers.accept?.includes('text/html')) {
-      return;
-    }
-
+export function interceptAltinnAppGlobalData(modifier: GlobalDataModifier, alias = 'interceptGlobalData'): void {
+  cy.intercept({ method: 'GET', path: '**/ttd/**', headers: { accept: /text\/html/ } }, (req) => {
     req.continue((res) => {
       if (!res.body || typeof res.body !== 'string' || !res.body.includes('window.altinnAppGlobalData')) {
         return;

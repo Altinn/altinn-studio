@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
@@ -46,8 +46,8 @@ export function useDataModelBindings<B extends IDataModelBindings | undefined, D
 ): Output<B, DA> {
   const bindings = useMemoDeepEqual(() => (_bindings || defaultBindings) as Exclude<B, undefined>, [_bindings]);
 
-  const formData = FD.useFreshBindings(bindings, dataAs);
-  const isValid = FD.useBindingsAreValid(bindings);
+  const formData = FormStore.data.useFreshBindings(bindings, dataAs);
+  const isValid = FormStore.data.useBindingsAreValid(bindings);
   const { setValue, setValues } = useSaveDataModelBindings(bindings, debounceTimeout);
 
   return useMemo(
@@ -62,8 +62,8 @@ export function useSaveDataModelBindings<B extends IDataModelBindings | undefine
 ): SaveOutput<B> {
   const bindings = useMemoDeepEqual(() => (_bindings || defaultBindings) as Exclude<B, undefined>, [_bindings]);
 
-  const setLeafValue = FD.useSetLeafValue();
-  const setMultiLeafValue = FD.useSetMultiLeafValues();
+  const setLeafValue = FormStore.data.useSetLeafValue();
+  const setMultiLeafValue = FormStore.data.useSetMultiLeafValues();
 
   const saveOptions: SaveOptions = useMemo(
     () =>

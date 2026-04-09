@@ -1,11 +1,7 @@
-import React, { useState } from 'react';
-
-import { createStore } from 'zustand';
-
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { createZustandContext } from 'src/core/contexts/zustandContext';
+import { FormStore, type FormStoreSet, type FormStoreState } from 'src/features/form/FormContext';
 
-export type PageNavigationContext = {
+export type PageNavigationSliceState = {
   /**
    * Keeps track of which view to return to when the user has navigated
    * with the summary component buttons.
@@ -20,52 +16,39 @@ export type PageNavigationContext = {
   setSummaryNodeOfOrigin: (componentOrigin?: string) => void;
 };
 
-function initialCreateStore() {
-  return createStore<PageNavigationContext>((set) => ({
+export function createPageNavigationSlice(set: FormStoreSet): FormStoreState['pageNavigation'] {
+  return {
     returnToView: undefined,
-    setReturnToView: (returnToView) => set({ returnToView }),
+    setReturnToView: (returnToView) =>
+      set((state) => {
+        state.pageNavigation.returnToView = returnToView;
+      }),
     summaryNodeOfOrigin: undefined,
-    setSummaryNodeOfOrigin: (summaryNodeOfOrigin) => set({ summaryNodeOfOrigin }),
-  }));
+    setSummaryNodeOfOrigin: (summaryNodeOfOrigin) =>
+      set((state) => {
+        state.pageNavigation.summaryNodeOfOrigin = summaryNodeOfOrigin;
+      }),
+  };
 }
 
-const { Provider, useLaxSelector } = createZustandContext({
-  name: 'PageNavigationContext',
-  required: true,
-  initialCreateStore,
-});
+export const pageNavigationHooks = {
+  useReturnToView: () => {
+    const returnToView = FormStore.raw.useLaxSelector((s) => s.pageNavigation.returnToView);
+    return returnToView === ContextNotProvided ? undefined : returnToView;
+  },
 
-export function PageNavigationProvider({ children }: React.PropsWithChildren) {
-  const [returnToView, setReturnToView] = useState<string>();
+  useSetReturnToView: () => {
+    const func = FormStore.raw.useLaxSelector((s) => s.pageNavigation.setReturnToView);
+    return func === ContextNotProvided ? undefined : func;
+  },
 
-  return (
-    <Provider
-      value={{
-        returnToView,
-        setReturnToView,
-      }}
-    >
-      {children}
-    </Provider>
-  );
-}
+  useSummaryNodeIdOfOrigin: (): string | undefined => {
+    const ref = FormStore.raw.useLaxSelector((s) => s.pageNavigation.summaryNodeOfOrigin);
+    return ref === ContextNotProvided ? undefined : ref;
+  },
 
-export const useReturnToView = () => {
-  const returnToView = useLaxSelector((ctx) => ctx.returnToView);
-  return returnToView === ContextNotProvided ? undefined : returnToView;
-};
-
-export const useSetReturnToView = () => {
-  const func = useLaxSelector((ctx) => ctx.setReturnToView);
-  return func === ContextNotProvided ? undefined : func;
-};
-
-export const useSummaryNodeIdOfOrigin = (): string | undefined => {
-  const ref = useLaxSelector((ctx) => ctx.summaryNodeOfOrigin);
-  return ref === ContextNotProvided ? undefined : ref;
-};
-
-export const useSetSummaryNodeOfOrigin = () => {
-  const func = useLaxSelector((ctx) => ctx.setSummaryNodeOfOrigin);
-  return func === ContextNotProvided ? undefined : func;
+  useSetSummaryNodeOfOrigin: () => {
+    const func = FormStore.raw.useLaxSelector((s) => s.pageNavigation.setSummaryNodeOfOrigin);
+    return func === ContextNotProvided ? undefined : func;
+  },
 };

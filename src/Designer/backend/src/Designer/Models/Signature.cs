@@ -1,31 +1,30 @@
 #nullable disable
 using System;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+/// <summary>
+/// The git signature
+/// </summary>
+public class Signature
 {
     /// <summary>
-    /// The git signature
+    /// Initializes a new instance of the <see cref="Signature"/> class.
     /// </summary>
-    public class Signature
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Signature"/> class.
-        /// </summary>
-        public Signature() { }
+    public Signature() { }
 
-        /// <summary>
-        /// The email adress to the user
-        /// </summary>
-        public string Email { get; set; }
+    /// <summary>
+    /// The email adress to the user
+    /// </summary>
+    public string Email { get; set; }
 
-        /// <summary>
-        /// The name of the user
-        /// </summary>
-        public string Name { get; set; }
+    /// <summary>
+    /// The name of the user
+    /// </summary>
+    public string Name { get; set; }
 
-        /// <summary>
-        /// When signture was created
-        /// </summary>
-        public DateTimeOffset When { get; set; }
-    }
+    /// <summary>
+    /// When signture was created
+    /// </summary>
+    public DateTimeOffset When { get; set; }
 }

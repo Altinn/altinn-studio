@@ -1,8 +1,7 @@
 #nullable disable
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+public class AccessListPaging
 {
-    public class AccessListPaging
-    {
-        public string Next { get; set; }
-    }
+    public string Next { get; set; }
 }

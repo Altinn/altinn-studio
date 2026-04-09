@@ -13,39 +13,36 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers.RepositoryController
+namespace Designer.Tests.Controllers.RepositoryController;
+
+public class BranchesTests : DesignerEndpointsTestsBase<BranchesTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public class BranchesTests
-        : DesignerEndpointsTestsBase<BranchesTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private static string VersionPrefix => "/designer/api/repos";
+
+    public BranchesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
     {
-        private static string VersionPrefix => "/designer/api/repos";
+        services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
+    }
 
-        public BranchesTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+    [Fact]
+    public async Task Branches_Returned_OK()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
 
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        }
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-        [Fact]
-        public async Task Branches_Returned_OK()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/repo/ttd/apps-test/branches";
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        List<Branch> responseContent = await response.Content.ReadAsAsync<List<Branch>>();
 
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            // Act
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            List<Branch> responseContent = await response.Content.ReadAsAsync<List<Branch>>();
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(2, responseContent.Count);
-            Assert.Equal("master", responseContent[0].Name);
-        }
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(2, responseContent.Count);
+        Assert.Equal("master", responseContent[0].Name);
     }
 }
