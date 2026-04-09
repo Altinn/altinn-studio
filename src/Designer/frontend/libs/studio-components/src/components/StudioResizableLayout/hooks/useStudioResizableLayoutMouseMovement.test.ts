@@ -7,12 +7,11 @@ import { useStudioResizableLayoutMouseMovement } from './useStudioResizableLayou
 import type React from 'react';
 
 describe('useStudioResizableLayoutMouseMovement', () => {
-  it('should return onMouseDown and isResizing', () => {
+  it('should return onMouseDown', () => {
     const { result } = renderHook(() =>
-      useStudioResizableLayoutMouseMovement(horizontal, jest.fn()),
+      useStudioResizableLayoutMouseMovement(horizontal, jest.fn(), jest.fn()),
     );
     expect(result.current).toHaveProperty('onMouseDown');
-    expect(result.current).toHaveProperty('isResizing');
   });
 
   it.each([horizontal, vertical])(
@@ -20,7 +19,7 @@ describe('useStudioResizableLayoutMouseMovement', () => {
     (orientation) => {
       const onMousePosChange = jest.fn();
       const { result } = renderHook(() =>
-        useStudioResizableLayoutMouseMovement(orientation, onMousePosChange),
+        useStudioResizableLayoutMouseMovement(orientation, onMousePosChange, jest.fn()),
       );
 
       act(() => {
@@ -35,7 +34,7 @@ describe('useStudioResizableLayoutMouseMovement', () => {
   it('should not start resizing if mouse button is not 0/LMB', () => {
     const onMousePosChange = jest.fn();
     const { result } = renderHook(() =>
-      useStudioResizableLayoutMouseMovement(horizontal, onMousePosChange),
+      useStudioResizableLayoutMouseMovement(horizontal, onMousePosChange, jest.fn()),
     );
 
     act(() => {

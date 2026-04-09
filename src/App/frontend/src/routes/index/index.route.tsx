@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, useLoaderData } from 'react-router';
 
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
-import { FormProvider } from 'src/features/form/FormContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import type { IndexLoaderResult } from 'src/routes/index/index.loader';

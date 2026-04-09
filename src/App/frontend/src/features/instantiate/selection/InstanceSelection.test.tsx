@@ -5,7 +5,6 @@ import { userEvent } from '@testing-library/user-event';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -25,22 +24,30 @@ const mockActiveInstances: ISimpleInstance[] = [
 ];
 
 const render = async (instances = mockActiveInstances) => {
-  jest.mocked(InstanceApi.getActiveInstances).mockResolvedValue(instances || []);
-  jest.mocked(InstanceApi.create).mockResolvedValue({
+  const instanceCreateMock = jest.fn(async () => ({
     ...getInstanceDataMock(),
     id: '512345/new-instance-guid',
     process: getProcessDataMock(),
-  });
-  return await renderWithInstanceAndLayout({
+  }));
+  const renderResult = await renderWithInstanceAndLayout({
     renderer: () => <InstanceSelectionWrapper />,
+    apis: {
+      instanceApi: {
+        getActiveInstances: async () => instances || [],
+        create: instanceCreateMock,
+      },
+    },
   });
+  return {
+    ...renderResult,
+    instanceCreateMock,
+  };
 };
 
 const { setScreenWidth } = mockMediaQuery(992);
 
 describe('InstanceSelection', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     // Set screen size to desktop
     setScreenWidth(1200);
   });
@@ -78,13 +85,13 @@ describe('InstanceSelection', () => {
   });
 
   it('pressing "Start på nytt" should trigger callback', async () => {
-    await render();
+    const { instanceCreateMock } = await render();
     await userEvent.click(screen.getByText(/start på nytt/i));
-    expect(InstanceApi.create).toHaveBeenCalledTimes(1);
+    expect(instanceCreateMock).toHaveBeenCalledTimes(1);
   });
 
   it('should trigger openInstance on editButton click', async () => {
-    const { routerRef } = await render();
+    const { instanceCreateMock, routerRef } = await render();
     const row = screen.getByRole('row', {
       name: /10\/05\/2021 navn navnesen fortsett her/i,
     });
@@ -95,13 +102,13 @@ describe('InstanceSelection', () => {
 
     await userEvent.click(button);
     expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/512345/some-guid');
-    expect(InstanceApi.create).toHaveBeenCalledTimes(0);
+    expect(instanceCreateMock).toHaveBeenCalledTimes(0);
   });
 
   it('should trigger openInstance on editButton click during mobile view', async () => {
     // Set screen size to mobile
     setScreenWidth(600);
-    const { routerRef } = await render();
+    const { instanceCreateMock, routerRef } = await render();
 
     const row = screen.getByRole('row', {
       name: /Sist endret: 05\/13\/2021 Endret av: Kåre Nordmannsen/i,
@@ -113,6 +120,6 @@ describe('InstanceSelection', () => {
 
     await userEvent.click(button);
     expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/512345/some-other-guid');
-    expect(InstanceApi.create).toHaveBeenCalledTimes(0);
+    expect(instanceCreateMock).toHaveBeenCalledTimes(0);
   });
 });

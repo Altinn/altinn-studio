@@ -27,29 +27,26 @@ type ObjectOrArraySelectorFuncLax<T> = <U extends ObjectOrArray>(
   selector: Selector<T, U>,
 ) => U | typeof ContextNotProvided;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function createZustandContext<Store extends StoreApi<Type>, Type = ExtractFromStoreApi<Store>, Props = any>(
-  props: CreateContextProps<Store> & {
-    initialCreateStore: (props: Props) => Store;
-    onReRender?: (store: Store, props: Props) => void;
-  },
-) {
-  const { initialCreateStore, onReRender, ...rest } = props;
-  const { Provider, useCtx, useLaxCtx, useHasProvider } = createContext<Store>(rest);
-
+export function createZustandHooks<Store extends StoreApi<Type>, Type = ExtractFromStoreApi<Store>>({
+  useStore: useStoreHook,
+  useLaxStore: useLaxStoreHook,
+}: {
+  useStore: () => Store;
+  useLaxStore: () => Store | typeof ContextNotProvided;
+}) {
   /**
    * A hook that can be used to select values from the store. The selector function will be called whenever the store
    * changes, and the component will re-render if the selected value changes when compared with the previous value.
    */
-  const useSelector: SelectorFunc<Type> = (selector) => useStore(useCtx(), selector);
+  const useSelector: SelectorFunc<Type> = (selector) => useStore(useStoreHook(), selector);
 
   /**
    * A light weight hook that can be used to select static values from the store like update functions which are never changed.
    */
-  const useStaticSelector: SelectorFunc<Type> = (selector) => selector(useCtx().getState());
+  const useStaticSelector: SelectorFunc<Type> = (selector) => selector(useStoreHook().getState());
 
   const useSelectorAsRef: SelectorRefFunc<Type> = (selector) => {
-    const store = useCtx();
+    const store = useStoreHook();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ref = useRef<any>(selector(store.getState()));
 
@@ -68,7 +65,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
   };
 
   const useLaxSelectorAsRef: SelectorRefFuncLax<Type> = (selector) => {
-    const store = useLaxCtx();
+    const store = useLaxStoreHook();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ref = useRef<any>(store === ContextNotProvided ? ContextNotProvided : selector(store.getState() as Type));
 
@@ -104,7 +101,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
   };
 
   const useLaxMemoSelector: SelectorFuncLax<Type> = (selector) => {
-    const _store = useLaxCtx();
+    const _store = useLaxStoreHook();
     const store = _store === ContextNotProvided ? dummyStore : _store;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const prev = useRef<any>(undefined);
@@ -128,7 +125,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
    * is not present, the hook will return the ContextNotProvided value instead.
    */
   const useLaxSelector: SelectorFuncLax<Type> = (_selector) => {
-    const _store = useLaxCtx();
+    const _store = useLaxStoreHook();
     const store = _store === ContextNotProvided ? dummyStore : _store;
     const selector = _store === ContextNotProvided ? () => ContextNotProvided : _selector;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,10 +137,11 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
    * Will use shallow comparison to keep stable object references as long as the things inside don't change.
    * See: https://zustand.docs.pmnd.rs/hooks/use-shallow
    */
-  const useShallowSelector: ObjectOrArraySelectorFunc<Type> = (selector) => useStore(useCtx(), useShallow(selector));
+  const useShallowSelector: ObjectOrArraySelectorFunc<Type> = (selector) =>
+    useStore(useStoreHook(), useShallow(selector));
 
   const useLaxShallowSelector: ObjectOrArraySelectorFuncLax<Type> = (_selector) => {
-    const _store = useLaxCtx();
+    const _store = useLaxStoreHook();
     const store = _store === ContextNotProvided ? dummyStore : _store;
     const selector = _store === ContextNotProvided ? () => ContextNotProvided : _selector;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,react-compiler/react-compiler
@@ -151,6 +149,78 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     // eslint-disable-next-line @typescript-eslint/no-explicit-any,react-compiler/react-compiler
     return useStore(store, _useShallow(selector as any));
   };
+
+  const useLaxDS = <Mode extends DSMode<Type>>(
+    mode: Mode,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    deps?: any[],
+  ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> =>
+    useDelayedSelector({
+      store: useLaxStoreHook(),
+      strictness: SelectorStrictness.returnWhenNotProvided,
+      mode,
+      deps,
+    });
+
+  const useDS = <Mode extends DSMode<Type>>(
+    mode: Mode,
+    deps?: unknown[],
+  ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> =>
+    useDelayedSelector({
+      store: useStoreHook(),
+      strictness: SelectorStrictness.throwWhenNotProvided,
+      mode,
+      deps,
+    });
+
+  const useDSProps = <Mode extends DSMode<Type>>(
+    mode: Mode,
+    deps?: unknown[],
+  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> => ({
+    store: useStoreHook(),
+    strictness: SelectorStrictness.throwWhenNotProvided,
+    mode,
+    deps,
+  });
+
+  const useLaxDSProps = <Mode extends DSMode<Type>>(
+    mode: Mode,
+    deps?: unknown[],
+  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> => ({
+    store: useLaxStoreHook(),
+    strictness: SelectorStrictness.returnWhenNotProvided,
+    mode,
+    deps,
+  });
+
+  return {
+    useSelector,
+    useSelectorAsRef,
+    useLaxSelectorAsRef,
+    useMemoSelector,
+    useLaxMemoSelector,
+    useShallowSelector,
+    useLaxShallowSelector,
+    useLaxSelector,
+    useDelayedSelector: useDS,
+    useLaxDelayedSelector: useLaxDS,
+    useDelayedSelectorProps: useDSProps,
+    useLaxDelayedSelectorProps: useLaxDSProps,
+    useStore: useStoreHook,
+    useLaxStore: useLaxStoreHook,
+    useStaticSelector,
+  };
+}
+
+export function createZustandContext<Store extends StoreApi<Type>, Type = ExtractFromStoreApi<Store>, Props = unknown>(
+  props: CreateContextProps<Store> & {
+    initialCreateStore: (props: Props) => Store;
+    onReRender?: (store: Store, props: Props) => void;
+  },
+) {
+  const { initialCreateStore, onReRender, ...rest } = props;
+  const { Provider, useCtx, useLaxCtx, useHasProvider } = createContext<Store>(rest);
+  const hooks = createZustandHooks<Store, Type>({ useStore: useCtx, useLaxStore: useLaxCtx });
 
   function MyProvider({ children, ...props }: PropsWithChildren<Props>) {
     const storeRef = useRef<Store>(undefined);
@@ -167,66 +237,9 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     return <Provider value={storeRef.current}>{children}</Provider>;
   }
 
-  const useLaxDS = <Mode extends DSMode<Type>>(
-    mode: Mode,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    deps?: any[],
-  ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> =>
-    useDelayedSelector({
-      store: useLaxCtx(),
-      strictness: SelectorStrictness.returnWhenNotProvided,
-      mode,
-      deps,
-    });
-
-  const useDS = <Mode extends DSMode<Type>>(
-    mode: Mode,
-    deps?: unknown[],
-  ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> =>
-    useDelayedSelector({
-      store: useCtx(),
-      strictness: SelectorStrictness.throwWhenNotProvided,
-      mode,
-      deps,
-    });
-
-  const useDSProps = <Mode extends DSMode<Type>>(
-    mode: Mode,
-    deps?: unknown[],
-  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> => ({
-    store: useCtx(),
-    strictness: SelectorStrictness.throwWhenNotProvided,
-    mode,
-    deps,
-  });
-
-  const useLaxDSProps = <Mode extends DSMode<Type>>(
-    mode: Mode,
-    deps?: unknown[],
-  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> => ({
-    store: useLaxCtx(),
-    strictness: SelectorStrictness.returnWhenNotProvided,
-    mode,
-    deps,
-  });
-
   return {
     Provider: MyProvider,
-    useSelector,
-    useSelectorAsRef,
-    useLaxSelectorAsRef,
-    useMemoSelector,
-    useLaxMemoSelector,
-    useShallowSelector,
-    useLaxShallowSelector,
-    useLaxSelector,
-    useDelayedSelector: useDS,
-    useLaxDelayedSelector: useLaxDS,
-    useDelayedSelectorProps: useDSProps,
-    useLaxDelayedSelectorProps: useLaxDSProps,
+    ...hooks,
     useHasProvider,
-    useStore: useCtx,
-    useLaxStore: useLaxCtx,
-    useStaticSelector,
   };
 }

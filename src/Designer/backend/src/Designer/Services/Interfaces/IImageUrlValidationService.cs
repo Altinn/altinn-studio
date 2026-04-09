@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 
-namespace Altinn.Studio.Designer.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces;
+
+public interface IImageUrlValidationService
 {
-    public interface IImageUrlValidationService
-    {
-        Task<ImageUrlValidationResult> ValidateUrlAsync(string url);
-    }
+    Task<ImageUrlValidationResult> ValidateUrlAsync(string url);
 }

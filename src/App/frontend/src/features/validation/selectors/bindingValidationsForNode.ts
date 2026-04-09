@@ -2,10 +2,9 @@ import { useMemo } from 'react';
 
 import type { ComponentValidation, FieldValidation, NodeRefValidation } from '..';
 
-import { Validation } from 'src/features/validation/validationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 type OutValues = NodeRefValidation<ComponentValidation | FieldValidation>[];
@@ -17,8 +16,8 @@ type OutValues = NodeRefValidation<ComponentValidation | FieldValidation>[];
 export function useBindingValidationsFor<T extends CompTypes>(
   baseComponentId: string,
 ): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
-  const showAll = Validation.useShowAllBackendErrors();
-  const component = NodesInternal.useVisibleValidations(baseComponentId, showAll);
+  const showAll = FormStore.validation.useShowAllBackendErrors();
+  const component = FormStore.nodes.useVisibleValidations(baseComponentId, showAll);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);
 

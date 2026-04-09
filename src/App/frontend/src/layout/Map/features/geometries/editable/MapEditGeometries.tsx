@@ -8,7 +8,7 @@ import L from 'leaflet';
 import { v4 as uuidv4 } from 'uuid';
 import type { Feature } from 'geojson';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useLeafletDrawSpritesheetFix } from 'src/layout/Map/features/geometries/editable/useLeafletDrawSpritesheetFix';
@@ -39,9 +39,9 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
 
   const geometryDataPath = toRelativePath(geometryBinding, geometryDataBinding);
 
-  const appendToList = FD.useAppendToList();
-  const setLeafValue = FD.useSetLeafValue();
-  const removeFromList = FD.useRemoveFromListCallback();
+  const appendToList = FormStore.data.useAppendToList();
+  const setLeafValue = FormStore.data.useSetLeafValue();
+  const removeFromList = FormStore.data.useRemoveFromListCallback();
 
   const { toolbar } = useItemWhenType(baseComponentId, 'Map');
 

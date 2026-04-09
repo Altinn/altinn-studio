@@ -15,160 +15,159 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// TrackedTime worked time for an issue / pr
+/// </summary>
+[DataContract]
+public partial class TrackedTime : IEquatable<TrackedTime>, IValidatableObject
 {
     /// <summary>
-    /// TrackedTime worked time for an issue / pr
+    /// Initializes a new instance of the <see cref="TrackedTime" /> class.
     /// </summary>
-    [DataContract]
-    public partial class TrackedTime : IEquatable<TrackedTime>, IValidatableObject
+    /// <param name="created">Created.</param>
+    /// <param name="id">Id.</param>
+    /// <param name="issueId">IssueId.</param>
+    /// <param name="time">Time in seconds.</param>
+    /// <param name="userId">UserId.</param>
+    public TrackedTime(
+        DateTime? created = default(DateTime?),
+        long? id = default(long?),
+        long? issueId = default(long?),
+        long? time = default(long?),
+        long? userId = default(long?)
+    )
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TrackedTime" /> class.
-        /// </summary>
-        /// <param name="created">Created.</param>
-        /// <param name="id">Id.</param>
-        /// <param name="issueId">IssueId.</param>
-        /// <param name="time">Time in seconds.</param>
-        /// <param name="userId">UserId.</param>
-        public TrackedTime(
-            DateTime? created = default(DateTime?),
-            long? id = default(long?),
-            long? issueId = default(long?),
-            long? time = default(long?),
-            long? userId = default(long?)
-        )
+        this.Created = created;
+        this.Id = id;
+        this.IssueId = issueId;
+        this.Time = time;
+        this.UserId = userId;
+    }
+
+    /// <summary>
+    /// Gets or Sets Created
+    /// </summary>
+    [DataMember(Name = "created", EmitDefaultValue = false)]
+    public DateTime? Created { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Id
+    /// </summary>
+    [DataMember(Name = "id", EmitDefaultValue = false)]
+    public long? Id { get; set; }
+
+    /// <summary>
+    /// Gets or Sets IssueId
+    /// </summary>
+    [DataMember(Name = "issue_id", EmitDefaultValue = false)]
+    public long? IssueId { get; set; }
+
+    /// <summary>
+    /// Time in seconds
+    /// </summary>
+    [DataMember(Name = "time", EmitDefaultValue = false)]
+    public long? Time { get; set; }
+
+    /// <summary>
+    /// Gets or Sets UserId
+    /// </summary>
+    [DataMember(Name = "user_id", EmitDefaultValue = false)]
+    public long? UserId { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class TrackedTime {\n");
+        sb.Append("  Created: ").Append(Created).Append("\n");
+        sb.Append("  Id: ").Append(Id).Append("\n");
+        sb.Append("  IssueId: ").Append(IssueId).Append("\n");
+        sb.Append("  Time: ").Append(Time).Append("\n");
+        sb.Append("  UserId: ").Append(UserId).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return this.Equals(input as TrackedTime);
+    }
+
+    /// <summary>
+    /// Returns true if TrackedTime instances are equal
+    /// </summary>
+    /// <param name="input">Instance of TrackedTime to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(TrackedTime input)
+    {
+        if (input == null)
         {
-            this.Created = created;
-            this.Id = id;
-            this.IssueId = issueId;
-            this.Time = time;
-            this.UserId = userId;
+            return false;
         }
 
-        /// <summary>
-        /// Gets or Sets Created
-        /// </summary>
-        [DataMember(Name = "created", EmitDefaultValue = false)]
-        public DateTime? Created { get; set; }
+        return (this.Created == input.Created || (this.Created != null && this.Created.Equals(input.Created)))
+            && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+            && (this.IssueId == input.IssueId || (this.IssueId != null && this.IssueId.Equals(input.IssueId)))
+            && (this.Time == input.Time || (this.Time != null && this.Time.Equals(input.Time)))
+            && (this.UserId == input.UserId || (this.UserId != null && this.UserId.Equals(input.UserId)));
+    }
 
-        /// <summary>
-        /// Gets or Sets Id
-        /// </summary>
-        [DataMember(Name = "id", EmitDefaultValue = false)]
-        public long? Id { get; set; }
-
-        /// <summary>
-        /// Gets or Sets IssueId
-        /// </summary>
-        [DataMember(Name = "issue_id", EmitDefaultValue = false)]
-        public long? IssueId { get; set; }
-
-        /// <summary>
-        /// Time in seconds
-        /// </summary>
-        [DataMember(Name = "time", EmitDefaultValue = false)]
-        public long? Time { get; set; }
-
-        /// <summary>
-        /// Gets or Sets UserId
-        /// </summary>
-        [DataMember(Name = "user_id", EmitDefaultValue = false)]
-        public long? UserId { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
         {
-            var sb = new StringBuilder();
-            sb.Append("class TrackedTime {\n");
-            sb.Append("  Created: ").Append(Created).Append("\n");
-            sb.Append("  Id: ").Append(Id).Append("\n");
-            sb.Append("  IssueId: ").Append(IssueId).Append("\n");
-            sb.Append("  Time: ").Append(Time).Append("\n");
-            sb.Append("  UserId: ").Append(UserId).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return this.Equals(input as TrackedTime);
-        }
-
-        /// <summary>
-        /// Returns true if TrackedTime instances are equal
-        /// </summary>
-        /// <param name="input">Instance of TrackedTime to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(TrackedTime input)
-        {
-            if (input == null)
+            int hashCode = 41;
+            if (this.Created != null)
             {
-                return false;
+                hashCode = (hashCode * 59) + this.Created.GetHashCode();
             }
 
-            return (this.Created == input.Created || (this.Created != null && this.Created.Equals(input.Created)))
-                && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
-                && (this.IssueId == input.IssueId || (this.IssueId != null && this.IssueId.Equals(input.IssueId)))
-                && (this.Time == input.Time || (this.Time != null && this.Time.Equals(input.Time)))
-                && (this.UserId == input.UserId || (this.UserId != null && this.UserId.Equals(input.UserId)));
-        }
-
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
+            if (this.Id != null)
             {
-                int hashCode = 41;
-                if (this.Created != null)
-                {
-                    hashCode = (hashCode * 59) + this.Created.GetHashCode();
-                }
-
-                if (this.Id != null)
-                {
-                    hashCode = (hashCode * 59) + this.Id.GetHashCode();
-                }
-
-                if (this.IssueId != null)
-                {
-                    hashCode = (hashCode * 59) + this.IssueId.GetHashCode();
-                }
-
-                if (this.Time != null)
-                {
-                    hashCode = (hashCode * 59) + this.Time.GetHashCode();
-                }
-
-                if (this.UserId != null)
-                {
-                    hashCode = (hashCode * 59) + this.UserId.GetHashCode();
-                }
-
-                return hashCode;
+                hashCode = (hashCode * 59) + this.Id.GetHashCode();
             }
-        }
 
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
+            if (this.IssueId != null)
+            {
+                hashCode = (hashCode * 59) + this.IssueId.GetHashCode();
+            }
+
+            if (this.Time != null)
+            {
+                hashCode = (hashCode * 59) + this.Time.GetHashCode();
+            }
+
+            if (this.UserId != null)
+            {
+                hashCode = (hashCode * 59) + this.UserId.GetHashCode();
+            }
+
+            return hashCode;
         }
+    }
+
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

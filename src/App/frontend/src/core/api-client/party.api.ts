@@ -1,16 +1,19 @@
 import { axiosInstance } from 'src/core/axiosInstance';
 import type { IParty } from 'src/types/shared';
 
-type SetSelectedPartyResponse = 'Party successfully updated' | null;
+export type SetSelectedPartyResponse = 'Party successfully updated' | null;
 
-/** Class for managing party-related API calls to backend */
-export class PartyApi {
-  public static async getPartiesAllowedToInstantiateHierarchical(): Promise<IParty[]> {
+/** API client object for party-related calls to backend */
+export const partyApi = {
+  async getPartiesAllowedToInstantiateHierarchical(): Promise<IParty[]> {
     const { data: parties } = await axiosInstance.get<IParty[]>('/api/v1/parties?allowedtoinstantiatefilter=true');
     return parties;
-  }
-  public static async setSelectedParty({ partyId }: { partyId: number | string }): Promise<SetSelectedPartyResponse> {
+  },
+
+  async setSelectedParty({ partyId }: { partyId: number | string }): Promise<SetSelectedPartyResponse> {
     const { data } = await axiosInstance.put<SetSelectedPartyResponse>(`/api/v1/parties/${partyId}`);
     return data;
-  }
-}
+  },
+};
+
+export type PartyApi = typeof partyApi;

@@ -5,7 +5,7 @@ import dot from 'dot-object';
 import { geoJson, LatLngBounds } from 'leaflet';
 import type { GeoJSON } from 'geojson';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
@@ -14,7 +14,7 @@ import type { Geometry, RawGeometry } from 'src/layout/Map/types';
 
 export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | undefined {
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Map');
-  const formData = FD.useDebouncedPick(dataModelBindings?.geometries);
+  const formData = FormStore.data.useDebouncedPick(dataModelBindings?.geometries);
 
   return useMemo(() => {
     if (!formData || !Array.isArray(formData)) {

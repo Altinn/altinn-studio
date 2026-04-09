@@ -1,12 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { useIsStateless } from 'src/features/applicationMetadata';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';
 import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';
-import { useIsPdf } from 'src/hooks/useIsPdf';
-import { TaskKeys } from 'src/routesBuilder';
 import type { TextReference } from 'src/features/language/useLanguage';
 import type {
   BackendFieldValidatorGroups,
@@ -27,14 +22,6 @@ const severityMap: { [s in BackendValidationSeverity]: ValidationSeverity } = {
   [BackendValidationSeverity.Success]: 'success',
 };
 
-export function useShouldValidateInitial(): boolean {
-  const isCustomReceipt = useProcessTaskId() === TaskKeys.CustomReceipt;
-  const isPDF = useIsPdf();
-  const isStateless = useIsStateless();
-  const writableDataTypes = DataModels.useWritableDataTypes();
-  return !isCustomReceipt && !isPDF && !isStateless && !!writableDataTypes?.length;
-}
-
 export function getValidationIssueSeverity(issue: BackendValidationIssue): ValidationSeverity {
   return severityMap[issue.severity];
 }
@@ -52,19 +39,14 @@ function isStandardBackend(rawSource: string): boolean {
  * Extracts field validations from a list of validation issues and assigns the correct data type based on the dataElementId
  * Will skip over any validations that are missing a field and/or dataElementId
  */
-export function mapBackendIssuesToFieldValidations(
-  issues: BackendValidationIssue[],
-  defaultDataElementId: string | null,
-): FieldValidation[] {
+export function mapBackendIssuesToFieldValidations(issues: BackendValidationIssue[]): FieldValidation[] {
   const fieldValidations: FieldValidation[] = [];
   for (const issue of issues) {
-    const { field, source, noIncrementalUpdates, dataElementId: _dataElementId } = issue;
+    const { field, source, noIncrementalUpdates, dataElementId } = issue;
 
     if (!field) {
       continue;
     }
-
-    const dataElementId = _dataElementId ?? defaultDataElementId;
 
     if (!dataElementId) {
       continue;
@@ -128,14 +110,13 @@ export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue
 
 export function mapBackendValidationsToValidatorGroups(
   validations: BackendValidationIssue[] | undefined,
-  defaultDataElementId: string | null,
 ): BackendFieldValidatorGroups {
   if (!validations) {
     return emptyObject;
   }
   // Note that we completely ignore task validations (validations not related to form data) on initial validations,
   // this is because validations like minimum number of attachments in application metadata is not really useful to show initially
-  const fieldValidations = mapBackendIssuesToFieldValidations(validations, defaultDataElementId);
+  const fieldValidations = mapBackendIssuesToFieldValidations(validations);
   const validatorGroups: BackendFieldValidatorGroups = {};
   for (const validation of fieldValidations) {
     if (!validatorGroups[validation.source]) {
