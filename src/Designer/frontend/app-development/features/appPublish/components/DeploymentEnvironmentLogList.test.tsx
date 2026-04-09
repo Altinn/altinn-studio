@@ -295,6 +295,50 @@ describe('DeploymentEnvironmentLogList', () => {
     });
   });
 
+  describe('when build is undefined (resource registry failure)', () => {
+    const deploymentWithoutBuild: PipelineDeployment = {
+      ...pipelineDeployment,
+      build: undefined,
+      events: [
+        {
+          ...deployEvent,
+          eventType: FailedEventType.ResourceRegistryPublishFailed,
+          message: 'Resource Registry publish failed: Validation errors',
+        },
+      ],
+    };
+
+    it('renders failed status from event', () => {
+      render({
+        pipelineDeploymentList: [deploymentWithoutBuild],
+      });
+      expect(
+        screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+      ).toBeInTheDocument();
+    });
+
+    it('does not render build log link', () => {
+      render({
+        pipelineDeploymentList: [deploymentWithoutBuild],
+      });
+      expect(
+        screen.queryByText(textMock('app_deployment.table.build_log_active_link')),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(textMock('app_deployment.table.build_log_expired_link')),
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders event details', () => {
+      render({
+        pipelineDeploymentList: [deploymentWithoutBuild],
+      });
+      expect(
+        screen.getByText('Resource Registry publish failed: Validation errors'),
+      ).toBeInTheDocument();
+    });
+  });
+
   it('does not render build log link when started date is null', () => {
     render({
       pipelineDeploymentList: [
