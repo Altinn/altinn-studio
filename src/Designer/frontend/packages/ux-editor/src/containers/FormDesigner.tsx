@@ -1,4 +1,4 @@
-import { useState, type JSX } from 'react';
+import type { JSX } from 'react';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
@@ -62,7 +62,6 @@ export const FormDesigner = (): JSX.Element => {
     `form-designer-main:elementsCollapsed:${user.id}:${org}`,
     false,
   );
-  const [hidePreview, setHidePreview] = useState<boolean>(false);
 
   const t = useText();
   const isAddComponentModalEnabled = useFeatureFlag(FeatureFlag.AddComponentModal);
@@ -164,10 +163,7 @@ export const FormDesigner = (): JSX.Element => {
               >
                 <DesignView />
               </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element
-                minimumSize={250}
-                onResizing={(resizing) => setHidePreview(resizing)}
-              >
+              <StudioResizableLayout.Element minimumSize={250}>
                 <Properties />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
@@ -178,7 +174,6 @@ export const FormDesigner = (): JSX.Element => {
                 <Preview
                   collapsed={previewCollapsed}
                   onCollapseToggle={() => setPreviewCollapsed(!previewCollapsed)}
-                  hidePreview={hidePreview}
                 />
               </StudioResizableLayout.Element>
             </StudioResizableLayout.Container>

@@ -8,43 +8,39 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Services
+namespace Designer.Tests.Services;
+
+public class UserServiceTests
 {
-    public class UserServiceTests
+    private readonly Mock<IGiteaClient> _giteaClientMock;
+
+    public UserServiceTests()
     {
-        private readonly Mock<IGiteaClient> _giteaClientMock;
+        _giteaClientMock = new Mock<IGiteaClient>();
+    }
 
-        public UserServiceTests()
+    [Theory]
+    [InlineData("org1", false)]
+    [InlineData("org2", true)]
+    public async Task GetUserOrgPermission_ReturnsCorrectPermission(string org, bool expectedCanCreate)
+    {
+        var teams = new List<Team>
         {
-            _giteaClientMock = new Mock<IGiteaClient>();
-        }
-
-        [Theory]
-        [InlineData("org1", false)]
-        [InlineData("org2", true)]
-        public async Task GetUserOrgPermission_ReturnsCorrectPermission(string org, bool expectedCanCreate)
-        {
-            var teams = new List<Team>
+            new()
             {
-                new()
-                {
-                    Organization = new Organization { Username = org },
-                    CanCreateOrgRepo = expectedCanCreate,
-                },
-            };
+                Organization = new Organization { Username = org },
+                CanCreateOrgRepo = expectedCanCreate,
+            },
+        };
 
-            _giteaClientMock.Setup(api => api.GetTeams()).ReturnsAsync(teams);
+        _giteaClientMock.Setup(api => api.GetTeams()).ReturnsAsync(teams);
 
-            var userService = new UserService(_giteaClientMock.Object);
+        var userService = new UserService(_giteaClientMock.Object);
 
-            AltinnOrgEditingContext altinnOrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(
-                org,
-                "developer"
-            );
-            var result = await userService.GetUserOrgPermission(altinnOrgEditingContext);
+        AltinnOrgEditingContext altinnOrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, "developer");
+        var result = await userService.GetUserOrgPermission(altinnOrgEditingContext);
 
-            Assert.NotNull(result);
-            Assert.Equal(expectedCanCreate, result.CanCreateOrgRepo);
-        }
+        Assert.NotNull(result);
+        Assert.Equal(expectedCanCreate, result.CanCreateOrgRepo);
     }
 }

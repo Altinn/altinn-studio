@@ -12,11 +12,11 @@
           max: 10
         },
         http_connections: {
-          count: 0,
+          count: {Scrubbed},
           limit: 400
         },
         db_connections: {
-          count: 0,
+          count: {Scrubbed},
           limit: 90
         },
         queue: {

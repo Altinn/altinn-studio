@@ -7,122 +7,118 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using SharedResources.Tests;
 using Xunit;
 
-namespace DataModeling.Tests.Json
+namespace DataModeling.Tests.Json;
+
+public class JsonSchemaNormalizerTests
 {
-    public class JsonSchemaNormalizerTests
+    [Theory]
+    [InlineData(@"Model/JsonSchema/AltinnAnnotation.json")]
+    [InlineData(@"Model/JsonSchema/General/Any.json")]
+    [InlineData(@"Model/JsonSchema/General/Attributes.json")]
+    [InlineData(@"Model/JsonSchema/General/BuiltinTypes.json")]
+    [InlineData(@"Model/JsonSchema/General/ComplexContentExtension.json")]
+    [InlineData(@"Model/JsonSchema/General/ComplexContentRestriction.json")]
+    [InlineData(@"Model/JsonSchema/General/ComplexSchema.json")]
+    [InlineData(@"Model/JsonSchema/General/Definitions.json")]
+    [InlineData(@"Model/JsonSchema/General/ElementAnnotation.json")]
+    [InlineData(@"Model/JsonSchema/General/InterleavedNestedSequences.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedArrays.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedChoice.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedSequence.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedSequences.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedWithArrayChoice.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedWithArraySequence.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedWithOptionalChoice.json")]
+    [InlineData(@"Model/JsonSchema/General/NestedWithOptionalSequence.json")]
+    [InlineData(@"Model/JsonSchema/General/SimpleAll.json")]
+    [InlineData(@"Model/JsonSchema/General/SimpleChoice.json")]
+    [InlineData(@"Model/JsonSchema/General/SimpleContentExtension.json")]
+    [InlineData(@"Model/JsonSchema/General/SimpleContentRestriction.json")]
+    [InlineData(@"Model/JsonSchema/General/SimpleSequence.json")]
+    [InlineData(@"Model/JsonSchema/General/SimpleTypeList.json")]
+    [InlineData(@"Model/JsonSchema/General/SimpleTypeRestrictions.json")]
+    public Task Normalize_NoNormalization_ShouldEqualSourceSchema(string jsonSchemaTestdata)
     {
-        [Theory]
-        [InlineData(@"Model/JsonSchema/AltinnAnnotation.json")]
-        [InlineData(@"Model/JsonSchema/General/Any.json")]
-        [InlineData(@"Model/JsonSchema/General/Attributes.json")]
-        [InlineData(@"Model/JsonSchema/General/BuiltinTypes.json")]
-        [InlineData(@"Model/JsonSchema/General/ComplexContentExtension.json")]
-        [InlineData(@"Model/JsonSchema/General/ComplexContentRestriction.json")]
-        [InlineData(@"Model/JsonSchema/General/ComplexSchema.json")]
-        [InlineData(@"Model/JsonSchema/General/Definitions.json")]
-        [InlineData(@"Model/JsonSchema/General/ElementAnnotation.json")]
-        [InlineData(@"Model/JsonSchema/General/InterleavedNestedSequences.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedArrays.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedChoice.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedSequence.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedSequences.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedWithArrayChoice.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedWithArraySequence.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedWithOptionalChoice.json")]
-        [InlineData(@"Model/JsonSchema/General/NestedWithOptionalSequence.json")]
-        [InlineData(@"Model/JsonSchema/General/SimpleAll.json")]
-        [InlineData(@"Model/JsonSchema/General/SimpleChoice.json")]
-        [InlineData(@"Model/JsonSchema/General/SimpleContentExtension.json")]
-        [InlineData(@"Model/JsonSchema/General/SimpleContentRestriction.json")]
-        [InlineData(@"Model/JsonSchema/General/SimpleSequence.json")]
-        [InlineData(@"Model/JsonSchema/General/SimpleTypeList.json")]
-        [InlineData(@"Model/JsonSchema/General/SimpleTypeRestrictions.json")]
-        public Task Normalize_NoNormalization_ShouldEqualSourceSchema(string jsonSchemaTestdata)
-        {
-            JsonSchemaKeywords.RegisterXsdKeywords();
+        JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(jsonSchemaTestdata);
-            var jsonSchemaText = JsonSerializer.Serialize(
-                jsonSchema,
-                new JsonSerializerOptions()
-                {
-                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-                }
-            );
+        var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(jsonSchemaTestdata);
+        var jsonSchemaText = JsonSerializer.Serialize(
+            jsonSchema,
+            new JsonSerializerOptions()
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
+            }
+        );
 
-            var jsonSchemaNormalizer = new JsonSchemaNormalizer() { PerformNormalization = false };
+        var jsonSchemaNormalizer = new JsonSchemaNormalizer() { PerformNormalization = false };
 
-            var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
-            var normalizedJsonSchemaText = JsonSerializer.Serialize(
-                normalizedJsonSchema,
-                new JsonSerializerOptions()
-                {
-                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-                }
-            );
+        var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
+        var normalizedJsonSchemaText = JsonSerializer.Serialize(
+            normalizedJsonSchema,
+            new JsonSerializerOptions()
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
+            }
+        );
 
-            Assert.Equal(jsonSchemaText, normalizedJsonSchemaText);
-            return Task.CompletedTask;
-        }
+        Assert.Equal(jsonSchemaText, normalizedJsonSchemaText);
+        return Task.CompletedTask;
+    }
 
-        [Theory]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-root.json",
-            @"Model/JsonSchema/Normalizer/normalize-root-expected.json"
-        )]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-root-ref.json",
-            @"Model/JsonSchema/Normalizer/normalize-root-ref.json"
-        )]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-content.json",
-            @"Model/JsonSchema/Normalizer/normalize-content-expected.json"
-        )]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-content-ref.json",
-            @"Model/JsonSchema/Normalizer/normalize-content-ref-expected.json"
-        )]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-content-common-keywords.json",
-            @"Model/JsonSchema/Normalizer/normalize-content-common-keywords.json"
-        )]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-content-no-common-keywords.json",
-            @"Model/JsonSchema/Normalizer/normalize-content-no-common-keywords-expected.json"
-        )]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-collection.json",
-            @"Model/JsonSchema/Normalizer/normalize-collection-expected.json"
-        )]
-        [InlineData(
-            @"Model/JsonSchema/Normalizer/normalize-keyed-collection.json",
-            @"Model/JsonSchema/Normalizer/normalize-keyed-collection-expected.json"
-        )]
-        public Task Normalize_WithNormalization_ShouldRemoveSingleAllOfs(
-            string jsonSchemaTestdata,
-            string expectedNormalizedSchemaTestdata
-        )
-        {
-            JsonSchemaKeywords.RegisterXsdKeywords();
+    [Theory]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-root.json",
+        @"Model/JsonSchema/Normalizer/normalize-root-expected.json"
+    )]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-root-ref.json",
+        @"Model/JsonSchema/Normalizer/normalize-root-ref.json"
+    )]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-content.json",
+        @"Model/JsonSchema/Normalizer/normalize-content-expected.json"
+    )]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-content-ref.json",
+        @"Model/JsonSchema/Normalizer/normalize-content-ref-expected.json"
+    )]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-content-common-keywords.json",
+        @"Model/JsonSchema/Normalizer/normalize-content-common-keywords.json"
+    )]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-content-no-common-keywords.json",
+        @"Model/JsonSchema/Normalizer/normalize-content-no-common-keywords-expected.json"
+    )]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-collection.json",
+        @"Model/JsonSchema/Normalizer/normalize-collection-expected.json"
+    )]
+    [InlineData(
+        @"Model/JsonSchema/Normalizer/normalize-keyed-collection.json",
+        @"Model/JsonSchema/Normalizer/normalize-keyed-collection-expected.json"
+    )]
+    public Task Normalize_WithNormalization_ShouldRemoveSingleAllOfs(
+        string jsonSchemaTestdata,
+        string expectedNormalizedSchemaTestdata
+    )
+    {
+        JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(jsonSchemaTestdata);
+        var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(jsonSchemaTestdata);
 
-            var jsonSchemaNormalizer = new JsonSchemaNormalizer();
-            var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
-            var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema);
+        var jsonSchemaNormalizer = new JsonSchemaNormalizer();
+        var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
+        var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema);
 
-            var expectedNormalizedJsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(
-                expectedNormalizedSchemaTestdata
-            );
-            var expectedNormalizedJsonSchemaText = JsonSerializer.Serialize(expectedNormalizedJsonSchema);
+        var expectedNormalizedJsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(
+            expectedNormalizedSchemaTestdata
+        );
+        var expectedNormalizedJsonSchemaText = JsonSerializer.Serialize(expectedNormalizedJsonSchema);
 
-            var json = JsonSerializer.Serialize(
-                normalizedJsonSchema,
-                new JsonSerializerOptions { WriteIndented = true }
-            );
+        var json = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions { WriteIndented = true });
 
-            Assert.Equal(expectedNormalizedJsonSchemaText, normalizedJsonSchemaText);
-            return Task.CompletedTask;
-        }
+        Assert.Equal(expectedNormalizedJsonSchemaText, normalizedJsonSchemaText);
+        return Task.CompletedTask;
     }
 }

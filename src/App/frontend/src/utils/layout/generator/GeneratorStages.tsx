@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 import type { PropsWithChildren, SetStateAction } from 'react';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { AddNodeRequest, RemoveNodeRequest, SetNodePropRequest } from 'src/utils/layout/NodesContext';
 
@@ -46,7 +46,7 @@ export function useRegistry() {
  */
 export function WhenParentAdded({ children }: PropsWithChildren) {
   const parent = GeneratorInternal.useParent();
-  const ready = NodesInternal.useIsAdded(parent.indexedId, parent.type);
+  const ready = FormStore.nodes.useIsAdded(parent.indexedId, parent.type);
 
   return ready ? children : null;
 }

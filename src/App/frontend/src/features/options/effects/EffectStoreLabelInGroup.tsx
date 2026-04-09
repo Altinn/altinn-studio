@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
@@ -27,13 +27,13 @@ export function EffectStoreLabelInGroup({ options }: Props) {
   const parent = GeneratorInternal.useParent();
   const isHidden = useIsHidden(parent.baseId);
   const { langAsString } = useLanguage();
-  const setLeafValue = FD.useSetLeafValue();
-  const formDataSelector = FD.useCurrentSelector();
+  const setLeafValue = FormStore.data.useSetLeafValue();
+  const formDataSelector = FormStore.data.useCurrentSelector();
 
   const bindings = item.dataModelBindings as IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect;
 
   const groupBinding = bindings.group;
-  const groupRows = FD.useDebouncedPick(groupBinding) as Row[];
+  const groupRows = FormStore.data.useDebouncedPick(groupBinding) as Row[];
 
   const checkedPath = toRelativePath(groupBinding, bindings.checked);
   const valuePath = toRelativePath(groupBinding, bindings.simpleBinding);

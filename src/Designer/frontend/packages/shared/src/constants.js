@@ -30,3 +30,8 @@ export const MINIMUM_SUPPORTED_BACKEND_VERSION = 7;
 export const MAXIMUM_SUPPORTED_BACKEND_VERSION = 8;
 export const CODE_LIST_FOLDER = 'CodeLists';
 export const PUBLISHED_CODE_LIST_FOLDER = 'code_lists';
+export const DEFAULT_RIGHTS_DESCRIPTION = {
+  nb: 'Ved å gi tilgang til denne tjenesten gir du en annen person fullmakt til å bruke den på dine vegne. Les beskrivelsen av tjenesten for mer informasjon om hva tilgangen innebærer.',
+  nn: 'Når du gir tilgang til denne tenesta, gir du ein annan person fullmakt til å bruka ho på dine vegner. Les skildringa av tenesta for meir informasjon om kva tilgangen inneber.',
+  en: 'By granting access to this service, you are authorising another person to use it on your behalf. Please read the service description for more information about what this access entails.',
+};

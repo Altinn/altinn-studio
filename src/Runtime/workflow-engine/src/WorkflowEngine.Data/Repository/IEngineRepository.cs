@@ -87,6 +87,14 @@ internal interface IEngineRepository
     Task<int> CountSuccessfulWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets workflow counts grouped by status in a single query, plus a separate count
+    /// of scheduled workflows (enqueued with <c>StartAt</c> in the future).
+    /// Uses an index-only scan on <c>IX_Workflows_Status</c> — much cheaper than
+    /// running individual count queries with joins and subqueries.
+    /// </summary>
+    Task<WorkflowStatusCounts> CountWorkflowsByStatus(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the status of a workflow by its database ID and namespace, or null if not found.
     /// </summary>
     Task<PersistentItemStatus?> GetWorkflowStatus(

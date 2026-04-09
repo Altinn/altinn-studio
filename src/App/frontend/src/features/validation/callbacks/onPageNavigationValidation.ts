@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { getVisibilityMask } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
+import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { PageValidation } from 'src/layout/common.generated';
 
 /**
@@ -14,11 +14,11 @@ import type { PageValidation } from 'src/layout/common.generated';
  *
  */
 export function useOnPageNavigationValidation() {
-  const setNodeVisibility = NodesInternal.useSetNodeVisibility();
-  const getNodeValidations = NodesInternal.useValidationsSelector();
-  const validating = Validation.useValidating();
+  const setNodeVisibility = FormStore.nodes.useSetNodeVisibility();
+  const getNodeValidations = FormStore.nodes.useValidationsSelector();
+  const validating = useWaitForValidation();
   const pageOrder = usePageOrder();
-  const nodeStore = NodesInternal.useStore();
+  const formStore = FormStore.raw.useStore();
   const refetchInitialValidations = useRefetchInitialValidations();
 
   /* Ensures the callback will have the latest state */
@@ -36,7 +36,7 @@ export function useOnPageNavigationValidation() {
       currentOrPreviousPages.add(pageKey);
     }
 
-    const state = nodeStore.getState();
+    const state = formStore.getState();
     const nodeIds: string[] = [];
     const nodesOnCurrentOrPreviousPages = new Set<string>();
     let hasSubform = false;
@@ -48,7 +48,7 @@ export function useOnPageNavigationValidation() {
       shouldCheckPage = (pageKey: string) => currentOrPreviousPages.has(pageKey);
     }
 
-    for (const nodeData of Object.values(state.nodeData)) {
+    for (const nodeData of Object.values(state.nodes.nodeData)) {
       if (currentOrPreviousPages.has(nodeData.pageKey)) {
         nodesOnCurrentOrPreviousPages.add(nodeData.id);
       }

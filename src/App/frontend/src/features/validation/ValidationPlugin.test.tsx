@@ -5,15 +5,16 @@ import { userEvent } from '@testing-library/user-event';
 
 import { type BackendValidationIssue, BackendValidationSeverity } from '.';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
 function FormDataValue() {
-  const formDataValue = FD.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
+  const formDataValue = FormStore.data.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
   const [delayedValue, setDelayedValue] = useState(formDataValue);
 
   // This will ensure that the validation state gets updated in the error report by the time this value gets written to the DOM
@@ -66,13 +67,12 @@ describe('ValidationPlugin', () => {
         ),
         initialPage: 'Form',
         queries: {
-          fetchFormData: () =>
-            Promise.resolve({
-              TextField: text,
-            }),
-          fetchBackendValidations: () =>
-            Promise.resolve(
-              backendValidations.map(
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                TextField: text,
+              };
+              obj.dataModels[defaultDataTypeMock].initialValidationIssues = backendValidations.map(
                 (text) =>
                   ({
                     customTextKey: text,
@@ -81,75 +81,73 @@ describe('ValidationPlugin', () => {
                     severity: BackendValidationSeverity.Error,
                     source: 'Custom',
                   }) as BackendValidationIssue,
-              ),
-            ),
-          fetchDataModelSchema: () =>
-            Promise.resolve({
-              $id: 'test-schema',
-              $schema: 'https://json-schema.org/draft/2020-12/schema',
-              type: 'object',
-              properties: {
-                TextField: {
-                  type: 'string',
-                  maxLength: 10,
+              );
+              obj.dataModels[defaultDataTypeMock].schema = {
+                $id: 'test-schema',
+                $schema: 'https://json-schema.org/draft/2020-12/schema',
+                type: 'object',
+                properties: {
+                  TextField: {
+                    type: 'string',
+                    maxLength: 10,
+                  },
                 },
-              },
-              required: ['TextField'],
-            }),
-          fetchLayouts: () =>
-            Promise.resolve({
-              Form: {
-                data: {
-                  layout: [
-                    {
-                      id: 'text-field',
-                      type: 'Input',
-                      textResourceBindings: {
-                        title: 'Text',
+                required: ['TextField'],
+              };
+              obj.layouts = {
+                Form: {
+                  data: {
+                    layout: [
+                      {
+                        id: 'text-field',
+                        type: 'Input',
+                        textResourceBindings: {
+                          title: 'Text',
+                        },
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                        },
+                        showValidations,
+                        required: true,
                       },
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                      {
+                        id: 'navbuttons1',
+                        type: 'NavigationButtons',
+                        textResourceBindings: {
+                          next: 'Next',
+                          back: 'Back',
+                        },
+                        validateOnNext: {
+                          page: 'current',
+                          show: validateOnNext,
+                        },
                       },
-                      showValidations,
-                      required: true,
-                    },
-                    {
-                      id: 'navbuttons1',
-                      type: 'NavigationButtons',
-                      textResourceBindings: {
-                        next: 'Next',
-                        back: 'Back',
-                      },
-                      validateOnNext: {
-                        page: 'current',
-                        show: validateOnNext,
-                      },
-                    },
-                  ],
+                    ],
+                  },
                 },
-              },
-              NextPage: {
-                data: {
-                  layout: [
-                    {
-                      id: 'message',
-                      type: 'Paragraph',
-                      textResourceBindings: {
-                        title: 'This is the second page!',
+                NextPage: {
+                  data: {
+                    layout: [
+                      {
+                        id: 'message',
+                        type: 'Paragraph',
+                        textResourceBindings: {
+                          title: 'This is the second page!',
+                        },
                       },
-                    },
-                    {
-                      id: 'navbuttons2',
-                      type: 'NavigationButtons',
-                      textResourceBindings: {
-                        next: 'Next',
-                        back: 'Back',
+                      {
+                        id: 'navbuttons2',
+                        type: 'NavigationButtons',
+                        textResourceBindings: {
+                          next: 'Next',
+                          back: 'Back',
+                        },
+                        showBackButton: true,
                       },
-                      showBackButton: true,
-                    },
-                  ],
+                    ],
+                  },
                 },
-              },
+              };
             }),
         },
       });

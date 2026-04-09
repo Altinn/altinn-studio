@@ -28,7 +28,7 @@ class BaseConfig:
     API_PORT = int(os.getenv("API_PORT", "8071"))
 
     # Gitea integration for agent branch pushes
-    GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://host.docker.internal:3001")
+    GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://host.docker.internal/repos")
 
     # CORS settings for frontend connections
     CORS_ORIGINS = [
@@ -105,6 +105,7 @@ class BaseConfig:
     LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION = os.getenv("LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION", "")
     LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT = os.getenv("LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT", "")
     LANGFUSE_SCORE_CONFIG_INTENT_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_INTENT_MATCH", "")
+    LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION = os.getenv("LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION", "")
 
 
 def get_config() -> BaseConfig:
