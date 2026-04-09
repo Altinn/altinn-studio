@@ -1,4 +1,4 @@
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -19,8 +19,8 @@ export function useEmptyFieldValidationAllBindings<Type extends CompTypes>(
   const item = useItemFor(baseComponentId);
   const required = 'required' in item ? item.required : false;
   const trb = item.textResourceBindings;
-  const formDataSelector = FD.useDebouncedSelector();
-  const invalidDataSelector = FD.useInvalidDebouncedSelector();
+  const formDataSelector = FormStore.data.useDebouncedSelector();
+  const invalidDataSelector = FormStore.data.useInvalidDebouncedSelector();
   if (!required || !dataModelBindings) {
     return [];
   }
@@ -62,8 +62,8 @@ export function useEmptyFieldValidationOnlyOneBinding<Binding extends string>(
   const required = 'required' in item ? item.required : false;
   const reference = item.dataModelBindings?.[binding as string] as IDataModelReference | undefined;
   const trb = item.textResourceBindings;
-  const validData = FD.useDebouncedPick(reference);
-  const invalidData = FD.useInvalidDebouncedPick(reference);
+  const validData = FormStore.data.useDebouncedPick(reference);
+  const invalidData = FormStore.data.useInvalidDebouncedPick(reference);
   const data = validData ?? invalidData;
   if (!required || !reference) {
     return [];

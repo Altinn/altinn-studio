@@ -1,60 +1,58 @@
 import { useCallback } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { shouldValidateNode } from 'src/features/validation/StoreValidationsInNode';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { NodesStore } from 'src/utils/layout/NodesContext';
-import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { CompExternal, CompTypes } from 'src/layout/layout';
 import type { NodeData } from 'src/utils/layout/types';
 
 export function useWaitForNodesToValidate() {
   const registry = GeneratorInternal.useRegistry();
-  const nodesStore = NodesStore.useStore();
-  const lookups = useLayoutLookups();
+  const formStore = FormStore.raw.useStore();
+  const lookups = FormBootstrap.useLayoutLookups();
 
-  return useCallback(
-    async (processedLast: ValidationsProcessedLast): Promise<void> => {
-      let callbackId: ReturnType<typeof requestIdleCallback | typeof requestAnimationFrame> | undefined;
-      const request = window.requestIdleCallback || window.requestAnimationFrame;
-      const cancel = window.cancelIdleCallback || window.cancelAnimationFrame;
+  return useCallback(async (): Promise<void> => {
+    let callbackId: ReturnType<typeof requestIdleCallback | typeof requestAnimationFrame> | undefined;
+    const request = window.requestIdleCallback || window.requestAnimationFrame;
+    const cancel = window.cancelIdleCallback || window.cancelAnimationFrame;
 
-      function check(): boolean {
-        const allNodeData = nodesStore.getState().nodeData;
-        const nodeIds = Object.keys(allNodeData);
-        for (const nodeId of nodeIds) {
-          const nodeData = allNodeData[nodeId];
-          const layout = lookups.getComponent(nodeData.baseId);
-          if (!doesNodeSupportValidation(nodeData, layout)) {
-            continue;
-          }
-
-          const lastValidations = registry.current.validationsProcessed[nodeId];
-          const initialIsLatest = lastValidations?.initial === processedLast.initial;
-          const incrementalIsLatest = lastValidations?.incremental === processedLast.incremental;
-          if (!(lastValidations && initialIsLatest && incrementalIsLatest)) {
-            return false;
-          }
+    function check(): boolean {
+      const state = formStore.getState();
+      const processedLast = state.validation.processedLast;
+      const allNodeData = state.nodes.nodeData;
+      const nodeIds = Object.keys(allNodeData);
+      for (const nodeId of nodeIds) {
+        const nodeData = allNodeData[nodeId];
+        const layout = lookups.getComponent(nodeData.baseId);
+        if (!doesNodeSupportValidation(nodeData, layout)) {
+          continue;
         }
 
-        return true;
+        const lastValidations = registry.current.validationsProcessed[nodeId];
+        const initialIsLatest = lastValidations?.initial === processedLast.initial;
+        const incrementalIsLatest = lastValidations?.incremental === processedLast.incremental;
+        if (!(lastValidations && initialIsLatest && incrementalIsLatest)) {
+          return false;
+        }
       }
 
-      return new Promise<void>((resolve) => {
-        function checkAndResolve() {
-          if (check()) {
-            resolve();
-            callbackId && cancel(callbackId);
-          } else {
-            callbackId = request(checkAndResolve);
-          }
-        }
+      return true;
+    }
 
-        checkAndResolve();
-      });
-    },
-    [lookups, nodesStore, registry],
-  );
+    return new Promise<void>((resolve) => {
+      function checkAndResolve() {
+        if (check()) {
+          resolve();
+          callbackId && cancel(callbackId);
+        } else {
+          callbackId = request(checkAndResolve);
+        }
+      }
+
+      checkAndResolve();
+    });
+  }, [lookups, formStore, registry]);
 }
 
 function doesNodeSupportValidation<T extends CompTypes>(nodeData: NodeData, layout: CompExternal<T>): boolean {

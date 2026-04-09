@@ -12,9 +12,10 @@ import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
-import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -26,7 +27,6 @@ import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 interface FormState {
@@ -63,7 +63,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
-  const requiredFieldsMissing = NodesInternal.usePageHasVisibleRequiredValidations(currentPageId);
+  const requiredFieldsMissing = FormStore.nodes.usePageHasVisibleRequiredValidations(currentPageId);
   const allAttachments = useAllAttachments();
   const textResources = useTextResources();
 
@@ -173,7 +173,7 @@ function useRedirectToStoredPage() {
  */
 function useSetExpandedWidth() {
   const currentPageId = useCurrentView();
-  const expandedPagesFromLayout = useExpandedWidthLayouts();
+  const expandedPagesFromLayout = FormBootstrap.useExpandedWidthLayouts();
   const expandedWidthFromSettings = usePageSettings().expandedWidth;
   const { setExpandedWidth } = useUiConfigContext();
 
@@ -190,7 +190,7 @@ function useSetExpandedWidth() {
 
 const emptyArray = [];
 function useFormState(currentPageId: string | undefined): FormState {
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const topLevelIds = currentPageId ? (lookups.topLevelComponents[currentPageId] ?? emptyArray) : emptyArray;
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);

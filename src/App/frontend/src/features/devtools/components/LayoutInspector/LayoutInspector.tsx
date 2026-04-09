@@ -11,18 +11,15 @@ import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInsp
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
-import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 
 export const LayoutInspector = () => {
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);
   const setSelectedComponent = useDevToolsStore((state) => state.actions.layoutInspectorSet);
   const currentView = useCurrentView();
-  const layouts = useLayouts();
-  const currentUiFolder = useCurrentUiFolderNameFromUrl();
+  const layouts = FormBootstrap.useLayouts();
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
@@ -60,19 +57,22 @@ export const LayoutInspector = () => {
         const updatedComponent = JSON.parse(componentProperties ?? '');
 
         if (currentView) {
-          window.queryClient.setQueriesData<LayoutContextValue>(
-            { queryKey: ['formLayouts', currentUiFolder] },
-            (_queryData) => {
-              const queryData = structuredClone(_queryData);
-              if (!queryData?.layouts?.[currentView]) {
-                return _queryData;
-              }
-              queryData.layouts[currentView] = queryData.layouts[currentView]?.map((component) =>
-                component.id === selectedComponent ? updatedComponent : component,
-              );
-              return queryData;
-            },
-          );
+          if (updatedComponent.type === 'LikertItem') {
+            throw new Error('LikertItem is generated and cannot be edited directly');
+          }
+
+          window.changeLayouts((existingLayouts) => {
+            const nextLayouts = structuredClone(existingLayouts);
+            const page = nextLayouts[currentView];
+            const idx = page?.data.layout.findIndex((component) => component.id === selectedComponent);
+
+            if (!page || idx === undefined || idx < 0) {
+              throw new Error(`Could not find component '${selectedComponent}' on page '${currentView}'`);
+            }
+
+            page.data.layout[idx] = updatedComponent;
+            return nextLayouts;
+          });
         }
 
         setPropertiesHaveChanged(false);

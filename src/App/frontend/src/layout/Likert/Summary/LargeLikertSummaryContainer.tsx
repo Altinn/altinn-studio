@@ -4,12 +4,12 @@ import type { JSX } from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 
 import { Fieldset } from 'src/app-components/Label/Fieldset';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
@@ -37,7 +37,7 @@ export function LargeLikertSummaryContainer({
   const container = useItemWhenType(likertBaseId, 'Likert');
   const { title, summaryTitle } = container.textResourceBindings ?? {};
   const indexedId = useIndexedId(likertBaseId, true);
-  const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
+  const depth = FormStore.raw.useSelector((state) => state.nodes.nodeData?.[indexedId]?.depth);
   const childId = makeLikertChildId(likertBaseId);
   const childIndexedId = useIndexedId(childId);
   const hidden = useIsHidden(childId);

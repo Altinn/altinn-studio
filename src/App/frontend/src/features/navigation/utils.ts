@@ -11,12 +11,12 @@ import {
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
+import { FormStore } from 'src/features/form/FormContext';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { ValidationMask } from 'src/features/validation';
 import { useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 
 export function useHasGroupedNavigation() {
@@ -87,12 +87,12 @@ export function getTaskIcon(taskType: string | undefined) {
  * 4. A group is marked as completed if all of its pages have no nodes with any validations errors (visible or not), and all of the pages are marked as 'visited'.
  */
 export function useValidationsForPages(order: string[], shouldMarkWhenCompleted = false) {
-  const validationsSelector = NodesInternal.useLaxValidationsSelector();
+  const validationsSelector = FormStore.nodes.useLaxValidationsSelector();
   const [visitedPages] = useVisitedPages();
 
-  const allNodeIds = NodesInternal.useLaxMemoSelector((state) => {
+  const allNodeIds = FormStore.raw.useLaxMemoSelector((state) => {
     const allNodeIds = Object.fromEntries<string[]>(order.map((page) => [page, []]));
-    Object.values(state.nodeData).forEach((node) => allNodeIds[node.pageKey]?.push(node.id));
+    Object.values(state.nodes.nodeData).forEach((node) => allNodeIds[node.pageKey]?.push(node.id));
     return allNodeIds;
   });
 

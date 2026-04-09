@@ -1,7 +1,7 @@
 import dot from 'dot-object';
 import { v4 as uuidv4 } from 'uuid';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -51,10 +51,10 @@ function findRowInFormData(
 
 function useSaveToGroup(bindings: Bindings) {
   const { group, checked, values } = bindings;
-  const formDataSelector = FD.useCurrentSelector();
-  const setLeafValue = FD.useSetLeafValue();
-  const appendToList = FD.useAppendToList();
-  const removeFromList = FD.useRemoveFromListCallback();
+  const formDataSelector = FormStore.data.useCurrentSelector();
+  const setLeafValue = FormStore.data.useSetLeafValue();
+  const appendToList = FormStore.data.useAppendToList();
+  const removeFromList = FormStore.data.useRemoveFromListCallback();
   const checkedPath = toRelativePath(group, checked);
 
   function toggle(row: Row): void {
@@ -114,7 +114,7 @@ export function useSaveObjectToGroup(listBindings: IDataModelBindingsForList) {
     }
   }
   const bindings: Bindings = { group: listBindings.group, checked: listBindings.checked, values };
-  const formDataSelector = FD.useCurrentSelector();
+  const formDataSelector = FormStore.data.useCurrentSelector();
   const { enabled, toggle, checkedPath } = useSaveToGroup(bindings);
 
   function isChecked(row: Row): boolean {
@@ -148,7 +148,7 @@ export function useSaveValueToGroup(
   });
   const valuePath = toRelativePath(bindings.group, bindings.simpleBinding);
 
-  const formData = FD.useFreshBindings(bindings.group ? { group: bindings.group } : {}, 'raw').group as
+  const formData = FormStore.data.useFreshBindings(bindings.group ? { group: bindings.group } : {}, 'raw').group as
     | Row[]
     | undefined;
 

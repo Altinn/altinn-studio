@@ -3,8 +3,8 @@ import dot from 'dot-object';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentUiFolderSettings } from 'src/features/form/ui/hooks';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
@@ -20,7 +20,7 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
   const langTools = useLanguage();
   const groupReference = useGroupReference(source);
   const valueSubPath = getValueSubPath(source);
-  const rawValues = FD.useDebouncedSelect((pick) => {
+  const rawValues = FormStore.data.useDebouncedSelect((pick) => {
     if (!groupReference || !valueSubPath) {
       return [];
     }
