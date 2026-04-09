@@ -52,7 +52,7 @@ export function CreateRelease() {
     Object.keys(appValidationResult?.errors ?? {}),
   );
   const validVersionName = tagName && versionNameValid(releases, tagName);
-  const canBuild = validVersionName && !appHasCriticalErrors;
+  const canBuild = validVersionName;
   return (
     <div className={classes.createReleaseForm}>
       {appValidationResult?.isValid === false && appHasCriticalErrors && (
