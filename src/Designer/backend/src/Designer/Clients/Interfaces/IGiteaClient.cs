@@ -255,4 +255,12 @@ public interface IGiteaClient
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>True if the user is a member of the team, false otherwise.</returns>
     Task<bool> IsTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the members of a team.
+    /// </summary>
+    /// <param name="teamId">The team id.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A list of team members.</returns>
+    Task<List<User>> GetTeamMembersAsync(long teamId, CancellationToken cancellationToken = default);
 }

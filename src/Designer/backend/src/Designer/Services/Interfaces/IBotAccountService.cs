@@ -46,4 +46,9 @@ public interface IBotAccountService
         IEnumerable<string> desiredEnvironments,
         CancellationToken cancellationToken = default
     );
+
+    Task<Dictionary<Guid, int>> GetApiKeyCountsByBotIdsAsync(
+        IEnumerable<Guid> botAccountIds,
+        CancellationToken cancellationToken = default
+    );
 }

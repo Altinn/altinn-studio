@@ -961,6 +961,13 @@ public class GiteaClient(
         return true;
     }
 
+    public async Task<List<User>> GetTeamMembersAsync(long teamId, CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync($"teams/{teamId}/members", cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<User>>(s_jsonOptions, cancellationToken);
+    }
+
     private static string AddRefIfExists(string path, string reference)
     {
         if (string.IsNullOrWhiteSpace(reference))

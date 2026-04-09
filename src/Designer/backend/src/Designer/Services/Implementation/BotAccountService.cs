@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Models.BotAccount;
 using Altinn.Studio.Designer.Models.UserAccount;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using ApiKeyModel = Altinn.Studio.Designer.Models.ApiKey.ApiKey;
@@ -65,24 +66,42 @@ public class BotAccountService(
             .Where(u => u.OrganizationName == org && u.AccountType == AccountType.Bot && !u.Deactivated)
             .OrderByDescending(u => u.Created)
             .ToListAsync(cancellationToken);
+        List<Team> orgTeams = await deployEnvironmentAccessService.GetDeployTeamsAsync(org, cancellationToken);
 
-        var environmentsPerBot = await Task.WhenAll(
-            models.Select(m =>
-                deployEnvironmentAccessService.GetDeployEnvironmentsAsync(org, m.Username, cancellationToken)
-            )
+        Dictionary<long, List<User>> membersByTeam = await deployEnvironmentAccessService.GetTeamMembersAsync(
+            orgTeams,
+            cancellationToken
         );
 
         return models
-            .Select((m, i) => MapToDomain(m, m.CreatedByUserAccount?.Username, environmentsPerBot[i]))
+            .Select(m =>
+                MapToDomain(
+                    m,
+                    m.CreatedByUserAccount?.Username,
+                    deployEnvironmentAccessService.GetDeployEnvironments(m.Username, orgTeams, membersByTeam)
+                )
+            )
             .ToList();
+    }
+
+    public async Task<Dictionary<Guid, int>> GetApiKeyCountsByBotIdsAsync(
+        IEnumerable<Guid> botAccountIds,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await dbContext
+            .ApiKeys.AsNoTracking()
+            .Where(k => botAccountIds.Contains(k.UserAccount.Id) && !k.Revoked)
+            .GroupBy(k => k.UserAccount.Id)
+            .ToDictionaryAsync(g => g.Key, g => g.Count(), cancellationToken);
     }
 
     public async Task<BotAccount> GetAsync(Guid botAccountId, string org, CancellationToken cancellationToken = default)
     {
         var model = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
-        var environments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
-            org,
+        List<string> environments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
             model.Username,
+            org,
             cancellationToken
         );
         return MapToDomain(model, model.CreatedByUserAccount?.Username, environments);
@@ -100,8 +119,8 @@ public class BotAccountService(
             ?? throw new InvalidOperationException($"Bot account '{botAccountId}' not found in org '{org}'.");
 
         List<string> deployEnvironments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
-            org,
             model.Username,
+            org,
             cancellationToken
         );
 
@@ -184,8 +203,8 @@ public class BotAccountService(
         var botAccount = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
 
         List<string> currentEnvironments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
-            org,
             botAccount.Username,
+            org,
             cancellationToken
         );
 
