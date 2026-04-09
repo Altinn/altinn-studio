@@ -18,16 +18,10 @@ patches:
         name: altinn-ai-agents
         namespace: default
   - patch: |-
-      $patch: delete
-      apiVersion: source.toolkit.fluxcd.io/v1
-      kind: OCIRepository
-      metadata:
-        name: altinn-mcp-server-repo
-        namespace: default
-  - patch: |-
-      $patch: delete
-      apiVersion: kustomize.toolkit.fluxcd.io/v1
-      kind: Kustomization
+      apiVersion: apps/v1
+      kind: Deployment
       metadata:
         name: altinn-mcp-server
         namespace: default
+      spec:
+        replicas: 0
