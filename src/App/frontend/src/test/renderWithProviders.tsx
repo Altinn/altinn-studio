@@ -147,7 +147,7 @@ const defaultQueryMocks: AppQueries = {
   fetchFormBootstrapForStateless: async () => getFormBootstrapMock(),
 };
 
-const defaultApiMocks: ApiClients = {
+const defaultApiMocks: Omit<ApiClients, 'textResourcesApi'> = {
   partyApi: {
     getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
     setSelectedParty: async () => 'Party successfully updated',
@@ -308,7 +308,7 @@ export function StatelessRouter({
 
 interface ProvidersProps extends PropsWithChildren {
   queries: AppQueriesContext;
-  apis: ApiClients;
+  apis: Omit<ApiClients, 'textResourcesApi'>;
   queryClient: QueryClient;
   Router?: (props: PropsWithChildren) => React.ReactNode;
 }
@@ -404,7 +404,7 @@ export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {
     ...mutations,
   };
 
-  const finalApis: ApiClients = {
+  const finalApis: Omit<ApiClients, 'textResourcesApi'> = {
     partyApi: {
       ...defaultApiMocks.partyApi,
       ...apis?.partyApi,

@@ -22,44 +22,18 @@ spec:
         - name: altinn-mcp-server
           image: altinn-mcp-server:latest
           ports:
-            - containerPort: 8069
+            - containerPort: 8070
               name: http
               protocol: TCP
           env:
             - name: AZURE_ENDPOINT
-              value: "https://hackathons-resource.openai.azure.com/"
+              value: "https://rndlabaidemoss0618689180.openai.azure.com/"
             - name: GITEA_URL
-              value: "http://altinn-repositories:3000/api/v1"
+              value: "http://altinn-repositories-public"
             - name: AZURE_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: altinn-mcp-server-secret
                   key: AZURE_API_KEY
-            - name: LANGFUSE_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: altinn-mcp-server-secret
-                  key: LANGFUSE_SECRET_KEY
-            - name: LANGFUSE_PUBLIC_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: altinn-mcp-server-secret
-                  key: LANGFUSE_PUBLIC_KEY
-            - name: LANGFUSE_ENABLED
-              value: "true"
-          # livenessProbe:
-          #   httpGet:
-          #     path: /sse
-          #     port: 8069
-          #   initialDelaySeconds: 10
-          #   periodSeconds: 10
-          #   timeoutSeconds: 3
-          #   failureThreshold: 3
-          # readinessProbe:
-          #   httpGet:
-          #     path: /sse
-          #     port: 8069
-          #   initialDelaySeconds: 5
-          #   periodSeconds: 5
-          #   timeoutSeconds: 3
-          #   failureThreshold: 3
+            - name: MCP_ROOT_PATH
+              value: "/mcp"
