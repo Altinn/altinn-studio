@@ -28,8 +28,7 @@
       ]
     }
   ],
-  page: 1,
   pageSize: 25,
   totalCount: 1,
-  totalPages: 1
+  nextCursor: null
 }

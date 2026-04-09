@@ -127,7 +127,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // === Enqueue phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
 
         // === Processing phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowHandler.Handle"));
@@ -255,7 +255,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         );
 
         // Assert repository activities for query operations
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflowsPaginated"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflows"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
     }
 
@@ -353,7 +353,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
         Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }

@@ -129,7 +129,7 @@ internal static class EngineRequestHandlers
         [FromRoute] string @namespace,
         [FromQuery] Guid? correlationId,
         [FromQuery(Name = "label")] string[]? labels,
-        [FromQuery] int? page,
+        [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
         [FromServices] IOptions<EngineSettings> settings,
@@ -139,30 +139,30 @@ internal static class EngineRequestHandlers
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
         var pagination = settings.Value.Pagination;
-        var effectivePage = Math.Max(page ?? 1, 1);
         var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
 
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var (workflows, totalCount) = await repository.GetActiveWorkflowsPaginated(
-            effectivePage,
+        var result = await repository.GetActiveWorkflows(
             effectivePageSize,
+            cursor,
+            includeTotalCount: true,
             correlationId,
             ns,
             labelFilters,
             cancellationToken
         );
 
-        if (totalCount == 0)
+        if (result.TotalCount == 0)
             return TypedResults.NoContent();
 
         return TypedResults.Ok(
             new PaginatedResponse<WorkflowStatusResponse>
             {
-                Data = workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
-                Page = effectivePage,
+                Data = result.Workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
                 PageSize = effectivePageSize,
-                TotalCount = totalCount,
+                TotalCount = result.TotalCount ?? 0, // always populated here (includeTotalCount: true)
+                NextCursor = result.NextCursor,
             }
         );
     }

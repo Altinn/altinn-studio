@@ -3,7 +3,8 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Generic paginated response wrapper providing page metadata alongside the data.
+/// Generic cursor-paginated response wrapper.
+/// Use <see cref="NextCursor"/> to fetch the next page. A null value indicates the last page.
 /// </summary>
 public sealed record PaginatedResponse<T>
 {
@@ -12,12 +13,6 @@ public sealed record PaginatedResponse<T>
     /// </summary>
     [JsonPropertyName("data")]
     public required IReadOnlyList<T> Data { get; init; }
-
-    /// <summary>
-    /// The current page number (1-based).
-    /// </summary>
-    [JsonPropertyName("page")]
-    public required int Page { get; init; }
 
     /// <summary>
     /// The maximum number of items per page.
@@ -32,8 +27,9 @@ public sealed record PaginatedResponse<T>
     public required int TotalCount { get; init; }
 
     /// <summary>
-    /// The total number of pages.
+    /// Cursor to pass as <c>?cursor=</c> to retrieve the next page.
+    /// Null when there are no more results.
     /// </summary>
-    [JsonPropertyName("totalPages")]
-    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+    [JsonPropertyName("nextCursor")]
+    public Guid? NextCursor { get; init; }
 }

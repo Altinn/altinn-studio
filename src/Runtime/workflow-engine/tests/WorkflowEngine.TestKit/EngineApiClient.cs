@@ -185,17 +185,17 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Lists active workflows with pagination. Returns the full paginated response or an empty one on 204 No Content.
+    /// Lists active workflows with cursor-based pagination. Returns the full paginated response or an empty one on 204 No Content.
     /// </summary>
     public async Task<PaginatedResponse<WorkflowStatusResponse>> ListActiveWorkflowsPaginated(
-        int? page = null,
+        Guid? cursor = null,
         int? pageSize = null,
         string? ns = null
     )
     {
         var qs = new List<string>();
-        if (page.HasValue)
-            qs.Add($"page={page.Value}");
+        if (cursor.HasValue)
+            qs.Add($"cursor={cursor.Value}");
         if (pageSize.HasValue)
             qs.Add($"pageSize={pageSize.Value}");
 
@@ -206,7 +206,6 @@ public sealed class EngineApiClient : IDisposable
             return new PaginatedResponse<WorkflowStatusResponse>
             {
                 Data = [],
-                Page = page ?? 1,
                 PageSize = pageSize ?? 25,
                 TotalCount = 0,
             };
@@ -215,23 +214,23 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Lists all active workflows by iterating through every page.
+    /// Lists all active workflows by iterating through every page using cursor-based pagination.
     /// Convenience wrapper around <see cref="ListActiveWorkflowsPaginated"/> that returns the full dataset.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
         var all = new List<WorkflowStatusResponse>();
-        var page = 1;
+        Guid? cursor = null;
 
         while (true)
         {
-            var result = await ListActiveWorkflowsPaginated(page: page, ns: ns);
+            var result = await ListActiveWorkflowsPaginated(cursor: cursor, ns: ns);
             all.AddRange(result.Data);
 
-            if (result.TotalPages == 0 || page >= result.TotalPages)
+            if (result.NextCursor is null)
                 return all;
 
-            page++;
+            cursor = result.NextCursor;
         }
     }
 

@@ -183,7 +183,7 @@ internal class WorkflowWriteBuffer : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-            var results = await repo.BatchEnqueueWorkflowsAsync(batch, ct);
+            var results = await repo.BatchEnqueueWorkflows(batch, ct);
 
             // Distribute results back to each caller
             bool anyNewWorkflows = false;

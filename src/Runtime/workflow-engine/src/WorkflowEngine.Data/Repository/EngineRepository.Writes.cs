@@ -130,12 +130,12 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(
+    public async Task<BatchEnqueueResult[]> BatchEnqueueWorkflows(
         IReadOnlyList<BufferedEnqueueRequest> requests,
         CancellationToken cancellationToken
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchEnqueueWorkflowsAsync");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchEnqueueWorkflows");
 
         var results = new BatchEnqueueResult[requests.Count];
         var perRequestWorkflows = new Workflow[requests.Count][];
