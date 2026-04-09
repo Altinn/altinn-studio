@@ -252,7 +252,9 @@ public class DefaultEFormidlingService : IEFormidlingService
             await using Stream stream = await _dataClient.GetBinaryData(
                 instanceOwnerPartyId,
                 instanceGuid,
-                new Guid(dataElement.Id)
+                new Guid(dataElement.Id),
+                authenticationMethod: null,
+                CancellationToken.None
             );
 
             Debug.Assert(_eFormidlingClient is not null, "This is validated before use");

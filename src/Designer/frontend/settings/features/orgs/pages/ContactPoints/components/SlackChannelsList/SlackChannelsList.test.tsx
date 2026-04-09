@@ -8,17 +8,14 @@ import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
 jest.mock('./SlackChannelDialog/SlackChannelDialog', () => ({
   SlackChannelDialog: ({
-    isEditing,
-    onSave,
+    editingId,
     onClose,
   }: {
-    isEditing: boolean;
-    onSave: () => void;
+    editingId: string | null;
     onClose: () => void;
   }) => (
     <div>
-      <div>{isEditing ? 'EditDialog' : 'AddDialog'}</div>
-      <button onClick={onSave}>Save</button>
+      <div>{editingId ? 'EditDialog' : 'AddDialog'}</div>
       <button onClick={onClose}>Cancel</button>
     </div>
   ),
@@ -117,32 +114,10 @@ describe('SlackChannelsList', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderSlackChannelsList({ channels: [channel1] });
-    const deleteButtons = screen.getAllByRole('button');
-    const deleteButton = deleteButtons.find((btn) => btn.getAttribute('data-color') === 'danger')!;
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('settings.orgs.contact_points.delete', { name: channel1.name }),
+    });
     await user.click(deleteButton);
     expect(queriesMock.deleteContactPoint).toHaveBeenCalledWith(testOrg, 'slack-1');
-  });
-
-  it('calls addContactPoint when saving a new channel', async () => {
-    const user = userEvent.setup();
-    renderSlackChannelsList();
-    await user.click(getAddButton());
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
-      testOrg,
-      expect.objectContaining({ name: '', isActive: true }),
-    );
-  });
-
-  it('calls updateContactPoint when saving an edited channel', async () => {
-    const user = userEvent.setup();
-    renderSlackChannelsList({ channels: [channel1] });
-    await user.click(getEditButton());
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(queriesMock.updateContactPoint).toHaveBeenCalledWith(
-      testOrg,
-      'slack-1',
-      expect.objectContaining({ name: '#general' }),
-    );
   });
 });

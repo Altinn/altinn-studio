@@ -153,4 +153,37 @@ public class ProfileClient : IProfileClient
 
         return userProfile;
     }
+
+    /// <inheritdoc />
+    public async Task<UserProfile?> GetUserProfile(Guid userUuid)
+    {
+        using var activity = _telemetry?.StartGetUserProfileActivity();
+
+        if (userUuid == Guid.Empty)
+        {
+            _logger.LogError("Tried to get user profile with empty party UUID");
+            return null;
+        }
+
+        string endpointUrl = $"users/byuuid/{userUuid}";
+        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        using HttpResponseMessage response = await _client.GetAsync(
+            token,
+            endpointUrl,
+            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App)
+        );
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            return await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content);
+        }
+
+        _logger.LogError(
+            "Getting user profile with party UUID {PartyUuid} failed with statuscode {StatusCode}",
+            userUuid,
+            response.StatusCode
+        );
+        return null;
+    }
 }

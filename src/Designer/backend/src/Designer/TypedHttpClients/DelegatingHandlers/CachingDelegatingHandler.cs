@@ -7,88 +7,84 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 
-namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
+namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
+
+public class CachingDelegatingHandler : DelegatingHandler
 {
-    public class CachingDelegatingHandler : DelegatingHandler
+    /// If needed add headers to the cache key
+    internal class CacheResponseDataEntry
     {
-        /// If needed add headers to the cache key
-        internal class CacheResponseDataEntry
+        public byte[] Data { get; set; }
+        public HttpStatusCode StatusCode { get; set; }
+    }
+
+    private readonly IMemoryCache _memoryCache;
+    private readonly int _cacheExpiryInSeconds;
+
+    public CachingDelegatingHandler(IMemoryCache memoryCache, int cacheExpiryInSeconds = 10 * 60)
+    {
+        _memoryCache = memoryCache;
+        _cacheExpiryInSeconds = cacheExpiryInSeconds;
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
+    {
+        string cacheKey = $"{request.Method}_{request.RequestUri}";
+
+        if (IsEligibleForCaching(request) && _memoryCache.TryGetValue(cacheKey, out CacheResponseDataEntry cacheEntry))
         {
-            public byte[] Data { get; set; }
-            public HttpStatusCode StatusCode { get; set; }
+            return GetCachedResponseMessage(cacheEntry);
         }
 
-        private readonly IMemoryCache _memoryCache;
-        private readonly int _cacheExpiryInSeconds;
+        var response = await base.SendAsync(request, cancellationToken);
 
-        public CachingDelegatingHandler(IMemoryCache memoryCache, int cacheExpiryInSeconds = 10 * 60)
+        if (!IsEligibleForCaching(request) || !response.IsSuccessStatusCode)
         {
-            _memoryCache = memoryCache;
-            _cacheExpiryInSeconds = cacheExpiryInSeconds;
+            return response;
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken
-        )
+        var newCacheEntry = new CacheResponseDataEntry()
         {
-            string cacheKey = $"{request.Method}_{request.RequestUri}";
+            Data = await response.Content.ReadAsByteArrayAsync(cancellationToken),
+            StatusCode = response.StatusCode,
+        };
 
-            if (
-                IsEligibleForCaching(request)
-                && _memoryCache.TryGetValue(cacheKey, out CacheResponseDataEntry cacheEntry)
-            )
-            {
-                return GetCachedResponseMessage(cacheEntry);
-            }
+        MemoryCacheEntryOptions cacheEntryOptions = GenerateMemoryCacheEntryOptions();
 
-            var response = await base.SendAsync(request, cancellationToken);
+        _memoryCache.Set(cacheKey, newCacheEntry, cacheEntryOptions);
+        response.Dispose();
+        return GetCachedResponseMessage(newCacheEntry);
+    }
 
-            if (!IsEligibleForCaching(request) || !response.IsSuccessStatusCode)
-            {
-                return response;
-            }
+    private MemoryCacheEntryOptions GenerateMemoryCacheEntryOptions()
+    {
+        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(_cacheExpiryInSeconds));
 
-            var newCacheEntry = new CacheResponseDataEntry()
-            {
-                Data = await response.Content.ReadAsByteArrayAsync(cancellationToken),
-                StatusCode = response.StatusCode,
-            };
+        var cacheEntryOptions = new MemoryCacheEntryOptions()
+            .AddExpirationToken(new CancellationChangeToken(cancellationTokenSource.Token))
+            .RegisterPostEvictionCallback(
+                (key, value, reason, state) =>
+                {
+                    ((CancellationTokenSource)state).Dispose();
+                },
+                cancellationTokenSource
+            );
+        return cacheEntryOptions;
+    }
 
-            MemoryCacheEntryOptions cacheEntryOptions = GenerateMemoryCacheEntryOptions();
+    /// <summary>
+    /// Should cache only idempotent http methods. Currently only Get method is needed.
+    /// </summary>
+    private static bool IsEligibleForCaching(HttpRequestMessage requestMessage) =>
+        requestMessage.Method == HttpMethod.Get;
 
-            _memoryCache.Set(cacheKey, newCacheEntry, cacheEntryOptions);
-            response.Dispose();
-            return GetCachedResponseMessage(newCacheEntry);
-        }
-
-        private MemoryCacheEntryOptions GenerateMemoryCacheEntryOptions()
-        {
-            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(_cacheExpiryInSeconds));
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .AddExpirationToken(new CancellationChangeToken(cancellationTokenSource.Token))
-                .RegisterPostEvictionCallback(
-                    (key, value, reason, state) =>
-                    {
-                        ((CancellationTokenSource)state).Dispose();
-                    },
-                    cancellationTokenSource
-                );
-            return cacheEntryOptions;
-        }
-
-        /// <summary>
-        /// Should cache only idempotent http methods. Currently only Get method is needed.
-        /// </summary>
-        private static bool IsEligibleForCaching(HttpRequestMessage requestMessage) =>
-            requestMessage.Method == HttpMethod.Get;
-
-        private static HttpResponseMessage GetCachedResponseMessage(CacheResponseDataEntry cacheResponseDataEntry)
-        {
-            HttpResponseMessage responseMessage = new HttpResponseMessage(cacheResponseDataEntry.StatusCode);
-            responseMessage.Content = new ByteArrayContent(cacheResponseDataEntry.Data);
-            return responseMessage;
-        }
+    private static HttpResponseMessage GetCachedResponseMessage(CacheResponseDataEntry cacheResponseDataEntry)
+    {
+        HttpResponseMessage responseMessage = new HttpResponseMessage(cacheResponseDataEntry.StatusCode);
+        responseMessage.Content = new ByteArrayContent(cacheResponseDataEntry.Data);
+        return responseMessage;
     }
 }

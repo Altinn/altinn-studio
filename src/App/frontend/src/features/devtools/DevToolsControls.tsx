@@ -20,12 +20,12 @@ import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitche
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import classes from 'src/features/devtools/DevTools.module.css';
-import { useIsInFormContext } from 'src/features/form/FormContext';
+import { FormProviderHooks } from 'src/features/form/FormContext';
 
 export const DevToolsControls = () => {
   const activeTab = useDevToolsStore((state) => state.activeTab);
   const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
-  const isInForm = useIsInFormContext();
+  const isInForm = FormProviderHooks.useIsInContext();
 
   return (
     <Tabs

@@ -4,98 +4,97 @@ using System.IO;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+/// <summary>
+/// A entity describing a file that is part of a AltinnCore service
+/// </summary>
+public class AltinnCoreFile
 {
     /// <summary>
-    /// A entity describing a file that is part of a AltinnCore service
+    /// Gets or sets the FilePath
     /// </summary>
-    public class AltinnCoreFile
+    public string FilePath { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Directory of the file.
+    /// </summary>
+    public string Directory { get; set; }
+
+    /// <summary>
+    /// Relative url to the file in the repository.
+    /// </summary>
+    public string RepositoryRelativeUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the FileName
+    /// </summary>
+    public string FileName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the FileType
+    /// </summary>
+    public string FileType { get; set; }
+
+    /// <summary>
+    /// Gets or sets the FileStatus
+    /// </summary>
+    public AltinnCoreFileStatusType FileStatus { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Description
+    /// </summary>
+    public string Description { get; set; }
+
+    /// <summary>
+    /// Gets or sets the last changed date time
+    /// </summary>
+    public DateTime LastChanged { get; set; }
+
+    /// <summary>
+    /// Creates a valid populated <see cref="AltinnCoreFile"/> object from a file path string.
+    /// </summary>
+    /// <param name="filePath">The complete physical path to the file.</param>
+    /// <param name="repositoryRootDirectory">Root path to calculate relative url's from. This is should be the root of the repository. If it's empty or isn't a part of the filePath parameter the RepositoryRelativeUrl will be left blank.</param>
+    /// <returns></returns>
+    public static AltinnCoreFile CreateFromPath(string filePath, string repositoryRootDirectory)
     {
-        /// <summary>
-        /// Gets or sets the FilePath
-        /// </summary>
-        public string FilePath { get; set; }
+        var fileInfo = new FileInfo(filePath);
 
-        /// <summary>
-        /// Gets or sets the Directory of the file.
-        /// </summary>
-        public string Directory { get; set; }
+        AssertFileExists(fileInfo);
 
-        /// <summary>
-        /// Relative url to the file in the repository.
-        /// </summary>
-        public string RepositoryRelativeUrl { get; set; }
-
-        /// <summary>
-        /// Gets or sets the FileName
-        /// </summary>
-        public string FileName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the FileType
-        /// </summary>
-        public string FileType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the FileStatus
-        /// </summary>
-        public AltinnCoreFileStatusType FileStatus { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Description
-        /// </summary>
-        public string Description { get; set; }
-
-        /// <summary>
-        /// Gets or sets the last changed date time
-        /// </summary>
-        public DateTime LastChanged { get; set; }
-
-        /// <summary>
-        /// Creates a valid populated <see cref="AltinnCoreFile"/> object from a file path string.
-        /// </summary>
-        /// <param name="filePath">The complete physical path to the file.</param>
-        /// <param name="repositoryRootDirectory">Root path to calculate relative url's from. This is should be the root of the repository. If it's empty or isn't a part of the filePath parameter the RepositoryRelativeUrl will be left blank.</param>
-        /// <returns></returns>
-        public static AltinnCoreFile CreateFromPath(string filePath, string repositoryRootDirectory)
+        return new AltinnCoreFile
         {
-            var fileInfo = new FileInfo(filePath);
+            FilePath = filePath,
+            FileName = fileInfo.Name,
+            FileType = fileInfo.Extension,
+            Directory = fileInfo.DirectoryName,
+            RepositoryRelativeUrl = GetRepositoryRelativeUrl(filePath, repositoryRootDirectory),
+            LastChanged = fileInfo.LastWriteTime,
+        };
+    }
 
-            AssertFileExists(fileInfo);
+    private static string GetRepositoryRelativeUrl(string filePath, string repositoryRootDirectory)
+    {
+        Guard.AssertNotNullOrEmpty(filePath, nameof(filePath));
+        Guard.AssertNotNullOrEmpty(repositoryRootDirectory, nameof(repositoryRootDirectory));
 
-            return new AltinnCoreFile
-            {
-                FilePath = filePath,
-                FileName = fileInfo.Name,
-                FileType = fileInfo.Extension,
-                Directory = fileInfo.DirectoryName,
-                RepositoryRelativeUrl = GetRepositoryRelativeUrl(filePath, repositoryRootDirectory),
-                LastChanged = fileInfo.LastWriteTime,
-            };
-        }
+        var relativeFilePath = filePath.Replace(repositoryRootDirectory, string.Empty);
+        string relativeUrl = MakeUrlSlashes(relativeFilePath);
 
-        private static string GetRepositoryRelativeUrl(string filePath, string repositoryRootDirectory)
+        return relativeUrl;
+    }
+
+    private static string MakeUrlSlashes(string relativeFilePath)
+    {
+        return relativeFilePath.Replace(@"\", @"/").Replace(@"//", "/");
+    }
+
+    private static void AssertFileExists(FileInfo fileInfo)
+    {
+        if (!fileInfo.Exists)
         {
-            Guard.AssertNotNullOrEmpty(filePath, nameof(filePath));
-            Guard.AssertNotNullOrEmpty(repositoryRootDirectory, nameof(repositoryRootDirectory));
-
-            var relativeFilePath = filePath.Replace(repositoryRootDirectory, string.Empty);
-            string relativeUrl = MakeUrlSlashes(relativeFilePath);
-
-            return relativeUrl;
-        }
-
-        private static string MakeUrlSlashes(string relativeFilePath)
-        {
-            return relativeFilePath.Replace(@"\", @"/").Replace(@"//", "/");
-        }
-
-        private static void AssertFileExists(FileInfo fileInfo)
-        {
-            if (!fileInfo.Exists)
-            {
-                throw new FileNotFoundException($"Could not find the file specified at: '{fileInfo.FullName}'");
-            }
+            throw new FileNotFoundException($"Could not find the file specified at: '{fileInfo.FullName}'");
         }
     }
 }

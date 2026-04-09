@@ -11,6 +11,7 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
@@ -23,7 +24,6 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
@@ -43,7 +43,7 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const nodeId = useIndexedId(baseComponentId);
-  const generatorErrors = NodesInternal.useNodeData(nodeId, undefined, (node) => node.errors);
+  const generatorErrors = FormStore.nodes.useNodeData(nodeId, undefined, (node) => node.errors);
 
   if (generatorErrors && Object.keys(generatorErrors).length > 0) {
     return (

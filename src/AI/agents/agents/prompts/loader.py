@@ -117,23 +117,37 @@ def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
     return load_prompt(prompt_name)["content"], None
 
 
-def _compile_template(content: str, variables: dict) -> str:
-    """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behaviour."""
-    def _replace_variable(match: re.Match) -> str:
-        variable_name = match.group(1).strip()
-        if variable_name in variables:
-            return str(variables[variable_name]) if variables[variable_name] is not None else ""
-        raise ValueError(f"Missing required template variable: '{variable_name}'")
+_IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
-    return re.sub(r"\{\{(.+?)\}\}", _replace_variable, content)
+
+def _compile_template(content: str, variables: dict) -> str:
+    """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behaviour.
+
+    Only patterns matching a valid Python identifier are treated as variables.
+    Non-identifier patterns like ``{{"key": "value"}}`` (escaped JSON braces
+    in template examples) are converted to literal single braces: ``{"key": "value"}``.
+    """
+    def _replace_match(match: re.Match) -> str:
+        inner = match.group(1).strip()
+        if _IDENTIFIER_RE.match(inner):
+            if inner in variables:
+                return str(variables[inner]) if variables[inner] is not None else ""
+            raise ValueError(f"Missing required template variable: '{inner}'")
+        # Not an identifier — treat as escaped literal braces: {{ X }} → { X }
+        return "{" + match.group(1) + "}"
+
+    return re.sub(r"\{\{(.+?)\}\}", _replace_match, content)
 
 
 def render_template(template_name: str, **variables) -> str:
     """
     Load and render a template with variable substitution.
 
-    When Langfuse is enabled, tries to fetch from Langfuse
-    first and falls back to the local template file.
+    When Langfuse is enabled, tries to fetch from Langfuse first.
+    Falls back to the local template file if:
+      - Langfuse is unavailable or the prompt doesn't exist, OR
+      - the Langfuse template is missing placeholders for provided variables
+        (Langfuse compile() silently drops unknown variables).
 
     Args:
         template_name: Name of the template file (without .md extension)
@@ -147,9 +161,24 @@ def render_template(template_name: str, **variables) -> str:
         ...                        user_goal="Add a field",
         ...                        planner_step="Step 1")
     """
-    langfuse_content = _try_langfuse_prompt(template_name, variables)
-    if langfuse_content is not None:
-        return langfuse_content
+    # Try Langfuse, but guard against silent variable drops
+    lf_prompt = get_raw_langfuse_prompt(template_name)
+    if lf_prompt is not None:
+        try:
+            raw_text = lf_prompt.prompt if hasattr(lf_prompt, "prompt") else ""
+            lf_placeholders = set(re.findall(r"\{\{(.+?)\}\}", raw_text))
+            dropped = set(variables.keys()) - lf_placeholders
+            if dropped:
+                log.info(
+                    f"Langfuse template '{template_name}' missing placeholders "
+                    f"{dropped} — falling back to local template"
+                )
+            else:
+                compiled = lf_prompt.compile(**variables)
+                log.info(f"Loaded prompt '{template_name}' from Langfuse")
+                return compiled
+        except Exception as e:
+            log.info(f"Langfuse prompt '{template_name}' compile failed, using local file: {e}")
 
     template_file = PROMPTS_DIR / "templates" / f"{template_name}.md"
 

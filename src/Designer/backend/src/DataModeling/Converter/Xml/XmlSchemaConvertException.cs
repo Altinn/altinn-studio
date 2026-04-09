@@ -1,29 +1,28 @@
 using System;
 
-namespace Altinn.Studio.DataModeling.Converter.Xml
+namespace Altinn.Studio.DataModeling.Converter.Xml;
+
+/// <summary>
+/// Represents errors thrown when converting from XSD to Json Schema.
+/// </summary>
+[Serializable]
+public class XmlSchemaConvertException : Exception
 {
     /// <summary>
-    /// Represents errors thrown when converting from XSD to Json Schema.
+    /// <inheritdoc/>
     /// </summary>
-    [Serializable]
-    public class XmlSchemaConvertException : Exception
-    {
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        public XmlSchemaConvertException()
-            : base() { }
+    public XmlSchemaConvertException()
+        : base() { }
 
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        public XmlSchemaConvertException(string message)
-            : base(message) { }
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
+    public XmlSchemaConvertException(string message)
+        : base(message) { }
 
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        public XmlSchemaConvertException(string message, Exception innerException)
-            : base(message, innerException) { }
-    }
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
+    public XmlSchemaConvertException(string message, Exception innerException)
+        : base(message, innerException) { }
 }

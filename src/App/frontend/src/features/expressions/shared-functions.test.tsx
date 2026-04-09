@@ -1,24 +1,24 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
-import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import {
   getRepeatingBinding,
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
@@ -31,7 +31,6 @@ import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression'
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
@@ -55,7 +54,7 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
 }
 
 function ExpressionRunner(props: Props) {
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   if (props.context === undefined || props.context.rowIndices === undefined || props.context.rowIndices.length === 0) {
     return <InnerExpressionRunner {...props} />;
   }
@@ -182,18 +181,16 @@ function setupMocks(test: FunctionTest): void {
   window.altinnAppGlobalData.availableLanguages = [{ language: profileSettings?.language ?? defaultLanguage }];
   window.altinnAppGlobalData.ui.folders = {
     Task_1: { defaultDataType: 'default', pages: { order: Object.keys(layouts ?? []) } },
+    stateless: { defaultDataType: 'default', pages: { order: Object.keys(layouts ?? []) } },
   };
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
   jest.mocked(fetchProcessState).mockImplementation(async () => createProcess(test) ?? getProcessDataMock());
-  jest
-    .mocked(InstanceApi.getInstance)
-    .mockImplementation(async () => ({ ...createInstanceData(test), process: getProcessDataMock() }));
 }
 
 function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {
   const applicationMetadata = getApplicationMetadataMock(
-    stateless ? { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] } : {},
+    stateless ? { onEntry: { show: 'stateless' }, externalApiIds: ['testId'] } : {},
   );
   if (instanceDataElements) {
     for (const element of instanceDataElements) {
@@ -311,24 +308,40 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
       initialPage: context?.currentLayout ?? 'FormLayout',
       renderer,
       queries,
+      apis: {
+        instanceApi: {
+          getInstance: async () => ({ ...createInstanceData(test), process: getProcessDataMock() }),
+        },
+      },
     });
   }
 }
 
 function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>): Partial<AppQueries> {
   const { frontendSettings, codeLists } = test;
-  return {
-    fetchLayouts: async () => createLayouts(test, expression),
-    fetchFormData: async (url: string) => fetchFormData(test, url),
-    ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
-    fetchOptions: async (url: string) => {
-      const codeListId = url.match(/api\/options\/(\w+)\?/)?.[1];
-      if (!codeLists || !codeListId || !codeLists[codeListId]) {
-        throw new Error(`No code lists found for ${url}`);
+  const bootstrapFn = async () =>
+    getFormBootstrapMock((obj) => {
+      obj.layouts = createLayouts(test, expression);
+      if (test.dataModels) {
+        for (const { dataElement, data } of test.dataModels) {
+          obj.dataModels[dataElement.dataType] = getDataModelBootstrapMock((dm) => {
+            dm.dataElementId = dataElement.id;
+            dm.initialData = data;
+          });
+        }
+      } else {
+        obj.dataModels['default'] = getDataModelBootstrapMock((dm) => {
+          dm.initialData = test.dataModel ?? {};
+        });
       }
-      const data = codeLists[codeListId];
-      return { data } as AxiosResponse<IRawOption[], unknown>;
-    },
+      for (const [optionsId, options] of Object.entries(codeLists ?? {})) {
+        obj.staticOptions[optionsId] = { options: castOptionsToStrings(options) };
+      }
+    });
+  return {
+    fetchFormBootstrapForInstance: bootstrapFn,
+    fetchFormBootstrapForStateless: bootstrapFn,
+    ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
   };
 }
 
@@ -381,24 +394,7 @@ function getDefaultLayouts(): ILayoutCollection {
   };
 }
 
-async function fetchFormData({ dataModel, dataModels }: FunctionTest, url: string): Promise<unknown> {
-  if (!dataModels) {
-    return dataModel ?? {};
-  }
-
-  const statelessDataType = url.match(/dataType=([\w-]+)&/)?.[1];
-  const statefulDataElementId = url.match(/data\/([a-f0-9-]+)\?/)?.[1];
-
-  const model = dataModels.find(
-    (dm) => dm.dataElement.dataType === statelessDataType || dm.dataElement.id === statefulDataElementId,
-  );
-  if (model) {
-    return model.data;
-  }
-  throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
-}
-
-async function assertExpr({ expression, expects, expectsFailure, ...rest }: FunctionTestBase) {
+async function assertExpr({ expression, expects, expectsFailure, name: _, ...rest }: FunctionTestBase) {
   // Makes sure we don't end up with any unexpected properties (if there are, these should probably be added as
   // dependencies for the expression in some way)
   expect(Object.keys(rest)).toHaveLength(0);

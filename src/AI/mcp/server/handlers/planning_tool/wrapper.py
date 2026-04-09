@@ -48,12 +48,9 @@ def planning(
     search_results = []
     if query and query.strip():
         try:
-            from .doc_search import DocumentationSearch
+            from .doc_search import get_doc_search
             
-            llms_path = current_dir / "llms-full.txt"
-            cache_dir = current_dir / ".doc_cache"
-            
-            search = DocumentationSearch(str(llms_path), str(cache_dir), cache_days=7)
+            search = get_doc_search()
             search_results = search.search(query, max_results=max_results)
             
             if search_results:

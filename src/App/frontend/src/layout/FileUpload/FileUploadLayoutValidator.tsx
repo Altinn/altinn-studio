@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import type { JSX } from 'react';
 
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, NodeValidationProps } from 'src/layout/layout';
 
@@ -12,10 +12,10 @@ export function FileUploadLayoutValidator(
   props: NodeValidationProps<'FileUpload' | 'FileUploadWithTag'>,
 ): JSX.Element | null {
   const { intermediateItem, externalItem } = props;
-  const allPages = useLayouts();
+  const allPages = FormBootstrap.useLayouts();
   const binding = extractBinding(externalItem);
   const { langAsString } = useLanguage();
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   const othersWithSameBinding: string[] = [];
   if (binding) {
