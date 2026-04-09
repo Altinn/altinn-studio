@@ -1,0 +1,115 @@
+name: Deploy AI agents
+
+on:
+  push:
+    branches:
+      - main
+      - feat/deploy-ai
+    paths:
+      - src/AI/agents/**
+      - .github/workflows/deploy-studio-ai-agents.yaml
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'dev'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  construct-environments-array:
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
+    with:
+      use-preapproved: true
+      inputs: '{"environments":"dev"}'
+
+  push-artifact:
+    name: Push AI agents as OCI artifact
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
+    defaults:
+      run:
+        working-directory: src/AI/agents
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${GITHUB_SHA::10}"
+          echo "short-sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "image-repo=altinntjenestercontainerregistry.azurecr.io/altinn-altinity-agents:${SHA}" >> "$GITHUB_OUTPUT"
+          echo "config-repo=altinntjenestercontainerregistry.azurecr.io/configs/altinn-altinity-agents-repo:${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: docker build
+        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f dockerfile .
+
+      - name: push image
+        run: docker push ${{ steps.vars.outputs.image-repo }}
+
+      - name: patch base with image tag
+        working-directory: src/AI/agents/infra/kustomize
+        run: |
+          export IMAGE="${{ steps.vars.outputs.image-repo }}"
+          export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(IMAGE)' deployment.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
+
+      - name: push artifact
+        working-directory: src/AI/agents/infra/kustomize
+        run: |
+          flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag:
+    name: Tag artifact
+    needs: [push-artifact, construct-environments-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
+    steps:
+      - name: az login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: flux install
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
+            --tag ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
