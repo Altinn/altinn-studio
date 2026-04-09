@@ -451,6 +451,57 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(0, result.TotalCount);
     }
 
+    [Fact]
+    public async Task QueryWorkflows_IteratingAllPages_ReturnsCompleteNonOverlappingSet()
+    {
+        // Arrange — insert 11 completed workflows, page size 4 → cursor iteration (4, 4, 3)
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+        const int totalWorkflows = 11;
+        const int pageSize = 4;
+
+        var insertedIds = new HashSet<Guid>();
+        for (var i = 0; i < totalWorkflows; i++)
+        {
+            var wf = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
+            insertedIds.Add(wf.DatabaseId);
+        }
+
+        // Act — iterate through all pages using cursor (ID DESC = newest first)
+        var collectedIds = new List<Guid>();
+        Guid? cursor = null;
+
+        while (true)
+        {
+            var result = await repo.QueryWorkflows(
+                pageSize: pageSize,
+                statuses: [PersistentItemStatus.Completed],
+                cursor: cursor,
+                includeTotalCount: true,
+                namespaceFilter: ns,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+            Assert.Equal(totalWorkflows, result.TotalCount);
+            collectedIds.AddRange(result.Workflows.Select(w => w.DatabaseId));
+
+            if (result.NextCursor is null)
+                break;
+
+            cursor = result.NextCursor;
+        }
+
+        // Assert
+        Assert.Equal(totalWorkflows, collectedIds.Count);
+        Assert.Equal(totalWorkflows, collectedIds.Distinct().Count()); // no duplicates
+        Assert.True(insertedIds.SetEquals(collectedIds)); // complete set
+
+        // Verify DESC ordering — each ID should be smaller than the previous (UUIDv7)
+        for (var i = 1; i < collectedIds.Count; i++)
+            Assert.True(collectedIds[i] < collectedIds[i - 1], "Expected ID DESC ordering");
+    }
+
     // ── GetActiveWorkflows (cursor pagination) ─────────────────────────
 
     [Fact]
@@ -587,6 +638,56 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(2, result.TotalCount);
         Assert.Equal(2, result.Workflows.Count);
         Assert.All(result.Workflows, wf => Assert.Equal(PersistentItemStatus.Enqueued, wf.Status));
+    }
+
+    // ── GetScheduledWorkflows (cursor pagination) ──────────────────────
+
+    [Fact]
+    public async Task GetScheduledWorkflows_IteratingAllPages_ReturnsCompleteNonOverlappingSet()
+    {
+        // Arrange — insert 9 scheduled workflows (future StartAt), page size 4 → cursor iteration (4, 4, 1)
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var ns = Guid.NewGuid().ToString("N");
+        const int totalWorkflows = 9;
+        const int pageSize = 4;
+
+        var insertedIds = new HashSet<Guid>();
+        for (var i = 0; i < totalWorkflows; i++)
+        {
+            var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest(
+                ns: ns,
+                startAt: DateTimeOffset.UtcNow.AddHours(1)
+            );
+            var wf = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata, ns: ns);
+            insertedIds.Add(wf.DatabaseId);
+        }
+
+        // Act — iterate through all pages using cursor
+        var collectedIds = new List<Guid>();
+        Guid? cursor = null;
+
+        while (true)
+        {
+            var result = await repo.GetScheduledWorkflows(
+                pageSize: pageSize,
+                cursor: cursor,
+                ns: ns,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
+
+            collectedIds.AddRange(result.Workflows.Select(w => w.DatabaseId));
+
+            if (result.NextCursor is null)
+                break;
+
+            cursor = result.NextCursor;
+        }
+
+        // Assert
+        Assert.Equal(totalWorkflows, collectedIds.Count);
+        Assert.Equal(totalWorkflows, collectedIds.Distinct().Count()); // no duplicates
+        Assert.True(insertedIds.SetEquals(collectedIds)); // complete set
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────
