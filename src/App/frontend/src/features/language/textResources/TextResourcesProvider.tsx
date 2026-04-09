@@ -1,64 +1,25 @@
-import { useEffect } from 'react';
-
-import { useQuery } from '@tanstack/react-query';
-
+import {
+  resourcesAsMap as resourcesAsMapCore,
+  useTextResourcesQuery as useTextResourcesQueryCore,
+} from 'src/core/queries/textResources';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { fetchTextResources } from 'src/queries/queries';
-import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources/index';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
+import type { TextResourceMap } from 'src/features/language/textResources/index';
+
+export const resourcesAsMap = resourcesAsMapCore;
 
 export function useTextResources(): TextResourceMap {
-  const query = useTextResourcesQuery();
+  const selectedLanguage = useCurrentLanguage();
+  const query = useTextResourcesQueryCore({
+    selectedLanguage,
+    textResourcesFromWindow: window.altinnAppGlobalData.textResources,
+  });
+
   if (!query.data) {
+    window.logError('Fetching text resources failed:\n', query.error);
     throw new Error(
       'Text resources query did not return data. This should not happen. Something is possibly wrong with the query.',
     );
   }
 
   return query.data;
-}
-
-function useTextResourcesQuery() {
-  const selectedLanguage = useCurrentLanguage();
-  const textResourcesFromWindow = getTextResourcesFromWindow();
-
-  const query = useQuery<TextResourceMap, HttpClientError>({
-    queryKey: getTextResourceQueryKey(selectedLanguage),
-    queryFn: async () => {
-      if (!textResourcesFromWindow) {
-        window.logWarnOnce(
-          'Could not find any text resources, even on window. Does the app include any text resource files?',
-        );
-        // Backend couldn't find any text resources, to no point in fetching anything.
-        return EMPTY_TEXT_RESOURCES;
-      }
-      const textResourceResult =
-        textResourcesFromWindow.language === selectedLanguage
-          ? textResourcesFromWindow
-          : await fetchTextResources(selectedLanguage);
-
-      return resourcesAsMap(textResourceResult.resources);
-    },
-    placeholderData: (placeholderData) => placeholderData ?? EMPTY_TEXT_RESOURCES,
-  });
-
-  useEffect(() => {
-    query.error && window.logError('Fetching text resources failed:\n', query.error);
-  }, [query.error]);
-
-  return query;
-}
-
-function getTextResourceQueryKey(selectedLanguage: string) {
-  return ['fetchTextResources', selectedLanguage] as const;
-}
-
-const EMPTY_TEXT_RESOURCES: TextResourceMap = {};
-
-export function resourcesAsMap(resources: IRawTextResource[]): TextResourceMap {
-  return resources.reduce((acc, { id, ...resource }) => ({ ...acc, [id]: resource }), {});
-}
-
-function getTextResourcesFromWindow() {
-  return window.altinnAppGlobalData.textResources;
 }

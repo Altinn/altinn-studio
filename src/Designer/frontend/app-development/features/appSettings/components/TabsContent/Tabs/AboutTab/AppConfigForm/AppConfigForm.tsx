@@ -14,6 +14,7 @@ import { AppVisibilityAndDelegationCard } from './AppVisibilityAndDelegationCard
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { ContactPointsTable } from './ContactPointsTable/ContactPointsTable';
+import { DEFAULT_RIGHTS_DESCRIPTION } from 'app-shared/constants';
 
 export type AppConfigFormProps = {
   appConfig: ApplicationMetadata;
@@ -101,8 +102,25 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
       access: {
         ...oldVal.access,
         delegable: e.target.checked,
+        visible: e.target.checked,
+        rightDescription: getRightDescription(oldVal, e.target.checked),
       },
     }));
+  };
+
+  const getRightDescription = (
+    oldVal: ApplicationMetadata,
+    checked: boolean,
+  ): SupportedLanguage => {
+    if (!checked) {
+      return defaultDescriptionValue;
+    }
+    const previous = oldVal.access?.rightDescription ?? defaultDescriptionValue;
+    return {
+      nb: previous.nb || DEFAULT_RIGHTS_DESCRIPTION.nb,
+      nn: previous.nn || DEFAULT_RIGHTS_DESCRIPTION.nn,
+      en: previous.en || DEFAULT_RIGHTS_DESCRIPTION.en,
+    };
   };
 
   const onChangeRightDescription = (updatedLanguage: SupportedLanguage): void => {
