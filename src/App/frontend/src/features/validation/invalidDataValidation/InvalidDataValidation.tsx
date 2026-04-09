@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import dot from 'dot-object';
 
 import { FrontendValidationSource, ValidationMask } from '..';
+import type { FieldValidations } from '..';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
@@ -17,7 +18,7 @@ export function InvalidDataValidation({ dataType }: { dataType: string }) {
   const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   useEffect(() => {
-    const validations = {};
+    const validations: FieldValidations = {};
 
     if (Object.keys(invalidData).length > 0) {
       const flattened = dot.dot(invalidData);
@@ -32,6 +33,7 @@ export function InvalidDataValidation({ dataType }: { dataType: string }) {
 
         validations[field].push({
           field,
+          dataElementId,
           source: FrontendValidationSource.InvalidData,
           message: { key: 'validation_errors.pattern' },
           severity: 'error',
@@ -39,8 +41,8 @@ export function InvalidDataValidation({ dataType }: { dataType: string }) {
         });
       }
     }
-    updateDataModelValidations('invalidData', dataElementId, validations);
-  }, [dataElementId, invalidData, updateDataModelValidations]);
+    updateDataModelValidations('invalidData', dataType, validations);
+  }, [dataElementId, dataType, invalidData, updateDataModelValidations]);
 
   return null;
 }

@@ -281,7 +281,7 @@ describe('SchemaValidation', () => {
 
             expect(updateDataModelValidations).toHaveBeenCalledWith(
               'schema',
-              defaultMockDataElementId,
+              'mockDataType',
               expectedValidations,
             );
           });

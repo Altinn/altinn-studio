@@ -36,7 +36,7 @@ export function ExpressionValidation() {
 
 function DataTypeValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = FormStore.validation.useUpdateDataModelValidations();
-  const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType);
+  const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType;
   const expressionValidationConfig = FormBootstrap.useExpressionValidationConfig(dataType);
 
   const [allFieldValidations, setAllFieldValidations] = useState<FieldValidations>({});
@@ -50,14 +50,10 @@ function DataTypeValidation({ dataType }: { dataType: string }) {
   );
 
   useEffect(() => {
-    if (!dataElementId) {
-      return;
-    }
+    updateDataModelValidations('expression', dataType, allFieldValidations);
+  }, [allFieldValidations, updateDataModelValidations, dataType]);
 
-    updateDataModelValidations('expression', dataElementId, allFieldValidations);
-  }, [allFieldValidations, updateDataModelValidations, dataElementId]);
-
-  if (!dataElementId || !expressionValidationConfig) {
+  if (!expressionValidationConfig) {
     return null;
   }
 

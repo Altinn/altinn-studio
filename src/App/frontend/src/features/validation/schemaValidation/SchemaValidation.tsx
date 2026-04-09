@@ -111,9 +111,9 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
         }
       }
 
-      updateDataModelValidations('schema', dataElementId, validations);
+      updateDataModelValidations('schema', dataType, validations);
     }
-  }, [dataElementId, formData, rootElementPath, schema, updateDataModelValidations, validator]);
+  }, [dataElementId, dataType, formData, rootElementPath, schema, updateDataModelValidations, validator]);
 
   return null;
 }

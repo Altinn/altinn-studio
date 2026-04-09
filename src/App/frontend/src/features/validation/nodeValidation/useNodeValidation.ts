@@ -12,6 +12,7 @@ import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation } from 'src/features/validation';
+import { selectFieldValidationsForDataModel } from 'src/features/validation/utils';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 const emptyArray: AnyValidation[] = [];
@@ -43,13 +44,17 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
     unfiltered.push(...def.useComponentValidation(baseComponentId));
   }
 
-  const getDataElementIdForDataType = FormBootstrap.useGetDataElementIdForDataType();
   const fieldValidations = FormStore.raw.useMemoSelector((state) => {
     const validations: BaseValidation[] = [];
     for (const [bindingKey, { dataType, field }] of bindings) {
-      const dataElementId = getDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
-      const fieldValidations = state.validation.state.dataModels[dataElementId]?.[field];
-      if (fieldValidations) {
+      const dataModel = state.data.models[dataType];
+      if (!dataModel) {
+        continue;
+      }
+
+      const fieldValidations = selectFieldValidationsForDataModel(dataModel, field);
+
+      if (fieldValidations.length > 0) {
         validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
       }
     }

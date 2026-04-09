@@ -3,7 +3,6 @@ import React from 'react';
 import fs from 'node:fs';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
@@ -100,7 +99,7 @@ describe('Expression validation shared tests', () => {
 
     expect(updateDataModelValidations).toHaveBeenCalledWith(
       'expression',
-      defaultMockDataElementId,
+      defaultDataTypeMock,
       expect.objectContaining({}),
     );
 

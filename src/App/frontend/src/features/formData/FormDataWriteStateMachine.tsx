@@ -7,6 +7,7 @@ import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
+import { mapBackendIssuesToFieldValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { updateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
 import { updateBackendValidations } from 'src/features/validation/validationContext';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
@@ -14,9 +15,16 @@ import type { FDLeafValue, FormDataSliceProps } from 'src/features/formData/Form
 import type { Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { DebounceReason } from 'src/features/formData/types';
 import type { InstanceDataSelector } from 'src/features/instance/InstanceContext';
-import type { BackendValidationIssueGroups } from 'src/features/validation';
+import type { BackendValidationIssueGroups, FieldValidations } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IInstance } from 'src/types/shared';
+
+export interface DataModelValidationState {
+  backend: FieldValidations;
+  expression: FieldValidations;
+  schema: FieldValidations;
+  invalidData: FieldValidations;
+}
 
 export interface DataModelState {
   // These values contain the current data model, with the values immediately available whenever the user is typing.
@@ -51,6 +59,9 @@ export interface DataModelState {
   // This identifies the specific data element in storage. This is needed for identifying the correct model when receiving updates from the server.
   // For stateless apps, this will be null.
   dataElementId: string | null;
+
+  // Validation state is owned by each data model, so data and validations stay in the same part of the store.
+  validations: DataModelValidationState;
 }
 
 interface LockRequest {
@@ -599,6 +610,12 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
       invalidDebouncedCurrentData: emptyInvalidData,
       lastSavedData: props.dataModels[dt].initialData,
       dataElementId: props.dataModels[dt].dataElementId,
+      validations: {
+        backend: mapBackendFieldValidations(props.dataModels[dt].initialValidationIssues ?? undefined),
+        expression: {},
+        schema: {},
+        invalidData: {},
+      },
     } satisfies DataModelState;
     return dm;
   }, {});
@@ -619,4 +636,17 @@ function isWritable(dataElementId: string | null, selectFromInstance: InstanceDa
     return true;
   }
   return selectFromInstance((instance) => instance.data.find((item) => item.id === dataElementId)?.locked) === false;
+}
+
+function mapBackendFieldValidations(
+  validationIssues: FormDataSliceProps['dataModels'][string]['initialValidationIssues'],
+): FieldValidations {
+  const validations: FieldValidations = {};
+
+  for (const validation of mapBackendIssuesToFieldValidations(validationIssues ?? [])) {
+    validations[validation.field] ??= [];
+    validations[validation.field].push(validation);
+  }
+
+  return validations;
 }

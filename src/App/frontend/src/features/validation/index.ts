@@ -81,7 +81,6 @@ export type ValidationSliceState = {
 
 export type ValidationState = {
   task: BaseValidation[];
-  dataModels: DataModelValidations;
 };
 
 export type DataModelValidations = {

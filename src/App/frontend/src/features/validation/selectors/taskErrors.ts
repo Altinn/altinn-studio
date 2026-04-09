@@ -9,7 +9,11 @@ import {
   type NodeVisibility,
   ValidationMask,
 } from 'src/features/validation/index';
-import { selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
+import {
+  selectBackendFieldValidationsForDataModel,
+  selectValidations,
+  validationsOfSeverity,
+} from 'src/features/validation/utils';
 
 const emptyArray: never[] = [];
 
@@ -22,7 +26,7 @@ export function useTaskErrors(): {
   taskErrors: BaseValidation<'error'>[];
 } {
   const [dataModels, taskValidations, showAllBackendErrors] = FormStore.raw.useShallowSelector((state) => [
-    state.validation.state.dataModels,
+    state.data.models,
     state.validation.state.task,
     state.validation.showAllBackendErrors,
   ]);
@@ -43,8 +47,8 @@ export function useTaskErrors(): {
     const boundErrorIds = new Set(formErrors.filter(hasBackendValidationId).map((v) => v.backendValidationId));
 
     // Unbound field errors
-    for (const fields of Object.values(dataModels)) {
-      for (const field of Object.values(fields)) {
+    for (const dataModel of Object.values(dataModels)) {
+      for (const field of Object.values(selectBackendFieldValidationsForDataModel(dataModel))) {
         allBackendErrors.push(
           ...(selectValidations(field, backendMask, 'error').filter(
             // Only select backend errors which are not already visible through formErrors

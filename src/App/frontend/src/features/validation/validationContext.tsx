@@ -5,11 +5,11 @@ import type { Draft } from 'immer';
 
 import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
+import type { DataModelValidationState } from 'src/features/formData/FormDataWriteStateMachine';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
   type BaseValidation,
-  type DataModelValidations,
   type FieldValidations,
   ValidationMask,
   type ValidationsProcessedLast,
@@ -22,32 +22,29 @@ import {
 } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
   mapBackendIssuesToTaskValidations,
-  mapBackendValidationsToValidatorGroups,
-  mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
-import { hasValidationErrors, mergeFieldValidations, selectValidations } from 'src/features/validation/utils';
+import {
+  hasValidationErrors,
+  selectBackendFieldValidationsForDataModel,
+  selectMergedFieldValidationsForDataModel,
+  selectValidations,
+} from 'src/features/validation/utils';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 
 export interface ValidationInternals {
-  individualValidations: {
-    backend: DataModelValidations;
-    expression: DataModelValidations;
-    schema: DataModelValidations;
-    invalidData: DataModelValidations;
-  };
   processedLast: ValidationsProcessedLast; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
   /**
-   * updateDataModelValidations
-   * if validations is undefined, nothing will be changed
-   */
+  * updateDataModelValidations
+  * if validations is undefined, nothing will be changed
+  */
   updateDataModelValidations: (
-    key: Exclude<keyof ValidationInternals['individualValidations'], 'backend'>,
-    dataElementId: string,
+    key: Exclude<keyof DataModelValidationState, 'backend'>,
+    dataType: string,
     validations?: FieldValidations,
   ) => void;
   updateBackendValidations: (
@@ -66,7 +63,6 @@ export function createValidationSlice(
     // Publicly exposed state
     state: {
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
-      dataModels: {},
     },
     setShowAllBackendErrors: (newValue) =>
       set((state) => {
@@ -76,29 +72,22 @@ export function createValidationSlice(
 
     // =======
     // Internal state
-    individualValidations: {
-      backend: mapValidatorGroupsToDataModelValidations(
-        mapBackendValidationsToValidatorGroups(bootstrap.allInitialValidations),
-      ),
-      expression: {},
-      schema: {},
-      invalidData: {},
-    },
     processedLast: {
       initial: bootstrap.allInitialValidations,
       incremental: undefined,
     },
-    updateDataModelValidations: (key, dataElementId, validations) =>
+    updateDataModelValidations: (key, dataType, validations) =>
       set((state) => {
-        if (validations) {
-          state.validation.individualValidations[key][dataElementId] = validations;
-          state.validation.state.dataModels[dataElementId] = mergeFieldValidations(
-            state.validation.individualValidations.backend[dataElementId],
-            state.validation.individualValidations.invalidData[dataElementId],
-            state.validation.individualValidations.schema[dataElementId],
-            state.validation.individualValidations.expression[dataElementId],
-          );
+        if (!validations) {
+          return;
         }
+
+        const dataModel = state.data.models[dataType];
+        if (!dataModel) {
+          return;
+        }
+
+        dataModel.validations[key] = validations;
       }),
     updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
       set((state) => {
@@ -124,24 +113,9 @@ export function updateBackendValidations(
       state.validation.state.task = taskValidations;
     }
     if (backendValidations) {
-      /**
-       * If a data model no longer has any backend validations, the key will not exist in the new object,
-       * we therefore need to make sure we update data model validations for any model that
-       * previously had validations as well.
-       */
-      const keys = new Set([
-        ...Object.keys(backendValidations),
-        ...Object.keys(state.validation.individualValidations.backend),
-      ]);
-
-      state.validation.individualValidations.backend = backendValidations;
-      for (const dataElementId of keys) {
-        state.validation.state.dataModels[dataElementId] = mergeFieldValidations(
-          state.validation.individualValidations.backend[dataElementId],
-          state.validation.individualValidations.invalidData[dataElementId],
-          state.validation.individualValidations.schema[dataElementId],
-          state.validation.individualValidations.expression[dataElementId],
-        );
+      for (const [dataType, model] of Object.entries(state.data.models)) {
+        const dataModelKey = model.dataElementId ?? dataType;
+        model.validations.backend = backendValidations[dataModelKey] ?? {};
       }
     }
   };
@@ -218,9 +192,9 @@ function ManageShowAllErrors() {
 }
 
 function UpdateShowAllErrors() {
-  const [taskValidations, dataModelValidations, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
+  const [taskValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
     state.validation.state.task,
-    state.validation.state.dataModels,
+    state.data.models,
     state.validation.setShowAllBackendErrors,
   ]);
 
@@ -258,14 +232,14 @@ function UpdateShowAllErrors() {
   useEffect(() => {
     const backendMask = ValidationMask.Backend | ValidationMask.CustomBackend;
     const hasFieldErrors =
-      Object.values(dataModelValidations)
-        .flatMap((fields) => Object.values(fields))
+      Object.values(dataModels)
+        .flatMap((model) => Object.values(selectBackendFieldValidationsForDataModel(model)))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
     if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
       setShowAllErrors(false);
     }
-  }, [dataModelValidations, setShowAllErrors, taskValidations]);
+  }, [dataModels, setShowAllErrors, taskValidations]);
 
   return null;
 }
@@ -274,13 +248,17 @@ export const validationHooks = {
   useDataElementsWithErrors: (elementIds: string[]) =>
     FormStore.raw.useMemoSelector((state) => {
       const out: string[] = [];
-      for (const elementId of elementIds) {
-        const dataElementValidations = state.validation.state.dataModels[elementId];
-        for (const fieldValidations of Object.values(dataElementValidations ?? {})) {
+      elementLoop: for (const elementId of elementIds) {
+        const dataModel = getDataModelForElementId(state, elementId);
+        if (!dataModel) {
+          continue;
+        }
+
+        for (const fieldValidations of Object.values(selectMergedFieldValidationsForDataModel(dataModel))) {
           for (const validation of fieldValidations) {
             if (validation.severity === 'error') {
               out.push(elementId);
-              break;
+              continue elementLoop;
             }
           }
         }
@@ -309,3 +287,13 @@ export const validationHooks = {
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };
+
+function getDataModelForElementId(state: Draft<FormStoreState>, dataElementId: string) {
+  for (const [dataType, model] of Object.entries(state.data.models)) {
+    if (model.dataElementId === dataElementId || (model.dataElementId === null && dataType === dataElementId)) {
+      return model;
+    }
+  }
+
+  return undefined;
+}
