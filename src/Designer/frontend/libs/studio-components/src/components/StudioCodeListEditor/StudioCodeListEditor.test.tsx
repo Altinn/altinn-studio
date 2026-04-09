@@ -12,10 +12,10 @@ import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAp
 // Test data:
 const onInvalid = jest.fn();
 const onUpdateCodeList = jest.fn();
-const language = 'nb';
+const fallbackLanguage = 'nb';
 const defaultProps: StudioCodeListEditorProps = {
   codeList,
-  language,
+  fallbackLanguage,
   texts,
   onInvalid,
   onUpdateCodeList,
@@ -100,7 +100,7 @@ describe('StudioCodeListEditor', () => {
         expect(onUpdateCodeList).toHaveBeenLastCalledWith(
           expect.arrayContaining([
             expect.objectContaining({
-              [property]: expect.objectContaining({ [language]: newText }),
+              [property]: expect.objectContaining({ [fallbackLanguage]: newText }),
             }),
           ]),
         );

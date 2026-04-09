@@ -2,7 +2,7 @@ import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import React, { createContext, useContext } from 'react';
 
 export type StudioCodeListEditorContextProps = {
-  language: string;
+  fallbackLanguage: string;
   texts: CodeListEditorTexts;
 };
 

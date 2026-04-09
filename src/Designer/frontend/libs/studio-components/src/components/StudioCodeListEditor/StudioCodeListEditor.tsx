@@ -29,25 +29,25 @@ import cn from 'classnames';
 export type StudioCodeListEditorProps = Readonly<{
   className?: string;
   codeList: CodeList;
-  language: string;
+  fallbackLanguage: string;
   onInvalid?: () => void;
   onUpdateCodeList: (codeList: CodeList) => void;
   texts: CodeListEditorTexts;
 }>;
 
 export function StudioCodeListEditor({
-  language,
+  fallbackLanguage,
   texts,
   ...rest
 }: StudioCodeListEditorProps): ReactElement {
   return (
-    <StudioCodeListEditorContextProvider value={{ language, texts }}>
+    <StudioCodeListEditorContextProvider value={{ fallbackLanguage, texts }}>
       <StatefulCodeListEditor {...rest} />
     </StudioCodeListEditorContextProvider>
   );
 }
 
-type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'language' | 'texts'>;
+type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'fallbackLanguage' | 'texts'>;
 
 function StatefulCodeListEditor({
   className,
