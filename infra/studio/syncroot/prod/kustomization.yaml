@@ -8,14 +8,14 @@ patches:
       apiVersion: source.toolkit.fluxcd.io/v1
       kind: OCIRepository
       metadata:
-        name: altinn-ai-agents-repo
+        name: altinn-altinity-agents-repo
         namespace: default
   - patch: |-
       $patch: delete
       apiVersion: kustomize.toolkit.fluxcd.io/v1
       kind: Kustomization
       metadata:
-        name: altinn-ai-agents
+        name: altinn-altinity-agents
         namespace: default
   - patch: |-
       apiVersion: apps/v1
