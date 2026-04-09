@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
       use-preapproved: true
-      inputs: ${{ toJSON('dev') }}
+      inputs: '{"environments":"dev"}'
 
   push-artifact:
     name: Push AI agents as OCI artifact
