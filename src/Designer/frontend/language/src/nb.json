@@ -411,7 +411,7 @@
   "app_validation.app_metadata.warnings": "Før du kan publisere appen, bør du rette opp disse feilene på siden \"Om appen\":",
   "app_validation.heading": "Valideringsfeil",
   "branching.actions_heading": "Valg",
-  "branching.delete_branch_dialog.description": "Du er i ferd med å slette grenen <strong>{{branchName}}</strong>. Du kan ikke gjenopprette den.",
+  "branching.delete_branch_dialog.description": "Bekreft at du vil slette grenen <strong>{{branchName}}</strong>. Du kan ikke gjenopprette den.",
   "branching.delete_branch_dialog.textfield_description": "Skriv inn navnet på grenen for å bekrefte.",
   "branching.delete_branch_dialog.textfield_label": "Bekreft sletting",
   "branching.delete_branch_dialog.title": "Slett gren",
