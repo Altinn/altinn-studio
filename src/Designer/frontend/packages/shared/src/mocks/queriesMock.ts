@@ -387,16 +387,9 @@ export const queriesMock: ServicesContextProps = {
   deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Bot accounts
-  createBotAccount: jest.fn().mockImplementation(() =>
-    Promise.resolve({
-      id: 'mock-bot-id',
-      username: 'mock-bot',
-      organizationName: 'ttd',
-      created: '2024-01-01T00:00:00Z',
-    }),
-  ),
+  createBotAccount: jest.fn().mockImplementation(() => Promise.resolve({})),
   deactivateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
-  createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve({})),
   revokeBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   updateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
 };
