@@ -23,8 +23,8 @@ import classes from './StudioCodeListEditorRow.module.css';
 
 type StudioCodeListEditorRowProps = {
   error?: ValueError | null;
-  fallbackLanguage: string;
   item: CodeListItem;
+  language: string;
   number: number;
   onDeleteButtonClick: () => void;
   onChangeCodeListItem: (newItem: CodeListItem) => void;
@@ -32,8 +32,8 @@ type StudioCodeListEditorRowProps = {
 
 export function StudioCodeListEditorRow({
   error,
-  fallbackLanguage,
   item,
+  language,
   number,
   onDeleteButtonClick,
   onChangeCodeListItem,
@@ -50,26 +50,26 @@ export function StudioCodeListEditorRow({
 
   const handleLabelChange = useCallback(
     (label: string) => {
-      const updatedItem = changeLabel(item, fallbackLanguage, label);
+      const updatedItem = changeLabel(item, language, label);
       onChangeCodeListItem(updatedItem);
     },
-    [item, fallbackLanguage, onChangeCodeListItem],
+    [item, language, onChangeCodeListItem],
   );
 
   const handleDescriptionChange = useCallback(
     (description: string) => {
-      const updatedItem = changeDescription(item, fallbackLanguage, description);
+      const updatedItem = changeDescription(item, language, description);
       onChangeCodeListItem(updatedItem);
     },
-    [item, fallbackLanguage, onChangeCodeListItem],
+    [item, language, onChangeCodeListItem],
   );
 
   const handleHelpTextChange = useCallback(
     (helpText: string) => {
-      const updatedItem = changeHelpText(item, fallbackLanguage, helpText);
+      const updatedItem = changeHelpText(item, language, helpText);
       onChangeCodeListItem(updatedItem);
     },
-    [item, fallbackLanguage, onChangeCodeListItem],
+    [item, language, onChangeCodeListItem],
   );
 
   return (
@@ -85,19 +85,19 @@ export function StudioCodeListEditorRow({
         label={texts.itemLabel(number)}
         onChangeText={handleLabelChange}
         required={true}
-        text={getLabel(item, fallbackLanguage)}
+        text={getLabel(item, language)}
       />
       <TextCell
         label={texts.itemDescription(number)}
         onChangeText={handleDescriptionChange}
         required={false}
-        text={getDescription(item, fallbackLanguage)}
+        text={getDescription(item, language)}
       />
       <TextCell
         label={texts.itemHelpText(number)}
         onChangeText={handleHelpTextChange}
         required={false}
-        text={getHelpText(item, fallbackLanguage)}
+        text={getHelpText(item, language)}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
     </StudioInputTable.Row>

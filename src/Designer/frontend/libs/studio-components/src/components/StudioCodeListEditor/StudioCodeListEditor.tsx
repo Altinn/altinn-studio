@@ -103,7 +103,7 @@ function ControlledCodeListEditor({
       <CodeListTable
         codeList={codeList}
         errorMap={errorMap}
-        fallbackLanguage={fallbackLanguage}
+        language={fallbackLanguage}
         onChangeCodeList={onChangeCodeList}
       />
       <AddButton onClick={handleAddButtonClick} />
@@ -127,7 +127,10 @@ function EmptyCodeListTable(): ReactElement {
   return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
 }
 
-type CodeListTableWithContentProps = ControlledCodeListEditorProps & ErrorsProps;
+type CodeListTableWithContentProps = Omit<ControlledCodeListEditorProps, 'fallbackLanguage'> &
+  ErrorsProps & {
+    language: string;
+  };
 
 function CodeListTableWithContent({ ...rest }: CodeListTableWithContentProps): ReactElement {
   return (
@@ -157,7 +160,7 @@ function TableHeadings(): ReactElement {
 function TableBody({
   codeList,
   errorMap,
-  fallbackLanguage,
+  language,
   onChangeCodeList,
 }: CodeListTableWithContentProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
@@ -181,9 +184,9 @@ function TableBody({
       {codeList.map((item, index) => (
         <StudioCodeListEditorRow
           error={errorMap[index]}
-          fallbackLanguage={fallbackLanguage}
           item={item}
           key={index}
+          language={language}
           number={index + 1}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
           onChangeCodeListItem={(newItem) => handleChangeCodeListItem(index, newItem)}
