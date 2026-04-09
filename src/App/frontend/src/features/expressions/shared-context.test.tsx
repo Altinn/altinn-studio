@@ -4,13 +4,14 @@ import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { getSharedTests } from 'src/features/expressions/shared';
+import { FormStore, FormStoreState } from 'src/features/form/FormContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
-import type { NodesContext } from 'src/utils/layout/NodesContext';
 
 function contextSorter(a: SharedTestContext, b: SharedTestContext): -1 | 0 | 1 {
   if (a.component === b.component) {
@@ -20,13 +21,13 @@ function contextSorter(a: SharedTestContext, b: SharedTestContext): -1 | 0 | 1 {
   return a.component > b.component ? 1 : -1;
 }
 
-function recurse(state: NodesContext, nodeId: string, pageKey: string): SharedTestContextList {
+function recurse(state: FormStoreState, nodeId: string, pageKey: string): SharedTestContextList {
   const splitKey = splitDashedKey(nodeId);
   const context: SharedTestContextList = {
     component: splitKey.baseComponentId,
     currentLayout: pageKey,
   };
-  const children = Object.values(state.nodeData)
+  const children = Object.values(state.nodes.nodeData)
     .filter((n) => n.parentId === nodeId)
     .map((n) => recurse(state, n.id, pageKey));
   if (children.length) {
@@ -40,13 +41,13 @@ function recurse(state: NodesContext, nodeId: string, pageKey: string): SharedTe
 }
 
 function TestContexts() {
-  const contexts = NodesInternal.useMemoSelector((state) => {
+  const contexts = FormStore.raw.useMemoSelector((state) => {
     const contexts: SharedTestContextList[] = [];
-    for (const page of Object.values(state.pagesData.pages)) {
+    for (const page of Object.values(state.nodes.pagesData.pages)) {
       contexts.push({
         component: page.pageKey,
         currentLayout: page.pageKey,
-        children: Object.values(state.nodeData)
+        children: Object.values(state.nodes.nodeData)
           .filter((n) => n.pageKey === page.pageKey && n.parentId === undefined)
           .map((n) => recurse(state, n.id, page.pageKey)),
       });
@@ -114,9 +115,11 @@ describe('Expressions shared context tests', () => {
         await renderWithInstanceAndLayout({
           renderer: () => <TestContexts />,
           queries: {
-            fetchLayouts: async () => layouts!,
-            // TODO(Datamodels): add support for multiple data models
-            fetchFormData: async () => dataModel ?? {},
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.layouts = layouts!;
+                obj.dataModels[defaultDataTypeMock].initialData = dataModel ?? {};
+              }),
             ...(instance ? { fetchInstanceData: async () => instance } : {}),
             ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
           },

@@ -2,10 +2,9 @@ import { useCallback } from 'react';
 
 import { ValidationMask } from '..';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
-import { Validation } from 'src/features/validation/validationContext';
+import { FormStore } from 'src/features/form/FormContext';
+import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 /**
  * Checks for any validation errors before submitting the form.
@@ -16,24 +15,15 @@ import { NodesInternal } from 'src/utils/layout/NodesContext';
  * We should however show them after we get the results of process/next.
  */
 export function useOnFormSubmitValidation() {
-  const validation = Validation.useLaxRef();
-  const setNodeVisibility = NodesInternal.useLaxSetNodeVisibility();
-  const getNodesWithErrors = NodesInternal.useGetNodesWithErrors();
+  const validate = useWaitForValidation();
+  const setNodeVisibility = FormStore.nodes.useSetNodeVisibility();
+  const getNodesWithErrors = FormStore.nodes.useGetNodesWithErrors();
 
   const callback = useOurEffectEvent((includeNonIncrementalValidations: boolean): boolean => {
-    if (validation.current === ContextNotProvided || setNodeVisibility === ContextNotProvided) {
-      // If the validation context or nodes context is not provided, we cannot validate
-      return false;
-    }
-
     /*
      * Check if there are any frontend validation errors, and if so, show them now and block submit
      */
     const nodesWithFrontendErrors = getNodesWithErrors(ValidationMask.All, 'error', false);
-    if (nodesWithFrontendErrors === ContextNotProvided) {
-      // If the nodes are not provided, we cannot validate them
-      return false;
-    }
 
     const [nodes, validations] = nodesWithFrontendErrors;
     if (
@@ -54,15 +44,9 @@ export function useOnFormSubmitValidation() {
 
   return useCallback(
     async (includeNonIncrementalValidations = false) => {
-      const validateFn = validation.current === ContextNotProvided ? undefined : validation.current?.validating;
-      if (!validateFn) {
-        // If the validation context is not provided, we cannot validate
-        return false;
-      }
-
-      await validateFn();
+      await validate();
       return callback(includeNonIncrementalValidations);
     },
-    [callback, validation],
+    [callback, validate],
   );
 }

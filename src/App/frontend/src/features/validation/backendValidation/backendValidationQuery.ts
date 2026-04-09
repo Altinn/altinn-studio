@@ -6,6 +6,7 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { type BackendValidationIssue } from '..';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -20,15 +21,16 @@ function useBackendValidationQueryKey() {
 }
 
 export function useGetCachedInitialValidations() {
+  const bootstrapInitial = FormBootstrap.useAllInitialValidationIssues() ?? undefined;
   const queryKey = useBackendValidationQueryKey();
   const client = useQueryClient();
 
   return useCallback(
     () => ({
       isFetching: client.isFetching({ queryKey }),
-      cachedInitialValidations: client.getQueryData<BackendValidationIssue[] | undefined>(queryKey),
+      cachedInitialValidations: client.getQueryData<BackendValidationIssue[] | undefined>(queryKey) ?? bootstrapInitial,
     }),
-    [client, queryKey],
+    [bootstrapInitial, client, queryKey],
   );
 }
 

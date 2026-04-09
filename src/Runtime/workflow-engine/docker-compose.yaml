@@ -3,6 +3,7 @@ services:
     image: postgres:18
     container_name: workflow-engine-postgres
     restart: unless-stopped
+    shm_size: 1g
     environment:
       POSTGRES_DB: workflow_engine
       POSTGRES_USER: postgres
