@@ -11,7 +11,7 @@ import {
   StudioFormActions,
 } from '@studio/components';
 import { useCreateBotAccountMutation } from '../../hooks/useCreateBotAccountMutation';
-import { useUpdateBotAccountMutation } from '../../hooks/useUpdateBotAccountTeamsMutation';
+import { useUpdateBotAccountMutation } from '../../hooks/useUpdateBotAccountMutation';
 import classes from './BotAccountDialog.module.css';
 
 const nameRegex = /^[a-z0-9_]+$/;

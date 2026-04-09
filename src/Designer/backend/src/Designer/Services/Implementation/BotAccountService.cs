@@ -105,6 +105,13 @@ public class BotAccountService(
             cancellationToken
         );
 
+        await deployEnvironmentAccessService.RevokeAccessAsync(
+            org,
+            model.Username,
+            deployEnvironments,
+            cancellationToken
+        );
+
         model.Deactivated = true;
         model.DeactivatedAt = timeProvider.GetUtcNow();
 
@@ -118,13 +125,6 @@ public class BotAccountService(
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-
-        await deployEnvironmentAccessService.RevokeAccessAsync(
-            org,
-            model.Username,
-            deployEnvironments,
-            cancellationToken
-        );
     }
 
     public async Task<(string RawKey, ApiKeyModel Key)> CreateApiKeyAsync(

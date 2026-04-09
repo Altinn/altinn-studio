@@ -1,10 +1,12 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { BotAccountsList } from './BotAccountsList';
-import type { BotAccount } from 'app-shared/types/BotAccount';
+import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 
 jest.mock('../BotAccountApiKeys/BotAccountApiKeys', () => ({
   BotAccountApiKeys: ({ botAccountId }: { botAccountId: string }) => (
@@ -34,6 +36,14 @@ const anotherBotAccount: BotAccount = {
   deployEnvironments: [],
 };
 
+const sampleApiKey: BotAccountApiKey = {
+  id: 1,
+  name: 'Deploy key',
+  expiresAt: '2099-12-31T23:59:59Z',
+  createdAt: '2024-01-15T10:00:00Z',
+  createdByUsername: 'testuser',
+};
+
 const defaultProps = {
   org: testOrg,
   botAccounts: [] as BotAccount[],
@@ -43,8 +53,16 @@ const defaultProps = {
   onToggleExpanded: jest.fn(),
 };
 
-const renderBotAccountsList = (props: Partial<typeof defaultProps> = {}) =>
-  renderWithProviders(<BotAccountsList {...defaultProps} {...props} />);
+const renderBotAccountsList = (
+  props: Partial<typeof defaultProps> = {},
+  queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
+) => {
+  const queryClient = createQueryClientMock();
+  return renderWithProviders(<BotAccountsList {...defaultProps} {...props} />, {
+    queryClient,
+    queries,
+  });
+};
 
 describe('BotAccountsList', () => {
   afterEach(() => jest.clearAllMocks());
@@ -117,5 +135,104 @@ describe('BotAccountsList', () => {
     });
     await user.click(deleteButton);
     expect(queriesMock.deactivateBotAccount).toHaveBeenCalledWith(testOrg, activeBotAccount.id);
+  });
+
+  it('calls onEdit when edit button is clicked', async () => {
+    const onEdit = jest.fn();
+    const user = userEvent.setup();
+    renderBotAccountsList({ botAccounts: [activeBotAccount], onEdit });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('settings.orgs.bot_accounts.edit_aria_label', {
+          username: activeBotAccount.username,
+        }),
+      }),
+    );
+    expect(onEdit).toHaveBeenCalledWith(activeBotAccount);
+  });
+
+  it('calls onToggleExpanded when a row is clicked (non-interactive area)', async () => {
+    const onToggleExpanded = jest.fn();
+    const user = userEvent.setup();
+    renderBotAccountsList({ botAccounts: [activeBotAccount], onToggleExpanded });
+    await user.click(screen.getByText(activeBotAccount.username));
+    expect(onToggleExpanded).toHaveBeenCalledWith(activeBotAccount.id);
+  });
+
+  it('renders the expand button with collapse label when expanded', () => {
+    renderBotAccountsList({ botAccounts: [activeBotAccount], expandedId: activeBotAccount.id });
+    expect(
+      screen.getByRole('button', {
+        name: textMock('settings.orgs.bot_accounts.collapse_aria_label', {
+          username: activeBotAccount.username,
+        }),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders createdByUsername when present', () => {
+    renderBotAccountsList({ botAccounts: [activeBotAccount] });
+    expect(screen.getByText('testuser')).toBeInTheDocument();
+  });
+
+  it('renders em-dash when createdByUsername is null', () => {
+    renderBotAccountsList({ botAccounts: [anotherBotAccount] });
+    expect(screen.getByText('–')).toBeInTheDocument();
+  });
+
+  it('renders the formatted created date', () => {
+    renderBotAccountsList({ botAccounts: [activeBotAccount] });
+    expect(screen.getByText('15.01.2024')).toBeInTheDocument();
+  });
+
+  it('sorts bot accounts by creation date ascending', () => {
+    renderBotAccountsList({ botAccounts: [activeBotAccount, anotherBotAccount] });
+    const rows = screen.getAllByRole('row');
+    const anotherIndex = rows.findIndex((r) => r.textContent?.includes('ttd-bot-other'));
+    const activeIndex = rows.findIndex((r) => r.textContent?.includes('ttd-bot-deploy'));
+    expect(anotherIndex).toBeLessThan(activeIndex);
+  });
+
+  describe('ApiKeysPreviewCell', () => {
+    it('shows loading placeholder while api keys are pending', () => {
+      renderBotAccountsList({ botAccounts: [activeBotAccount] });
+      expect(screen.getByText('...')).toBeInTheDocument();
+    });
+
+    it('shows error placeholder when api keys query fails', async () => {
+      const getBotAccountApiKeys = jest.fn().mockRejectedValue(new Error('Failed'));
+      renderBotAccountsList({ botAccounts: [activeBotAccount] }, { getBotAccountApiKeys });
+      expect(await screen.findByText('-')).toBeInTheDocument();
+    });
+
+    it('shows no-api-keys tag when api keys list is empty', async () => {
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData(
+        [QueryKey.BotAccountApiKeys, testOrg, activeBotAccount.id],
+        [],
+      );
+      renderWithProviders(<BotAccountsList {...defaultProps} botAccounts={[activeBotAccount]} />, {
+        queryClient,
+      });
+      expect(
+        await screen.findByText(textMock('settings.orgs.bot_accounts.no_api_keys')),
+      ).toBeInTheDocument();
+    });
+
+    it('shows api key count tag when api keys are present', async () => {
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData(
+        [QueryKey.BotAccountApiKeys, testOrg, activeBotAccount.id],
+        [sampleApiKey],
+      );
+      renderWithProviders(<BotAccountsList {...defaultProps} botAccounts={[activeBotAccount]} />, {
+        queryClient,
+      });
+      expect(
+        await screen.findByText(
+          textMock('settings.orgs.bot_accounts.api_keys_count', { count: 1 }),
+        ),
+      ).toBeInTheDocument();
+    });
   });
 });

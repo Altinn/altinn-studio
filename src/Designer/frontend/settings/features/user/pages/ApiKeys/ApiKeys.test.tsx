@@ -76,6 +76,9 @@ const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, 
   await user.type(getExpiryInput(), date);
 };
 
+const getDeleteButton = (name: string) =>
+  screen.getByRole('button', { name: textMock('settings.api_keys.delete', { name }) });
+
 describe('ApiKeys', () => {
   afterEach(() => jest.clearAllMocks());
 
@@ -235,5 +238,46 @@ describe('ApiKeys', () => {
       textMock('settings.api_keys.copy_error'),
       expect.objectContaining({ toastId: 'settings.api_keys.copy_error' }),
     );
+  });
+
+  it('renders loading spinner while api keys are pending', () => {
+    const queryClient = createQueryClientMock();
+    renderWithProviders(<ApiKeys />, { queryClient });
+    expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();
+  });
+
+  it('renders error message when api keys query fails', async () => {
+    const getUserApiKeys = jest.fn().mockRejectedValue(new Error('Failed'));
+    const queryClient = createQueryClientMock();
+    renderWithProviders(<ApiKeys />, { queryClient, queries: { getUserApiKeys } });
+    expect(await screen.findByText(textMock('settings.api_keys.load_error'))).toBeInTheDocument();
+  });
+
+  it('renders existing api keys in the table', () => {
+    renderApiKeys();
+    expect(screen.getByText('Existing api key')).toBeInTheDocument();
+  });
+
+  it('calls deleteUserApiKey when delete is confirmed', async () => {
+    const deleteUserApiKey = jest.fn().mockResolvedValue(undefined);
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const user = userEvent.setup();
+    renderApiKeys({ deleteUserApiKey });
+    await user.click(getDeleteButton('Existing api key'));
+    expect(deleteUserApiKey).toHaveBeenCalledWith(mockApiKeys[0].id);
+  });
+
+  it('does not render the created-by column (showCreatedBy is false for user api keys)', () => {
+    renderApiKeys();
+    expect(
+      screen.queryByRole('columnheader', { name: textMock('settings.api_keys.col_created_by') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the page heading', () => {
+    renderApiKeys();
+    expect(
+      screen.getByRole('heading', { name: textMock('settings.user.api_keys.api_keys') }),
+    ).toBeInTheDocument();
   });
 });

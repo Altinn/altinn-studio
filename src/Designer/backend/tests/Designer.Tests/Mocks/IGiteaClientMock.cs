@@ -19,6 +19,8 @@ public class IGiteaClientMock : IGiteaClient
         new Uri(typeof(IGiteaClientMock).Assembly.Location).LocalPath
     );
 
+    private readonly HashSet<(long TeamId, string Username)> _teamMembers = new();
+
     public Task<Repository> CreateRepository(string org, CreateRepoOption options)
     {
         string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, options.Name);
@@ -336,11 +338,13 @@ public class IGiteaClientMock : IGiteaClient
 
     public Task AddTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
+        _teamMembers.Add((teamId, username));
         return Task.CompletedTask;
     }
 
     public Task RemoveTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
+        _teamMembers.Remove((teamId, username));
         return Task.CompletedTask;
     }
 
@@ -358,6 +362,6 @@ public class IGiteaClientMock : IGiteaClient
 
     public Task<bool> IsTeamMemberAsync(long teamId, string username, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(false);
+        return Task.FromResult(_teamMembers.Contains((teamId, username)));
     }
 }

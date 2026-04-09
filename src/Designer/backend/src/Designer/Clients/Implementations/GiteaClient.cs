@@ -953,7 +953,12 @@ public class GiteaClient(
             $"teams/{teamId}/members/{username}",
             cancellationToken
         );
-        return response.IsSuccessStatusCode;
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+        response.EnsureSuccessStatusCode();
+        return true;
     }
 
     private static string AddRefIfExists(string path, string reference)

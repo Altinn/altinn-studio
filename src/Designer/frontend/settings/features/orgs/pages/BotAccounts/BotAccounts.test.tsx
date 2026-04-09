@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -7,8 +8,45 @@ import { BotAccounts } from './BotAccounts';
 import type { BotAccount } from 'app-shared/types/BotAccount';
 
 jest.mock('./components/BotAccountsList/BotAccountsList', () => ({
-  BotAccountsList: ({ botAccounts }: { botAccounts: BotAccount[] }) => (
-    <div>BotAccountsList ({botAccounts.length})</div>
+  BotAccountsList: ({
+    botAccounts,
+    onEdit,
+    expandedId,
+    onToggleExpanded,
+  }: {
+    botAccounts: BotAccount[];
+    onEdit: (b: BotAccount) => void;
+    expandedId: string | null;
+    onToggleExpanded: (id: string) => void;
+  }) => (
+    <div>
+      <div>BotAccountsList ({botAccounts.length})</div>
+      {botAccounts.map((b) => (
+        <div key={b.id}>
+          <button onClick={() => onEdit(b)}>Edit {b.username}</button>
+          <button onClick={() => onToggleExpanded(b.id)}>Toggle {b.id}</button>
+          {expandedId === b.id && <div>Expanded {b.id}</div>}
+        </div>
+      ))}
+    </div>
+  ),
+}));
+
+jest.mock('./components/BotAccountDialog/BotAccountDialog', () => ({
+  BotAccountDialog: ({
+    editingId,
+    onClose,
+    onCreated,
+  }: {
+    editingId: string | null;
+    onClose: () => void;
+    onCreated?: (id: string) => void;
+  }) => (
+    <div>
+      <div>{editingId ? `EditDialog(${editingId})` : 'AddDialog'}</div>
+      <button onClick={onClose}>CloseDialog</button>
+      {onCreated && <button onClick={() => onCreated('new-bot-id')}>TriggerCreated</button>}
+    </div>
   ),
 }));
 
@@ -67,5 +105,64 @@ describe('BotAccounts', () => {
   it('passes empty array to BotAccountsList when there are no bot accounts', () => {
     renderBotAccounts([]);
     expect(screen.getByText('BotAccountsList (0)')).toBeInTheDocument();
+  });
+
+  it('renders the add bot account button', () => {
+    renderBotAccounts([]);
+    expect(
+      screen.getByRole('button', { name: textMock('settings.orgs.bot_accounts.add_bot_account') }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens add dialog when add button is clicked', async () => {
+    const user = userEvent.setup();
+    renderBotAccounts([]);
+    await user.click(
+      screen.getByRole('button', { name: textMock('settings.orgs.bot_accounts.add_bot_account') }),
+    );
+    expect(screen.getByText('AddDialog')).toBeInTheDocument();
+  });
+
+  it('closes dialog when CloseDialog is clicked', async () => {
+    const user = userEvent.setup();
+    renderBotAccounts([]);
+    await user.click(
+      screen.getByRole('button', { name: textMock('settings.orgs.bot_accounts.add_bot_account') }),
+    );
+    expect(screen.getByText('AddDialog')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'CloseDialog' }));
+    expect(screen.queryByText('AddDialog')).not.toBeInTheDocument();
+  });
+
+  it('opens edit dialog with the bot account id when onEdit is called', async () => {
+    const user = userEvent.setup();
+    renderBotAccounts([activeBotAccount]);
+    await user.click(screen.getByRole('button', { name: `Edit ${activeBotAccount.username}` }));
+    expect(screen.getByText(`EditDialog(${activeBotAccount.id})`)).toBeInTheDocument();
+  });
+
+  it('expands a bot account when onToggleExpanded is called', async () => {
+    const user = userEvent.setup();
+    renderBotAccounts([activeBotAccount]);
+    await user.click(screen.getByRole('button', { name: `Toggle ${activeBotAccount.id}` }));
+    expect(screen.getByText(`Expanded ${activeBotAccount.id}`)).toBeInTheDocument();
+  });
+
+  it('collapses a bot account when onToggleExpanded is called a second time', async () => {
+    const user = userEvent.setup();
+    renderBotAccounts([activeBotAccount]);
+    await user.click(screen.getByRole('button', { name: `Toggle ${activeBotAccount.id}` }));
+    await user.click(screen.getByRole('button', { name: `Toggle ${activeBotAccount.id}` }));
+    expect(screen.queryByText(`Expanded ${activeBotAccount.id}`)).not.toBeInTheDocument();
+  });
+
+  it('expands the newly created bot account and opens it after onCreated is called', async () => {
+    const user = userEvent.setup();
+    renderBotAccounts([{ ...activeBotAccount, id: 'new-bot-id' }]);
+    await user.click(
+      screen.getByRole('button', { name: textMock('settings.orgs.bot_accounts.add_bot_account') }),
+    );
+    await user.click(screen.getByRole('button', { name: 'TriggerCreated' }));
+    expect(screen.getByText('Expanded new-bot-id')).toBeInTheDocument();
   });
 });
