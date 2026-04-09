@@ -167,9 +167,7 @@ export const DeploymentEnvironmentLogList = ({
                                 >
                                   Build log
                                 </StudioLink>
-                              ) : (
-                                <></>
-                              ),
+                              ) : null,
                             }}
                           />
                         </span>
