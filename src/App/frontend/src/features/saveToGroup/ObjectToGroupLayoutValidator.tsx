@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' | 'Checkboxes' | 'MultipleSelect'>) {
@@ -11,7 +11,7 @@ export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' |
   const deletionStrategy = externalItem.deletionStrategy;
   const checkedBinding = externalItem.dataModelBindings?.checked;
 
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     let error: string | null = null;
