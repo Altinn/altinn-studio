@@ -81,4 +81,10 @@ public class ListBotAccountsStudioOidcTests : StudioOidcGiteaIntegrationTestsBas
         string json = JsonSerializer.Serialize(new { name, expiresAt });
         return new StringContent(json, Encoding.UTF8, MediaTypeNames.Application.Json);
     }
+
+    private static StringContent CreateBotAccountRequestContent(string name, string[] deployEnvironments = null)
+    {
+        string json = JsonSerializer.Serialize(new { name, deployEnvironments });
+        return new StringContent(json, Encoding.UTF8, MediaTypeNames.Application.Json);
+    }
 }
