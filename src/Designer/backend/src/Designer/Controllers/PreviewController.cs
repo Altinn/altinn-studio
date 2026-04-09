@@ -911,7 +911,30 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return;
             }
-            (pagesObject["order"] as JsonArray)?.Add(JsonValue.Create(pdfLayoutName));
+
+            if (pagesObject?["groups"] is JsonArray groups)
+            {
+                JsonObject lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
+
+                if (lastGroupWithOrder?["order"] is JsonArray groupOrder)
+                {
+                    bool alreadyInOrder = groupOrder.Any(item => item?.GetValue<string>() == pdfLayoutName);
+                    if (!alreadyInOrder)
+                    {
+                        groupOrder.Add(JsonValue.Create(pdfLayoutName));
+                    }
+                    return;
+                }
+            }
+
+            if (pagesObject?["order"] is JsonArray order)
+            {
+                bool alreadyInOrder = order.Any(item => item?.GetValue<string>() == pdfLayoutName);
+                if (!alreadyInOrder)
+                {
+                    order.Add(JsonValue.Create(pdfLayoutName));
+                }
+            }
         }
 
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)

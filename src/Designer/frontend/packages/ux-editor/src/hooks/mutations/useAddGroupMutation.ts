@@ -22,7 +22,7 @@ export const useAddGroupMutation = (org: string, app: string) => {
       const updatedPages = await getPages(org, app, layoutSet);
       if (!isPagesModelWithGroups(updatedPages))
         throw new Error('Pages model does not contain groups');
-      const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
+      const nextPageNumber = getNextPageNumber(updatedPages.groups, updatedPages.pdfLayoutName, t);
       const newGroup = createNewGroup(nextPageNumber, t);
       const finalPayload = addGroupsWithPages(updatedPages, newGroup);
       return await changePageGroups(org, app, layoutSet, finalPayload);
@@ -41,14 +41,22 @@ export const useAddGroupMutation = (org: string, app: string) => {
   });
 };
 
-const getNextPageNumber = (groups: GroupModel[], t: (key: string) => string): number => {
-  const maxPageNumber = (groups || [])
-    ?.flatMap((group) => group.order?.map((page) => page.id) || [])
-    .reduce((max, id) => {
-      const match = id?.match(new RegExp(`${t('general.page')}(\\d+)`));
-      return match && !isNaN(parseInt(match[1])) ? Math.max(max, parseInt(match[1])) : max;
-    }, 0);
-  return maxPageNumber + 1;
+const getNextPageNumber = (
+  groups: GroupModel[],
+  pdfLayoutName: string | undefined,
+  t: (key: string) => string,
+): number => {
+  const allPageIds = (groups || []).flatMap((group) => group.order?.map((page) => page.id) || []);
+  const maxPageNumber = allPageIds.reduce((max, id) => {
+    const match = id?.match(new RegExp(`${t('general.page')}(\\d+)`));
+    return match && !isNaN(parseInt(match[1])) ? Math.max(max, parseInt(match[1])) : max;
+  }, 0);
+
+  let nextNumber = maxPageNumber + 1;
+  while (`${t('general.page')}${nextNumber}` === pdfLayoutName) {
+    nextNumber += 1;
+  }
+  return nextNumber;
 };
 
 const createNewGroup = (nextPageNumber: number, t: (key: string) => string): GroupModel => ({
