@@ -243,11 +243,7 @@ public class PreviewController(
     /// <returns>layoutsettings</returns>
     [HttpGet]
     [Route("api/layoutsettings")]
-    public async Task<ActionResult<string>> LayoutSettings(
-        string org,
-        string app,
-        CancellationToken cancellationToken
-    )
+    public async Task<ActionResult<string>> LayoutSettings(string org, string app, CancellationToken cancellationToken)
     {
         try
         {
