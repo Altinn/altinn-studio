@@ -23,6 +23,7 @@ import classes from './StudioCodeListEditorRow.module.css';
 
 type StudioCodeListEditorRowProps = {
   error?: ValueError | null;
+  fallbackLanguage: string;
   item: CodeListItem;
   number: number;
   onDeleteButtonClick: () => void;
@@ -31,12 +32,13 @@ type StudioCodeListEditorRowProps = {
 
 export function StudioCodeListEditorRow({
   error,
+  fallbackLanguage,
   item,
   number,
   onDeleteButtonClick,
   onChangeCodeListItem,
 }: StudioCodeListEditorRowProps): ReactElement {
-  const { fallbackLanguage, texts } = useStudioCodeListEditorContext();
+  const { texts } = useStudioCodeListEditorContext();
 
   const handleChangeValue = useCallback(
     (value: string) => {

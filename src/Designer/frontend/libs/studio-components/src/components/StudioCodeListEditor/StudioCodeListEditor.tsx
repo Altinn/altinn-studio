@@ -35,25 +35,21 @@ export type StudioCodeListEditorProps = Readonly<{
   texts: CodeListEditorTexts;
 }>;
 
-export function StudioCodeListEditor({
-  fallbackLanguage,
-  texts,
-  ...rest
-}: StudioCodeListEditorProps): ReactElement {
+export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorProps): ReactElement {
   return (
-    <StudioCodeListEditorContextProvider value={{ fallbackLanguage, texts }}>
+    <StudioCodeListEditorContextProvider value={{ texts }}>
       <StatefulCodeListEditor {...rest} />
     </StudioCodeListEditorContextProvider>
   );
 }
 
-type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'fallbackLanguage' | 'texts'>;
+type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
-  className,
   codeList: givenCodeList,
   onInvalid,
   onUpdateCodeList,
+  ...rest
 }: StatefulCodeListEditorProps): ReactElement {
   const [codeList, setCodeList] = usePropState<CodeList>(givenCodeList);
 
@@ -71,9 +67,9 @@ function StatefulCodeListEditor({
 
   return (
     <ControlledCodeListEditor
-      className={className}
       codeList={codeList}
       onChangeCodeList={handleChangeCodeList}
+      {...rest}
     />
   );
 }
@@ -88,6 +84,7 @@ type ControlledCodeListEditorProps = Omit<
 function ControlledCodeListEditor({
   className: givenClass,
   codeList,
+  fallbackLanguage,
   onChangeCodeList,
 }: ControlledCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
@@ -103,7 +100,12 @@ function ControlledCodeListEditor({
 
   return (
     <StudioFieldset legend={texts.codeList} className={className} ref={fieldsetRef}>
-      <CodeListTable codeList={codeList} errorMap={errorMap} onChangeCodeList={onChangeCodeList} />
+      <CodeListTable
+        codeList={codeList}
+        errorMap={errorMap}
+        fallbackLanguage={fallbackLanguage}
+        onChangeCodeList={onChangeCodeList}
+      />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
@@ -155,6 +157,7 @@ function TableHeadings(): ReactElement {
 function TableBody({
   codeList,
   errorMap,
+  fallbackLanguage,
   onChangeCodeList,
 }: CodeListTableWithContentProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
@@ -178,6 +181,7 @@ function TableBody({
       {codeList.map((item, index) => (
         <StudioCodeListEditorRow
           error={errorMap[index]}
+          fallbackLanguage={fallbackLanguage}
           item={item}
           key={index}
           number={index + 1}
