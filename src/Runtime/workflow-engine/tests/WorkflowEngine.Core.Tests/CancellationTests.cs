@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -19,7 +20,16 @@ public class CancellationTests
         settings ??= DefaultSettings();
 
         var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer.Setup(b => b.Submit(It.IsAny<Workflow>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        buffer
+            .Setup(b =>
+                b.Submit(
+                    It.IsAny<Workflow>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Activity?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
 
         return new WorkflowHandler(
             executor,
