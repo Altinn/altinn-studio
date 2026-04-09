@@ -13,7 +13,7 @@
         },
         http_connections: {
           count: {Scrubbed},
-          limit: 200
+          limit: 400
         },
         db_connections: {
           count: {Scrubbed},
