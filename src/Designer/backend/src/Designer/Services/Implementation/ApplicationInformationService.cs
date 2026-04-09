@@ -60,7 +60,7 @@ public class ApplicationInformationService : IApplicationInformationService
     };
 
     /// <inheritdoc />
-    public async Task UpdateApplicationInformationAsync(
+    public async Task UpdateApplicationMetadataAndPoliciesAsync(
         string org,
         string app,
         string shortCommitId,
@@ -94,11 +94,15 @@ public class ApplicationInformationService : IApplicationInformationService
         );
 
         await Task.WhenAll(new List<Task> { updateAuthPolicyTask, updateTextResources });
-
-        await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
     }
 
-    private async Task PublishAltinnAppServiceResource(string org, string app, string shortCommitId, string envName)
+    /// <inheritdoc />
+    public async Task<ResourceRegistryPublishResult> PublishToResourceRegistryAsync(
+        string org,
+        string app,
+        string shortCommitId,
+        string envName
+    )
     {
         using var activity = ServiceTelemetry.Source.StartActivity(
             "PublishAltinnAppServiceResource",
@@ -165,25 +169,27 @@ public class ApplicationInformationService : IApplicationInformationService
                         tags: new ActivityTagsCollection { { "validation.errors", errors } }
                     )
                 );
-                return;
+                return new ResourceRegistryPublishResult(false, $"Validation errors: {errors}");
             }
 
             if (publishResponse is StatusCodeResult { StatusCode: 200 or 201 })
             {
                 activity?.SetTag("publish.result", "success");
-                return;
+                return new ResourceRegistryPublishResult(true);
             }
 
             int? statusCode = (publishResponse as IStatusCodeActionResult)?.StatusCode;
             activity?.SetTag("publish.result", "unexpected_response");
             activity?.SetTag("publish.status_code", statusCode);
             activity?.SetStatus(ActivityStatusCode.Error, $"Unexpected response status: {statusCode}");
+            return new ResourceRegistryPublishResult(false, $"Unexpected response status: {statusCode}");
         }
         catch (Exception ex)
         {
             activity?.SetTag("publish.result", "exception");
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.AddException(ex);
+            return new ResourceRegistryPublishResult(false, ex.Message);
         }
     }
 }

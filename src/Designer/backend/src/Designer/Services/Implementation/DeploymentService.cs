@@ -126,12 +126,42 @@ public class DeploymentService : IDeploymentService
             deploymentEntity.TagName
         );
 
-        await _applicationInformationService.UpdateApplicationInformationAsync(
+        await _applicationInformationService.UpdateApplicationMetadataAndPoliciesAsync(
             authenticatedContext.Org,
             authenticatedContext.Repo,
             release.TargetCommitish,
             deployment.EnvName
         );
+
+        var registryResult = await _applicationInformationService.PublishToResourceRegistryAsync(
+            authenticatedContext.Org,
+            authenticatedContext.Repo,
+            release.TargetCommitish,
+            deployment.EnvName
+        );
+
+        var createdEntity = await _deploymentRepository.Create(deploymentEntity);
+
+        await _deployEventRepository.AddBySequenceNoAsync(
+            createdEntity.SequenceNo,
+            new DeployEvent
+            {
+                EventType = registryResult.Succeeded
+                    ? DeployEventType.ResourceRegistryPublishSucceeded
+                    : DeployEventType.ResourceRegistryPublishFailed,
+                Message = registryResult.Succeeded
+                    ? "Published to Resource Registry"
+                    : $"Resource Registry publish failed: {registryResult.ErrorMessage}",
+                Timestamp = _timeProvider.GetUtcNow(),
+            }
+        );
+
+        // Deployment should fail if resource registry publish fails
+        // TODO: This should likely be possible to override for test environments/ttd
+        if (!registryResult.Succeeded)
+        {
+            return createdEntity;
+        }
 
         // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
         // cancels the request, but we prefer to at least attempt completion once we've started mutating state
@@ -167,12 +197,10 @@ public class DeploymentService : IDeploymentService
             Status = queuedBuild.Status,
             Started = queuedBuild.StartTime,
         };
+        await _deploymentRepository.Update(deploymentEntity);
 
-        var createdEntity = await _deploymentRepository.Create(deploymentEntity);
-
-        await _deployEventRepository.AddAsync(
-            authenticatedContext.Org,
-            deploymentEntity.Build.Id,
+        await _deployEventRepository.AddBySequenceNoAsync(
+            createdEntity.SequenceNo,
             new DeployEvent
             {
                 EventType = DeployEventType.PipelineScheduled,
