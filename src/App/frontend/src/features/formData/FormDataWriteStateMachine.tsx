@@ -9,6 +9,7 @@ import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
 import { mapBackendIssuesToFieldValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { updateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
+import { deriveSchemaValidations } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { updateBackendValidations } from 'src/features/validation/validationContext';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FDLeafValue, FormDataSliceProps } from 'src/features/formData/FormDataWrite';
@@ -255,6 +256,19 @@ function makeActions(
     }
   }
 
+  function updateSchemaValidations(state: FormStoreState, dataType: string) {
+    const model = state.data.models[dataType];
+    if (!model) {
+      return;
+    }
+
+    model.validations.schema = deriveSchemaValidations({
+      formData: model.debouncedCurrentData,
+      schemaResult: dataModels[dataType].schemaResult,
+      dataElementId: model.dataElementId ?? dataType,
+    });
+  }
+
   function processChanges(state: FormStoreState, toProcess: FDSaveFinished) {
     const { validationIssues, savedData, newDataModels, instance } = toProcess;
     state.data.manualSaveRequested = false;
@@ -312,6 +326,7 @@ function makeActions(
       }
 
       state.data.models[dataType].debouncedCurrentData = state.data.models[dataType].currentData;
+      updateSchemaValidations(state, dataType);
     }
   }
 
@@ -435,6 +450,7 @@ function makeActions(
             dot.str(reference.field, [newValue], model);
           }
         }
+        updateSchemaValidations(state, reference.dataType);
       }),
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
@@ -503,6 +519,7 @@ function makeActions(
             index++;
           }
         }
+        updateSchemaValidations(state, reference.dataType);
       }),
 
     setMultiLeafValues: ({ changes, ...rest }) =>
@@ -613,7 +630,11 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
       validations: {
         backend: mapBackendFieldValidations(props.dataModels[dt].initialValidationIssues ?? undefined),
         expression: {},
-        schema: {},
+        schema: deriveSchemaValidations({
+          formData: props.dataModels[dt].initialData,
+          schemaResult: props.dataModels[dt].schemaResult,
+          dataElementId: props.dataModels[dt].dataElementId ?? dt,
+        }),
         invalidData: {},
       },
     } satisfies DataModelState;

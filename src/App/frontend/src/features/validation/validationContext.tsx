@@ -5,7 +5,6 @@ import type { Draft } from 'immer';
 
 import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
-import type { DataModelValidationState } from 'src/features/formData/FormDataWriteStateMachine';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
@@ -20,12 +19,9 @@ import {
   useGetCachedInitialValidations,
   useRefetchInitialValidations,
 } from 'src/features/validation/backendValidation/backendValidationQuery';
-import {
-  mapBackendIssuesToTaskValidations,
-} from 'src/features/validation/backendValidation/backendValidationUtils';
+import { mapBackendIssuesToTaskValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
-import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
 import {
   hasValidationErrors,
   selectBackendFieldValidationsForDataModel,
@@ -35,13 +31,14 @@ import {
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
+import type { DataModelValidationState } from 'src/features/formData/FormDataWriteStateMachine';
 
 export interface ValidationInternals {
   processedLast: ValidationsProcessedLast; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
   /**
-  * updateDataModelValidations
-  * if validations is undefined, nothing will be changed
-  */
+   * updateDataModelValidations
+   * if validations is undefined, nothing will be changed
+   */
   updateDataModelValidations: (
     key: Exclude<keyof DataModelValidationState, 'backend'>,
     dataType: string,
@@ -127,7 +124,6 @@ export function ValidationEffects() {
     <>
       {writableDataTypes.map((dataType) => (
         <Fragment key={dataType}>
-          <SchemaValidation dataType={dataType} />
           <InvalidDataValidation dataType={dataType} />
         </Fragment>
       ))}
