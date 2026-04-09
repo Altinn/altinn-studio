@@ -45,7 +45,7 @@ describe('InputfieldsWithTranslation', () => {
     const user = userEvent.setup();
     renderInputfieldsWithTranslation({ route: '/?focus=test-id-nb' });
     await user.click(screen.getByRole('tab', { name: `${textMock('language.nn')} ${label}` }));
-    expect(getLocationSearch()).toHaveTextContent('');
+    expect(getLocationSearch()).toBeEmptyDOMElement();
   });
 });
 
