@@ -9,7 +9,7 @@
     "description": {
         "nb": "app-with-resource-metadata description",
         "nn": "app-with-resource-metadata description",
-        "en": "app-with-resource-metadata description"
+        "en": ""
     },
     "access": {
         "delegable": true,

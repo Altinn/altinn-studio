@@ -1,19 +1,9 @@
 #nullable enable
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Designer.Tests.Utils;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging.Abstractions;
-using VerifyXunit;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -51,7 +41,7 @@ public class AltinnAppServiceResourceServiceTests
 
         // Act
         var result = await service.GenerateServiceResourceFromApp(_org, targetRepository, _developer);
-        var validationResult = AltinnAppServiceResourceValidator.Validate(result);
+        var validationResult = AltinnAppServiceResourceValidator.Validate(result.WithDefaultTranslations());
 
         // Assert
         Assert.NotNull(result);
@@ -60,5 +50,32 @@ public class AltinnAppServiceResourceServiceTests
         Assert.NotNull(result.RightDescription);
         Assert.Equal(ResourceType.AltinnApp, result.ResourceType);
         Assert.True(validationResult.Errors.Count == 0);
+    }
+
+    [Fact]
+    public async Task GenerateServiceResourceFromApp_ReturnsDefaultWithMissingEnglishTranslations()
+    {
+        // Arrange
+        string repository = _repository;
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            repository,
+            _developer,
+            targetRepository
+        );
+
+        var service = new AltinnAppServiceResourceService(_altinnGitRepositoryFactory);
+
+        // Act
+        var result = await service.GenerateServiceResourceFromApp(_org, targetRepository, _developer);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal($"app_{_org}_{_repository}", result.Identifier);
+        Assert.NotNull(result.Description);
+        Assert.Empty(result.Description["en"]);
+        Assert.Equal("app-with-resource-metadata description", result.WithDefaultTranslations()?.Description?["en"]);
     }
 }

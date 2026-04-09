@@ -21,7 +21,14 @@ export const mapErrorKeyErrorItems = (
   t: (key: string) => string,
 ): ErrorItem[] => {
   return errorKeys
-    .filter((errorKey) => getFieldConfig(errorKey)?.critical === (severity === 'danger'))
+    .filter((errorKey) => {
+      const fieldConfig = getFieldConfig(errorKey);
+      if (!fieldConfig) {
+        // If there's no specific field config, we treat it as a critical error for 'danger'
+        return severity === 'danger';
+      }
+      return fieldConfig.critical === (severity === 'danger');
+    })
     .map((errorKey) => {
       const fieldConfig = getFieldConfig(errorKey);
       const anchor = fieldConfig?.anchor ?? '';
@@ -33,7 +40,7 @@ export const mapErrorKeyErrorItems = (
 };
 
 export const appHasCriticalValidationErrors = (errorKeys: string[]): boolean => {
-  return errorKeys.some((errorKey) => getFieldConfig(errorKey)?.critical);
+  return errorKeys.some((errorKey) => getFieldConfig(errorKey)?.critical ?? true);
 };
 
 export const VALIDATION_FIELD_CONFIG: Record<string, FieldConfig> = {
@@ -119,7 +126,7 @@ export const VALIDATION_FIELD_CONFIG: Record<string, FieldConfig> = {
   },
 };
 
-const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
+export const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
   if (VALIDATION_FIELD_CONFIG[errorKey]) {
     return VALIDATION_FIELD_CONFIG[errorKey];
   }

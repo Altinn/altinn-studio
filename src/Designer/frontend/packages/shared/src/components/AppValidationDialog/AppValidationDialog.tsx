@@ -117,7 +117,7 @@ const AppValidationAlert = ({
             <StudioLink
               className={classes.validationLink}
               href={fullHref}
-              onClick={() => handleErrorLinkClick(search)}
+              onClick={handleErrorLinkClick(search)}
             >
               {errorMessage}
             </StudioLink>

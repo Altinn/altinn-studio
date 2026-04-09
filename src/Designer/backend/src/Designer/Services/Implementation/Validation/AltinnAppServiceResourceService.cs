@@ -206,28 +206,27 @@ public static class ApplicationMetadataMapper
             return serviceResource;
         }
 
-        // English is required in the service resource, but techically not required by law as Bokmål and Nynorsk are.
-        // Many apps only have Norwegian translations. To avoid having to require English translations in all apps,
-        // we default the English title to the Norwegian title if the English title is missing.
-        if (serviceResource.Title["en"] == null && serviceResource.Title["nb"] != null)
-        {
-            serviceResource.Title["en"] = serviceResource.Title["nb"];
-        }
-
-        if (serviceResource.Description["en"] == null && serviceResource.Description["nb"] != null)
-        {
-            serviceResource.Description["en"] = serviceResource.Description["nb"];
-        }
-
+        serviceResource.Title.EnsureEnglishTranslationOrDefault();
+        serviceResource.Description.EnsureEnglishTranslationOrDefault();
         if (serviceResource.Delegable == true && serviceResource.RightDescription != null)
         {
-            if (serviceResource.RightDescription["en"] == null && serviceResource.RightDescription["nb"] != null)
-            {
-                serviceResource.RightDescription["en"] = serviceResource.RightDescription["nb"];
-            }
+            serviceResource.RightDescription.EnsureEnglishTranslationOrDefault();
         }
 
         return serviceResource;
+    }
+
+    private static void EnsureEnglishTranslationOrDefault(this Dictionary<string, string> translations)
+    {
+        if (!translations.TryGetValue("en", out var translation) || string.IsNullOrWhiteSpace(translation))
+        {
+            if (translations.TryGetValue("nb", out var nbTranslation) && !string.IsNullOrWhiteSpace(nbTranslation))
+            {
+                translation = nbTranslation;
+            }
+        }
+
+        translations["en"] = translation ?? string.Empty;
     }
 
     public static Dictionary<string, string> ToDictionary(this AppMetadataTranslatedString appMetadataTranslatedString)
