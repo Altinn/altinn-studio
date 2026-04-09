@@ -1,0 +1,43 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.Models;
+
+namespace Altinn.Studio.Designer.Services.Interfaces;
+
+public interface IChatService
+{
+    Task<List<ChatThreadEntity>> GetThreadsAsync(
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<ChatThreadEntity> CreateThreadAsync(
+        string title,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
+
+    Task UpdateThreadAsync(
+        Guid threadId,
+        string title,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
+
+    Task DeleteThreadAsync(Guid threadId, CancellationToken cancellationToken = default);
+
+    Task<List<ChatMessageEntity>> GetMessagesAsync(Guid threadId, CancellationToken cancellationToken = default);
+
+    Task<ChatMessageEntity> CreateMessageAsync(
+        Guid threadId,
+        string role,
+        string content,
+        string? actionMode,
+        List<string>? attachmentFileNames,
+        List<string>? filesChanged,
+        CancellationToken cancellationToken = default
+    );
+}
