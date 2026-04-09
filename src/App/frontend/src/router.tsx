@@ -9,6 +9,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
 import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
+import { Loader } from 'src/core/loading/Loader';
 import { GlobalData } from 'src/GlobalData';
 import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
@@ -48,7 +49,7 @@ export function createRouter(queryClient: QueryClient) {
                   </PresentationComponent>
                 ),
               },
-              { index: true, loader: statelessIndexLoader() },
+              { index: true, loader: statelessIndexLoader(), Component: () => <Loader reason='stateless-redirect' /> },
             ],
           },
           {
@@ -59,14 +60,22 @@ export function createRouter(queryClient: QueryClient) {
               currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
               currentParams.instanceGuid !== nextParams.instanceGuid,
             children: [
-              { index: true, loader: instanceIndexLoader(queryClient) },
+              {
+                index: true,
+                loader: instanceIndexLoader(queryClient),
+                Component: () => <Loader reason='instance-redirect' />,
+              },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
                 Component: TaskRoute,
                 loader: taskLoader(queryClient, instanceApi),
                 children: [
-                  { index: true, loader: taskIndexLoader(queryClient) },
+                  {
+                    index: true,
+                    loader: taskIndexLoader(queryClient),
+                    Component: () => <Loader reason='task-redirect' />,
+                  },
                   {
                     path: routes.page,
                     children: [
