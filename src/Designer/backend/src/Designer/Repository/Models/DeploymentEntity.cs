@@ -108,6 +108,8 @@ public enum DeployEventType
     UpgradeFailed,
     UninstallSucceeded,
     UninstallFailed,
+    ResourceRegistryPublishSucceeded,
+    ResourceRegistryPublishFailed
 }
 
 public enum DeployEventOrigin
