@@ -9,7 +9,7 @@ export interface PipelineDeployment {
   envName: string;
   createdBy: string;
   created: string;
-  build: Build;
+  build?: Build;
   events: DeployEvent[];
 }
 
@@ -25,6 +25,7 @@ export enum EventType {
   DeprecatedPipelineScheduled = 'DeprecatedPipelineScheduled',
   PipelineScheduled = 'PipelineScheduled',
   PipelineSucceeded = 'PipelineSucceeded',
+  ResourceRegistryPublishSucceeded = 'ResourceRegistryPublishSucceeded',
 }
 
 export enum SucceededEventType {
@@ -38,6 +39,7 @@ export enum FailedEventType {
   InstallFailed = 'InstallFailed',
   UpgradeFailed = 'UpgradeFailed',
   UninstallFailed = 'UninstallFailed',
+  ResourceRegistryPublishFailed = 'ResourceRegistryPublishFailed',
 }
 
 const succeededEventTypeValues = Object.values(SucceededEventType);
@@ -65,6 +67,6 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
       return BuildResult.none;
     }
   } else {
-    return deployment?.build.result;
+    return deployment?.build?.result;
   }
 };

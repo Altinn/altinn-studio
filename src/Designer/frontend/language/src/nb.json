@@ -228,6 +228,8 @@
   "app_deployment.private_app_owner_options": "Hvis du bare tester ut Altinn Studio, kan du prøve ut all funksjonalitet vi har for å bygge apper uten at du representerer en organisasjon. Du kan forhåndsvise for å se hvordan et ferdig skjema kan se ut.",
   "app_deployment.releases_error": "Kunne ikke laste inn tilgjengelige versjoner av appen. Prøv igjen senere.",
   "app_deployment.releases_loading": "Laster inn tilgjengelige versjoner av appen...",
+  "app_deployment.resource_registry_publish_failed": "Publisering til ressursregisteret feilet.",
+  "app_deployment.resource_registry_publish_succeeded": "Publisert til ressursregisteret.",
   "app_deployment.status.inProgress": "Appen oppdateres i miljøet...",
   "app_deployment.status.none": "Appen er ikke publisert i miljøet.",
   "app_deployment.status.open_app_in_new_window": "Lenken åpner appen i en ny fane",
