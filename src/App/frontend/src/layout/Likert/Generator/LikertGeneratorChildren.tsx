@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
@@ -28,7 +28,7 @@ export function LikertGeneratorChildren() {
 function LikertGeneratorChildrenWorker() {
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<'Likert'>;
   const questionsBinding = item?.dataModelBindings?.questions;
-  const rows = FD.useFreshRows(questionsBinding);
+  const rows = FormStore.data.useFreshRows(questionsBinding);
 
   const lastIndex = rows.length - 1;
   const { startIndex, stopIndex } = getLikertStartStopIndex(lastIndex, item.filter);

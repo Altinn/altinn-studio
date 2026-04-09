@@ -12,107 +12,106 @@
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// Organization represents an organization
+/// </summary>
+[DataContract]
+public class Organization
 {
     /// <summary>
-    /// Organization represents an organization
+    /// Initializes a new instance of the <see cref="Organization"/> class.
     /// </summary>
-    [DataContract]
-    public class Organization
+    public Organization() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Organization" /> class.
+    /// </summary>
+    /// <param name="avatarUrl">AvatarUrl.</param>
+    /// <param name="description">Description.</param>
+    /// <param name="fullName">FullName.</param>
+    /// <param name="id">Id.</param>
+    /// <param name="location">Location.</param>
+    /// <param name="username">Username.</param>
+    /// <param name="website">Website.</param>
+    public Organization(
+        string avatarUrl = default(string),
+        string description = default(string),
+        string fullName = default(string),
+        long? id = default(long?),
+        string location = default(string),
+        string username = default(string),
+        string website = default(string)
+    )
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Organization"/> class.
-        /// </summary>
-        public Organization() { }
+        this.AvatarUrl = avatarUrl;
+        this.Description = description;
+        this.FullName = fullName;
+        this.Id = id;
+        this.Location = location;
+        this.Username = username;
+        this.Website = website;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Organization" /> class.
-        /// </summary>
-        /// <param name="avatarUrl">AvatarUrl.</param>
-        /// <param name="description">Description.</param>
-        /// <param name="fullName">FullName.</param>
-        /// <param name="id">Id.</param>
-        /// <param name="location">Location.</param>
-        /// <param name="username">Username.</param>
-        /// <param name="website">Website.</param>
-        public Organization(
-            string avatarUrl = default(string),
-            string description = default(string),
-            string fullName = default(string),
-            long? id = default(long?),
-            string location = default(string),
-            string username = default(string),
-            string website = default(string)
-        )
-        {
-            this.AvatarUrl = avatarUrl;
-            this.Description = description;
-            this.FullName = fullName;
-            this.Id = id;
-            this.Location = location;
-            this.Username = username;
-            this.Website = website;
-        }
+    /// <summary>
+    /// Gets or Sets AvatarUrl
+    /// </summary>
+    [DataMember(Name = "avatar_url", EmitDefaultValue = false)]
+    public string AvatarUrl { get; set; }
 
-        /// <summary>
-        /// Gets or Sets AvatarUrl
-        /// </summary>
-        [DataMember(Name = "avatar_url", EmitDefaultValue = false)]
-        public string AvatarUrl { get; set; }
+    /// <summary>
+    /// Gets or Sets Description
+    /// </summary>
+    [DataMember(Name = "description", EmitDefaultValue = false)]
+    public string Description { get; set; }
 
-        /// <summary>
-        /// Gets or Sets Description
-        /// </summary>
-        [DataMember(Name = "description", EmitDefaultValue = false)]
-        public string Description { get; set; }
+    /// <summary>
+    /// Gets or Sets FullName
+    /// </summary>
+    [DataMember(Name = "full_name", EmitDefaultValue = false)]
+    public string FullName { get; set; }
 
-        /// <summary>
-        /// Gets or Sets FullName
-        /// </summary>
-        [DataMember(Name = "full_name", EmitDefaultValue = false)]
-        public string FullName { get; set; }
+    /// <summary>
+    /// Gets or Sets Id
+    /// </summary>
+    [DataMember(Name = "id", EmitDefaultValue = false)]
+    public long? Id { get; set; }
 
-        /// <summary>
-        /// Gets or Sets Id
-        /// </summary>
-        [DataMember(Name = "id", EmitDefaultValue = false)]
-        public long? Id { get; set; }
+    /// <summary>
+    /// Gets or Sets Location
+    /// </summary>
+    [DataMember(Name = "location", EmitDefaultValue = false)]
+    public string Location { get; set; }
 
-        /// <summary>
-        /// Gets or Sets Location
-        /// </summary>
-        [DataMember(Name = "location", EmitDefaultValue = false)]
-        public string Location { get; set; }
+    /// <summary>
+    /// Gets or Sets Username
+    /// </summary>
+    [DataMember(Name = "username", EmitDefaultValue = false)]
+    public string Username { get; set; }
 
-        /// <summary>
-        /// Gets or Sets Username
-        /// </summary>
-        [DataMember(Name = "username", EmitDefaultValue = false)]
-        public string Username { get; set; }
+    /// <summary>
+    /// Gets or Sets Website
+    /// </summary>
+    [DataMember(Name = "website", EmitDefaultValue = false)]
+    public string Website { get; set; }
 
-        /// <summary>
-        /// Gets or Sets Website
-        /// </summary>
-        [DataMember(Name = "website", EmitDefaultValue = false)]
-        public string Website { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.Append("class Organization {\n");
-            sb.Append("  AvatarUrl: ").Append(AvatarUrl).Append("\n");
-            sb.Append("  Description: ").Append(Description).Append("\n");
-            sb.Append("  FullName: ").Append(FullName).Append("\n");
-            sb.Append("  Id: ").Append(Id).Append("\n");
-            sb.Append("  Location: ").Append(Location).Append("\n");
-            sb.Append("  Username: ").Append(Username).Append("\n");
-            sb.Append("  Website: ").Append(Website).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class Organization {\n");
+        sb.Append("  AvatarUrl: ").Append(AvatarUrl).Append("\n");
+        sb.Append("  Description: ").Append(Description).Append("\n");
+        sb.Append("  FullName: ").Append(FullName).Append("\n");
+        sb.Append("  Id: ").Append(Id).Append("\n");
+        sb.Append("  Location: ").Append(Location).Append("\n");
+        sb.Append("  Username: ").Append(Username).Append("\n");
+        sb.Append("  Website: ").Append(Website).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
     }
 }

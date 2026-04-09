@@ -73,9 +73,7 @@ export const fetchLabelValues = async () => {
             : '';
     for (const key of commonKeys) {
         try {
-            const res = await fetch(
-                `/dashboard/labels?key=${encodeURIComponent(key)}${nsParam}`,
-            );
+            const res = await fetch(`/dashboard/labels?key=${encodeURIComponent(key)}${nsParam}`);
             if (res.ok) {
                 /** @type {string[]} */
                 const values = await res.json();
@@ -149,7 +147,10 @@ dom.nsList.addEventListener('click', (e) => {
 
 /** Sync the namespace filter set into the labelFilters map and trigger re-filter. */
 const syncNamespaceToLabelFilter = () => {
-    if (state.namespaceFilter.size === 0 || state.namespaceFilter.size === state.allNamespaces.size) {
+    if (
+        state.namespaceFilter.size === 0 ||
+        state.namespaceFilter.size === state.allNamespaces.size
+    ) {
         // No filter or all selected = show everything
         state.labelFilters.delete('namespace');
     } else {
@@ -247,9 +248,12 @@ export const applyFilter = () => {
                 const st = /** @type {HTMLElement} */ (chip).dataset.status || '';
                 const label =
                     /** @type {HTMLElement} */ (chip).dataset.label ||
-                    /** @type {HTMLElement} */ ((chip).dataset.label = (
-                        chip.textContent?.trim() || ''
-                    ).replace(/\s*\(.*\)$/, ''));
+                    /** @type {HTMLElement} */ (
+                        chip.dataset.label = (chip.textContent?.trim() || '').replace(
+                            /\s*\(.*\)$/,
+                            '',
+                        )
+                    );
                 if (!st) {
                     chip.textContent = `${label} (${cards.length})`;
                 } else {

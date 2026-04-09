@@ -28,7 +28,7 @@ public class HomeController : Controller
     private readonly AppIdentifier _appId;
     private readonly ILogger<HomeController> _logger;
     private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
-    private readonly IBootstrapGlobalService _bootstrapGlobalService;
+    private readonly BootstrapGlobalService _bootstrapGlobalService;
     private readonly IIndexPageGenerator _indexPageGenerator;
     private readonly IAuthenticationContext _authenticationContext;
 
@@ -63,7 +63,7 @@ public class HomeController : Controller
         _appResources = appResources;
         _appMetadata = appMetadata;
         _appId = appId;
-        _bootstrapGlobalService = serviceProvider.GetRequiredService<IBootstrapGlobalService>();
+        _bootstrapGlobalService = serviceProvider.GetRequiredService<BootstrapGlobalService>();
         _indexPageGenerator = serviceProvider.GetRequiredService<IIndexPageGenerator>();
         _authenticationContext = serviceProvider.GetRequiredService<IAuthenticationContext>();
         _logger = logger;

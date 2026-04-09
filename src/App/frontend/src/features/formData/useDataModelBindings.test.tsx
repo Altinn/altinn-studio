@@ -3,9 +3,10 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -20,7 +21,7 @@ describe('useDataModelBindings', () => {
   });
 
   function DummyComponent() {
-    const debounce = FD.useDebounceImmediately();
+    const debounce = FormStore.data.useDebounceImmediately();
     const { formData, setValue, setValues, isValid } = useDataModelBindings({
       stringy: { field: 'stringyField', dataType: defaultDataTypeMock },
       decimal: { field: 'decimalField', dataType: defaultDataTypeMock },
@@ -95,16 +96,19 @@ describe('useDataModelBindings', () => {
     return await renderWithInstanceAndLayout({
       renderer: <DummyComponent />,
       queries: {
-        fetchFormData: async () => formData,
-        fetchDataModelSchema: async () => ({
-          type: 'object',
-          properties: {
-            stringyField: { type: 'string' },
-            decimalField: { type: 'number' },
-            integerField: { type: 'integer' },
-            booleanField: { type: 'boolean' },
-          },
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = formData;
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: {
+                stringyField: { type: 'string' },
+                decimalField: { type: 'number' },
+                integerField: { type: 'integer' },
+                booleanField: { type: 'boolean' },
+              },
+            };
+          }),
       },
     });
   }

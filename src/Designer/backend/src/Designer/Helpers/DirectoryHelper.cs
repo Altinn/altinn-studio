@@ -7,78 +7,77 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
-namespace Altinn.Studio.Designer.Helpers
+namespace Altinn.Studio.Designer.Helpers;
+
+/// <summary>
+/// Helper class for directories
+/// </summary>
+public static class DirectoryHelper
 {
     /// <summary>
-    /// Helper class for directories
+    /// Deleted all files and subdirectories before deleting the directory.
     /// </summary>
-    public static class DirectoryHelper
+    /// <param name="directoryToDelete">Full path to the directory.</param>
+    public static void DeleteFilesAndDirectory(string directoryToDelete)
     {
-        /// <summary>
-        /// Deleted all files and subdirectories before deleting the directory.
-        /// </summary>
-        /// <param name="directoryToDelete">Full path to the directory.</param>
-        public static void DeleteFilesAndDirectory(string directoryToDelete)
+        DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
+
+        if (!directoryToDeleteInfo.Exists)
         {
-            DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
-
-            if (!directoryToDeleteInfo.Exists)
-            {
-                return;
-            }
-
-            DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
-
-            FileInfo[] files = directoryToDeleteInfo.GetFiles();
-            foreach (FileInfo file in files)
-            {
-                File.SetAttributes(file.FullName, FileAttributes.Normal);
-                File.Delete(file.FullName);
-            }
-
-            foreach (DirectoryInfo directory in subDirectories)
-            {
-                DeleteFilesAndDirectory(directory.FullName);
-            }
-
-            File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
-            Directory.Delete(directoryToDeleteInfo.FullName);
+            return;
         }
 
-        public static IEnumerable<string> ResolveFilesFromPattern(string baseDirectory, string pattern)
+        DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
+
+        FileInfo[] files = directoryToDeleteInfo.GetFiles();
+        foreach (FileInfo file in files)
         {
-            var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
-            matcher.AddInclude(pattern);
-
-            var result = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory)));
-
-            return result.Files.Select(f => Path.Combine(baseDirectory, f.Path));
+            File.SetAttributes(file.FullName, FileAttributes.Normal);
+            File.Delete(file.FullName);
         }
 
-        public static async Task CopyDirectoryAsync(string sourceDir, string targetDir)
+        foreach (DirectoryInfo directory in subDirectories)
         {
-            DirectoryInfo source = new(sourceDir);
-            DirectoryInfo target = new(targetDir);
-            if (!target.Exists)
-            {
-                target.Create();
-            }
+            DeleteFilesAndDirectory(directory.FullName);
+        }
 
-            foreach (FileInfo file in source.GetFiles())
-            {
-                File.SetAttributes(file.FullName, FileAttributes.Normal);
+        File.SetAttributes(directoryToDeleteInfo.FullName, FileAttributes.Normal);
+        Directory.Delete(directoryToDeleteInfo.FullName);
+    }
 
-                string targetPath = Path.Combine(target.FullName, file.Name);
-                await using FileStream sourceStream = file.OpenRead();
-                await using FileStream targetStream = File.Create(targetPath);
-                await sourceStream.CopyToAsync(targetStream);
-            }
+    public static IEnumerable<string> ResolveFilesFromPattern(string baseDirectory, string pattern)
+    {
+        var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
+        matcher.AddInclude(pattern);
 
-            foreach (DirectoryInfo subDir in source.GetDirectories())
-            {
-                DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
-                await CopyDirectoryAsync(subDir.FullName, nextTargetSubDir.FullName);
-            }
+        var result = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory)));
+
+        return result.Files.Select(f => Path.Combine(baseDirectory, f.Path));
+    }
+
+    public static async Task CopyDirectoryAsync(string sourceDir, string targetDir)
+    {
+        DirectoryInfo source = new(sourceDir);
+        DirectoryInfo target = new(targetDir);
+        if (!target.Exists)
+        {
+            target.Create();
+        }
+
+        foreach (FileInfo file in source.GetFiles())
+        {
+            File.SetAttributes(file.FullName, FileAttributes.Normal);
+
+            string targetPath = Path.Combine(target.FullName, file.Name);
+            await using FileStream sourceStream = file.OpenRead();
+            await using FileStream targetStream = File.Create(targetPath);
+            await sourceStream.CopyToAsync(targetStream);
+        }
+
+        foreach (DirectoryInfo subDir in source.GetDirectories())
+        {
+            DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
+            await CopyDirectoryAsync(subDir.FullName, nextTargetSubDir.FullName);
         }
     }
 }
