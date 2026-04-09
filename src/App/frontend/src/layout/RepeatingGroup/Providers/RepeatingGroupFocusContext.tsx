@@ -4,9 +4,9 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import {
   RepGroupContext,
   useRepeatingGroupComponentId,
@@ -109,7 +109,7 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
   const openForEditing = RepGroupContext.useOpenForEditing();
   const changePageToRow = RepGroupContext.useChangePageToRow();
   const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(baseComponentId, 'RepeatingGroup');
-  const rowsSelector = FD.useDebouncedRowsSelector();
+  const rowsSelector = FormStore.data.useDebouncedRowsSelector();
   const layoutLookups = FormBootstrap.useLayoutLookups();
   const [searchParams] = useSearchParams();
 

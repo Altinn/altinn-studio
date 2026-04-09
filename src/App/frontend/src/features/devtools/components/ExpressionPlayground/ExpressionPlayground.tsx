@@ -10,11 +10,11 @@ import { DevToolsTab } from 'src/features/devtools/data/types';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useNavigationParam } from 'src/hooks/navigation';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { optionFilter } from 'src/utils/options';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -63,8 +63,8 @@ export const ExpressionPlayground = () => {
   // populating the output history with a fresh value.
   const resetOutputHistory = () => setOutputs([]);
 
-  const componentOptions = NodesInternal.useMemoSelector((state) =>
-    Object.values(state.nodeData).map((nodeData) => ({
+  const componentOptions = FormStore.raw.useMemoSelector((state) =>
+    Object.values(state.nodes.nodeData).map((nodeData) => ({
       label: nodeData.id,
       value: nodeData.id,
     })),

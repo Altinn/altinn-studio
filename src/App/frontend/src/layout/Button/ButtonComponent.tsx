@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useAttachmentState } from 'src/features/attachments/hooks';
-import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
@@ -35,7 +35,7 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   const { mutate: processNext, isPending: isProcessingNext } = useProcessNext();
   const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
 
-  const setReturnToView = useSetReturnToView();
+  const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
 
   if (useIsSubformPage()) {
     throw new Error('Cannot use process navigation in a subform');

@@ -1,5 +1,5 @@
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { Validation } from 'src/features/validation/validationContext';
 import {
   type CompDef,
   getComponentDef,
@@ -44,11 +44,11 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   }
 
   const getDataElementIdForDataType = FormBootstrap.useGetDataElementIdForDataType();
-  const fieldValidations = Validation.useFullState((state) => {
+  const fieldValidations = FormStore.raw.useMemoSelector((state) => {
     const validations: BaseValidation[] = [];
     for (const [bindingKey, { dataType, field }] of bindings) {
       const dataElementId = getDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
-      const fieldValidations = state.state.dataModels[dataElementId]?.[field];
+      const fieldValidations = state.validation.state.dataModels[dataElementId]?.[field];
       if (fieldValidations) {
         validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
       }
@@ -58,7 +58,7 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
     // If we set this during render, all components using this hook would have to re-render after saving data, but now
     // they only have to re-run the selector. The downside here is that empty validations and component validations will
     // run outside the selector, so they _may_ have new validations that are not yet processed.
-    registry.current.validationsProcessed[indexedId] = state.processedLast;
+    registry.current.validationsProcessed[indexedId] = state.validation.processedLast;
     return validations;
   });
 

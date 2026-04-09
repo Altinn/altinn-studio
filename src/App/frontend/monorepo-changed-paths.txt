@@ -22,6 +22,7 @@ src/core/loading/LoadingRegistry.tsx
 src/core/queries/useQueryWithStaleData.ts
 src/features/applicationMetadata/
 src/features/applicationSettings/ApplicationSettingsProvider.tsx
+src/features/attachments/hooks.ts
 src/features/customValidation/useCustomValidationQuery.ts
 src/features/datamodel/DataElementIdsForCypress.tsx
 src/features/datamodel/DataModelsProvider.tsx
@@ -31,6 +32,7 @@ src/features/entrypoint/Entrypoint.tsx
 src/features/form/FormContext.tsx
 src/features/form/dynamics/
 src/features/form/layout/LayoutsContext.tsx
+src/features/form/layout/PageNavigationContext.tsx
 src/features/form/layout/quirks.ts
 src/features/form/layoutSets/
 src/features/form/layoutSettings/
@@ -45,6 +47,10 @@ src/features/navigation/useNavigateToPageWithValidation.ts
 src/features/options/CodeListsProvider.tsx
 src/features/orgs/OrgsProvider.tsx
 src/features/profile/ProfileProvider.tsx
+src/features/validation/backendValidation/BackendValidation.tsx
+src/features/validation/backendValidation/useUpdateIncrementalValidations.ts
+src/features/validation/nodeValidation/waitForNodesToValidate.ts
+src/features/validation/validationContext.tsx
 src/hooks/usePageValidation.ts
 src/hooks/useWaitForState.ts
 src/index.tsx

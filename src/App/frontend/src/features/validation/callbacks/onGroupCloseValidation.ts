@@ -1,10 +1,10 @@
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getVisibilityMask } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
+import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { getRecursiveValidations, makeComponentIdIndex } from 'src/features/validation/ValidationStorePlugin';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeRefValidation } from 'src/features/validation';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
@@ -13,9 +13,9 @@ import type { AllowedValidationMasks } from 'src/layout/common.generated';
  * If there are errors, the visibility is set, and will return true, indicating that the row should not be closed.
  */
 export function useOnGroupCloseValidation() {
-  const setNodeVisibility = NodesInternal.useSetNodeVisibility();
-  const validating = Validation.useValidating();
-  const nodeStore = NodesInternal.useStore();
+  const setNodeVisibility = FormStore.nodes.useSetNodeVisibility();
+  const validating = useWaitForValidation();
+  const formStore = FormStore.raw.useStore();
   const lookups = FormBootstrap.useLayoutLookups();
   const idMutator = useComponentIdMutator(true);
 
@@ -23,7 +23,7 @@ export function useOnGroupCloseValidation() {
   const callback = useOurEffectEvent(
     (baseComponentId: string, restriction: number | undefined, masks: AllowedValidationMasks): boolean => {
       const mask = getVisibilityMask(masks);
-      const state = nodeStore.getState();
+      const state = formStore.getState();
       const errors: NodeRefValidation[] = [];
       getRecursiveValidations({
         id: idMutator(baseComponentId),

@@ -6,8 +6,8 @@ import { useApplicationSettings } from 'src/features/applicationSettings/Applica
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -19,7 +19,6 @@ import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation'
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
@@ -52,8 +51,8 @@ export interface ExpressionDataSources {
 }
 
 const multiSelectors = {
-  formDataSelector: () => FD.useLaxDebouncedSelectorProps(),
-  attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
+  formDataSelector: () => FormStore.data.useLaxDebouncedSelectorProps(),
+  attachmentsSelector: () => FormStore.nodes.useAttachmentsSelectorProps(),
 } satisfies {
   [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: DSPropsMatching<ExpressionDataSources[K]>;
 };
@@ -79,7 +78,7 @@ const directHooks = {
     useInnerLanguageWithForcedPathSelector(
       FormBootstrap.useDefaultDataType(),
       FormBootstrap.useReadableDataTypes(),
-      FD.useDebouncedSelector(),
+      FormStore.data.useDebouncedSelector(),
     ),
   currentPage: (_isInGenerator) => useNavigationParam('pageKey'),
 } satisfies {
