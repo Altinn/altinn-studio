@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/deploy-ai
     paths:
       - src/AI/agents/**
       - .github/workflows/deploy-studio-ai-agents.yaml
