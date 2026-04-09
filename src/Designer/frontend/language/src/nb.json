@@ -430,7 +430,7 @@
   "branching.select_branch": "Velg gren",
   "branching.select_branch_heading": "Bytt gren",
   "branching.switch_to_branch": "Bytt til {{branchName}}",
-  "branching.uncommitted_changes_dialog.alert": "Du har endringer på grenen <strong>{{currentBranch}}</strong> som ikke er delt. Du kan ikke bytte til <strong>{{targetBranch}}</strong> før du har delt eller slettet endringene.",
+  "branching.uncommitted_changes_dialog.alert": "Du har endringer på grenen <strong>{{currentBranch}}</strong> som du ikke har delt. Du kan ikke bytte til <strong>{{targetBranch}}</strong> før du har delt eller slettet endringene.",
   "branching.uncommitted_changes_dialog.cancel": "Nei, avbryt",
   "branching.uncommitted_changes_dialog.choose_action": "Ønsker du å slette endringene dine og bytte gren?",
   "branching.uncommitted_changes_dialog.confirm_discard": "Du sletter nå alle endringene dine på denne grenen. Du kan ikke gjenopprette dem.",
