@@ -101,7 +101,6 @@ export function CreateRelease() {
               {...fieldProps}
               label={t('app_create_release.release_version_number')}
               onChange={handleTagNameChange}
-              disabled={appHasCriticalErrors}
             />
           </div>
         )}
@@ -114,7 +113,6 @@ export function CreateRelease() {
             label={t('app_create_release.release_description')}
             value={body}
             onChange={handleBodyChange}
-            disabled={appHasCriticalErrors}
             rows={4}
           />
         )}
