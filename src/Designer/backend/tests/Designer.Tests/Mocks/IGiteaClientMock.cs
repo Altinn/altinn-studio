@@ -364,4 +364,9 @@ public class IGiteaClientMock : IGiteaClient
     {
         return Task.FromResult(_teamMembers.Contains((teamId, username)));
     }
+
+    public Task<List<User>> GetTeamMembersAsync(long teamId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }
