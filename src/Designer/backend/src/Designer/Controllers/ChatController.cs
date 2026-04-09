@@ -25,7 +25,8 @@ public class ChatController(IChatService chatService) : ControllerBase
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        return Ok(await chatService.GetThreadsAsync(editingContext, cancellationToken));
+        List<ChatThreadEntity> threads = await chatService.GetThreadsAsync(editingContext, cancellationToken);
+        return Ok(threads);
     }
 
     [HttpPost("threads")]
@@ -55,43 +56,97 @@ public class ChatController(IChatService chatService) : ControllerBase
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        await chatService.UpdateThreadAsync(threadId, request.Title, editingContext, cancellationToken);
+        try
+        {
+            await chatService.UpdateThreadAsync(threadId, request.Title, editingContext, cancellationToken);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
         return NoContent();
     }
 
     [HttpDelete("threads/{threadId:guid}")]
-    public async Task<IActionResult> DeleteThread(Guid threadId, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteThread(
+        string org,
+        string app,
+        Guid threadId,
+        CancellationToken cancellationToken
+    )
     {
-        await chatService.DeleteThreadAsync(threadId, cancellationToken);
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
+        try
+        {
+            await chatService.DeleteThreadAsync(threadId, editingContext, cancellationToken);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
         return NoContent();
     }
 
     [HttpGet("threads/{threadId:guid}/messages")]
     public async Task<ActionResult<List<ChatMessageEntity>>> GetMessages(
+        string org,
+        string app,
         Guid threadId,
         CancellationToken cancellationToken
     )
     {
-        return Ok(await chatService.GetMessagesAsync(threadId, cancellationToken));
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
+        try
+        {
+            List<ChatMessageEntity> messages = await chatService.GetMessagesAsync(threadId, editingContext, cancellationToken);
+            return Ok(messages);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
     }
 
     [HttpPost("threads/{threadId:guid}/messages")]
     public async Task<ActionResult<ChatMessageEntity>> CreateMessage(
+        string org,
+        string app,
         Guid threadId,
         [FromBody] CreateChatMessageRequest request,
         CancellationToken cancellationToken
     )
     {
-        ChatMessageEntity created = await chatService.CreateMessageAsync(
-            threadId,
-            request.Role,
-            request.Content,
-            request.ActionMode,
-            request.AttachmentFileNames,
-            request.FilesChanged,
-            cancellationToken
-        );
-        return Created(string.Empty, created);
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
+        try
+        {
+            ChatMessageEntity created = await chatService.CreateMessageAsync(
+                threadId,
+                request,
+                editingContext,
+                cancellationToken
+            );
+            return Created(string.Empty, created);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     private AltinnRepoEditingContext GetEditingContext(string org, string app)
@@ -100,15 +155,3 @@ public class ChatController(IChatService chatService) : ControllerBase
         return AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
     }
 }
-
-public record CreateChatThreadRequest(string Title);
-
-public record UpdateChatThreadRequest(string Title);
-
-public record CreateChatMessageRequest(
-    string Role,
-    string Content,
-    string? ActionMode,
-    List<string>? AttachmentFileNames,
-    List<string>? FilesChanged
-);

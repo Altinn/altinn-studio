@@ -23,6 +23,13 @@ public interface IChatRepository
     );
 
     /// <summary>
+    /// Gets a single thread by its id.
+    /// </summary>
+    /// <param name="threadId">The thread id.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    Task<ChatThreadEntity?> GetThreadByIdAsync(Guid threadId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a new chat thread.
     /// </summary>
     /// <param name="thread">The thread to create.</param>

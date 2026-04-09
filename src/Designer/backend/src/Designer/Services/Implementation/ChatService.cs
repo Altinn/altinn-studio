@@ -46,50 +46,89 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        List<ChatThreadEntity> threads = await repository.GetThreadsAsync(context, cancellationToken);
-        ChatThreadEntity existingThread =
-            threads.Find(t => t.Id == threadId)
-            ?? throw new KeyNotFoundException($"Chat thread with id '{threadId}' was not found.");
-
-        existingThread.Title = title;
-        await repository.UpdateThreadAsync(existingThread, cancellationToken);
+        ChatThreadEntity thread = await GetThreadByIdAsync(threadId, cancellationToken);
+        VerifyThreadOwner(thread, context);
+        thread.Title = title;
+        await repository.UpdateThreadAsync(thread, cancellationToken);
     }
 
-    public async Task DeleteThreadAsync(Guid threadId, CancellationToken cancellationToken = default)
+    public async Task DeleteThreadAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    )
     {
+        ChatThreadEntity thread = await repository.GetThreadByIdAsync(threadId, cancellationToken);
+        if (thread is null)
+            return;
+
+        VerifyThreadOwner(thread, context);
         await repository.DeleteThreadAsync(threadId, cancellationToken);
     }
 
     public async Task<List<ChatMessageEntity>> GetMessagesAsync(
         Guid threadId,
+        AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
     {
+        ChatThreadEntity thread = await GetThreadByIdAsync(threadId, cancellationToken);
+        VerifyThreadOwner(thread, context);
         return await repository.GetMessagesAsync(threadId, cancellationToken);
     }
 
     public async Task<ChatMessageEntity> CreateMessageAsync(
         Guid threadId,
-        string role,
-        string content,
-        string? actionMode,
-        List<string>? attachmentFileNames,
-        List<string>? filesChanged,
+        CreateChatMessageRequest request,
+        AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
     {
+        ChatThreadEntity thread = await GetThreadByIdAsync(threadId, cancellationToken);
+        VerifyThreadOwner(thread, context);
+
+        if (!Enum.TryParse<Role>(request.Role, ignoreCase: true, out var parsedRole))
+        {
+            throw new ArgumentException($"Invalid role: '{request.Role}'. Must be 'User' or 'Assistant'.");
+        }
+
+        ActionMode? parsedActionMode = null;
+        if (request.ActionMode is not null)
+        {
+            if (!Enum.TryParse(request.ActionMode, ignoreCase: true, out ActionMode actionModeValue))
+            {
+                throw new ArgumentException($"Invalid action mode: '{request.ActionMode}'.");
+            }
+            parsedActionMode = actionModeValue;
+        }
+
         var message = new ChatMessageEntity
         {
             Id = Guid.CreateVersion7(),
             ThreadId = threadId,
             CreatedAt = DateTime.UtcNow,
-            Role = Enum.Parse<Role>(role, ignoreCase: true),
-            Content = content,
-            ActionMode = actionMode is not null ? Enum.Parse<ActionMode>(actionMode, ignoreCase: true) : null,
-            AttachmentFileNames = attachmentFileNames,
-            FilesChanged = filesChanged,
+            Role = parsedRole,
+            Content = request.Content,
+            ActionMode = parsedActionMode,
+            AttachmentFileNames = request.AttachmentFileNames,
+            FilesChanged = request.FilesChanged,
         };
 
         return await repository.CreateMessageAsync(message, cancellationToken);
+    }
+
+    private async Task<ChatThreadEntity> GetThreadByIdAsync(
+        Guid threadId,
+        CancellationToken cancellationToken
+    )
+    {
+        return await repository.GetThreadByIdAsync(threadId, cancellationToken)
+            ?? throw new KeyNotFoundException($"Chat thread with id '{threadId}' was not found.");
+    }
+
+    private static void VerifyThreadOwner(ChatThreadEntity thread, AltinnRepoEditingContext context)
+    {
+        if (thread.CreatedBy != context.Developer)
+            throw new UnauthorizedAccessException($"User does not have access to chat thread '{thread.Id}'.");
     }
 }

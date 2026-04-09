@@ -1,5 +1,7 @@
 import { get } from 'app-shared/utils/networking';
 import {
+  chatThreadsPath,
+  chatMessagesPath,
   altinn2LinkServicesPath,
   appMetadataPath,
   appPolicyPath,
@@ -238,6 +240,10 @@ export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeLi
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
+
+// Chat
+export const getChatThreads = (org: string, app: string) => get(chatThreadsPath(org, app));
+export const getChatMessages = (org: string, app: string, threadId: string) => get(chatMessagesPath(org, app, threadId));
 
 // User settings
 export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());

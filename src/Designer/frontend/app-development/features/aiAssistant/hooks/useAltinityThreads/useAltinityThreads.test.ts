@@ -1,13 +1,29 @@
 import { act, renderHook } from '@testing-library/react';
 import { useAltinityThreads } from './useAltinityThreads';
 import { useThreadStorage } from '../useThreadStorage/useThreadStorage';
+import { useChatMessagesQuery } from '../queries/useChatMessagesQuery';
+import { useCreateChatMessageMutation } from '../mutations/useCreateChatMessageMutation';
 
 jest.mock('../useThreadStorage/useThreadStorage');
+jest.mock('../queries/useChatMessagesQuery');
+jest.mock('../mutations/useCreateChatMessageMutation');
 
 const mockUseThreadStorage = useThreadStorage as jest.MockedFunction<typeof useThreadStorage>;
+const mockUseChatMessagesQuery = useChatMessagesQuery as jest.MockedFunction<
+  typeof useChatMessagesQuery
+>;
+const mockUseCreateChatMessageMutation = useCreateChatMessageMutation as jest.MockedFunction<
+  typeof useCreateChatMessageMutation
+>;
+
 const threadId = 'session-1';
 
 describe('useAltinityThreads', () => {
+  beforeEach(() => {
+    mockUseChatMessagesQuery.mockReturnValue({ data: [], isLoading: false } as any);
+    mockUseCreateChatMessageMutation.mockReturnValue({ mutate: jest.fn() } as any);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -47,7 +63,7 @@ describe('useAltinityThreads', () => {
 const createStorageState = (): ReturnType<typeof useThreadStorage> => ({
   threads: [],
   isLoading: false,
-  addThread: jest.fn(),
+  addThread: jest.fn().mockResolvedValue('new-thread-id'),
   updateThread: jest.fn(),
   deleteThread: jest.fn(),
   getThread: jest.fn(),

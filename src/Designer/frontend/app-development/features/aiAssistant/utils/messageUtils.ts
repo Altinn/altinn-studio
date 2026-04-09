@@ -1,5 +1,10 @@
-import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
-import { ErrorMessages } from '@studio/assistant';
+import type {
+  AgentResponse,
+  AssistantMessage,
+  AssistantMessageData,
+  Message,
+} from '@studio/assistant';
+import { ErrorMessages, MessageAuthor } from '@studio/assistant';
 
 export function formatRejectionMessage(result: AgentResponse): string {
   const suggestions = result.parsed_intent?.suggestions
@@ -58,6 +63,18 @@ export function getAssistantMessageTimestamp(assistantMessage: AssistantMessageD
 
 export function shouldSkipBranchOps(assistantMessage: AssistantMessageData): boolean {
   return assistantMessage.mode === 'chat' || assistantMessage.no_branch_operations === true;
+}
+
+export function isLastLoadingAssistantMessage(
+  message: Message,
+  index: number,
+  messages: Message[],
+): boolean {
+  return (
+    message.author === MessageAuthor.Assistant &&
+    index === messages.length - 1 &&
+    (message as AssistantMessage).isLoading === true
+  );
 }
 
 function parseSuggestions(jsonPart: string): string[] {

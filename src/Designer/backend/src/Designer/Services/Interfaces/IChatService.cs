@@ -27,17 +27,22 @@ public interface IChatService
         CancellationToken cancellationToken = default
     );
 
-    Task DeleteThreadAsync(Guid threadId, CancellationToken cancellationToken = default);
+    Task DeleteThreadAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
 
-    Task<List<ChatMessageEntity>> GetMessagesAsync(Guid threadId, CancellationToken cancellationToken = default);
+    Task<List<ChatMessageEntity>> GetMessagesAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
 
     Task<ChatMessageEntity> CreateMessageAsync(
         Guid threadId,
-        string role,
-        string content,
-        string? actionMode,
-        List<string>? attachmentFileNames,
-        List<string>? filesChanged,
+        CreateChatMessageRequest request,
+        AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     );
 }

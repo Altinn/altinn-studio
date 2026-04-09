@@ -60,8 +60,18 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     currentSessionId,
     currentSessionIdRef,
     setCurrentSession,
+<<<<<<< HEAD
     persistMessage,
     removeLastUserMessage,
+=======
+    createThread,
+    addMessageToThread,
+    removeLoadingMessage,
+    replaceLoadingWithMessage,
+    removeCancelledMessages,
+    upsertAssistantMessage,
+    updateWorkflowStatusMessage,
+>>>>>>> 8a35062947 (use db for thread and message storage)
   } = threads;
 
   useEffect(() => {
@@ -279,10 +289,17 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         return;
       }
 
-      setCurrentSession(backendSessionId);
-      await runWorkflowForSession(backendSessionId, userMessage);
+      const threadTitle = trimmedContent.slice(0, 50) + (trimmedContent.length > 50 ? '...' : '');
+      try {
+        const threadId = await createThread(threadTitle);
+        setCurrentSession(threadId);
+        await runWorkflowForSession(threadId, userMessage);
+      } catch (error) {
+        console.error('Failed to create thread:', error);
+        setWorkflowStatus({ isActive: false });
+      }
     },
-    [backendSessionId, currentSessionId, runWorkflowForSession, setCurrentSession],
+    [backendSessionId, currentSessionId, createThread, runWorkflowForSession, setCurrentSession],
   );
 
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {

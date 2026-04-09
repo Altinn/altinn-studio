@@ -79,6 +79,9 @@ import {
   botAccountDeactivatePath,
   botAccountApiKeysPath,
   botAccountApiKeyPath,
+  chatThreadsPath,
+  chatThreadPath,
+  chatMessagesPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -119,6 +122,7 @@ import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyReq
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
+import type { ChatThreadResponse, CreateChatMessagePayload } from 'app-shared/types/api/ChatPayloads';
 
 const headers = {
   Accept: 'application/json',
@@ -263,3 +267,9 @@ export const deactivateBotAccount = (org: string, id: string): Promise<void> => 
 export const createBotAccountApiKey = (org: string, botAccountId: string, payload: CreateBotAccountApiKeyRequest): Promise<CreateBotAccountApiKeyResponse> => post(botAccountApiKeysPath(org, botAccountId), payload);
 export const revokeBotAccountApiKey = (org: string, botAccountId: string, keyId: number): Promise<void> => del(botAccountApiKeyPath(org, botAccountId, keyId));
 export const updateBotAccount = (org: string, botAccountId: string, deployEnvironments: string[]): Promise<void> => put(botAccountPath(org, botAccountId), { deployEnvironments });
+
+// Chat
+export const createChatThread = (org: string, app: string, payload: { title: string }) => post<ChatThreadResponse>(chatThreadsPath(org, app), payload);
+export const updateChatThread = (org: string, app: string, threadId: string, payload: { title: string }) => put(chatThreadPath(org, app, threadId), payload);
+export const deleteChatThread = (org: string, app: string, threadId: string) => del(chatThreadPath(org, app, threadId));
+export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post(chatMessagesPath(org, app, threadId), payload);

@@ -263,6 +263,10 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
+  // Queries - Chat
+  getChatThreads: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getChatMessages: jest.fn().mockImplementation(() => Promise.resolve([])),
+
   // Queries - User settings
   getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
 
@@ -380,6 +384,30 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - User settings
   addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Chat
+  createChatThread: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve({
+        id: 'mock-thread-id',
+        title: 'Mock Thread',
+        createdAt: new Date().toISOString(),
+      }),
+    ),
+  updateChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
+  createChatMessage: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve({
+        id: 'mock-message-id',
+        threadId: 'mock-thread-id',
+        createdAt: new Date().toISOString(),
+        role: 'User',
+        content: '',
+      }),
+    ),
 
   // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
