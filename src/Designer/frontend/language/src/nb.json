@@ -76,7 +76,7 @@
   "ai_assistant.about_assistant_branch_docs_link": "dokumentasjonen",
   "ai_assistant.about_assistant_branch_info": "Alle endringene lagres i en egen gren, som må flettes inn i <bold>master</bold>-grenen før endringene kan publiseres. Du kan lese mer om fletting av grener i",
   "ai_assistant.about_assistant_description": "Studios KI-assistent er en chatbot som hjelper deg med å bygge apper i Altinn Studio. Gi den en instruksjon og velg <bold>Tillat endringer i appen</bold> for å starte. Assistenten leser i dokumentasjonen før den svarer. Den svarer også på spørsmål om skjemaoppsett, tilgangsstyring og andre funksjoner i Studio.",
-  "ai_assistant.about_assistant_disclaimer": "Assistenten er under utvikling og kan gi svar som ikke alltid er helt presise. Kontroller viktige endringer før du publiserer appen din.",
+  "ai_assistant.about_assistant_disclaimer": "Vi utvikler fortsatt assistenten. Du kan derfor få svar som ikke er helt presise. Sjekk alltid viktige endringer før du publiserer appen din.",
   "ai_assistant.about_assistant_heading": "Om assistenten",
   "ai_assistant.access_denied_1": "Du har ikke tilgang til KI-assistenten.",
   "ai_assistant.access_denied_2": "På dette tidspunktet har bare Testdepartementet tilgang.",
