@@ -203,7 +203,7 @@ describe('SlackChannelDialog', () => {
   });
 
   it('does not call onClose when cancel is clicked while saving', async () => {
-    const addContactPoint = jest.fn(() => new Promise(() => {})); // never resolves
+    const addContactPoint = jest.fn(() => new Promise<never>(() => {})); // never resolves
     const onClose = jest.fn();
     const user = userEvent.setup();
     renderSlackChannelDialog({ initialValue: validChannel, onClose }, { addContactPoint });

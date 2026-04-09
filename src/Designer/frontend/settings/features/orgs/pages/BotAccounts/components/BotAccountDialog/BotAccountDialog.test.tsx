@@ -46,7 +46,9 @@ const renderBotAccountDialog = ({
   );
 
 const getNameInput = () =>
-  screen.getByRole('textbox', { name: textMock('settings.orgs.bot_accounts.field_name'), exact: false });
+  screen.getByRole('textbox', {
+    name: new RegExp(textMock('settings.orgs.bot_accounts.field_name')),
+  });
 const getAddButton = () => screen.getByRole('button', { name: textMock('general.add') });
 const getSaveButton = () => screen.getByRole('button', { name: textMock('general.save') });
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });

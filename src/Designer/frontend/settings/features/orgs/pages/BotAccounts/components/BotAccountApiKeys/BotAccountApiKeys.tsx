@@ -1,5 +1,8 @@
 import type { ReactElement } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { BotAccount } from 'app-shared/types/BotAccount';
 import { useGetBotAccountApiKeysQuery } from '../../hooks/useGetBotAccountApiKeysQuery';
 import { useCreateBotAccountApiKeyMutation } from '../../hooks/useCreateBotAccountApiKeyMutation';
 import { useRevokeBotAccountApiKeyMutation } from '../../hooks/useRevokeBotAccountApiKeyMutation';
@@ -20,6 +23,7 @@ export const BotAccountApiKeys = ({ org, botAccountId }: BotAccountApiKeysProps)
   const { t } = useTranslation();
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<number | undefined>(undefined);
+  const queryClient = useQueryClient();
 
   const { data: apiKeys, isPending, isError } = useGetBotAccountApiKeysQuery(org, botAccountId);
   const {
@@ -33,6 +37,21 @@ export const BotAccountApiKeys = ({ org, botAccountId }: BotAccountApiKeysProps)
     isPending: isRevoking,
     variables: revokingKeyId,
   } = useRevokeBotAccountApiKeyMutation(org, botAccountId);
+
+  // Update bot accounts cache with API key count
+  useEffect(() => {
+    if (apiKeys) {
+      queryClient.setQueryData(
+        [QueryKey.BotAccounts, org],
+        (prevBotAccounts: BotAccount[] | undefined) => {
+          if (!prevBotAccounts) return prevBotAccounts;
+          return prevBotAccounts.map((ba) =>
+            ba.id === botAccountId ? { ...ba, apiKeyCount: apiKeys.length } : ba,
+          );
+        },
+      );
+    }
+  }, [apiKeys, botAccountId, org, queryClient]);
 
   const isDuplicateName = (name: string): boolean =>
     apiKeys?.some((apiKey) => apiKey.name === name.trim()) ||

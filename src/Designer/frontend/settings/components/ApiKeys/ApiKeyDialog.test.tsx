@@ -182,9 +182,7 @@ describe('ApiKeyDialog', () => {
 
     it('renders the close button', () => {
       renderApiKeyDialog({ newApiKey: newKey });
-      expect(
-        screen.getByRole('button', { name: textMock('general.close') }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
     });
 
     it('calls onClose when the close button is clicked', async () => {
@@ -228,7 +226,9 @@ describe('ApiKeyDialog', () => {
       jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
       // Render form state (newApiKey = null), copy button does not exist
       renderApiKeyDialog({ newApiKey: null });
-      expect(screen.queryByRole('button', { name: textMock('settings.api_keys.copy') })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: textMock('settings.api_keys.copy') }),
+      ).not.toBeInTheDocument();
       expect(writeText).not.toHaveBeenCalled();
     });
   });

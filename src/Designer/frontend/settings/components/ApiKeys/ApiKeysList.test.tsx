@@ -8,7 +8,7 @@ import type { ApiKey } from './ApiKeysList';
 const activeKey: ApiKey = {
   id: 1,
   name: 'Deploy key',
-  expiresAt: '2099-12-31T23:59:59Z',
+  expiresAt: '2099-12-31T12:00:00Z',
   createdAt: '2024-01-15T10:00:00Z',
   createdByUsername: 'testuser',
 };
@@ -61,7 +61,13 @@ const renderApiKeysList = ({
   );
 
 describe('ApiKeysList', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
 
   it('renders a spinner while pending', () => {
     renderApiKeysList({ isPending: true });

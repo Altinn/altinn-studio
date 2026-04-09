@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -6,7 +6,11 @@ import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { BotAccountApiKeys } from './BotAccountApiKeys';
-import type { BotAccountApiKey, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
+import type {
+  BotAccountApiKey,
+  CreateBotAccountApiKeyResponse,
+  BotAccount,
+} from 'app-shared/types/BotAccount';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { toast } from 'react-toastify';
@@ -151,7 +155,10 @@ describe('BotAccountApiKeys', () => {
 
   it('shows duplicate name error when server returns 409 Conflict with DuplicateTokenName', async () => {
     const createBotAccountApiKey = jest.fn().mockRejectedValue({
-      response: { status: ServerCodes.Conflict, data: { errorCode: ApiErrorCodes.DuplicateTokenName } },
+      response: {
+        status: ServerCodes.Conflict,
+        data: { errorCode: ApiErrorCodes.DuplicateTokenName },
+      },
     });
     const user = userEvent.setup();
     renderBotAccountApiKeys([activeApiKey], { createBotAccountApiKey });
@@ -168,7 +175,10 @@ describe('BotAccountApiKeys', () => {
 
   it('clears duplicate name error from API when name input changes', async () => {
     const createBotAccountApiKey = jest.fn().mockRejectedValue({
-      response: { status: ServerCodes.Conflict, data: { errorCode: ApiErrorCodes.DuplicateTokenName } },
+      response: {
+        status: ServerCodes.Conflict,
+        data: { errorCode: ApiErrorCodes.DuplicateTokenName },
+      },
     });
     const user = userEvent.setup();
     renderBotAccountApiKeys([activeApiKey], { createBotAccountApiKey });
@@ -211,5 +221,31 @@ describe('BotAccountApiKeys', () => {
       textMock('settings.api_keys.copy_success'),
       expect.objectContaining({ toastId: 'settings.api_keys.copy_success' }),
     );
+  });
+
+  it('updates BotAccounts cache with apiKeyCount when API keys load', async () => {
+    const queryClient = createQueryClientMock();
+    const botAccount: BotAccount = {
+      id: testBotAccountId,
+      username: 'test-bot',
+      organizationName: testOrg,
+      deactivated: false,
+      created: '2024-01-15T10:00:00Z',
+      createdByUsername: 'testuser',
+      deployEnvironments: [],
+      apiKeyCount: 0,
+    };
+    queryClient.setQueryData([QueryKey.BotAccounts, testOrg], [botAccount]);
+    queryClient.setQueryData(
+      [QueryKey.BotAccountApiKeys, testOrg, testBotAccountId],
+      [activeApiKey, expiredApiKey],
+    );
+
+    renderWithProviders(<BotAccountApiKeys {...defaultProps} />, { queryClient });
+
+    await waitFor(() => {
+      const botAccounts = queryClient.getQueryData<BotAccount[]>([QueryKey.BotAccounts, testOrg]);
+      expect(botAccounts?.[0].apiKeyCount).toBe(2);
+    });
   });
 });

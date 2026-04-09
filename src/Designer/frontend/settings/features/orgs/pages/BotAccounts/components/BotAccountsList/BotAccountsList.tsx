@@ -6,7 +6,6 @@ import { StudioTable, StudioButton, StudioDeleteButton, StudioTag } from '@studi
 import { ChevronDownIcon, ChevronRightIcon, StudioEditIcon } from '@studio/icons';
 import type { BotAccount } from 'app-shared/types/BotAccount';
 import { useDeactivateBotAccountMutation } from '../../hooks/useDeactivateBotAccountMutation';
-import { useGetBotAccountApiKeysQuery } from '../../hooks/useGetBotAccountApiKeysQuery';
 import { BotAccountApiKeys } from '../BotAccountApiKeys/BotAccountApiKeys';
 import { EnvironmentsCell } from '../../../../../../components/EnvironmentsCell/EnvironmentsCell';
 import classes from './BotAccountsList.module.css';
@@ -33,23 +32,13 @@ type BotAccountsListProps = {
 };
 
 type ApiKeysPreviewCellProps = {
-  org: string;
-  botAccountId: string;
+  apiKeyCount: number;
 };
 
-const ApiKeysPreviewCell = ({ org, botAccountId }: ApiKeysPreviewCellProps): ReactElement => {
+const ApiKeysPreviewCell = ({ apiKeyCount }: ApiKeysPreviewCellProps): ReactElement => {
   const { t } = useTranslation();
-  const { data: apiKeys, isPending, isError } = useGetBotAccountApiKeysQuery(org, botAccountId);
 
-  if (isPending) {
-    return <span className={classes.apiKeysPlaceholder}>...</span>;
-  }
-
-  if (isError) {
-    return <span className={classes.apiKeysPlaceholder}>-</span>;
-  }
-
-  if (apiKeys?.length === 0) {
+  if (apiKeyCount === 0) {
     return (
       <StudioTag data-color='warning'>{t('settings.orgs.bot_accounts.no_api_keys')}</StudioTag>
     );
@@ -57,7 +46,7 @@ const ApiKeysPreviewCell = ({ org, botAccountId }: ApiKeysPreviewCellProps): Rea
 
   return (
     <StudioTag data-color='info'>
-      {t('settings.orgs.bot_accounts.api_keys_count', { count: apiKeys?.length })}
+      {t('settings.orgs.bot_accounts.api_keys_count', { count: apiKeyCount })}
     </StudioTag>
   );
 };
@@ -144,7 +133,7 @@ export const BotAccountsList = ({
                   environments={botAccount.deployEnvironments.map((e) => e.toLocaleLowerCase())}
                 />
                 <StudioTable.Cell>
-                  <ApiKeysPreviewCell org={org} botAccountId={botAccount.id} />
+                  <ApiKeysPreviewCell apiKeyCount={botAccount.apiKeyCount} />
                 </StudioTable.Cell>
                 <StudioTable.Cell>
                   {DateUtils.formatDateDDMMYYYY(botAccount.created)}

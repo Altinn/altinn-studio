@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
+using ApiKey = Altinn.Studio.Designer.Models.ApiKey.ApiKey;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -55,17 +56,23 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
     {
         var botAccounts = await botAccountService.ListByOrgAsync(org, cancellationToken);
 
-        var response = botAccounts
-            .Select(b => new BotAccountResponse(
-                b.Id,
-                b.Username,
-                b.OrganizationName,
-                b.Deactivated,
-                b.Created,
-                b.CreatedByUsername,
-                b.DeployEnvironments
-            ))
-            .ToList();
+        var response = new List<BotAccountResponse>();
+        foreach (var botAccount in botAccounts)
+        {
+            var apiKeys = await botAccountService.ListApiKeysAsync(botAccount.Id, org, cancellationToken);
+            response.Add(
+                new BotAccountResponse(
+                    botAccount.Id,
+                    botAccount.Username,
+                    botAccount.OrganizationName,
+                    botAccount.Deactivated,
+                    botAccount.Created,
+                    botAccount.CreatedByUsername,
+                    botAccount.DeployEnvironments,
+                    apiKeys.Count
+                )
+            );
+        }
 
         return Ok(response);
     }
@@ -86,6 +93,7 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
     public async Task<ActionResult<BotAccountResponse>> Get(string org, Guid id, CancellationToken cancellationToken)
     {
         var botAccount = await botAccountService.GetAsync(id, org, cancellationToken);
+        var apiKeys = await botAccountService.ListApiKeysAsync(id, org, cancellationToken);
 
         return Ok(
             new BotAccountResponse(
@@ -95,7 +103,8 @@ public class BotAccountsController(IBotAccountService botAccountService) : Contr
                 botAccount.Deactivated,
                 botAccount.Created,
                 botAccount.CreatedByUsername,
-                botAccount.DeployEnvironments
+                botAccount.DeployEnvironments,
+                apiKeys.Count
             )
         );
     }

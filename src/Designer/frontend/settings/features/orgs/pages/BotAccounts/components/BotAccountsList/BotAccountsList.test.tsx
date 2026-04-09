@@ -1,12 +1,11 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { BotAccountsList } from './BotAccountsList';
-import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
+import type { BotAccount } from 'app-shared/types/BotAccount';
 
 jest.mock('../BotAccountApiKeys/BotAccountApiKeys', () => ({
   BotAccountApiKeys: ({ botAccountId }: { botAccountId: string }) => (
@@ -24,6 +23,7 @@ const activeBotAccount: BotAccount = {
   created: '2024-01-15T10:00:00Z',
   createdByUsername: 'testuser',
   deployEnvironments: ['tt02'],
+  apiKeyCount: 0,
 };
 
 const anotherBotAccount: BotAccount = {
@@ -34,14 +34,7 @@ const anotherBotAccount: BotAccount = {
   created: '2023-06-01T08:00:00Z',
   createdByUsername: null,
   deployEnvironments: [],
-};
-
-const sampleApiKey: BotAccountApiKey = {
-  id: 1,
-  name: 'Deploy key',
-  expiresAt: '2099-12-31T23:59:59Z',
-  createdAt: '2024-01-15T10:00:00Z',
-  createdByUsername: 'testuser',
+  apiKeyCount: 0,
 };
 
 const defaultProps = {
@@ -194,44 +187,18 @@ describe('BotAccountsList', () => {
   });
 
   describe('ApiKeysPreviewCell', () => {
-    it('shows loading placeholder while api keys are pending', () => {
+    it('shows no-api-keys tag when bot account has no api keys', () => {
       renderBotAccountsList({ botAccounts: [activeBotAccount] });
-      expect(screen.getByText('...')).toBeInTheDocument();
-    });
-
-    it('shows error placeholder when api keys query fails', async () => {
-      const getBotAccountApiKeys = jest.fn().mockRejectedValue(new Error('Failed'));
-      renderBotAccountsList({ botAccounts: [activeBotAccount] }, { getBotAccountApiKeys });
-      expect(await screen.findByText('-')).toBeInTheDocument();
-    });
-
-    it('shows no-api-keys tag when api keys list is empty', async () => {
-      const queryClient = createQueryClientMock();
-      queryClient.setQueryData(
-        [QueryKey.BotAccountApiKeys, testOrg, activeBotAccount.id],
-        [],
-      );
-      renderWithProviders(<BotAccountsList {...defaultProps} botAccounts={[activeBotAccount]} />, {
-        queryClient,
-      });
       expect(
-        await screen.findByText(textMock('settings.orgs.bot_accounts.no_api_keys')),
+        screen.getByText(textMock('settings.orgs.bot_accounts.no_api_keys')),
       ).toBeInTheDocument();
     });
 
-    it('shows api key count tag when api keys are present', async () => {
-      const queryClient = createQueryClientMock();
-      queryClient.setQueryData(
-        [QueryKey.BotAccountApiKeys, testOrg, activeBotAccount.id],
-        [sampleApiKey],
-      );
-      renderWithProviders(<BotAccountsList {...defaultProps} botAccounts={[activeBotAccount]} />, {
-        queryClient,
-      });
+    it('shows api key count tag when bot account has api keys', () => {
+      const botAccountWithKeys = { ...activeBotAccount, apiKeyCount: 1 };
+      renderBotAccountsList({ botAccounts: [botAccountWithKeys] });
       expect(
-        await screen.findByText(
-          textMock('settings.orgs.bot_accounts.api_keys_count', { count: 1 }),
-        ),
+        screen.getByText(textMock('settings.orgs.bot_accounts.api_keys_count', { count: 1 })),
       ).toBeInTheDocument();
     });
   });

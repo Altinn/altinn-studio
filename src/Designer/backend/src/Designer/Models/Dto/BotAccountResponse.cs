@@ -10,5 +10,6 @@ public record BotAccountResponse(
     bool Deactivated,
     DateTimeOffset Created,
     string? CreatedByUsername,
-    List<string> DeployEnvironments
+    List<string> DeployEnvironments,
+    int ApiKeyCount
 );

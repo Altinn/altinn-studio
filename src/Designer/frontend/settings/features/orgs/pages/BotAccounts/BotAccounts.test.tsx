@@ -60,6 +60,7 @@ const activeBotAccount: BotAccount = {
   created: '2024-01-15T10:00:00Z',
   createdByUsername: 'testuser',
   deployEnvironments: [],
+  apiKeyCount: 0,
 };
 
 const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/orgs/ttd/settings']) => {

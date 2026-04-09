@@ -129,6 +129,7 @@ public class UpdateBotAccountStudioOidcTests : StudioOidcGiteaIntegrationTestsBa
         using HttpResponseMessage teamsResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
             $"orgs/{GiteaConstants.TestOrgUsername}/teams"
         );
+        teamsResponse.EnsureSuccessStatusCode();
         string teamsBody = await teamsResponse.Content.ReadAsStringAsync();
         var teams = JsonSerializer.Deserialize<JsonArray>(teamsBody);
         var team = teams.FirstOrDefault(t => t?["name"]?.GetValue<string>() == teamName);
@@ -138,6 +139,7 @@ public class UpdateBotAccountStudioOidcTests : StudioOidcGiteaIntegrationTestsBa
         using HttpResponseMessage membersResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
             $"teams/{teamId}/members"
         );
+        membersResponse.EnsureSuccessStatusCode();
         string membersBody = await membersResponse.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<JsonArray>(membersBody) ?? [];
     }

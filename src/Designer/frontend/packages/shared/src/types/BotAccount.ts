@@ -6,6 +6,7 @@ export type BotAccount = {
   created: string;
   createdByUsername: string | null;
   deployEnvironments: string[];
+  apiKeyCount: number;
 };
 
 export type CreateBotAccountRequest = {
