@@ -9,6 +9,7 @@ import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
 import { mapBackendIssuesToFieldValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { updateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
+import { deriveInvalidDataValidations } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { deriveSchemaValidations } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { updateBackendValidations } from 'src/features/validation/validationContext';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
@@ -269,6 +270,18 @@ function makeActions(
     });
   }
 
+  function updateInvalidDataValidations(state: FormStoreState, dataType: string) {
+    const model = state.data.models[dataType];
+    if (!model) {
+      return;
+    }
+
+    model.validations.invalidData = deriveInvalidDataValidations({
+      invalidData: model.invalidDebouncedCurrentData,
+      dataElementId: model.dataElementId ?? dataType,
+    });
+  }
+
   function processChanges(state: FormStoreState, toProcess: FDSaveFinished) {
     const { validationIssues, savedData, newDataModels, instance } = toProcess;
     state.data.manualSaveRequested = false;
@@ -320,6 +333,7 @@ function makeActions(
 
     for (const dataType of Object.keys(state.data.models)) {
       state.data.models[dataType].invalidDebouncedCurrentData = state.data.models[dataType].invalidCurrentData;
+      updateInvalidDataValidations(state, dataType);
       if (deepEqual(state.data.models[dataType].debouncedCurrentData, state.data.models[dataType].currentData)) {
         state.data.models[dataType].debouncedCurrentData = state.data.models[dataType].currentData;
         continue;
@@ -635,7 +649,10 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
           schemaResult: props.dataModels[dt].schemaResult,
           dataElementId: props.dataModels[dt].dataElementId ?? dt,
         }),
-        invalidData: {},
+        invalidData: deriveInvalidDataValidations({
+          invalidData: emptyInvalidData,
+          dataElementId: props.dataModels[dt].dataElementId ?? dt,
+        }),
       },
     } satisfies DataModelState;
     return dm;

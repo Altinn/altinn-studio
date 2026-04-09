@@ -1,48 +1,46 @@
-import { useEffect } from 'react';
-
 import dot from 'dot-object';
 
 import { FrontendValidationSource, ValidationMask } from '..';
 import type { FieldValidations } from '..';
 
-import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-
 function isScalar(value: unknown): value is string | number | boolean {
   return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 }
 
-export function InvalidDataValidation({ dataType }: { dataType: string }) {
-  const updateDataModelValidations = FormStore.validation.useUpdateDataModelValidations();
-  const invalidData = FormStore.data.useInvalidDebounced(dataType);
-  const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
+interface DeriveInvalidDataValidationsParams {
+  invalidData: object;
+  dataElementId: string;
+}
 
-  useEffect(() => {
-    const validations: FieldValidations = {};
+export function deriveInvalidDataValidations({
+  invalidData,
+  dataElementId,
+}: DeriveInvalidDataValidationsParams): FieldValidations {
+  const validations: FieldValidations = {};
 
-    if (Object.keys(invalidData).length > 0) {
-      const flattened = dot.dot(invalidData);
-      for (const [field, value] of Object.entries(flattened)) {
-        if (!isScalar(value)) {
-          continue;
-        }
+  if (Object.keys(invalidData).length === 0) {
+    return validations;
+  }
 
-        if (!validations[field]) {
-          validations[field] = [];
-        }
-
-        validations[field].push({
-          field,
-          dataElementId,
-          source: FrontendValidationSource.InvalidData,
-          message: { key: 'validation_errors.pattern' },
-          severity: 'error',
-          category: ValidationMask.Schema, // Use same visibility as schema validations
-        });
-      }
+  const flattened = dot.dot(invalidData);
+  for (const [field, value] of Object.entries(flattened)) {
+    if (!isScalar(value)) {
+      continue;
     }
-    updateDataModelValidations('invalidData', dataType, validations);
-  }, [dataElementId, dataType, invalidData, updateDataModelValidations]);
 
-  return null;
+    if (!validations[field]) {
+      validations[field] = [];
+    }
+
+    validations[field].push({
+      field,
+      dataElementId,
+      source: FrontendValidationSource.InvalidData,
+      message: { key: 'validation_errors.pattern' },
+      severity: 'error',
+      category: ValidationMask.Schema,
+    });
+  }
+
+  return validations;
 }

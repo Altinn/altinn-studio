@@ -21,8 +21,8 @@
 - We still keep four validation buckets per model and merge them on read in some selectors.
 - The merge ordering is currently implicit in selectors such as `useNodeValidation`.
 - Some read paths still start from `dataElementId` and need a lookup back into `state.data.models`.
-- `InvalidDataValidation` and `ExpressionValidation` are still effect-components that compute derived state and write it back into the store.
-- Schema validations are still stored, but they are now recalculated by the form-data state machine when debounced data changes instead of by a separate React effect component.
+- `ExpressionValidation` is still an effect-component that computes derived state and writes it back into the store.
+- Schema and invalid-data validations are still stored, but they are now recalculated by the form-data state machine when debounced data changes instead of by separate React effect components.
 
 ## Recommended next steps
 
@@ -51,7 +51,6 @@ This would remove most of the effect-driven synchronization and make validation 
 
 Candidates:
 
-- `src/features/validation/invalidDataValidation/InvalidDataValidation.tsx`
 - `src/features/validation/expressionValidation/ExpressionValidation.tsx`
 
 The ideal direction is that these stop pushing derived validations into the store and instead expose derived results directly to the selectors that need them.

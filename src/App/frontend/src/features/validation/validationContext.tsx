@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
@@ -20,7 +20,6 @@ import {
   useRefetchInitialValidations,
 } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { mapBackendIssuesToTaskValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
-import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import {
   hasValidationErrors,
@@ -119,14 +118,8 @@ export function updateBackendValidations(
 }
 
 export function ValidationEffects() {
-  const writableDataTypes = FormBootstrap.useWritableDataTypes();
   return (
     <>
-      {writableDataTypes.map((dataType) => (
-        <Fragment key={dataType}>
-          <InvalidDataValidation dataType={dataType} />
-        </Fragment>
-      ))}
       <BackendValidation />
       <ManageShowAllErrors />
     </>
