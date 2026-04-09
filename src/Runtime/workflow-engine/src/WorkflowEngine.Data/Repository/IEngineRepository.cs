@@ -173,8 +173,14 @@ internal interface IEngineRepository
     /// <summary>
     /// Batch-updates HeartbeatAt for all specified workflow IDs in a single statement.
     /// Used by the processor to prove liveness of in-flight workers.
+    /// Skips workflows whose <c>UpdatedAt</c> is newer than <paramref name="staleThreshold"/> —
+    /// a recent status write already proves liveness.
     /// </summary>
-    Task BatchUpdateHeartbeats(IReadOnlyList<Guid> workflowIds, CancellationToken cancellationToken);
+    Task BatchUpdateHeartbeats(
+        IReadOnlyList<Guid> workflowIds,
+        TimeSpan staleThreshold,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.

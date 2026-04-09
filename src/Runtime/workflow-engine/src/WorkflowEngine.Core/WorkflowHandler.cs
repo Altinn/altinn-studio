@@ -169,7 +169,12 @@ internal sealed class WorkflowHandler(
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
 
-            await statusWriteBuffer.Submit(workflow, ct, reason: "step.started", parentActivity: step.EngineActivity);
+            statusWriteBuffer.SubmitAndForget(
+                workflow,
+                ct,
+                reason: "step.started",
+                parentActivity: step.EngineActivity
+            );
 
             ExecutionResult result;
             try

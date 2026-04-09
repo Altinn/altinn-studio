@@ -36,18 +36,13 @@ public class WorkflowWriteBufferTests
                 MaxDbOperations = 5,
                 MaxHttpCalls = 5,
             },
-            WriteBuffer = new BufferSettings
+            WriteBuffer = new WriteBufferSettings
             {
                 MaxBatchSize = maxBatchSize,
                 MaxQueueSize = maxQueueSize,
                 FlushConcurrency = flushConcurrency,
             },
-            UpdateBuffer = new BufferSettings
-            {
-                MaxBatchSize = 10,
-                MaxQueueSize = 50,
-                FlushConcurrency = 2,
-            },
+            UpdateBuffer = new UpdateBufferSettings { MaxBatchSize = 10, MaxQueueSize = 50 },
         };
 
     private static (WorkflowWriteBuffer Buffer, Mock<IEngineRepository> Repo, AsyncSignal Signal) CreateBuffer(
