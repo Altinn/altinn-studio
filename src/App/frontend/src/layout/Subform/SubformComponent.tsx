@@ -11,8 +11,8 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
+import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -58,7 +58,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const subformEntries = useInstanceDataElements(dataType);
 
   const { enterSubform } = useNavigatePage();
-  const lock = FD.useLocking(id);
+  const lock = FormStore.data.useLocking(id);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
   const isAddingDisabled = useIsAnyProcessing();

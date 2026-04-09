@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
@@ -95,29 +96,32 @@ describe('RepeatingGroupsEditContainer', () => {
         </RepeatingGroupProvider>
       ),
       queries: {
-        fetchLayouts: async () => ({
-          FormLayout: {
-            data: {
-              layout: [multiPageGroup, ...components],
-            },
-          },
-        }),
-        fetchFormData: async () => ({
-          multipageGroup: [
-            {
-              [ALTINN_ROW_ID]: 'abc123',
-              prop1: 'prop1',
-              prop2: 'prop2',
-              prop3: 'prop3',
-            },
-            {
-              [ALTINN_ROW_ID]: 'def456',
-              prop1: 'prop4',
-              prop2: 'prop5',
-              prop3: 'prop6',
-            },
-          ],
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [multiPageGroup, ...components],
+                },
+              },
+            };
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              multipageGroup: [
+                {
+                  [ALTINN_ROW_ID]: 'abc123',
+                  prop1: 'prop1',
+                  prop2: 'prop2',
+                  prop3: 'prop3',
+                },
+                {
+                  [ALTINN_ROW_ID]: 'def456',
+                  prop1: 'prop4',
+                  prop2: 'prop5',
+                  prop3: 'prop6',
+                },
+              ],
+            };
+          }),
       },
     });
   };

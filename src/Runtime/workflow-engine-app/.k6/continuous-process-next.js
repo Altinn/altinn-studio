@@ -1,6 +1,10 @@
 import http from 'k6/http';
 import { sleep } from 'k6';
-import { BASE_URL, buildRequestParams, buildPayload } from '../../workflow-engine/.k6/lib/helpers.js';
+import {
+    BASE_URL,
+    buildRequestParams,
+    buildPayload,
+} from '../../workflow-engine/.k6/lib/helpers.js';
 
 const INTERVAL = parseFloat(__ENV.INTERVAL || '2');
 

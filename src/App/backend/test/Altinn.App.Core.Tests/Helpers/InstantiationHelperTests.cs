@@ -50,7 +50,7 @@ public class InstantiationHelperTests
         {
             PartyId = 12345,
             PartyTypeName = PartyType.SelfIdentified,
-            Name = "Test User",
+            Name = "testuser",
         };
 
         var authenticationContextMock = new Mock<IAuthenticationContext>();
@@ -65,8 +65,64 @@ public class InstantiationHelperTests
 
         // Assert
         Assert.Equal("12345", instanceOwner.PartyId);
-        Assert.Equal("Test User", instanceOwner.Username);
-        Assert.Null(instanceOwner.ExternalIdentifier);
+        Assert.Equal("testuser", instanceOwner.Username);
+        // When authenticated as the user but no externalIdentity in token,
+        // fallback constructs URN from party.Name
+        Assert.Equal("urn:altinn:person:legacy-selfidentified:testuser", instanceOwner.ExternalIdentifier);
+    }
+
+    [Fact]
+    public async Task PartyToInstanceOwner_SelfIdentifiedWithEmail_ThirdPartyInstantiation_ReturnsExternalIdentifier()
+    {
+        // Arrange
+        var party = new Party
+        {
+            PartyId = 12345,
+            PartyTypeName = PartyType.SelfIdentified,
+            Name = "epost:test@example.com",
+        };
+
+        var authenticationContextMock = new Mock<IAuthenticationContext>();
+        var authenticatedOrg = CreateAuthenticatedOrg(orgNo: "991825827");
+        authenticationContextMock.SetupGet(a => a.Current).Returns(authenticatedOrg);
+
+        // Act
+        InstanceOwner instanceOwner = await InstantiationHelper.PartyToInstanceOwner(
+            party,
+            authenticationContextMock.Object
+        );
+
+        // Assert
+        Assert.Equal("12345", instanceOwner.PartyId);
+        Assert.Equal("epost:test@example.com", instanceOwner.Username);
+        Assert.Equal("urn:altinn:person:idporten-email:test@example.com", instanceOwner.ExternalIdentifier);
+    }
+
+    [Fact]
+    public async Task PartyToInstanceOwner_SelfIdentifiedWithLegacyUsername_ThirdPartyInstantiation_ReturnsExternalIdentifier()
+    {
+        // Arrange
+        var party = new Party
+        {
+            PartyId = 12345,
+            PartyTypeName = PartyType.SelfIdentified,
+            Name = "jensjensen",
+        };
+
+        var authenticationContextMock = new Mock<IAuthenticationContext>();
+        var authenticatedOrg = CreateAuthenticatedOrg(orgNo: "991825827");
+        authenticationContextMock.SetupGet(a => a.Current).Returns(authenticatedOrg);
+
+        // Act
+        InstanceOwner instanceOwner = await InstantiationHelper.PartyToInstanceOwner(
+            party,
+            authenticationContextMock.Object
+        );
+
+        // Assert
+        Assert.Equal("12345", instanceOwner.PartyId);
+        Assert.Equal("jensjensen", instanceOwner.Username);
+        Assert.Equal("urn:altinn:person:legacy-selfidentified:jensjensen", instanceOwner.ExternalIdentifier);
     }
 
     [Fact]

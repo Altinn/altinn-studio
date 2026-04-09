@@ -411,6 +411,47 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<WorkflowStatusCounts> CountWorkflowsByStatus(CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.CountWorkflowsByStatus");
+        activity?.DontRecord();
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.CountingWorkflows("all (grouped)");
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+            var counts = await context
+                .Workflows.GroupBy(wf => wf.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync(cancellationToken);
+
+            var scheduled = await context.Workflows.CountAsync(
+                wf => wf.Status == PersistentItemStatus.Enqueued && wf.StartAt > DateTime.UtcNow,
+                cancellationToken
+            );
+
+            var byStatus = counts.ToDictionary(x => x.Status, x => x.Count);
+
+            logger.SuccessfullyFetchedWorkflows(counts.Sum(x => x.Count));
+
+            return new WorkflowStatusCounts(byStatus, scheduled);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<PersistentItemStatus?> GetWorkflowStatus(
         Guid workflowId,
         string ns,

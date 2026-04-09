@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -29,10 +30,11 @@ internal sealed class MetricsCollector(
 
             try
             {
-                var active = await engineRepository.CountActiveWorkflows(cancellationToken: stoppingToken);
-                var scheduled = await engineRepository.CountScheduledWorkflows(cancellationToken: stoppingToken);
-                var failed = await engineRepository.CountFailedWorkflows(cancellationToken: stoppingToken);
-                var successful = await engineRepository.CountSuccessfulWorkflows(cancellationToken: stoppingToken);
+                var counts = await engineRepository.CountWorkflowsByStatus(stoppingToken);
+                var active = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Incomplete);
+                var scheduled = counts.Scheduled;
+                var failed = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Failed);
+                var successful = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Successful);
                 Metrics.SetActiveWorkflowsCount(active);
                 Metrics.SetScheduledWorkflowsCount(scheduled);
                 Metrics.SetFailedWorkflowsCount(failed);
@@ -73,6 +75,11 @@ internal sealed class MetricsCollector(
 
         logger.ShuttingDown();
     }
+
+    private static int SumStatuses(
+        IReadOnlyDictionary<PersistentItemStatus, int> counts,
+        IReadOnlyCollection<PersistentItemStatus> statuses
+    ) => statuses.Sum(s => counts.GetValueOrDefault(s));
 }
 
 internal static partial class MetricsCollectorLogs

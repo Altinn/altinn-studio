@@ -60,7 +60,14 @@ public class PaymentController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         AltinnPaymentConfiguration? paymentConfiguration = _processReader
             .GetAltinnTaskExtension(instance.Process.CurrentTask.ElementId)
             ?.PaymentConfiguration;
@@ -109,7 +116,14 @@ public class PaymentController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         OrderDetails orderDetails = await orderDetailsCalculator.CalculateOrderDetails(instance, language);
 
         return Ok(orderDetails);

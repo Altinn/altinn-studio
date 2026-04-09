@@ -1,16 +1,15 @@
 using System.Text.Json.Serialization;
 
-namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
+
+/// <summary>
+/// Represents a reference to a definition.
+/// </summary>
+public class DefinitionReference
 {
     /// <summary>
-    /// Represents a reference to a definition.
+    /// The ID of the referenced definition
     /// </summary>
-    public class DefinitionReference
-    {
-        /// <summary>
-        /// The ID of the referenced definition
-        /// </summary>
-        [JsonPropertyName("id")]
-        public int Id { get; set; }
-    }
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
 }

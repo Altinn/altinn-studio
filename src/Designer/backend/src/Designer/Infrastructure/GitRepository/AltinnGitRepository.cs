@@ -12,260 +12,258 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using static Altinn.Studio.Designer.Infrastructure.GitRepository.AltinnAppGitRepository;
 
-namespace Altinn.Studio.Designer.Infrastructure.GitRepository
+namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
+
+/// <summary>
+/// Class representing a Altinn Git Repository, either an app or a datamodels repository,
+/// ie. the shared properties and functionality between the different types of repositories.
+/// </summary>
+/// <remarks>This class knows that the repository is an Altinn Repository and hence knows
+/// about folders and file names and can map them to their respective models.
+/// It should however only have methods that are shared between the different types of Altinn Repositories
+/// and not any methods that are specific to App or Datamodels repositories.</remarks>
+public class AltinnGitRepository : GitRepository, IAltinnGitRepository
 {
+    private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
+
+    private AltinnStudioSettings _altinnStudioSettings;
+
     /// <summary>
-    /// Class representing a Altinn Git Repository, either an app or a datamodels repository,
-    /// ie. the shared properties and functionality between the different types of repositories.
+    /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
     /// </summary>
-    /// <remarks>This class knows that the repository is an Altinn Repository and hence knows
-    /// about folders and file names and can map them to their respective models.
-    /// It should however only have methods that are shared between the different types of Altinn Repositories
-    /// and not any methods that are specific to App or Datamodels repositories.</remarks>
-    public class AltinnGitRepository : GitRepository, IAltinnGitRepository
+    /// <param name="org">Organization owning the repository identified by it's short name.</param>
+    /// <param name="repository">Repository name to search for schema files.</param>
+    /// <param name="developer">Developer that is working on the repository.</param>
+    /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
+    /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
+    public AltinnGitRepository(
+        string org,
+        string repository,
+        string developer,
+        string repositoriesRootDirectory,
+        string repositoryDirectory
+    )
+        : base(repositoriesRootDirectory, repositoryDirectory)
     {
-        private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
+        Guard.AssertNotNullOrEmpty(org, nameof(org));
+        Guard.AssertNotNullOrEmpty(repository, nameof(repository));
+        Guard.AssertNotNullOrEmpty(developer, nameof(developer));
 
-        private AltinnStudioSettings _altinnStudioSettings;
+        Org = org;
+        Repository = repository;
+        Developer = developer;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
-        /// </summary>
-        /// <param name="org">Organization owning the repository identified by it's short name.</param>
-        /// <param name="repository">Repository name to search for schema files.</param>
-        /// <param name="developer">Developer that is working on the repository.</param>
-        /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
-        /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
-        public AltinnGitRepository(
-            string org,
-            string repository,
-            string developer,
-            string repositoriesRootDirectory,
-            string repositoryDirectory
-        )
-            : base(repositoriesRootDirectory, repositoryDirectory)
+    /// <summary>
+    /// Short name representing the organization that owns the repository as defined in Gitea.
+    /// </summary>
+    public string Org { get; private set; }
+
+    /// <summary>
+    /// Name of the repository as defined in Gitea.
+    /// </summary>
+    public string Repository { get; private set; }
+
+    /// <summary>
+    /// Short name of the developer, as defined in Gitea, that is working on the repository.
+    /// </summary>
+    public string Developer { get; private set; }
+
+    /// <summary>
+    /// Gets the repository type.
+    /// </summary>
+    /// <returns>The repository type, see <see cref="AltinnRepositoryType"/></returns>
+    public async Task<AltinnRepositoryType> GetRepositoryType()
+    {
+        var settings = await GetAltinnStudioSettings();
+        return settings.RepoType;
+    }
+
+    /// <summary>
+    /// Saves the AltinnStudioSettings to disk.
+    /// </summary>
+    /// <param name="altinnStudioSettings">The <see cref="AltinnStudioSettings"/> object to save. This will overwrite the existing file.</param>
+    public async Task SaveAltinnStudioSettings(AltinnStudioSettings altinnStudioSettings)
+    {
+        await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings, true);
+    }
+
+    /// <summary>
+    /// Parses the filename and extracts the logical schema name.
+    /// </summary>
+    /// <param name="filePath">Filepath to the model - either Json Schema or Xsd.</param>
+    /// <returns>The logical schema name</returns>
+    public string GetSchemaName(string filePath)
+    {
+        var fileInfo = new FileInfo(filePath);
+
+        if (fileInfo.Extension.ToLower() == ".json" && fileInfo.Name.EndsWith(".schema.json"))
         {
-            Guard.AssertNotNullOrEmpty(org, nameof(org));
-            Guard.AssertNotNullOrEmpty(repository, nameof(repository));
-            Guard.AssertNotNullOrEmpty(developer, nameof(developer));
-
-            Org = org;
-            Repository = repository;
-            Developer = developer;
+            return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".schema.json"));
+        }
+        if (fileInfo.Extension.ToLower() == ".xsd")
+        {
+            return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".xsd"));
         }
 
-        /// <summary>
-        /// Short name representing the organization that owns the repository as defined in Gitea.
-        /// </summary>
-        public string Org { get; private set; }
+        return string.Empty;
+    }
 
-        /// <summary>
-        /// Name of the repository as defined in Gitea.
-        /// </summary>
-        public string Repository { get; private set; }
+    /// <summary>
+    /// Gets a <see cref="AltinnCoreFile"/> representation of a file. This does not load any
+    /// file contents but i do ensure the file exists ang gives some easy handles to file location and url
+    /// </summary>
+    /// <param name="relativeFilepath">The relative path to the file seen from the repository root.</param>
+    public AltinnCoreFile GetAltinnCoreFileByRelativePath(string relativeFilepath)
+    {
+        string absoluteFilepath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilepath);
+        return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
+    }
 
-        /// <summary>
-        /// Short name of the developer, as defined in Gitea, that is working on the repository.
-        /// </summary>
-        public string Developer { get; private set; }
-
-        /// <summary>
-        /// Gets the repository type.
-        /// </summary>
-        /// <returns>The repository type, see <see cref="AltinnRepositoryType"/></returns>
-        public async Task<AltinnRepositoryType> GetRepositoryType()
+    /// <summary>
+    /// Gets the settings for this repository. This is the same as what can be found in .altinnstudio\settings.json
+    /// </summary>
+    public async Task<AltinnStudioSettings> GetAltinnStudioSettings()
+    {
+        if (_altinnStudioSettings != null)
         {
-            var settings = await GetAltinnStudioSettings();
-            return settings.RepoType;
-        }
-
-        /// <summary>
-        /// Saves the AltinnStudioSettings to disk.
-        /// </summary>
-        /// <param name="altinnStudioSettings">The <see cref="AltinnStudioSettings"/> object to save. This will overwrite the existing file.</param>
-        public async Task SaveAltinnStudioSettings(AltinnStudioSettings altinnStudioSettings)
-        {
-            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings, true);
-        }
-
-        /// <summary>
-        /// Parses the filename and extracts the logical schema name.
-        /// </summary>
-        /// <param name="filePath">Filepath to the model - either Json Schema or Xsd.</param>
-        /// <returns>The logical schema name</returns>
-        public string GetSchemaName(string filePath)
-        {
-            var fileInfo = new FileInfo(filePath);
-
-            if (fileInfo.Extension.ToLower() == ".json" && fileInfo.Name.EndsWith(".schema.json"))
-            {
-                return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".schema.json"));
-            }
-            if (fileInfo.Extension.ToLower() == ".xsd")
-            {
-                return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".xsd"));
-            }
-
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Gets a <see cref="AltinnCoreFile"/> representation of a file. This does not load any
-        /// file contents but i do ensure the file exists ang gives some easy handles to file location and url
-        /// </summary>
-        /// <param name="relativeFilepath">The relative path to the file seen from the repository root.</param>
-        public AltinnCoreFile GetAltinnCoreFileByRelativePath(string relativeFilepath)
-        {
-            string absoluteFilepath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilepath);
-            return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
-        }
-
-        /// <summary>
-        /// Gets the settings for this repository. This is the same as what can be found in .altinnstudio\settings.json
-        /// </summary>
-        public async Task<AltinnStudioSettings> GetAltinnStudioSettings()
-        {
-            if (_altinnStudioSettings != null)
-            {
-                return _altinnStudioSettings;
-            }
-
-            // AltinnStudioSettings doesn't always exists (earlier versions of the app template), so
-            // need some reasonable defaults.
-            if (!FileExistsByRelativePath(STUDIO_SETTINGS_FILEPATH))
-            {
-                _altinnStudioSettings = await CreateNewAltinnStudioSettings();
-            }
-            else
-            {
-                (AltinnStudioSettings altinnStudioSettings, bool needsSaving) =
-                    await MigrateExistingAltinnStudioSettings();
-
-                if (needsSaving)
-                {
-                    await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings);
-                }
-
-                _altinnStudioSettings = altinnStudioSettings;
-            }
-
             return _altinnStudioSettings;
         }
 
-        private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
+        // AltinnStudioSettings doesn't always exists (earlier versions of the app template), so
+        // need some reasonable defaults.
+        if (!FileExistsByRelativePath(STUDIO_SETTINGS_FILEPATH))
         {
-            AltinnStudioSettings settings = new()
-            {
-                RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App,
-                UseNullableReferenceTypes = false,
-            };
-
-            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
-
-            return settings;
+            _altinnStudioSettings = await CreateNewAltinnStudioSettings();
         }
-
-        private async Task<(
-            AltinnStudioSettings AltinnStudioSettinngs,
-            bool NeedsSaving
-        )> MigrateExistingAltinnStudioSettings()
+        else
         {
-            string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
-            AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(
-                altinnStudioSettingsJson,
-                new JsonSerializerOptions()
-                {
-                    PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter() },
-                }
-            );
+            (AltinnStudioSettings altinnStudioSettings, bool needsSaving) = await MigrateExistingAltinnStudioSettings();
 
-            bool shouldSave = JsonMissingAnyModelProperty<AltinnStudioSettings>(altinnStudioSettingsJson);
-
-            if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
+            if (needsSaving)
             {
-                altinnStudioSettings.RepoType = IsDatamodelsRepo()
-                    ? AltinnRepositoryType.Datamodels
-                    : AltinnRepositoryType.App;
-                shouldSave = true;
+                await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings);
             }
 
-            return (altinnStudioSettings, shouldSave);
+            _altinnStudioSettings = altinnStudioSettings;
         }
 
-        private static bool JsonMissingAnyModelProperty<T>(string json)
+        return _altinnStudioSettings;
+    }
+
+    private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
+    {
+        AltinnStudioSettings settings = new()
         {
-            PropertyInfo[] properties = typeof(T).GetProperties();
-            using JsonDocument jsonDocument = JsonDocument.Parse(json);
-            foreach (PropertyInfo property in properties)
+            RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App,
+            UseNullableReferenceTypes = false,
+        };
+
+        await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
+
+        return settings;
+    }
+
+    private async Task<(
+        AltinnStudioSettings AltinnStudioSettinngs,
+        bool NeedsSaving
+    )> MigrateExistingAltinnStudioSettings()
+    {
+        string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
+        AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(
+            altinnStudioSettingsJson,
+            new JsonSerializerOptions()
             {
-                string jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
-                if (jsonDocument.RootElement.TryGetProperty(jsonName, out _) is false)
-                {
-                    return true;
-                }
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() },
             }
-            return false;
+        );
+
+        bool shouldSave = JsonMissingAnyModelProperty<AltinnStudioSettings>(altinnStudioSettingsJson);
+
+        if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
+        {
+            altinnStudioSettings.RepoType = IsDatamodelsRepo()
+                ? AltinnRepositoryType.Datamodels
+                : AltinnRepositoryType.App;
+            shouldSave = true;
         }
 
-        /// <summary>
-        /// Saves the Json Schema file representing the application model to disk.
-        /// </summary>
-        /// <param name="jsonSchema">The Json Schema that should be persisted</param>
-        /// <param name="relativeFilePath">The relative file path of the json schema model</param>
-        /// <returns>A string containing the relative path to the file saved.</returns>
-        public virtual async Task<string> SaveJsonSchema(string jsonSchema, string relativeFilePath)
-        {
-            await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
+        return (altinnStudioSettings, shouldSave);
+    }
 
-            return relativeFilePath;
-        }
-
-        /// <summary>
-        /// Saves the Xsd to the disk.
-        /// </summary>
-        /// <param name="xsd">String representing the Xsd to be saved.</param>
-        /// <param name="filePath">The filename of the file to be saved excluding path.</param>
-        /// <returns>A string containing the relative path to the file saved.</returns>
-        public virtual async Task<string> SaveXsd(string xsd, string filePath)
+    private static bool JsonMissingAnyModelProperty<T>(string json)
+    {
+        PropertyInfo[] properties = typeof(T).GetProperties();
+        using JsonDocument jsonDocument = JsonDocument.Parse(json);
+        foreach (PropertyInfo property in properties)
         {
-            await WriteTextByRelativePathAsync(filePath, xsd, true);
-            return filePath;
-        }
-
-        /// <summary>
-        /// Saves the Xsd to the disk.
-        /// </summary>
-        /// <param name="xmlSchema">Xml schema to be saved.</param>
-        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
-        /// <returns>A string containing the relative path to the file saved.</returns>
-        public async Task<string> SaveXsd(XmlSchema xmlSchema, string fileName)
-        {
-            string xsd = await SerializeXsdToString(xmlSchema);
-            return await SaveXsd(xsd, fileName);
-        }
-
-        private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
-        {
-            string xsd;
-            await using (var sw = new Utf8StringWriter())
-            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
+            string jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
+            if (jsonDocument.RootElement.TryGetProperty(jsonName, out _) is false)
             {
-                xmlSchema.Write(xw);
-                xsd = sw.ToString();
+                return true;
             }
-
-            return xsd;
         }
+        return false;
+    }
 
-        // Ideally this class should not know anything about app or datamodel differences.
-        // The Altinn Studio settings is shared between the repository types and is in fact
-        // where this knowledge is placed (RepoType), but in the case of a missing settings
-        // file we either need this "hack" or migrate old repositories when it's opened to
-        // include new files and/or settings added after the repository was crated.
-        private bool IsDatamodelsRepo()
+    /// <summary>
+    /// Saves the Json Schema file representing the application model to disk.
+    /// </summary>
+    /// <param name="jsonSchema">The Json Schema that should be persisted</param>
+    /// <param name="relativeFilePath">The relative file path of the json schema model</param>
+    /// <returns>A string containing the relative path to the file saved.</returns>
+    public virtual async Task<string> SaveJsonSchema(string jsonSchema, string relativeFilePath)
+    {
+        await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
+
+        return relativeFilePath;
+    }
+
+    /// <summary>
+    /// Saves the Xsd to the disk.
+    /// </summary>
+    /// <param name="xsd">String representing the Xsd to be saved.</param>
+    /// <param name="filePath">The filename of the file to be saved excluding path.</param>
+    /// <returns>A string containing the relative path to the file saved.</returns>
+    public virtual async Task<string> SaveXsd(string xsd, string filePath)
+    {
+        await WriteTextByRelativePathAsync(filePath, xsd, true);
+        return filePath;
+    }
+
+    /// <summary>
+    /// Saves the Xsd to the disk.
+    /// </summary>
+    /// <param name="xmlSchema">Xml schema to be saved.</param>
+    /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+    /// <returns>A string containing the relative path to the file saved.</returns>
+    public async Task<string> SaveXsd(XmlSchema xmlSchema, string fileName)
+    {
+        string xsd = await SerializeXsdToString(xmlSchema);
+        return await SaveXsd(xsd, fileName);
+    }
+
+    private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
+    {
+        string xsd;
+        await using (var sw = new Utf8StringWriter())
+        await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
         {
-            return Repository.Contains("-datamodels");
+            xmlSchema.Write(xw);
+            xsd = sw.ToString();
         }
+
+        return xsd;
+    }
+
+    // Ideally this class should not know anything about app or datamodel differences.
+    // The Altinn Studio settings is shared between the repository types and is in fact
+    // where this knowledge is placed (RepoType), but in the case of a missing settings
+    // file we either need this "hack" or migrate old repositories when it's opened to
+    // include new files and/or settings added after the repository was crated.
+    private bool IsDatamodelsRepo()
+    {
+        return Repository.Contains("-datamodels");
     }
 }

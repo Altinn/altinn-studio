@@ -218,9 +218,19 @@ def apply(patch: dict, repo_path: str = None):
                                 insert_index = i + 1
                                 break
                     
+                    # Skip insert if an item with the same id already exists (prevent duplicates)
+                    item_id = item.get('id', 'unknown') if isinstance(item, dict) else 'item'
+                    if isinstance(item, dict) and 'id' in item:
+                        existing_ids = {
+                            e.get('id') for e in target
+                            if isinstance(e, dict) and 'id' in e
+                        }
+                        if item['id'] in existing_ids:
+                            print(f"  Skipped duplicate array item '{item_id}' (already exists)")
+                            continue
+                    
                     # Insert the item
                     target.insert(insert_index, item)
-                    item_id = item.get('id', 'unknown') if isinstance(item, dict) else 'item'
                     print(f"  Inserted array item '{item_id}' at index {insert_index}")
                     
                     with open(file_path, 'w', encoding='utf-8') as f:
@@ -685,3 +695,42 @@ def cleanup_feature_branch(repo_path: str, feature_branch: str, base: str = "mai
             "cleaned_up": False,
             "error": f"Cleanup failed: {e}"
         }
+
+
+def deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[str]:
+    """Remove duplicate resource IDs from text resource JSON files.
+
+    Keeps the *last* occurrence of each ID (most recently inserted).
+    Returns a list of files that were modified.
+    """
+    modified: List[str] = []
+    for rel_path in resource_files:
+        file_path = Path(repo_path) / rel_path
+        if not file_path.exists():
+            continue
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            resources = data.get("resources") if isinstance(data, dict) else None
+            if not isinstance(resources, list):
+                continue
+            seen: dict[str, int] = {}
+            no_id_indices: set[int] = set()
+            for idx, entry in enumerate(resources):
+                if isinstance(entry, dict) and "id" in entry:
+                    seen[entry["id"]] = idx  # last wins
+                else:
+                    no_id_indices.add(idx)  # always keep entries without id
+            keep_indices = set(seen.values()) | no_id_indices
+            if len(keep_indices) == len(resources):
+                continue  # no duplicates
+            deduped = [entry for idx, entry in enumerate(resources) if idx in keep_indices]
+            removed_count = len(resources) - len(deduped)
+            data["resources"] = deduped
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"  Deduplicated {rel_path}: removed {removed_count} duplicate resource ID(s)")
+            modified.append(rel_path)
+        except Exception as e:
+            print(f"  Warning: could not deduplicate {rel_path}: {e}")
+    return modified

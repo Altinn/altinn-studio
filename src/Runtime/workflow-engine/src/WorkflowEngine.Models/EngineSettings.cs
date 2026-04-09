@@ -9,6 +9,14 @@ namespace WorkflowEngine.Models;
 public sealed record EngineSettings
 {
     /// <summary>
+    /// Whether to enable OpenTelemetry tracing, metrics, and log export.
+    /// Defaults to <c>true</c>. Set to <c>false</c> to skip all OTEL registration
+    /// (useful for local stress testing without a collector).
+    /// </summary>
+    [JsonPropertyName("enableTelemetry")]
+    public bool EnableTelemetry { get; set; } = true;
+
+    /// <summary>
     /// Maximum number of workflows allowed in a single enqueue request.
     /// </summary>
     [JsonPropertyName("maxWorkflowsPerRequest")]

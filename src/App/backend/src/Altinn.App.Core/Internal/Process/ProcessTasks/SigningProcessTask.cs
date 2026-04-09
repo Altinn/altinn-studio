@@ -101,7 +101,9 @@ internal sealed class SigningProcessTask : IProcessTask
                 PdfContentType,
                 signingPdfDataType + ".pdf",
                 pdfStream,
-                taskId
+                taskId,
+                authenticationMethod: null,
+                CancellationToken.None
             );
         }
     }

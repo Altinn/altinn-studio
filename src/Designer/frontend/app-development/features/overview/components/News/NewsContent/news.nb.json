@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2026-04-07",
+      "title": "Ny funksjonalitet: Forhindre navigasjon i appen når det finnes valideringsfeil på side navigasjonen",
+      "content": "Nå kan du legge til validering på sidenavigasjonen i appen under <strong>Utforming > Andre innstillinger</strong>. Dette gjør at brukere hindres i å gå videre dersom det finnes valideringsfeil på siden. Regler satt på sidenavigasjonen vil overstyre andre navigeringsregler i appen."
+    },
+    {
       "date": "2026-03-24",
       "title": "Nå blir apper automatisk registrert i Altinn",
       "content": "Når du fyller ut feltene under <strong>Innstillinger > Om Appen</strong> i Altinn Studio, blir informasjonen også lagret i Altinn (ressursregisteret) når du publiserer appen din til produksjonsmiljøet.<br/><br/>Du må fylle ut disse feltene. Sluttbrukerne kan se informasjonen når de skal styre tilganger i Altinn."

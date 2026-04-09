@@ -10,7 +10,7 @@ import {
   StudioTabs,
   StudioAlert,
 } from '@studio/components';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
@@ -63,19 +63,25 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
 
   const availableEnvironments = Object.keys(runningApps).toSorted(sortEnvironments);
 
+  const activeEnvironment =
+    selectedEnvironment && availableEnvironments.includes(selectedEnvironment)
+      ? selectedEnvironment
+      : availableEnvironments[0];
+
+  useEffect(() => {
+    if (activeEnvironment && activeEnvironment !== selectedEnvironment) {
+      setSelectedEnvironment(activeEnvironment);
+    }
+  }, [activeEnvironment, selectedEnvironment, setSelectedEnvironment]);
+
   if (!availableEnvironments.length) {
     return (
       <StudioAlert data-color='info'>{t('admin.environment.no_results', { orgName })}</StudioAlert>
     );
   }
 
-  if (!selectedEnvironment || !availableEnvironments.includes(selectedEnvironment)) {
-    setSelectedEnvironment(availableEnvironments[0]);
-    return <StudioSpinner aria-label={t('general.loading')} />;
-  }
-
   return (
-    <StudioTabs value={selectedEnvironment} onChange={setSelectedEnvironment}>
+    <StudioTabs value={activeEnvironment} onChange={setSelectedEnvironment}>
       <StudioTabs.List>
         {availableEnvironments.map((environment) => (
           <StudioTabs.Tab key={environment} value={environment}>
