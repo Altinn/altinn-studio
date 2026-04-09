@@ -7,11 +7,11 @@ resources:
 replacements:
 - source:
     kind: Deployment
-    name: altinn-ai-agents
+    name: altinn-altinity-agents
     fieldPath: metadata.annotations.[altinn.studio/image]
   targets:
   - select:
       kind: Deployment
-      name: altinn-ai-agents
+      name: altinn-altinity-agents
     fieldPaths:
-      - spec.template.spec.containers.[name=altinn-ai-agents].image
+      - spec.template.spec.containers.[name=altinn-altinity-agents].image

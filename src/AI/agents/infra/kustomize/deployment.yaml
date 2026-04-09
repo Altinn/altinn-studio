@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: altinn-ai-agents
+  name: altinn-altinity-agents
   annotations:
-    altinn.studio/image: altinn-ai-agents:latest
+    altinn.studio/image: altinn-altinity-agents:latest
     altinn.studio/image-tag: latest
   labels:
-    release: altinn-ai-agents
+    release: altinn-altinity-agents
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: altinn-ai-agents
+      app: altinn-altinity-agents
   template:
     metadata:
       labels:
-        app: altinn-ai-agents
+        app: altinn-altinity-agents
     spec:
-      serviceAccountName: altinn-ai-agents-sa
+      serviceAccountName: altinn-altinity-agents-sa
       containers:
-        - name: altinn-ai-agents
-          image: altinn-ai-agents:latest
+        - name: altinn-altinity-agents
+          image: altinn-altinity-agents:latest
           ports:
             - containerPort: 8071
               name: http
@@ -37,17 +37,17 @@ spec:
             - name: AZURE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-ai-agents-secret
+                  name: altinn-altinity-agents-secret
                   key: AZURE_API_KEY
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-ai-agents-secret
+                  name: altinn-altinity-agents-secret
                   key: LANGFUSE_SECRET_KEY
             - name: LANGFUSE_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
-                  name: altinn-ai-agents-secret
+                  name: altinn-altinity-agents-secret
                   key: LANGFUSE_PUBLIC_KEY
             - name: LANGFUSE_BASE_URL
               value: "https://langfuse.digdir.cloud"
