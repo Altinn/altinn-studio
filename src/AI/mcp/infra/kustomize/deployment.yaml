@@ -22,7 +22,7 @@ spec:
         - name: altinn-mcp-server
           image: altinn-mcp-server:latest
           ports:
-            - containerPort: 8069
+            - containerPort: 8070
               name: http
               protocol: TCP
           env:
