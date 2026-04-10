@@ -40,6 +40,7 @@ function parseEngineHealth(res) {
 
 /**
  * Polls the workflows list endpoint until it returns 204 No Content (no active workflows).
+ * Uses pageSize=1 to minimise data transfer — only the totalCount matters.
  * @param {number} pollIntervalMs - milliseconds between polls
  */
 export function waitForQueueDrain(pollIntervalMs = 500) {
@@ -47,17 +48,17 @@ export function waitForQueueDrain(pollIntervalMs = 500) {
 
     let drained = false;
     const start = Date.now();
+    const pollUrl = `${BASE_URL}?pageSize=1`;
 
     while (!drained) {
         try {
-            const res = http.get(BASE_URL, { tags: { name: 'queue_drain' } });
+            const res = http.get(pollUrl, { tags: { name: 'queue_drain' } });
 
             if (res.status === 204) {
                 drained = true;
             } else if (res.status === 200) {
-                const workflows = JSON.parse(res.body);
-                const count = Array.isArray(workflows) ? workflows.length : '?';
-                console.log(`  Active workflows: ${count}`);
+                const body = JSON.parse(res.body);
+                console.log(`  Active workflows: ${body.totalCount ?? '?'}`);
             } else {
                 console.warn(`  Unexpected status: ${res.status}`);
             }

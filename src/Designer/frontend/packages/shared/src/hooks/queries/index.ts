@@ -15,3 +15,5 @@ export { useUserQuery } from './useUserQuery';
 export { useResourcePolicyActionsQuery } from './useResourcePolicyActionsQuery';
 export { useResourcePolicySubjectsQuery } from './useResourcePolicySubjectsQuery';
 export { useResourceAccessPackagesQuery } from './useResourceAccessPackagesQuery';
+export { useUserOrgPermissionsQuery } from './useUserOrgPermissionsQuery';
+export { useOrganizationsQuery } from './useOrganizationsQuery';

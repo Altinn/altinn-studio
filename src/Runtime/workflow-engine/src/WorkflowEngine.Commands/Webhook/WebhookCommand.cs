@@ -56,7 +56,7 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     }
 
     /// <inheritdoc/>
-    protected override async Task<ExecutionResult> ExecuteAsync(
+    protected override async Task<ExecutionResult> Execute(
         CommandExecutionContext context,
         CancellationToken cancellationToken
     )

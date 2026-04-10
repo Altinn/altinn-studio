@@ -83,7 +83,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     }
 
     /// <inheritdoc/>
-    protected override async Task<ExecutionResult> ExecuteAsync(
+    protected override async Task<ExecutionResult> Execute(
         CommandExecutionContext context,
         CancellationToken cancellationToken
     )

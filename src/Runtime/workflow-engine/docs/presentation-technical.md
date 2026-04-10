@@ -273,7 +273,7 @@ When active workflows exceed the backpressure threshold, the engine returns **HT
 ### API
 
 - `GET /api/v1/{namespace}/workflows/{id}` &mdash; status, steps, errors, retry counts
-- `GET /api/v1/{namespace}/workflows` &mdash; list with filtering
+- `GET /api/v1/{namespace}/workflows?page=1&pageSize=25` &mdash; paginated list with filtering
 - Health endpoints: `/health`, `/health/ready`, `/health/live`
 
 ---

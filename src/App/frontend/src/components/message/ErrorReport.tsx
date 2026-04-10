@@ -143,7 +143,7 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
 }
 
 /**
- * @see InstantiateContainer Contains somewhat similar logic, but for a full-screen error page.
+ * @see instanceSelectionLoader Contains somewhat similar error handling logic in the route loader.
  */
 export function ErrorListFromInstantiation({ error }: { error: unknown }) {
   const selectedParty = useSelectedParty();

@@ -47,18 +47,23 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
+  const { isValidPageId } = useNavigatePage();
+  const shouldNavigateToStart = !currentPageId || !isValidPageId(currentPageId);
 
   useEffect(() => {
-    if (shouldValidateFormPage) {
+    if (shouldValidateFormPage && !shouldNavigateToStart) {
       onFormSubmitValidation();
-      setSearchParams((params) => {
-        params.delete(SearchParams.Validate);
-        return searchParams;
-      });
+      setSearchParams(
+        (params) => {
+          const nextParams = new URLSearchParams(params);
+          nextParams.delete(SearchParams.Validate);
+          return nextParams;
+        },
+        { replace: true },
+      );
     }
-  }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage]);
+  }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage, shouldNavigateToStart]);
 
-  const { isValidPageId } = useNavigatePage();
   const appName = useAppName();
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
@@ -76,7 +81,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useRedirectToStoredPage();
   useSetExpandedWidth();
 
-  if (!currentPageId || !isValidPageId(currentPageId)) {
+  if (shouldNavigateToStart) {
     return <NavigateToStartUrl forceCurrentTask={false} />;
   }
 

@@ -36,18 +36,13 @@ public class WorkflowWriteBufferTests
                 MaxDbOperations = 5,
                 MaxHttpCalls = 5,
             },
-            WriteBuffer = new BufferSettings
+            WriteBuffer = new WriteBufferSettings
             {
                 MaxBatchSize = maxBatchSize,
                 MaxQueueSize = maxQueueSize,
                 FlushConcurrency = flushConcurrency,
             },
-            UpdateBuffer = new BufferSettings
-            {
-                MaxBatchSize = 10,
-                MaxQueueSize = 50,
-                FlushConcurrency = 2,
-            },
+            UpdateBuffer = new UpdateBufferSettings { MaxBatchSize = 10, MaxQueueSize = 50 },
         };
 
     private static (WorkflowWriteBuffer Buffer, Mock<IEngineRepository> Repo, AsyncSignal Signal) CreateBuffer(
@@ -119,7 +114,7 @@ public class WorkflowWriteBufferTests
     private static void SetupMockCreated(Mock<IEngineRepository> repo, TaskCompletionSource? gate = null)
     {
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -142,7 +137,7 @@ public class WorkflowWriteBufferTests
 
         var workflowIds = new[] { Guid.NewGuid() };
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -163,7 +158,7 @@ public class WorkflowWriteBufferTests
             Assert.Equal(workflowIds, outcome.WorkflowIds);
             repo.Verify(
                 r =>
-                    r.BatchEnqueueWorkflowsAsync(
+                    r.BatchEnqueueWorkflows(
                         It.Is<IReadOnlyList<BufferedEnqueueRequest>>(b => b.Count == 1),
                         It.IsAny<CancellationToken>()
                     ),
@@ -187,7 +182,7 @@ public class WorkflowWriteBufferTests
         var batchSizes = new List<int>();
         var gate = new TaskCompletionSource();
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -251,7 +246,7 @@ public class WorkflowWriteBufferTests
 
         // Also capture batch sizes
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -301,7 +296,7 @@ public class WorkflowWriteBufferTests
 
         var expectedException = new InvalidOperationException("DB connection failed");
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -366,7 +361,7 @@ public class WorkflowWriteBufferTests
         // Use a gate to hold the flush loop so we can cancel before items are processed
         var gate = new TaskCompletionSource();
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -444,7 +439,7 @@ public class WorkflowWriteBufferTests
 
         var existingIds = new[] { Guid.NewGuid() };
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -480,7 +475,7 @@ public class WorkflowWriteBufferTests
 
         var flushCount = 0;
         repo.Setup(r =>
-                r.BatchEnqueueWorkflowsAsync(
+                r.BatchEnqueueWorkflows(
                     It.IsAny<IReadOnlyList<BufferedEnqueueRequest>>(),
                     It.IsAny<CancellationToken>()
                 )
