@@ -10,7 +10,10 @@ import {
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
+import {
+  type AppValidationResult,
+  useAppValidationQuery,
+} from 'app-development/hooks/queries/useAppValidationQuery';
 import { formatDateAndTime } from '../../utils/formatDateAndTime';
 import classes from './AppValidationDialog.module.css';
 import { type ErrorItem, mapErrorKeyErrorItems } from 'app-shared/utils/appValidationUtils';
@@ -44,7 +47,7 @@ export const AppValidationDialog = () => {
   );
 };
 
-type AppValidationErrorSummaryProps = { validationResult: any };
+type AppValidationErrorSummaryProps = { validationResult: AppValidationResult | undefined };
 
 const AppValidationErrorSummary = ({ validationResult }: AppValidationErrorSummaryProps) => {
   if (validationResult?.errors) {
@@ -53,7 +56,11 @@ const AppValidationErrorSummary = ({ validationResult }: AppValidationErrorSumma
   return null;
 };
 
-const AltinnAppServiceResourceValidation = ({ validationResult }: { validationResult: any }) => {
+const AltinnAppServiceResourceValidation = ({
+  validationResult,
+}: {
+  validationResult: AppValidationResult;
+}) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -63,7 +70,7 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
     navigate({ pathname: `/${org}/${app}/app-settings`, search: `?${search}` });
   };
 
-  const errorKeys = Object.keys(validationResult.errors);
+  const errorKeys = Object.keys(validationResult?.errors || {});
 
   const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t);
   const warningItems = mapErrorKeyErrorItems(errorKeys, 'warning', org, app, t);
