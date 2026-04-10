@@ -8,10 +8,10 @@ import (
 )
 
 func applyProcessAttrs(cmd *exec.Cmd) {
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		HideWindow:    true,
-		CreationFlags: detachedProcess | syscall.CREATE_NEW_PROCESS_GROUP,
-	}
+	var attr syscall.SysProcAttr
+	attr.HideWindow = true
+	attr.CreationFlags = detachedProcess | syscall.CREATE_NEW_PROCESS_GROUP
+	cmd.SysProcAttr = &attr
 }
 
 const detachedProcess = 0x00000008
