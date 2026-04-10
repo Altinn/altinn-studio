@@ -25,6 +25,7 @@ public class CancellationTests
                 b.Submit(
                     It.IsAny<Workflow>(),
                     It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<Activity?>()
                 )

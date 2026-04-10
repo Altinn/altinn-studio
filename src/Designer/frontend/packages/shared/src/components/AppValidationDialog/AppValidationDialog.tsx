@@ -7,13 +7,16 @@ import {
   StudioLink,
   StudioParagraph,
 } from '@studio/components';
-import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
+import {
+  type AppValidationResult,
+  useAppValidationQuery,
+} from 'app-development/hooks/queries/useAppValidationQuery';
 import { formatDateAndTime } from '../../utils/formatDateAndTime';
 import classes from './AppValidationDialog.module.css';
+import { type ErrorItem, mapErrorKeyErrorItems } from 'app-shared/utils/appValidationUtils';
 
 export const AppValidationDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -44,7 +47,7 @@ export const AppValidationDialog = () => {
   );
 };
 
-type AppValidationErrorSummaryProps = { validationResult: any };
+type AppValidationErrorSummaryProps = { validationResult: AppValidationResult | undefined };
 
 const AppValidationErrorSummary = ({ validationResult }: AppValidationErrorSummaryProps) => {
   if (validationResult?.errors) {
@@ -53,127 +56,81 @@ const AppValidationErrorSummary = ({ validationResult }: AppValidationErrorSumma
   return null;
 };
 
-const AltinnAppServiceResourceValidation = ({ validationResult }: { validationResult: any }) => {
+const AltinnAppServiceResourceValidation = ({
+  validationResult,
+}: {
+  validationResult: AppValidationResult;
+}) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const navigate = useNavigate();
-
-  const errorKeys = Object.keys(validationResult.errors);
-  const errorItems = errorKeys.map((errorKey) => {
-    const fieldConfig = getFieldConfig(errorKey);
-    const anchor = fieldConfig?.anchor ?? '';
-    const search = `currentTab=about&focus=${anchor}`;
-    const fullHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?${search}`;
-    const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
-    return { errorKey, search, fullHref, errorMessage };
-  });
 
   const handleErrorLinkClick = (search: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     navigate({ pathname: `/${org}/${app}/app-settings`, search: `?${search}` });
   };
 
+  const errorKeys = Object.keys(validationResult?.errors || {});
+
+  const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t);
+  const warningItems = mapErrorKeyErrorItems(errorKeys, 'warning', org, app, t);
+
   return (
-    <div>
-      <StudioAlert data-color='warning'>
-        <StudioHeading className={classes.validationHeader}>
-          {t('app_validation.app_metadata.warnings')}
-        </StudioHeading>
-        <StudioErrorSummary.List>
-          {errorItems.map(({ errorKey, search, fullHref, errorMessage }) => (
-            <StudioErrorSummary.Item key={errorKey}>
-              <StudioLink
-                className={classes.validationLink}
-                href={fullHref}
-                onClick={handleErrorLinkClick(search)}
-              >
-                {errorMessage}
-              </StudioLink>
-            </StudioErrorSummary.Item>
-          ))}
-        </StudioErrorSummary.List>
-      </StudioAlert>
+    <div className={classes.validationAlertsWrapper}>
+      {errorItems.length > 0 && (
+        <AppValidationAlert
+          errorItems={errorItems}
+          severity='danger'
+          handleErrorLinkClick={handleErrorLinkClick}
+          title={t('app_validation.app_metadata.errors')}
+          description={t('app_validation.app_metadata.errors_description')}
+        />
+      )}
+      {warningItems.length > 0 && (
+        <AppValidationAlert
+          errorItems={warningItems}
+          severity='warning'
+          title={t('app_validation.app_metadata.warnings')}
+          description={t('app_validation.app_metadata.warnings_description')}
+          handleErrorLinkClick={handleErrorLinkClick}
+        />
+      )}
     </div>
   );
 };
 
-const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
-  if (VALIDATION_FIELD_CONFIG[errorKey]) {
-    return VALIDATION_FIELD_CONFIG[errorKey];
-  }
-
-  const contactPointMatch = errorKey.match(/^contactPoints\[(\d+)\]$/);
-  if (contactPointMatch) {
-    const index = contactPointMatch[1];
-    return {
-      anchor: `contactPoints-${index}`,
-      translationKey: 'app_validation.app_metadata.contact_points.incomplete',
-    };
-  }
-
-  return undefined;
+export type AppValidationAlertProps = {
+  errorItems: ErrorItem[];
+  severity: 'warning' | 'danger';
+  title: string;
+  description: string;
+  handleErrorLinkClick?: (search: string) => (e: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
-type FieldConfig = {
-  anchor: string;
-  translationKey: string;
-};
-
-const VALIDATION_FIELD_CONFIG: Record<string, FieldConfig> = {
-  identifier: {
-    anchor: 'identifier',
-    translationKey: 'app_validation.app_metadata.identifier.required',
-  },
-  title: {
-    anchor: 'title-nb',
-    translationKey: 'app_validation.app_metadata.title.required',
-  },
-  'title.nb': {
-    anchor: 'title-nb',
-    translationKey: 'app_validation.app_metadata.title.nb.required',
-  },
-  'title.nn': {
-    anchor: 'title-nn',
-    translationKey: 'app_validation.app_metadata.title.nn.required',
-  },
-  'title.en': {
-    anchor: 'title-en',
-    translationKey: 'app_validation.app_metadata.title.en.required',
-  },
-  description: {
-    anchor: 'description-nb',
-    translationKey: 'app_validation.app_metadata.description.required',
-  },
-  'description.nb': {
-    anchor: 'description-nb',
-    translationKey: 'app_validation.app_metadata.description.nb.required',
-  },
-  'description.nn': {
-    anchor: 'description-nn',
-    translationKey: 'app_validation.app_metadata.description.nn.required',
-  },
-  'description.en': {
-    anchor: 'description-en',
-    translationKey: 'app_validation.app_metadata.description.en.required',
-  },
-  'access.rightDescription': {
-    anchor: 'rightDescription-nb',
-    translationKey: 'app_validation.app_metadata.right_description.required',
-  },
-  'access.rightDescription.nb': {
-    anchor: 'rightDescription-nb',
-    translationKey: 'app_validation.app_metadata.right_description.nb.required',
-  },
-  'access.rightDescription.nn': {
-    anchor: 'rightDescription-nn',
-    translationKey: 'app_validation.app_metadata.right_description.nn.required',
-  },
-  'access.rightDescription.en': {
-    anchor: 'rightDescription-en',
-    translationKey: 'app_validation.app_metadata.right_description.en.required',
-  },
-  contactPoints: {
-    anchor: 'contactPoints-0',
-    translationKey: 'app_validation.app_metadata.contact_points.required',
-  },
+const AppValidationAlert = ({
+  errorItems,
+  severity,
+  title,
+  description,
+  handleErrorLinkClick,
+}: AppValidationAlertProps) => {
+  return (
+    <StudioAlert data-color={severity}>
+      <StudioHeading className={classes.validationHeader}>{title}</StudioHeading>
+      <StudioParagraph spacing>{description}</StudioParagraph>
+      <StudioErrorSummary.List>
+        {errorItems.map(({ errorKey, search, fullHref, errorMessage }) => (
+          <StudioErrorSummary.Item key={errorKey}>
+            <StudioLink
+              className={classes.validationLink}
+              href={fullHref}
+              onClick={handleErrorLinkClick(search)}
+            >
+              {errorMessage}
+            </StudioLink>
+          </StudioErrorSummary.Item>
+        ))}
+      </StudioErrorSummary.List>
+    </StudioAlert>
+  );
 };

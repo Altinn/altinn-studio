@@ -102,6 +102,16 @@ public static class Metrics
         "Amount of time a step spent in the engine, start to finish (seconds). Includes time spend on the queue due to retries."
     );
 
+    public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(
+        "engine.update_buffer.deduplicated",
+        description: "Number of redundant status updates eliminated by deduplication in the update buffer"
+    );
+
+    public static readonly Counter<long> UpdateBufferDroppedItems = Meter.CreateCounter<long>(
+        "engine.update_buffer.dropped",
+        description: "Number of fire-and-forget status updates dropped because the update buffer channel was full"
+    );
+
     public static readonly Counter<long> DbOperationsSucceeded = Meter.CreateCounter<long>(
         "engine.db.operations.success"
     );
