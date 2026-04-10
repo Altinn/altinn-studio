@@ -127,7 +127,7 @@ func isLocalRegistryReference(image string) bool {
 
 // CreateContainer creates and optionally starts a container.
 //
-//nolint:gocyclo // The Podman CLI argument assembly is easiest to review inline.
+//nolint:gocyclo,gocognit // The Podman CLI argument assembly is easiest to review inline.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	args := []string{"create"}
 

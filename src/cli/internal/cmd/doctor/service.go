@@ -125,18 +125,18 @@ type ContainerTool struct {
 
 // Network contains network diagnostics and cache/probe data.
 type Network struct {
+	PingOK            *bool           `json:"pingOk,omitempty"`
+	CacheExists       *bool           `json:"cacheExists,omitempty"`
+	CacheFresh        *bool           `json:"cacheFresh,omitempty"`
 	Mode              string          `json:"mode"`
 	HostGateway       string          `json:"hostGateway,omitempty"`
 	HostDNS           string          `json:"hostDns,omitempty"`
 	ContainerDNS      string          `json:"containerDns,omitempty"`
-	LocalhostAddrs    []string        `json:"localhostAddrs,omitempty"`
 	LocalhostError    string          `json:"localhostError,omitempty"`
-	LoopbackEndpoints []LoopbackProbe `json:"loopbackEndpoints,omitempty"`
-	PingOK            *bool           `json:"pingOk,omitempty"`
-	CacheExists       *bool           `json:"cacheExists,omitempty"`
-	CacheFresh        *bool           `json:"cacheFresh,omitempty"`
 	CacheAge          string          `json:"cacheAge,omitempty"`
 	Error             string          `json:"error,omitempty"`
+	LocalhostAddrs    []string        `json:"localhostAddrs,omitempty"`
+	LoopbackEndpoints []LoopbackProbe `json:"loopbackEndpoints,omitempty"`
 }
 
 // LoopbackProbe describes reachability for one loopback endpoint.

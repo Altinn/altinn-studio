@@ -255,34 +255,64 @@ func EnsureStarted(ctx context.Context, cfg *config.Config, loadBalancerPort, lo
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
 
+	return ensureStartedFromPersistedState(ctx, cfg, client, desired)
+}
+
+func ensureStartedFromPersistedState(
+	ctx context.Context,
+	cfg *config.Config,
+	client *Client,
+	desired startConfig,
+) error {
 	state, ok, err := readAppManagerState(cfg)
 	if err != nil {
 		return fmt.Errorf("read app-manager pid file: %w", err)
 	}
+	if !ok {
+		return startProcess(ctx, cfg, desired)
+	}
 
+	return reconcilePersistedProcess(ctx, cfg, client, state, desired)
+}
+
+func reconcilePersistedProcess(
+	ctx context.Context,
+	cfg *config.Config,
+	client *Client,
+	state runtimeState,
+	desired startConfig,
+) error {
+	running, err := isProcessRunning(state.PID)
+	if err != nil {
+		return fmt.Errorf("check persisted app-manager pid %d: %w", state.PID, err)
+	}
+
+	if !running {
+		return restartFromPersistedState(ctx, cfg, desired, 0)
+	}
+
+	if state.Start == desired {
+		status, waitErr := waitForHealthy(ctx, cfg, client)
+		if waitErr == nil {
+			return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+		}
+	}
+
+	return restartFromPersistedState(ctx, cfg, desired, state.PID)
+}
+
+func restartFromPersistedState(ctx context.Context, cfg *config.Config, desired startConfig, pid int) error {
+	if pid > 0 {
+		if err := killProcess(pid); err != nil {
+			return fmt.Errorf("stop persisted app-manager pid %d: %w", pid, err)
+		}
+	}
+
+	_, ok, err := readAppManagerState(cfg)
+	if err != nil {
+		return fmt.Errorf("read app-manager pid file: %w", err)
+	}
 	if ok {
-		running, err := isProcessRunning(state.PID)
-		if err != nil {
-			return fmt.Errorf("check persisted app-manager pid %d: %w", state.PID, err)
-		}
-
-		if !running {
-			if err := removeAppManagerState(cfg); err != nil {
-				return fmt.Errorf("remove stale app-manager pid file: %w", err)
-			}
-			return startProcess(ctx, cfg, desired)
-		}
-
-		if state.Start == desired {
-			status, err := waitForHealthy(ctx, cfg, client)
-			if err == nil {
-				return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
-			}
-		}
-
-		if err := killProcess(state.PID); err != nil {
-			return fmt.Errorf("stop persisted app-manager pid %d: %w", state.PID, err)
-		}
 		if err := removeAppManagerState(cfg); err != nil {
 			return fmt.Errorf("remove stale app-manager pid file: %w", err)
 		}
@@ -353,14 +383,17 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	cmd.Stderr = devNull
 	applyProcessAttrs(cmd)
 
-	if err := cmd.Start(); err != nil {
+	err = cmd.Start()
+	if err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
-	if err := writeAppManagerState(cfg, runtimeState{PID: cmd.Process.Pid, Start: startConfig}); err != nil {
+	err = writeAppManagerState(cfg, runtimeState{PID: cmd.Process.Pid, Start: startConfig})
+	if err != nil {
 		ignoreError(cmd.Process.Kill())
 		return fmt.Errorf("write app-manager pid file: %w", err)
 	}
-	if err := cmd.Process.Release(); err != nil {
+	err = cmd.Process.Release()
+	if err != nil {
 		ignoreError(removeAppManagerState(cfg))
 		return fmt.Errorf("release app-manager process handle: %w", err)
 	}
@@ -460,17 +493,24 @@ func waitForManagedShutdown(ctx context.Context, cfg *config.Config, client *Cli
 }
 
 func stopPersistedProcess(cfg *config.Config, pid int) error {
-	if pid > 0 {
-		running, err := isProcessRunning(pid)
-		if err != nil {
-			return fmt.Errorf("check app-manager pid %d: %w", pid, err)
-		}
-		if running {
-			if err := killProcess(pid); err != nil {
-				return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
-			}
+	if pid <= 0 {
+		return removePersistedAppManagerState(cfg)
+	}
+
+	running, err := isProcessRunning(pid)
+	if err != nil {
+		return fmt.Errorf("check app-manager pid %d: %w", pid, err)
+	}
+	if running {
+		if err := killProcess(pid); err != nil {
+			return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
 		}
 	}
+
+	return removePersistedAppManagerState(cfg)
+}
+
+func removePersistedAppManagerState(cfg *config.Config) error {
 	if err := removeAppManagerState(cfg); err != nil {
 		return fmt.Errorf("remove stale app-manager pid file: %w", err)
 	}

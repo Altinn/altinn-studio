@@ -143,7 +143,7 @@ namespace LocalTest.Controllers
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
-                UserProfile? profile = await _userProfileService.GetUser(startAppModel.UserId);
+                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
                 if (profile == null)
                 {
                     return BadRequest("User not found");

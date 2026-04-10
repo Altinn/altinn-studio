@@ -157,9 +157,9 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			ContainerPDF3,
 			[]types.PortMapping{newPort("5300", "5031")},
 			map[string]string{
-				"TZ":                             "Europe/Oslo",
-				"PDF3_ENVIRONMENT":               "localtest",
-				"PDF3_QUEUE_SIZE":                "3",
+				"TZ":               "Europe/Oslo",
+				"PDF3_ENVIRONMENT": "localtest",
+				"PDF3_QUEUE_SIZE":  "3",
 				// pdf3 reaches localtest over the container network, not through the host-published load balancer port.
 				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + localtestServicePort,
 			},
@@ -454,17 +454,18 @@ func newContainerResource(
 ) *resource.Container {
 	if mode == containerModeDestroy {
 		return &resource.Container{
-			Name:          spec.Name,
-			Image:         resource.Ref(imageRes),
-			Networks:      []resource.ResourceRef{network},
-			Labels:        labels,
-			Ports:         nil,
-			Volumes:       nil,
-			Env:           nil,
-			Command:       nil,
-			ExtraHosts:    nil,
-			RestartPolicy: "",
-			User:          "",
+			Name:           spec.Name,
+			Image:          resource.Ref(imageRes),
+			Networks:       []resource.ResourceRef{network},
+			NetworkAliases: nil,
+			Labels:         labels,
+			Ports:          nil,
+			Volumes:        nil,
+			Env:            nil,
+			Command:        nil,
+			ExtraHosts:     nil,
+			RestartPolicy:  "",
+			User:           "",
 		}
 	}
 

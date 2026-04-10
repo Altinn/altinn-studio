@@ -109,7 +109,11 @@ func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *te
 	}
 
 	if got := pdf3.Environment["PDF3_LOCALTEST_PUBLIC_BASE_URL"]; got != "http://local.altinn.cloud:5101" {
-		t.Fatalf("pdf3.Environment[PDF3_LOCALTEST_PUBLIC_BASE_URL] = %q, want %q", got, "http://local.altinn.cloud:5101")
+		t.Fatalf(
+			"pdf3.Environment[PDF3_LOCALTEST_PUBLIC_BASE_URL] = %q, want %q",
+			got,
+			"http://local.altinn.cloud:5101",
+		)
 	}
 }
 

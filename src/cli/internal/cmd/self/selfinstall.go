@@ -38,8 +38,9 @@ var (
 	// ErrAlreadyInstalled is returned when the binary is already at the target location.
 	ErrAlreadyInstalled = errors.New("binary already installed at this location")
 
-	errInstallFileSourceRequired = errors.New("install file: empty source path")
-	errInstallFileTargetRequired = errors.New("install file: empty target path")
+	errInstallFileSourceRequired     = errors.New("install file: empty source path")
+	errInstallFileTargetRequired     = errors.New("install file: empty target path")
+	errInstallFileSourceNotDirectory = errors.New("install file: source is not a directory")
 )
 
 // Candidate represents a potential installation directory.
@@ -357,6 +358,7 @@ func retryReplacePathWindows(src, dst string) error {
 }
 
 func replacePathOnce(src, dst string) error {
+	//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 	initialRenameErr := os.Rename(src, dst)
 	if initialRenameErr == nil {
 		return nil
@@ -369,6 +371,7 @@ func replacePathOnce(src, dst string) error {
 		return errors.Join(renameErr, err)
 	}
 
+	//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 	moveToBackupErr := os.Rename(dst, backupPath)
 	if moveToBackupErr != nil {
 		if errors.Is(moveToBackupErr, os.ErrNotExist) {
@@ -385,7 +388,9 @@ func replacePathOnce(src, dst string) error {
 		)
 	}
 
+	//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 	if err := os.Rename(src, dst); err != nil {
+		//nolint:gosec // G304/G703: both paths are resolved inside the staged install flow.
 		restoreErr := os.Rename(backupPath, dst)
 		if restoreErr != nil {
 			return errors.Join(
@@ -396,6 +401,7 @@ func replacePathOnce(src, dst string) error {
 		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err)
 	}
 
+	//nolint:gosec // G304/G703: backup paths are created within the staged install flow.
 	if removeErr := os.RemoveAll(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
 		return fmt.Errorf("replace destination: remove backup %q: %w", backupPath, removeErr)
 	}
@@ -421,6 +427,7 @@ func reserveBackupPath(dst string) (string, error) {
 		return "", cleanupTempFile(backupPath, err)
 	}
 
+	//nolint:gosec // G304/G703: backup paths are created within the staged install flow.
 	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return "", fmt.Errorf("replace destination: prepare backup path %q: %w", backupPath, err)
 	}
@@ -431,6 +438,7 @@ func reserveBackupPath(dst string) (string, error) {
 func cleanupTempFile(path string, errs ...error) error {
 	joined := errors.Join(errs...)
 
+	//nolint:gosec // G304/G703: temp paths are created within the staged install flow.
 	if removeErr := os.Remove(path); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
 		return errors.Join(joined, fmt.Errorf("remove temp file %q: %w", path, removeErr))
 	}
@@ -456,7 +464,7 @@ func pathInstructions(goos, dir string) string {
 			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
 			"",
 			"  # For fish (~/.config/fish/config.fish):",
-			fmt.Sprintf("  fish_add_path %s", dir),
+			"  fish_add_path "+dir,
 			"",
 			"Then restart your shell or run: source ~/.bashrc (or equivalent)",
 		)
@@ -481,7 +489,7 @@ func pathInstructions(goos, dir string) string {
 			"",
 			"  1. Open System Properties > Environment Variables",
 			`  2. Under "User variables", select "Path" and click "Edit"`,
-			fmt.Sprintf("  3. Click \"New\" and add: %s", displayDir),
+			"  3. Click \"New\" and add: "+displayDir,
 			"  4. Click OK and restart your terminal",
 			"",
 			"Or run this in PowerShell (as Administrator):",

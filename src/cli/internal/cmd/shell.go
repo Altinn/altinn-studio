@@ -42,7 +42,7 @@ func (c *ShellCommand) Usage() string {
 		fmt.Sprintf("Configure shell integration for %s.", osutil.CurrentBin()),
 		"",
 		"Subcommands:",
-		fmt.Sprintf("  alias    Configure a shell alias for %s", osutil.CurrentBin()),
+		"  alias    Configure a shell alias for "+osutil.CurrentBin(),
 		"",
 		fmt.Sprintf("Run '%s shell <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)

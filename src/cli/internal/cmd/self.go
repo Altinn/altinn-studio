@@ -225,8 +225,8 @@ func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	if err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
 		c.out.Verbosef("failed to stop existing app-manager before install: %v", err)
 	} else if done != nil {
-		if err := <-done; err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
-			c.out.Verbosef("failed to stop existing app-manager before install: %v", err)
+		if shutdownErr := <-done; shutdownErr != nil && !errors.Is(shutdownErr, appmanager.ErrNotRunning) {
+			c.out.Verbosef("failed to stop existing app-manager before install: %v", shutdownErr)
 		}
 	}
 

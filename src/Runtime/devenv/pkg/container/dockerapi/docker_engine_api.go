@@ -202,7 +202,7 @@ func (c *Client) Push(ctx context.Context, img string) error {
 
 // CreateContainer creates and optionally starts a container.
 //
-//nolint:funlen,nestif // The Docker container create flow mirrors the underlying API shape.
+//nolint:funlen,nestif,gocognit,gocyclo // The Docker container create flow mirrors the underlying API shape.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	// Ensure image exists locally, pull if missing
 	_, err := c.cli.ImageInspect(ctx, cfg.Image)

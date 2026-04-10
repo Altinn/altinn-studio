@@ -28,16 +28,18 @@ func InstallDir(srcDir, targetDir string, validate func(string) error) (string, 
 	if err != nil {
 		return "", fmt.Errorf("resolve target directory: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Dir(absTarget), osutil.DirPermDefault); err != nil {
+	err = os.MkdirAll(filepath.Dir(absTarget), osutil.DirPermDefault)
+	if err != nil {
 		return "", fmt.Errorf("create target parent directory: %w", err)
 	}
 
+	//nolint:gosec // G304/G703: source path is resolved from an explicit developer-supplied path.
 	info, err := os.Stat(absSource)
 	if err != nil {
 		return "", fmt.Errorf("stat source directory: %w", err)
 	}
 	if !info.IsDir() {
-		return "", fmt.Errorf("source is not a directory: %s", absSource)
+		return "", fmt.Errorf("%w: %s", errInstallFileSourceNotDirectory, absSource)
 	}
 
 	stagingDir, err := os.MkdirTemp(filepath.Dir(absTarget), "."+filepath.Base(absTarget)+".tmp-*")
@@ -83,7 +85,8 @@ func InstallTarGz(
 	if err != nil {
 		return "", fmt.Errorf("resolve target directory: %w", err)
 	}
-	if err := os.MkdirAll(filepath.Dir(absTarget), osutil.DirPermDefault); err != nil {
+	err = os.MkdirAll(filepath.Dir(absTarget), osutil.DirPermDefault)
+	if err != nil {
 		return "", fmt.Errorf("create target parent directory: %w", err)
 	}
 
@@ -124,6 +127,7 @@ func copyDirectoryContents(srcDir, dstDir string) error {
 		}
 
 		if info.IsDir() {
+			//nolint:gosec // G304/G703: destination path is derived from the staged install directory.
 			if err := os.MkdirAll(dstPath, osutil.DirPermDefault); err != nil {
 				return fmt.Errorf("create destination directory %q: %w", dstPath, err)
 			}
@@ -137,6 +141,7 @@ func copyDirectoryContents(srcDir, dstDir string) error {
 			return fmt.Errorf("copy payload file %q: %w", srcPath, err)
 		}
 		if runtime.GOOS != osWindows {
+			//nolint:gosec // G304/G703: destination path is derived from the staged install directory.
 			if err := os.Chmod(dstPath, info.Mode().Perm()); err != nil {
 				return fmt.Errorf("set permissions on %q: %w", dstPath, err)
 			}

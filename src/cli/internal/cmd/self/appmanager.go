@@ -23,6 +23,11 @@ const (
 
 var errAppManagerVersionRequired = errors.New("version required for app-manager install")
 var errAppManagerPayloadRequired = errors.New("app-manager local source must be a payload directory or .tar.gz archive")
+var errAppManagerExecutablePathDirectory = errors.New("validate app-manager payload: executable path is a directory")
+
+var errAppManagerExecutableNotExecutable = errors.New(
+	"validate app-manager payload: executable is not marked executable",
+)
 
 // InstallAppManagerResult describes the installed app-manager binary path.
 type InstallAppManagerResult struct {
@@ -86,6 +91,7 @@ func (s *Service) installAppManagerPayload(ctx context.Context) (installedPath s
 }
 
 func (s *Service) installAppManagerFromLocalSource(localSourcePath string) (string, error) {
+	//nolint:gosec // G304/G703: this is an explicit developer-supplied local path.
 	info, err := os.Stat(localSourcePath)
 	if err != nil {
 		return "", fmt.Errorf("stat app-manager local source: %w", err)
@@ -119,10 +125,10 @@ func (s *Service) validatePayloadDir(payloadDir string) error {
 		return fmt.Errorf("validate app-manager payload: missing executable %q: %w", binaryPath, err)
 	}
 	if info.IsDir() {
-		return fmt.Errorf("validate app-manager payload: executable path is a directory: %s", binaryPath)
+		return fmt.Errorf("%w: %s", errAppManagerExecutablePathDirectory, binaryPath)
 	}
 	if runtime.GOOS != "windows" && info.Mode()&0o111 == 0 {
-		return fmt.Errorf("validate app-manager payload: executable is not marked executable: %s", binaryPath)
+		return fmt.Errorf("%w: %s", errAppManagerExecutableNotExecutable, binaryPath)
 	}
 	return nil
 }

@@ -323,7 +323,10 @@ func (o *Output) write(target io.Writer, msg string, newline bool) error {
 	}
 
 	_, err := io.WriteString(target, msg)
-	return err
+	if err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+	return nil
 }
 
 // logWriteErr logs a write error to stderr if verbose mode is enabled.

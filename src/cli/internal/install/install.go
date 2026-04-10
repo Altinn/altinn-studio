@@ -293,6 +293,7 @@ func installFromLocalTarball(tarballPath string, opts Options) (err error) {
 	return finishInstall(opts)
 }
 
+// ValidateTarballPath resolves a local tarball path and rejects symlinks or non-regular files.
 func ValidateTarballPath(path string) (string, error) {
 	trimmed := strings.TrimSpace(path)
 	if trimmed == "" {
@@ -392,12 +393,14 @@ func extractTarGz(r io.Reader, dst string) (err error) {
 	return extractTarGzWithOptions(r, dst, localtestResourcesExtractOptions())
 }
 
+// ExtractTarGzFile opens a validated tar.gz archive on disk and extracts it into dst.
 func ExtractTarGzFile(path, dst string, opts ExtractTarGzOptions) (err error) {
 	validatedPath, err := ValidateTarballPath(path)
 	if err != nil {
 		return err
 	}
 
+	//nolint:gosec // G304/G703: path validated by ValidateTarballPath.
 	info, err := os.Stat(validatedPath)
 	if err != nil {
 		return fmt.Errorf("stat tarball: %w", err)
@@ -487,7 +490,12 @@ func extractRegularFile(tr *tar.Reader, header *tar.Header, target string) (err 
 	return extractRegularFileWithLimit(tr, header, target, maxFileSize)
 }
 
-func extractRegularFileWithLimit(tr *tar.Reader, header *tar.Header, target string, maxEntryFileSize int64) (err error) {
+func extractRegularFileWithLimit(
+	tr *tar.Reader,
+	header *tar.Header,
+	target string,
+	maxEntryFileSize int64,
+) (err error) {
 	if header.Size < 0 {
 		return fmt.Errorf("%w: %s (%d)", ErrInvalidArchiveFileSize, header.Name, header.Size)
 	}

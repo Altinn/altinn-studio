@@ -104,8 +104,8 @@ func (s *Service) probeLoopbackEndpoints(ctx context.Context) []LoopbackProbe {
 	}
 
 	probes := []LoopbackProbe{
-		{Family: "ipv4", Endpoint: net.JoinHostPort("127.0.0.1", localtestPort)},
-		{Family: "ipv6", Endpoint: net.JoinHostPort("::1", localtestPort)},
+		{Family: "ipv4", Endpoint: net.JoinHostPort("127.0.0.1", localtestPort), Error: "", Reachable: false},
+		{Family: "ipv6", Endpoint: net.JoinHostPort("::1", localtestPort), Error: "", Reachable: false},
 	}
 
 	for i := range probes {
@@ -122,7 +122,10 @@ func (s *Service) probeLoopbackEndpoints(ctx context.Context) []LoopbackProbe {
 			continue
 		}
 		probes[i].Reachable = true
-		_ = conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			probes[i].Reachable = false
+			probes[i].Error = closeErr.Error()
+		}
 	}
 
 	return probes

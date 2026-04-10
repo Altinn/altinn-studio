@@ -187,7 +187,8 @@ func (b *StudioctlBuilder) publishAppManagerBinaries(
 		assetName := "app-manager-" + p.OS + "-" + p.Arch + ".tar.gz"
 
 		publishDir := filepath.Join(outputDir, ".app-manager-"+p.OS+"-"+p.Arch)
-		if err := EnsureCleanDir(publishDir); err != nil {
+		err = EnsureCleanDir(publishDir)
+		if err != nil {
 			return fmt.Errorf("prepare publish dir for %s: %w", assetName, err)
 		}
 
@@ -208,7 +209,8 @@ func (b *StudioctlBuilder) publishAppManagerBinaries(
 		cmd.Stderr = os.Stderr
 		cmd.Dir = buildDir
 
-		if err := cmd.Run(); err != nil {
+		err = cmd.Run()
+		if err != nil {
 			return fmt.Errorf("publish %s: %w", assetName, err)
 		}
 

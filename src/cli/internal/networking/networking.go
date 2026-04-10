@@ -178,19 +178,20 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 	}
 
 	cfg := types.ContainerConfig{
-		Name:          containerName,
-		Image:         n.cfg.Images.Utility.Busybox.Ref(),
-		Command:       []string{"sh", "-c", networkProbeScript()},
-		Env:           nil,
-		Ports:         nil,
-		Volumes:       nil,
-		ExtraHosts:    nil,
-		Networks:      nil,
-		RestartPolicy: "",
-		Detach:        false,
-		Labels:        nil,
-		User:          "",
-		CapAdd:        nil,
+		Name:           containerName,
+		Image:          n.cfg.Images.Utility.Busybox.Ref(),
+		Command:        []string{"sh", "-c", networkProbeScript()},
+		Env:            nil,
+		Ports:          nil,
+		Volumes:        nil,
+		ExtraHosts:     nil,
+		Networks:       nil,
+		RestartPolicy:  "",
+		Detach:         false,
+		Labels:         nil,
+		NetworkAliases: nil,
+		User:           "",
+		CapAdd:         nil,
 	}
 
 	containerID, err := n.client.CreateContainer(ctx, cfg)
