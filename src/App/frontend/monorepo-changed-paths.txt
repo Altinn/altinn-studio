@@ -38,6 +38,7 @@ src/features/form/layoutSets/
 src/features/form/layoutSettings/
 src/features/form/rules/RulesContext.tsx
 src/features/formData/LegacyRules.ts
+src/features/instantiate/containers/InstantiateContainer.tsx
 src/features/instantiate/useInstantiation.tsx
 src/features/language/LangDataSourcesProvider.tsx
 src/features/language/LangToolsStore.tsx
