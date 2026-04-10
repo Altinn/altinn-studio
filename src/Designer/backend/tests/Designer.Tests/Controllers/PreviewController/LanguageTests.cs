@@ -7,27 +7,24 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PreviewController
+namespace Designer.Tests.Controllers.PreviewController;
+
+public class LanguageTests : PreviewControllerTestsBase<LanguageTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public class LanguageTests
-        : PreviewControllerTestsBase<LanguageTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    public LanguageTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task Get_Text_Ok()
     {
-        public LanguageTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+        string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/texts/nb";
 
-        [Fact]
-        public async Task Get_Text_Ok()
-        {
-            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/texts/nb";
+        using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            TextResource text = JsonConvert.DeserializeObject<TextResource>(responseDocument.RootElement.ToString());
-            Assert.Equal("nb", text.Language);
-        }
+        string responseBody = await response.Content.ReadAsStringAsync();
+        JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+        TextResource text = JsonConvert.DeserializeObject<TextResource>(responseDocument.RootElement.ToString());
+        Assert.Equal("nb", text.Language);
     }
 }

@@ -12,8 +12,8 @@ import {
   EMPTY_SCHEMA_NAME,
   LAYOUT_SCHEMA_NAME,
 } from 'src/features/devtools/utils/layoutSchemaValidation';
+import { FormStore } from 'src/features/form/FormContext';
 import { isDev } from 'src/utils/isDev';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 interface Context {
   schemaValidator: ValidateFunc | undefined;
@@ -75,7 +75,7 @@ function FetchLayoutSchema({
 function useIsLayoutValidationEnabled() {
   const hasBeenEnabledBefore = useRef(false);
   const panelOpen = useDevToolsStore((s) => s.isOpen);
-  const hasErrors = NodesInternal.useHasErrors();
+  const hasErrors = FormStore.nodes.useHasErrors();
   const enabled = isDev() || hasErrors || panelOpen || hasBeenEnabledBefore.current;
   hasBeenEnabledBefore.current = enabled;
 

@@ -9,7 +9,7 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { getDescriptionId } from 'src/components/label/Label';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
@@ -36,7 +36,7 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
     useLabel({ baseComponentId, overrideDisplay });
 
   const { options, isFetching, selectedValues, setData } = useGetOptions(baseComponentId, 'single');
-  const debounce = FD.useDebounceImmediately();
+  const debounce = FormStore.data.useDebounceImmediately();
 
   const selectedLabels = selectedValues.map((value) => {
     const option = options.find((o) => o.value === value);

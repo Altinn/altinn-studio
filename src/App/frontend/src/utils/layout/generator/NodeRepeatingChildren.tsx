@@ -2,7 +2,7 @@ import React, { Fragment, useMemo } from 'react';
 
 import dot from 'dot-object';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
@@ -28,7 +28,7 @@ function NodeRepeatingChildrenWorker({ claims }: Props) {
   const multiPageSupport = 'edit.multiPage'; // Hardcoded for RepeatingGroup
   const item = GeneratorInternal.useIntermediateItem();
   const groupBinding = item?.dataModelBindings?.[binding];
-  const numRows = FD.useFreshNumRows(groupBinding);
+  const numRows = FormStore.data.useFreshNumRows(groupBinding);
   const multiPage = multiPageSupport && dot.pick(multiPageSupport, item) === true;
   const multiPageMapping = useMemo(
     () => (multiPage ? makeMultiPageMapping(item?.['children']) : undefined),

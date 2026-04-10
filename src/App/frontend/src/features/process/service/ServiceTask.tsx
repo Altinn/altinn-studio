@@ -5,7 +5,7 @@ import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { Button } from 'src/app-components/Button/Button';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppOwner } from 'src/core/texts/appTexts';
-import { useProcessNext } from 'src/features/instance/useProcessNext';
+import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -56,7 +56,7 @@ export function ServiceTask() {
 
 const RetryButton = () => {
   const canRetry = useIsAuthorized()('write');
-  const { mutateAsync: processRetry, isPending: isRetrying } = useProcessNext();
+  const { mutateAsync: processRetry, isPending: isRetrying } = useProcessNextOutsideFormProvider();
 
   return (
     <Button
@@ -73,7 +73,9 @@ const RetryButton = () => {
 
 const BackButton = () => {
   const canReject = useIsAuthorized()('reject');
-  const { mutateAsync: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
+  const { mutateAsync: processReject, isPending: isRejecting } = useProcessNextOutsideFormProvider({
+    action: 'reject',
+  });
 
   if (!canReject) {
     return null;

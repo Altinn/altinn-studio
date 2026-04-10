@@ -17,495 +17,485 @@ using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model;
+
+/// <summary>
+/// Repository represents a repository
+/// </summary>
+[DataContract]
+public partial class Repository : IEquatable<Repository>, IValidatableObject
 {
     /// <summary>
-    /// Repository represents a repository
+    /// Initializes a new instance of the <see cref="Repository"/> class.
     /// </summary>
-    [DataContract]
-    public partial class Repository : IEquatable<Repository>, IValidatableObject
+    public Repository() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Repository" /> class.
+    /// </summary>
+    /// <param name="cloneUrl">CloneUrl.</param>
+    /// <param name="createdAt">CreatedAt.</param>
+    /// <param name="defaultBranch">DefaultBranch.</param>
+    /// <param name="description">Description.</param>
+    /// <param name="empty">Empty.</param>
+    /// <param name="fork">Fork.</param>
+    /// <param name="forksCount">ForksCount.</param>
+    /// <param name="fullName">FullName.</param>
+    /// <param name="htmlUrl">HtmlUrl.</param>
+    /// <param name="id">Id.</param>
+    /// <param name="mirror">Mirror.</param>
+    /// <param name="name">Name.</param>
+    /// <param name="openIssuesCount">OpenIssuesCount.</param>
+    /// <param name="owner">Owner.</param>
+    /// <param name="parent">Parent.</param>
+    /// <param name="permissions">Permissions.</param>
+    /// <param name="private">_Private.</param>
+    /// <param name="size">Size.</param>
+    /// <param name="sshUrl">SshUrl.</param>
+    /// <param name="starsCount">StarsCount.</param>
+    /// <param name="updatedAt">UpdatedAt.</param>
+    /// <param name="watchersCount">WatchersCount.</param>
+    /// <param name="website">Website.</param>
+    public Repository(
+        string cloneUrl = default(string),
+        DateTime? createdAt = default(DateTime?),
+        string defaultBranch = default(string),
+        string description = default(string),
+        bool? empty = default(bool?),
+        bool? fork = default(bool?),
+        long? forksCount = default(long?),
+        string fullName = default(string),
+        string htmlUrl = default(string),
+        long? id = default(long?),
+        bool? mirror = default(bool?),
+        string name = default(string),
+        long? openIssuesCount = default(long?),
+        User owner = default(User),
+        Repository parent = default(Repository),
+        Permission permissions = default(Permission),
+        bool? @private = default(bool?),
+        long? size = default(long?),
+        string sshUrl = default(string),
+        long? starsCount = default(long?),
+        DateTime? updatedAt = default(DateTime?),
+        long? watchersCount = default(long?),
+        string website = default(string)
+    )
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Repository"/> class.
-        /// </summary>
-        public Repository() { }
+        this.CloneUrl = cloneUrl;
+        this.CreatedAt = createdAt;
+        this.DefaultBranch = defaultBranch;
+        this.Description = description;
+        this.Empty = empty;
+        this.Fork = fork;
+        this.ForksCount = forksCount;
+        this.FullName = fullName;
+        this.HtmlUrl = htmlUrl;
+        this.Id = id;
+        this.Mirror = mirror;
+        this.Name = name;
+        this.OpenIssuesCount = openIssuesCount;
+        this.Owner = owner;
+        this.Parent = parent;
+        this.Permissions = permissions;
+        this.IsPrivate = @private;
+        this.Size = size;
+        this.SshUrl = sshUrl;
+        this.StarsCount = starsCount;
+        this.UpdatedAt = updatedAt;
+        this.WatchersCount = watchersCount;
+        this.Website = website;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Repository" /> class.
-        /// </summary>
-        /// <param name="cloneUrl">CloneUrl.</param>
-        /// <param name="createdAt">CreatedAt.</param>
-        /// <param name="defaultBranch">DefaultBranch.</param>
-        /// <param name="description">Description.</param>
-        /// <param name="empty">Empty.</param>
-        /// <param name="fork">Fork.</param>
-        /// <param name="forksCount">ForksCount.</param>
-        /// <param name="fullName">FullName.</param>
-        /// <param name="htmlUrl">HtmlUrl.</param>
-        /// <param name="id">Id.</param>
-        /// <param name="mirror">Mirror.</param>
-        /// <param name="name">Name.</param>
-        /// <param name="openIssuesCount">OpenIssuesCount.</param>
-        /// <param name="owner">Owner.</param>
-        /// <param name="parent">Parent.</param>
-        /// <param name="permissions">Permissions.</param>
-        /// <param name="private">_Private.</param>
-        /// <param name="size">Size.</param>
-        /// <param name="sshUrl">SshUrl.</param>
-        /// <param name="starsCount">StarsCount.</param>
-        /// <param name="updatedAt">UpdatedAt.</param>
-        /// <param name="watchersCount">WatchersCount.</param>
-        /// <param name="website">Website.</param>
-        public Repository(
-            string cloneUrl = default(string),
-            DateTime? createdAt = default(DateTime?),
-            string defaultBranch = default(string),
-            string description = default(string),
-            bool? empty = default(bool?),
-            bool? fork = default(bool?),
-            long? forksCount = default(long?),
-            string fullName = default(string),
-            string htmlUrl = default(string),
-            long? id = default(long?),
-            bool? mirror = default(bool?),
-            string name = default(string),
-            long? openIssuesCount = default(long?),
-            User owner = default(User),
-            Repository parent = default(Repository),
-            Permission permissions = default(Permission),
-            bool? @private = default(bool?),
-            long? size = default(long?),
-            string sshUrl = default(string),
-            long? starsCount = default(long?),
-            DateTime? updatedAt = default(DateTime?),
-            long? watchersCount = default(long?),
-            string website = default(string)
-        )
+    /// <summary>
+    /// Gets or Sets CloneUrl
+    /// </summary>
+    [JsonProperty("clone_url")]
+    public string CloneUrl { get; set; }
+
+    /// <summary>
+    /// Gets or Sets CreatedAt
+    /// </summary>
+    [JsonProperty("created_at")]
+    public DateTime? CreatedAt { get; set; }
+
+    /// <summary>
+    /// Gets or Sets DefaultBranch
+    /// </summary>
+    [JsonProperty("default_branch")]
+    public string DefaultBranch { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Description
+    /// </summary>
+    [JsonProperty("description")]
+    public string Description { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Empty
+    /// </summary>
+    [JsonProperty("empty")]
+    public bool? Empty { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Fork
+    /// </summary>
+    [JsonProperty("fork")]
+    public bool? Fork { get; set; }
+
+    /// <summary>
+    /// Gets or Sets ForksCount
+    /// </summary>
+    [JsonProperty("forks_count")]
+    public long? ForksCount { get; set; }
+
+    /// <summary>
+    /// Gets or Sets FullName
+    /// </summary>
+    [JsonProperty("full_name")]
+    public string FullName { get; set; }
+
+    /// <summary>
+    /// Gets or Sets HtmlUrl
+    /// </summary>
+    [JsonProperty("html_url")]
+    public string HtmlUrl { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Id
+    /// </summary>
+    [JsonProperty("id")]
+    public long? Id { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Mirror
+    /// </summary>
+    [JsonProperty("mirror")]
+    public bool? Mirror { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Name
+    /// </summary>
+    [JsonProperty("name")]
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Gets or Sets OpenIssuesCount
+    /// </summary>
+    [JsonProperty("open_issues_count")]
+    public long? OpenIssuesCount { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Owner
+    /// </summary>
+    [JsonProperty("owner")]
+    public User Owner { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Parent
+    /// </summary>
+    [JsonProperty("parent")]
+    public Repository Parent { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Permissions
+    /// </summary>
+    [JsonProperty("permissions")]
+    public Permission Permissions { get; set; }
+
+    /// <summary>
+    /// Gets or Sets _Private
+    /// </summary>
+    [JsonProperty("private")]
+    public bool? IsPrivate { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Size
+    /// </summary>
+    [JsonProperty("size")]
+    public long? Size { get; set; }
+
+    /// <summary>
+    /// Gets or Sets SshUrl
+    /// </summary>
+    [JsonProperty("ssh_url")]
+    public string SshUrl { get; set; }
+
+    /// <summary>
+    /// Gets or Sets StarsCount
+    /// </summary>
+    [JsonProperty("stars_count")]
+    public long? StarsCount { get; set; }
+
+    /// <summary>
+    /// Gets or Sets UpdatedAt
+    /// </summary>
+    [JsonProperty("updated_at")]
+    public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Gets or Sets WatchersCount
+    /// </summary>
+    [JsonProperty("watchers_count")]
+    public long? WatchersCount { get; set; }
+
+    /// <summary>
+    /// Gets or Sets Website
+    /// </summary>
+    [JsonProperty("website")]
+    public string Website { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the repository is cloned to local
+    /// </summary>
+    [JsonProperty("is_cloned_to_local")]
+    public bool IsClonedToLocal { get; set; }
+
+    /// <summary>
+    /// Gets or sets the repository created status
+    /// </summary>
+    [JsonProperty]
+    public HttpStatusCode RepositoryCreatedStatus { get; set; }
+
+    /// <summary>
+    /// Returns the string presentation of the object
+    /// </summary>
+    /// <returns>String presentation of the object</returns>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append("class Repository {\n");
+        sb.Append("  CloneUrl: ").Append(CloneUrl).Append("\n");
+        sb.Append("  CreatedAt: ").Append(CreatedAt).Append("\n");
+        sb.Append("  DefaultBranch: ").Append(DefaultBranch).Append("\n");
+        sb.Append("  Description: ").Append(Description).Append("\n");
+        sb.Append("  Empty: ").Append(Empty).Append("\n");
+        sb.Append("  Fork: ").Append(Fork).Append("\n");
+        sb.Append("  ForksCount: ").Append(ForksCount).Append("\n");
+        sb.Append("  FullName: ").Append(FullName).Append("\n");
+        sb.Append("  HtmlUrl: ").Append(HtmlUrl).Append("\n");
+        sb.Append("  Id: ").Append(Id).Append("\n");
+        sb.Append("  Mirror: ").Append(Mirror).Append("\n");
+        sb.Append("  Name: ").Append(Name).Append("\n");
+        sb.Append("  OpenIssuesCount: ").Append(OpenIssuesCount).Append("\n");
+        sb.Append("  Owner: ").Append(Owner).Append("\n");
+        sb.Append("  Parent: ").Append(Parent).Append("\n");
+        sb.Append("  Permissions: ").Append(Permissions).Append("\n");
+        sb.Append("  _Private: ").Append(IsPrivate).Append("\n");
+        sb.Append("  Size: ").Append(Size).Append("\n");
+        sb.Append("  SshUrl: ").Append(SshUrl).Append("\n");
+        sb.Append("  StarsCount: ").Append(StarsCount).Append("\n");
+        sb.Append("  UpdatedAt: ").Append(UpdatedAt).Append("\n");
+        sb.Append("  WatchersCount: ").Append(WatchersCount).Append("\n");
+        sb.Append("  Website: ").Append(Website).Append("\n");
+        sb.Append("}\n");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if objects are equal
+    /// </summary>
+    /// <param name="input">Object to be compared</param>
+    /// <returns>Boolean</returns>
+    public override bool Equals(object input)
+    {
+        return this.Equals(input as Repository);
+    }
+
+    /// <summary>
+    /// Returns true if Repository instances are equal
+    /// </summary>
+    /// <param name="input">Instance of Repository to be compared</param>
+    /// <returns>Boolean</returns>
+    public bool Equals(Repository input)
+    {
+        if (input == null)
         {
-            this.CloneUrl = cloneUrl;
-            this.CreatedAt = createdAt;
-            this.DefaultBranch = defaultBranch;
-            this.Description = description;
-            this.Empty = empty;
-            this.Fork = fork;
-            this.ForksCount = forksCount;
-            this.FullName = fullName;
-            this.HtmlUrl = htmlUrl;
-            this.Id = id;
-            this.Mirror = mirror;
-            this.Name = name;
-            this.OpenIssuesCount = openIssuesCount;
-            this.Owner = owner;
-            this.Parent = parent;
-            this.Permissions = permissions;
-            this.IsPrivate = @private;
-            this.Size = size;
-            this.SshUrl = sshUrl;
-            this.StarsCount = starsCount;
-            this.UpdatedAt = updatedAt;
-            this.WatchersCount = watchersCount;
-            this.Website = website;
+            return false;
         }
 
-        /// <summary>
-        /// Gets or Sets CloneUrl
-        /// </summary>
-        [JsonProperty("clone_url")]
-        public string CloneUrl { get; set; }
+        return (this.CloneUrl == input.CloneUrl || (this.CloneUrl != null && this.CloneUrl.Equals(input.CloneUrl)))
+            && (this.CreatedAt == input.CreatedAt || (this.CreatedAt != null && this.CreatedAt.Equals(input.CreatedAt)))
+            && (
+                this.DefaultBranch == input.DefaultBranch
+                || (this.DefaultBranch != null && this.DefaultBranch.Equals(input.DefaultBranch))
+            )
+            && (
+                this.Description == input.Description
+                || (this.Description != null && this.Description.Equals(input.Description))
+            )
+            && (this.Empty == input.Empty || (this.Empty != null && this.Empty.Equals(input.Empty)))
+            && (this.Fork == input.Fork || (this.Fork != null && this.Fork.Equals(input.Fork)))
+            && (
+                this.ForksCount == input.ForksCount
+                || (this.ForksCount != null && this.ForksCount.Equals(input.ForksCount))
+            )
+            && (this.FullName == input.FullName || (this.FullName != null && this.FullName.Equals(input.FullName)))
+            && (this.HtmlUrl == input.HtmlUrl || (this.HtmlUrl != null && this.HtmlUrl.Equals(input.HtmlUrl)))
+            && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
+            && (this.Mirror == input.Mirror || (this.Mirror != null && this.Mirror.Equals(input.Mirror)))
+            && (this.Name == input.Name || (this.Name != null && this.Name.Equals(input.Name)))
+            && (
+                this.OpenIssuesCount == input.OpenIssuesCount
+                || (this.OpenIssuesCount != null && this.OpenIssuesCount.Equals(input.OpenIssuesCount))
+            )
+            && (this.Owner == input.Owner || (this.Owner != null && this.Owner.Equals(input.Owner)))
+            && (this.Parent == input.Parent || (this.Parent != null && this.Parent.Equals(input.Parent)))
+            && (
+                this.Permissions == input.Permissions
+                || (this.Permissions != null && this.Permissions.Equals(input.Permissions))
+            )
+            && (this.IsPrivate == input.IsPrivate || (this.IsPrivate != null && this.IsPrivate.Equals(input.IsPrivate)))
+            && (this.Size == input.Size || (this.Size != null && this.Size.Equals(input.Size)))
+            && (this.SshUrl == input.SshUrl || (this.SshUrl != null && this.SshUrl.Equals(input.SshUrl)))
+            && (
+                this.StarsCount == input.StarsCount
+                || (this.StarsCount != null && this.StarsCount.Equals(input.StarsCount))
+            )
+            && (this.UpdatedAt == input.UpdatedAt || (this.UpdatedAt != null && this.UpdatedAt.Equals(input.UpdatedAt)))
+            && (
+                this.WatchersCount == input.WatchersCount
+                || (this.WatchersCount != null && this.WatchersCount.Equals(input.WatchersCount))
+            )
+            && (this.Website == input.Website || (this.Website != null && this.Website.Equals(input.Website)));
+    }
 
-        /// <summary>
-        /// Gets or Sets CreatedAt
-        /// </summary>
-        [JsonProperty("created_at")]
-        public DateTime? CreatedAt { get; set; }
-
-        /// <summary>
-        /// Gets or Sets DefaultBranch
-        /// </summary>
-        [JsonProperty("default_branch")]
-        public string DefaultBranch { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Description
-        /// </summary>
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Empty
-        /// </summary>
-        [JsonProperty("empty")]
-        public bool? Empty { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Fork
-        /// </summary>
-        [JsonProperty("fork")]
-        public bool? Fork { get; set; }
-
-        /// <summary>
-        /// Gets or Sets ForksCount
-        /// </summary>
-        [JsonProperty("forks_count")]
-        public long? ForksCount { get; set; }
-
-        /// <summary>
-        /// Gets or Sets FullName
-        /// </summary>
-        [JsonProperty("full_name")]
-        public string FullName { get; set; }
-
-        /// <summary>
-        /// Gets or Sets HtmlUrl
-        /// </summary>
-        [JsonProperty("html_url")]
-        public string HtmlUrl { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Id
-        /// </summary>
-        [JsonProperty("id")]
-        public long? Id { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Mirror
-        /// </summary>
-        [JsonProperty("mirror")]
-        public bool? Mirror { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Name
-        /// </summary>
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Gets or Sets OpenIssuesCount
-        /// </summary>
-        [JsonProperty("open_issues_count")]
-        public long? OpenIssuesCount { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Owner
-        /// </summary>
-        [JsonProperty("owner")]
-        public User Owner { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Parent
-        /// </summary>
-        [JsonProperty("parent")]
-        public Repository Parent { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Permissions
-        /// </summary>
-        [JsonProperty("permissions")]
-        public Permission Permissions { get; set; }
-
-        /// <summary>
-        /// Gets or Sets _Private
-        /// </summary>
-        [JsonProperty("private")]
-        public bool? IsPrivate { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Size
-        /// </summary>
-        [JsonProperty("size")]
-        public long? Size { get; set; }
-
-        /// <summary>
-        /// Gets or Sets SshUrl
-        /// </summary>
-        [JsonProperty("ssh_url")]
-        public string SshUrl { get; set; }
-
-        /// <summary>
-        /// Gets or Sets StarsCount
-        /// </summary>
-        [JsonProperty("stars_count")]
-        public long? StarsCount { get; set; }
-
-        /// <summary>
-        /// Gets or Sets UpdatedAt
-        /// </summary>
-        [JsonProperty("updated_at")]
-        public DateTime? UpdatedAt { get; set; }
-
-        /// <summary>
-        /// Gets or Sets WatchersCount
-        /// </summary>
-        [JsonProperty("watchers_count")]
-        public long? WatchersCount { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Website
-        /// </summary>
-        [JsonProperty("website")]
-        public string Website { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether the repository is cloned to local
-        /// </summary>
-        [JsonProperty("is_cloned_to_local")]
-        public bool IsClonedToLocal { get; set; }
-
-        /// <summary>
-        /// Gets or sets the repository created status
-        /// </summary>
-        [JsonProperty]
-        public HttpStatusCode RepositoryCreatedStatus { get; set; }
-
-        /// <summary>
-        /// Returns the string presentation of the object
-        /// </summary>
-        /// <returns>String presentation of the object</returns>
-        public override string ToString()
+    /// <summary>
+    /// Gets the hash code
+    /// </summary>
+    /// <returns>Hash code</returns>
+    public override int GetHashCode()
+    {
+        // Overflow is fine, just wrap
+        unchecked
         {
-            var sb = new StringBuilder();
-            sb.Append("class Repository {\n");
-            sb.Append("  CloneUrl: ").Append(CloneUrl).Append("\n");
-            sb.Append("  CreatedAt: ").Append(CreatedAt).Append("\n");
-            sb.Append("  DefaultBranch: ").Append(DefaultBranch).Append("\n");
-            sb.Append("  Description: ").Append(Description).Append("\n");
-            sb.Append("  Empty: ").Append(Empty).Append("\n");
-            sb.Append("  Fork: ").Append(Fork).Append("\n");
-            sb.Append("  ForksCount: ").Append(ForksCount).Append("\n");
-            sb.Append("  FullName: ").Append(FullName).Append("\n");
-            sb.Append("  HtmlUrl: ").Append(HtmlUrl).Append("\n");
-            sb.Append("  Id: ").Append(Id).Append("\n");
-            sb.Append("  Mirror: ").Append(Mirror).Append("\n");
-            sb.Append("  Name: ").Append(Name).Append("\n");
-            sb.Append("  OpenIssuesCount: ").Append(OpenIssuesCount).Append("\n");
-            sb.Append("  Owner: ").Append(Owner).Append("\n");
-            sb.Append("  Parent: ").Append(Parent).Append("\n");
-            sb.Append("  Permissions: ").Append(Permissions).Append("\n");
-            sb.Append("  _Private: ").Append(IsPrivate).Append("\n");
-            sb.Append("  Size: ").Append(Size).Append("\n");
-            sb.Append("  SshUrl: ").Append(SshUrl).Append("\n");
-            sb.Append("  StarsCount: ").Append(StarsCount).Append("\n");
-            sb.Append("  UpdatedAt: ").Append(UpdatedAt).Append("\n");
-            sb.Append("  WatchersCount: ").Append(WatchersCount).Append("\n");
-            sb.Append("  Website: ").Append(Website).Append("\n");
-            sb.Append("}\n");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if objects are equal
-        /// </summary>
-        /// <param name="input">Object to be compared</param>
-        /// <returns>Boolean</returns>
-        public override bool Equals(object input)
-        {
-            return this.Equals(input as Repository);
-        }
-
-        /// <summary>
-        /// Returns true if Repository instances are equal
-        /// </summary>
-        /// <param name="input">Instance of Repository to be compared</param>
-        /// <returns>Boolean</returns>
-        public bool Equals(Repository input)
-        {
-            if (input == null)
+            int hashCode = 41;
+            if (this.CloneUrl != null)
             {
-                return false;
+                hashCode = (hashCode * 59) + this.CloneUrl.GetHashCode();
             }
 
-            return (this.CloneUrl == input.CloneUrl || (this.CloneUrl != null && this.CloneUrl.Equals(input.CloneUrl)))
-                && (
-                    this.CreatedAt == input.CreatedAt
-                    || (this.CreatedAt != null && this.CreatedAt.Equals(input.CreatedAt))
-                )
-                && (
-                    this.DefaultBranch == input.DefaultBranch
-                    || (this.DefaultBranch != null && this.DefaultBranch.Equals(input.DefaultBranch))
-                )
-                && (
-                    this.Description == input.Description
-                    || (this.Description != null && this.Description.Equals(input.Description))
-                )
-                && (this.Empty == input.Empty || (this.Empty != null && this.Empty.Equals(input.Empty)))
-                && (this.Fork == input.Fork || (this.Fork != null && this.Fork.Equals(input.Fork)))
-                && (
-                    this.ForksCount == input.ForksCount
-                    || (this.ForksCount != null && this.ForksCount.Equals(input.ForksCount))
-                )
-                && (this.FullName == input.FullName || (this.FullName != null && this.FullName.Equals(input.FullName)))
-                && (this.HtmlUrl == input.HtmlUrl || (this.HtmlUrl != null && this.HtmlUrl.Equals(input.HtmlUrl)))
-                && (this.Id == input.Id || (this.Id != null && this.Id.Equals(input.Id)))
-                && (this.Mirror == input.Mirror || (this.Mirror != null && this.Mirror.Equals(input.Mirror)))
-                && (this.Name == input.Name || (this.Name != null && this.Name.Equals(input.Name)))
-                && (
-                    this.OpenIssuesCount == input.OpenIssuesCount
-                    || (this.OpenIssuesCount != null && this.OpenIssuesCount.Equals(input.OpenIssuesCount))
-                )
-                && (this.Owner == input.Owner || (this.Owner != null && this.Owner.Equals(input.Owner)))
-                && (this.Parent == input.Parent || (this.Parent != null && this.Parent.Equals(input.Parent)))
-                && (
-                    this.Permissions == input.Permissions
-                    || (this.Permissions != null && this.Permissions.Equals(input.Permissions))
-                )
-                && (
-                    this.IsPrivate == input.IsPrivate
-                    || (this.IsPrivate != null && this.IsPrivate.Equals(input.IsPrivate))
-                )
-                && (this.Size == input.Size || (this.Size != null && this.Size.Equals(input.Size)))
-                && (this.SshUrl == input.SshUrl || (this.SshUrl != null && this.SshUrl.Equals(input.SshUrl)))
-                && (
-                    this.StarsCount == input.StarsCount
-                    || (this.StarsCount != null && this.StarsCount.Equals(input.StarsCount))
-                )
-                && (
-                    this.UpdatedAt == input.UpdatedAt
-                    || (this.UpdatedAt != null && this.UpdatedAt.Equals(input.UpdatedAt))
-                )
-                && (
-                    this.WatchersCount == input.WatchersCount
-                    || (this.WatchersCount != null && this.WatchersCount.Equals(input.WatchersCount))
-                )
-                && (this.Website == input.Website || (this.Website != null && this.Website.Equals(input.Website)));
-        }
-
-        /// <summary>
-        /// Gets the hash code
-        /// </summary>
-        /// <returns>Hash code</returns>
-        public override int GetHashCode()
-        {
-            // Overflow is fine, just wrap
-            unchecked
+            if (this.CreatedAt != null)
             {
-                int hashCode = 41;
-                if (this.CloneUrl != null)
-                {
-                    hashCode = (hashCode * 59) + this.CloneUrl.GetHashCode();
-                }
-
-                if (this.CreatedAt != null)
-                {
-                    hashCode = (hashCode * 59) + this.CreatedAt.GetHashCode();
-                }
-
-                if (this.DefaultBranch != null)
-                {
-                    hashCode = (hashCode * 59) + this.DefaultBranch.GetHashCode();
-                }
-
-                if (this.Description != null)
-                {
-                    hashCode = (hashCode * 59) + this.Description.GetHashCode();
-                }
-
-                if (this.Empty != null)
-                {
-                    hashCode = (hashCode * 59) + this.Empty.GetHashCode();
-                }
-
-                if (this.Fork != null)
-                {
-                    hashCode = (hashCode * 59) + this.Fork.GetHashCode();
-                }
-
-                if (this.ForksCount != null)
-                {
-                    hashCode = (hashCode * 59) + this.ForksCount.GetHashCode();
-                }
-
-                if (this.FullName != null)
-                {
-                    hashCode = (hashCode * 59) + this.FullName.GetHashCode();
-                }
-
-                if (this.HtmlUrl != null)
-                {
-                    hashCode = (hashCode * 59) + this.HtmlUrl.GetHashCode();
-                }
-
-                if (this.Id != null)
-                {
-                    hashCode = (hashCode * 59) + this.Id.GetHashCode();
-                }
-
-                if (this.Mirror != null)
-                {
-                    hashCode = (hashCode * 59) + this.Mirror.GetHashCode();
-                }
-
-                if (this.Name != null)
-                {
-                    hashCode = (hashCode * 59) + this.Name.GetHashCode();
-                }
-
-                if (this.OpenIssuesCount != null)
-                {
-                    hashCode = (hashCode * 59) + this.OpenIssuesCount.GetHashCode();
-                }
-
-                if (this.Owner != null)
-                {
-                    hashCode = (hashCode * 59) + this.Owner.GetHashCode();
-                }
-
-                if (this.Parent != null)
-                {
-                    hashCode = (hashCode * 59) + this.Parent.GetHashCode();
-                }
-
-                if (this.Permissions != null)
-                {
-                    hashCode = (hashCode * 59) + this.Permissions.GetHashCode();
-                }
-
-                if (this.IsPrivate != null)
-                {
-                    hashCode = (hashCode * 59) + this.IsPrivate.GetHashCode();
-                }
-
-                if (this.Size != null)
-                {
-                    hashCode = (hashCode * 59) + this.Size.GetHashCode();
-                }
-
-                if (this.SshUrl != null)
-                {
-                    hashCode = (hashCode * 59) + this.SshUrl.GetHashCode();
-                }
-
-                if (this.StarsCount != null)
-                {
-                    hashCode = (hashCode * 59) + this.StarsCount.GetHashCode();
-                }
-
-                if (this.UpdatedAt != null)
-                {
-                    hashCode = (hashCode * 59) + this.UpdatedAt.GetHashCode();
-                }
-
-                if (this.WatchersCount != null)
-                {
-                    hashCode = (hashCode * 59) + this.WatchersCount.GetHashCode();
-                }
-
-                if (this.Website != null)
-                {
-                    hashCode = (hashCode * 59) + this.Website.GetHashCode();
-                }
-
-                return hashCode;
+                hashCode = (hashCode * 59) + this.CreatedAt.GetHashCode();
             }
-        }
 
-        /// <summary>
-        /// To validate all properties of the instance
-        /// </summary>
-        /// <param name="validationContext">Validation context</param>
-        /// <returns>Validation Result</returns>
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            yield break;
+            if (this.DefaultBranch != null)
+            {
+                hashCode = (hashCode * 59) + this.DefaultBranch.GetHashCode();
+            }
+
+            if (this.Description != null)
+            {
+                hashCode = (hashCode * 59) + this.Description.GetHashCode();
+            }
+
+            if (this.Empty != null)
+            {
+                hashCode = (hashCode * 59) + this.Empty.GetHashCode();
+            }
+
+            if (this.Fork != null)
+            {
+                hashCode = (hashCode * 59) + this.Fork.GetHashCode();
+            }
+
+            if (this.ForksCount != null)
+            {
+                hashCode = (hashCode * 59) + this.ForksCount.GetHashCode();
+            }
+
+            if (this.FullName != null)
+            {
+                hashCode = (hashCode * 59) + this.FullName.GetHashCode();
+            }
+
+            if (this.HtmlUrl != null)
+            {
+                hashCode = (hashCode * 59) + this.HtmlUrl.GetHashCode();
+            }
+
+            if (this.Id != null)
+            {
+                hashCode = (hashCode * 59) + this.Id.GetHashCode();
+            }
+
+            if (this.Mirror != null)
+            {
+                hashCode = (hashCode * 59) + this.Mirror.GetHashCode();
+            }
+
+            if (this.Name != null)
+            {
+                hashCode = (hashCode * 59) + this.Name.GetHashCode();
+            }
+
+            if (this.OpenIssuesCount != null)
+            {
+                hashCode = (hashCode * 59) + this.OpenIssuesCount.GetHashCode();
+            }
+
+            if (this.Owner != null)
+            {
+                hashCode = (hashCode * 59) + this.Owner.GetHashCode();
+            }
+
+            if (this.Parent != null)
+            {
+                hashCode = (hashCode * 59) + this.Parent.GetHashCode();
+            }
+
+            if (this.Permissions != null)
+            {
+                hashCode = (hashCode * 59) + this.Permissions.GetHashCode();
+            }
+
+            if (this.IsPrivate != null)
+            {
+                hashCode = (hashCode * 59) + this.IsPrivate.GetHashCode();
+            }
+
+            if (this.Size != null)
+            {
+                hashCode = (hashCode * 59) + this.Size.GetHashCode();
+            }
+
+            if (this.SshUrl != null)
+            {
+                hashCode = (hashCode * 59) + this.SshUrl.GetHashCode();
+            }
+
+            if (this.StarsCount != null)
+            {
+                hashCode = (hashCode * 59) + this.StarsCount.GetHashCode();
+            }
+
+            if (this.UpdatedAt != null)
+            {
+                hashCode = (hashCode * 59) + this.UpdatedAt.GetHashCode();
+            }
+
+            if (this.WatchersCount != null)
+            {
+                hashCode = (hashCode * 59) + this.WatchersCount.GetHashCode();
+            }
+
+            if (this.Website != null)
+            {
+                hashCode = (hashCode * 59) + this.Website.GetHashCode();
+            }
+
+            return hashCode;
         }
+    }
+
+    /// <summary>
+    /// To validate all properties of the instance
+    /// </summary>
+    /// <param name="validationContext">Validation context</param>
+    /// <returns>Validation Result</returns>
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
     }
 }

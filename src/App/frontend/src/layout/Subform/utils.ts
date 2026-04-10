@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import dot from 'dot-object';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
@@ -34,7 +34,7 @@ export function useSubformFormData(dataElementId: string) {
 }
 
 function useDataModelNamesForSubform(dataType: string) {
-  const dataModelNames = DataModels.useReadableDataTypes();
+  const dataModelNames = FormBootstrap.useReadableDataTypes();
   return useMemo(
     () => (dataModelNames.includes(dataType) ? dataModelNames : [...dataModelNames, dataType]),
     [dataModelNames, dataType],
@@ -42,7 +42,7 @@ function useDataModelNamesForSubform(dataType: string) {
 }
 
 function useFormDataSelectorForSubform(dataType: string, subformData: unknown) {
-  const formDataSelector = FD.useDebouncedSelector();
+  const formDataSelector = FormStore.data.useDebouncedSelector();
   return useCallback(
     (reference: IDataModelReference) => {
       if (reference.dataType !== dataType) {

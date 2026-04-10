@@ -2,9 +2,9 @@ import { Children, isValidElement, useCallback, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/useLangToolsDataSources';
 import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
@@ -91,9 +91,9 @@ export function useLanguage() {
 
 export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | undefined) {
   const sources = useLangToolsDataSources();
-  const defaultDataType = DataModels.useLaxDefaultDataType();
-  const formDataTypes = DataModels.useLaxReadableDataTypes();
-  const formDataSelector = FD.useLaxDebouncedSelector();
+  const defaultDataType = FormBootstrap.useLaxDefaultDataType();
+  const formDataTypes = FormBootstrap.useLaxReadableDataTypes();
+  const formDataSelector = FormStore.data.useLaxDebouncedSelector();
 
   return useMemo(() => {
     const { textResources, language, selectedLanguage, ...dataSources } = sources;

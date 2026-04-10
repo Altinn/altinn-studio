@@ -74,9 +74,10 @@ public static class ServiceCollectionExtensions
                         })
                         .AddOtlpExporter(opts =>
                         {
-                            opts.BatchExportProcessorOptions.MaxQueueSize = 8192;
-                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 1024;
+                            opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
                             opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                            opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
                         });
                 })
                 .WithMetrics(builder =>
