@@ -15,7 +15,7 @@ import { ArrayUtils } from '@studio/pure-functions';
 import { label1ResourceNb, textResources } from '../../../test-data/textResources';
 import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';
-import { queryDetailsBySummary, querySummaryByText } from '@studio/ui-test';
+import { getDetailsBySummary, getSummaryByText, querySummaryByText } from '@studio/ui-test';
 
 const onCreateCodeList = jest.fn();
 const onCreateTextResource = jest.fn();
@@ -100,7 +100,7 @@ describe('CodeListsWithTextResourcesPage', () => {
     const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
     expect(getCodeListHeading(codeList2Data.title)).toBeInTheDocument();
-    expect(queryDetailsBySummary(codeList1Data.title)).not.toBeInTheDocument();
+    expect(queryCodeListHeading(codeList1Data.title)).not.toBeInTheDocument();
   });
 
   it('opens the new code list details when the user has uploaded a code list', async () => {
@@ -123,7 +123,7 @@ describe('CodeListsWithTextResourcesPage', () => {
       />,
     );
 
-    const openItem = queryDetailsBySummary(newCodeListData.title);
+    const openItem = getCodeListDetails(newCodeListData.title);
     expect(openItem).toHaveAttribute('open');
   });
 
@@ -335,9 +335,11 @@ const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
 };
 
 const getCodeListDetails = (codeListTitle: string): HTMLElement =>
-  queryDetailsBySummary(codeListTitle);
+  getDetailsBySummary(codeListTitle);
 
-const getCodeListHeading = (codeListTitle: string): HTMLElement =>
+const getCodeListHeading = (codeListTitle: string): HTMLElement => getSummaryByText(codeListTitle);
+
+const queryCodeListHeading = (codeListTitle: string): HTMLElement =>
   querySummaryByText(codeListTitle);
 
 const renderCodeListsWithTextResourcesPage = (

@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { codeLists, coloursData } from './test-data/codeLists';
-import { queryDetailsBySummary } from '@studio/ui-test';
+import { getDetailsBySummary } from '@studio/ui-test';
 
 // Test data:
 const onPublish = jest.fn();
@@ -28,7 +28,7 @@ describe('CodeListsPage', () => {
   it('Renders with the given code lists', () => {
     renderCodeListPage();
     codeLists.forEach((codeList) => {
-      expect(queryDetailsBySummary(codeList.name)).toBeInTheDocument();
+      expect(getDetailsBySummary(codeList.name)).toBeInTheDocument();
     });
   });
 
@@ -37,7 +37,7 @@ describe('CodeListsPage', () => {
     renderCodeListPage();
     await addNewCodeList(user);
     const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
-    expect(queryDetailsBySummary(nameOfNewList)).toBeInTheDocument();
+    expect(getDetailsBySummary(nameOfNewList)).toBeInTheDocument();
   });
 
   it('Rerenders with updated data when something is changed', async () => {
@@ -49,7 +49,7 @@ describe('CodeListsPage', () => {
     const nameInput = getNameField(textMock('app_content_library.code_lists.unnamed'));
     await user.type(nameInput, newName);
 
-    expect(queryDetailsBySummary(newName)).toBeInTheDocument();
+    expect(getDetailsBySummary(newName)).toBeInTheDocument();
   });
 
   it('Deletes the code list when the delete button is clicked', async () => {
@@ -57,10 +57,10 @@ describe('CodeListsPage', () => {
     renderCodeListPage();
     await addNewCodeList(user);
     const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
-    const details = queryDetailsBySummary(nameOfNewList);
+    const details = getDetailsBySummary(nameOfNewList);
     const deleteButton = within(details).getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
-    expect(queryDetailsBySummary(nameOfNewList)).not.toBeInTheDocument();
+    expect(getDetailsBySummary(nameOfNewList)).not.toBeInTheDocument();
   });
 
   it('Displays a placeholder when the list of code lists is empty', () => {
@@ -114,7 +114,7 @@ const saveCodeLists = async (user: UserEvent): Promise<void> =>
   user.click(screen.getByRole('button', { name: textMock('general.save') }));
 
 function getNameField(name: string): HTMLElement {
-  const details = queryDetailsBySummary(name);
+  const details = getDetailsBySummary(name);
   const nameLabel = textMock('app_content_library.code_lists.name');
   return within(details).getByRole('textbox', { name: nameLabel });
 }
