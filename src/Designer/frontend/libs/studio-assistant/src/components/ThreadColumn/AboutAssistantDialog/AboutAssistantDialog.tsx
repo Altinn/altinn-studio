@@ -29,7 +29,8 @@ export function AboutAssistantDialog({
           <StudioParagraph spacing>
             {texts.branchInfo}
             <StudioLink target='_blank' rel='noopener noreferrer' href={branchDocsUrl}>
-              {texts.branchDocsLink} <ExternalLinkIcon />
+              <span>{texts.branchDocsLink}</span>
+              <ExternalLinkIcon />
             </StudioLink>
           </StudioParagraph>
           <StudioParagraph>{texts.disclaimer}</StudioParagraph>
