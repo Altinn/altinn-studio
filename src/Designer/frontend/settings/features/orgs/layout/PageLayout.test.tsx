@@ -2,18 +2,16 @@ import { screen } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
-import { useOrganizationsQuery } from '../../../hooks/useOrganizationsQuery';
+import { useOrganizationsQuery, useUserOrgPermissionsQuery } from 'app-shared/hooks/queries';
 
 jest.mock('../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Outlet: () => <div>Outlet</div>,
 }));
-jest.mock('../../../hooks/useOrganizationsQuery', () => ({
+jest.mock('app-shared/hooks/queries', () => ({
+  ...jest.requireActual('app-shared/hooks/queries'),
   useOrganizationsQuery: jest.fn(),
-}));
-jest.mock('app-shared/hooks/queries/useUserOrgPermissionsQuery', () => ({
   useUserOrgPermissionsQuery: jest.fn(),
 }));
 

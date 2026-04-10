@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { NavigationTabs } from './NavigationTabs';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useOrganizationsQuery } from '../../hooks/useOrganizationsQuery';
+import { useOrganizationsQuery } from 'app-shared/hooks/queries';
 
 const mockNavigate = jest.fn();
 
@@ -12,7 +12,8 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('../../hooks/useOrganizationsQuery', () => ({
+jest.mock('app-shared/hooks/queries', () => ({
+  ...jest.requireActual('app-shared/hooks/queries'),
   useOrganizationsQuery: jest.fn(),
 }));
 

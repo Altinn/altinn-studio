@@ -1,16 +1,10 @@
 import classes from './PageLayout.module.css';
 import { matchPath, Outlet, useLocation } from 'react-router-dom';
-import {
-  StudioAlert,
-  StudioCenter,
-  StudioHeading,
-  StudioPageError,
-  StudioPageSpinner,
-} from '@studio/components';
+import { StudioAlert, StudioCenter, StudioHeading, StudioPageSpinner } from '@studio/components';
+import { StudioPageError } from 'app-shared/components';
 import { NotFound } from '../../../pages/NotFound/NotFound';
 import { useTranslation } from 'react-i18next';
-import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
-import { useOrganizationsQuery } from '../../../hooks/useOrganizationsQuery';
+import { useOrganizationsQuery, useUserOrgPermissionsQuery } from 'app-shared/hooks/queries';
 import { Menu } from '../components/Menu/Menu';
 
 export const PageLayout = () => {
@@ -23,7 +17,7 @@ export const PageLayout = () => {
     data: orgPermissions,
     isPending: isOrgPermissionsPending,
     isError: isOrgPermissionsError,
-  } = useUserOrgPermissionsQuery(org ?? '');
+  } = useUserOrgPermissionsQuery(org, { enabled: !!org });
 
   if (isOrgsPending || isOrgPermissionsPending) {
     return (

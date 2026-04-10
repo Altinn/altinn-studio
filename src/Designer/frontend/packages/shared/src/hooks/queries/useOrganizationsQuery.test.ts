@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react';
-import { renderHookWithProviders } from '../testing/mocks';
+import { queriesMock } from '../../mocks/queriesMock';
+import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useOrganizationsQuery } from './useOrganizationsQuery';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 describe('useOrganizationsQuery', () => {
   afterEach(() => jest.clearAllMocks());

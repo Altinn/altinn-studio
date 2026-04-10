@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { StudioTabs } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useOrganizationsQuery } from '../../hooks/useOrganizationsQuery';
+import { useOrganizationsQuery } from 'app-shared/hooks/queries';
 
 const USER_TAB = 'user';
 
@@ -20,7 +20,7 @@ export const NavigationTabs = (): ReactElement => {
     <StudioTabs value={activeTab} onChange={(value) => navigate(`/${value}`)}>
       <StudioTabs.List>
         <StudioTabs.Tab value={USER_TAB}>{t('settings.navigation.user')}</StudioTabs.Tab>
-        {organizations?.map((org) => (
+        {organizations.map((org) => (
           <StudioTabs.Tab key={org.username} value={`orgs/${org.username}`}>
             {org.full_name || org.username}
           </StudioTabs.Tab>
