@@ -47,18 +47,19 @@ func (c *AuthCommand) Synopsis() string { return "Manage authentication with Alt
 
 // Usage returns the full help text.
 func (c *AuthCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s auth <subcommand> [options]
-
-Manage authentication with Altinn Studio.
-
-Subcommands:
-	login     Authenticate with Altinn Studio using a Personal Access Token
-            (requires 'read:user' and 'repo' scopes)
-  status    Show authentication status
-  logout    Clear stored credentials
-
-Run '%s auth <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s auth <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		"Manage authentication with Altinn Studio.",
+		"",
+		"Subcommands:",
+		"  login     Authenticate with Altinn Studio using a Personal Access Token",
+		"            (requires 'read:user' and 'repo' scopes)",
+		"  status    Show authentication status",
+		"  logout    Clear stored credentials",
+		"",
+		fmt.Sprintf("Run '%s auth <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -121,7 +122,7 @@ func (c *AuthCommand) openPATPage(ctx context.Context, host string) {
 	c.out.Verbosef("Opening browser to: %s", patURL)
 	if err := osutil.OpenContext(ctx, patURL); err != nil {
 		c.out.Warningf("Failed to open browser: %v", err)
-		c.out.Printf("Please open manually: %s\n", patURL)
+		c.out.Printlnf("Please open manually: %s", patURL)
 	}
 }
 
@@ -273,13 +274,13 @@ func (c *AuthCommand) runStatus(ctx context.Context, args []string) error {
 			return c.printAuthStatusJSON(status)
 		}
 		if status.MissingEnv != "" {
-			c.out.Printf("Not logged in to %s\n", status.MissingEnv)
+			c.out.Printlnf("Not logged in to %s", status.MissingEnv)
 			return nil
 		}
 
 		c.out.Println("Not logged in to any environment")
 		c.out.Println("")
-		c.out.Printf("Run '%s auth login' to authenticate\n", osutil.CurrentBin())
+		c.out.Printlnf("Run '%s auth login' to authenticate", osutil.CurrentBin())
 		return nil
 	}
 
@@ -323,7 +324,7 @@ func (c *AuthCommand) printAuthStatusJSON(status authsvc.StatusResult) error {
 	if err != nil {
 		return fmt.Errorf("marshal auth status json: %w", err)
 	}
-	c.out.Printf("%s\n", payload)
+	c.out.Println(string(payload))
 	return nil
 }
 

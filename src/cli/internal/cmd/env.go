@@ -39,27 +39,28 @@ func (c *EnvCommand) Synopsis() string { return "Manage development environment"
 // Usage returns the full help text.
 func (c *EnvCommand) Usage() string {
 	defaultPort := envlocaltest.DefaultLoadBalancerPort
-	return fmt.Sprintf(`Usage: %s env <subcommand> [options]
-
-Manage development environments.
-
-Subcommands:
-  up       Start the environment
-  down     Stop the environment
-  status   Show environment status
-  logs     Stream environment logs
-
-Common options:
-  -r, --runtime    Runtime to use (default: localtest)
-
-Options for 'env up':
-  -p, --port       Loadbalancer port (default: %d)
-  -d, --detach     Run in background (default: true)
-  --monitoring     Start monitoring stack
-  --open           Open localtest in browser after starting
-
-Run '%s env <subcommand> --help' for more information.
-`, osutil.CurrentBin(), defaultPort, osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s env <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		"Manage development environments.",
+		"",
+		"Subcommands:",
+		"  up       Start the environment",
+		"  down     Stop the environment",
+		"  status   Show environment status",
+		"  logs     Stream environment logs",
+		"",
+		"Common options:",
+		"  -r, --runtime    Runtime to use (default: localtest)",
+		"",
+		"Options for 'env up':",
+		fmt.Sprintf("  -p, --port       Loadbalancer port (default: %d)", defaultPort),
+		"  -d, --detach     Run in background (default: true)",
+		"  --monitoring     Start monitoring stack",
+		"  --open           Open localtest in browser after starting",
+		"",
+		fmt.Sprintf("Run '%s env <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -193,7 +194,7 @@ func (c *EnvCommand) runLocaltestUp(
 		return fmt.Errorf("get status: %w", err)
 	}
 	if status.Running {
-		c.out.Printf("%s already running.\n", runtimeLocaltest)
+		c.out.Printlnf("%s already running.", runtimeLocaltest)
 		return nil
 	}
 
@@ -245,7 +246,7 @@ func (c *EnvCommand) runDown(ctx context.Context, args []string) error {
 		}
 		if err := env.Down(ctx); err != nil {
 			if errors.Is(err, envtypes.ErrAlreadyStopped) {
-				c.out.Printf("%s is already stopped.\n", flags.runtime)
+				c.out.Printlnf("%s is already stopped.", flags.runtime)
 				return nil
 			}
 			return fmt.Errorf("env down: %w", err)
@@ -312,23 +313,23 @@ func (c *EnvCommand) runLocaltestStatus(
 		if err != nil {
 			return fmt.Errorf("marshal status json: %w", err)
 		}
-		c.out.Printf("%s\n", payload)
+		c.out.Println(string(payload))
 		return nil
 	}
 
 	if !status.AnyRunning {
-		c.out.Printf("%s is not running.\n", runtimeLocaltest)
+		c.out.Printlnf("%s is not running.", runtimeLocaltest)
 		return nil
 	}
 
 	if !status.Running {
-		c.out.Printf("%s is running with issues.\n", runtimeLocaltest)
+		c.out.Printlnf("%s is running with issues.", runtimeLocaltest)
 		c.out.Println("")
 		c.renderLocaltestStatus(status)
 		return nil
 	}
 
-	c.out.Printf("%s is running.\n", runtimeLocaltest)
+	c.out.Printlnf("%s is running.", runtimeLocaltest)
 	c.out.Println("")
 	c.renderLocaltestStatus(status)
 

@@ -96,7 +96,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	localtestURL := FormatLocaltestURL(runtimeCfg.LoadBalancerPort)
 
 	if opts.OpenBrowser {
-		e.out.Verbosef("Opening browser to: %s\n", localtestURL)
+		e.out.Verbosef("Opening browser to: %s", localtestURL)
 		if err := osutil.OpenContext(ctx, localtestURL); err != nil {
 			e.out.Warningf("Failed to open browser: %v", err)
 		}
@@ -106,10 +106,11 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return e.runForeground(ctx, localtestURL)
 	}
 
-	e.out.Println("\nLocaltest started in background.")
-	e.out.Printf("Access the platform at: %s\n", localtestURL)
-	e.out.Printf("Use '%s env logs' to view logs.\n", osutil.CurrentBin())
-	e.out.Printf("Use '%s env down' to stop.\n", osutil.CurrentBin())
+	e.out.Println("")
+	e.out.Println("Localtest started in background.")
+	e.out.Printlnf("Access the platform at: %s", localtestURL)
+	e.out.Printlnf("Use '%s env logs' to view logs.", osutil.CurrentBin())
+	e.out.Printlnf("Use '%s env down' to stop.", osutil.CurrentBin())
 
 	return nil
 }
@@ -214,14 +215,16 @@ func (e *Env) runForeground(
 	ctx context.Context,
 	localtestURL string,
 ) error {
-	e.out.Println("\nLocaltest is running. Press Ctrl+C to stop.")
-	e.out.Printf("Access the platform at: %s\n", localtestURL)
+	e.out.Println("")
+	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
+	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
 	if err := e.logs.Stream(ctx, "", true); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
-	e.out.Println("\n" + stoppingEnvironmentMessage)
+	e.out.Println("")
+	e.out.Println(stoppingEnvironmentMessage)
 
 	teardownCtx, cancel := context.WithTimeout(context.Background(), teardownTimeout)
 	defer cancel()

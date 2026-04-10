@@ -39,17 +39,18 @@ func (c *ServersCommand) Synopsis() string {
 
 // Usage returns the full help text.
 func (c *ServersCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s servers <subcommand> [options]
-
-Manage %s background servers.
-
-Subcommands:
-  up      Start all servers (app-manager)
-  status  Show server status (app-manager)
-  down    Stop all servers (app-manager)
-
-Run '%s servers <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s servers <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		fmt.Sprintf("Manage %s background servers.", osutil.CurrentBin()),
+		"",
+		"Subcommands:",
+		"  up      Start all servers (app-manager)",
+		"  status  Show server status (app-manager)",
+		"  down    Stop all servers (app-manager)",
+		"",
+		fmt.Sprintf("Run '%s servers <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -121,7 +122,7 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
 	c.out.Println("app-manager is running.")
-	c.out.Printf("Process ID: %d\n", status.ProcessID)
+	c.out.Printlnf("Process ID: %d", status.ProcessID)
 	c.out.Println("app-manager version: " + status.AppManagerVersion)
 	c.out.Println(".NET version: " + status.DotnetVersion)
 	if status.Tunnel.Enabled {
@@ -135,7 +136,7 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 	} else {
 		c.out.Println("tunnel: disabled")
 	}
-	c.out.Printf("discovered apps: %d\n", len(status.Apps))
+	c.out.Printlnf("discovered apps: %d", len(status.Apps))
 
 	return nil
 }

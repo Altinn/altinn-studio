@@ -40,15 +40,16 @@ func (c *DoctorCommand) Synopsis() string { return "Diagnose environment and con
 
 // Usage returns the full help text.
 func (c *DoctorCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s doctor [options]
-
-Diagnose the development environment and show any issues.
-
-Options:
-  -c, --checks   Run active checks (probe host gateway, validate connectivity)
-  --json         Output as JSON
-  -h             Show this help
-`, osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s doctor [options]", osutil.CurrentBin()),
+		"",
+		"Diagnose the development environment and show any issues.",
+		"",
+		"Options:",
+		"  -c, --checks   Run active checks (probe host gateway, validate connectivity)",
+		"  --json         Output as JSON",
+		"  -h             Show this help",
+	)
 }
 
 // Run executes the command.
@@ -86,7 +87,7 @@ func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 		if err != nil {
 			return fmt.Errorf("marshal doctor json: %w", err)
 		}
-		c.out.Printf("%s\n", payload)
+		c.out.Println(string(payload))
 		return nil
 	}
 
@@ -101,7 +102,7 @@ func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 }
 
 func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
-	c.out.Printf("%s doctor\n", osutil.CurrentBin())
+	c.out.Printlnf("%s doctor", osutil.CurrentBin())
 	c.out.Println("")
 
 	sec := c.out.NewSection(doctorKeyWidth)

@@ -538,7 +538,10 @@ func readAppManagerLogTail(path string) string {
 		return ""
 	}
 
-	return "\napp-manager log tail:\n" + strings.Join(lines, "\n")
+	return osutil.LineBreak +
+		"app-manager log tail:" +
+		osutil.LineBreak +
+		strings.Join(lines, osutil.LineBreak)
 }
 
 func isTruthyEnv(value string) bool {

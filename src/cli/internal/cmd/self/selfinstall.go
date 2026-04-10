@@ -414,41 +414,47 @@ func PathInstructions(dir string) string {
 func pathInstructions(goos, dir string) string {
 	switch goos {
 	case "linux":
-		return fmt.Sprintf(`Add %s to your PATH by adding this to your shell profile:
-
-  # For bash (~/.bashrc):
-  export PATH="$PATH:%s"
-
-  # For zsh (~/.zshrc):
-  export PATH="$PATH:%s"
-
-  # For fish (~/.config/fish/config.fish):
-  fish_add_path %s
-
-Then restart your shell or run: source ~/.bashrc (or equivalent)`, dir, dir, dir, dir)
+		return joinLines(
+			fmt.Sprintf("Add %s to your PATH by adding this to your shell profile:", dir),
+			"",
+			"  # For bash (~/.bashrc):",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"  # For zsh (~/.zshrc):",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"  # For fish (~/.config/fish/config.fish):",
+			fmt.Sprintf("  fish_add_path %s", dir),
+			"",
+			"Then restart your shell or run: source ~/.bashrc (or equivalent)",
+		)
 
 	case "darwin":
-		return fmt.Sprintf(`Add %s to your PATH by adding this to your shell profile:
-
-  # For zsh (~/.zshrc) - default on macOS:
-  export PATH="$PATH:%s"
-
-  # For bash (~/.bash_profile):
-  export PATH="$PATH:%s"
-
-Then restart your shell or run: source ~/.zshrc`, dir, dir, dir)
+		return joinLines(
+			fmt.Sprintf("Add %s to your PATH by adding this to your shell profile:", dir),
+			"",
+			"  # For zsh (~/.zshrc) - default on macOS:",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"  # For bash (~/.bash_profile):",
+			fmt.Sprintf("  export PATH=\"$PATH:%s\"", dir),
+			"",
+			"Then restart your shell or run: source ~/.zshrc",
+		)
 
 	case osWindows:
 		displayDir := strings.TrimRight(dir, `\/`) + `\`
-		return fmt.Sprintf(`Add %s to your PATH:
-
-  1. Open System Properties > Environment Variables
-  2. Under "User variables", select "Path" and click "Edit"
-  3. Click "New" and add: %s
-  4. Click OK and restart your terminal
-
-Or run this in PowerShell (as Administrator):
-  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";%s", "User")`, displayDir, displayDir, displayDir)
+		return joinLines(
+			fmt.Sprintf("Add %s to your PATH:", displayDir),
+			"",
+			"  1. Open System Properties > Environment Variables",
+			`  2. Under "User variables", select "Path" and click "Edit"`,
+			fmt.Sprintf("  3. Click \"New\" and add: %s", displayDir),
+			"  4. Click OK and restart your terminal",
+			"",
+			"Or run this in PowerShell (as Administrator):",
+			fmt.Sprintf(`  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";%s", "User")`, displayDir),
+		)
 
 	default:
 		return fmt.Sprintf("Add %s to your PATH environment variable.", dir)

@@ -44,17 +44,18 @@ func (c *SelfCommand) Synopsis() string { return fmt.Sprintf("Manage %s itself",
 
 // Usage returns the full help text.
 func (c *SelfCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s self <subcommand> [options]
-
-Manage the %s installation.
-
-Subcommands:
-  install   Install binary, app-manager, and localtest resources
-  update    Check for and install updates
-  uninstall Remove installed binary
-
-Run '%s self <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s self <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		fmt.Sprintf("Manage the %s installation.", osutil.CurrentBin()),
+		"",
+		"Subcommands:",
+		"  install   Install binary, app-manager, and localtest resources",
+		"  update    Check for and install updates",
+		"  uninstall Remove installed binary",
+		"",
+		fmt.Sprintf("Run '%s self <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -85,18 +86,19 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("self install", flag.ContinueOnError)
 	fs.Usage = func() {
-		c.out.Printf(`Usage: %s self install [options]
-
-Install %s, app-manager, and localtest resources.
-
-Options:
-  --path DIR          Install binary to specific directory (non-interactive)
-  --skip-resources    Skip localtest resources
-  -h, --help          Show this help message
-
-If --path is not specified, an interactive picker will prompt you to
-choose from detected installation locations.
-`, osutil.CurrentBin(), osutil.CurrentBin())
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s self install [options]", osutil.CurrentBin()),
+			"",
+			fmt.Sprintf("Install %s, app-manager, and localtest resources.", osutil.CurrentBin()),
+			"",
+			"Options:",
+			"  --path DIR          Install binary to specific directory (non-interactive)",
+			"  --skip-resources    Skip localtest resources",
+			"  -h, --help          Show this help message",
+			"",
+			"If --path is not specified, an interactive picker will prompt you to",
+			"choose from detected installation locations.",
+		))
 	}
 
 	var targetPath string
@@ -138,7 +140,7 @@ func (c *SelfCommand) pickInstallLocation(ctx context.Context, candidates []self
 		if errors.Is(err, selfsvc.ErrSkipped) {
 			c.out.Println("")
 			c.out.Println("Installation skipped.")
-			c.out.Printf("You can manually move the %s binary to a directory in your PATH.\n", osutil.CurrentBin())
+			c.out.Printlnf("You can manually move the %s binary to a directory in your PATH.", osutil.CurrentBin())
 			return "", nil
 		}
 		return "", fmt.Errorf("select install location: %w", err)
@@ -152,7 +154,7 @@ func (c *SelfCommand) performInstall(
 	candidates []selfsvc.Candidate,
 	skipResources bool,
 ) error {
-	c.out.Printf("Installing binary to %s...\n", targetPath)
+	c.out.Printlnf("Installing binary to %s...", targetPath)
 
 	result, err := c.service.InstallBinary(targetPath)
 	if err != nil {
@@ -184,7 +186,7 @@ func (c *SelfCommand) performInstall(
 func (c *SelfCommand) handleNoWritableLocations() error {
 	c.out.Error("No writable installation locations found.")
 	c.out.Println("")
-	c.out.Printf("You can manually install %s by copying it to a directory in your PATH.\n", osutil.CurrentBin())
+	c.out.Printlnf("You can manually install %s by copying it to a directory in your PATH.", osutil.CurrentBin())
 	c.out.Println("Common locations include:")
 	c.out.Println("  - ~/.local/bin (Linux/macOS)")
 	c.out.Println("  - /usr/local/bin (requires sudo)")
@@ -262,15 +264,16 @@ func waitForAppManagerShutdown(ctx context.Context, client *appmanager.Client) {
 func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("self update", flag.ContinueOnError)
 	fs.Usage = func() {
-		c.out.Printf(`Usage: %s self update [options]
-
-Update %s in-place.
-
-Options:
-  --version VERSION    Release version (vX.Y.Z or studioctl/vX.Y.Z, default: newest available)
-  --skip-checksum      Skip SHA256 checksum verification
-  -h, --help           Show this help message
-`, osutil.CurrentBin(), osutil.CurrentBin())
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s self update [options]", osutil.CurrentBin()),
+			"",
+			fmt.Sprintf("Update %s in-place.", osutil.CurrentBin()),
+			"",
+			"Options:",
+			"  --version VERSION    Release version (vX.Y.Z or studioctl/vX.Y.Z, default: newest available)",
+			"  --skip-checksum      Skip SHA256 checksum verification",
+			"  -h, --help           Show this help message",
+		))
 	}
 
 	var version string
@@ -285,7 +288,7 @@ Options:
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	c.out.Printf("Current version: %s\n", c.cfg.Version)
+	c.out.Printlnf("Current version: %s", c.cfg.Version)
 	result, err := c.service.UpdateBinary(
 		ctx,
 		selfsvc.UpdateOptions{
@@ -307,13 +310,14 @@ Options:
 func (c *SelfCommand) runUninstall(args []string) error {
 	fs := flag.NewFlagSet("self uninstall", flag.ContinueOnError)
 	fs.Usage = func() {
-		c.out.Printf(`Usage: %s self uninstall [options]
-
-Remove the installed %s.
-
-Options:
-  -h, --help  Show this help message
-`, osutil.CurrentBin(), osutil.CurrentBin())
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s self uninstall [options]", osutil.CurrentBin()),
+			"",
+			fmt.Sprintf("Remove the installed %s.", osutil.CurrentBin()),
+			"",
+			"Options:",
+			"  -h, --help  Show this help message",
+		))
 	}
 
 	if err := fs.Parse(args); err != nil {

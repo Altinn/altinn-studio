@@ -38,17 +38,18 @@ func (c *RunCommand) Synopsis() string { return "Run app natively (wraps 'dotnet
 
 // Usage returns the full help text.
 func (c *RunCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s run [-p PATH] [-- dotnet args]
-
-Runs the Altinn app using 'dotnet run'. The app is auto-detected from the
-current directory, or can be specified with -p.
-
-Arguments after -- are passed directly to dotnet.
-
-Options:
-  -p, --path PATH  Specify app directory (overrides auto-detect)
-  -h, --help       Show this help
-`, osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s run [-p PATH] [-- dotnet args]", osutil.CurrentBin()),
+		"",
+		"Runs the Altinn app using 'dotnet run'. The app is auto-detected from the",
+		"current directory, or can be specified with -p.",
+		"",
+		"Arguments after -- are passed directly to dotnet.",
+		"",
+		"Options:",
+		"  -p, --path PATH  Specify app directory (overrides auto-detect)",
+		"  -h, --help       Show this help",
+	)
 }
 
 // Run executes the command.
