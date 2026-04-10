@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { useNavigate, useNavigation } from 'react-router';
 
 import { Paragraph, Table } from '@digdir/designsystemet-react';

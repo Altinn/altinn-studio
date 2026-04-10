@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
+import * as React from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
 import { Dialog, Heading, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';

@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { Alert as AlertDesignSystem } from '@digdir/designsystemet-react';
 

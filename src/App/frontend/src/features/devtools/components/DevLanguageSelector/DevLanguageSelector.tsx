@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Fieldset } from '@digdir/designsystemet-react';
 
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';

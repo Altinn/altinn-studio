@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Card } from '@digdir/designsystemet-react';
 
 import { AccordionGroupProvider } from 'src/layout/AccordionGroup/AccordionGroupContext';

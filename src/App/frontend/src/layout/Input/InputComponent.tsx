@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { FormattedInput } from 'src/app-components/Input/FormattedInput';
 import { Input } from 'src/app-components/Input/Input';

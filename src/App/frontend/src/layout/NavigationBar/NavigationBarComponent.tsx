@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';

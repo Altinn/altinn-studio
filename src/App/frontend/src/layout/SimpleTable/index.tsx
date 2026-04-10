@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import * as React from 'react';
 
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { ApiTable } from 'src/layout/SimpleTable/ApiTable';

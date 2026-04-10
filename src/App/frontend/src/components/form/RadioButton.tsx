@@ -1,4 +1,5 @@
-import React, { forwardRef, useRef } from 'react';
+import { forwardRef, useRef } from 'react';
+import * as React from 'react';
 
 import { Radio } from '@digdir/designsystemet-react';
 import cn from 'classnames';

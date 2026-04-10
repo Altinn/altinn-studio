@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ExprVal } from 'src/features/expressions/types';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';

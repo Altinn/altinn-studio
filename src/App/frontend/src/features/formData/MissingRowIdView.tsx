@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';

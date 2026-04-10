@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { Field, Textarea } from '@digdir/designsystemet-react';
 import type { FieldCounterProps } from '@digdir/designsystemet-react';

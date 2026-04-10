@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Flex } from 'src/app-components/Flex/Flex';

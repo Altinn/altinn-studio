@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';

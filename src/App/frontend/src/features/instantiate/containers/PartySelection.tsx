@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { useMatch, useNavigate } from 'react-router';
 
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';

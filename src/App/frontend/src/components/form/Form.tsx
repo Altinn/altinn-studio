@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import * as React from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import { Flex } from 'src/app-components/Flex/Flex';

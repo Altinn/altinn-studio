@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 export const PageNavigationRouter =

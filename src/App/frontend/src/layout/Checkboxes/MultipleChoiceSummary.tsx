@@ -1,5 +1,3 @@
-import React from 'react';
-
 import dot from 'dot-object';
 
 import { Flex } from 'src/app-components/Flex/Flex';

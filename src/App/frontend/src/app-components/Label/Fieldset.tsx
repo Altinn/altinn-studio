@@ -1,4 +1,3 @@
-import React from 'react';
 import type { JSX, PropsWithChildren, ReactElement } from 'react';
 
 import { Fieldset as DesignsystemetFieldset, Label as DesignsystemetLabel } from '@digdir/designsystemet-react';

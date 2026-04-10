@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router';
 
 import { AppTable } from 'src/app-components/Table/Table';

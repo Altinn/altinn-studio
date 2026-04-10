@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';

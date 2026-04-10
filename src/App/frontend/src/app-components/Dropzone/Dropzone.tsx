@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { useDropzone } from 'react-dropzone';
 import type { HTMLAttributes } from 'react';
 import type { FileRejection } from 'react-dropzone';

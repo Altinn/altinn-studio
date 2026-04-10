@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { HtmlHTMLAttributes } from 'react';
 
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';

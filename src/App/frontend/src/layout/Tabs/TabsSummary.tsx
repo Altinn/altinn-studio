@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Heading } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';

@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import classes from 'src/app-components/Date/Date.module.css';
