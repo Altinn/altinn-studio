@@ -11,7 +11,10 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddTelemetry(bool emitQueryParameters = false)
+        public IServiceCollection AddTelemetry(
+            bool emitQueryParameters = false,
+            bool enableDatabaseInstrumentation = false
+        )
         {
             services
                 .AddOpenTelemetry()
@@ -39,8 +42,11 @@ public static class ServiceCollectionExtensions
                                 string[] excludedPaths = ["/health", "/dashboard"];
                                 return !excludedPaths.Any(p => path.Contains(p, StringComparison.OrdinalIgnoreCase));
                             };
-                        })
-                        .AddEntityFrameworkCoreInstrumentation(opts =>
+                        });
+
+                    if (enableDatabaseInstrumentation)
+                    {
+                        builder.AddEntityFrameworkCoreInstrumentation(opts =>
                         {
                             opts.EnrichWithIDbCommand = (activity, command) =>
                             {
@@ -71,14 +77,16 @@ public static class ServiceCollectionExtensions
                                     );
                                 }
                             };
-                        })
-                        .AddOtlpExporter(opts =>
-                        {
-                            opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
-                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
-                            opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
-                            opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
                         });
+                    }
+
+                    builder.AddOtlpExporter(opts =>
+                    {
+                        opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                        opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                        opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                        opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
+                    });
                 })
                 .WithMetrics(builder =>
                 {
@@ -105,10 +113,14 @@ public static class ServiceCollectionExtensions
                     ];
                     var durationView = new ExplicitBucketHistogramConfiguration { Boundaries = durationBuckets };
 
+                    builder.AddMeter(Metrics.ServiceName);
+
+                    if (enableDatabaseInstrumentation)
+                    {
+                        builder.AddMeter("Microsoft.EntityFrameworkCore").AddMeter("Npgsql");
+                    }
+
                     builder
-                        .AddMeter(Metrics.ServiceName)
-                        .AddMeter("Microsoft.EntityFrameworkCore")
-                        .AddMeter("Npgsql")
                         .AddView("engine.workflows.time.queue", durationView)
                         .AddView("engine.workflows.time.service", durationView)
                         .AddView("engine.workflows.time.total", durationView)

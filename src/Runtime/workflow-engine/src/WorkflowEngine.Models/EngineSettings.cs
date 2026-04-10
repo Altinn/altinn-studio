@@ -17,6 +17,15 @@ public sealed record EngineSettings
     public bool EnableTelemetry { get; set; } = true;
 
     /// <summary>
+    /// Whether to enable database-level tracing and metrics instrumentation (EF Core + Npgsql).
+    /// Defaults to <c>false</c>. The engine's hot-path DB operations use raw Npgsql commands,
+    /// so this primarily adds spans for lighter EF Core queries (dashboard reads, single lookups)
+    /// and Npgsql connection pool / command metrics. Enable for debugging database-level issues.
+    /// </summary>
+    [JsonPropertyName("enableDatabaseInstrumentation")]
+    public bool EnableDatabaseInstrumentation { get; set; }
+
+    /// <summary>
     /// Maximum number of workflows allowed in a single enqueue request.
     /// </summary>
     [JsonPropertyName("maxWorkflowsPerRequest")]
@@ -101,22 +110,28 @@ public sealed record EngineSettings
     /// Write buffer settings.
     /// </summary>
     [JsonPropertyName("writeBuffer")]
-    public BufferSettings WriteBuffer { get; set; } = new();
+    public WriteBufferSettings WriteBuffer { get; set; } = new();
 
     /// <summary>
     /// Update buffer settings.
     /// </summary>
     [JsonPropertyName("updateBuffer")]
-    public BufferSettings UpdateBuffer { get; set; } = new();
+    public UpdateBufferSettings UpdateBuffer { get; set; } = new();
 
     /// <summary>
     /// Data retention settings.
     /// </summary>
     [JsonPropertyName("retention")]
     public RetentionSettings Retention { get; set; } = new();
+
+    /// <summary>
+    /// Pagination settings for list endpoints.
+    /// </summary>
+    [JsonPropertyName("pagination")]
+    public PaginationSettings Pagination { get; set; } = new();
 }
 
-public sealed record BufferSettings
+public sealed record WriteBufferSettings
 {
     /// <summary>
     /// Maximum number of status updates per batch flush.
@@ -135,6 +150,21 @@ public sealed record BufferSettings
     /// </summary>
     [JsonPropertyName("flushConcurrency")]
     public int FlushConcurrency { get; set; }
+}
+
+public sealed record UpdateBufferSettings
+{
+    /// <summary>
+    /// Maximum number of status updates per batch flush.
+    /// </summary>
+    [JsonPropertyName("maxBatchSize")]
+    public int MaxBatchSize { get; set; }
+
+    /// <summary>
+    /// Maximum number of pending status updates before backpressure is applied.
+    /// </summary>
+    [JsonPropertyName("maxQueueSize")]
+    public int MaxQueueSize { get; set; }
 }
 
 public sealed record RetentionSettings
@@ -156,6 +186,21 @@ public sealed record RetentionSettings
     /// </summary>
     [JsonPropertyName("interval")]
     public TimeSpan Interval { get; set; }
+}
+
+public sealed record PaginationSettings
+{
+    /// <summary>
+    /// Default number of items per page when not specified by the caller.
+    /// </summary>
+    [JsonPropertyName("defaultPageSize")]
+    public int DefaultPageSize { get; set; } = 25;
+
+    /// <summary>
+    /// Maximum allowed page size. Requests above this value are clamped.
+    /// </summary>
+    [JsonPropertyName("maxPageSize")]
+    public int MaxPageSize { get; set; } = 100;
 }
 
 public sealed record ConcurrencySettings
