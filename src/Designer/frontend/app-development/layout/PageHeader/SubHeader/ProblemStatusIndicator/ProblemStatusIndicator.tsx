@@ -55,7 +55,7 @@ export const ProblemStatusIndicator = ({
     }
   };
 
-  const members = validationResult ? Object.entries(validationResult.errors) : [];
+  const members = validationResult ? Object.entries(validationResult?.errors || {}) : [];
   enum ValidationSeverity {
     INFO = 'INFO',
     WARNING = 'WARNING',
