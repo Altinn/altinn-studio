@@ -967,10 +967,6 @@ internal sealed partial class EngineRepository
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                         await cmd.ExecuteNonQueryAsync(ct);
-
-                        // Clear pending changes flags
-                        foreach (var step in allSteps)
-                            step.HasPendingChanges = false;
                     }
 
                     await tx.CommitAsync(ct);

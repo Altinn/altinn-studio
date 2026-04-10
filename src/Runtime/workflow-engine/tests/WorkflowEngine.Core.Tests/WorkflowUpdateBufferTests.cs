@@ -67,43 +67,19 @@ public class WorkflowUpdateBufferTests
         return (buffer, repo);
     }
 
-    private static Workflow CreateTestWorkflow(
-        string operationId = "test-op",
-        bool withDirtyStep = true,
-        bool withCleanStep = false
-    )
+    private static Workflow CreateTestWorkflow(string operationId = "test-op", int stepCount = 1)
     {
-        var steps = new List<Step>();
-
-        if (withDirtyStep)
-        {
-            steps.Add(
-                new Step
-                {
-                    OperationId = $"{operationId}-step-dirty",
-                    IdempotencyKey = $"key-{operationId}-dirty",
-                    ProcessingOrder = 0,
-                    Command = CommandDefinition.Create("webhook"),
-                    Status = PersistentItemStatus.Completed,
-                    HasPendingChanges = true,
-                }
-            );
-        }
-
-        if (withCleanStep)
-        {
-            steps.Add(
-                new Step
-                {
-                    OperationId = $"{operationId}-step-clean",
-                    IdempotencyKey = $"key-{operationId}-clean",
-                    ProcessingOrder = 1,
-                    Command = CommandDefinition.Create("webhook"),
-                    Status = PersistentItemStatus.Enqueued,
-                    HasPendingChanges = false,
-                }
-            );
-        }
+        var steps = Enumerable
+            .Range(0, stepCount)
+            .Select(i => new Step
+            {
+                OperationId = $"{operationId}-step-{i}",
+                IdempotencyKey = $"key-{operationId}-{i}",
+                ProcessingOrder = i,
+                Command = CommandDefinition.Create("webhook"),
+                Status = PersistentItemStatus.Completed,
+            })
+            .ToList();
 
         return new Workflow
         {
@@ -148,7 +124,7 @@ public class WorkflowUpdateBufferTests
         try
         {
             var workflow = CreateTestWorkflow();
-            await buffer.Submit(workflow, TestContext.Current.CancellationToken);
+            await buffer.Submit(workflow, TestContext.Current.CancellationToken, dirtySteps: workflow.Steps);
 
             repo.Verify(
                 r =>
@@ -167,7 +143,7 @@ public class WorkflowUpdateBufferTests
     }
 
     [Fact]
-    public async Task Submit_OnlyDirtyStepsIncluded()
+    public async Task Submit_OnlyExplicitDirtyStepsForwardedToRepository()
     {
         var (buffer, repo) = CreateBuffer();
 
@@ -188,16 +164,17 @@ public class WorkflowUpdateBufferTests
 
         try
         {
-            // Workflow has 1 dirty step and 1 clean step
-            var workflow = CreateTestWorkflow(withDirtyStep: true, withCleanStep: true);
+            // Workflow has 2 steps but only 1 is passed as dirty
+            var workflow = CreateTestWorkflow(stepCount: 2);
             Assert.Equal(2, workflow.Steps.Count);
 
-            await buffer.Submit(workflow, TestContext.Current.CancellationToken);
+            var dirtyStep = workflow.Steps[0];
+            await buffer.Submit(workflow, TestContext.Current.CancellationToken, dirtySteps: [dirtyStep]);
 
             Assert.NotNull(capturedUpdates);
             var update = Assert.Single(capturedUpdates);
-            var dirtyStep = Assert.Single(update.DirtySteps);
-            Assert.True(dirtyStep.HasPendingChanges);
+            Assert.Single(update.DirtySteps);
+            Assert.Same(dirtyStep, update.DirtySteps[0]);
         }
         finally
         {

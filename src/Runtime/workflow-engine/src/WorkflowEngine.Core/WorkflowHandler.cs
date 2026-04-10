@@ -95,7 +95,9 @@ internal sealed class WorkflowHandler(
                 }
             }
 
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
+            // The in-flight step was modified inside ProcessSteps before rethrowing.
+            // Pass all steps since we don't have access to the specific step here.
+            await statusWriteBuffer.Submit(workflow, CancellationToken.None, dirtySteps: workflow.Steps);
 
             StopActivity(workflow);
             throw;
@@ -167,11 +169,11 @@ internal sealed class WorkflowHandler(
 
             step.Status = PersistentItemStatus.Processing;
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
-            step.HasPendingChanges = true;
 
             statusWriteBuffer.SubmitAndForget(
                 workflow,
                 ct,
+                dirtySteps: [step],
                 reason: "step.started",
                 parentActivity: step.EngineActivity
             );
@@ -192,7 +194,6 @@ internal sealed class WorkflowHandler(
                     step.Status = PersistentItemStatus.Requeued;
                 }
 
-                step.HasPendingChanges = true;
                 StopActivity(step);
                 throw;
             }
@@ -204,9 +205,14 @@ internal sealed class WorkflowHandler(
             UpdateStepStatusAndRetryDecision(workflow, step, previous, result);
 
             step.UpdatedAt = timeProvider.GetUtcNow();
-            step.HasPendingChanges = true;
 
-            await statusWriteBuffer.Submit(workflow, ct, reason: "step.completed", parentActivity: step.EngineActivity);
+            await statusWriteBuffer.Submit(
+                workflow,
+                ct,
+                dirtySteps: [step],
+                reason: "step.completed",
+                parentActivity: step.EngineActivity
+            );
 
             RecordStepServiceTime(step);
             RecordStepTotalTime(step, previous);

@@ -22,7 +22,13 @@ internal interface IWorkflowUpdateBuffer
     /// Submits a workflow and its dirty steps for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    Task Submit(Workflow workflow, CancellationToken ct, string? reason = null, Activity? parentActivity = null);
+    Task Submit(
+        Workflow workflow,
+        CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
+        string? reason = null,
+        Activity? parentActivity = null
+    );
 
     /// <summary>
     /// Submits a workflow and its dirty steps for batched persistence without awaiting the flush.
@@ -34,6 +40,7 @@ internal interface IWorkflowUpdateBuffer
     void SubmitAndForget(
         Workflow workflow,
         CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
         string? reason = null,
         Activity? parentActivity = null
     );
@@ -79,11 +86,12 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     public async Task Submit(
         Workflow workflow,
         CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
         string? reason = null,
         Activity? parentActivity = null
     )
     {
-        var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
+        dirtySteps ??= [];
 
         reason ??= $"workflow.{JsonNamingPolicy.CamelCase.ConvertName(workflow.Status.ToString())}";
 
@@ -117,11 +125,12 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     public void SubmitAndForget(
         Workflow workflow,
         CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
         string? reason = null,
         Activity? parentActivity = null
     )
     {
-        var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
+        dirtySteps ??= [];
 
         reason ??= $"workflow.{JsonNamingPolicy.CamelCase.ConvertName(workflow.Status.ToString())}";
 
@@ -225,8 +234,8 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// <summary>
     /// Removes duplicate entries for the same workflow, keeping only the latest submission.
     /// Earlier entries are completed immediately — they've been superseded by newer state.
-    /// This is safe because callers submit the live Workflow object, so the latest entry
-    /// in the batch carries the full current state including all prior mutations.
+    /// This is safe because the latest entry's dirty steps reflect the most recent mutations,
+    /// and the Workflow reference carries the full current state.
     /// </summary>
     private void DeduplicateBatch(List<WorkflowUpdateRequest> batch)
     {
