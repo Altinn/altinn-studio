@@ -157,7 +157,7 @@ public interface ICommand
     Type? WorkflowContextType { get; }    // typed workflow context
 
     CommandValidationResult Validate(object? data, object? context);
-    Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken ct);
+    Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken ct);
 }
 ```
 
@@ -684,7 +684,7 @@ public sealed class MyCommand : Command<MyCommandData>
         return CommandValidationResult.Valid();
     }
 
-    public override async Task<ExecutionResult> ExecuteAsync(
+    public override async Task<ExecutionResult> Execute(
         CommandExecutionContext context, CancellationToken ct)
     {
         var response = await httpClient.PostAsync(data.Target, content, ct);

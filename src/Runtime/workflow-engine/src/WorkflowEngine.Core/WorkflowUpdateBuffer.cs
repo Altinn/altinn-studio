@@ -145,7 +145,11 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         // the deduplication logic will discard this entry.
         var request = new WorkflowUpdateRequest(workflow, dirtySteps, Completion: null);
 
-        _channel.Writer.TryWrite(request);
+        if (!_channel.Writer.TryWrite(request))
+        {
+            Metrics.UpdateBufferDroppedItems.Add(1);
+            _logger.UpdateBufferDropped(workflow.DatabaseId, workflow.OperationId);
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -221,6 +225,8 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// <summary>
     /// Removes duplicate entries for the same workflow, keeping only the latest submission.
     /// Earlier entries are completed immediately — they've been superseded by newer state.
+    /// This is safe because callers submit the live Workflow object, so the latest entry
+    /// in the batch carries the full current state including all prior mutations.
     /// </summary>
     private void DeduplicateBatch(List<WorkflowUpdateRequest> batch)
     {
@@ -333,6 +339,16 @@ internal static partial class WorkflowUpdateBufferLogs
         this ILogger<WorkflowUpdateBuffer> logger,
         int count,
         Exception ex
+    );
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "SubmitAndForget dropped — update buffer channel full (WorkflowId={WorkflowId}, OperationId={OperationId})"
+    )]
+    internal static partial void UpdateBufferDropped(
+        this ILogger<WorkflowUpdateBuffer> logger,
+        Guid workflowId,
+        string operationId
     );
 
     [LoggerMessage(LogLevel.Debug, "WorkflowUpdateBuffer deduplicated {Superseded} items, {Remaining} remain in batch")]
