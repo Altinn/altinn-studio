@@ -16,7 +16,7 @@ import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgP
 jest.mock('app-shared/hooks/queries/useUserOrgPermissionsQuery');
 
 (useUserOrgPermissionsQuery as jest.Mock).mockReturnValue({
-  data: { canCreateOrgRepo: true },
+  data: { canCreateOrgRepo: true, isOrgOwner: true },
 });
 
 const mockServiceFullName: string = `${org}/${app}`;

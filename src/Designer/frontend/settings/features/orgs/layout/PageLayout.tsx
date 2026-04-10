@@ -13,11 +13,12 @@ export const PageLayout = () => {
   const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
   const { org } = match?.params ?? {};
   const { data: orgs, isPending: isOrgsPending, isError: isOrgsError } = useOrganizationsQuery();
+  const selectedOrg = orgs?.find((o) => o.username === org);
   const {
     data: orgPermissions,
     isPending: isOrgPermissionsPending,
     isError: isOrgPermissionsError,
-  } = useUserOrgPermissionsQuery(org, { enabled: !!org });
+  } = useUserOrgPermissionsQuery(org, { enabled: !!selectedOrg });
 
   if (isOrgsPending || isOrgPermissionsPending) {
     return (
@@ -30,8 +31,6 @@ export const PageLayout = () => {
   if (isOrgsError || isOrgPermissionsError) {
     return <StudioPageError />;
   }
-
-  const selectedOrg = orgs?.find((o) => o.username === org);
 
   if (!selectedOrg) {
     return <NotFound />;
