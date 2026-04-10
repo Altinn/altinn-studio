@@ -1,4 +1,3 @@
-import React from 'react';
 import type { JSX } from 'react';
 
 import { Fieldset, Heading } from '@digdir/designsystemet-react';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Heading } from '@digdir/designsystemet-react';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';

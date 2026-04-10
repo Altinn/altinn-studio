@@ -1,4 +1,4 @@
-import React from 'react';
+import { useRef } from 'react';
 
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -55,7 +55,7 @@ const countries = [
 ];
 
 function RenderCounter({ baseComponentId }: { baseComponentId: string }) {
-  const renderCount = React.useRef(0);
+  const renderCount = useRef(0);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
 
   // This simulates the List component data model fetching. It will trigger a re-render of the component once every

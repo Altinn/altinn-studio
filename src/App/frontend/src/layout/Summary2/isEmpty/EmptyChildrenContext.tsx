@@ -1,4 +1,5 @@
-import React, { createContext, useLayoutEffect, useReducer, useRef } from 'react';
+import { createContext, useLayoutEffect, useReducer, useRef } from 'react';
+import * as React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';

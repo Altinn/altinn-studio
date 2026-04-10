@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import * as React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createStore } from 'zustand';

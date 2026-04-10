@@ -1,4 +1,5 @@
-import React, { useId, useRef } from 'react';
+import { useId, useRef } from 'react';
+import * as React from 'react';
 
 import { Button, Input, Label } from '@digdir/designsystemet-react';
 import { ArrowUndoIcon, TrashIcon, UploadIcon } from '@navikt/aksel-icons';

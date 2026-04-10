@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { Label, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';

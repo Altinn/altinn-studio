@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Link } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';

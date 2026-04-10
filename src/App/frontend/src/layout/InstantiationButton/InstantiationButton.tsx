@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { useNavigate } from 'react-router';
 
 import { Button } from 'src/app-components/Button/Button';

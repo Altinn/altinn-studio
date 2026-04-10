@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import * as React from 'react';
 
 import { Accordion as AccordionComponent } from 'src/layout/Accordion/Accordion';
 import { AccordionDef } from 'src/layout/Accordion/config.def.generated';

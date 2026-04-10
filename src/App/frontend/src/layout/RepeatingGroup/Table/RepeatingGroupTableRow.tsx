@@ -1,4 +1,5 @@
-import React, { useLayoutEffect } from 'react';
+import { useLayoutEffect } from 'react';
+import * as React from 'react';
 import type { JSX } from 'react';
 
 import { Table } from '@digdir/designsystemet-react';

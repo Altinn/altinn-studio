@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/app-components/Label/Label';
 import { TimePicker as TimePickerControl } from 'src/app-components/TimePicker/TimePicker';

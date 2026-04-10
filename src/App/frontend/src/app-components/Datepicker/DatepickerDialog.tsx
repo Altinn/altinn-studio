@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { PropsWithChildren, ReactNode } from 'react';
 
 import { Dialog, Popover } from '@digdir/designsystemet-react';

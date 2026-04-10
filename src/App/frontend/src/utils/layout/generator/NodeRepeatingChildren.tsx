@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo } from 'react';
+import { Fragment, memo, useMemo } from 'react';
 
 import dot from 'dot-object';
 
@@ -64,7 +64,7 @@ interface GenerateRowProps {
   multiPageMapping: MultiPageMapping | undefined;
 }
 
-const GenerateRow = React.memo((props: GenerateRowProps) => (
+const GenerateRow = memo((props: GenerateRowProps) => (
   <DataModelLocationProvider
     groupBinding={props.groupBinding}
     rowIndex={props.rowIndex}

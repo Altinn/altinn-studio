@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import {
   InstantiationValidation,

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import * as React from 'react';
 import type { CSSProperties } from 'react';
 
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';

@@ -1,4 +1,5 @@
-import React, { forwardRef, type JSX } from 'react';
+import { forwardRef } from 'react';
+import type { type JSX } from 'react';
 
 import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';

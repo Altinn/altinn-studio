@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import * as React from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
 import { CalendarIcon } from '@navikt/aksel-icons';

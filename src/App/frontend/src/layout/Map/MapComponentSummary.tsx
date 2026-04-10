@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { MarkerLocationText } from 'src/layout/Map/features/singleMarker/MarkerLocationText';

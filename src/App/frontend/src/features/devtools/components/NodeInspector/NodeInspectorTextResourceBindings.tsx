@@ -1,5 +1,3 @@
-import React from 'react';
-
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
 import { canBeExpression } from 'src/features/expressions/validation';

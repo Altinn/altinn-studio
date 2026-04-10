@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import React, { useState } from 'react';
+import { useState } from 'react';
+import * as React from 'react';
 import type { ErrorInfo, PropsWithChildren } from 'react';
 
 import { XMarkIcon } from '@navikt/aksel-icons';

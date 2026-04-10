@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Lang } from 'src/features/language/Lang';
 
 export interface IRequiredIndicatorProps {

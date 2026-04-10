@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { ReactNode } from 'react';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';

@@ -1,4 +1,6 @@
-import React, { Fragment, type PropsWithChildren } from 'react';
+import { Fragment } from 'react';
+import * as React from 'react';
+import type { type PropsWithChildren } from 'react';
 
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 

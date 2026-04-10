@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { screen } from '@testing-library/dom';
 import { render as renderRtl } from '@testing-library/react';

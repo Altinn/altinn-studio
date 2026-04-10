@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import * as React from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
 import { Button, Dialog } from '@digdir/designsystemet-react';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';

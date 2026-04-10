@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import * as React from 'react';
 import type { JSX } from 'react';
 
 import { AddToListComponent } from 'src/layout/AddToList/AddToList';

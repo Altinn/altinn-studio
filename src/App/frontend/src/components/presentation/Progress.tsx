@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { getLabelId } from 'src/components/label/Label';
 import classes from 'src/components/presentation/Progress.module.css';

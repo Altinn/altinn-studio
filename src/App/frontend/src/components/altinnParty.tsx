@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { Paragraph } from '@digdir/designsystemet-react';
 import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';

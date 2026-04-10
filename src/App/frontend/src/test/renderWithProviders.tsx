@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 

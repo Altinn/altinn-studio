@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnError } from 'src/components/altinnError';

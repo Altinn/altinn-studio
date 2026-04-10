@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import * as React from 'react';
 import { useSearchParams } from 'react-router';
 import type { SetURLSearchParams } from 'react-router';
 

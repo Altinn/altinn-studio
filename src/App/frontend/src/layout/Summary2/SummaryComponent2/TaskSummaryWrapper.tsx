@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormProvider } from 'src/features/form/FormProvider';

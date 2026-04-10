@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 
 import { Paragraph, Textfield } from '@digdir/designsystemet-react';

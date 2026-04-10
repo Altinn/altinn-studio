@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { translationKey } from 'src/AppComponentsBridge';

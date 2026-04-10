@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import * as React from 'react';
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 

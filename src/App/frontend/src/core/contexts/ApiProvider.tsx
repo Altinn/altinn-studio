@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { type InstanceApi, instanceApi } from 'src/core/api-client/instance.api';

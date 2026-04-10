@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';

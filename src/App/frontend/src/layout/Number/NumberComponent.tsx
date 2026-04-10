@@ -1,5 +1,3 @@
-import React from 'react';
-
 import cn from 'classnames';
 
 import { DisplayNumber } from 'src/app-components/Number/DisplayNumber';
