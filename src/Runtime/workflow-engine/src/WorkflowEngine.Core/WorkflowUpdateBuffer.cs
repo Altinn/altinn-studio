@@ -306,6 +306,8 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
             await repo.BatchUpdateWorkflowsAndSteps(updates, ct);
 
+            Metrics.UpdateBufferFlushedItems.Add(batch.Count);
+
             foreach (var request in batch)
             {
                 request.Completion?.TrySetResult();

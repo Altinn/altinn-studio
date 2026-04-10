@@ -1,6 +1,35 @@
 import http from 'k6/http';
+import { Counter } from 'k6/metrics';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
+
+// Per-status-code counters for granular reporting
+export const STATUS_COUNTERS = {
+    200: new Counter('status_200'),
+    201: new Counter('status_201'),
+    204: new Counter('status_204'),
+    400: new Counter('status_400'),
+    404: new Counter('status_404'),
+    409: new Counter('status_409'),
+    429: new Counter('status_429'),
+    500: new Counter('status_500'),
+    503: new Counter('status_503'),
+};
+
+const statusOther = new Counter('status_other');
+
+/**
+ * Increments the counter for a given HTTP status code.
+ * Untracked codes go into 'status_other'.
+ */
+export function trackStatus(status) {
+    const counter = STATUS_COUNTERS[status];
+    if (counter) {
+        counter.add(1);
+    } else {
+        statusOther.add(1);
+    }
+}
 
 // --- Configuration ---
 const NAMESPACE = __ENV.NAMESPACE || 'default';
@@ -104,6 +133,20 @@ export function formatSummary(data, { vus, target }) {
     const duration = data.metrics?.http_req_duration?.values || {};
     const failed = data.metrics?.http_req_failed?.values?.passes || 0;
 
+    // Build status code breakdown from counter metrics
+    const statusLines = [];
+    const allStatusKeys = Object.keys(STATUS_COUNTERS);
+    for (const code of allStatusKeys) {
+        const count = data.metrics?.[`status_${code}`]?.values?.count || 0;
+        if (count > 0) {
+            statusLines.push(`  ${code}:         ${count}`);
+        }
+    }
+    const otherCount = data.metrics?.status_other?.values?.count || 0;
+    if (otherCount > 0) {
+        statusLines.push(`  other:       ${otherCount}`);
+    }
+
     const summary = `
 === Workflow Engine Stress Test (k6) ===
   Requests:    ${iterations}
@@ -119,6 +162,9 @@ export function formatSummary(data, { vus, target }) {
 === Throughput ===
   Failed:      ${failed}
   Avg rate:    ${data.metrics?.http_reqs?.values?.rate?.toFixed(1) || '?'} req/s
+
+=== Status Codes ===
+${statusLines.length > 0 ? statusLines.join('\n') : '  (no data)'}
 `;
 
     return {
