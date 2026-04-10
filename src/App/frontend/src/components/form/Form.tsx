@@ -51,10 +51,13 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useEffect(() => {
     if (shouldValidateFormPage) {
       onFormSubmitValidation();
-      setSearchParams((params) => {
-        params.delete(SearchParams.Validate);
-        return searchParams;
-      });
+      setSearchParams(
+        (params) => {
+          params.delete(SearchParams.Validate);
+          return searchParams;
+        },
+        { replace: true },
+      );
     }
   }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage]);
 
