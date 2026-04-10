@@ -8,7 +8,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { optionFilter } from 'src/utils/options';
-import { appFrontendCDNPath, appPath, frontendVersionsCDN } from 'src/utils/urls/appUrlHelper';
+import { appPath, getAppFrontendCDNPath, getFrontendVersionsCDN } from 'src/utils/urls/appUrlHelper';
 
 export const VersionSwitcher = () => {
   const [selectedVersion, setSelectedVersion] = React.useState<string | undefined>(undefined);
@@ -18,13 +18,13 @@ export const VersionSwitcher = () => {
     isError: isVersionsError,
   } = useQuery({
     queryKey: ['frontendVersions'],
-    queryFn: () => axios.get(frontendVersionsCDN).then((res) => res.data),
+    queryFn: () => axios.get(getFrontendVersionsCDN()).then((res) => res.data),
     select: (data: string[]) => [
       { label: 'localhost:8080', value: 'http://localhost:8080' },
       ...data
         .slice()
         .reverse()
-        .map((v) => ({ label: v, value: `${appFrontendCDNPath}/${v}` })),
+        .map((v) => ({ label: v, value: `${getAppFrontendCDNPath()}/${v}` })),
     ],
   });
 

@@ -160,7 +160,7 @@ export const restoreUrl = () => {
             for (const c of bar.querySelectorAll('.chip')) {
                 c.classList.toggle(
                     'active',
-                    /** @type {HTMLElement} */ ((c).dataset.status || '') === '',
+                    /** @type {HTMLElement} */ (c.dataset.status || '') === '',
                 );
             }
         }
@@ -231,7 +231,7 @@ export const restoreUrl = () => {
                 for (const o of dropdown.querySelectorAll('.time-option'))
                     o.classList.toggle(
                         'active',
-                        /** @type {HTMLElement} */ ((o).dataset.minutes || '') === String(qt),
+                        /** @type {HTMLElement} */ (o.dataset.minutes || '') === String(qt),
                     );
         }
     }

@@ -8,5 +8,5 @@ namespace WorkflowEngine.Core;
 internal sealed record WorkflowUpdateRequest(
     Workflow Workflow,
     IReadOnlyList<Step> DirtySteps,
-    TaskCompletionSource Completion
+    TaskCompletionSource? Completion
 );

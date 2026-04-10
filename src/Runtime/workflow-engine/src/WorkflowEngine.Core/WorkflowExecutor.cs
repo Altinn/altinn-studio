@@ -92,7 +92,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };
 
-            var result = await descriptor.ExecuteAsync(context, cts.Token);
+            var result = await descriptor.Execute(context, cts.Token);
 
             if (result.IsSuccess())
                 _logger.SuccessfulExecution(step, Stopwatch.GetElapsedTime(startTimestamp));

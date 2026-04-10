@@ -1,14 +1,14 @@
+import { FormStore } from 'src/features/form/FormContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 
 export function useValidateMinNumberOfAttachments(baseComponentId: string): ComponentValidation[] {
   const validations: ComponentValidation[] = [];
   const component = useExternalItem(baseComponentId);
-  const attachments = NodesInternal.useAttachments(useIndexedId(baseComponentId));
+  const attachments = FormStore.nodes.useAttachments(useIndexedId(baseComponentId));
   const minNumberOfAttachments = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
     baseComponentId,
     (t) => t === 'FileUpload' || t === 'FileUploadWithTag',

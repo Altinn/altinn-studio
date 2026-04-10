@@ -1,20 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { FormStoreState } from 'src/features/form/FormContext';
 import { selectAllPaths } from 'src/features/formData/FormDataWrite';
-import type { FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
 
 const dataType = 'default';
 
-function makeContext(formData?: object): FormDataContext {
+function makeContext(formData?: object): FormStoreState {
   return {
-    dataModels: formData
-      ? {
-          [dataType]: {
-            debouncedCurrentData: formData,
-          },
-        }
-      : {},
-  } as FormDataContext;
+    data: { models: formData ? { [dataType]: { debouncedCurrentData: formData } } : {} },
+  } as FormStoreState;
 }
 
 describe('selectAllPaths', () => {

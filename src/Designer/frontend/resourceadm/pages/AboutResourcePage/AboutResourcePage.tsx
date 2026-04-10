@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { ErrorSummary } from '@digdir/designsystemet-react';
-import { StudioAlert, StudioHeading } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioErrorSummary } from '@studio/components';
 import type {
   Resource,
   ResourceTypeOption,
@@ -123,21 +122,23 @@ export const AboutResourcePage = ({
           {t('resourceadm.about_resource_title')}
         </StudioHeading>
         {validationErrors.length > 0 && (
-          <ErrorSummary.Root>
-            <ErrorSummary.Heading>
-              {t('resourceadm.about_resource_error_summary_header')}
-            </ErrorSummary.Heading>
-            <ErrorSummary.List>
-              {validationErrors.map((error) => {
-                const href = `#${error.field}${error.index !== undefined && typeof error.index === 'number' ? `-${error.index}` : ''}`;
-                return (
-                  <ErrorSummary.Item key={JSON.stringify(error)} href={href}>
-                    {error.error}
-                  </ErrorSummary.Item>
-                );
-              })}
-            </ErrorSummary.List>
-          </ErrorSummary.Root>
+          <div className={classes.errorSummary}>
+            <StudioErrorSummary>
+              <StudioErrorSummary.Heading>
+                {t('resourceadm.about_resource_error_summary_header')}
+              </StudioErrorSummary.Heading>
+              <StudioErrorSummary.List>
+                {validationErrors.map((error) => {
+                  const href = `#${error.field}${error.index !== undefined && typeof error.index === 'number' ? `-${error.index}` : ''}`;
+                  return (
+                    <StudioErrorSummary.Item key={JSON.stringify(error)}>
+                      <StudioErrorSummary.Link href={href}>{error.error}</StudioErrorSummary.Link>
+                    </StudioErrorSummary.Item>
+                  );
+                })}
+              </StudioErrorSummary.List>
+            </StudioErrorSummary>
+          </div>
         )}
         <ResourceTextField
           id='identifier'

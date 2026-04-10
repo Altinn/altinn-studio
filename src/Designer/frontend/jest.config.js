@@ -22,6 +22,7 @@ const packagesToTransform = [
   'min-dom',
   'moddle',
   'path-intersection',
+  'preact',
   'react-dnd',
   'react-dnd-html5-backend',
   'react-error-boundary',

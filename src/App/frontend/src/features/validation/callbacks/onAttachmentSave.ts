@@ -1,16 +1,16 @@
 import { useCallback } from 'react';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { getVisibilityMask } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
+import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 /**
  * Sets attachment validations as visible for when an attachment is saved (tag is changed).
  */
 export function useOnAttachmentSave() {
-  const validating = Validation.useValidating();
-  const setAttachmentVisibility = NodesInternal.useSetAttachmentVisibility();
+  const validating = useWaitForValidation();
+  const setAttachmentVisibility = FormStore.nodes.useSetAttachmentVisibility();
   const idMutator = useComponentIdMutator();
 
   return useCallback(

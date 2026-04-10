@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
+import { FormStore } from 'src/features/form/FormContext';
 import {
   type AnyValidation,
   type BaseValidation,
@@ -10,8 +10,6 @@ import {
   ValidationMask,
 } from 'src/features/validation/index';
 import { selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 const emptyArray: never[] = [];
 
@@ -23,14 +21,16 @@ export function useTaskErrors(): {
   formErrors: NodeRefValidation<AnyValidation<'error'>>[];
   taskErrors: BaseValidation<'error'>[];
 } {
-  const selector = Validation.useSelector();
-
-  const showAllBackendErrors = selector((state) => state.showAllBackendErrors, []);
+  const [dataModels, taskValidations, showAllBackendErrors] = FormStore.raw.useShallowSelector((state) => [
+    state.validation.state.dataModels,
+    state.validation.state.task,
+    state.validation.showAllBackendErrors,
+  ]);
 
   const formErrorVisibility: NodeVisibility = showAllBackendErrors ? 'showAll' : 'visible';
 
-  const _formErrors = NodesInternal.useAllValidations(formErrorVisibility, 'error');
-  const formErrors = _formErrors === ContextNotProvided || !_formErrors.length ? emptyArray : _formErrors;
+  const _formErrors = FormStore.nodes.useAllValidations(formErrorVisibility, 'error');
+  const formErrors = !_formErrors.length ? emptyArray : _formErrors;
 
   const taskErrors = useMemo(() => {
     if (!showAllBackendErrors) {
@@ -43,7 +43,6 @@ export function useTaskErrors(): {
     const boundErrorIds = new Set(formErrors.filter(hasBackendValidationId).map((v) => v.backendValidationId));
 
     // Unbound field errors
-    const dataModels = selector((state) => state.state.dataModels, []);
     for (const fields of Object.values(dataModels)) {
       for (const field of Object.values(fields)) {
         allBackendErrors.push(
@@ -56,15 +55,10 @@ export function useTaskErrors(): {
     }
 
     // Task errors
-    allBackendErrors.push(
-      ...validationsOfSeverity(
-        selector((state) => state.state.task, []),
-        'error',
-      ),
-    );
+    allBackendErrors.push(...validationsOfSeverity(taskValidations, 'error'));
 
     return allBackendErrors?.length ? allBackendErrors : emptyArray;
-  }, [formErrors, selector, showAllBackendErrors]);
+  }, [dataModels, formErrors, showAllBackendErrors, taskValidations]);
 
   return {
     formErrors,

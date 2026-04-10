@@ -2,49 +2,45 @@ import { screen } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { Org } from 'app-shared/types/OrgList';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { user as userMock } from 'app-shared/mocks/mocks';
-import { useUserQuery } from 'app-shared/hooks/queries';
+import { useOrganizationsQuery, useUserOrgPermissionsQuery } from 'app-shared/hooks/queries';
 
 jest.mock('../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Outlet: () => <div>Outlet</div>,
 }));
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => ({ environment: {} }),
-}));
 jest.mock('app-shared/hooks/queries', () => ({
   ...jest.requireActual('app-shared/hooks/queries'),
-  useUserQuery: jest.fn(),
+  useOrganizationsQuery: jest.fn(),
+  useUserOrgPermissionsQuery: jest.fn(),
 }));
 
 const testOrg = 'ttd';
-const orgsMock: KeyValuePairs<Org> = {
-  [testOrg]: {
-    name: { nb: 'Test org' },
-    logo: '',
-    orgnr: '123456789',
-    homepage: '',
-    environments: [],
+const organizationsMock = [
+  {
+    username: testOrg,
+    full_name: 'Test org',
+    avatar_url: '',
+    id: 1,
   },
-};
+];
 
 const renderPageLayout = (initialEntries = ['/orgs/ttd/contact-points']) => {
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgList], orgsMock);
-  return renderWithProviders(<PageLayout />, { queryClient, initialEntries });
+  return renderWithProviders(<PageLayout />, { initialEntries });
 };
 
 describe('PageLayout', () => {
   beforeEach(() => {
-    jest.mocked(useUserQuery).mockReturnValue({
-      data: userMock,
+    jest.mocked(useOrganizationsQuery).mockReturnValue({
+      data: organizationsMock,
       isPending: false,
-    } as ReturnType<typeof useUserQuery>);
+      isError: false,
+    } as ReturnType<typeof useOrganizationsQuery>);
+    jest.mocked(useUserOrgPermissionsQuery).mockReturnValue({
+      data: { canCreateOrgRepo: true, isOrgOwner: true },
+      isPending: false,
+      isError: false,
+    } as ReturnType<typeof useUserOrgPermissionsQuery>);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -66,10 +62,11 @@ describe('PageLayout', () => {
   });
 
   it('renders the loading spinner while data is pending', () => {
-    jest.mocked(useUserQuery).mockReturnValueOnce({
+    jest.mocked(useOrganizationsQuery).mockReturnValueOnce({
       data: undefined,
       isPending: true,
-    } as ReturnType<typeof useUserQuery>);
+      isError: false,
+    } as ReturnType<typeof useOrganizationsQuery>);
     renderWithProviders(<PageLayout />, { initialEntries: ['/orgs/ttd/contact-points'] });
     expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
   });
@@ -88,26 +85,32 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
   });
 
-  it('does not render the settings heading when user data is missing', () => {
-    jest.mocked(useUserQuery).mockReturnValueOnce({
+  it('renders error page when organizations query fails', () => {
+    jest.mocked(useOrganizationsQuery).mockReturnValueOnce({
       data: undefined,
       isPending: false,
-    } as ReturnType<typeof useUserQuery>);
+      isError: true,
+    } as ReturnType<typeof useOrganizationsQuery>);
     renderPageLayout();
     expect(
       screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings.orgs.heading.description')),
-    ).not.toBeInTheDocument();
   });
 
-  it('renders the error page when org is valid but user data is missing after loading', () => {
-    jest.mocked(useUserQuery).mockReturnValueOnce({
-      data: undefined,
+  it('renders not-org-owner alert when user is not owner for selected org', () => {
+    jest.mocked(useUserOrgPermissionsQuery).mockReturnValueOnce({
+      data: { canCreateOrgRepo: true, isOrgOwner: false },
       isPending: false,
-    } as ReturnType<typeof useUserQuery>);
+      isError: false,
+    } as ReturnType<typeof useUserOrgPermissionsQuery>);
     renderPageLayout();
+    expect(
+      screen.getByText(
+        textMock('settings.orgs.not_org_owner_alert', {
+          orgName: organizationsMock[0].full_name,
+        }),
+      ),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Menu')).not.toBeInTheDocument();
     expect(screen.queryByText('Outlet')).not.toBeInTheDocument();
   });
