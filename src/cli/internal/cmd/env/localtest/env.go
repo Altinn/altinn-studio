@@ -342,7 +342,7 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		if err := ValidateResourceHostPaths(buildOpts); err != nil {
 			return fmt.Errorf("validate resources: %w", err)
 		}
-		return nil
+		return EnsureInfraFiles(e.cfg.DataDir)
 	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
@@ -355,7 +355,7 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		}
 	}
 
-	return nil
+	return EnsureInfraFiles(e.cfg.DataDir)
 }
 
 func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) {

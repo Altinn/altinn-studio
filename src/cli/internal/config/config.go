@@ -263,8 +263,11 @@ func (s ImageSpec) Ref() string {
 
 // CoreImages holds image configuration for core studioctl containers.
 type CoreImages struct {
-	Localtest ImageSpec `yaml:"localtest"`
-	PDF3      ImageSpec `yaml:"pdf3"`
+	Localtest      ImageSpec `yaml:"localtest"`
+	PDF3           ImageSpec `yaml:"pdf3"`
+	Postgres       ImageSpec `yaml:"postgres"`
+	WorkflowEngine ImageSpec `yaml:"workflow-engine"` //nolint:tagliatelle // kebab-case for YAML consistency
+	PgAdmin        ImageSpec `yaml:"pgadmin"`
 }
 
 // MonitoringImages holds image configuration for monitoring stack containers.
@@ -362,6 +365,12 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 	// Core images
 	result.Images.Core.Localtest = mergeImageSpec(defaults.Images.Core.Localtest, user.Images.Core.Localtest)
 	result.Images.Core.PDF3 = mergeImageSpec(defaults.Images.Core.PDF3, user.Images.Core.PDF3)
+	result.Images.Core.Postgres = mergeImageSpec(defaults.Images.Core.Postgres, user.Images.Core.Postgres)
+	result.Images.Core.WorkflowEngine = mergeImageSpec(
+		defaults.Images.Core.WorkflowEngine,
+		user.Images.Core.WorkflowEngine,
+	)
+	result.Images.Core.PgAdmin = mergeImageSpec(defaults.Images.Core.PgAdmin, user.Images.Core.PgAdmin)
 
 	// Monitoring images
 	result.Images.Monitoring.Tempo = mergeImageSpec(defaults.Images.Monitoring.Tempo, user.Images.Monitoring.Tempo)

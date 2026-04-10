@@ -9,6 +9,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -27,11 +28,16 @@ type Executor struct {
 const containerSpecHashLabel = "altinn.studio/devenv-spec-hash"
 const networkResourceIDPrefix = "network:"
 
+// healthPollInterval is how often to check container health status while waiting.
+const healthPollInterval = 500 * time.Millisecond
+
 var (
 	errUnknownResourceType      = errors.New("unknown resource type")
 	errImageNotResolved         = errors.New("image not resolved")
 	errNetworkNameUnresolvable  = errors.New("cannot resolve network name")
 	errImageMissingForPullNever = errors.New("image not found locally and pull policy is Never")
+	errContainerUnhealthy       = errors.New("container health check failed")
+	errContainerStopped         = errors.New("container stopped")
 )
 
 // NewExecutor creates an executor with the given container client.
@@ -355,6 +361,7 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 
 	// Create container
 	cfg := types.ContainerConfig{
+		HealthCheck:   c.HealthCheck,
 		Name:          c.Name,
 		Image:         imageID,
 		Command:       c.Command,
@@ -377,6 +384,13 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 
 	// Connect to additional networks
 	// TODO: implement NetworkConnect in container client for multiple networks
+
+	// If the container has a health check, wait until it reports healthy.
+	if c.HealthCheck != nil {
+		if err := e.waitForHealthy(ctx, c); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -433,6 +447,38 @@ func (e *Executor) containerStatus(ctx context.Context, c *Container) (Status, e
 		return StatusFailed, nil
 	default:
 		return StatusUnknown, nil
+	}
+}
+
+// waitForHealthy polls a container's health status until it reports "healthy",
+// or returns an error if the container becomes unhealthy or the context is cancelled.
+func (e *Executor) waitForHealthy(ctx context.Context, c *Container) error {
+	ticker := time.NewTicker(healthPollInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("wait for healthy %s: %w", c.Name, ctx.Err())
+		case <-ticker.C:
+			state, err := e.client.ContainerState(ctx, c.Name)
+			if err != nil {
+				return fmt.Errorf("wait for healthy %s: %w", c.Name, err)
+			}
+
+			switch state.Health {
+			case "healthy":
+				return nil
+			case "unhealthy":
+				return fmt.Errorf("%w: container %s", errContainerUnhealthy, c.Name)
+			case "starting", "":
+				// Still waiting — continue polling
+			}
+
+			if !state.Running {
+				return fmt.Errorf("%w while waiting for healthy: %s", errContainerStopped, c.Name)
+			}
+		}
 	}
 }
 
@@ -539,6 +585,15 @@ func containerSpecHash(c *Container, imageID string, networks []string) string {
 		)
 	}
 	writeSortedList(&b, "volumes", volumeEntries)
+
+	if c.HealthCheck != nil {
+		b.WriteString("healthcheck=")
+		b.WriteString(strings.Join(c.HealthCheck.Test, "\x00"))
+		b.WriteString(fmt.Sprintf("|%s|%s|%d|%s",
+			c.HealthCheck.Interval, c.HealthCheck.Timeout,
+			c.HealthCheck.Retries, c.HealthCheck.StartPeriod))
+		b.WriteByte('\n')
+	}
 
 	sum := sha256.Sum256([]byte(b.String()))
 	return hex.EncodeToString(sum[:])

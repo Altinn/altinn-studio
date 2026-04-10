@@ -14,12 +14,14 @@ var (
 // Container is a resource representing a container.
 // It is a pure value type - use Executor to apply to infrastructure.
 type Container struct {
+	HealthCheck   *types.HealthCheck
 	Image         ResourceRef
 	Labels        map[string]string
 	Name          string
 	RestartPolicy string
 	User          string
 	Networks      []ResourceRef
+	DependsOn     []ResourceRef // Explicit container-to-container dependencies
 	Ports         []types.PortMapping
 	Volumes       []types.VolumeMount
 	Env           []string
@@ -33,11 +35,12 @@ func (c *Container) ID() ResourceID {
 }
 
 // Dependencies returns resources that must be applied before this container.
-// Always includes the image and all networks.
+// Includes the image, all networks, and any explicit container dependencies.
 func (c *Container) Dependencies() []ResourceRef {
-	deps := make([]ResourceRef, 0, 1+len(c.Networks))
+	deps := make([]ResourceRef, 0, 1+len(c.Networks)+len(c.DependsOn))
 	deps = append(deps, c.Image)
 	deps = append(deps, c.Networks...)
+	deps = append(deps, c.DependsOn...)
 	return deps
 }
 

@@ -6,6 +6,12 @@ const (
 	ContainerLocaltest = "localtest"
 	// ContainerPDF3 is the PDF service container.
 	ContainerPDF3 = "localtest-pdf3"
+	// ContainerPostgres is the shared PostgreSQL database container.
+	ContainerPostgres = "postgres"
+	// ContainerWorkflowEngine is the workflow engine app container.
+	ContainerWorkflowEngine = "workflow-engine"
+	// ContainerPgAdmin is the pgAdmin web UI container.
+	ContainerPgAdmin = "pgadmin"
 
 	// ContainerMonitoringTempo is the Tempo tracing container.
 	ContainerMonitoringTempo = "monitoring_tempo"
@@ -24,6 +30,9 @@ func coreContainerNames() []string {
 	return []string{
 		ContainerLocaltest,
 		ContainerPDF3,
+		ContainerPostgres,
+		ContainerWorkflowEngine,
+		ContainerPgAdmin,
 	}
 }
 

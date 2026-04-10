@@ -182,6 +182,23 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		args = append(args, "--cap-add", cap)
 	}
 
+	// Health check configuration
+	if cfg.HealthCheck != nil && len(cfg.HealthCheck.Test) > 0 {
+		args = append(args, "--health-cmd", podmanHealthCmd(cfg.HealthCheck.Test))
+		if cfg.HealthCheck.Interval > 0 {
+			args = append(args, "--health-interval", cfg.HealthCheck.Interval.String())
+		}
+		if cfg.HealthCheck.Timeout > 0 {
+			args = append(args, "--health-timeout", cfg.HealthCheck.Timeout.String())
+		}
+		if cfg.HealthCheck.Retries > 0 {
+			args = append(args, "--health-retries", fmt.Sprintf("%d", cfg.HealthCheck.Retries))
+		}
+		if cfg.HealthCheck.StartPeriod > 0 {
+			args = append(args, "--health-start-period", cfg.HealthCheck.StartPeriod.String())
+		}
+	}
+
 	args = append(args, cfg.Image)
 	args = append(args, cfg.Command...)
 
@@ -228,17 +245,24 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 		Running  bool   `json:"Running"`
 		Paused   bool   `json:"Paused"`
 		ExitCode int    `json:"ExitCode"`
+		Health   *struct {
+			Status string `json:"Status"`
+		} `json:"Health"`
 	}
 	if err := json.Unmarshal(bytes.TrimSpace(output), &state); err != nil {
 		return types.ContainerState{}, fmt.Errorf("failed to parse container state: %w", err)
 	}
 
-	return types.ContainerState{
+	result := types.ContainerState{
 		Status:   state.Status,
 		Running:  state.Running,
 		Paused:   state.Paused,
 		ExitCode: state.ExitCode,
-	}, nil
+	}
+	if state.Health != nil {
+		result.Health = state.Health.Status
+	}
+	return result, nil
 }
 
 // ContainerNetworks returns the networks the container is attached to.
@@ -400,6 +424,9 @@ type containerInspectInfo struct {
 		Running  bool   `json:"Running"`
 		Paused   bool   `json:"Paused"`
 		ExitCode int    `json:"ExitCode"`
+		Health   *struct {
+			Status string `json:"Status"`
+		} `json:"Health"`
 	} `json:"State"`
 }
 
@@ -414,18 +441,23 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 
 	// Docker reports a resolved image ID here; Podman exposes it as `.Image`.
 	// `.ImageDigest` is a manifest digest and does not match `ImageInspect().ID`.
+	state := types.ContainerState{
+		Status:   info[0].State.Status,
+		Running:  info[0].State.Running,
+		Paused:   info[0].State.Paused,
+		ExitCode: info[0].State.ExitCode,
+	}
+	if info[0].State.Health != nil {
+		state.Health = info[0].State.Health.Status
+	}
+
 	return types.ContainerInfo{
 		ID:      info[0].ID,
 		Name:    info[0].Name,
 		Image:   info[0].Image,
 		ImageID: info[0].Image,
 		Labels:  info[0].Config.Labels,
-		State: types.ContainerState{
-			Status:   info[0].State.Status,
-			Running:  info[0].State.Running,
-			Paused:   info[0].State.Paused,
-			ExitCode: info[0].State.ExitCode,
-		},
+		State:   state,
 	}, nil
 }
 
@@ -702,4 +734,24 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 	}
 
 	return exitCode, nil
+}
+
+// podmanHealthCmd converts a Docker-style health check test to a podman --health-cmd string.
+// Docker format: ["CMD-SHELL", "command"] or ["CMD", "arg1", "arg2"]
+// Podman expects a single shell string for --health-cmd.
+func podmanHealthCmd(test []string) string {
+	if len(test) == 0 {
+		return ""
+	}
+	switch test[0] {
+	case "CMD-SHELL":
+		if len(test) > 1 {
+			return test[1]
+		}
+		return ""
+	case "CMD":
+		return strings.Join(test[1:], " ")
+	default:
+		return strings.Join(test, " ")
+	}
 }

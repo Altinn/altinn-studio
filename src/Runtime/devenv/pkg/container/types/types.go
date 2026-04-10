@@ -1,7 +1,10 @@
 // Package types defines the shared container runtime data types used across implementations.
 package types
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 // ErrContainerNotFound is returned when a container does not exist.
 var ErrContainerNotFound = errors.New("container not found")
@@ -170,8 +173,18 @@ type VolumeMount struct {
 	ReadOnly      bool
 }
 
+// HealthCheck defines a container health check configuration.
+type HealthCheck struct {
+	Test        []string      // Command to run (e.g., ["CMD-SHELL", "pg_isready -U postgres"])
+	Interval    time.Duration // Time between checks (default: 30s)
+	Timeout     time.Duration // Max time for a single check (default: 30s)
+	Retries     int           // Consecutive failures before unhealthy (default: 3)
+	StartPeriod time.Duration // Grace period before checks count (default: 0s)
+}
+
 // ContainerConfig defines options for creating a container.
 type ContainerConfig struct {
+	HealthCheck   *HealthCheck
 	Labels        map[string]string
 	Name          string
 	Image         string
@@ -196,6 +209,7 @@ type ImageInfo struct {
 // ContainerState represents the state of a container.
 type ContainerState struct {
 	Status   string // "created", "running", "paused", "restarting", "removing", "exited", "dead"
+	Health   string // "none", "starting", "healthy", "unhealthy" (empty if no healthcheck configured)
 	Running  bool
 	Paused   bool
 	ExitCode int

@@ -111,9 +111,21 @@ func createCoreLayout(t *testing.T, dataDir string) {
 	for _, dir := range []string{
 		filepath.Join(dataDir, "testdata"),
 		filepath.Join(dataDir, "AltinnPlatformLocal"),
+		filepath.Join(dataDir, "infra"),
 	} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatalf("create directory %q: %v", dir, err)
+		}
+	}
+
+	// Infrastructure config files needed by core containers
+	for _, file := range []string{
+		"postgres-init.sql",
+		"pgadmin-servers.json",
+	} {
+		path := filepath.Join(dataDir, "infra", file)
+		if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
+			t.Fatalf("write %q: %v", path, err)
 		}
 	}
 }

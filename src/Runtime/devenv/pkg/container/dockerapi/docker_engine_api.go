@@ -256,6 +256,16 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		User:         cfg.User,
 	}
 
+	if cfg.HealthCheck != nil {
+		containerCfg.Healthcheck = &dockercontainer.HealthConfig{
+			Test:        cfg.HealthCheck.Test,
+			Interval:    cfg.HealthCheck.Interval,
+			Timeout:     cfg.HealthCheck.Timeout,
+			Retries:     cfg.HealthCheck.Retries,
+			StartPeriod: cfg.HealthCheck.StartPeriod,
+		}
+	}
+
 	// Determine primary network and additional networks
 	var primaryNetwork string
 	var additionalNetworks []string
@@ -430,12 +440,16 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 		}
 		return types.ContainerState{}, fmt.Errorf("failed to inspect container: %w", err)
 	}
-	return types.ContainerState{
+	state := types.ContainerState{
 		Status:   info.State.Status,
 		Running:  info.State.Running,
 		Paused:   info.State.Paused,
 		ExitCode: info.State.ExitCode,
-	}, nil
+	}
+	if info.State.Health != nil {
+		state.Health = info.State.Health.Status
+	}
+	return state, nil
 }
 
 // ContainerNetworks returns the networks the container is attached to.
@@ -593,18 +607,23 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 	// Docker prefixes container names with "/", strip it
 	name := strings.TrimPrefix(info.Name, "/")
 
+	state := types.ContainerState{
+		Status:   info.State.Status,
+		Running:  info.State.Running,
+		Paused:   info.State.Paused,
+		ExitCode: info.State.ExitCode,
+	}
+	if info.State.Health != nil {
+		state.Health = info.State.Health.Status
+	}
+
 	return types.ContainerInfo{
 		ID:      info.ID,
 		Name:    name,
 		Image:   info.Config.Image,
 		ImageID: info.Image,
 		Labels:  info.Config.Labels,
-		State: types.ContainerState{
-			Status:   info.State.Status,
-			Running:  info.State.Running,
-			Paused:   info.State.Paused,
-			ExitCode: info.State.ExitCode,
-		},
+		State:   state,
 	}, nil
 }
 
