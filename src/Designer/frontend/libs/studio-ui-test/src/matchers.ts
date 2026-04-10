@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import type { MatcherFunction } from '@testing-library/react';
 
-export function getFieldsetByLegend(legend: string) {
+export function getFieldsetByLegend(legend: string): HTMLElement {
   return screen.getByRole('group', { name: (acessibleName) => acessibleName.startsWith(legend) });
 }
 
