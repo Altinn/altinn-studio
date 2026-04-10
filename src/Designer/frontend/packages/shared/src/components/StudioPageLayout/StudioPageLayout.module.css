@@ -1,0 +1,24 @@
+* {
+  font-family: Inter, sans-serif;
+  box-sizing: border-box;
+}
+
+.container {
+  background-color: red;
+}
+
+.container.fullScreen > div[class^='_base'] > header[class^='_header'] > div[class^='_container'],
+.container.fullScreen > div[class^='_base'] > div[class^='_grid'],
+.container.fullScreen > div[class^='_base'] > div[class^='_grid'] > div[class^='_body'] {
+  max-width: 100%;
+}
+
+.container.fullScreen > div[class^='_base'] > div[class^='_grid'],
+.container.fullScreen > div[class^='_base'] > div[class^='_grid'] > div[class^='_body'],
+.container.fullScreen
+  > div[class^='_base']
+  > div[class^='_grid']
+  > div[class^='_body']
+  > main[class^='_content'] {
+  padding: 0;
+}

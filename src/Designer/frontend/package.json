@@ -1,6 +1,7 @@
 {
   "name": "studio-designer-frontend",
   "dependencies": {
+    "@altinn/altinn-components": "0.56.34",
     "@digdir/design-system-tokens": "0.13.0",
     "@digdir/designsystemet-css": "0.10.0",
     "@digdir/designsystemet-react": "0.63.1",

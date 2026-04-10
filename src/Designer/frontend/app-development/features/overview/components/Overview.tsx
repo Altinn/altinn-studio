@@ -12,34 +12,32 @@ export default function Overview() {
   const { t } = useTranslation();
 
   return (
-    <StudioPageImageBackgroundContainer image='/img/page-background.svg'>
-      <main className={classes.container}>
-        {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
-        <header className={classes.header} role='generic'>
-          <Header />
-        </header>
-        <div className={classes.panel}>
-          <div className={classes.content}>
-            <div className={classes.main}>
-              <Deployments className={classes.mainSection} />
-              <section className={classes.mainSection}>
-                <Navigation />
-              </section>
-            </div>
-            <aside className={classes.aside}>
-              <section className={classes.asideSection}>
-                <Documentation />
-              </section>
-              <section>
-                <News />
-              </section>
-            </aside>
+    <main className={classes.container}>
+      {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
+      <header className={classes.header} role='generic'>
+        <Header />
+      </header>
+      <div className={classes.panel}>
+        <div className={classes.content}>
+          <div className={classes.main}>
+            <Deployments className={classes.mainSection} />
+            <section className={classes.mainSection}>
+              <Navigation />
+            </section>
           </div>
-          <footer className={classes.footer}>
-            <Link href='/info/contact'>{t('general.contact')}</Link>
-          </footer>
+          <aside className={classes.aside}>
+            <section className={classes.asideSection}>
+              <Documentation />
+            </section>
+            <section>
+              <News />
+            </section>
+          </aside>
         </div>
-      </main>
-    </StudioPageImageBackgroundContainer>
+        <footer className={classes.footer}>
+          <Link href='/info/contact'>{t('general.contact')}</Link>
+        </footer>
+      </div>
+    </main>
   );
 }

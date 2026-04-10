@@ -29,14 +29,18 @@ export const AppsTable = ({ org }: AppsTableProps) => {
   const { data, status } = useRunningAppsQuery(org);
   const { t } = useTranslation();
 
-  switch (status) {
-    case 'pending':
-      return <StudioSpinner aria-label={t('general.loading')} />;
-    case 'error':
-      return <StudioError>{t('general.page_error_title')}</StudioError>;
-    case 'success':
-      return <AppsTableWithData org={org} runningApps={data} />;
-  }
+  const render = () => {
+    switch (status) {
+      case 'pending':
+        return <StudioSpinner aria-label={t('general.loading')} />;
+      case 'error':
+        return <StudioError>{t('general.page_error_title')}</StudioError>;
+      case 'success':
+        return <AppsTableWithData org={org} runningApps={data} />;
+    }
+  };
+
+  return <div className={classes.container}>{render()}</div>;
 };
 
 type AppsTableWithDataProps = {

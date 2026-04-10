@@ -1,38 +1,44 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { useMemo } from 'react';
-import { HeaderContextProvider, type HeaderContextProps } from '../../context/HeaderContext';
 import { useTranslation } from 'react-i18next';
 import { StudioPageSpinner } from '@studio/components';
 import { useContextRedirectionGuard } from '../../hooks/guards/useContextRedirectionGuard';
-import { DashboardHeader } from './DashboardHeader';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
+import { useSubroute } from '../../hooks/useSubRoute';
+import { SelectedContextType } from '../../enums/SelectedContextType';
+import { StudioPageLayout } from 'app-shared/components';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
   const { isRedirectionComplete } = useContextRedirectionGuard(organizations);
-
-  const headerContextValue: Partial<HeaderContextProps> = useMemo(
-    () => ({
-      selectableOrgs: organizations,
-      user,
-    }),
-    [organizations, user],
-  );
+  const selectedContext = useSelectedContext();
+  const subroute = useSubroute();
+  const navigate = useNavigate();
 
   if (!isRedirectionComplete) return <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />;
 
+  const isOrg =
+    selectedContext !== SelectedContextType.All &&
+    selectedContext !== SelectedContextType.Self &&
+    selectedContext !== SelectedContextType.None;
+
+  const currentAccountId = isOrg ? selectedContext : user?.login;
+
+  const onSelectAccount = (accountId: string, isCompany: boolean) => {
+    const context = isCompany ? accountId : SelectedContextType.Self;
+    navigate(`${subroute}/${context}`);
+  };
+
   return (
-    <>
-      <HeaderContextProvider
-        user={headerContextValue.user}
-        selectableOrgs={headerContextValue.selectableOrgs}
-      >
-        <DashboardHeader />
-      </HeaderContextProvider>
+    <StudioPageLayout
+      currentAccountId={currentAccountId}
+      onSelectAccount={onSelectAccount}
+      hideBreadcrumbs={true}
+    >
       <Outlet />
-    </>
+    </StudioPageLayout>
   );
 };

@@ -12,6 +12,9 @@
 }
 
 .descriptionText {
+}
+
+.descriptionBody {
   font-family: var(--studio-font-family);
 }
 
@@ -32,7 +35,10 @@
 }
 
 .section {
+  background-color: white;
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-4);
+  padding: var(--ds-size-10);
+  border-radius: var(--ds-size-2);
 }

@@ -57,6 +57,7 @@ export * from './StudioManualExpression';
 export * from './StudioNotFoundPage';
 export * from './StudioPaginatedContent';
 export * from './StudioPageError';
+export * from './StudioLayout';
 export * from './StudioPageHeader';
 export * from './StudioPageImageBackgroundContainer';
 export * from './StudioPageSpinner';

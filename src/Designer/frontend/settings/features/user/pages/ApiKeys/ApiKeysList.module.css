@@ -1,10 +1,15 @@
+.container {
+  background-color: white;
+  border-radius: var(--ds-size-2);
+  padding: var(--ds-size-10);
+}
+
 .nameCell {
-  width: 70%;
   word-break: break-all;
 }
 
 .dateCell {
-  width: 10%;
+  width: 15%;
   white-space: nowrap;
 }
 
@@ -13,6 +18,7 @@
 }
 
 .deleteCell {
+  white-space: nowrap;
   text-align: end;
   width: 10%;
 }

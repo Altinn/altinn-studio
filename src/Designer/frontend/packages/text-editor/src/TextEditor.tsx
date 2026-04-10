@@ -48,19 +48,19 @@ export const TextEditor = ({
     [availableLanguages],
   );
 
-  useEffect(() => {
-    const addedLanguage = selectedLangCodes.find(
-      (lang) => !previousSelectedLanguages.current.includes(lang),
-    );
+  // useEffect(() => {
+  //   const addedLanguage = selectedLangCodes.find(
+  //     (lang) => !previousSelectedLanguages.current.includes(lang),
+  //   );
 
-    if (addedLanguage) {
-      const elementToFocus: HTMLElement = document.getElementById('header-lang' + addedLanguage);
-      if (elementToFocus) {
-        elementToFocus.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-      }
-    }
-    previousSelectedLanguages.current = selectedLangCodes;
-  }, [selectedLangCodes.length, selectedLangCodes]);
+  //   if (addedLanguage) {
+  //     const elementToFocus: HTMLElement = document.getElementById('header-lang' + addedLanguage);
+  //     if (elementToFocus) {
+  //       elementToFocus.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+  //     }
+  //   }
+  //   previousSelectedLanguages.current = selectedLangCodes;
+  // }, [selectedLangCodes.length, selectedLangCodes]);
 
   const handleAddNewEntryClick = () => {
     const textId = `id_${getRandNumber()}`;

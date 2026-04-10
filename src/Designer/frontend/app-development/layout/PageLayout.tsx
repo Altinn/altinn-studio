@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, matchPath, useLocation } from 'react-router-dom';
+import { Outlet, matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
@@ -14,13 +14,14 @@ import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
-
+import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMergeConflictInRepo';
 /**
  * Displays the layout for the app development pages
  */
 export const PageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
 
@@ -33,6 +34,8 @@ export const PageLayout = (): React.ReactNode => {
     isPending: isRepoStatusPending,
     error: repoStatusError,
   } = useRepoStatusQuery(org, app);
+
+  useListenToMergeConflictInRepo(org, app);
 
   const { data: user, isPending: isUserPending } = useUserQuery();
 

@@ -1,0 +1,5 @@
+.container {
+  background-color: white;
+  padding: var(--fds-spacing-12);
+  border-radius: var(--ds-size-2);
+}

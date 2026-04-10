@@ -26,13 +26,13 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
   return (
     <div data-color-scheme='dark'>
       <StudioPageHeader>
-        <StudioPageHeader.Main>
+        {/* <StudioPageHeader.Main>
           <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={app} />
           {shouldDisplayDesktopMenu && <CenterContent />}
           <StudioPageHeader.Right>
             <RightContent />
           </StudioPageHeader.Right>
-        </StudioPageHeader.Main>
+        </StudioPageHeader.Main> */}
         {showSubMenu && !isRepoError && (
           <StudioPageHeader.Sub>
             <SubHeader hasRepoError={isRepoError} />

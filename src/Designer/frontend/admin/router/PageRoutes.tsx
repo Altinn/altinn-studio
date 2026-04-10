@@ -5,7 +5,6 @@ import {
   createRoutesFromElements,
   Route,
 } from 'react-router-dom';
-import { App } from 'admin/layout/App';
 import { PageLayout } from 'admin/layout/PageLayout';
 import { PageLayout as AppsLayout } from 'admin/features/apps/layout/PageLayout';
 import { ADMIN_BASENAME } from 'app-shared/constants';
@@ -17,12 +16,12 @@ import {
 } from './PageRouterErrorBoundary';
 import { routerRoutes } from './routes';
 
-const BASE_PATH = '/:org';
+const BASE_PATH = ':org';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route element={<App />} errorElement={<AppRouteErrorBoundary />}>
-      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
+    <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
+      <Route path={BASE_PATH} errorElement={<RouteErrorBoundary />}>
         <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
           {routerRoutes.map((route) => (
             <Route

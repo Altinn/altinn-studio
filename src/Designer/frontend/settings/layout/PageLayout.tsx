@@ -1,71 +1,66 @@
-import type { ReactElement } from 'react';
-import classes from './PageLayout.module.css';
-import { Outlet } from 'react-router-dom';
-import type { StudioProfileMenuItem, StudioProfileMenuGroup } from '@studio/components';
-import { StudioAvatar, StudioPageHeader } from '@studio/components';
+import { matchPath, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import './PageLayout.css';
-import { DISPLAY_NAME, SETTINGS_BASENAME } from 'app-shared/constants';
+import { ShieldLockIcon } from '@studio/icons';
+import type { StudioPageLayoutSidebarItem } from 'app-shared/components/StudioPageLayout/StudioPageLayout';
+import { StudioPageLayout } from 'app-shared/components';
+import { RoutePaths as UserRoutePaths } from 'settings/features/user/routes/RoutePaths';
+import { RoutePaths as OrgsRoutePaths } from 'settings/features/orgs/routes/RoutePaths';
 import { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
-import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { useOrganizationsQuery } from 'app-shared/hooks/queries/useOrganizationsQuery';
+import './PageLayout.css';
 
 export const PageLayout = () => {
-  return (
-    <div className={classes.container}>
-      <div data-color-scheme='dark'>
-        <StudioPageHeader>
-          <StudioPageHeader.Main>
-            <StudioPageHeader.Left title={DISPLAY_NAME} showTitle={true} />
-            <StudioPageHeader.Right>
-              <RightContent />
-            </StudioPageHeader.Right>
-          </StudioPageHeader.Main>
-        </StudioPageHeader>
-      </div>
-      <div className={classes.content}>
-        <Outlet />
-      </div>
-    </div>
-  );
-};
-
-const RightContent = (): ReactElement => {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const { data: user } = useUserQuery();
-  const { environment } = useEnvironmentConfig();
-  const { mutate: logout } = useLogoutMutation();
+  const { data: orgs } = useOrganizationsQuery();
 
-  const settingsMenuItem: StudioProfileMenuItem = {
-    action: {
-      type: 'link',
-      href: SETTINGS_BASENAME,
-      openInNewTab: false,
-    },
-    itemName: t('settings'),
-  };
-  const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
-    itemName: t('shared.header_logout'),
-  };
+  const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
+  const { org } = match?.params ?? {};
+  const currentAccountId = org ?? user?.login;
+  const isCompany = orgs?.some((o) => o.username === currentAccountId) ?? false;
+  const navigate = useNavigate();
 
-  const studioOidc = environment?.featureFlags?.studioOidc;
+  const sidebarItems: StudioPageLayoutSidebarItem[] = isCompany
+    ? [
+        {
+          id: OrgsRoutePaths.ContactPoints,
+          label: t('settings.orgs.contact_points.menu.contact_points'),
+          icon: { svgElement: ShieldLockIcon },
+          onClick: () =>
+            navigate(
+              `/${OrgsRoutePaths.Org.replace(':org', org ?? '')}/${OrgsRoutePaths.ContactPoints}`,
+            ),
+          selected: pathname.includes(
+            `/${OrgsRoutePaths.Org.replace(':org', org ?? '')}/${OrgsRoutePaths.ContactPoints}`,
+          ),
+        },
+      ]
+    : [
+        {
+          id: UserRoutePaths.ApiKeys,
+          label: t('settings.user.api_keys.api_keys'),
+          icon: { svgElement: ShieldLockIcon },
+          onClick: () => navigate(`/${UserRoutePaths.User}/${UserRoutePaths.ApiKeys}`),
+          selected: pathname.includes(`/${UserRoutePaths.User}/${UserRoutePaths.ApiKeys}`),
+        },
+      ];
 
-  const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [settingsMenuItem] : [] },
-    { items: [logOutMenuItem] },
-  ];
   return (
-    <StudioPageHeader.ProfileMenu
-      triggerButtonText={user?.full_name || user?.login}
-      profileImage={
-        <StudioAvatar
-          src={user?.avatar_url}
-          alt={t('general.profile_icon')}
-          title={t('shared.header_profile_icon_text')}
-        />
-      }
-      profileMenuGroups={profileMenuGroups}
-    />
+    <StudioPageLayout
+      sidebarItems={sidebarItems}
+      breadcrumbs={{
+        items: [
+          {
+            onClick: () => navigate('/' + (org ? `orgs/${org}` : `user`)),
+            label: t('settings'),
+          },
+        ],
+      }}
+      onSelectAccount={(id: string, isOrg: boolean) => navigate(isOrg ? `/orgs/${id}` : '/')}
+      currentAccountId={org ? `${org}` : `${user?.login}`}
+    >
+      <Outlet />
+    </StudioPageLayout>
   );
 };

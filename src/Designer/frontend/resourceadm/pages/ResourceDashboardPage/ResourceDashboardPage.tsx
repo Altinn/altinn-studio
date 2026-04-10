@@ -104,12 +104,14 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
               {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </StudioHeading>
           </div>
-          <ResourceTable
-            list={filteredResourceList}
-            onClickEditResource={handleNavigateToResource}
-            onClickImportResource={onClickImportResource}
-            importResourceId={isImportingResource ? importData?.resourceId : ''}
-          />
+          <div className={classes.container}>
+            <ResourceTable
+              list={filteredResourceList}
+              onClickEditResource={handleNavigateToResource}
+              onClickImportResource={onClickImportResource}
+              importResourceId={isImportingResource ? importData?.resourceId : ''}
+            />
+          </div>
         </>
       );
     }

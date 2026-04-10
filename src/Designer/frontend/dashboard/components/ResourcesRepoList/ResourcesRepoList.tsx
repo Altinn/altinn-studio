@@ -6,12 +6,15 @@ import { useGetResourceListQuery } from 'resourceadm/hooks/queries/useGetResourc
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import type { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
+import classes from './ResourcesRepoList.module.css';
+import { ErrorBoundary } from 'react-error-boundary';
+import { SafeErrorView } from '../SafeErrorView';
 
 type ResourcesRepoListProps = {
   user: User;
@@ -54,32 +57,49 @@ export const ResourcesRepoList = ({
   }
 
   return (
-    <div>
-      <Heading level={2} size='small' spacing>
-        {getReposLabel({
-          selectedContext,
-          orgs: organizations,
-          t,
-          isResourcesRepo: true,
-        })}
-      </Heading>
-      <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
-        {t('dashboard.go_to_resources')}
-      </Link>
-      {isLoadingResourceList ? (
-        <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading_resource_list')} />
-      ) : (
-        <div data-testid='resource-table-wrapper'>
-          <ResourceTable
-            list={resourceListData}
-            onClickEditResource={(id: string) => {
-              // we have to do a hard navigation (without react-router) to load the correct script files
-              const resourceUrl = getResourcePageURL(selectedContext, repo, id, 'about');
-              window.location.assign(`${RESOURCEADM_BASENAME}${resourceUrl}`);
-            }}
+    <div className={classes.container}>
+      <ErrorBoundary
+        fallback={
+          <SafeErrorView
+            heading={t('dashboard.all_resources')}
+            title={t('dashboard.view_resources_error_title')}
+            message={
+              <Trans
+                i18nKey={'dashboard.view_table_error_message'}
+                components={{
+                  a: <Link href='/info/contact'> </Link>,
+                }}
+              ></Trans>
+            }
           />
-        </div>
-      )}
+        }
+      >
+        <Heading level={2} size='small' spacing>
+          {getReposLabel({
+            selectedContext,
+            orgs: organizations,
+            t,
+            isResourcesRepo: true,
+          })}
+        </Heading>
+        <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
+          {t('dashboard.go_to_resources')}
+        </Link>
+        {isLoadingResourceList ? (
+          <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading_resource_list')} />
+        ) : (
+          <div data-testid='resource-table-wrapper'>
+            <ResourceTable
+              list={resourceListData}
+              onClickEditResource={(id: string) => {
+                // we have to do a hard navigation (without react-router) to load the correct script files
+                const resourceUrl = getResourcePageURL(selectedContext, repo, id, 'about');
+                window.location.assign(`${RESOURCEADM_BASENAME}${resourceUrl}`);
+              }}
+            />
+          </div>
+        )}
+      </ErrorBoundary>
     </div>
   );
 };

@@ -17,6 +17,13 @@
   border: none;
 }
 
+.subHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-4);
+  padding: var(--fds-spacing-2) var(--fds-spacing-4);
+}
+
 .previewArea {
   display: flex;
   flex-direction: column;

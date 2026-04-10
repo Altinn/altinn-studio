@@ -16,6 +16,8 @@
 }
 
 .link {
+  color: white !important;
+  width: 200px !important;
   border-radius: var(--ds-border-radius-md);
 
   display: flex;

@@ -1,3 +1,10 @@
+.container {
+  background-color: white;
+  padding: var(--fds-spacing-12);
+  border-radius: var(--ds-size-2);
+  margin-top: var(--ds-size-12);
+}
+
 .pageWrapper {
   padding-inline: 10%;
   padding-block: var(--ds-size-5);

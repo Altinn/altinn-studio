@@ -1,0 +1,67 @@
+.footer {
+  border-top: 1px solid var(--ds-color-border-subtle);
+  padding: var(--ds-spacing-6) var(--ds-spacing-4);
+  margin-top: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ds-spacing-6);
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.address {
+  font-style: normal;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-spacing-2);
+}
+
+.logo {
+  margin-bottom: var(--ds-spacing-3);
+}
+
+.addressLines {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--ds-font-size-sm);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-spacing-3);
+}
+
+.columnTitle {
+  font-weight: var(--ds-font-weight-semibold);
+  font-size: var(--ds-font-size-sm);
+}
+
+.linkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-spacing-2);
+}
+
+.link {
+  font-size: var(--ds-font-size-sm);
+  color: inherit;
+  text-decoration: underline;
+}
+
+.link:hover {
+  color: var(--ds-color-base-hover);
+}

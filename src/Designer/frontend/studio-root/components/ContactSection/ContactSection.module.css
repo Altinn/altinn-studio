@@ -4,7 +4,6 @@
   display: flex;
   gap: var(--fds-spacing-6);
   padding: var(--fds-spacing-8);
-  max-width: 735px;
 }
 
 .iconContainer {

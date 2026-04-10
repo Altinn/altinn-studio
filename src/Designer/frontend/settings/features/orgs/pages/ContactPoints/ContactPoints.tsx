@@ -43,11 +43,11 @@ export const ContactPoints = (): ReactElement => {
         {t('settings.orgs.contact_points.contact_points')}
       </StudioHeading>
       <div className={classes.description}>
-        <div>
+        <div className={classes.descriptionText}>
           <StudioHeading level={3} spacing>
             {t('settings.orgs.contact_points.description_heading')}
           </StudioHeading>
-          <StudioParagraph data-size='md' className={classes.descriptionText}>
+          <StudioParagraph data-size='md' className={classes.descriptionBody}>
             {t('settings.orgs.contact_points.description_body')}
           </StudioParagraph>
         </div>

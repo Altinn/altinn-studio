@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
-import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import postMessages from 'app-shared/utils/postMessages';
 import { MergeConflict } from '../../components/MergeConflict';
-import { ResourceAdmHeader } from '../../components/ResourceAdmHeader';
+import { GiteaHeader } from 'app-shared/components/GiteaHeader';
+import { StudioPageLayout } from 'app-shared/components';
+import { getAppName } from '../../utils/stringUtils';
 
 /**
  * @component
@@ -16,7 +18,6 @@ import { ResourceAdmHeader } from '../../components/ResourceAdmHeader';
  */
 export const PageLayout = (): React.JSX.Element => {
   const { pathname } = useLocation();
-  const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
@@ -57,10 +58,21 @@ export const PageLayout = (): React.JSX.Element => {
     };
   }, []);
 
+  const onSelectAccount = (id: string) => {
+    navigate(`/${id}/${getAppName(id)}`);
+  };
+
   return (
-    <>
-      {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
+    <StudioPageLayout
+      currentAccountId={org}
+      onSelectAccount={onSelectAccount}
+      fullScreen={true}
+      hideBreadcrumbs={true}
+    >
+      <div data-color-scheme='dark'>
+        <GiteaHeader menuOnlyHasRepository owner={org} repoName={app} />
+      </div>
       {hasMergeConflict ? <MergeConflict org={org} repo={app} /> : <Outlet />}
-    </>
+    </StudioPageLayout>
   );
 };

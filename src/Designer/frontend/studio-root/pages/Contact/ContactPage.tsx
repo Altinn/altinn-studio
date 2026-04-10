@@ -76,20 +76,20 @@ export const ContactPage = (): React.ReactElement => {
   ];
 
   return (
-    <StudioPageImageBackgroundContainer image='/img/page-background.svg'>
-      <div className={classes.container}>
-        <div className={classes.content}>
-          <div>
-            <StudioHeading level={1} spacing>
-              {t('general.contact')}
-            </StudioHeading>
-          </div>
+    <div className={classes.container}>
+      <div className={classes.content}>
+        <div>
+          <StudioHeading level={1} spacing>
+            {t('general.contact')}
+          </StudioHeading>
+        </div>
+        <div className={classes.content2}>
           {contactSections.filter(filterHiddenSections).map((contactSection) => (
             <ContactSection {...contactSection} key={contactSection.title} />
           ))}
         </div>
       </div>
-    </StudioPageImageBackgroundContainer>
+    </div>
   );
 };
 

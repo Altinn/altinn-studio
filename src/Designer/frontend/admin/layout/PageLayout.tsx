@@ -1,13 +1,43 @@
-import React, { createContext, useContext } from 'react';
-import { Outlet, matchPath, useLocation } from 'react-router-dom';
-import { PageHeader } from './PageHeader';
+import { useEffect, createContext, useContext } from 'react';
+import './PageLayout.css';
+import { matchPath, Outlet, ScrollRestoration, useLocation, useNavigate } from 'react-router-dom';
+import classes from './PageLayout.module.css';
+import i18next from 'i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
+import nb from '@altinn-studio/language/src/nb.json';
+import en from '@altinn-studio/language/src/en.json';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { appContentWrapperId } from '@studio/testing/testids';
+import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { StudioCenter, StudioPageError, StudioPageSpinner } from '@studio/components';
-import { useTranslation } from 'react-i18next';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
+import {
+  StudioAlert,
+  StudioParagraph,
+  StudioCenter,
+  StudioPageError,
+  StudioPageSpinner,
+} from '@studio/components';
+import { NotFoundPage } from './NotFoundPage';
+import { StudioPageLayout } from 'app-shared/components/StudioPageLayout/StudioPageLayout';
 import type { Org } from 'app-shared/types/OrgList';
 import type { User } from 'app-shared/types/Repository';
-import { NotFoundPage } from './NotFoundPage';
+
+i18next.use(initReactI18next).init({
+  ns: 'translation',
+  defaultNS: 'translation',
+  fallbackNS: 'translation',
+  lng: DEFAULT_LANGUAGE,
+  resources: {
+    nb: { translation: nb },
+    en: { translation: en },
+  },
+  fallbackLng: 'nb',
+  react: {
+    transSupportBasicHtmlNodes: true,
+    transKeepBasicHtmlNodesFor: ['em'],
+  },
+});
 
 export const OrgContext = createContext<Org | null>(null);
 const UserContext = createContext<User | null>(null);
@@ -28,13 +58,18 @@ export function useCurrentUser(): User {
   return user;
 }
 
-export const PageLayout = (): React.ReactNode => {
+export function PageLayout() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const match = matchPath({ path: '/:org', caseSensitive: true, end: false }, pathname);
-  const { org } = match?.params ?? {};
   const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
   const { data: user, isPending: isUserPending } = useUserQuery();
+  const match = matchPath({ path: '/:org', caseSensitive: true, end: false }, pathname);
+  const { org } = match?.params ?? {};
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   if (isUserPending || isOrgsPending) {
     return (
@@ -44,20 +79,58 @@ export const PageLayout = (): React.ReactNode => {
     );
   }
 
-  if (!org || !orgs?.[org]) {
-    return <NotFoundPage />;
-  }
+  const render = () => {
+    if (!org) {
+      return (
+        <StudioCenter>
+          <StudioAlert>
+            <StudioParagraph data-size='md'>{t('admin.alert_no_org_selected')}</StudioParagraph>
+            <StudioParagraph data-size='md'>
+              {t('admin.alert_no_org_selected_no_access')}
+            </StudioParagraph>
+          </StudioAlert>
+        </StudioCenter>
+      );
+    }
 
-  if (!user) {
-    return <StudioPageError />;
-  }
+    if (!orgs?.[org]) {
+      return <NotFoundPage />;
+    }
+
+    if (!user) {
+      return <StudioPageError />;
+    }
+
+    return (
+      <div className={classes.container}>
+        <div data-testid={appContentWrapperId} className={classes.appContainer}>
+          <WebSocketSyncWrapper>
+            <OrgContext.Provider value={orgs[org]}>
+              <UserContext.Provider value={user}>
+                <Outlet />
+              </UserContext.Provider>
+            </OrgContext.Provider>
+          </WebSocketSyncWrapper>
+        </div>
+        <ScrollRestoration />
+      </div>
+    );
+  };
 
   return (
-    <OrgContext.Provider value={orgs[org]}>
-      <UserContext.Provider value={user}>
-        <PageHeader />
-        <Outlet />
-      </UserContext.Provider>
-    </OrgContext.Provider>
+    <StudioPageLayout
+      breadcrumbs={{
+        items: [
+          {
+            onClick: () => navigate('/' + (org ? `${org}` : `user`)),
+            label: t('admin.apps.title'),
+          },
+        ],
+      }}
+      onSelectAccount={(id: string, isOrg: boolean) => navigate(isOrg ? `/${id}` : '/')}
+      currentAccountId={org ? org : user?.login}
+    >
+      {render()}
+    </StudioPageLayout>
   );
-};
+}

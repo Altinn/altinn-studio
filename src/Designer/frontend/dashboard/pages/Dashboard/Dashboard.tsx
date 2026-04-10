@@ -46,113 +46,78 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
     selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
 
   return (
-    <>
-      <CenterContainer>
-        <div className={classes.createServiceContainer}>
-          <div className={classes.topBar}>
-            <StudioSearch
-              label={t('dashboard.search')}
-              value={searchText}
-              onChange={handleChangeSearch}
-              onKeyDown={handleKeyDown}
-              clearButtonLabel={t('general.search_clear_button_title')}
-              className={classes.search}
-            />
-            <Link
-              href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}
-              className={classes.newLink}
-            >
-              <span>{t('dashboard.new_service')}</span>
-              <PlusCircleFillIcon className={classes.plusFillIcon} />
-              <PlusCircleIcon className={classes.plusIcon} />
-            </Link>
-          </div>
+    <div className={classes.createServiceContainer}>
+      <div className={classes.topBar}>
+        <StudioSearch
+          label={t('dashboard.search')}
+          value={searchText}
+          onChange={handleChangeSearch}
+          onKeyDown={handleKeyDown}
+          clearButtonLabel={t('general.search_clear_button_title')}
+          className={classes.search}
+        />
+        <Link
+          href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}
+          className={classes.newLink}
+        >
+          <span>{t('dashboard.new_service')}</span>
+          <PlusCircleFillIcon className={classes.plusFillIcon} />
+          <PlusCircleIcon className={classes.plusIcon} />
+        </Link>
+      </div>
 
-          {debouncedSearchText ? (
-            <SearchResultReposList searchValue={debouncedSearchText} />
-          ) : (
-            <>
-              <ErrorBoundary
-                fallback={
-                  <SafeErrorView
-                    heading={t('dashboard.favourites')}
-                    title={t('dashboard.view_favorites_error_title')}
-                    message={
-                      <Trans
-                        i18nKey={'dashboard.view_table_error_message'}
-                        components={{
-                          a: <Link href='/info/contact'> </Link>,
-                        }}
-                      ></Trans>
-                    }
-                  />
-                }
-              >
-                <FavoriteReposList />
-              </ErrorBoundary>
-              <div>
-                <ErrorBoundary
-                  fallback={
-                    <SafeErrorView
-                      heading={t('dashboard.all_apps')}
-                      title={t('dashboard.view_apps_error_title')}
-                      message={
-                        <Trans
-                          i18nKey={'dashboard.view_table_error_message'}
-                          components={{
-                            a: <Link href='/info/contact'> </Link>,
-                          }}
-                        ></Trans>
-                      }
-                    />
-                  }
-                >
-                  <OrgReposList user={user} organizations={organizations} />
-                </ErrorBoundary>
-              </div>
-              <ErrorBoundary
-                fallback={
-                  <SafeErrorView
-                    heading={t('dashboard.all_data_models')}
-                    title={t('dashboard.view_data_models_error_title')}
-                    message={
-                      <Trans
-                        i18nKey={'dashboard.view_table_error_message'}
-                        components={{
-                          a: <Link href='/info/contact'> </Link>,
-                        }}
-                      ></Trans>
-                    }
-                  />
-                }
-              >
-                <DataModelsReposList user={user} organizations={organizations} />
-              </ErrorBoundary>
-              {shouldDisplayResources && (
-                <ErrorBoundary
-                  fallback={
-                    <SafeErrorView
-                      heading={t('dashboard.all_resources')}
-                      title={t('dashboard.view_resources_error_title')}
-                      message={
-                        <Trans
-                          i18nKey={'dashboard.view_table_error_message'}
-                          components={{
-                            a: <Link href='/info/contact'> </Link>,
-                          }}
-                        ></Trans>
-                      }
-                    />
-                  }
-                >
-                  <ResourcesRepoList user={user} organizations={organizations} />
-                </ErrorBoundary>
-              )}
-            </>
-          )}
+      {debouncedSearchText ? (
+        <div className={classes.section}>
+          <SearchResultReposList searchValue={debouncedSearchText} />
         </div>
-      </CenterContainer>
-      <Footer />
-    </>
+      ) : (
+        <>
+          <div className={classes.section}>
+            <ErrorBoundary
+              fallback={
+                <SafeErrorView
+                  heading={t('dashboard.favourites')}
+                  title={t('dashboard.view_favorites_error_title')}
+                  message={
+                    <Trans
+                      i18nKey={'dashboard.view_table_error_message'}
+                      components={{
+                        a: <Link href='/info/contact'> </Link>,
+                      }}
+                    ></Trans>
+                  }
+                />
+              }
+            >
+              <FavoriteReposList />
+            </ErrorBoundary>
+          </div>
+          <div className={classes.section}>
+            <ErrorBoundary
+              fallback={
+                <SafeErrorView
+                  heading={t('dashboard.all_apps')}
+                  title={t('dashboard.view_apps_error_title')}
+                  message={
+                    <Trans
+                      i18nKey={'dashboard.view_table_error_message'}
+                      components={{
+                        a: <Link href='/info/contact'> </Link>,
+                      }}
+                    ></Trans>
+                  }
+                />
+              }
+            >
+              <OrgReposList user={user} organizations={organizations} />
+            </ErrorBoundary>
+          </div>
+          <DataModelsReposList user={user} organizations={organizations} />
+          {shouldDisplayResources && (
+            <ResourcesRepoList user={user} organizations={organizations} />
+          )}
+        </>
+      )}
+    </div>
   );
 };

@@ -8,14 +8,12 @@
   );
   --left-menu-width: 68px;
 
-  background: var(--fds-semantic-background-default);
   width: 100%;
 }
 
 .appContainer {
   display: grid;
   grid-template-rows: auto 1fr;
-  height: 100vh;
 }
 
 @media screen and (max-width: 600px) {

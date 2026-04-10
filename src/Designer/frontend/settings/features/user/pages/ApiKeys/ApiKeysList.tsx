@@ -52,7 +52,7 @@ export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactEleme
   const now = new Date();
 
   return (
-    <StudioTable>
+    <StudioTable className={classes.container}>
       <StudioTable.Head>
         <StudioTable.Row>
           <StudioTable.HeaderCell>{t('settings.user.api_keys.name')}</StudioTable.HeaderCell>

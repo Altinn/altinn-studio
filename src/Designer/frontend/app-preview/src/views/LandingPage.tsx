@@ -2,22 +2,20 @@ import { useEffect } from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useUserQuery } from 'app-shared/hooks/queries';
 import { useLocalStorage } from '@studio/components-legacy/src/hooks/useLocalStorage';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import { useMediaQuery } from '@studio/components-legacy';
-import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { StudioAlert, StudioPageHeader, StudioPageSpinner } from '@studio/components';
+import { StudioAlert, StudioPageSpinner } from '@studio/components';
 import { useNavigate, useParams } from 'react-router-dom';
+import { StudioPageLayout } from 'app-shared/components';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
@@ -25,10 +23,8 @@ export const LandingPage = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useParams();
   const { t } = useTranslation();
-  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
   const { data: user, isPending: isPendingUser } = useUserQuery();
-  const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
   const { selectedFormLayoutName } = useSelectedFormLayoutName(layoutSet);
   const navigate = useNavigate();
@@ -81,24 +77,22 @@ export const LandingPage = () => {
     selectedFormLayoutName,
     instance?.id,
   );
+
   return (
-    <>
-      <StudioPageHeader variant='preview'>
-        <StudioPageHeader.Main>
-          <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
-          <StudioPageHeader.Right>
-            <UserProfileMenu user={user} repository={repository} />
-          </StudioPageHeader.Right>
-        </StudioPageHeader.Main>
-        <StudioPageHeader.Sub>
-          <AppPreviewSubMenu />
-          {isSubform && (
-            <StudioAlert data-color='warning'>
-              {t('ux_editor.preview.subform_unsupported_warning')}
-            </StudioAlert>
-          )}
-        </StudioPageHeader.Sub>
-      </StudioPageHeader>
+    <StudioPageLayout
+      currentAccountId={org}
+      onSelectAccount={() => {}}
+      fullScreen={true}
+      hideBreadcrumbs={true}
+    >
+      <div className={classes.subHeader}>
+        <AppPreviewSubMenu />
+        {isSubform && (
+          <StudioAlert data-color='warning'>
+            {t('ux_editor.preview.subform_unsupported_warning')}
+          </StudioAlert>
+        )}
+      </div>
       <div className={classes.previewArea}>
         <PreviewControlHeader
           setViewSize={setPreviewViewSize}
@@ -116,7 +110,7 @@ export const LandingPage = () => {
           />
         </div>
       </div>
-    </>
+    </StudioPageLayout>
   );
 };
 
