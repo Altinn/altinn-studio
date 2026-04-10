@@ -42,13 +42,13 @@ function AiAssistant(): ReactElement {
       description: (
         <Trans
           i18nKey='ai_assistant.about_assistant_description'
-          components={{ bold: <strong /> }}
+          components={{ strong: <strong /> }}
         />
       ),
       branchInfo: (
         <Trans
           i18nKey='ai_assistant.about_assistant_branch_info'
-          components={{ bold: <strong /> }}
+          components={{ strong: <strong /> }}
         />
       ),
       branchDocsLink: t('ai_assistant.about_assistant_branch_docs_link'),
