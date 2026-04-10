@@ -109,7 +109,7 @@ export const BotAccountsList = ({
                   onToggleExpanded(botAccount.id);
                 }}
               >
-                <StudioTable.Cell className={classes.expandCell}>
+                <StudioTable.Cell>
                   <StudioButton
                     variant='tertiary'
                     aria-expanded={isExpanded}
@@ -139,22 +139,24 @@ export const BotAccountsList = ({
                   {DateUtils.formatDateDDMMYYYY(botAccount.created)}
                 </StudioTable.Cell>
                 <StudioTable.Cell>{botAccount.createdByUsername ?? '–'}</StudioTable.Cell>
-                <StudioTable.Cell className={classes.actionsCell}>
-                  <StudioButton
-                    variant='tertiary'
-                    icon={<StudioEditIcon />}
-                    onClick={() => onEdit(botAccount)}
-                    aria-label={t('settings.orgs.bot_accounts.edit_aria_label', {
-                      username: botAccount.username,
-                    })}
-                  />
-                  <StudioDeleteButton
-                    aria-label={t('settings.orgs.bot_accounts.delete', {
-                      username: botAccount.username,
-                    })}
-                    onDelete={() => deactivateBotAccount(botAccount.id)}
-                    confirmMessage={t('settings.orgs.bot_accounts.delete_confirm')}
-                  />
+                <StudioTable.Cell>
+                  <div className={classes.actions}>
+                    <StudioButton
+                      variant='tertiary'
+                      icon={<StudioEditIcon />}
+                      onClick={() => onEdit(botAccount)}
+                      aria-label={t('settings.orgs.bot_accounts.edit_aria_label', {
+                        username: botAccount.username,
+                      })}
+                    />
+                    <StudioDeleteButton
+                      aria-label={t('settings.orgs.bot_accounts.delete', {
+                        username: botAccount.username,
+                      })}
+                      onDelete={() => deactivateBotAccount(botAccount.id)}
+                      confirmMessage={t('settings.orgs.bot_accounts.delete_confirm')}
+                    />
+                  </div>
                 </StudioTable.Cell>
               </StudioTable.Row>
               {isExpanded && (

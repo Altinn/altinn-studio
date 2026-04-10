@@ -19,7 +19,7 @@
   background-color: var(--ds-color-background-tinted);
 }
 
-.actionsCell {
+.actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--ds-size-3);

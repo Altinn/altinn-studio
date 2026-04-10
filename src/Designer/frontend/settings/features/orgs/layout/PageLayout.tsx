@@ -1,6 +1,7 @@
 import classes from './PageLayout.module.css';
-import { matchPath, useLocation } from 'react-router-dom';
+import { matchPath, Outlet, useLocation } from 'react-router-dom';
 import {
+  StudioAlert,
   StudioCenter,
   StudioHeading,
   StudioPageError,
@@ -10,7 +11,7 @@ import { NotFound } from '../../../pages/NotFound/NotFound';
 import { useTranslation } from 'react-i18next';
 import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
 import { useOrganizationsQuery } from '../../../hooks/useOrganizationsQuery';
-import { PageContent } from './PageContent';
+import { Menu } from '../components/Menu/Menu';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
@@ -42,6 +43,16 @@ export const PageLayout = () => {
     return <NotFound />;
   }
 
+  if (!orgPermissions?.isOrgOwner) {
+    return (
+      <StudioAlert data-color='info' className={classes.notOrgOwnerAlert}>
+        {t('settings.orgs.not_org_owner_alert', {
+          orgName: selectedOrg.full_name || selectedOrg.username,
+        })}
+      </StudioAlert>
+    );
+  }
+
   return (
     <>
       <StudioHeading level={2} className={classes.settingsHeading}>
@@ -50,7 +61,14 @@ export const PageLayout = () => {
       <div className={classes.settingsHeadingDescription}>
         {t('settings.orgs.heading.description')}
       </div>
-      <PageContent selectedOrg={selectedOrg} isOrgOwner={orgPermissions?.isOrgOwner ?? false} />
+      <div className={classes.pageContentWrapper}>
+        <div className={classes.leftNavWrapper}>
+          <Menu />
+        </div>
+        <div className={classes.contentWrapper}>
+          <Outlet />
+        </div>
+      </div>
     </>
   );
 };
