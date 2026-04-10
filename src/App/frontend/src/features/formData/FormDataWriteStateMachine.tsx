@@ -23,7 +23,6 @@ import type { IInstance } from 'src/types/shared';
 
 export interface DataModelValidationState {
   backend: FieldValidations;
-  expression: FieldValidations;
   schema: FieldValidations;
   invalidData: FieldValidations;
 }
@@ -643,7 +642,6 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
       dataElementId: props.dataModels[dt].dataElementId,
       validations: {
         backend: mapBackendFieldValidations(props.dataModels[dt].initialValidationIssues ?? undefined),
-        expression: {},
         schema: deriveSchemaValidations({
           formData: props.dataModels[dt].initialData,
           schemaResult: props.dataModels[dt].schemaResult,

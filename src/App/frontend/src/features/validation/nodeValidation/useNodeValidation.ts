@@ -1,5 +1,7 @@
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
+import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
+import { selectFieldValidationsForDataModel } from 'src/features/validation/utils';
 import {
   type CompDef,
   getComponentDef,
@@ -12,7 +14,6 @@ import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation } from 'src/features/validation';
-import { selectFieldValidationsForDataModel } from 'src/features/validation/utils';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 const emptyArray: AnyValidation[] = [];
@@ -68,6 +69,10 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   });
 
   unfiltered.push(...fieldValidations);
+  const expressionValidations = useExpressionValidation(bindings);
+  for (const { bindingKey, validations } of expressionValidations) {
+    unfiltered.push(...validations.map((validation) => ({ ...validation, bindingKey })));
+  }
 
   const filtered = filter(unfiltered, baseComponentId, def, layoutLookups);
   if (filtered.length === 0) {

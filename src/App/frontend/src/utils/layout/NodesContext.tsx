@@ -11,7 +11,6 @@ import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAtta
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
@@ -226,7 +225,6 @@ export const NodesProvider = ({ children }: PropsWithChildren) => {
         </GeneratorData.Provider>
       </GeneratorValidationProvider>
       {window.Cypress && <UpdateAttachmentsForCypress />}
-      <ExpressionValidation />
       {children}
     </ProvideGlobalContext>
   );

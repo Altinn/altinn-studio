@@ -39,7 +39,6 @@ export function selectMergedFieldValidationsForDataModel(dataModel: DataModelSta
     dataModel.validations.backend,
     dataModel.validations.invalidData,
     dataModel.validations.schema,
-    dataModel.validations.expression,
   );
 }
 
@@ -52,7 +51,6 @@ export function selectFieldValidationsForDataModel(dataModel: DataModelState, fi
     ...(dataModel.validations.backend[field] ?? []),
     ...(dataModel.validations.invalidData[field] ?? []),
     ...(dataModel.validations.schema[field] ?? []),
-    ...(dataModel.validations.expression[field] ?? []),
   ];
 }
 
