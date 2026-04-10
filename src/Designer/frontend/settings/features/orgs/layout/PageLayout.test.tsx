@@ -119,7 +119,7 @@ describe('PageLayout', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('does not show loading spinner when org is not in the list and permissions are pending', () => {
+  it('renders not-found page when org is not in the list and permissions are pending', () => {
     jest.mocked(useUserOrgPermissionsQuery).mockReturnValueOnce({
       data: undefined,
       isPending: true,
@@ -127,8 +127,8 @@ describe('PageLayout', () => {
     } as ReturnType<typeof useUserOrgPermissionsQuery>);
     renderPageLayout(['/orgs/unknown-org/contact-points']);
     expect(
-      screen.queryByRole('img', { name: textMock('repo_status.loading') }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
   });
 
   it('renders not-org-owner alert when user is not owner for selected org', () => {
@@ -163,9 +163,7 @@ describe('PageLayout', () => {
     } as ReturnType<typeof useUserOrgPermissionsQuery>);
     renderPageLayout();
     expect(
-      screen.getByText(
-        textMock('settings.orgs.not_org_owner_alert', { orgName: testOrg }),
-      ),
+      screen.getByText(textMock('settings.orgs.not_org_owner_alert', { orgName: testOrg })),
     ).toBeInTheDocument();
   });
 });
