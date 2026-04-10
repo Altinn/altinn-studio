@@ -85,6 +85,16 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the loading spinner while org permissions are pending', () => {
+    jest.mocked(useUserOrgPermissionsQuery).mockReturnValueOnce({
+      data: undefined,
+      isPending: true,
+      isError: false,
+    } as ReturnType<typeof useUserOrgPermissionsQuery>);
+    renderPageLayout();
+    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+  });
+
   it('renders error page when organizations query fails', () => {
     jest.mocked(useOrganizationsQuery).mockReturnValueOnce({
       data: undefined,
@@ -94,6 +104,30 @@ describe('PageLayout', () => {
     renderPageLayout();
     expect(
       screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders error page when org permissions query fails', () => {
+    jest.mocked(useUserOrgPermissionsQuery).mockReturnValueOnce({
+      data: undefined,
+      isPending: false,
+      isError: true,
+    } as ReturnType<typeof useUserOrgPermissionsQuery>);
+    renderPageLayout();
+    expect(
+      screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not show loading spinner when org is not in the list and permissions are pending', () => {
+    jest.mocked(useUserOrgPermissionsQuery).mockReturnValueOnce({
+      data: undefined,
+      isPending: true,
+      isError: false,
+    } as ReturnType<typeof useUserOrgPermissionsQuery>);
+    renderPageLayout(['/orgs/unknown-org/contact-points']);
+    expect(
+      screen.queryByRole('img', { name: textMock('repo_status.loading') }),
     ).not.toBeInTheDocument();
   });
 
@@ -113,5 +147,25 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText('Menu')).not.toBeInTheDocument();
     expect(screen.queryByText('Outlet')).not.toBeInTheDocument();
+  });
+
+  it('renders not-org-owner alert using username when org has no full name', () => {
+    const orgWithoutFullName = { username: testOrg, full_name: '', avatar_url: '', id: 1 };
+    jest.mocked(useOrganizationsQuery).mockReturnValueOnce({
+      data: [orgWithoutFullName],
+      isPending: false,
+      isError: false,
+    } as ReturnType<typeof useOrganizationsQuery>);
+    jest.mocked(useUserOrgPermissionsQuery).mockReturnValueOnce({
+      data: { canCreateOrgRepo: true, isOrgOwner: false },
+      isPending: false,
+      isError: false,
+    } as ReturnType<typeof useUserOrgPermissionsQuery>);
+    renderPageLayout();
+    expect(
+      screen.getByText(
+        textMock('settings.orgs.not_org_owner_alert', { orgName: testOrg }),
+      ),
+    ).toBeInTheDocument();
   });
 });
