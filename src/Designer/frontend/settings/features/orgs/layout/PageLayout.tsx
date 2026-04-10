@@ -1,8 +1,5 @@
 import classes from './PageLayout.module.css';
-import { matchPath, Outlet, useLocation } from 'react-router-dom';
-import { Menu } from '../components/Menu/Menu';
-import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
-import { useUserQuery } from 'app-shared/hooks/queries';
+import { matchPath, useLocation } from 'react-router-dom';
 import {
   StudioCenter,
   StudioHeading,
@@ -11,16 +8,23 @@ import {
 } from '@studio/components';
 import { NotFound } from '../../../pages/NotFound/NotFound';
 import { useTranslation } from 'react-i18next';
+import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
+import { useOrganizationsQuery } from '../../../hooks/useOrganizationsQuery';
+import { PageContent } from './PageContent';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
   const { org } = match?.params ?? {};
-  const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
-  const { data: user, isPending: isUserPending } = useUserQuery();
+  const { data: orgs, isPending: isOrgsPending, isError: isOrgsError } = useOrganizationsQuery();
+  const {
+    data: orgPermissions,
+    isPending: isOrgPermissionsPending,
+    isError: isOrgPermissionsError,
+  } = useUserOrgPermissionsQuery(org ?? '');
 
-  if (isUserPending || isOrgsPending) {
+  if (isOrgsPending || isOrgPermissionsPending) {
     return (
       <StudioCenter>
         <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
@@ -28,12 +32,14 @@ export const PageLayout = () => {
     );
   }
 
-  if (!org || !orgs?.[org]) {
-    return <NotFound />;
+  if (isOrgsError || isOrgPermissionsError) {
+    return <StudioPageError />;
   }
 
-  if (!user) {
-    return <StudioPageError />;
+  const selectedOrg = orgs?.find((o) => o.username === org);
+
+  if (!selectedOrg) {
+    return <NotFound />;
   }
 
   return (
@@ -44,14 +50,7 @@ export const PageLayout = () => {
       <div className={classes.settingsHeadingDescription}>
         {t('settings.orgs.heading.description')}
       </div>
-      <div className={classes.pageContentWrapper}>
-        <div className={classes.leftNavWrapper}>
-          <Menu />
-        </div>
-        <div className={classes.contentWrapper}>
-          <Outlet />
-        </div>
-      </div>
+      <PageContent selectedOrg={selectedOrg} isOrgOwner={orgPermissions?.isOrgOwner ?? false} />
     </>
   );
 };

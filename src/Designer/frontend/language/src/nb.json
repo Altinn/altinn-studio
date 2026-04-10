@@ -1572,6 +1572,8 @@
   "settings.orgs.contact_points.slack_heading": "Slack-kanal",
   "settings.orgs.heading": "Innstillinger for organisasjonen",
   "settings.orgs.heading.description": "Her finner du innstillinger som gjelder for hele organisasjonen.",
+  "settings.navigation.user": "Bruker",
+  "settings.orgs.not_org_owner_alert": "Du er ikke eier av denne organisasjonen og har begrenset tilgang til innstillingene. Be eierne i {{orgName}} om å gi deg tilgang.",
   "settings.user.api_keys.api_keys": "API-nøkler",
   "settings.user.api_keys.description": "Opprett og administrer dine API-nøkler. Disse nøklene gir tilgang til kontoen din via Studio API.",
   "settings.user.heading": "Innstillinger",
