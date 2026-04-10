@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
@@ -21,6 +22,9 @@ const (
 	exeSuffix = ".exe"
 
 	executablePerm = 0o755
+
+	windowsReplaceRetryDelay   = 100 * time.Millisecond
+	windowsReplaceRetryTimeout = 5 * time.Second
 )
 
 // Sentinel errors for self-install operations.
@@ -332,6 +336,27 @@ func copyFile(src, dst string) (err error) {
 }
 
 func replacePath(src, dst string) error {
+	if runtime.GOOS == osWindows {
+		return retryReplacePathWindows(src, dst)
+	}
+	return replacePathOnce(src, dst)
+}
+
+func retryReplacePathWindows(src, dst string) error {
+	deadline := time.Now().Add(windowsReplaceRetryTimeout)
+	for {
+		err := replacePathOnce(src, dst)
+		if err == nil {
+			return nil
+		}
+		if !isRetryableWindowsReplaceError(err) || time.Now().After(deadline) {
+			return err
+		}
+		time.Sleep(windowsReplaceRetryDelay)
+	}
+}
+
+func replacePathOnce(src, dst string) error {
 	initialRenameErr := os.Rename(src, dst)
 	if initialRenameErr == nil {
 		return nil
@@ -376,6 +401,13 @@ func replacePath(src, dst string) error {
 	}
 
 	return nil
+}
+
+func isRetryableWindowsReplaceError(err error) bool {
+	if errors.Is(err, os.ErrPermission) {
+		return true
+	}
+	return strings.Contains(strings.ToLower(err.Error()), "access is denied")
 }
 
 func reserveBackupPath(dst string) (string, error) {

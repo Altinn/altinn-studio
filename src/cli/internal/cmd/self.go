@@ -6,18 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"runtime"
-	"time"
 
 	"altinn.studio/studioctl/internal/appmanager"
 	selfsvc "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
-)
-
-const (
-	appManagerShutdownWait = 3 * time.Second
-	appManagerShutdownPoll = 100 * time.Millisecond
 )
 
 // SelfCommand implements the 'self' subcommand.
@@ -227,11 +221,13 @@ func (c *SelfCommand) installResources(ctx context.Context) error {
 func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	c.out.Println("")
 
-	client := appmanager.NewClient(c.cfg)
-	if err := client.Shutdown(ctx); err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
+	done, err := appmanager.Shutdown(ctx, c.cfg)
+	if err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
 		c.out.Verbosef("failed to stop existing app-manager before install: %v", err)
-	} else if err == nil {
-		waitForAppManagerShutdown(ctx, client)
+	} else if done != nil {
+		if err := <-done; err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
+			c.out.Verbosef("failed to stop existing app-manager before install: %v", err)
+		}
 	}
 
 	spinner := ui.NewSpinner(c.out, "Installing app-manager...")
@@ -249,16 +245,6 @@ func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	c.out.Verbosef("Installed to: %s", result.InstalledPath)
 
 	return nil
-}
-
-func waitForAppManagerShutdown(ctx context.Context, client *appmanager.Client) {
-	deadline := time.Now().Add(appManagerShutdownWait)
-	for time.Now().Before(deadline) {
-		if err := client.Health(ctx); errors.Is(err, appmanager.ErrNotRunning) {
-			return
-		}
-		time.Sleep(appManagerShutdownPoll)
-	}
 }
 
 func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {

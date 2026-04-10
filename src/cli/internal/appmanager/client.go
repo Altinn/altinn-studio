@@ -33,6 +33,7 @@ const (
 	appManagerUpstreamEnv   = "Tunnel__UpstreamUrl"
 
 	appManagerStartTimeout = 10 * time.Second
+	appManagerShutdownWait = 3 * time.Second
 	appManagerPollInterval = 100 * time.Millisecond
 	appTunnelEndpointPath  = "/internal/tunnel/app"
 	appManagerLogTailLines = 40
@@ -104,6 +105,32 @@ func NewClient(cfg *config.Config) *Client {
 			Timeout:   2 * time.Second,
 		},
 	}
+}
+
+// Shutdown stops app-manager and returns a completion channel that resolves when shutdown is fully complete.
+func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
+	client := NewClient(cfg)
+	pid, err := currentManagedPID(ctx, client, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.shutdown(ctx); err != nil {
+		if !errors.Is(err, ErrNotRunning) {
+			return nil, fmt.Errorf("shutdown app-manager: %w", err)
+		}
+		if pid <= 0 {
+			return nil, ErrNotRunning
+		}
+	}
+
+	done := make(chan error, 1)
+	go func() {
+		done <- waitForManagedShutdown(ctx, cfg, client, pid)
+		close(done)
+	}()
+
+	return done, nil
 }
 
 // Health checks whether app-manager is reachable.
@@ -192,8 +219,8 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	return result, nil
 }
 
-// Shutdown asks app-manager to stop itself.
-func (c *Client) Shutdown(ctx context.Context) error {
+// shutdown asks app-manager to stop itself.
+func (c *Client) shutdown(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, controlBaseURL+shutdownPath, nil)
 	if err != nil {
 		return fmt.Errorf("build shutdown request: %w", err)
@@ -276,7 +303,7 @@ func restartManagedProcess(
 	pid int,
 	desired startConfig,
 ) error {
-	if err := client.Shutdown(ctx); err != nil {
+	if err := client.shutdown(ctx); err != nil {
 		return fmt.Errorf("shutdown app-manager for restart: %w", err)
 	}
 
@@ -391,6 +418,74 @@ func waitForShutdown(ctx context.Context, client *Client, cfg *config.Config) bo
 	}
 
 	return false
+}
+
+func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) (int, error) {
+	status, err := client.Status(ctx)
+	if err == nil {
+		return status.ProcessID, nil
+	}
+	if !errors.Is(err, ErrNotRunning) {
+		return 0, fmt.Errorf("get app-manager status before shutdown: %w", err)
+	}
+
+	state, ok, err := readAppManagerState(cfg)
+	if err != nil {
+		return 0, fmt.Errorf("read persisted app-manager state: %w", err)
+	}
+	if !ok {
+		return 0, nil
+	}
+	return state.PID, nil
+}
+
+func waitForManagedShutdown(ctx context.Context, cfg *config.Config, client *Client, pid int) error {
+	deadline := time.Now().Add(appManagerShutdownWait)
+	for time.Now().Before(deadline) {
+		healthStopped := errors.Is(client.Health(ctx), ErrNotRunning)
+		processStopped, err := managedProcessStopped(pid)
+		if err != nil {
+			return err
+		}
+		if healthStopped && processStopped {
+			if err := removeAppManagerState(cfg); err != nil {
+				return fmt.Errorf("remove stale app-manager pid file: %w", err)
+			}
+			return nil
+		}
+		time.Sleep(appManagerPollInterval)
+	}
+
+	return stopPersistedProcess(cfg, pid)
+}
+
+func stopPersistedProcess(cfg *config.Config, pid int) error {
+	if pid > 0 {
+		running, err := isProcessRunning(pid)
+		if err != nil {
+			return fmt.Errorf("check app-manager pid %d: %w", pid, err)
+		}
+		if running {
+			if err := killProcess(pid); err != nil {
+				return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
+			}
+		}
+	}
+	if err := removeAppManagerState(cfg); err != nil {
+		return fmt.Errorf("remove stale app-manager pid file: %w", err)
+	}
+	return nil
+}
+
+func managedProcessStopped(pid int) (bool, error) {
+	if pid <= 0 {
+		return true, nil
+	}
+	running, err := isProcessRunning(pid)
+	if err != nil {
+		return false, fmt.Errorf("check app-manager pid %d: %w", pid, err)
+	}
+	return !running, nil
 }
 
 func buildStartConfig(cfg *config.Config, loadBalancerPort, localAppURL string) startConfig {

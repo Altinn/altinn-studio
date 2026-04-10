@@ -150,13 +150,15 @@ func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if err := c.client.Shutdown(ctx); err != nil {
+	done, err := appmanager.Shutdown(ctx, c.cfg)
+	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
 			c.out.Println("app-manager is not running.")
 			return nil
 		}
 		return fmt.Errorf("shutdown app-manager: %w", err)
 	}
+	_ = done
 	c.out.Println("app-manager shutdown requested.")
 
 	return nil
