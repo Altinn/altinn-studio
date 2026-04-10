@@ -6,17 +6,19 @@ import { BotAccounts } from '../pages/BotAccounts/BotAccounts';
 import { ContactPoints } from '../pages/ContactPoints/ContactPoints';
 
 export const routes = (
-  <Route path={RoutePaths.Org} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
+  <Route path={RoutePaths.Org} errorElement={<RouteErrorBoundary />}>
     <Route index element={<Navigate to={RoutePaths.BotAccounts} replace />} />
-    <Route
-      path={RoutePaths.BotAccounts}
-      element={<BotAccounts />}
-      errorElement={<RouteErrorBoundary />}
-    />
-    <Route
-      path={RoutePaths.ContactPoints}
-      element={<ContactPoints />}
-      errorElement={<RouteErrorBoundary />}
-    />
+    <Route element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
+      <Route
+        path={RoutePaths.BotAccounts}
+        element={<BotAccounts />}
+        errorElement={<RouteErrorBoundary />}
+      />
+      <Route
+        path={RoutePaths.ContactPoints}
+        element={<ContactPoints />}
+        errorElement={<RouteErrorBoundary />}
+      />
+    </Route>
   </Route>
 );
