@@ -3,18 +3,20 @@ import {
   addLanguage,
   addNewCodeListItem,
   changeCodeListItem,
+  initialiseSelectedLanguage,
   extractLanguageCodes,
   isCodeListEmpty,
   removeCodeListItem,
   removeLanguage,
   updateCodeText,
+  initialiseLanguageOptions,
 } from './utils';
 import type { UpdateCodeTextArgs } from './utils';
 import { ObjectUtils } from '@studio/pure-functions';
 import { codeList } from './test-data/codeList';
 import { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
 import type { CodeListItem } from './types/CodeListItem';
-import { MultiLanguageText } from '../../types/MultiLanguageText';
+import type { MultiLanguageText } from '../../types/MultiLanguageText';
 
 // Test data:
 const testCodeList: CodeList = [
@@ -244,6 +246,46 @@ describe('StudioCodelistEditor utils', () => {
       const result = removeLanguage(codeList, 'en');
       expect(result[0]).not.toHaveProperty('description');
       expect(result[0]).not.toHaveProperty('helpText');
+    });
+  });
+
+  describe('initialiseSelectedLanguage', () => {
+    it('Returns the first language code that appears in the code list', () => {
+      expect(initialiseSelectedLanguage(testCodeList, 'nb')).toBe('en');
+    });
+
+    it('Returns the fallback language code when no texts are defined within the code list', () => {
+      const codeList: CodeList = [
+        { value: 'test1', label: {} },
+        { value: 'test2', label: {} },
+      ];
+      const fallbackCode = 'nb';
+      expect(initialiseSelectedLanguage(codeList, fallbackCode)).toBe(fallbackCode);
+    });
+
+    it('Returns the fallback language code when the code list is empty', () => {
+      const fallbackCode = 'nb';
+      expect(initialiseSelectedLanguage([], fallbackCode)).toBe(fallbackCode);
+    });
+  });
+
+  describe('initialiseLanguageOptions', () => {
+    it('Returns the languages from the code list in order of appearance', () => {
+      expect(initialiseLanguageOptions(testCodeList, 'nb')).toEqual(['en', 'nb']);
+    });
+
+    it('Returns a list with the fallback language code only when no texts are defined within the code list', () => {
+      const codeList: CodeList = [
+        { value: 'test1', label: {} },
+        { value: 'test2', label: {} },
+      ];
+      const fallbackCode = 'nb';
+      expect(initialiseLanguageOptions(codeList, fallbackCode)).toEqual([fallbackCode]);
+    });
+
+    it('Returns a list with the fallback language code only when the code list is empty', () => {
+      const fallbackCode = 'nb';
+      expect(initialiseLanguageOptions([], fallbackCode)).toEqual([fallbackCode]);
     });
   });
 });

@@ -124,3 +124,18 @@ function removeLanguageFromTextInstance(
   delete newInstance[languageCode];
   return newInstance;
 }
+
+export function initialiseSelectedLanguage(
+  codeList: CodeList,
+  fallbackLanguageCode: string,
+): string {
+  return initialiseLanguageOptions(codeList, fallbackLanguageCode)[0];
+}
+
+export function initialiseLanguageOptions(
+  codeList: CodeList,
+  fallbackLanguageCode: string,
+): [string, ...string[]] {
+  const existingCodes = extractLanguageCodes(codeList);
+  return ArrayUtils.isNotEmpty(existingCodes) ? existingCodes : [fallbackLanguageCode];
+}
