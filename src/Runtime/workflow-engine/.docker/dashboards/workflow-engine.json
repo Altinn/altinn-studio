@@ -82,9 +82,9 @@
             ]
           },
           "color": {
-            "mode": "thresholds"
-          },
-          "noValue": "No data"
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
         },
         "overrides": []
       },
@@ -117,8 +117,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "engine_health_status",
-          "legendFormat": "Health",
+          "expr": "engine_health_status * probe_success{instance=~\".*live.*\"} or on() (1 - probe_success{instance=~\".*live.*\"}) * 2",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -2511,7 +2511,7 @@
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 9,
         "w": 6,
         "x": 0,
         "y": 36
@@ -2625,7 +2625,7 @@
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 9,
         "w": 6,
         "x": 6,
         "y": 36
@@ -2764,7 +2764,7 @@
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 9,
         "w": 6,
         "x": 12,
         "y": 36
@@ -2925,7 +2925,7 @@
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 9,
         "w": 6,
         "x": 18,
         "y": 36
@@ -2985,7 +2985,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 46
       },
       "id": 50,
       "title": "Steps & Errors",
@@ -3102,7 +3102,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 45
+        "y": 47
       },
       "id": 51,
       "options": {
@@ -3243,7 +3243,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 45
+        "y": 47
       },
       "id": 52,
       "options": {
@@ -3367,7 +3367,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 45
+        "y": 47
       },
       "id": 53,
       "options": {
@@ -3415,7 +3415,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 55
       },
       "id": 60,
       "panels": [],
@@ -3502,15 +3502,16 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 54
+        "y": 56
       },
       "id": 61,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "mean",
+            "max"
           ],
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
@@ -3584,15 +3585,16 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 54
+        "y": 56
       },
       "id": 62,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "mean",
+            "max"
           ],
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
@@ -3751,15 +3753,16 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 54
+        "y": 56
       },
       "id": 63,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "mean",
+            "max"
           ],
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
