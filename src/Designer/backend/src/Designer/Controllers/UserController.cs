@@ -95,7 +95,7 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Route("org-permissions/{org}")]
-    public async Task<IActionResult> HasAccessToCreateRepository(string org)
+    public async Task<IActionResult> GetUserOrgPermissions(string org)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnOrgEditingContext editingEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, developer);

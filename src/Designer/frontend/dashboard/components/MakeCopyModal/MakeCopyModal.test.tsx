@@ -11,12 +11,12 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { app, org } from '@studio/testing/testids';
-import { useUserOrgPermissionQuery } from '../../hooks/queries/useUserOrgPermissionsQuery';
+import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
 
-jest.mock('../../hooks/queries/useUserOrgPermissionsQuery');
+jest.mock('app-shared/hooks/queries/useUserOrgPermissionsQuery');
 
-(useUserOrgPermissionQuery as jest.Mock).mockReturnValue({
-  data: { canCreateOrgRepo: true },
+(useUserOrgPermissionsQuery as jest.Mock).mockReturnValue({
+  data: { canCreateOrgRepo: true, isOrgOwner: true },
 });
 
 const mockServiceFullName: string = `${org}/${app}`;

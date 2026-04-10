@@ -9,8 +9,7 @@ export function Menu(): ReactElement {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  let selectedTabId = pathname.split('/').at(-1);
-  selectedTabId = selectedTabId === '' ? RoutePaths.ContactPoints : selectedTabId;
+  const selectedTabId = pathname.split('/').at(-1);
   const menuTabs = [
     {
       tabId: RoutePaths.BotAccounts,

@@ -1,24 +1,8 @@
 import type { ReactElement } from 'react';
-import { StudioParagraph, StudioPageError, StudioLink } from '@studio/components';
-import { Trans, useTranslation } from 'react-i18next';
+import { StudioPageError } from 'app-shared/components';
 
 export const ErrorBoundary = (): ReactElement => {
-  const { t } = useTranslation();
-  return (
-    <StudioPageError
-      title={t('general.page_error_title')}
-      message={
-        <StudioParagraph>
-          <Trans
-            i18nKey={'general.page_error_message'}
-            components={{
-              a: <StudioLink href='/info/contact'> </StudioLink>,
-            }}
-          />
-        </StudioParagraph>
-      }
-    />
-  );
+  return <StudioPageError />;
 };
 
 export const AppRouteErrorBoundary = ErrorBoundary;
