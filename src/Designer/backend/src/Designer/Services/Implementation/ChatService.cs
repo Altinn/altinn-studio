@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
@@ -58,7 +59,7 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity thread = await repository.GetThreadByIdAsync(threadId, cancellationToken);
+        ChatThreadEntity? thread = await repository.GetThreadByIdAsync(threadId, cancellationToken);
         if (thread is null)
             return;
 
@@ -92,16 +93,6 @@ public class ChatService(IChatRepository repository) : IChatService
             throw new ArgumentException($"Invalid role: '{request.Role}'. Must be 'User' or 'Assistant'.");
         }
 
-        ActionMode? parsedActionMode = null;
-        if (request.ActionMode is not null)
-        {
-            if (!Enum.TryParse(request.ActionMode, ignoreCase: true, out ActionMode actionModeValue))
-            {
-                throw new ArgumentException($"Invalid action mode: '{request.ActionMode}'.");
-            }
-            parsedActionMode = actionModeValue;
-        }
-
         var message = new ChatMessageEntity
         {
             Id = Guid.CreateVersion7(),
@@ -109,18 +100,28 @@ public class ChatService(IChatRepository repository) : IChatService
             CreatedAt = DateTime.UtcNow,
             Role = parsedRole,
             Content = request.Content,
-            ActionMode = parsedActionMode,
+            AllowAppChanges = request.AllowAppChanges,
             AttachmentFileNames = request.AttachmentFileNames,
             FilesChanged = request.FilesChanged,
+            Sources = request
+                .Sources?.Select(s => new ChatSourceEntity
+                {
+                    Tool = s.Tool,
+                    Title = s.Title,
+                    PreviewText = s.PreviewText,
+                    ContentLength = s.ContentLength,
+                    Url = s.Url,
+                    Relevance = s.Relevance,
+                    MatchedTerms = s.MatchedTerms,
+                    Cited = s.Cited,
+                })
+                .ToList(),
         };
 
         return await repository.CreateMessageAsync(message, cancellationToken);
     }
 
-    private async Task<ChatThreadEntity> GetThreadByIdAsync(
-        Guid threadId,
-        CancellationToken cancellationToken
-    )
+    private async Task<ChatThreadEntity> GetThreadByIdAsync(Guid threadId, CancellationToken cancellationToken)
     {
         return await repository.GetThreadByIdAsync(threadId, cancellationToken)
             ?? throw new KeyNotFoundException($"Chat thread with id '{threadId}' was not found.");

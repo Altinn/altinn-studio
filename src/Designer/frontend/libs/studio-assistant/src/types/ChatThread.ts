@@ -18,11 +18,11 @@ export type UserAttachment = {
 export type Source = {
   tool: string;
   title: string;
-  preview: string;
-  content_length?: number;
+  previewText: string;
+  contentLength?: number;
   url?: string;
   relevance?: number;
-  matched_terms?: string;
+  matchedTerms?: string;
   cited?: boolean;
 };
 

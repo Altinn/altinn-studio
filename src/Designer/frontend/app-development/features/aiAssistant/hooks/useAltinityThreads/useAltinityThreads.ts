@@ -42,7 +42,7 @@ const mapApiMessageToMessage = (apiMessage: ChatMessageResponse): Message => {
       author: MessageAuthor.User,
       content: apiMessage.content,
       timestamp: new Date(apiMessage.createdAt),
-      allowAppChanges: apiMessage.actionMode === 'Edit',
+      allowAppChanges: apiMessage.allowAppChanges ?? false,
     };
   }
   return {
@@ -50,6 +50,16 @@ const mapApiMessageToMessage = (apiMessage: ChatMessageResponse): Message => {
     content: apiMessage.content,
     timestamp: new Date(apiMessage.createdAt),
     filesChanged: apiMessage.filesChanged ?? [],
+    sources: apiMessage.sources?.map((s) => ({
+      tool: s.tool,
+      title: s.title,
+      previewText: s.previewText,
+      contentLength: s.contentLength ?? undefined,
+      url: s.url ?? undefined,
+      relevance: s.relevance ?? undefined,
+      matchedTerms: s.matchedTerms ?? undefined,
+      cited: s.cited ?? undefined,
+    })),
   };
 };
 
@@ -140,20 +150,27 @@ export const useAltinityThreads = (): AltinityThreadState => {
   const persistMessageToApi = useCallback(
     (threadId: string, message: UserMessage | AssistantMessage) => {
       const isUser = message.author === MessageAuthor.User;
+      const assistantMessage = !isUser ? (message as AssistantMessage) : undefined;
       createChatMessage({
         threadId,
         payload: {
           role: message.author,
           content: message.content,
-          actionMode: isUser
-            ? (message as UserMessage).allowAppChanges
-              ? 'Edit'
-              : 'Ask'
-            : undefined,
+          allowAppChanges: isUser ? (message as UserMessage).allowAppChanges : undefined,
           attachmentFileNames: isUser
             ? ((message as UserMessage).attachments ?? []).map((a) => a.name)
             : undefined,
-          filesChanged: !isUser ? (message as AssistantMessage).filesChanged : undefined,
+          filesChanged: assistantMessage?.filesChanged,
+          sources: assistantMessage?.sources?.map((s) => ({
+            tool: s.tool,
+            title: s.title,
+            previewText: s.previewText,
+            contentLength: s.contentLength,
+            url: s.url,
+            relevance: s.relevance,
+            matchedTerms: s.matchedTerms,
+            cited: s.cited,
+          })),
         },
       });
     },

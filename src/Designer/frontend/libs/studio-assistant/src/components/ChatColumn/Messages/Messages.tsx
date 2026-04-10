@@ -203,15 +203,15 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
             {source.relevance !== undefined && (
               <span className={classes.sourceRelevance}>{Math.round(source.relevance * 100)}%</span>
             )}
-            {source.content_length !== undefined && (
-              <span className={classes.sourceSize}>{formatFileSize(source.content_length)}</span>
+            {source.contentLength !== undefined && (
+              <span className={classes.sourceSize}>{formatFileSize(source.contentLength)}</span>
             )}
           </div>
         </div>
-        {source.matched_terms && (
-          <div className={classes.sourceMatched}>Matched: {source.matched_terms}</div>
+        {source.matchedTerms && (
+          <div className={classes.sourceMatched}>Matched: {source.matchedTerms}</div>
         )}
-        {source.preview && <div className={classes.sourcePreview}>{source.preview}</div>}
+        {source.previewText && <div className={classes.sourcePreview}>{source.previewText}</div>}
       </div>
     );
   };

@@ -102,7 +102,11 @@ public class ChatController(IChatService chatService) : ControllerBase
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
         try
         {
-            List<ChatMessageEntity> messages = await chatService.GetMessagesAsync(threadId, editingContext, cancellationToken);
+            List<ChatMessageEntity> messages = await chatService.GetMessagesAsync(
+                threadId,
+                editingContext,
+                cancellationToken
+            );
             return Ok(messages);
         }
         catch (KeyNotFoundException)

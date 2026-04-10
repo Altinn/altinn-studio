@@ -1,5 +1,8 @@
+import type { ChatSource } from 'app-shared/types/api';
+
 export type {
   ChatThreadResponse,
+  ChatSource,
   CreateChatMessagePayload as CreateChatMessageRequest,
 } from 'app-shared/types/api/ChatPayloads';
 
@@ -9,7 +12,8 @@ export type ChatMessageResponse = {
   createdAt: string;
   role: 'User' | 'Assistant';
   content: string;
-  actionMode?: 'Ask' | 'Edit' | null;
+  allowAppChanges?: boolean | null;
   attachmentFileNames?: string[] | null;
   filesChanged?: string[] | null;
+  sources?: ChatSource[] | null;
 };
