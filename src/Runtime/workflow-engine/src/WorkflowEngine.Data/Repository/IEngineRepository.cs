@@ -8,42 +8,44 @@ namespace WorkflowEngine.Data.Repository;
 internal interface IEngineRepository
 {
     /// <summary>
-    /// Gets all active workflows, optionally filtered by namespace.
+    /// Gets active workflows with cursor-based pagination.
+    /// Results are ordered by ID (UUIDv7 = chronological). Pass the <paramref name="cursor"/> from
+    /// <see cref="CursorPaginatedResult.NextCursor"/> to fetch the next page.
+    /// Set <paramref name="includeTotalCount"/> to true to include the total count (adds a COUNT query).
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(string? ns = null, CancellationToken cancellationToken = default);
+    Task<CursorPaginatedResult> GetActiveWorkflows(
+        int pageSize,
+        Guid? cursor = null,
+        bool includeTotalCount = false,
+        Guid? correlationId = null,
+        string? ns = null,
+        IReadOnlyDictionary<string, string>? labelFilters = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
-    /// Gets all scheduled workflows, optionally filtered by namespace.
+    /// Gets scheduled workflows with cursor-based pagination.
+    /// Results are ordered by ID (UUIDv7 = chronological). Pass the <paramref name="cursor"/> from
+    /// <see cref="CursorPaginatedResult.NextCursor"/> to fetch the next page.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(
+    Task<CursorPaginatedResult> GetScheduledWorkflows(
+        int pageSize,
+        Guid? cursor = null,
         string? ns = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Gets finished workflows (completed, failed, canceled, dependency-failed).
+    /// Queries workflows by status with cursor-based pagination (ID DESC = newest first).
+    /// Replaces both <c>GetFinishedWorkflows</c> and <c>QueryWorkflowsWithCount</c>.
+    /// Set <paramref name="includeTotalCount"/> to true to include the total count (adds a COUNT query).
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
+    Task<CursorPaginatedResult> QueryWorkflows(
+        int pageSize,
+        IReadOnlyCollection<PersistentItemStatus> statuses,
+        Guid? cursor = null,
+        bool includeTotalCount = false,
         string? search = null,
-        int? take = null,
-        DateTimeOffset? before = null,
-        DateTimeOffset? since = null,
-        bool retriedOnly = false,
-        Dictionary<string, string>? labelFilters = null,
-        string? namespaceFilter = null,
-        string? correlationId = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Queries workflows by status with a total count of matching rows (single DB slot).
-    /// The count ignores the <paramref name="take"/> and <paramref name="before"/> (cursor) parameters.
-    /// </summary>
-    Task<(IReadOnlyList<Workflow> Workflows, int TotalCount)> QueryWorkflowsWithCount(
-        IReadOnlyList<PersistentItemStatus> statuses,
-        string? search = null,
-        int? take = null,
-        DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
@@ -104,30 +106,9 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets all active (incomplete) workflows, optionally filtered by correlation ID and namespace.
-    /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
-        Guid? correlationId = null,
-        string? ns = null,
-        IReadOnlyDictionary<string, string>? labelFilters = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
     /// Gets the full workflow (with steps) by database ID and namespace, or null if not found.
     /// </summary>
     Task<Workflow?> GetWorkflow(Guid workflowId, string ns, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets a workflow by idempotency key and creation time.
-    /// Used by the internal dashboard to resolve step details from SSE-streamed idempotency keys.
-    /// This method is cross-namespace by design — only expose it through non-production endpoints.
-    /// </summary>
-    Task<Workflow?> GetWorkflow(
-        string idempotencyKey,
-        DateTimeOffset createdAt,
-        CancellationToken cancellationToken = default
-    );
 
     /// <summary>
     /// Updates a workflow in the repository.
@@ -142,7 +123,7 @@ internal interface IEngineRepository
     /// <summary>
     /// Batch-enqueues workflows with idempotency checking, COPY BINARY bulk insert, and dependency validation.
     /// </summary>
-    Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(
+    Task<BatchEnqueueResult[]> BatchEnqueueWorkflows(
         IReadOnlyList<BufferedEnqueueRequest> requests,
         CancellationToken cancellationToken
     );
@@ -192,8 +173,14 @@ internal interface IEngineRepository
     /// <summary>
     /// Batch-updates HeartbeatAt for all specified workflow IDs in a single statement.
     /// Used by the processor to prove liveness of in-flight workers.
+    /// Skips workflows whose <c>UpdatedAt</c> is newer than <paramref name="staleThreshold"/> —
+    /// a recent status write already proves liveness.
     /// </summary>
-    Task BatchUpdateHeartbeats(IReadOnlyList<Guid> workflowIds, CancellationToken cancellationToken);
+    Task BatchUpdateHeartbeats(
+        IReadOnlyList<Guid> workflowIds,
+        TimeSpan staleThreshold,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.

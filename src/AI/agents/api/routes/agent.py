@@ -76,7 +76,7 @@ async def start_agent(
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
-        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, developer=developer)
+        repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, api_key=designer_api_key)
 
         branch_info = f" on branch {req.branch}" if req.branch else ""
         log.info(f"Cloned repository {req.repo_url} to {repo_path} for session {req.session_id}{branch_info}")

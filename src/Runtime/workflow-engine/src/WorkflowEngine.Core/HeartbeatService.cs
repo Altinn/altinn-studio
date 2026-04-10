@@ -67,7 +67,7 @@ internal sealed class HeartbeatService(
                 try
                 {
                     var ids = tracker.GetSnapshotIds();
-                    await repo.BatchUpdateHeartbeats(ids, safetyCts.Token);
+                    await repo.BatchUpdateHeartbeats(ids, interval, safetyCts.Token);
                     logger.HeartbeatSweepCompleted(ids.Count);
                 }
                 catch (OperationCanceledException) when (safetyCts.IsCancellationRequested)

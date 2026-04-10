@@ -140,7 +140,7 @@ internal sealed class TestDelegateCommand : ICommand
     public CommandValidationResult Validate(object? commandData, object? workflowContext) =>
         new CommandValidationResult.Valid();
 
-    public Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken)
+    public Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken cancellationToken)
     {
         if (_action is null)
             return Task.FromResult(ExecutionResult.CriticalError("No delegate action was set"));

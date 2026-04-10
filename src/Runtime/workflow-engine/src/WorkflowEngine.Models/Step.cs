@@ -18,7 +18,6 @@ public sealed record Step : PersistentItem
     public string? StateOut { get; set; }
 
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
-    internal bool HasPendingChanges { get; set; }
 
     public override string ToString() => $"[{nameof(Step)}.{Command.Type}] {OperationId} ({Status})";
 

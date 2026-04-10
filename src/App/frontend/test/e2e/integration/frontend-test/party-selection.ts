@@ -200,11 +200,6 @@ describe('Party selection', () => {
     cy.findByRole('link', { name: 'skift aktør her' }).click();
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
 
-    /** We need to wait for the instantiation to be cleared before we can instantiate again.
-     * @see InstantiateContainer */
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
-
     // The person on the other hand is allowed to instantiate
     cy.findAllByText(/personnr\. \d+/)
       .first()
@@ -222,9 +217,6 @@ describe('Party selection', () => {
       win.location.pathname = `/ttd/${appFrontend.apps.frontendTest}/party-selection`;
     });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
 
     cy.findAllByText(/personnr\. \d+/)
       .first()

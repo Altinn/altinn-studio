@@ -84,7 +84,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient, partyApi),
+            loader: instanceSelectionLoader(queryClient, partyApi, instanceApi),
           },
           {
             path: routes.partySelection,
