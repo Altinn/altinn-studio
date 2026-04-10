@@ -34,7 +34,7 @@ export class PolicyConfig extends BasePage {
       name: this.textMock('policy_editor.rules'),
       level: 4,
     });
-    await expect(heading).toBeVisible({ timeout: 10000 });
+    await expect(heading).toBeVisible();
   }
 
   public async verifyThatPolicyEditorIsClosed(): Promise<void> {
