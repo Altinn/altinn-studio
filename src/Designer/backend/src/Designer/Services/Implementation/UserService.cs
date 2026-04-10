@@ -37,12 +37,12 @@ public class UserService : IUserService
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)
     {
-        return team.CanCreateOrgRepo && team.Organization.Username == org;
+        return team?.CanCreateOrgRepo == true && team.Organization?.Username == org;
     }
 
     private static bool IsOwnerTeamForOrg(Team team, string org)
     {
-        return team.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
-            && team.Name.Equals("Owners", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(team?.Organization?.Username, org, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(team?.Name, "Owners", StringComparison.OrdinalIgnoreCase);
     }
 }
