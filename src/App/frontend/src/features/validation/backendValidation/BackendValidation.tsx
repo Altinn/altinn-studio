@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
+import { useBackendValidationQuery } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,

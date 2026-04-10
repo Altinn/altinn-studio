@@ -3,13 +3,13 @@ import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext } from 'src/queries/queries';
