@@ -301,7 +301,7 @@ public class DeploymentServiceTest
         _deployEventRepository.Verify(
             r =>
                 r.AddBySequenceNoAsync(
-                    It.IsAny<long>(),
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
                     It.Is<DeployEvent>(e => e.EventType == DeployEventType.ResourceRegistryPublishFailed),
                     It.IsAny<CancellationToken>()
                 ),
@@ -311,7 +311,7 @@ public class DeploymentServiceTest
         _deployEventRepository.Verify(
             r =>
                 r.AddBySequenceNoAsync(
-                    It.IsAny<long>(),
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
                     It.Is<DeployEvent>(e => e.EventType == DeployEventType.PipelineScheduled),
                     It.IsAny<CancellationToken>()
                 ),
@@ -409,7 +409,7 @@ public class DeploymentServiceTest
         _deployEventRepository.Verify(
             r =>
                 r.AddBySequenceNoAsync(
-                    It.IsAny<long>(),
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
                     It.Is<DeployEvent>(e => e.EventType == DeployEventType.ResourceRegistryPublishSucceeded),
                     It.IsAny<CancellationToken>()
                 ),
@@ -418,7 +418,7 @@ public class DeploymentServiceTest
         _deployEventRepository.Verify(
             r =>
                 r.AddBySequenceNoAsync(
-                    It.IsAny<long>(),
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
                     It.Is<DeployEvent>(e => e.EventType == DeployEventType.PipelineScheduled),
                     It.IsAny<CancellationToken>()
                 ),
