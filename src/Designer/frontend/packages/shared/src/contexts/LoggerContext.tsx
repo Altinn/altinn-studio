@@ -1,4 +1,4 @@
-import { type ReactNode, type JSX, createContext, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, type JSX, createContext, useMemo, useState } from 'react';
 import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
@@ -20,11 +20,11 @@ export const LoggerContextProvider = ({
   const { environment } = useEnvironmentConfig();
   const [applicationInsights, setApplicationInsights] = useState<ApplicationInsights | null>(null);
 
-  useEffect(() => {
+  if (environment?.aiConnectionString && !applicationInsights) {
     setApplicationInsights(
-      initializeApplicationInsights(environment?.aiConnectionString, config, reactPlugin),
+      initializeApplicationInsights(environment.aiConnectionString, config, reactPlugin),
     );
-  }, [environment?.aiConnectionString, config, reactPlugin]);
+  }
 
   return <LoggerContext.Provider value={applicationInsights}>{children}</LoggerContext.Provider>;
 };
