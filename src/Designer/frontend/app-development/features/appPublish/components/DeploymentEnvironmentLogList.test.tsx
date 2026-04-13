@@ -12,6 +12,7 @@ import {
   EventType,
   SucceededEventType,
   type PipelineDeployment,
+  WarningEventType,
 } from 'app-shared/types/api/PipelineDeployment';
 import { deployEvent } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -295,46 +296,34 @@ describe('DeploymentEnvironmentLogList', () => {
     });
   });
 
-  describe('when build is undefined (resource registry failure)', () => {
-    const deploymentWithoutBuild: PipelineDeployment = {
+  describe('when resource registry fails', () => {
+    const deploySuceeded: PipelineDeployment = {
       ...pipelineDeployment,
-      build: undefined,
+      build: {
+        ...pipelineDeployment.build,
+        result: BuildResult.succeeded,
+      },
       events: [
         {
           ...deployEvent,
-          eventType: FailedEventType.ResourceRegistryPublishFailed,
+          eventType: WarningEventType.ResourceRegistryPublishFailed,
           message: 'Resource Registry publish failed: Validation errors',
+        },
+        {
+          ...deployEvent,
+          eventType: SucceededEventType.InstallSucceeded,
         },
       ],
     };
 
-    it('renders failed status from event', () => {
+    it('renders warning status from event', () => {
       render({
-        pipelineDeploymentList: [deploymentWithoutBuild],
+        pipelineDeploymentList: [deploySuceeded],
       });
       expect(
-        screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
-      ).toBeInTheDocument();
-    });
-
-    it('does not render build log link', () => {
-      render({
-        pipelineDeploymentList: [deploymentWithoutBuild],
-      });
-      expect(
-        screen.queryByText(textMock('app_deployment.table.build_log_active_link')),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText(textMock('app_deployment.table.build_log_expired_link')),
-      ).not.toBeInTheDocument();
-    });
-
-    it('renders event details', () => {
-      render({
-        pipelineDeploymentList: [deploymentWithoutBuild],
-      });
-      expect(
-        screen.getByText('Resource Registry publish failed: Validation errors'),
+        screen.getByText(
+          textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded'),
+        ),
       ).toBeInTheDocument();
     });
   });
