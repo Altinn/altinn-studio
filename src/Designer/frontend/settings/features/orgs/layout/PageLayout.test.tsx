@@ -1,18 +1,15 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useOrganizationsQuery, useUserOrgPermissionsQuery } from 'app-shared/hooks/queries';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { QueryClient } from '@tanstack/react-query';
 
 jest.mock('../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Outlet: () => <div>Outlet</div>,
-}));
-jest.mock('app-shared/hooks/queries', () => ({
-  ...jest.requireActual('app-shared/hooks/queries'),
-  useOrganizationsQuery: jest.fn(),
-  useUserOrgPermissionsQuery: jest.fn(),
 }));
 
 const testOrg = 'ttd';
@@ -25,25 +22,20 @@ const organizationsMock = [
   },
 ];
 
-const renderPageLayout = (initialEntries = ['/orgs/ttd/contact-points']) => {
-  return renderWithProviders(<PageLayout />, { initialEntries });
-};
-
 describe('PageLayout', () => {
-  beforeEach(() => {
-    jest.mocked(useOrganizationsQuery).mockReturnValue({
-      data: organizationsMock,
-      isPending: false,
-      isError: false,
-    } as ReturnType<typeof useOrganizationsQuery>);
-    jest.mocked(useUserOrgPermissionsQuery).mockReturnValue({
-      data: { canCreateOrgRepo: true, isOrgOwner: true },
-      isPending: false,
-      isError: false,
-    } as ReturnType<typeof useUserOrgPermissionsQuery>);
-  });
+  let queryClient: QueryClient;
 
-  afterEach(() => jest.clearAllMocks());
+  const renderPageLayout = (initialEntries = ['/orgs/ttd/contact-points']) =>
+    renderWithProviders(<PageLayout />, { initialEntries, queryClient });
+
+  beforeEach(() => {
+    queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.Organizations], organizationsMock);
+    queryClient.setQueryData([QueryKey.UserOrgPermissions, testOrg], {
+      canCreateOrgRepo: true,
+      isOrgOwner: true,
+    });
+  });
 
   it('renders the settings heading', () => {
     renderPageLayout();
@@ -62,12 +54,12 @@ describe('PageLayout', () => {
   });
 
   it('renders the loading spinner while data is pending', () => {
-    jest.mocked(useOrganizationsQuery).mockReturnValueOnce({
-      data: undefined,
-      isPending: true,
-      isError: false,
-    } as ReturnType<typeof useOrganizationsQuery>);
-    renderWithProviders(<PageLayout />, { initialEntries: ['/orgs/ttd/contact-points'] });
+    const localQueryClient = createQueryClientMock();
+    renderWithProviders(<PageLayout />, {
+      initialEntries: ['/orgs/ttd/contact-points'],
+      queryClient: localQueryClient,
+      queries: { getOrganizations: () => new Promise<never>(() => {}) },
+    });
     expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
   });
 
@@ -85,24 +77,58 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders error page when organizations query fails', () => {
-    jest.mocked(useOrganizationsQuery).mockReturnValueOnce({
-      data: undefined,
-      isPending: false,
-      isError: true,
-    } as ReturnType<typeof useOrganizationsQuery>);
-    renderPageLayout();
+  it('renders the loading spinner while org permissions are pending', () => {
+    const localQueryClient = createQueryClientMock();
+    localQueryClient.setQueryData([QueryKey.Organizations], organizationsMock);
+    renderWithProviders(<PageLayout />, {
+      initialEntries: ['/orgs/ttd/contact-points'],
+      queryClient: localQueryClient,
+      queries: { getUserOrgPermissions: () => new Promise<never>(() => {}) },
+    });
+    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+  });
+
+  it('renders error page when organizations query fails', async () => {
+    const localQueryClient = createQueryClientMock();
+    renderWithProviders(<PageLayout />, {
+      initialEntries: ['/orgs/ttd/contact-points'],
+      queryClient: localQueryClient,
+      queries: { getOrganizations: () => Promise.reject(new Error('error')) },
+    });
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('renders error page when org permissions query fails', async () => {
+    const localQueryClient = createQueryClientMock();
+    localQueryClient.setQueryData([QueryKey.Organizations], organizationsMock);
+    renderWithProviders(<PageLayout />, {
+      initialEntries: ['/orgs/ttd/contact-points'],
+      queryClient: localQueryClient,
+      queries: { getUserOrgPermissions: () => Promise.reject(new Error('error')) },
+    });
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('renders not-found page when org is not in the list and permissions are pending', () => {
+    renderPageLayout(['/orgs/unknown-org/contact-points']);
     expect(
-      screen.queryByRole('heading', { name: textMock('settings.orgs.heading') }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
   });
 
   it('renders not-org-owner alert when user is not owner for selected org', () => {
-    jest.mocked(useUserOrgPermissionsQuery).mockReturnValueOnce({
-      data: { canCreateOrgRepo: true, isOrgOwner: false },
-      isPending: false,
-      isError: false,
-    } as ReturnType<typeof useUserOrgPermissionsQuery>);
+    queryClient.setQueryData([QueryKey.UserOrgPermissions, testOrg], {
+      canCreateOrgRepo: true,
+      isOrgOwner: false,
+    });
     renderPageLayout();
     expect(
       screen.getByText(
@@ -113,5 +139,18 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText('Menu')).not.toBeInTheDocument();
     expect(screen.queryByText('Outlet')).not.toBeInTheDocument();
+  });
+
+  it('renders not-org-owner alert using username when org has no full name', () => {
+    const orgWithoutFullName = { username: testOrg, full_name: '', avatar_url: '', id: 1 };
+    queryClient.setQueryData([QueryKey.Organizations], [orgWithoutFullName]);
+    queryClient.setQueryData([QueryKey.UserOrgPermissions, testOrg], {
+      canCreateOrgRepo: true,
+      isOrgOwner: false,
+    });
+    renderPageLayout();
+    expect(
+      screen.getByText(textMock('settings.orgs.not_org_owner_alert', { orgName: testOrg })),
+    ).toBeInTheDocument();
   });
 });
