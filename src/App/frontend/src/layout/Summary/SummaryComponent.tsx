@@ -4,7 +4,7 @@ import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -136,8 +136,8 @@ const SummaryComponentInner = React.forwardRef(function (
   const errors = validationsOfSeverity(validations, 'error');
 
   const navigateToComponent = useNavigateToComponent();
-  const setReturnToView = useSetReturnToView();
-  const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
+  const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const setNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
 
   const onChangeClick = async () => {
     if (!targetView) {

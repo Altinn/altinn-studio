@@ -502,47 +502,30 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
 Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.log('Changing current layout');
   cy.window().then((win) => {
-    const activeData = win.queryClient.getQueryCache().findAll({ type: 'active' });
-    let found = false;
-    for (const query of activeData) {
-      if (!Array.isArray(query.queryKey) || query.queryKey[0] !== 'formBootstrap') {
-        continue;
+    win.changeLayouts((current) => {
+      const nextLayouts = structuredClone(current);
+      const layouts = Object.fromEntries(
+        Object.entries(nextLayouts).map(([pageKey, page]) => [pageKey, page?.data?.layout ?? []]),
+      ) as ILayouts;
+
+      if (mutator) {
+        for (const page of Object.values(layouts)) {
+          for (const component of page || []) {
+            mutator(component);
+          }
+        }
+      }
+      if (wholeLayoutMutator) {
+        wholeLayoutMutator(layouts);
+      }
+      for (const [pageKey, layout] of Object.entries(layouts)) {
+        if (nextLayouts[pageKey]?.data) {
+          nextLayouts[pageKey].data.layout = layout!;
+        }
       }
 
-      found = true;
-      win.queryClient.setQueryData(query.queryKey, (current: { layouts?: Record<string, ILayoutFile> } | undefined) => {
-        if (!current?.layouts) {
-          throw new Error('Expected query to have layouts');
-        }
-
-        const nextLayouts = structuredClone(current.layouts);
-        const layouts = Object.fromEntries(
-          Object.entries(nextLayouts).map(([pageKey, page]) => [pageKey, page?.data?.layout ?? []]),
-        ) as ILayouts;
-
-        if (mutator) {
-          for (const page of Object.values(layouts)) {
-            for (const component of page || []) {
-              mutator(component);
-            }
-          }
-        }
-        if (wholeLayoutMutator) {
-          wholeLayoutMutator(layouts);
-        }
-        for (const [pageKey, layout] of Object.entries(layouts)) {
-          if (nextLayouts[pageKey]?.data) {
-            nextLayouts[pageKey].data.layout = layout!;
-          }
-        }
-
-        return { ...current, layouts: nextLayouts };
-      });
-    }
-
-    if (!found) {
-      throw new Error('Could not find active query (for cy.changeLayout)');
-    }
+      return nextLayouts;
+    });
   });
 
   cy.findByTestId('presentation').should('exist');

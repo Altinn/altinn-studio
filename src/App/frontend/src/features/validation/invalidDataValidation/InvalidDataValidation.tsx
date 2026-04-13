@@ -4,17 +4,16 @@ import dot from 'dot-object';
 
 import { FrontendValidationSource, ValidationMask } from '..';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
-import { Validation } from 'src/features/validation/validationContext';
 
 function isScalar(value: unknown): value is string | number | boolean {
   return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 }
 
 export function InvalidDataValidation({ dataType }: { dataType: string }) {
-  const updateDataModelValidations = Validation.useUpdateDataModelValidations();
-  const invalidData = FD.useInvalidDebounced(dataType);
+  const updateDataModelValidations = FormStore.validation.useUpdateDataModelValidations();
+  const invalidData = FormStore.data.useInvalidDebounced(dataType);
   const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   useEffect(() => {

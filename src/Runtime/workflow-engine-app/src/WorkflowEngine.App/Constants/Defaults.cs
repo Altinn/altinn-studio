@@ -8,6 +8,6 @@ internal static class Defaults
     {
         ApiKey = "injected-at-runtime",
         CommandEndpoint =
-            "http://local.altinn.cloud/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks",
+            "http://local.altinn.cloud/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks",
     };
 }

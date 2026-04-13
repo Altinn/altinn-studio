@@ -185,16 +185,53 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
-    /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
+    /// Lists active workflows with cursor-based pagination. Returns the full paginated response or an empty one on 204 No Content.
+    /// </summary>
+    public async Task<PaginatedResponse<WorkflowStatusResponse>> ListActiveWorkflowsPaginated(
+        Guid? cursor = null,
+        int? pageSize = null,
+        string? ns = null
+    )
+    {
+        var qs = new List<string>();
+        if (cursor.HasValue)
+            qs.Add($"cursor={cursor.Value}");
+        if (pageSize.HasValue)
+            qs.Add($"pageSize={pageSize.Value}");
+
+        var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);
+        using var response = await _client.GetAsync(path);
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return new PaginatedResponse<WorkflowStatusResponse>
+            {
+                Data = [],
+                PageSize = pageSize ?? 25,
+                TotalCount = 0,
+            };
+
+        return await AssertSuccessAndDeserialize<PaginatedResponse<WorkflowStatusResponse>>(response);
+    }
+
+    /// <summary>
+    /// Lists all active workflows by iterating through every page using cursor-based pagination.
+    /// Convenience wrapper around <see cref="ListActiveWorkflowsPaginated"/> that returns the full dataset.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
-        using var response = await _client.GetAsync(GetBasePath(ns));
+        var all = new List<WorkflowStatusResponse>();
+        Guid? cursor = null;
 
-        if (response.StatusCode == HttpStatusCode.NoContent)
-            return [];
+        while (true)
+        {
+            var result = await ListActiveWorkflowsPaginated(cursor: cursor, ns: ns);
+            all.AddRange(result.Data);
 
-        return await AssertSuccessAndDeserialize<List<WorkflowStatusResponse>>(response);
+            if (result.NextCursor is null)
+                return all;
+
+            cursor = result.NextCursor;
+        }
     }
 
     /// <summary>

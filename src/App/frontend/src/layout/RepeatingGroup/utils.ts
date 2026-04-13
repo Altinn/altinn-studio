@@ -3,8 +3,8 @@ import { useCallback, useMemo } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
@@ -167,7 +167,7 @@ function collectEditableChildren(
 export const RepGroupHooks = {
   useAllBaseRows(baseComponentId: string) {
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
-    return FD.useFreshRows(groupBinding);
+    return FormStore.data.useFreshRows(groupBinding);
   },
 
   useAllRowsWithHidden(baseComponentId: string): RepGroupRow[] {
@@ -221,7 +221,7 @@ export const RepGroupHooks = {
     const editButton = component?.edit?.editButton;
     const deleteButton = component?.edit?.deleteButton;
     const dataSources = useExpressionDataSources({ hiddenRow, editButton, deleteButton });
-    const getFreshRows = FD.useGetFreshRows();
+    const getFreshRows = FormStore.data.useGetFreshRows();
 
     return useCallback(() => {
       const freshRows = getFreshRows(groupBinding);
