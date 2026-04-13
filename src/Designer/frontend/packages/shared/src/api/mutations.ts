@@ -3,6 +3,7 @@ import {
   appMetadataAttachmentPath,
   branchesPath,
   checkoutBranchPath,
+  branchPath,
   discardChangesPath,
   copyAppPath,
   createRepoPath,
@@ -243,6 +244,7 @@ export const updateOrgTextResources = async (org: string, language: string, payl
 // Branches:
 export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> => post(branchesPath(org, app), { branchName });
 export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
+export const deleteBranch = async (org: string, app: string, branchName: string): Promise<void> => del(branchPath(org, app, branchName));
 export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
 
 // User settings

@@ -12,12 +12,13 @@ For core engine documentation, see the [workflow-engine README](../workflow-engi
 
 ## Projects
 
-| Project                      | Purpose                                                        |
-|------------------------------|----------------------------------------------------------------|
-| `WorkflowEngine.App`         | Web host: `Program.cs`, config files, Dockerfile              |
-| `WorkflowEngine.App.Tests`   | Unit + integration tests for AppCommand, config, enqueue flows |
+| Project                    | Purpose                                                        |
+| -------------------------- | -------------------------------------------------------------- |
+| `WorkflowEngine.App`       | Web host: `Program.cs`, config files, Dockerfile               |
+| `WorkflowEngine.App.Tests` | Unit + integration tests for AppCommand, config, enqueue flows |
 
 Dependencies (from `workflow-engine/`):
+
 - `WorkflowEngine.Core` — engine services, endpoints, built-in WebhookCommand
 - `WorkflowEngine.TestKit` — reusable test infrastructure (used by `App.Tests`)
 
@@ -34,6 +35,7 @@ The Altinn-specific command that calls back into Altinn apps via HTTP POST.
 - **Error classification**: 4xx (except 408/418/429) → critical, 5xx/408/418/429 → retryable
 
 Configuration via `appsettings.json` under `AppCommandSettings`:
+
 - `ApiKey` — API key sent to the app
 - `CommandEndpoint` — URL template with `{Org}`, `{App}`, `{InstanceOwnerPartyId}`, `{InstanceGuid}` placeholders
 
@@ -42,6 +44,7 @@ Configuration via `appsettings.json` under `AppCommandSettings`:
 xUnit v3 test project: `tests/WorkflowEngine.App.Tests/`
 
 Uses `WorkflowEngine.TestKit` from the core project for shared infrastructure:
+
 - `AppTestFixture` extends `EngineAppFixture<Program>` — full integration with PostgreSQL (Testcontainers) and WireMock
 - `AppCommandTestFixture` — unit test fixture with mocked HTTP
 - `AppTestHelpers` — builders for AppCommand-compatible workflows and steps
@@ -56,13 +59,13 @@ Includes the core `workflow-engine/docker-compose.yaml` and adds the engine cont
 docker-compose.yaml          # Profiles: "app" (engine+postgres), "full" (everything)
 ```
 
-| Container           | Port             | Purpose                                             |
-|---------------------|------------------|-----------------------------------------------------|
-| `workflow-engine`   | 8080, 8081       | App runtime (8081 = metrics)                        |
-| `postgres`          | 5433             | Database                                            |
-| `pgadmin`           | 5050             | PostgreSQL admin UI                                 |
-| `lgtm`              | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP          |
-| `wiremock`          | 6060             | Mock app callbacks                                  |
+| Container         | Port             | Purpose                                    |
+| ----------------- | ---------------- | ------------------------------------------ |
+| `workflow-engine` | 8080, 8081       | App runtime (8081 = metrics)               |
+| `postgres`        | 5433             | Database                                   |
+| `pgadmin`         | 5050             | PostgreSQL admin UI                        |
+| `lgtm`            | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
+| `wiremock`        | 6060             | Mock app callbacks                         |
 
 **Deploy engine**: `docker compose build workflow-engine && docker compose --profile app up -d --no-deps workflow-engine`
 
