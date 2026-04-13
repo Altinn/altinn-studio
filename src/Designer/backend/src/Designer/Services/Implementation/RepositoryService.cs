@@ -696,7 +696,12 @@ public class RepositoryService : IRepository
             bool isResourceIdentifierValid =
                 !string.IsNullOrEmpty(newResource.Identifier)
                 && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
-                && !newResource.Identifier.StartsWith("app_");
+                && (
+                    !newResource.Identifier.StartsWith("app_")
+                    || newResource.ResourceReferences?.Any(r =>
+                        r.Reference.Contains("/a1") || r.Reference.Contains("/a2")
+                    ) == true
+                );
             if (!isResourceIdentifierValid)
             {
                 return new StatusCodeResult(400);

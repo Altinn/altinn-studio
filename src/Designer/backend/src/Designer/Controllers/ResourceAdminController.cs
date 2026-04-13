@@ -358,9 +358,35 @@ public class ResourceAdminController : ControllerBase
                 string cacheKey = $"resourcelist_${environment}";
                 if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                 {
+                    bool ShouldShowResourceInList(ServiceResource resource)
+                    {
+                        // Keep all non-AltinnApp resources
+                        if (resource.ResourceType != ResourceType.AltinnApp)
+                        {
+                            return true;
+                        }
+
+                        // For AltinnApp resources, keep only if they have migrated app references
+                        if (resource.ResourceReferences == null || resource.ResourceReferences.Count == 0)
+                        {
+                            return false;
+                        }
+
+                        return resource.ResourceReferences.Any(x =>
+                            x.Reference.Contains("/a1") || x.Reference.Contains("/a2")
+                        );
+                    }
+
                     try
                     {
-                        environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                        environmentResources = await _resourceRegistry.GetServiceResourceList(
+                            environment,
+                            true,
+                            false,
+                            true
+                        );
+                        environmentResources = environmentResources.Where(ShouldShowResourceInList).ToList();
+
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
                             .SetPriority(CacheItemPriority.High)
                             .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
@@ -547,7 +573,12 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
     public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
     {
-        List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(env.ToLower(), true);
+        List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+            env.ToLower(),
+            false,
+            true,
+            false
+        );
         bool serviceExists = allResources.Any(x => x.Identifier.Equals($"se_{serviceCode}_{serviceEdition}"));
         if (!serviceExists)
         {
@@ -667,7 +698,7 @@ public class ResourceAdminController : ControllerBase
         string cacheKey = $"resourcelist_with_apps${env}";
         if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
         {
-            environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
+            environmentResources = await _resourceRegistry.GetServiceResourceList(env, true, false, true);
 
             MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
@@ -715,7 +746,12 @@ public class ResourceAdminController : ControllerBase
         if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
         {
             List<AvailableService> unfiltered = new List<AvailableService>();
-            List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(env.ToLower(), true);
+            List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
+                env.ToLower(),
+                false,
+                true,
+                false
+            );
 
             foreach (ServiceResource resource in allResources)
             {

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.ApiClients.Maskinporten.Interfaces;
-using Altinn.ApiClients.Maskinporten.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.Extensions.Options;
@@ -12,28 +10,24 @@ namespace Altinn.Studio.Designer.Repository.Implementation;
 
 public class ResourceRegistryRepository(
     PlatformSettings platformSettings,
-    IMaskinportenService maskinPortenService,
-    IClientDefinition maskinportenClientDefinition,
-    IOptions<ResourceRegistryIntegrationSettings> resourceRegistrySettings,
-    IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings
+    IOptions<ResourceRegistryIntegrationSettings> resourceRegistrySettings
 ) : IResourceRegistryRepository
 {
     public async Task<List<ServiceResource>> GetServiceResources(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false
+        bool includeAltinn2 = false,
+        bool includeMigratedApps = false
     )
     {
-        maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
-
         using (HttpClient httpClient = new HttpClient())
         {
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "Bearer",
-                tokenResponse.AccessToken
+            string resourceListUrl = GetResourceRegistryResourceListUrl(
+                env,
+                includeApps,
+                includeAltinn2,
+                includeMigratedApps
             );
-            string resourceListUrl = GetResourceRegistryResourceListUrl(env, includeApps, includeAltinn2);
             HttpResponseMessage getResourceResponse = await httpClient.GetAsync(resourceListUrl);
             getResourceResponse.EnsureSuccessStatusCode();
             return await getResourceResponse.Content.ReadAsAsync<List<ServiceResource>>();
@@ -47,36 +41,13 @@ public class ResourceRegistryRepository(
             : $"{envSettings.ResourceRegistryEnvBaseUrl}{platformSettings.ResourceRegistryUrl}";
     }
 
-    private string GetResourceRegistryResourceListUrl(string env, bool includeApps, bool includeAltinn2)
+    private string GetResourceRegistryResourceListUrl(
+        string env,
+        bool includeApps,
+        bool includeAltinn2,
+        bool includeMigratedApps
+    )
     {
-        return $"{GetResourceRegistryBaseUrl(env)}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
-    }
-
-    private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
-    {
-        return await maskinPortenService.GetToken(
-            maskinportenClientDefinition.ClientSettings.EncodedJwk,
-            maskinportenClientDefinition.ClientSettings.Environment,
-            maskinportenClientDefinition.ClientSettings.ClientId,
-            maskinportenClientDefinition.ClientSettings.Scope,
-            maskinportenClientDefinition.ClientSettings.Resource,
-            maskinportenClientDefinition.ClientSettings.ConsumerOrgNo
-        );
-    }
-
-    private MaskinportenClientSettings GetMaskinportenIntegrationSettings(string env)
-    {
-        string maskinportenEnvironment = env == "prod" ? "prod" : "test";
-        if (
-            !maskinportenIntegrationSettings.Value.TryGetValue(
-                maskinportenEnvironment,
-                out MaskinportenClientSettings? maskinportenClientSettings
-            )
-        )
-        {
-            throw new ArgumentException($"Invalid environment. Missing Maskinporten config for {env}");
-        }
-
-        return maskinportenClientSettings;
+        return $"{GetResourceRegistryBaseUrl(env)}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}&includeMigratedApps={includeMigratedApps}";
     }
 }

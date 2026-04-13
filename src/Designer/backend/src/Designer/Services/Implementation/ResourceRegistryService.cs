@@ -15,7 +15,6 @@ using Altinn.ApiClients.Maskinporten.Models;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
@@ -65,15 +64,21 @@ public class ResourceRegistryService : IResourceRegistry
     public async Task<List<ServiceResource>> GetServiceResourceList(
         string env,
         bool includeApps = false,
-        bool includeAltinn2 = false
+        bool includeAltinn2 = false,
+        bool includeMigratedApps = false
     )
     {
-        return await _resourceRegistryRepository.GetServiceResources(env, includeApps, includeAltinn2);
+        return await _resourceRegistryRepository.GetServiceResources(
+            env,
+            includeApps,
+            includeAltinn2,
+            includeMigratedApps
+        );
     }
 
     public async Task<bool> ServiceResourceExists(string id, string env)
     {
-        var resourceList = await GetServiceResourceList(env, false, false);
+        var resourceList = await GetServiceResourceList(env, false, false, false);
         return resourceList.Any((serviceResource) => serviceResource.Identifier.Equals(id));
     }
 
@@ -209,70 +214,6 @@ public class ResourceRegistryService : IResourceRegistry
         }
 
         return policy;
-    }
-
-    public async Task<List<ServiceResource>> GetResources(string env)
-    {
-        string resourceUrl;
-
-        //Checks if not tested locally by passing dev as env parameter
-        if (!env.ToLower().Equals("dev"))
-        {
-            resourceUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/search/";
-        }
-        else
-        {
-            resourceUrl =
-                $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/search/";
-        }
-
-        HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
-        if (getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
-        {
-            return await getResourceResponse.Content.ReadAsAsync<List<ServiceResource>>();
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    ///     Get resource list
-    /// </summary>
-    /// <returns>List of all resources</returns>
-    public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false)
-    {
-        string endpointUrl;
-
-        //Checks if not tested locally by passing dev as env parameter
-        if (!env.ToLower().Equals("dev"))
-        {
-            endpointUrl =
-                $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
-        }
-        else
-        {
-            endpointUrl =
-                $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
-        }
-
-        JsonSerializerOptions options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        try
-        {
-            HttpResponseMessage response = await _httpClient.GetAsync(endpointUrl);
-            string content = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                return JsonSerializer.Deserialize<List<ServiceResource>>(content, options);
-            }
-
-            HttpStatusException error = JsonSerializer.Deserialize<HttpStatusException>(content, options);
-            throw error;
-        }
-        catch (Exception ex) when (ex is not HttpStatusException)
-        {
-            throw;
-        }
     }
 
     public async Task<ServiceResource> GetServiceResourceFromService(
