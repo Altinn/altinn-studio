@@ -1,6 +1,6 @@
 import type { CodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import type { CodeListItemTextProperty } from './enums/CodeListItemTextProperty';
 import type { MultiLanguageText } from '../../types/MultiLanguageText';
 
@@ -107,22 +107,22 @@ export function removeLanguage(codeList: CodeList, languageCode: string): CodeLi
 }
 
 function removeLanguageFromItem(item: CodeListItem, languageCode: string): CodeListItem {
-  const newItem = { ...item };
+  const newItem = ObjectUtils.shallowMutableCopy(item);
   if ('label' in item) newItem.label = removeLanguageFromTextInstance(item.label!, languageCode);
   if ('description' in item)
     newItem.description = removeLanguageFromTextInstance(item.description!, languageCode);
   if ('helpText' in item)
     newItem.helpText = removeLanguageFromTextInstance(item.helpText!, languageCode);
-  return newItem;
+  return newItem as CodeListItem;
 }
 
 function removeLanguageFromTextInstance(
   textInstance: MultiLanguageText,
   languageCode: string,
 ): MultiLanguageText {
-  const newInstance = { ...textInstance };
+  const newInstance = ObjectUtils.shallowMutableCopy(textInstance);
   delete newInstance[languageCode];
-  return newInstance;
+  return newInstance as MultiLanguageText;
 }
 
 export function initialiseSelectedLanguage(
