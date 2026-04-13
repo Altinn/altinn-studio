@@ -60,7 +60,7 @@ describe('CodeListsPage', () => {
     const details = getDetailsBySummary(nameOfNewList);
     const deleteButton = within(details).getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
-    expect(getDetailsBySummary(nameOfNewList)).not.toBeInTheDocument();
+    expect(details).not.toBeInTheDocument();
   });
 
   it('Displays a placeholder when the list of code lists is empty', () => {
