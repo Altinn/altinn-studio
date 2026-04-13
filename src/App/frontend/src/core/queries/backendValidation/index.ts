@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { useBackendValidationApi } from 'src/core/contexts/ApiProvider';
 import {
@@ -66,10 +65,7 @@ function useBackendValidationQueryOptions(onlyIncrementalValidators: boolean) {
 }
 
 // By default we only fetch with incremental validations
-export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
-  onlyIncrementalValidators = true,
-  options: Pick<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'enabled'> = {},
-) {
+export function useBackendValidationQuery(onlyIncrementalValidators = true, options: { enabled?: boolean } = {}) {
   const queryOptions = useBackendValidationQueryOptions(onlyIncrementalValidators);
 
   const query = useQuery({
@@ -93,5 +89,3 @@ export function useRefetchInitialValidations(onlyIncrementalValidators = true) {
   });
   return query.refetch;
 }
-
-export { backendValidationQueryKeys };
