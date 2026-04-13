@@ -26,6 +26,9 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- with $.Values.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
       {{- with $.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -33,6 +36,28 @@ spec:
       {{- with $.Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if $.Values.dockerInDocker.enabled }}
+      initContainers:
+        - name: dockerd
+          image: "{{ $.Values.dockerInDocker.image.repository }}:{{ $.Values.dockerInDocker.image.tag }}"
+          imagePullPolicy: {{ $.Values.dockerInDocker.image.pullPolicy }}
+          restartPolicy: Always
+          securityContext:
+            privileged: true
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          args:
+            - "--host=tcp://0.0.0.0:2375"
+          startupProbe:
+            tcpSocket:
+              port: 2375
+            periodSeconds: 2
+            failureThreshold: 30
+          volumeMounts:
+            - name: docker-lib
+              mountPath: /var/lib/docker
       {{- end }}
       containers:
         - name: {{ $.Chart.Name }}
@@ -43,6 +68,10 @@ spec:
           image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           env:
+            {{- if $.Values.dockerInDocker.enabled }}
+            - name: DOCKER_HOST
+              value: "tcp://localhost:2375"
+            {{- end }}
             {{- if .environmentVariables }}
             {{- range $variable := .environmentVariables}}
             - name: {{ $variable.name }}
@@ -66,9 +95,15 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- with $.Values.volumes }}
+      {{- if or $.Values.volumes $.Values.dockerInDocker.enabled }}
       volumes:
+        {{- with $.Values.volumes }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if $.Values.dockerInDocker.enabled }}
+        - name: docker-lib
+          emptyDir: {}
+        {{- end }}
       {{- end }}
       {{- with $.Values.nodeSelector }}
       nodeSelector:

@@ -27,6 +27,9 @@ spec:
       tag: "{{ .Values.imageTag }}"
     nameOverride: {{ .Values.releaseName }}
     fullnameOverride: {{ .Values.releaseName }}
+    runtimeClassName: {{ .Values.runtimeClassName | quote }}
+    dockerInDocker:
+      enabled: {{ .Values.dockerInDocker.enabled }}
     runners:
     {{- $giteaUrl := .Values.giteaInstanceUrl }}
     {{- range index .Values.runners .Values.environment }}
