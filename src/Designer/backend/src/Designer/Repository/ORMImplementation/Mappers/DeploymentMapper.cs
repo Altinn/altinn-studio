@@ -77,15 +77,18 @@ public static class DeploymentMapper
     public static DeploymentDbModel MapToDbModel(
         DeploymentEntity deploymentEntity,
         long deploymentSequenceNo,
-        long buildId
+        long? buildId
     )
     {
         var dbModel = MapToDbModel(deploymentEntity);
         dbModel.Sequenceno = deploymentSequenceNo;
-        dbModel.InternalBuildId = buildId;
-        if (dbModel.Build != null)
+        if (buildId.HasValue)
         {
-            dbModel.Build.Id = buildId;
+            dbModel.InternalBuildId = buildId.Value;
+            if (dbModel.Build != null)
+            {
+                dbModel.Build.Id = buildId.Value;
+            }
         }
         return dbModel;
     }
