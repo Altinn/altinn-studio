@@ -67,7 +67,7 @@ function useBackendValidationQueryOptions(onlyIncrementalValidators: boolean) {
 export interface UseBackendValidationQueryResult {
   validations: BackendValidationIssue[] | undefined;
   isLoading: boolean;
-  error: unknown;
+  error: Error | null;
   refetch: () => Promise<unknown>;
 }
 
