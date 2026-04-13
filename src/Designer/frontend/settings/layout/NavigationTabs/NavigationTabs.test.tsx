@@ -3,18 +3,15 @@ import userEvent from '@testing-library/user-event';
 import { NavigationTabs } from './NavigationTabs';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useOrganizationsQuery } from 'app-shared/hooks/queries';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { QueryClient } from '@tanstack/react-query';
 
 const mockNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-}));
-
-jest.mock('app-shared/hooks/queries', () => ({
-  ...jest.requireActual('app-shared/hooks/queries'),
-  useOrganizationsQuery: jest.fn(),
 }));
 
 const organizationsMock = [
@@ -32,22 +29,21 @@ const organizationsMock = [
   },
 ];
 
-const renderNavigationTabs = (initialEntries = ['/user/api-keys']) =>
-  renderWithProviders(<NavigationTabs />, { initialEntries });
-
 describe('NavigationTabs', () => {
+  let queryClient: QueryClient;
+
+  const renderNavigationTabs = (initialEntries = ['/user/api-keys']) =>
+    renderWithProviders(<NavigationTabs />, { initialEntries, queryClient });
+
   beforeEach(() => {
-    jest.mocked(useOrganizationsQuery).mockReturnValue({
-      data: organizationsMock,
-    } as ReturnType<typeof useOrganizationsQuery>);
+    queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.Organizations], organizationsMock);
   });
 
   afterEach(() => jest.clearAllMocks());
 
   it('does not render tabs when organizations list is empty', () => {
-    jest.mocked(useOrganizationsQuery).mockReturnValueOnce({
-      data: [],
-    } as ReturnType<typeof useOrganizationsQuery>);
+    queryClient.setQueryData([QueryKey.Organizations], []);
 
     renderNavigationTabs();
 

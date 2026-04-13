@@ -26,6 +26,7 @@ The build enforces CSharpier formatting — unformatted files cause build errors
 ## Configuration
 
 Config file: `.csharpierrc.yaml`
+
 - Print width: 120 characters
 - Tab width: 4 spaces
 - Use tabs: false
