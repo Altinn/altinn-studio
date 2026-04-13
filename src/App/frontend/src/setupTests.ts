@@ -16,8 +16,6 @@ import type { AxiosResponse } from 'axios';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
-// Importing CSS for jest-preview to look nicer
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
@@ -78,6 +76,12 @@ beforeEach(() => {
   window.altinnAppGlobalData = {
     applicationMetadata: getApplicationMetadataMock(),
     frontendSettings: getApplicationSettingsMock(),
+    platformFrontendSettings: {
+      postalCodesUrl: 'https://altinncdn.no/postcodes/registry.json',
+      appFrontendCdnBaseUrl: 'https://altinncdn.no/toolkits/altinn-app-frontend',
+      altinnLogoUrl: 'https://altinncdn.no/img/Altinn-logo-blue.svg',
+      helpCircleIllustrationUrl: 'https://altinncdn.no/img/illustration-help-circle.svg',
+    },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),
     userProfile: getProfileMock(),
@@ -142,13 +146,4 @@ jest.mock('src/queries/queries', () => ({
   doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
     tags: setTagsRequest.tags,
   })),
-}));
-
-jest.mock('src/core/api-client/instance.api', () => ({
-  InstanceApi: {
-    getInstance: jest.fn(async () => getInstanceWithProcessMock()),
-    getActiveInstances: jest.fn(async () => []),
-    create: jest.fn(),
-    createWithPrefill: jest.fn(),
-  },
 }));

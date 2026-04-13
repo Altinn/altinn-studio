@@ -254,22 +254,23 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
 
         var wf = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Processing);
 
-        var initialHeartbeat = DateTimeOffset.UtcNow.AddSeconds(-10);
+        var pastTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await context.Database.ExecuteSqlAsync(
             $"""
             UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {initialHeartbeat}
+            SET "HeartbeatAt" = {pastTime}, "UpdatedAt" = {pastTime}
             WHERE "Id" = {wf.DatabaseId}
             """,
             TestContext.Current.CancellationToken
         );
 
-        await repo.BatchUpdateHeartbeats([wf.DatabaseId], TestContext.Current.CancellationToken);
+        var staleThreshold = TimeSpan.FromSeconds(10);
+        await repo.BatchUpdateHeartbeats([wf.DatabaseId], staleThreshold, TestContext.Current.CancellationToken);
 
         var dbWf = await fixture.GetWorkflow(wf.DatabaseId);
         Assert.NotNull(dbWf);
         Assert.NotNull(dbWf.HeartbeatAt);
-        Assert.True(dbWf.HeartbeatAt > initialHeartbeat);
+        Assert.True(dbWf.HeartbeatAt > pastTime);
     }
 
     [Fact]
@@ -282,18 +283,20 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
         var processing = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Processing);
         var completed = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed);
 
-        var oldHeartbeat = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var pastTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await context.Database.ExecuteSqlAsync(
             $"""
             UPDATE "engine"."Workflows"
-            SET "HeartbeatAt" = {oldHeartbeat}
+            SET "HeartbeatAt" = {pastTime}, "UpdatedAt" = {pastTime}
             WHERE "Id" IN ({processing.DatabaseId}, {completed.DatabaseId})
             """,
             TestContext.Current.CancellationToken
         );
 
+        var staleThreshold = TimeSpan.FromSeconds(10);
         await repo.BatchUpdateHeartbeats(
             [processing.DatabaseId, completed.DatabaseId],
+            staleThreshold,
             TestContext.Current.CancellationToken
         );
 
@@ -302,12 +305,12 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
 
         Assert.NotNull(dbProcessing);
         Assert.NotNull(dbProcessing.HeartbeatAt);
-        Assert.True(dbProcessing.HeartbeatAt > oldHeartbeat);
+        Assert.True(dbProcessing.HeartbeatAt > pastTime);
 
         // Completed workflow should not have been updated
         Assert.NotNull(dbCompleted);
         Assert.NotNull(dbCompleted.HeartbeatAt);
-        Assert.Equal(oldHeartbeat.ToUnixTimeSeconds(), dbCompleted.HeartbeatAt.Value.ToUnixTimeSeconds());
+        Assert.Equal(pastTime.ToUnixTimeSeconds(), dbCompleted.HeartbeatAt.Value.ToUnixTimeSeconds());
     }
 
     [Fact]

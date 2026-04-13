@@ -10,6 +10,7 @@ internal static class Defaults
 {
     public static readonly EngineSettings EngineSettings = new()
     {
+        EnableTelemetry = true,
         MaxWorkflowsPerRequest = 100,
         MaxStepsPerWorkflow = 50,
         MaxLabels = 50,
@@ -36,18 +37,13 @@ internal static class Defaults
             MaxDbOperations = 90,
             BackpressureThreshold = 500_000,
         },
-        WriteBuffer = new BufferSettings
+        WriteBuffer = new WriteBufferSettings
         {
-            FlushConcurrency = 8,
+            FlushConcurrency = 10,
             MaxBatchSize = 100,
             MaxQueueSize = 10_000,
         },
-        UpdateBuffer = new BufferSettings
-        {
-            FlushConcurrency = 8,
-            MaxBatchSize = 50,
-            MaxQueueSize = 5_000,
-        },
+        UpdateBuffer = new UpdateBufferSettings { MaxBatchSize = 1000, MaxQueueSize = 5_000 },
         Retention = new RetentionSettings
         {
             RetentionPeriod = TimeSpan.FromDays(60),

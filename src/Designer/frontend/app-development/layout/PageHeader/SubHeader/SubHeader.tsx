@@ -8,17 +8,12 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { PreviewButton } from './PreviewButton';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { StudioButton, StudioDialog } from '@studio/components';
+import { StudioButton } from '@studio/components';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowLeftIcon,
-  CheckmarkCircleFillIcon,
-  ExclamationmarkTriangleIcon,
-  SectionHeaderWarningIcon,
-} from '@studio/icons';
+import { ArrowLeftIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
+import { ProblemStatusIndicator } from './ProblemStatusIndicator';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
-import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -28,12 +23,23 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
+  const {
+    data: validationResult,
+    refetch: refetchValidation,
+    isFetching: validationPending,
+  } = useAppValidationQuery(org, app);
 
   return (
     <GiteaHeader
       hasCloneModal
       leftComponent={<LeftContent repositoryType={repositoryType} />}
-      rightContent={<ProblemStatusIndicator />}
+      rightContent={
+        <ProblemStatusIndicator
+          validationResult={validationResult}
+          refetchValidation={refetchValidation}
+          validationPending={validationPending}
+        />
+      }
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
       owner={org}
@@ -75,55 +81,5 @@ const SubHeaderLeftContent = () => {
       <SettingsPageButton />
       <PreviewButton />
     </div>
-  );
-};
-
-const ProblemStatusIndicator = () => {
-  const { org, app } = useStudioEnvironmentParams();
-  const {
-    data: validationResult,
-    refetch: refetchValidation,
-    isFetching: validationPending,
-  } = useAppValidationQuery(org, app);
-
-  const revalidate = () => {
-    refetchValidation();
-  };
-
-  if (validationPending) {
-    return <StudioButton variant='tertiary' loading></StudioButton>;
-  }
-  if (!validationResult?.errors) {
-    return (
-      <StudioButton
-        variant='tertiary'
-        icon={<CheckmarkCircleFillIcon />}
-        onClick={revalidate}
-      ></StudioButton>
-    );
-  }
-
-  const members = validationResult ? Object.entries(validationResult.errors) : [];
-  const validationSeverity: 'INFO' | 'WARNING' | 'ERROR' = 'WARNING'; // TODO: determine severity based on validation result errors
-  const icon =
-    validationSeverity === 'WARNING' ? (
-      <ExclamationmarkTriangleIcon />
-    ) : (
-      <SectionHeaderWarningIcon />
-    );
-
-  const dataColor = validationSeverity === 'WARNING' ? 'warning' : 'danger';
-  return (
-    <StudioDialog.TriggerContext>
-      <StudioDialog.Trigger
-        variant='tertiary'
-        icon={icon}
-        data-color={dataColor}
-        className={classes.validationButton}
-      >
-        {members.length}
-      </StudioDialog.Trigger>
-      <AppValidationDialog />
-    </StudioDialog.TriggerContext>
   );
 };

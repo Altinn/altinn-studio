@@ -6,7 +6,7 @@ import Icon from 'leaflet/dist/images/marker-icon.png';
 import RetinaIcon from 'leaflet/dist/images/marker-icon-2x.png';
 import IconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useSingleMarker } from 'src/layout/Map/features/singleMarker/hooks';
 import { isLocationValid, locationToTuple } from 'src/layout/Map/utils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -40,7 +40,7 @@ export function MapSingleMarker({ baseComponentId, readOnly }: MapMarkerProps) {
   const markerLocation = useSingleMarker(baseComponentId);
   const markerLocationIsValid = isLocationValid(markerLocation);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Map');
-  const setLeafValue = FD.useSetLeafValue();
+  const setLeafValue = FormStore.data.useSetLeafValue();
 
   const setMarkerLocation = useCallback(
     ({ latitude, longitude }: Location) => {

@@ -1,8 +1,7 @@
 ﻿#nullable disable
-namespace Altinn.Studio.Designer.Models.Dto
+namespace Altinn.Studio.Designer.Models.Dto;
+
+public class AccessListResourceConnection
 {
-    public class AccessListResourceConnection
-    {
-        public string ResourceIdentifier { get; set; }
-    }
+    public string ResourceIdentifier { get; set; }
 }

@@ -1,7 +1,7 @@
 import React, { Component, useEffect } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { FormStore } from 'src/features/form/FormContext';
 
 interface IErrorBoundary extends ContextData {
   lastError?: Error;
@@ -49,7 +49,7 @@ export function useGeneratorErrorBoundaryNodeRef() {
 }
 
 function StoreErrorAndBail({ error, ref }: { error: Error; ref: Ref }) {
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     if (!ref) {

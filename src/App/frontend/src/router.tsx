@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -7,8 +7,10 @@ import { AppLayout } from 'src/AppLayout';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting, NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
+import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { GlobalData } from 'src/GlobalData';
+import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
 import { instanceLoader } from 'src/routes/instance/instance.loader';
@@ -34,7 +36,8 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.root,
             Component: IndexRoute,
-            loader: indexLoader(queryClient),
+            loader: indexLoader(queryClient, instanceApi),
+
             children: [
               {
                 path: routes.statelessPage,
@@ -50,14 +53,14 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instance,
             Component: InstanceRoute,
-            loader: instanceLoader(queryClient),
+            loader: instanceLoader(instanceApi),
             children: [
               { index: true, element: <NavigateToStartUrl /> },
               { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
                 Component: TaskRoute,
-                loader: taskLoader(queryClient),
+                loader: taskLoader(queryClient, instanceApi),
                 children: [
                   { index: true, element: <NavigateToStartUrl forceCurrentTask={false} /> },
                   {
@@ -83,7 +86,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instanceSelection,
             Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient, partyApi),
+            loader: instanceSelectionLoader(queryClient, partyApi, instanceApi),
           },
           {
             path: routes.partySelection,
@@ -121,6 +124,11 @@ export function createRouter(queryClient: QueryClient) {
     ],
     {
       basename: GlobalData.basename,
+      getContext() {
+        const context = new RouterContextProvider();
+        context.set(queryClientContext, queryClient);
+        return context;
+      },
     },
   );
 }

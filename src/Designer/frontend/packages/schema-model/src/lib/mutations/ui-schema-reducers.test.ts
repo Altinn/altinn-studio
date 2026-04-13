@@ -245,7 +245,7 @@ describe('ui-schema-reducers', () => {
       const children = result.getChildNodes(schemaPointer);
       expect(children.length).toEqual(simpleArrayMock.children.length);
       children.forEach((childNode) => {
-        expect(childNode).not.toContain(Keyword.Items);
+        expect(childNode.schemaPointer).not.toContain(Keyword.Items);
       });
     });
   });

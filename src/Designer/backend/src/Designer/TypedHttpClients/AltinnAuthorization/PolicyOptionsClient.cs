@@ -10,101 +10,100 @@ using Altinn.Studio.Designer.Configuration;
 using Microsoft.Extensions.Logging;
 using PolicyAdmin.Models;
 
-namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
+namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
+
+public class PolicyOptionsClient : IPolicyOptions
 {
-    public class PolicyOptionsClient : IPolicyOptions
+    private readonly HttpClient _client;
+    private readonly ILogger<PolicyOptionsClient> _logger;
+    private readonly PlatformSettings _platformSettings;
+    private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
     {
-        private readonly HttpClient _client;
-        private readonly ILogger<PolicyOptionsClient> _logger;
-        private readonly PlatformSettings _platformSettings;
-        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
-        {
-            PropertyNameCaseInsensitive = true,
-        };
+        PropertyNameCaseInsensitive = true,
+    };
 
-        public PolicyOptionsClient(
-            HttpClient httpClient,
-            ILogger<PolicyOptionsClient> logger,
-            PlatformSettings platformSettings
-        )
+    public PolicyOptionsClient(
+        HttpClient httpClient,
+        ILogger<PolicyOptionsClient> logger,
+        PlatformSettings platformSettings
+    )
+    {
+        _client = httpClient;
+        _logger = logger;
+        _platformSettings = platformSettings;
+    }
+
+    public async Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string url = _platformSettings.AccessPackagesUrl;
+
+        List<AccessPackageAreaGroup> accessPackageOptions;
+
+        try
         {
-            _client = httpClient;
-            _logger = logger;
-            _platformSettings = platformSettings;
+            HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
+            accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(
+                accessPackageOptionsString,
+                _serializerOptions
+            );
+            return accessPackageOptions;
         }
-
-        public async Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(
-            CancellationToken cancellationToken = default
-        )
+        catch (Exception ex)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            string url = _platformSettings.AccessPackagesUrl;
-
-            List<AccessPackageAreaGroup> accessPackageOptions;
-
-            try
-            {
-                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
-                response.EnsureSuccessStatusCode();
-                string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(
-                    accessPackageOptionsString,
-                    _serializerOptions
-                );
-                return accessPackageOptions;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed retrieving access package options from {Url}", url);
-                throw new Exception($"Something went wrong when retrieving access package options", ex);
-            }
+            _logger.LogError(ex, "Failed retrieving access package options from {Url}", url);
+            throw new Exception($"Something went wrong when retrieving access package options", ex);
         }
+    }
 
-        public async Task<List<ActionOption>> GetActionOptions(CancellationToken cancellationToken = default)
+    public async Task<List<ActionOption>> GetActionOptions(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        // Temp location. Will be moved to CDN
+        string url =
+            "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
+
+        List<ActionOption> actionOptions;
+
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            // Temp location. Will be moved to CDN
-            string url =
-                "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
-
-            List<ActionOption> actionOptions;
-
-            try
-            {
-                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
-                string actionOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(actionOptionsString);
-                return actionOptions;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Something went wrong when retrieving Action options", ex);
-            }
+            HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+            string actionOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
+            actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(actionOptionsString);
+            return actionOptions;
         }
-
-        public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
+        catch (Exception ex)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            string rolesUrl = _platformSettings.RolesUrl;
+            throw new Exception($"Something went wrong when retrieving Action options", ex);
+        }
+    }
 
-            try
-            {
-                HttpResponseMessage response = await _client.GetAsync(rolesUrl, cancellationToken);
-                response.EnsureSuccessStatusCode();
-                string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                List<SubjectOption> subjectOptions =
-                    JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions) ?? [];
-                return subjectOptions
-                    .Where(option => option.IsResourcePolicyAvailable)
-                    .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", rolesUrl);
-                throw new Exception($"Something went wrong when retrieving Subject options", ex);
-            }
+    public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string rolesUrl = _platformSettings.RolesUrl;
+
+        try
+        {
+            HttpResponseMessage response = await _client.GetAsync(rolesUrl, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
+            List<SubjectOption> subjectOptions =
+                JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions) ?? [];
+            return subjectOptions
+                .Where(option => option.IsResourcePolicyAvailable)
+                .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed retrieving Subject options from {Url}", rolesUrl);
+            throw new Exception($"Something went wrong when retrieving Subject options", ex);
         }
     }
 }

@@ -35,6 +35,7 @@ public class StatelessDataController : ControllerBase
     private readonly IPDP _pdp;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IFormDataReader _formDataReader;
 
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -64,6 +65,7 @@ public class StatelessDataController : ControllerBase
         _pdp = pdp;
         _authenticationContext = authenticationContext;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _formDataReader = serviceProvider.GetRequiredService<IFormDataReader>();
     }
 
     /// <summary>
@@ -175,16 +177,7 @@ public class StatelessDataController : ControllerBase
         string? language
     )
     {
-        var dataProcessors = _appImplementationFactory.GetAll<IDataProcessor>();
-        foreach (var dataProcessor in dataProcessors)
-        {
-            _logger.LogInformation(
-                "ProcessDataRead for {modelType} using {dataProcesor}",
-                appModel.GetType().Name,
-                dataProcessor.GetType().Name
-            );
-            await dataProcessor.ProcessDataRead(virtualInstance, null, appModel, language);
-        }
+        await _formDataReader.ReadStatelessFormData(appModel, language, virtualInstance.InstanceOwner);
 
         if (includeAltinnRowId)
         {

@@ -216,7 +216,10 @@ const buildDetailsContent = (data) => {
     const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
     if (cmd) {
         html += row('Command Type', cmd.type);
-        html += row('Max Execution Time', fmtDuration(/** @type {string} */ (cmd.maxExecutionTime)));
+        html += row(
+            'Max Execution Time',
+            fmtDuration(/** @type {string} */ (cmd.maxExecutionTime)),
+        );
         if (cmd.type === 'webhook' && cmd.data) {
             const d = typeof cmd.data === 'string' ? JSON.parse(cmd.data) : cmd.data;
             html += row('URI', d.uri || d.Uri);
@@ -256,21 +259,23 @@ const buildDetailsContent = (data) => {
         html += `</div></div>`;
     }
     if (data.traceId) {
-        const tempoUrl = `http://localhost:7070/explore?schemaVersion=1&panes=${encodeURIComponent(JSON.stringify({
-            t: {
-                datasource: 'tempo',
-                queries: [
-                    {
-                        refId: 'trace',
-                        query: data.traceId,
-                        datasource: { type: 'tempo', uid: 'tempo' },
-                        queryType: 'traceql',
-                    },
-                ],
-                range: { from: 'now-24h', to: 'now' },
-                compact: false,
-            },
-        }))}&orgId=1`;
+        const tempoUrl = `http://localhost:7070/explore?schemaVersion=1&panes=${encodeURIComponent(
+            JSON.stringify({
+                t: {
+                    datasource: 'tempo',
+                    queries: [
+                        {
+                            refId: 'trace',
+                            query: data.traceId,
+                            datasource: { type: 'tempo', uid: 'tempo' },
+                            queryType: 'traceql',
+                        },
+                    ],
+                    range: { from: 'now-24h', to: 'now' },
+                    compact: false,
+                },
+            }),
+        )}&orgId=1`;
         html += `<a class="modal-grafana-link" href="${tempoUrl}" target="_blank">Open Grafana</a>`;
     }
 
@@ -408,7 +413,9 @@ const fetchAndRender = async (wfId, stepKey, stepName, initialTab) => {
             if (tabBtn) tabBtn.click();
         }
         if (tab === 'state' && stateView !== 'diff') {
-            const stateBtn = dom.modalSubtabs.querySelector(`.state-tab[onclick*="'${stateView}'"]`);
+            const stateBtn = dom.modalSubtabs.querySelector(
+                `.state-tab[onclick*="'${stateView}'"]`,
+            );
             if (stateBtn) stateBtn.click();
         }
     } catch (err) {

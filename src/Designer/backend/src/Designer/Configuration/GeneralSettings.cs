@@ -1,85 +1,84 @@
 #nullable disable
 using Altinn.Studio.Designer.Configuration.Marker;
 
-namespace Altinn.Studio.Designer.Configuration
+namespace Altinn.Studio.Designer.Configuration;
+
+/// <summary>
+/// General configuration settings
+/// </summary>
+public class GeneralSettings : ISettingsMarker
 {
     /// <summary>
-    /// General configuration settings
+    /// Gets or sets the location to search for templates
     /// </summary>
-    public class GeneralSettings : ISettingsMarker
+    public string TemplateLocation { get; set; }
+
+    /// <summary>
+    /// Gets or sets the location for the deployment
+    /// </summary>
+    public string DeploymentLocation { get; set; }
+
+    /// <summary>
+    /// Gets or sets the location for the app
+    /// </summary>
+    public string AppLocation { get; set; }
+
+    /// <summary>
+    /// Gets or sets the host name.
+    /// </summary>
+    public string HostName { get; set; }
+
+    /// <summary>
+    /// Gets the path to the authorization policy template (XACML).
+    /// </summary>
+    public string AuthorizationPolicyTemplate
     {
-        /// <summary>
-        /// Gets or sets the location to search for templates
-        /// </summary>
-        public string TemplateLocation { get; set; }
+        get { return "App/config/authorization/policy.xml"; }
+    }
 
-        /// <summary>
-        /// Gets or sets the location for the deployment
-        /// </summary>
-        public string DeploymentLocation { get; set; }
+    /// <summary>
+    /// Gets the path to the app templates
+    /// </summary>
+    public string TemplatePath
+    {
+        get { return TemplateLocation; }
+    }
 
-        /// <summary>
-        /// Gets or sets the location for the app
-        /// </summary>
-        public string AppLocation { get; set; }
+    /// <summary>
+    /// Gets the duration for a session in Altinn Studio.
+    /// </summary>
+    public int SessionDurationInMinutes { get; set; } = 200;
 
-        /// <summary>
-        /// Gets or sets the host name.
-        /// </summary>
-        public string HostName { get; set; }
+    /// <summary>
+    /// Gets the name of the session timeout cookie
+    /// </summary>
+    public string SessionTimeoutCookieName { get; set; } = "DesignerSessionTimeout";
 
-        /// <summary>
-        /// Gets the path to the authorization policy template (XACML).
-        /// </summary>
-        public string AuthorizationPolicyTemplate
+    /// <summary>
+    /// Gets or sets the url to the environment file.
+    /// </summary>
+    public string EnvironmentsUrl { get; set; }
+
+    public string OrganizationsUrl { get; set; }
+
+    /// <summary>
+    /// Gets the origin environment name based on the host name.
+    /// </summary>
+    public string OriginEnvironment
+    {
+        get
         {
-            get { return "App/config/authorization/policy.xml"; }
-        }
-
-        /// <summary>
-        /// Gets the path to the app templates
-        /// </summary>
-        public string TemplatePath
-        {
-            get { return TemplateLocation; }
-        }
-
-        /// <summary>
-        /// Gets the duration for a session in Altinn Studio.
-        /// </summary>
-        public int SessionDurationInMinutes { get; set; } = 200;
-
-        /// <summary>
-        /// Gets the name of the session timeout cookie
-        /// </summary>
-        public string SessionTimeoutCookieName { get; set; } = "DesignerSessionTimeout";
-
-        /// <summary>
-        /// Gets or sets the url to the environment file.
-        /// </summary>
-        public string EnvironmentsUrl { get; set; }
-
-        public string OrganizationsUrl { get; set; }
-
-        /// <summary>
-        /// Gets the origin environment name based on the host name.
-        /// </summary>
-        public string OriginEnvironment
-        {
-            get
+            if (HostName.StartsWith("dev."))
             {
-                if (HostName.StartsWith("dev."))
-                {
-                    return "dev";
-                }
-
-                if (HostName.StartsWith("staging."))
-                {
-                    return "staging";
-                }
-
-                return "prod";
+                return "dev";
             }
+
+            if (HostName.StartsWith("staging."))
+            {
+                return "staging";
+            }
+
+            return "prod";
         }
     }
 }

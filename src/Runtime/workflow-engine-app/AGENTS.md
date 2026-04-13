@@ -28,7 +28,7 @@ The Altinn-specific command that calls back into Altinn apps via HTTP POST.
 - **Type string**: `"app"`
 - **Data**: `AppCommandData` — `{ commandKey, payload? }`
 - **Context**: `AppWorkflowContext` — `{ actor, lockToken, org, app, instanceOwnerPartyId, instanceGuid }`
-- **Endpoint**: Templated URL expanded from context, e.g. `http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/process-engine-callbacks`
+- **Endpoint**: Templated URL expanded from context, e.g. `http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks`
 - **State passing**: Reads `{ "state": "..." }` from response body, passes forward to next step
 - **Validation**: All context fields validated at enqueue time — invalid requests never enter the queue
 - **Error classification**: 4xx (except 408/418/429) → critical, 5xx/408/418/429 → retryable

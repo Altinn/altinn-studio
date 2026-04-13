@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
@@ -124,29 +125,46 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
         [FromRoute] string @namespace,
         [FromQuery] Guid? correlationId,
         [FromQuery(Name = "label")] string[]? labels,
+        [FromQuery] Guid? cursor,
+        [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
+        [FromServices] IOptions<EngineSettings> settings,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
+        var pagination = settings.Value.Pagination;
+        var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
+
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var workflows = await repository.GetActiveWorkflowsByCorrelationId(
+        var result = await repository.GetActiveWorkflows(
+            effectivePageSize,
+            cursor,
+            includeTotalCount: true,
             correlationId,
             ns,
             labelFilters,
             cancellationToken
         );
 
-        if (workflows.Count == 0)
+        if (result.TotalCount == 0)
             return TypedResults.NoContent();
 
-        return TypedResults.Ok(workflows.Select(WorkflowStatusResponse.FromWorkflow));
+        return TypedResults.Ok(
+            new PaginatedResponse<WorkflowStatusResponse>
+            {
+                Data = result.Workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                PageSize = effectivePageSize,
+                TotalCount = result.TotalCount ?? 0, // always populated here (includeTotalCount: true)
+                NextCursor = result.NextCursor,
+            }
+        );
     }
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(

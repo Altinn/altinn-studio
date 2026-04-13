@@ -6,59 +6,58 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.Studio.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers;
+
+/// <summary>
+/// This is the API controller for functionality related to custom application templates.
+/// </summary>
+[ApiController]
+[Authorize]
+[AutoValidateAntiforgeryToken]
+[Route("designer/api/customtemplates")]
+public class CustomTemplateController : ControllerBase
 {
-    /// <summary>
-    /// This is the API controller for functionality related to custom application templates.
-    /// </summary>
-    [ApiController]
-    [Authorize]
-    [AutoValidateAntiforgeryToken]
-    [Route("designer/api/customtemplates")]
-    public class CustomTemplateController : ControllerBase
+    private readonly ICustomTemplateService _templateService;
+
+    public CustomTemplateController(ICustomTemplateService templateService)
     {
-        private readonly ICustomTemplateService _templateService;
+        _templateService = templateService;
+    }
 
-        public CustomTemplateController(ICustomTemplateService templateService)
+    [HttpGet]
+    public async Task<ActionResult<CustomTemplateList>> GetCustomTemplateList()
+    {
+        List<CustomTemplateListObject> templates = await _templateService.GetCustomTemplateList();
+
+        return Ok(new CustomTemplateList() { Templates = templates });
+    }
+
+    [HttpGet("{owner}/{id}")]
+    public async Task<ActionResult<CustomTemplate>> GetCustomTemplateById(string owner, string id)
+    {
+        try
         {
-            _templateService = templateService;
+            CustomTemplate template = await _templateService.GetCustomTemplateById(owner, id);
+            return Ok(template);
         }
-
-        [HttpGet]
-        public async Task<ActionResult<CustomTemplateList>> GetCustomTemplateList()
+        catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.NotFound)
         {
-            List<CustomTemplateListObject> templates = await _templateService.GetCustomTemplateList();
-
-            return Ok(new CustomTemplateList() { Templates = templates });
+            return NotFound(new { error = ex.Code, message = ex.Message });
         }
-
-        [HttpGet("{owner}/{id}")]
-        public async Task<ActionResult<CustomTemplate>> GetCustomTemplateById(string owner, string id)
+        catch (CustomTemplateException ex)
+            when (ex.Code == CustomTemplateErrorCode.DeserializationFailed
+                || ex.Code == CustomTemplateErrorCode.ValidationFailed
+            )
         {
-            try
-            {
-                CustomTemplate template = await _templateService.GetCustomTemplateById(owner, id);
-                return Ok(template);
-            }
-            catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.NotFound)
-            {
-                return NotFound(new { error = ex.Code, message = ex.Message });
-            }
-            catch (CustomTemplateException ex)
-                when (ex.Code == CustomTemplateErrorCode.DeserializationFailed
-                    || ex.Code == CustomTemplateErrorCode.ValidationFailed
-                )
-            {
-                return StatusCode(
-                    500,
-                    new
-                    {
-                        error = ex.Code,
-                        message = ex.Message,
-                        detail = ex.Detail,
-                    }
-                );
-            }
+            return StatusCode(
+                500,
+                new
+                {
+                    error = ex.Code,
+                    message = ex.Message,
+                    detail = ex.Detail,
+                }
+            );
         }
     }
 }

@@ -57,9 +57,11 @@ export function InputfieldsWithTranslation({
 
   const handleTabChange = (newValue: string): void => {
     setSelectedLanguage(newValue as ValidLanguage);
-    const next = new URLSearchParams(searchParams);
-    next.delete('focus');
-    setSearchParams(next);
+    if (searchParams.has('focus')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('focus');
+      setSearchParams(next, { replace: true });
+    }
   };
 
   const languageTabs = LANGUAGES.map((language) => {

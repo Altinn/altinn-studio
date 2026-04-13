@@ -10,6 +10,16 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
+    "http-no-otel": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:8080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "EngineSettings__EnableTelemetry": "false"
+      }
+    },
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,

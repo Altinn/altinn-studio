@@ -5,3 +5,9 @@
 .validationLink {
   text-decoration: underline;
 }
+
+.validationAlertsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-6);
+}
