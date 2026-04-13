@@ -17,7 +17,8 @@
       "applicationUrl": "http://localhost:8080",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "EngineSettings__TraceSamplingRate": "0.01"
+        "EngineSettings__TraceSamplingRate": "0.01",
+        "EngineSettings__EnableDatabaseInstrumentation": "false"
       }
     },
     "https": {

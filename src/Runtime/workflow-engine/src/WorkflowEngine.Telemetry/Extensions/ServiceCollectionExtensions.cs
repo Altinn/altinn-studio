@@ -57,6 +57,7 @@ public static class ServiceCollectionExtensions
 
                     if (enableDatabaseInstrumentation)
                     {
+                        builder.AddSource("Npgsql");
                         builder.AddEntityFrameworkCoreInstrumentation(opts =>
                         {
                             opts.EnrichWithIDbCommand = (activity, command) =>
