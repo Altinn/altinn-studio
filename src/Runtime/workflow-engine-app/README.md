@@ -20,7 +20,7 @@ docker compose --profile app up -d
 Or run the engine from source against Dockerized infrastructure:
 
 ```sh
-# Start infrastructure only 
+# Start infrastructure only
 docker compose up -d
 
 # Run the app
@@ -31,14 +31,14 @@ The database is migrated automatically on startup.
 
 ### Ports & URLs
 
-| Service    | URL                          | Notes                            |
-|------------|------------------------------|----------------------------------|
-| Engine API | http://localhost:8080         | Swagger UI at `/swagger`         |
-| Dashboard  | http://localhost:8080         | Real-time monitoring at `/`      |
-| Grafana    | http://localhost:7070         | Metrics, logs, traces            |
-| WireMock   | http://localhost:6060         | Mock app callbacks               |
-| PgAdmin    | http://localhost:5050         | Password: `postgres123`          |
-| PostgreSQL | localhost:5433               |                                  |
+| Service    | URL                   | Notes                       |
+| ---------- | --------------------- | --------------------------- |
+| Engine API | http://localhost:8080 | Swagger UI at `/swagger`    |
+| Dashboard  | http://localhost:8080 | Real-time monitoring at `/` |
+| Grafana    | http://localhost:7070 | Metrics, logs, traces       |
+| WireMock   | http://localhost:6060 | Mock app callbacks          |
+| PgAdmin    | http://localhost:5050 | Password: `postgres123`     |
+| PostgreSQL | localhost:5433        |                             |
 
 ### Running tests
 
