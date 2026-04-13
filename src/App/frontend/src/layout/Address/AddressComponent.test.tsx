@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -119,7 +120,10 @@ describe('AddressComponent', () => {
         simplified: false,
       },
       queries: {
-        fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { address: 'initial address', zipCode: '0001' };
+          }),
       },
     });
 
@@ -153,7 +157,10 @@ describe('AddressComponent', () => {
   it('should call dispatch for post place when zip code is cleared', async () => {
     const { formDataMethods } = await render({
       queries: {
-        fetchFormData: async () => ({ address: 'a', zipCode: '0001', postPlace: 'Oslo' }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { address: 'a', zipCode: '0001', postPlace: 'Oslo' };
+          }),
       },
     });
 

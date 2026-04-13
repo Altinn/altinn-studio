@@ -2,8 +2,6 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { InstanceApi } from 'src/core/api-client/instance.api';
 import { Lang } from 'src/features/language/Lang';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
@@ -19,11 +17,8 @@ describe('Lang', () => {
   beforeAll(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
-  beforeEach(() => {
-    jest.mocked(InstanceApi.getInstance).mockImplementation(async () => getInstanceWithProcessMock());
-  });
   afterAll(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should work properly', async () => {

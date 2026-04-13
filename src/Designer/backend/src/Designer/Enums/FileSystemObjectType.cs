@@ -1,22 +1,21 @@
 using System.Runtime.Serialization;
 
-namespace Altinn.Studio.Designer.Enums
+namespace Altinn.Studio.Designer.Enums;
+
+/// <summary>
+/// FileSystemObjectType
+/// </summary>
+public enum FileSystemObjectType
 {
-    /// <summary>
-    /// FileSystemObjectType
-    /// </summary>
-    public enum FileSystemObjectType
-    {
-        [EnumMember(Value = "file")]
-        File,
+    [EnumMember(Value = "file")]
+    File,
 
-        [EnumMember(Value = "dir")]
-        Dir,
+    [EnumMember(Value = "dir")]
+    Dir,
 
-        [EnumMember(Value = "symlink")]
-        Symlink,
+    [EnumMember(Value = "symlink")]
+    Symlink,
 
-        [EnumMember(Value = "submodule")]
-        Submodule,
-    }
+    [EnumMember(Value = "submodule")]
+    Submodule,
 }

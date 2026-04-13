@@ -3,18 +3,20 @@ import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
+import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { activeInstancesQuery } from 'src/core/queries/instance/instance.queries';
-import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
+import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
 const useActiveInstancesQuery = () => {
   const selectedParty = useSelectedParty();
+  const instanceApi = useInstanceApi();
   const partyId = String(selectedParty?.partyId ?? '');
 
   const utils = useQuery({
-    ...activeInstancesQuery(partyId),
+    ...activeInstancesQuery({ partyId, instanceApi }),
     enabled: Boolean(selectedParty?.partyId),
   });
 
@@ -44,7 +46,7 @@ function MaybeInstantiate({ children }: PropsWithChildren) {
   const instances = useActiveInstances();
   if (instances.length === 0) {
     // If there's no active instances, we should instantiate a new one
-    return <InstantiateContainer />;
+    return <InstantiationContainer />;
   }
 
   return children;

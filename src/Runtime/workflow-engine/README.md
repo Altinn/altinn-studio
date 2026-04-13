@@ -40,7 +40,7 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 ### Ports & URLs
 
 | Service    | URL                                                             | Notes                                                   |
-|------------|-----------------------------------------------------------------|---------------------------------------------------------|
+| ---------- | --------------------------------------------------------------- | ------------------------------------------------------- |
 | Engine API | [http://localhost:8080](http://localhost:8080)                  | Swagger UI at [/swagger](http://localhost:8080/swagger) |
 | Grafana    | [http://localhost:7070](http://localhost:7070)                  | Dashboards, logs, traces, metrics                       |
 | WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
@@ -54,7 +54,7 @@ See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The m
 ```
 GET  /api/v1/namespaces                        (list distinct namespaces)
 POST /api/v1/{namespace}/workflows             (enqueue workflows)
-GET  /api/v1/{namespace}/workflows             (list active workflows)
+GET  /api/v1/{namespace}/workflows             (list active workflows, paginated via ?page & ?pageSize)
 GET  /api/v1/{namespace}/workflows/{id}        (get single workflow with steps)
 POST /api/v1/{namespace}/workflows/{id}/cancel (request cancellation)
 ```

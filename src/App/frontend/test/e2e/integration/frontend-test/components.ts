@@ -479,22 +479,15 @@ describe('UI Components', () => {
     cy.gotoHiddenPage('label-data-bindings');
 
     cy.get('#form-content-colorsCheckboxes').click();
-    cy.findByRole('option', { name: /blå/i }).click();
-    cy.findAllByRole('option', { name: /added blå, blå/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /cyan/i }).click();
-    cy.findAllByRole('option', { name: /added cyan, cyan/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /grønn/i }).click();
-    cy.findAllByRole('option', { name: /added grønn, grønn/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
-    cy.findByRole('option', { name: /gul/i }).click();
-    cy.findAllByRole('option', { name: /added gul, gul/i })
-      .last()
-      .should('have.attr', 'aria-selected', 'true');
+
+    cy.get('u-option[label="Blå"][aria-selected="false"]').click();
+    cy.get('u-option[label="Blå"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Cyan"][aria-selected="false"]').click();
+    cy.get('u-option[label="Cyan"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Grønn"][aria-selected="false"]').click();
+    cy.get('u-option[label="Grønn"][aria-selected="true"]').should('exist');
+    cy.get('u-option[label="Gul"][aria-selected="false"]').click();
+    cy.get('u-option[label="Gul"][aria-selected="true"]').should('exist');
 
     cy.findByRole('option', {
       name: /Grønn, Press to remove/i,

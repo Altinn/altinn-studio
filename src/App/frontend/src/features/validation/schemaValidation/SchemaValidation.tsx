@@ -3,24 +3,23 @@ import { useEffect } from 'react';
 import { FrontendValidationSource } from '..';
 import type { FieldValidations } from '..';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { pointerToDotNotation } from 'src/features/datamodel/notations';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import {
   getErrorCategory,
   getErrorParams,
   getErrorTextKey,
 } from 'src/features/validation/schemaValidation/schemaValidationUtils';
-import { Validation } from 'src/features/validation/validationContext';
 import { getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
 import type { TextReference } from 'src/features/language/useLanguage';
 
 export function SchemaValidation({ dataType }: { dataType: string }) {
-  const updateDataModelValidations = Validation.useUpdateDataModelValidations();
+  const updateDataModelValidations = FormStore.validation.useUpdateDataModelValidations();
 
-  const formData = FD.useDebounced(dataType);
-  const { validator, rootElementPath, schema } = DataModels.useDataModelSchema(dataType) ?? {};
-  const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
+  const formData = FormStore.data.useDebounced(dataType);
+  const { validator, rootElementPath, schema } = FormBootstrap.useDataModelSchema(dataType) ?? {};
+  const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   /**
    * Perform validation using AJV schema validation.

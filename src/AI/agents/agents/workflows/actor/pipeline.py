@@ -112,7 +112,10 @@ async def ensure_component_schemas_looked_up(
     missing_types = needed_types - looked_up_types
     
     if not missing_types:
-        log.info("✅ All component types have been looked up")
+        if needed_types:
+            log.info(f"✅ All {len(needed_types)} component types have been looked up")
+        else:
+            log.info("ℹ️ No component types found in tool results — skipping schema lookup")
         return tool_results
     
     log.warning(f"🚨 Missing schema lookups for component types: {missing_types}")
@@ -184,7 +187,12 @@ async def run_actor_pipeline(
     ) as pipeline_span:
         # Ensure MCP client is connected and has available tools populated
         if not hasattr(mcp_client, '_available_tools') or not mcp_client._available_tools:
-            await mcp_client.connect()
+            try:
+                await mcp_client.connect()
+            except Exception as conn_err:
+                log.warning(f"⚠️ MCP connection failed — proceeding without MCP tools: {conn_err}")
+                if not hasattr(mcp_client, '_available_tools'):
+                    mcp_client._available_tools = []
 
         attachments = attachments or repo_facts.get("attachments")
         general_plan = general_plan_override or await create_general_plan(user_goal, planner_step, attachments=attachments, form_spec_summary=form_spec_summary)
@@ -784,6 +792,22 @@ async def synthesize_patch(
                     except Exception as e:
                         log.warning(f"Could not read model file {model_file}: {e}")
 
+    # Build a compact per-file ID summary so the LLM sees ALL existing IDs
+    # without hitting the truncation limit that raw file content would.
+    current_resource_content = ""
+    if repository_path and repo_facts.get("resources"):
+        for resource_file in repo_facts["resources"]:
+            resource_path = Path(repository_path) / resource_file
+            if resource_path.exists():
+                try:
+                    with open(resource_path, 'r') as f:
+                        data = json.load(f)
+                    resources = data.get("resources", []) if isinstance(data, dict) else []
+                    ids = [r.get("id", "") for r in resources if isinstance(r, dict) and "id" in r]
+                    current_resource_content += f"--- {resource_file} ---\nIDs: {ids}\n\n"
+                except Exception as e:
+                    log.warning(f"Could not read resource file {resource_file}: {e}")
+
     user_prompt = render_template(
         "patch_synthesis_user",
         user_goal=user_goal,
@@ -792,6 +816,7 @@ async def synthesize_patch(
         tool_results=json.dumps(serializable_tools, indent=2) if serializable_tools else "[]",
         current_layout_content=current_layout_content[:3000] if current_layout_content else "Not available",
         current_model_content=current_model_content[:3000] if current_model_content else "Not available",
+        current_resource_content=current_resource_content if current_resource_content else "Not available",
         repo_summary=json.dumps(repo_summary, indent=2)
     )
 

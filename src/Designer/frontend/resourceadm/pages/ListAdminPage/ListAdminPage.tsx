@@ -1,8 +1,13 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ToggleGroup } from '@digdir/designsystemet-react';
-import { StudioSpinner, StudioButton, StudioLink, StudioHeading } from '@studio/components';
+import {
+  StudioSpinner,
+  StudioButton,
+  StudioLink,
+  StudioHeading,
+  StudioToggleGroup,
+} from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
@@ -59,15 +64,18 @@ export const ListAdminPage = (): React.JSX.Element => {
         {t('resourceadm.listadmin_header')}
       </StudioHeading>
       <div className={classes.environmentSelectorWrapper}>
-        <ToggleGroup size='sm' onChange={navigateToListEnv} value={selectedEnv}>
+        <StudioToggleGroup
+          onChange={(value) => navigateToListEnv(value as EnvId)}
+          value={selectedEnv}
+        >
           {getAvailableEnvironments(org).map((environment) => {
             return (
-              <ToggleGroup.Item key={environment.id} value={environment.id}>
+              <StudioToggleGroup.Item key={environment.id} value={environment.id}>
                 {t(environment.label)}
-              </ToggleGroup.Item>
+              </StudioToggleGroup.Item>
             );
           })}
-        </ToggleGroup>
+        </StudioToggleGroup>
         {selectedEnv && (
           <>
             <NewAccessListModal

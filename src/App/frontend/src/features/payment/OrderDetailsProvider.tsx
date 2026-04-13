@@ -12,7 +12,6 @@ import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { OrderDetails } from 'src/features/payment/types';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-// Also used for prefetching @see formPrefetcher.ts
 export function useOrderDetailsQueryDef(enabled: boolean, instanceId?: string): QueryDefinition<OrderDetails> {
   const { fetchOrderDetails } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();

@@ -11,6 +11,7 @@ import sys
 import argparse
 from contextvars import ContextVar
 from fastmcp import FastMCP
+from server.config import MCP_ROOT_PATH
 
 # Context variable to track if current request is in agent mode
 # Set by middleware based on request path (/sse vs /agent/sse)
@@ -82,30 +83,33 @@ def main() -> None:
             streamable_http_path="/sse",
             stateless_http=True,
         )
-        
+
+        agent_mount_path = f"{MCP_ROOT_PATH}/agent"
+        standard_mount_path = f"{MCP_ROOT_PATH}/" if MCP_ROOT_PATH else "/"
+
         # Pure ASGI middleware that sets agent mode - compatible with SSE streaming
         class AgentModeASGIMiddleware:
             def __init__(self, app):
                 self.app = app
-            
+
             async def __call__(self, scope, receive, send):
                 if scope["type"] == "http":
                     path = scope.get("path", "")
-                    is_agent = path.startswith("/agent")
+                    is_agent = path.startswith(agent_mount_path)
                     set_agent_mode(is_agent)
                 return await self.app(scope, receive, send)
-        
+
         # Create a new Starlette app that mounts the HTTP app at both paths.
         # IMPORTANT: We must propagate the FastMCP app's lifespan so that the
         # StreamableHTTPSessionManager task group is initialized correctly.
         app = Starlette(
             routes=[
-                Mount('/agent', app=http_base_app),  # Agent mode endpoint
-                Mount('/', app=http_base_app),       # Standard endpoint
+                Mount(agent_mount_path, app=http_base_app),  # Agent mode endpoint
+                Mount(standard_mount_path, app=http_base_app),  # Standard endpoint
             ],
             lifespan=http_base_app.lifespan,
         )
-        
+
         # Wrap with our ASGI middleware
         app = AgentModeASGIMiddleware(app)
         
@@ -127,8 +131,8 @@ Registered {len(registered)} tools:
 {chr(10).join(f'  - {name}' for name in sorted(registered))}
 
 Endpoints (Streamable HTTP):
-  - Standard (with tracing):  /sse
-  - Agent mode (no tracing):  /agent/sse
+  - Standard (with tracing):  {MCP_ROOT_PATH}/sse
+  - Agent mode (no tracing):  {MCP_ROOT_PATH}/agent/sse
 ================================================================================
 """, file=sys.stderr)
     

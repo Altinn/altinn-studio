@@ -120,6 +120,11 @@ describe('LeftContent', () => {
   });
 });
 
+it('should render validation status button', () => {
+  renderSubHeader();
+  expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+});
+
 type Props<T> = {
   componentProps?: Partial<T>;
   pageHeaderContextProps?: Partial<PageHeaderContextProps>;

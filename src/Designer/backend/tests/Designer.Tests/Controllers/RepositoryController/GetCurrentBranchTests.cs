@@ -12,81 +12,72 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers.RepositoryController
+namespace Designer.Tests.Controllers.RepositoryController;
+
+public class GetCurrentBranchTests
+    : DesignerEndpointsTestsBase<GetCurrentBranchTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetCurrentBranchTests
-        : DesignerEndpointsTestsBase<GetCurrentBranchTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
+    private static string VersionPrefix => "/designer/api/repos";
+
+    public GetCurrentBranchTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
     {
-        private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
-        private static string VersionPrefix => "/designer/api/repos";
+        services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
+        services.AddSingleton(_sourceControlMock.Object);
+    }
 
-        public GetCurrentBranchTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
+    [Theory]
+    [InlineData("ttd", "apps-test", "master")]
+    [InlineData("ttd", "apps-test", "main")]
+    [InlineData("ttd", "apps-test", "feature/new-feature")]
+    public async Task GetCurrentBranch_ValidRepository_ReturnsCurrentBranchInfo(
+        string org,
+        string repo,
+        string branchName
+    )
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
+        var expectedBranchInfo = new CurrentBranchInfo { BranchName = branchName };
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-            services.AddSingleton(_sourceControlMock.Object);
-        }
+        _sourceControlMock.Setup(x => x.GetCurrentBranch(editingContext)).Returns(expectedBranchInfo);
 
-        [Theory]
-        [InlineData("ttd", "apps-test", "master")]
-        [InlineData("ttd", "apps-test", "main")]
-        [InlineData("ttd", "apps-test", "feature/new-feature")]
-        public async Task GetCurrentBranch_ValidRepository_ReturnsCurrentBranchInfo(
-            string org,
-            string repo,
-            string branchName
-        )
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
-            var expectedBranchInfo = new CurrentBranchInfo { BranchName = branchName };
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                repo,
-                "testUser"
-            );
+        // Act
+        using HttpResponseMessage response = await HttpClient.GetAsync(uri);
+        var responseContent = await response.Content.ReadAsAsync<CurrentBranchInfo>();
 
-            _sourceControlMock.Setup(x => x.GetCurrentBranch(editingContext)).Returns(expectedBranchInfo);
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(responseContent);
+        Assert.Equal(branchName, responseContent.BranchName);
+        _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
+    }
 
-            // Act
-            using HttpResponseMessage response = await HttpClient.GetAsync(uri);
-            var responseContent = await response.Content.ReadAsAsync<CurrentBranchInfo>();
+    [Fact]
+    public async Task GetCurrentBranch_RepositoryNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        string org = "ttd";
+        string repo = "non-existing-repo";
+        string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
 
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.NotNull(responseContent);
-            Assert.Equal(branchName, responseContent.BranchName);
-            _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
-        }
+        _sourceControlMock
+            .Setup(x => x.GetCurrentBranch(editingContext))
+            .Throws(new LibGit2Sharp.RepositoryNotFoundException("Repository not found"));
 
-        [Fact]
-        public async Task GetCurrentBranch_RepositoryNotFound_ReturnsNotFound()
-        {
-            // Arrange
-            string org = "ttd";
-            string repo = "non-existing-repo";
-            string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                repo,
-                "testUser"
-            );
+        // Act
+        using HttpResponseMessage response = await HttpClient.GetAsync(uri);
 
-            _sourceControlMock
-                .Setup(x => x.GetCurrentBranch(editingContext))
-                .Throws(new LibGit2Sharp.RepositoryNotFoundException("Repository not found"));
-
-            // Act
-            using HttpResponseMessage response = await HttpClient.GetAsync(uri);
-
-            // Assert
-            // RepositoryNotFoundException is handled by global exception handler and returns NotFound
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-            _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
-        }
+        // Assert
+        // RepositoryNotFoundException is handled by global exception handler and returns NotFound
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        _sourceControlMock.Verify(x => x.GetCurrentBranch(editingContext), Times.Once);
     }
 }

@@ -4,8 +4,7 @@ import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 
 // --- Configuration ---
 const NAMESPACE = __ENV.NAMESPACE || 'default';
-export const BASE_URL =
-    __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
+export const BASE_URL = __ENV.BASE_URL || `http://localhost:8080/api/v1/${NAMESPACE}/workflows`;
 export const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
 /**
  * Builds request params with unique metadata headers for each request.
@@ -41,6 +40,7 @@ function parseEngineHealth(res) {
 
 /**
  * Polls the workflows list endpoint until it returns 204 No Content (no active workflows).
+ * Uses pageSize=1 to minimise data transfer — only the totalCount matters.
  * @param {number} pollIntervalMs - milliseconds between polls
  */
 export function waitForQueueDrain(pollIntervalMs = 500) {
@@ -48,17 +48,17 @@ export function waitForQueueDrain(pollIntervalMs = 500) {
 
     let drained = false;
     const start = Date.now();
+    const pollUrl = `${BASE_URL}?pageSize=1`;
 
     while (!drained) {
         try {
-            const res = http.get(BASE_URL, { tags: { name: 'queue_drain' } });
+            const res = http.get(pollUrl, { tags: { name: 'queue_drain' } });
 
             if (res.status === 204) {
                 drained = true;
             } else if (res.status === 200) {
-                const workflows = JSON.parse(res.body);
-                const count = Array.isArray(workflows) ? workflows.length : '?';
-                console.log(`  Active workflows: ${count}`);
+                const body = JSON.parse(res.body);
+                console.log(`  Active workflows: ${body.totalCount ?? '?'}`);
             } else {
                 console.warn(`  Unexpected status: ${res.status}`);
             }

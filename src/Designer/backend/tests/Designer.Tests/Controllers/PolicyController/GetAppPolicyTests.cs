@@ -7,38 +7,37 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.PolicyControllerTests
+namespace Designer.Tests.Controllers.PolicyControllerTests;
+
+public class GetAppPolicyTests
+    : DesignerEndpointsTestsBase<GetAppPolicyTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public class GetAppPolicyTests
-        : DesignerEndpointsTestsBase<GetAppPolicyTests>,
-            IClassFixture<WebApplicationFactory<Program>>
+    private readonly string _versionPrefix = "designer/api";
+
+    public GetAppPolicyTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    [Fact]
+    public async Task GetApp_AppPolicyOk()
     {
-        private readonly string _versionPrefix = "designer/api";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "apps-test", "testUser", targetRepository);
+        ResourcePolicy resourcePolicy;
 
-        public GetAppPolicyTests(WebApplicationFactory<Program> factory)
-            : base(factory) { }
-
-        [Fact]
-        public async Task GetApp_AppPolicyOk()
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy";
+        using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
         {
-            var targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest("ttd", "apps-test", "testUser", targetRepository);
-            ResourcePolicy resourcePolicy;
-
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/policy";
-            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
-            {
-                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-                resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(
-                    responseBody,
-                    new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-                );
-            }
-
-            Assert.NotNull(resourcePolicy.Rules);
-            Assert.Equal(6, resourcePolicy.Rules.Count);
+            HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
+            resourcePolicy = System.Text.Json.JsonSerializer.Deserialize<ResourcePolicy>(
+                responseBody,
+                new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+            );
         }
+
+        Assert.NotNull(resourcePolicy.Rules);
+        Assert.Equal(6, resourcePolicy.Rules.Count);
     }
 }
