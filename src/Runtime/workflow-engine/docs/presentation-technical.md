@@ -19,8 +19,8 @@ style: |
     }
     h3 {
       font-size: 1.1em;
-      margin-top: 0.4em;
-      margin-bottom: 0.2em;
+      margin-top: 1em;
+      margin-bottom: 0.3em;
     }
     pre {
       font-size: 0.85em;
@@ -74,7 +74,7 @@ ProcessController.NextElement()
             │     ├── HandleEvents()       ← task start/end handlers, PDF, signing, payment...
             │     └── DispatchToStorage()  ← PUT to Platform Storage (events + state)
             │
-            └── if next is service task → loop again
+            └── if next is service task    → loop again
 ```
 
 If the task after the current one is a service task (PDF, signing, payment), the loop continues automatically within the same request. Every handler, every validation, every storage call happens inline.
@@ -127,7 +127,7 @@ The app enqueues and returns immediately. The engine handles execution, retries,
 
 # How it handles the same failures
 
-| Failure point             | Current behavior                | Workflow Engine behavior                                |
+| Failure point             | Current behaviour               | Workflow Engine behaviour                               |
 | ------------------------- | ------------------------------- | ------------------------------------------------------- |
 | Service task crashes      | Lost. Manual recovery.          | Requeued with backoff. Retried automatically.           |
 | Storage/network timeout   | Unknown state. No retry.        | Step marked retryable. Engine retries.                  |
@@ -145,7 +145,7 @@ Every failure path ends in either **successful retry** or **explicit, visible fa
 | Component        | Technology                                                   |
 | ---------------- | ------------------------------------------------------------ |
 | Runtime          | .NET 10, C# 14                                               |
-| Database         | PostgreSQL (EF Core, `FOR UPDATE SKIP LOCKED`)               |
+| Database         | PostgreSQL (EF Core + raw SQL for hot paths)                  |
 | Telemetry        | OpenTelemetry &rarr; OTLP &rarr; Grafana (Tempo, Prometheus) |
 | Testing          | xUnit v3, Testcontainers (PostgreSQL), WireMock, Verify.Net  |
 | Dashboard        | Vanilla JS ES modules (no build step), embedded in Core      |
@@ -175,93 +175,44 @@ Host Application (e.g. WorkflowEngine.App)
 
 `WorkflowEngine.App` is the Altinn-specific host. It adds `AppCommand` &mdash; an HTTP callback into Altinn apps carrying full instance context (org, app, actor, lockToken, instanceGuid).
 
-Database is the single source of truth. No in-memory queue.
+Database is the single source of truth. No in-memory queue. Enqueue and status-update paths use channel-based write buffers for throughput.
 
 ---
 
 # Processing model
 
-### How work is picked up
+### How work flows through the engine
 
-- `WorkflowProcessor` (BackgroundService) polls PostgreSQL in a loop
-- `FOR UPDATE SKIP LOCKED` provides atomic, non-blocking row locking
+- `WorkflowProcessor` polls PostgreSQL &mdash; `FOR UPDATE SKIP LOCKED` for atomic, non-blocking row locking
 - Multiple engine instances can run against the same database safely
-
-### How work is executed
-
 - Each workflow's steps are executed sequentially by `WorkflowExecutor`
-- Commands return `Success`, `RetryableError`, or `CriticalError`
-- On retryable error: workflow requeued with configurable backoff (exponential, linear, constant)
-- On critical error: workflow marked Failed immediately
+- Three independent semaphore pools (workers, DB connections, HTTP calls) prevent resource exhaustion
+- When load exceeds capacity, the engine returns **HTTP 429** on enqueue requests
+
+### How failures are classified
+
+| HTTP response  | Classification | Action                     |
+| -------------- | -------------- | -------------------------- |
+| 2xx            | Success        | Next step                  |
+| 408, 429, 5xx  | Retryable      | Requeue with backoff       |
+| Other 4xx      | Critical       | Fail immediately, no retry |
+
+Retries are per-step with configurable backoff (exponential, linear, constant), delay caps, and total deadline.
 
 ### How crashes are handled
 
-- `HeartbeatService` updates a timestamp for all in-flight workflows on a regular interval
-- If heartbeat expires, another worker reclaims the workflow
-- After a configurable number of reclaim attempts: marked Failed (poison workflow protection)
-
----
-
-# Retry strategy
-
-Per-step, configurable:
-
-| Parameter      | Purpose                                      |
-| -------------- | -------------------------------------------- |
-| `BackoffType`  | Exponential, Linear, or Constant             |
-| `BaseInterval` | Initial delay between retries                |
-| `MaxRetries`   | Max retry count (optional)                   |
-| `MaxDelay`     | Cap on individual delay (optional)           |
-| `MaxDuration`  | Total deadline from first attempt (optional) |
-
-Error classification drives retry behavior:
-
-| HTTP response | Classification | Action                     |
-| ------------- | -------------- | -------------------------- |
-| 2xx           | Success        | Next step                  |
-| 408, 429, 5xx | Retryable      | Requeue with backoff       |
-| Other 4xx     | Critical       | Fail immediately, no retry |
-
----
-
-# Concurrency & backpressure
-
-Three independent semaphore pools prevent resource exhaustion:
-
-| Pool           | Controls                                |
-| -------------- | --------------------------------------- |
-| Workers        | Concurrent workflow processing tasks    |
-| DB connections | PostgreSQL connection slots             |
-| HTTP calls     | Outbound HTTP requests to apps/webhooks |
-
-When active workflows exceed the backpressure threshold, the engine returns **HTTP 429** on enqueue requests.
-
-### Cancellation
-
-- `POST /api/v1/{namespace}/workflows/{id}/cancel`
-- Propagated across pods via DB polling
-- Idempotent &mdash; safe to call multiple times
-
-### Resume
-
-- `POST /api/v1/{namespace}/workflows/{id}/resume?cascade=false`
-- Resumes failed, canceled, or dependency-failed workflows
-- Optional `cascade=true` to resume transitively dependent workflows
+- `HeartbeatService` proves worker liveness &mdash; if heartbeat expires, another worker reclaims the workflow
+- Poison workflow protection after configurable max reclaim attempts
+- Cross-pod cancellation propagation via DB polling; resume support for failed/canceled workflows
 
 ---
 
 # Observability
 
-### Metrics (OpenTelemetry &rarr; Grafana)
+### OpenTelemetry &rarr; Grafana
 
-- Workflow counters: received, accepted, succeeded, failed, requeued, reclaimed
-- Timing histograms: queue time, service time, total time (workflow + step level)
-- Resource gauges: worker/DB/HTTP slot utilization
-
-### Traces
-
-- Full distributed trace per workflow (W3C trace context)
-- Spans for: processing, step execution, command callbacks, slot acquisition
+- Counters, histograms, and gauges across the full workflow and step lifecycle
+- Distributed tracing with W3C trace context &mdash; spans for processing, execution, callbacks, slot acquisition
 - Activity links between dependent workflows
 
 ### Dashboard (built-in)
@@ -269,12 +220,6 @@ When active workflows exceed the backpressure threshold, the engine returns **HT
 - Real-time SSE streams: engine health, active workflows, step pipelines
 - Query interface with namespace/status/label filters
 - Click-through to Grafana Tempo traces
-
-### API
-
-- `GET /api/v1/{namespace}/workflows/{id}` &mdash; status, steps, errors, retry counts
-- `GET /api/v1/{namespace}/workflows?page=1&pageSize=25` &mdash; paginated list with filtering
-- Health endpoints: `/health`, `/health/ready`, `/health/live`
 
 ---
 
@@ -305,21 +250,3 @@ A single enqueue request can express **fan-out / fan-in** patterns:
 - DAG resolution via topological sort. Cycle detection. Atomic insert.
 - A workflow only starts when all its dependencies have completed.
 - If a dependency fails, dependents are marked `DependencyFailed`.
-
----
-
-# Current Status
-
-| Area                                                           | Status      |
-| -------------------------------------------------------------- | ----------- |
-| Core engine (processing, retries, heartbeat, cancellation)     | Implemented |
-| Command system (Webhook, AppCommand)                           | Implemented |
-| PostgreSQL persistence (EF Core, migrations, batch operations) | Implemented |
-| Telemetry (metrics, traces, OTLP export)                       | Implemented |
-| Dashboard (real-time monitoring, query, step detail)           | Implemented |
-| API (enqueue, query, cancel, health)                           | Implemented |
-| Workflow dependencies (DAG, topological sort)                  | Implemented |
-| Integration tests (Testcontainers, WireMock)                   | Implemented |
-| Load testing (k6 scripts)                                      | Implemented |
-| Integration with Altinn app process engine                     | In progress |
-| Production deployment                                          | In progress |
