@@ -69,16 +69,10 @@ export function createValidationSlice(
     },
     updateDataModelValidations: (key, dataType, validations) =>
       set((state) => {
-        if (!validations) {
-          return;
-        }
-
         const dataModel = state.data.models[dataType];
-        if (!dataModel) {
-          return;
+        if (dataModel && validations) {
+          dataModel.validations[key] = validations;
         }
-
-        dataModel.validations[key] = validations;
       }),
     updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
       set((state) => {
@@ -229,15 +223,10 @@ function UpdateShowAllErrors() {
 }
 
 export const validationHooks = {
-  useDataElementsWithErrors: (elementIds: string[]) =>
+  useDataElementsWithErrors: (dataType: string) =>
     FormStore.raw.useMemoSelector((state) => {
-      const out: string[] = [];
-      elementLoop: for (const elementId of elementIds) {
-        const dataModel = getDataModelForElementId(state, elementId);
-        if (!dataModel) {
-          continue;
-        }
-
+      const dataModel = state.data.models[dataType];
+      if (dataModel) {
         const mergedValidations = Object.values(
           mergeFieldValidations(
             dataModel.validations.backend,
@@ -248,13 +237,13 @@ export const validationHooks = {
         for (const fieldValidations of mergedValidations) {
           for (const validation of fieldValidations) {
             if (validation.severity === 'error') {
-              out.push(elementId);
-              continue elementLoop;
+              return [dataModel.dataElementId ?? dataType];
             }
           }
         }
       }
-      return out;
+
+      return [];
     }),
 
   useShowAllBackendErrors: () => FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors),
@@ -276,13 +265,3 @@ export const validationHooks = {
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };
-
-function getDataModelForElementId(state: Draft<FormStoreState>, dataElementId: string) {
-  for (const [dataType, model] of Object.entries(state.data.models)) {
-    if (model.dataElementId === dataElementId || (model.dataElementId === null && dataType === dataElementId)) {
-      return model;
-    }
-  }
-
-  return undefined;
-}
