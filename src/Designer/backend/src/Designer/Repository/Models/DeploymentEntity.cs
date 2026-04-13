@@ -15,6 +15,7 @@ public class DeploymentEntity : BaseEntity
     /// Primary key
     /// </summary>
     [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
     public long SequenceNo { get; set; }
 
     /// <summary>

@@ -216,7 +216,7 @@ public class DeploymentServiceTest
 
     [Theory]
     [InlineData("ttd", "apps-test-tba")]
-    public async Task CreateAsync_WhenResourceRegistryPublishFails_ReturnsEarlyWithoutQueueingPipeline(
+    public async Task CreateAsync_WhenResourceRegistryPublishFails_ContinuesPipelineAndRecordsFailedEvent(
         string org,
         string app
     )
@@ -250,6 +250,10 @@ public class DeploymentServiceTest
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(false, "Validation errors: some error"));
+
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
 
         _deploymentRepository
             .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
@@ -290,7 +294,7 @@ public class DeploymentServiceTest
 
         // Assert
         Assert.NotNull(deploymentEntity);
-        Assert.Null(deploymentEntity.Build);
+        Assert.NotNull(deploymentEntity.Build);
 
         _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
 
@@ -304,16 +308,19 @@ public class DeploymentServiceTest
             Times.Once
         );
 
-        _azureDevOpsBuildClient.Verify(
-            b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
-            Times.Never
+        _deployEventRepository.Verify(
+            r =>
+                r.AddBySequenceNoAsync(
+                    It.IsAny<long>(),
+                    It.Is<DeployEvent>(e => e.EventType == DeployEventType.PipelineScheduled),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
         );
 
-        _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Never);
-
-        _mediatrMock.Verify(
-            m => m.Publish(It.IsAny<DeploymentPipelineQueued>(), It.IsAny<CancellationToken>()),
-            Times.Never
+        _azureDevOpsBuildClient.Verify(
+            b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Once
         );
     }
 
