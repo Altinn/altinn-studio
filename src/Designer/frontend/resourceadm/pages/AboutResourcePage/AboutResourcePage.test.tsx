@@ -147,11 +147,36 @@ describe('AboutResourcePage', () => {
     expect(resourceTypeRadio).toBeChecked();
   });
 
-  it('should show resource type AltinnApp for migrated app', () => {
+  it('should show resource type AltinnApp for migrated altinn 1 app', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
-        resourceData={{ ...mockConsentResource, resourceType: 'AltinnApp' }}
+        resourceData={{
+          ...mockConsentResource,
+          resourceType: 'AltinnApp',
+          resourceReferences: [
+            { reference: 'ttd/a1-test-app', referenceType: 'Default', referenceSource: 'Default' },
+          ],
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByLabelText(textMock('resourceadm.about_resource_resource_type_altinnapp')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show resource type AltinnApp for migrated altinn 2 app', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{
+          ...mockConsentResource,
+          resourceType: 'AltinnApp',
+          resourceReferences: [
+            { reference: 'ttd/a2-test-app', referenceType: 'Default', referenceSource: 'Default' },
+          ],
+        }}
       />,
     );
 

@@ -75,7 +75,12 @@ export const AboutResourcePage = ({
       if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
         return false;
       }
-      if (key === 'AltinnApp' && resourceData.resourceType !== 'AltinnApp') {
+      if (
+        key === 'AltinnApp' &&
+        resourceData.resourceReferences?.some(
+          (ref) => ref.reference.includes('/a1') || ref.reference.includes('/a2'),
+        ) !== true
+      ) {
         return false;
       }
       return true;
