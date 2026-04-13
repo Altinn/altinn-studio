@@ -31,7 +31,7 @@ internal static class WorkflowTestHelper
             new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously)
         );
 
-        return await repository.BatchEnqueueWorkflowsAsync([buffered], TestContext.Current.CancellationToken);
+        return await repository.BatchEnqueueWorkflows([buffered], TestContext.Current.CancellationToken);
     }
 
     public static async Task<Workflow> EnqueueWorkflow(

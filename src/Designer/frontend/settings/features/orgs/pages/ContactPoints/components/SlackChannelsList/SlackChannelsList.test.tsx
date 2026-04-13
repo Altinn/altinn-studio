@@ -120,4 +120,20 @@ describe('SlackChannelsList', () => {
     await user.click(deleteButton);
     expect(queriesMock.deleteContactPoint).toHaveBeenCalledWith(testOrg, 'slack-1');
   });
+
+  it('closes the dialog when cancel is clicked inside the dialog', async () => {
+    const user = userEvent.setup();
+    renderSlackChannelsList();
+    await user.click(getAddButton());
+    expect(screen.getByText('AddDialog')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByText('AddDialog')).not.toBeInTheDocument();
+  });
+
+  it('renders description text', () => {
+    renderSlackChannelsList();
+    expect(
+      screen.getByText(textMock('settings.orgs.contact_points.slack_description')),
+    ).toBeInTheDocument();
+  });
 });

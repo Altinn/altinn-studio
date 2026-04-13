@@ -10,16 +10,12 @@ import {
   getUpgradeAuthLevelUrl,
   getValidationUrl,
   redirectToUpgrade,
-  textResourcesUrl,
 } from 'src/utils/urls/appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
   describe('constants', () => {
     it('should return the expected url for getSetSelectedPartyUrl', () => {
       expect(getSetSelectedPartyUrl(12345)).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
-    });
-    it('should return the expected url for textResourcesUrl', () => {
-      expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');
     });
     it('should return the expected url for getProcessStateUrl', () => {
       expect(getProcessStateUrl('12345/instanceId-1234')).toBe(

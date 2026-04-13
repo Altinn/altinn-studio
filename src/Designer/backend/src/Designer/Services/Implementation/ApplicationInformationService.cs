@@ -130,7 +130,8 @@ public class ApplicationInformationService : IApplicationInformationService
             }
             ServiceResource serviceResource = applicationMetadata
                 .ToServiceResource()
-                .WithOrgInformation(org, orgListOrg);
+                .WithOrgInformation(org, orgListOrg)
+                .WithDefaultTranslations();
 
             string policyString = await _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(
                 org,

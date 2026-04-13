@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { StudioContentMenu } from '@studio/components';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ShieldLockIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { RoutePaths } from '../../routes/RoutePaths';
@@ -8,6 +8,8 @@ import { RoutePaths } from '../../routes/RoutePaths';
 export function Menu(): ReactElement {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const selectedTabId = pathname.split('/').at(-1);
   const menuTabs = [
     {
       tabId: RoutePaths.ApiKeys,
@@ -17,7 +19,7 @@ export function Menu(): ReactElement {
   ];
   return (
     <StudioContentMenu
-      selectedTabId={RoutePaths.ApiKeys}
+      selectedTabId={selectedTabId}
       onChangeTab={(tabId) => navigate({ pathname: tabId })}
     >
       {menuTabs.map((tab) => (
