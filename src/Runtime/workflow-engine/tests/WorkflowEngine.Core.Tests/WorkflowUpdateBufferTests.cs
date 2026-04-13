@@ -12,11 +12,7 @@ namespace WorkflowEngine.Core.Tests;
 [Collection("BackgroundServiceTests")]
 public class WorkflowUpdateBufferTests
 {
-    private static EngineSettings CreateSettings(
-        int maxBatchSize = 3,
-        int maxQueueSize = 50,
-        int flushConcurrency = 2
-    ) =>
+    private static EngineSettings CreateSettings(int maxBatchSize = 3, int maxQueueSize = 50) =>
         new()
         {
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
@@ -36,18 +32,13 @@ public class WorkflowUpdateBufferTests
                 MaxDbOperations = 5,
                 MaxHttpCalls = 5,
             },
-            WriteBuffer = new BufferSettings
+            WriteBuffer = new WriteBufferSettings
             {
                 MaxBatchSize = 10,
                 MaxQueueSize = 50,
                 FlushConcurrency = 2,
             },
-            UpdateBuffer = new BufferSettings
-            {
-                MaxBatchSize = maxBatchSize,
-                MaxQueueSize = maxQueueSize,
-                FlushConcurrency = flushConcurrency,
-            },
+            UpdateBuffer = new UpdateBufferSettings { MaxBatchSize = maxBatchSize, MaxQueueSize = maxQueueSize },
         };
 
     private static (WorkflowUpdateBuffer Buffer, Mock<IEngineRepository> Repo) CreateBuffer(
@@ -76,46 +67,23 @@ public class WorkflowUpdateBufferTests
         return (buffer, repo);
     }
 
-    private static Workflow CreateTestWorkflow(
-        string operationId = "test-op",
-        bool withDirtyStep = true,
-        bool withCleanStep = false
-    )
+    private static Workflow CreateTestWorkflow(string operationId = "test-op", int stepCount = 1)
     {
-        var steps = new List<Step>();
-
-        if (withDirtyStep)
-        {
-            steps.Add(
-                new Step
-                {
-                    OperationId = $"{operationId}-step-dirty",
-                    IdempotencyKey = $"key-{operationId}-dirty",
-                    ProcessingOrder = 0,
-                    Command = CommandDefinition.Create("webhook"),
-                    Status = PersistentItemStatus.Completed,
-                    HasPendingChanges = true,
-                }
-            );
-        }
-
-        if (withCleanStep)
-        {
-            steps.Add(
-                new Step
-                {
-                    OperationId = $"{operationId}-step-clean",
-                    IdempotencyKey = $"key-{operationId}-clean",
-                    ProcessingOrder = 1,
-                    Command = CommandDefinition.Create("webhook"),
-                    Status = PersistentItemStatus.Enqueued,
-                    HasPendingChanges = false,
-                }
-            );
-        }
+        var steps = Enumerable
+            .Range(0, stepCount)
+            .Select(i => new Step
+            {
+                OperationId = $"{operationId}-step-{i}",
+                IdempotencyKey = $"key-{operationId}-{i}",
+                ProcessingOrder = i,
+                Command = CommandDefinition.Create("webhook"),
+                Status = PersistentItemStatus.Completed,
+            })
+            .ToList();
 
         return new Workflow
         {
+            DatabaseId = Guid.NewGuid(),
             OperationId = operationId,
             IdempotencyKey = $"idem-{operationId}",
             Namespace = "test-ns",
@@ -156,7 +124,7 @@ public class WorkflowUpdateBufferTests
         try
         {
             var workflow = CreateTestWorkflow();
-            await buffer.Submit(workflow, TestContext.Current.CancellationToken);
+            await buffer.Submit(workflow, TestContext.Current.CancellationToken, dirtySteps: workflow.Steps);
 
             repo.Verify(
                 r =>
@@ -175,7 +143,7 @@ public class WorkflowUpdateBufferTests
     }
 
     [Fact]
-    public async Task Submit_OnlyDirtyStepsIncluded()
+    public async Task Submit_OnlyExplicitDirtyStepsForwardedToRepository()
     {
         var (buffer, repo) = CreateBuffer();
 
@@ -196,16 +164,17 @@ public class WorkflowUpdateBufferTests
 
         try
         {
-            // Workflow has 1 dirty step and 1 clean step
-            var workflow = CreateTestWorkflow(withDirtyStep: true, withCleanStep: true);
+            // Workflow has 2 steps but only 1 is passed as dirty
+            var workflow = CreateTestWorkflow(stepCount: 2);
             Assert.Equal(2, workflow.Steps.Count);
 
-            await buffer.Submit(workflow, TestContext.Current.CancellationToken);
+            var dirtyStep = workflow.Steps[0];
+            await buffer.Submit(workflow, TestContext.Current.CancellationToken, dirtySteps: [dirtyStep]);
 
             Assert.NotNull(capturedUpdates);
             var update = Assert.Single(capturedUpdates);
-            var dirtyStep = Assert.Single(update.DirtySteps);
-            Assert.True(dirtyStep.HasPendingChanges);
+            Assert.Single(update.DirtySteps);
+            Assert.Same(dirtyStep, update.DirtySteps[0]);
         }
         finally
         {
@@ -218,7 +187,7 @@ public class WorkflowUpdateBufferTests
     public async Task Submit_MultipleConcurrent_BatchedTogether()
     {
         // Use a gate to block the first flush so items accumulate in the channel
-        var settings = CreateSettings(maxBatchSize: 10, flushConcurrency: 1);
+        var settings = CreateSettings(maxBatchSize: 10);
         var (buffer, repo) = CreateBuffer(settings);
 
         var batchSizes = new List<int>();
@@ -334,7 +303,7 @@ public class WorkflowUpdateBufferTests
     [Fact]
     public async Task Submit_CanceledWhileWaitingForFlush_ThrowsOperationCanceledException()
     {
-        var settings = CreateSettings(flushConcurrency: 1);
+        var settings = CreateSettings();
         var (buffer, repo) = CreateBuffer(settings);
 
         // Use a gate to hold the flush loop so we can cancel before it completes
@@ -372,7 +341,7 @@ public class WorkflowUpdateBufferTests
     [Fact]
     public async Task Shutdown_DrainsRemainingItems()
     {
-        var settings = CreateSettings(maxBatchSize: 100, flushConcurrency: 1);
+        var settings = CreateSettings(maxBatchSize: 100);
         var (buffer, repo) = CreateBuffer(settings);
 
         var flushCount = 0;
@@ -401,6 +370,62 @@ public class WorkflowUpdateBufferTests
             await Task.WhenAll(tasks);
 
             Assert.Equal(5, flushCount);
+        }
+        finally
+        {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
+
+    [Fact]
+    public async Task Submit_DeduplicatesSameWorkflowInBatch()
+    {
+        // Use a gate to block the first flush so items accumulate in the channel
+        var settings = CreateSettings(maxBatchSize: 10);
+        var (buffer, repo) = CreateBuffer(settings);
+
+        IReadOnlyList<BatchWorkflowStatusUpdate>? capturedUpdates = null;
+        var gate = new TaskCompletionSource();
+        repo.Setup(r =>
+                r.BatchUpdateWorkflowsAndSteps(
+                    It.IsAny<IReadOnlyList<BatchWorkflowStatusUpdate>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<IReadOnlyList<BatchWorkflowStatusUpdate>, CancellationToken>(
+                (updates, _) => capturedUpdates ??= updates
+            )
+            .Returns(async (IReadOnlyList<BatchWorkflowStatusUpdate> _, CancellationToken _) => await gate.Task);
+
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
+
+        try
+        {
+            // Submit 3 updates for the same workflow — only the last should survive deduplication
+            var sharedId = Guid.NewGuid();
+            var tasks = Enumerable
+                .Range(1, 3)
+                .Select(i =>
+                {
+                    var wf = CreateTestWorkflow($"dedup-{i}");
+                    wf.DatabaseId = sharedId;
+                    wf.Status = i == 3 ? PersistentItemStatus.Completed : PersistentItemStatus.Processing;
+                    return buffer.Submit(wf, TestContext.Current.CancellationToken);
+                })
+                .ToList();
+
+            // Release the gate — all items process
+            gate.SetResult();
+
+            await Task.WhenAll(tasks);
+
+            // Only 1 item should have been flushed (the last update for the shared workflow)
+            Assert.NotNull(capturedUpdates);
+            var update = Assert.Single(capturedUpdates);
+            Assert.Equal(sharedId, update.Workflow.DatabaseId);
+            Assert.Equal(PersistentItemStatus.Completed, update.Workflow.Status);
         }
         finally
         {

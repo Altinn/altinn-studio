@@ -1,0 +1,27 @@
+.dialogBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  min-width: 400px;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+}
+
+.environments {
+  display: flex;
+  flex-direction: column;
+}
+
+.environmentOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fds-spacing-2);
+}
+
+.actionsWrapper {
+  margin-top: var(--fds-spacing-2);
+}

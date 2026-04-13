@@ -94,7 +94,7 @@ public class AppCommandExtensionsTests
         var options = sp.GetRequiredService<IOptions<AppCommandSettings>>();
 
         Assert.NotNull(options.Value.CommandEndpoint);
-        Assert.Contains("process-engine-callbacks", options.Value.CommandEndpoint, StringComparison.Ordinal);
+        Assert.Contains("workflow-engine-callbacks", options.Value.CommandEndpoint, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -228,7 +228,14 @@ export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GE
 export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
 export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST
 
-// Org settings
+// Org settings - Contact points
 export const contactPointsPath = (org) => `${apiBasePath}/v1/orgs/${org}/contact-points`; // Get, Post
 export const contactPointPath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}`; // Put, Delete
 export const contactPointActivePath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}/active`; // Patch
+
+// Org settings - Bot accounts
+export const botAccountsPath = (org) => `${apiBasePathV1}/orgs/${org}/bot-accounts`; // Get, Post
+export const botAccountPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}`; // Get, Put
+export const botAccountDeactivatePath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/deactivate`; // Post
+export const botAccountApiKeysPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys`; // Get, Post
+export const botAccountApiKeyPath = (org, id, keyId) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}/api-keys/${keyId}`; // Delete

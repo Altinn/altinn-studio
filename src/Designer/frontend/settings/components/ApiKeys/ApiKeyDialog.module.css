@@ -1,14 +1,10 @@
-.fields {
+.dialogBlock {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-4);
 }
 
-.dateInput {
-  max-width: 200px;
-}
-
-.addDialogBlock {
+.fields {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-4);

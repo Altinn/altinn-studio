@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
@@ -8,5 +9,7 @@ public record BotAccountResponse(
     string OrganizationName,
     bool Deactivated,
     DateTimeOffset Created,
-    string? CreatedByUsername
+    string? CreatedByUsername,
+    List<string> DeployEnvironments,
+    int ApiKeyCount
 );

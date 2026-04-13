@@ -127,7 +127,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // === Enqueue phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
 
         // === Processing phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowHandler.Handle"));
@@ -163,6 +163,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         );
 
         // === Status write phase ===
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.SubmitAndForget"));
         Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.Submit"));
         Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
@@ -255,7 +256,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         );
 
         // Assert repository activities for query operations
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflowsByCorrelationId"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflows"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
     }
 
@@ -279,7 +280,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
     ///     ├── Engine.ProcessStep.{operationId}
     ///     │     └── WorkflowExecutor.Execute
     ///     │           └── WebhookCommand.Execute
-    ///     ├── Engine.SubmitStatusUpdate  (step → Processing)
+    ///     ├── Engine.SubmitAndForget     (step → Processing, fire-and-forget)
     ///     ├── Engine.SubmitStatusUpdate  (step done)
     ///     └── Engine.SubmitStatusUpdate  (workflow done)
     ///
@@ -335,25 +336,32 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var webhookCommand = SingleInTrace(collector, processWorkflow.TraceId, "WebhookCommand.Execute");
         AssertChildOf(execute, webhookCommand);
 
-        //     │     ├── WorkflowUpdateBuffer.Submit [step.started]
+        //     │     ├── WorkflowUpdateBuffer.SubmitAndForget [step.started — fire-and-forget]
         //     │     └── WorkflowUpdateBuffer.Submit [step.completed]
         //     └── WorkflowUpdateBuffer.Submit [workflow.completed]
+        var submitAndForgets = collector
+            .GetActivities("WorkflowUpdateBuffer.SubmitAndForget")
+            .Where(a => a.TraceId == processWorkflow.TraceId)
+            .ToList();
+        Assert.Single(submitAndForgets);
+        Assert.Equal(processStep.SpanId, submitAndForgets[0].ParentSpanId);
+
         var submitStatuses = collector
             .GetActivities("WorkflowUpdateBuffer.Submit")
             .Where(a => a.TraceId == processWorkflow.TraceId)
             .ToList();
-        Assert.Equal(3, submitStatuses.Count);
+        Assert.Equal(2, submitStatuses.Count);
 
         var stepSubmits = submitStatuses.Where(s => s.ParentSpanId == processStep.SpanId).ToList();
         var workflowSubmits = submitStatuses.Where(s => s.ParentSpanId == processWorkflow.SpanId).ToList();
-        Assert.Equal(2, stepSubmits.Count);
+        Assert.Single(stepSubmits);
         Assert.Single(workflowSubmits);
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatch"));
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
         Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }

@@ -35,25 +35,6 @@
   align-items: center;
 }
 
-.threadTabButton {
-  flex: 1;
-  padding: var(--ds-size-2) var(--ds-size-3);
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  border-radius: var(--ds-border-radius-sm);
-}
-
-.threadTabButton:hover {
-  background-color: var(--ds-color-neutral-background-hover);
-}
-
-.threadTabButton.selected {
-  background-color: var(--ds-color-neutral-background-selected);
-  color: var(--ds-color-text-primary);
-}
-
 .threadMenuTab .deleteButton {
   position: absolute;
   right: var(--ds-size-2);
@@ -81,6 +62,8 @@
 }
 
 .aboutSection {
-  align-self: center;
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
   padding: var(--ds-size-4);
 }

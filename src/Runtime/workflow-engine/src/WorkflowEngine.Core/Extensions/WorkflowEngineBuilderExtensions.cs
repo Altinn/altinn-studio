@@ -55,7 +55,16 @@ public static class WorkflowEngineBuilderExtensions
                 defaultValue: Defaults.EngineSettings.EnableTelemetry
             );
             if (enableTelemetry)
-                builder.Services.AddTelemetry(emitQueryParameters: isDev);
+            {
+                bool enableDatabaseInstrumentation = builder.Configuration.GetValue(
+                    $"EngineSettings:{nameof(EngineSettings.EnableDatabaseInstrumentation)}",
+                    defaultValue: Defaults.EngineSettings.EnableDatabaseInstrumentation
+                );
+                builder.Services.AddTelemetry(
+                    emitQueryParameters: isDev,
+                    enableDatabaseInstrumentation: enableDatabaseInstrumentation
+                );
+            }
 
             // OpenAPI
             builder.Services.AddOpenApi(options =>
