@@ -54,11 +54,13 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
     } else if (failedEventTypeValues.includes(lastEventType as FailedEventType)) {
       return BuildResult.failed;
     } else {
-      const firstEventType = deployment?.events[0]?.eventType;
+      const isDeprecatedPipeline = deployment?.events.some(
+        (deployEvent) => deployEvent.eventType === EventType.DeprecatedPipelineScheduled,
+      );
 
       if (
         lastEventType === EventType.PipelineSucceeded &&
-        (firstEventType === EventType.DeprecatedPipelineScheduled ||
+        (isDeprecatedPipeline ||
           new Date().getTime() - new Date(lastEvent.created).getTime() > 15 * 60 * 1000)
       ) {
         return BuildResult.succeeded;
