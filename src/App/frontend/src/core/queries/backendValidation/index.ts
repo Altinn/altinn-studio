@@ -64,8 +64,18 @@ function useBackendValidationQueryOptions(onlyIncrementalValidators: boolean) {
   });
 }
 
+export interface UseBackendValidationQueryResult {
+  validations: BackendValidationIssue[] | undefined;
+  isLoading: boolean;
+  error: unknown;
+  refetch: () => Promise<unknown>;
+}
+
 // By default we only fetch with incremental validations
-export function useBackendValidationQuery(onlyIncrementalValidators = true, options: { enabled?: boolean } = {}) {
+export function useBackendValidationQuery(
+  onlyIncrementalValidators = true,
+  options: { enabled?: boolean } = {},
+): UseBackendValidationQueryResult {
   const queryOptions = useBackendValidationQueryOptions(onlyIncrementalValidators);
 
   const query = useQuery({
@@ -77,7 +87,7 @@ export function useBackendValidationQuery(onlyIncrementalValidators = true, opti
     query.error && window.logError('Fetching initial validations failed:\n', query.error);
   }, [query.error]);
 
-  return query;
+  return { validations: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 }
 
 export function useRefetchInitialValidations(onlyIncrementalValidators = true) {

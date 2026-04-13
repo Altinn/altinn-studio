@@ -10,7 +10,7 @@ import {
 
 export function BackendValidation() {
   const updateBackendValidations = FormStore.validation.useUpdateBackendValidations();
-  const { data: queriedInitialValidations } = useBackendValidationQuery(true, { enabled: false });
+  const { validations: queriedInitialValidations } = useBackendValidationQuery(true, { enabled: false });
 
   // This ensures manual refetches (used by subform validation, clicking on a submit button) are reflected in state.
   useEffect(() => {
