@@ -1,7 +1,6 @@
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
-import { selectFieldValidationsForDataModel } from 'src/features/validation/utils';
 import {
   type CompDef,
   getComponentDef,
@@ -53,7 +52,11 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
         continue;
       }
 
-      const fieldValidations = selectFieldValidationsForDataModel(dataModel, field);
+      const fieldValidations = [
+        ...(dataModel.validations.backend[field] ?? []),
+        ...(dataModel.validations.invalidData[field] ?? []),
+        ...(dataModel.validations.schema[field] ?? []),
+      ];
 
       if (fieldValidations.length > 0) {
         validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));

@@ -21,11 +21,7 @@ import {
 } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { mapBackendIssuesToTaskValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
-import {
-  hasValidationErrors,
-  selectMergedFieldValidationsForDataModel,
-  selectValidations,
-} from 'src/features/validation/utils';
+import { hasValidationErrors, mergeFieldValidations, selectValidations } from 'src/features/validation/utils';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
@@ -242,7 +238,14 @@ export const validationHooks = {
           continue;
         }
 
-        for (const fieldValidations of Object.values(selectMergedFieldValidationsForDataModel(dataModel))) {
+        const mergedValidations = Object.values(
+          mergeFieldValidations(
+            dataModel.validations.backend,
+            dataModel.validations.invalidData,
+            dataModel.validations.schema,
+          ),
+        );
+        for (const fieldValidations of mergedValidations) {
           for (const validation of fieldValidations) {
             if (validation.severity === 'error') {
               out.push(elementId);

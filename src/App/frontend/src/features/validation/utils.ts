@@ -1,5 +1,4 @@
 import { ValidationMask } from 'src/features/validation';
-import type { DataModelState } from 'src/features/formData/FormDataWriteStateMachine';
 import type {
   AnyValidation,
   BaseValidation,
@@ -32,22 +31,6 @@ export function mergeFieldValidations(...X: (FieldValidations | undefined)[]): F
     }
   }
   return out;
-}
-
-export function selectMergedFieldValidationsForDataModel(dataModel: DataModelState): FieldValidations {
-  return mergeFieldValidations(
-    dataModel.validations.backend,
-    dataModel.validations.invalidData,
-    dataModel.validations.schema,
-  );
-}
-
-export function selectFieldValidationsForDataModel(dataModel: DataModelState, field: string): BaseValidation[] {
-  return [
-    ...(dataModel.validations.backend[field] ?? []),
-    ...(dataModel.validations.invalidData[field] ?? []),
-    ...(dataModel.validations.schema[field] ?? []),
-  ];
 }
 
 function isOfSeverity<V extends BaseValidation, S extends ValidationSeverity>(severity: S) {
