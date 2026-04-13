@@ -60,13 +60,14 @@ const (
 //nolint:revive,interfacebloat // ContainerClient is the domain term used throughout devenv and intentionally aggregates runtime operations.
 type ContainerClient interface {
 	// Build builds a container image from a Dockerfile
-	Build(ctx context.Context, contextPath, dockerfile, tag string) error
+	Build(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error
 
 	// BuildWithProgress builds a container image and emits best-effort progress updates.
 	BuildWithProgress(
 		ctx context.Context,
 		contextPath, dockerfile, tag string,
 		onProgress types.ProgressHandler,
+		opts ...types.BuildOptions,
 	) error
 
 	// Push pushes an image to a registry

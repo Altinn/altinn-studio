@@ -91,6 +91,13 @@ type LifecycleOptions struct {
 	HandleDestroyError ErrorHandler
 }
 
+// ContainerLifecycleOptions customizes container-specific lifecycle behavior.
+type ContainerLifecycleOptions struct {
+	LifecycleOptions
+
+	WaitForReady bool
+}
+
 // LifecycleOptionsProvider exposes resource lifecycle options.
 type LifecycleOptionsProvider interface {
 	LifecycleOptions() LifecycleOptions

@@ -2,6 +2,7 @@ package dockerapi
 
 import (
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 
@@ -11,6 +12,10 @@ import (
 	dockermount "github.com/docker/docker/api/types/mount"
 	systemtypes "github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/pkg/jsonmessage"
+)
+
+var errNetworkActiveEndpoints = errors.New(
+	`error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`,
 )
 
 func TestBuildBindMounts(t *testing.T) {
@@ -58,9 +63,7 @@ func TestBuildBindMounts(t *testing.T) {
 func TestIsNetworkInUseError_ActiveEndpoints(t *testing.T) {
 	t.Parallel()
 
-	err := errors.New(`Error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`)
-
-	if !isNetworkInUseError(err) {
+	if !isNetworkInUseError(errNetworkActiveEndpoints) {
 		t.Fatal("isNetworkInUseError() = false, want true")
 	}
 }
@@ -166,6 +169,30 @@ func TestBuild_ColimaRequiresDockerCLIAtCallSite(t *testing.T) {
 	}
 	if want := "container build CLI not found"; !strings.Contains(err.Error(), want) {
 		t.Fatalf("Build() error = %q", err)
+	}
+}
+
+func TestDockerBuildArgs_IncludesRegistryCache(t *testing.T) {
+	t.Parallel()
+
+	got := dockerBuildArgs(".", "Dockerfile", "localtest:dev", types.BuildOptions{
+		CacheFrom: []string{"type=registry,ref=example/cache:latest"},
+		CacheTo:   []string{"type=registry,ref=example/cache:latest,mode=max"},
+	})
+	want := []string{
+		"buildx", "build",
+		"--load",
+		"--progress", "rawjson",
+		"--provenance=false",
+		"--sbom=false",
+		"--cache-from", "type=registry,ref=example/cache:latest",
+		"--cache-to", "type=registry,ref=example/cache:latest,mode=max",
+		"-t", "localtest:dev",
+		"-f", "Dockerfile",
+		".",
+	}
+	if !slices.Equal(got, want) {
+		t.Fatalf("dockerBuildArgs() = %#v, want %#v", got, want)
 	}
 }
 

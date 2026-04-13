@@ -13,12 +13,13 @@ import (
 // All methods can be configured with custom behavior via function fields.
 type Client struct {
 	// Method implementations - set these to customize behavior
-	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
+	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error
 	ToolchainFunc         func() types.ContainerToolchain
 	BuildWithProgressFunc func(
 		ctx context.Context,
 		contextPath, dockerfile, tag string,
 		onProgress types.ProgressHandler,
+		opts ...types.BuildOptions,
 	) error
 	PushFunc                  func(ctx context.Context, image string) error
 	CreateContainerFunc       func(ctx context.Context, cfg types.ContainerConfig) (string, error)
@@ -69,13 +70,13 @@ func (c *Client) recordCall(method string, args ...any) {
 }
 
 // Build implements ContainerClient.
-func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	c.recordCall("Build", contextPath, dockerfile, tag)
+func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error {
+	c.recordCall("Build", contextPath, dockerfile, tag, opts)
 	if c.BuildFunc != nil {
-		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
+		return c.BuildFunc(ctx, contextPath, dockerfile, tag, opts...)
 	}
 	if c.BuildWithProgressFunc != nil {
-		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, nil)
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, nil, opts...)
 	}
 	return nil
 }
@@ -85,13 +86,14 @@ func (c *Client) BuildWithProgress(
 	ctx context.Context,
 	contextPath, dockerfile, tag string,
 	onProgress types.ProgressHandler,
+	opts ...types.BuildOptions,
 ) error {
-	c.recordCall("BuildWithProgress", contextPath, dockerfile, tag)
+	c.recordCall("BuildWithProgress", contextPath, dockerfile, tag, opts)
 	if c.BuildWithProgressFunc != nil {
-		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, onProgress)
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, onProgress, opts...)
 	}
 	if c.BuildFunc != nil {
-		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
+		return c.BuildFunc(ctx, contextPath, dockerfile, tag, opts...)
 	}
 	return nil
 }

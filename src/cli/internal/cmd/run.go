@@ -11,6 +11,7 @@ import (
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/appcontainers"
+	"altinn.studio/studioctl/internal/appimage"
 	runsvc "altinn.studio/studioctl/internal/cmd/run"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -24,7 +25,6 @@ const (
 )
 
 var (
-	errDockerfileNotFound = errors.New("dockerfile not found")
 	errAppContainerExited = errors.New("app container exited")
 )
 
@@ -63,6 +63,9 @@ func (c *RunCommand) Usage() string {
 		"  -m, --mode MODE       Run mode: native or docker (default: native)",
 		"  -d, --detach          Run app container in background (docker mode)",
 		"  --random-host-port    Publish app container to a random host port (docker mode)",
+		"  --image-tag IMAGE     Use a specific app container image tag (docker mode)",
+		"  --pull                Pull app container image before start (docker mode)",
+		"  --skip-build          Skip building the app container image (docker mode)",
 		"  -h, --help            Show this help",
 	)
 }
@@ -70,8 +73,11 @@ func (c *RunCommand) Usage() string {
 type runFlags struct {
 	appPath        string
 	mode           string
+	imageTag       string
 	detach         bool
+	pullImage      bool
 	randomHostPort bool
+	skipBuild      bool
 }
 
 // Run executes the command.
@@ -83,9 +89,12 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 	fs.StringVar(&flags.appPath, "path", "", "App directory path")
 	fs.StringVar(&flags.mode, "m", runModeNative, "Run mode")
 	fs.StringVar(&flags.mode, "mode", runModeNative, "Run mode")
+	fs.StringVar(&flags.imageTag, "image-tag", "", "App container image tag")
 	fs.BoolVar(&flags.detach, "d", false, "Run app container in background")
 	fs.BoolVar(&flags.detach, "detach", false, "Run app container in background")
+	fs.BoolVar(&flags.pullImage, "pull", false, "Pull app container image before start")
 	fs.BoolVar(&flags.randomHostPort, "random-host-port", false, "Publish app container to a random host port")
+	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app container image")
 
 	var cmdArgs, dotnetArgs []string
 	for i, arg := range args {
@@ -157,23 +166,16 @@ func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []strin
 }
 
 func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection, args []string, flags runFlags) error {
-	spec, specErr := c.service.BuildDockerRunSpec(result, args, flags.randomHostPort)
+	spec, specErr := c.service.BuildDockerRunSpec(result, args, runsvc.DockerRunOptions{
+		ImageTag:       flags.imageTag,
+		RandomHostPort: flags.randomHostPort,
+	})
 	if specErr != nil {
 		return fmt.Errorf("build docker run spec: %w", specErr)
 	}
-	if spec.DockerfileContent != "" {
-		dockerfile, writeErr := writeGeneratedDockerfile(spec.DockerfileContent)
-		if writeErr != nil {
-			return writeErr
-		}
-		defer c.removeGeneratedDockerfile(dockerfile)
-		spec.Dockerfile = dockerfile
-	}
-	if _, statErr := os.Stat(spec.Dockerfile); statErr != nil {
-		if os.IsNotExist(statErr) {
-			return fmt.Errorf("%w: %s", errDockerfileNotFound, spec.Dockerfile)
-		}
-		return fmt.Errorf("stat dockerfile: %w", statErr)
+
+	if err := validateDockerRunImageFlags(flags); err != nil {
+		return err
 	}
 
 	client, err := containerruntime.Detect(ctx)
@@ -186,9 +188,8 @@ func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection
 		}
 	}()
 
-	c.out.Verbosef("Building app image %s", spec.ImageTag)
-	if buildErr := client.Build(ctx, spec.ContextPath, spec.Dockerfile, spec.ImageTag); buildErr != nil {
-		return fmt.Errorf("build app image: %w", buildErr)
+	if prepareErr := c.prepareDockerRunImage(ctx, client, result, spec.Config.Image, flags); prepareErr != nil {
+		return prepareErr
 	}
 
 	if removeErr := client.ContainerRemove(ctx, spec.Config.Name, true); removeErr != nil &&
@@ -214,28 +215,59 @@ func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection
 	return c.followContainer(ctx, client, containerID)
 }
 
-func writeGeneratedDockerfile(content string) (string, error) {
-	file, err := os.CreateTemp("", "studioctl-app-*.Dockerfile")
-	if err != nil {
-		return "", fmt.Errorf("create generated dockerfile: %w", err)
+func validateDockerRunImageFlags(flags runFlags) error {
+	if flags.pullImage && flags.imageTag == "" {
+		return fmt.Errorf("%w: --pull requires --image-tag", ErrInvalidFlagValue)
 	}
-	if _, err := file.WriteString(content); err != nil {
-		closeErr := file.Close()
-		removeErr := os.Remove(file.Name())
-		return "", fmt.Errorf("write generated dockerfile: %w", errors.Join(err, closeErr, removeErr))
+	if flags.pullImage && !flags.skipBuild {
+		return fmt.Errorf("%w: --pull requires --skip-build", ErrInvalidFlagValue)
 	}
-	if err := file.Close(); err != nil {
-		if removeErr := os.Remove(file.Name()); removeErr != nil {
-			return "", fmt.Errorf("close generated dockerfile: %w", errors.Join(err, removeErr))
-		}
-		return "", fmt.Errorf("close generated dockerfile: %w", err)
-	}
-	return file.Name(), nil
+	return nil
 }
 
-func (c *RunCommand) removeGeneratedDockerfile(path string) {
-	if err := os.Remove(path); err != nil {
-		c.out.Verbosef("failed to remove generated dockerfile: %v", err)
+func (c *RunCommand) prepareDockerRunImage(
+	ctx context.Context,
+	client containerruntime.ContainerClient,
+	result repocontext.Detection,
+	imageTag string,
+	flags runFlags,
+) error {
+	if flags.pullImage {
+		c.out.Verbosef("Pulling app image %s", imageTag)
+		if pullErr := client.ImagePull(ctx, imageTag); pullErr != nil {
+			return fmt.Errorf("pull app image: %w", pullErr)
+		}
+	}
+	if flags.skipBuild {
+		return nil
+	}
+
+	spec, err := appimage.BuildSpecForApp(result, imageTag)
+	if err != nil {
+		return fmt.Errorf("build docker image spec: %w", err)
+	}
+	cleanupDockerfile, prepareErr := appimage.MaterializeDockerfile(&spec)
+	if prepareErr != nil {
+		return fmt.Errorf("materialize dockerfile: %w", prepareErr)
+	}
+	defer cleanupGeneratedDockerfile(c.out, cleanupDockerfile)
+
+	c.out.Verbosef("Building app image %s", spec.ImageTag)
+	if buildErr := client.Build(
+		ctx,
+		spec.ContextPath,
+		spec.Dockerfile,
+		spec.ImageTag,
+		spec.Build,
+	); buildErr != nil {
+		return fmt.Errorf("build app image: %w", buildErr)
+	}
+	return nil
+}
+
+func cleanupGeneratedDockerfile(out *ui.Output, cleanup func() error) {
+	if err := cleanup(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		out.Verbosef("failed to remove generated dockerfile: %v", err)
 	}
 }
 

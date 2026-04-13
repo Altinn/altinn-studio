@@ -1,0 +1,14 @@
+name: "App Stop Local Environment"
+description: "Stops localtest and app containers"
+runs:
+  using: "composite"
+  steps:
+    - name: Stop localtest
+      shell: bash
+      run: |
+        # TODO: "studioctl stop"
+        docker ps -aq --filter label=altinn.studio/cli=app | xargs -r docker rm -f || true
+        if command -v studioctl > /dev/null 2>&1; then
+          studioctl env down || true
+          studioctl servers down || true
+        fi

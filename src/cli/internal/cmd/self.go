@@ -221,6 +221,8 @@ func (c *SelfCommand) installResources(ctx context.Context) error {
 func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	c.out.Println("")
 
+	// TODO: Preserve the user's running app-manager state during reinstall. Stopping it here
+	// unexpectedly drops app discovery and tunnel connections for active local environments.
 	done, err := appmanager.Shutdown(ctx, c.cfg)
 	if err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
 		c.out.Verbosef("failed to stop existing app-manager before install: %v", err)

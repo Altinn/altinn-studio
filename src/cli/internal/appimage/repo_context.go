@@ -1,4 +1,4 @@
-package run
+package appimage
 
 import (
 	"bytes"
@@ -24,7 +24,6 @@ var (
 type repoContext struct {
 	AppProject    string
 	AppRoot       string
-	AssemblyName  string
 	BuildRoot     string
 	MetadataFiles []string
 	ProjectFiles  []string
@@ -37,7 +36,6 @@ func newRepoContext(result repocontext.Detection) (repoContext, error) {
 	runRepo := repoContext{
 		AppProject:             "",
 		AppRoot:                result.AppRoot,
-		AssemblyName:           "",
 		BuildRoot:              result.AppRoot,
 		MetadataFiles:          nil,
 		ProjectFiles:           nil,
@@ -57,10 +55,6 @@ func newRepoContext(result repocontext.Detection) (repoContext, error) {
 	if err != nil {
 		return repoContext{}, err
 	}
-	assemblyName, err := appAssemblyName(appProject)
-	if err != nil {
-		return repoContext{}, err
-	}
 	projectFiles, err := collectProjectFiles(srcRoot, appProject)
 	if err != nil {
 		return repoContext{}, err
@@ -77,7 +71,6 @@ func newRepoContext(result repocontext.Detection) (repoContext, error) {
 	return repoContext{
 		AppProject:             appProject,
 		AppRoot:                result.AppRoot,
-		AssemblyName:           assemblyName,
 		BuildRoot:              srcRoot,
 		MetadataFiles:          metadataFiles,
 		ProjectFiles:           projectFiles,
@@ -112,17 +105,6 @@ func findAppProject(appPath string) (string, error) {
 	}
 }
 
-func appAssemblyName(appProject string) (string, error) {
-	project, err := readProjectFile(appProject)
-	if err != nil {
-		return "", err
-	}
-	if project.AssemblyName != "" {
-		return project.AssemblyName, nil
-	}
-	return strings.TrimSuffix(filepath.Base(appProject), filepath.Ext(appProject)), nil
-}
-
 func collectProjectFiles(contextRoot, rootProject string) ([]string, error) {
 	var projectFiles []string
 	seen := make(map[string]struct{})
@@ -154,8 +136,7 @@ func collectProjectFiles(contextRoot, rootProject string) ([]string, error) {
 }
 
 type projectFile struct {
-	AssemblyName string
-	References   []string
+	References []string
 }
 
 func readProjectFile(projectPath string) (projectFile, error) {
@@ -180,30 +161,22 @@ func readProjectFile(projectPath string) (projectFile, error) {
 		if !ok {
 			continue
 		}
-		if err := readProjectFileElement(decoder, start, &project); err != nil {
-			return projectFile{}, err
-		}
+		readProjectFileElement(start, &project)
 	}
 	return project, nil
 }
 
-func readProjectFileElement(decoder *xml.Decoder, start xml.StartElement, project *projectFile) error {
-	switch start.Name.Local {
-	case "AssemblyName":
-		var assemblyName string
-		if err := decoder.DecodeElement(&assemblyName, &start); err != nil {
-			return fmt.Errorf("parse project file: %w", err)
-		}
-		project.AssemblyName = strings.TrimSpace(assemblyName)
-	case "ProjectReference":
-		for _, attr := range start.Attr {
-			if attr.Name.Local == "Include" && attr.Value != "" {
-				project.References = append(project.References, attr.Value)
-				break
-			}
+func readProjectFileElement(start xml.StartElement, project *projectFile) {
+	if start.Name.Local != "ProjectReference" {
+		return
+	}
+
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "Include" && attr.Value != "" {
+			project.References = append(project.References, attr.Value)
+			return
 		}
 	}
-	return nil
 }
 
 func normalizeProjectPath(value string) string {
@@ -267,6 +240,14 @@ func fileExists(path string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func dirExists(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return info.IsDir()
 }
 
 func relPathWithin(root, path string) (string, error) {

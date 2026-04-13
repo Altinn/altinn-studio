@@ -544,7 +544,7 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, localAppURL string) 
 		TunnelURL:      TunnelURL(loadBalancerPort),
 		UpstreamURL:    rewriteHostLocalAppURL(localAppURL),
 		StudioctlPath:  currentExecutablePath(),
-		InternalDev:    isTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
+		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}
 }
 
@@ -695,10 +695,6 @@ func readAppManagerLogTail(path string) string {
 		"app-manager log tail:" +
 		osutil.LineBreak +
 		strings.Join(lines, osutil.LineBreak)
-}
-
-func isTruthyEnv(value string) bool {
-	return value == "1" || strings.EqualFold(value, "true")
 }
 
 func zeroRuntimeState() runtimeState {

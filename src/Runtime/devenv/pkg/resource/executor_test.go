@@ -172,6 +172,187 @@ func TestExecutor_StopAndRemoveContainer_IgnoresContainerNotFound(t *testing.T) 
 	}
 }
 
+func TestExecutor_WaitForContainerReady_WaitsForHealthy(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	inspectCalls := 0
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		inspectCalls++
+		state := types.ContainerState{
+			Status:       "running",
+			HealthStatus: "starting",
+			Running:      true,
+		}
+		if inspectCalls > 1 {
+			state.HealthStatus = "healthy"
+		}
+		return types.ContainerInfo{State: state}, nil
+	}
+
+	err := NewExecutor(client).waitForContainerReady(t.Context(), "localtest")
+	if err != nil {
+		t.Fatalf("waitForContainerReady() error = %v, want nil", err)
+	}
+	if inspectCalls != 2 {
+		t.Fatalf("ContainerInspect calls = %d, want 2", inspectCalls)
+	}
+}
+
+func TestExecutor_WaitForContainerReady_FailsOnUnhealthy(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return types.ContainerInfo{
+			State: types.ContainerState{
+				Status:       "running",
+				HealthStatus: "unhealthy",
+				Running:      true,
+			},
+		}, nil
+	}
+
+	err := NewExecutor(client).waitForContainerReady(t.Context(), "localtest")
+	if !errors.Is(err, errContainerUnhealthy) {
+		t.Fatalf("waitForContainerReady() error = %v, want errContainerUnhealthy", err)
+	}
+}
+
+func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	inspectCalls := 0
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		inspectCalls++
+		return types.ContainerInfo{}, types.ErrContainerNotFound
+	}
+
+	graph := NewGraph()
+	image := &RemoteImage{Ref: "localtest:latest"}
+	container := &Container{
+		Name:  "localtest",
+		Image: Ref(image),
+	}
+	if err := graph.Add(image); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+	if err := graph.Add(container); err != nil {
+		t.Fatalf("graph.Add(container) error = %v", err)
+	}
+
+	err := NewExecutor(client).Apply(t.Context(), graph)
+	if err != nil {
+		t.Fatalf("Apply() error = %v, want nil", err)
+	}
+	if inspectCalls != 1 {
+		t.Fatalf("ContainerInspect calls = %d, want 1", inspectCalls)
+	}
+}
+
+func TestExecutor_ApplyContainer_WaitsForReadyWhenEnabled(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	inspectCalls := 0
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		inspectCalls++
+		if inspectCalls == 1 {
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+		state := types.ContainerState{
+			Status:       "running",
+			HealthStatus: "starting",
+			Running:      true,
+		}
+		if inspectCalls > 2 {
+			state.HealthStatus = "healthy"
+		}
+		return types.ContainerInfo{State: state}, nil
+	}
+
+	graph := NewGraph()
+	image := &RemoteImage{Ref: "localtest:latest"}
+	container := &Container{
+		Name:  "localtest",
+		Image: Ref(image),
+		Lifecycle: ContainerLifecycleOptions{
+			WaitForReady: true,
+		},
+	}
+	if err := graph.Add(image); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+	if err := graph.Add(container); err != nil {
+		t.Fatalf("graph.Add(container) error = %v", err)
+	}
+
+	err := NewExecutor(client).Apply(t.Context(), graph)
+	if err != nil {
+		t.Fatalf("Apply() error = %v, want nil", err)
+	}
+	if inspectCalls != 3 {
+		t.Fatalf("ContainerInspect calls = %d, want 3", inspectCalls)
+	}
+}
+
+func TestExecutor_ContainerStatus_UsesHealth(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		state types.ContainerState
+		want  Status
+	}{
+		{
+			name: "running without healthcheck is ready",
+			state: types.ContainerState{
+				Status:  "running",
+				Running: true,
+			},
+			want: StatusReady,
+		},
+		{
+			name: "starting healthcheck is pending",
+			state: types.ContainerState{
+				Status:       "running",
+				HealthStatus: "starting",
+				Running:      true,
+			},
+			want: StatusPending,
+		},
+		{
+			name: "unhealthy healthcheck is failed",
+			state: types.ContainerState{
+				Status:       "running",
+				HealthStatus: "unhealthy",
+				Running:      true,
+			},
+			want: StatusFailed,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client := containermock.New()
+			client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+				return types.ContainerInfo{State: tt.state}, nil
+			}
+
+			got, err := NewExecutor(client).containerStatus(t.Context(), &Container{Name: "localtest"})
+			if err != nil {
+				t.Fatalf("containerStatus() error = %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("containerStatus() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestExecutor_DestroyNetwork_PropagatesNetworkInUseByDefault(t *testing.T) {
 	t.Parallel()
 

@@ -16,6 +16,7 @@ var (
 type Container struct {
 	Image          ResourceRef
 	Labels         map[string]string
+	Lifecycle      ContainerLifecycleOptions
 	Name           string
 	RestartPolicy  string
 	User           string
@@ -42,6 +43,11 @@ func (c *Container) Dependencies() []ResourceRef {
 	return deps
 }
 
+// LifecycleOptions returns shared resource lifecycle behavior.
+func (c *Container) LifecycleOptions() LifecycleOptions {
+	return c.Lifecycle.LifecycleOptions
+}
+
 // Validate checks that the container configuration is valid.
 func (c *Container) Validate() error {
 	if c.Name == "" {
@@ -55,6 +61,7 @@ func (c *Container) Validate() error {
 
 // Compile-time interface checks.
 var (
-	_ Resource  = (*Container)(nil)
-	_ Validator = (*Container)(nil)
+	_ Resource                 = (*Container)(nil)
+	_ Validator                = (*Container)(nil)
+	_ LifecycleOptionsProvider = (*Container)(nil)
 )

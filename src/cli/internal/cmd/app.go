@@ -44,6 +44,7 @@ func (c *AppCommand) Usage() string {
 		"Manage Altinn apps.",
 		"",
 		"Subcommands:",
+		"  build     Build an app container image",
 		"  clone     Clone an app repository from Altinn Studio",
 		"  update    Update Altinn.App NuGet packages and frontend",
 		"",
@@ -62,6 +63,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 	subArgs := args[1:]
 
 	switch subCmd {
+	case "build":
+		return c.runBuild(ctx, subArgs)
 	case "clone":
 		return c.runClone(ctx, subArgs)
 	case "update":

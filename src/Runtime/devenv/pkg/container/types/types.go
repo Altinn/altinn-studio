@@ -20,6 +20,12 @@ var ErrImageNotFound = errors.New("image not found")
 // See: https://github.com/containers/common/pull/1240
 var defaultPodmanCapabilities = [...]string{"NET_RAW", "MKNOD", "AUDIT_WRITE"}
 
+// BuildOptions controls container image build behavior.
+type BuildOptions struct {
+	CacheFrom []string
+	CacheTo   []string
+}
+
 // DefaultPodmanCapabilities returns a copy of default Podman capabilities.
 // Returning a copy prevents accidental global mutation by callers.
 func DefaultPodmanCapabilities() []string {
@@ -213,10 +219,11 @@ type ImageInfo struct {
 
 // ContainerState represents the state of a container.
 type ContainerState struct {
-	Status   string // "created", "running", "paused", "restarting", "removing", "exited", "dead"
-	Running  bool
-	Paused   bool
-	ExitCode int
+	Status       string // "created", "running", "paused", "restarting", "removing", "exited", "dead"
+	HealthStatus string // empty when the container has no healthcheck
+	Running      bool
+	Paused       bool
+	ExitCode     int
 }
 
 // ContainerInfo contains detailed information about a container.

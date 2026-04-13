@@ -9,11 +9,17 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
 	"altinn.studio/studioctl/internal/osutil"
 )
+
+// IsTruthyEnv reports whether an environment variable value is enabled.
+func IsTruthyEnv(value string) bool {
+	return value == "1" || strings.EqualFold(value, "true")
+}
 
 //go:embed config.yaml
 var embeddedConfig []byte
@@ -30,6 +36,9 @@ const (
 
 	// EnvInternalDevMode enables local internal dev image mode.
 	EnvInternalDevMode = "STUDIOCTL_INTERNAL_DEV"
+
+	// EnvRegistryCacheWrite enables pushing BuildKit registry cache entries.
+	EnvRegistryCacheWrite = "STUDIOCTL_REGISTRY_CACHE_WRITE"
 
 	// EnvResourcesTarball overrides resource install source with a local tarball path.
 	// Intended for development/tooling, not normal end-user flows.

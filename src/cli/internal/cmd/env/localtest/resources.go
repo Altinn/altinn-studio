@@ -26,12 +26,14 @@ const (
 	// NetworkName is the name of the localtest network.
 	NetworkName = "altinntestlocal_network"
 
-	devImageTagLocaltest = "localtest:dev"
-	devImageTagPDF3      = "localtest-pdf3:dev"
-	flavorDocker         = "Docker"
-	flavorPodman         = "Podman"
-	flavorUnknown        = "Unknown"
-	localtestServicePort = "5101"
+	devImageTagLocaltest   = "localtest:dev"
+	devImageTagPDF3        = "localtest-pdf3:dev"
+	buildCacheRefLocaltest = "ghcr.io/altinn/altinn-studio/localtest-main-cache:latest"
+	buildCacheRefPDF3      = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
+	flavorDocker           = "Docker"
+	flavorPodman           = "Podman"
+	flavorUnknown          = "Unknown"
+	localtestServicePort   = "5101"
 )
 
 // ErrInvalidResourceLayout is returned when required host paths are missing or have wrong type.
@@ -354,11 +356,13 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 		images[ContainerLocaltest] = &resource.LocalImage{
 			ContextPath: opts.DevConfig.LocaltestContextPath(),
 			Dockerfile:  opts.DevConfig.LocaltestDockerfile(),
+			Build:       buildCacheOptions(buildCacheRefLocaltest),
 			Tag:         devImageTagLocaltest,
 		}
 		images[ContainerPDF3] = &resource.LocalImage{
 			ContextPath: opts.DevConfig.PDF3ContextPath(),
 			Dockerfile:  opts.DevConfig.PDF3Dockerfile(),
+			Build:       buildCacheOptions(buildCacheRefPDF3),
 			Tag:         devImageTagPDF3,
 		}
 	} else {
@@ -366,6 +370,24 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 	}
 
 	return images
+}
+
+func buildCacheOptions(ref string) types.BuildOptions {
+	if ref == "" || !config.IsTruthyEnv(os.Getenv("CI")) {
+		return types.BuildOptions{
+			CacheFrom: nil,
+			CacheTo:   nil,
+		}
+	}
+
+	opts := types.BuildOptions{
+		CacheFrom: []string{"type=registry,ref=" + ref},
+		CacheTo:   nil,
+	}
+	if config.IsTruthyEnv(os.Getenv(config.EnvRegistryCacheWrite)) {
+		opts.CacheTo = []string{"type=registry,ref=" + ref + ",mode=max"}
+	}
+	return opts
 }
 
 func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageResource {
@@ -468,27 +490,39 @@ func newContainerResource(
 			Image:          resource.Ref(imageRes),
 			Networks:       []resource.ResourceRef{network},
 			NetworkAliases: nil,
-			Labels:         labels,
-			Ports:          nil,
-			Volumes:        nil,
-			Env:            nil,
-			Command:        nil,
-			ExtraHosts:     nil,
-			RestartPolicy:  "",
-			User:           "",
+			Lifecycle: resource.ContainerLifecycleOptions{
+				LifecycleOptions: resource.LifecycleOptions{
+					HandleDestroyError: nil,
+				},
+				WaitForReady: false,
+			},
+			Labels:        labels,
+			Ports:         nil,
+			Volumes:       nil,
+			Env:           nil,
+			Command:       nil,
+			ExtraHosts:    nil,
+			RestartPolicy: "",
+			User:          "",
 		}
 	}
 
 	return &resource.Container{
-		Name:           spec.Name,
-		Image:          resource.Ref(imageRes),
-		Networks:       []resource.ResourceRef{network},
-		Ports:          spec.Ports,
-		Volumes:        spec.Volumes,
-		Env:            toEnvSlice(spec.Environment),
-		Labels:         labels,
-		Command:        spec.Command,
-		ExtraHosts:     spec.ExtraHosts,
+		Name:       spec.Name,
+		Image:      resource.Ref(imageRes),
+		Networks:   []resource.ResourceRef{network},
+		Ports:      spec.Ports,
+		Volumes:    spec.Volumes,
+		Env:        toEnvSlice(spec.Environment),
+		Labels:     labels,
+		Command:    spec.Command,
+		ExtraHosts: spec.ExtraHosts,
+		Lifecycle: resource.ContainerLifecycleOptions{
+			LifecycleOptions: resource.LifecycleOptions{
+				HandleDestroyError: nil,
+			},
+			WaitForReady: true,
+		},
 		NetworkAliases: spec.NetworkAliases,
 		RestartPolicy:  "",
 		User:           user,

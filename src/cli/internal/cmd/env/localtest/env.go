@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"altinn.studio/devenv/pkg/container"
@@ -436,7 +435,7 @@ func (e *Env) buildResourceOptions(
 }
 
 func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig, string) {
-	if !isTruthyEnv(os.Getenv(config.EnvInternalDevMode)) {
+	if !config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)) {
 		return ReleaseMode, nil, ""
 	}
 
@@ -460,10 +459,6 @@ func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string)
 	}
 
 	return DevMode, &devCfg, ""
-}
-
-func isTruthyEnv(value string) bool {
-	return value == "1" || strings.EqualFold(value, "true")
 }
 
 // FormatLocaltestURL returns the localtest URL, omitting port 80 since browsers default to it.

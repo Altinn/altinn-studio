@@ -3,20 +3,22 @@ package run
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/appcontainers"
+	"altinn.studio/studioctl/internal/appimage"
+	"altinn.studio/studioctl/internal/appnaming"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	repocontext "altinn.studio/studioctl/internal/context"
 )
 
 // TODO: this should come from the "current env".
-const localtestLoopbackHost = "127.0.0.1"
+const (
+	localtestLoopbackHost           = "127.0.0.1"
+	localtestAppContainerNamePrefix = "localtest-app-"
+)
 
 func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]string {
 	return map[string]string{
@@ -68,11 +70,13 @@ type DotnetRunSpec struct {
 
 // DockerRunSpec contains container execution details for `studioctl run --mode docker`.
 type DockerRunSpec struct {
-	ContextPath       string
-	Dockerfile        string
-	DockerfileContent string
-	ImageTag          string
-	Config            types.ContainerConfig
+	Config types.ContainerConfig
+}
+
+// DockerRunOptions contains docker run-specific app options.
+type DockerRunOptions struct {
+	ImageTag       string
+	RandomHostPort bool
 }
 
 // ResolveApp detects the target app directory.
@@ -107,12 +111,12 @@ func (s *Service) BuildDotnetRunSpec(_ context.Context, appPath string, args, en
 func (s *Service) BuildDockerRunSpec(
 	result repocontext.Detection,
 	args []string,
-	randomHostPort bool,
+	opts DockerRunOptions,
 ) (DockerRunSpec, error) {
 	appPath := result.AppRoot
-	nameSuffix := appNameSuffix(appPath)
+	appName := appnaming.AppNameFromPath(appPath)
 	hostPort := appcontainers.DefaultContainerPort
-	if randomHostPort {
+	if opts.RandomHostPort {
 		hostPort = ""
 	}
 
@@ -120,20 +124,15 @@ func (s *Service) BuildDockerRunSpec(
 	env = appendEnvIfUnset(env, "Kestrel__EndPoints__Http__Url", "http://*:"+appcontainers.DefaultContainerPort)
 	env = appendDockerLocaltestEnvIfUnset(env)
 
-	imageTag := "studioctl-app:" + nameSuffix
-	runRepo, err := newRepoContext(result)
-	if err != nil {
-		return DockerRunSpec{}, err
-	}
-	contextPath, dockerfile, dockerfileContent, err := dockerBuildInputs(runRepo)
-	if err != nil {
-		return DockerRunSpec{}, err
+	imageTag := opts.ImageTag
+	if imageTag == "" {
+		imageTag = appimage.DefaultLocalTag(appPath)
 	}
 
 	return DockerRunSpec{
 		Config: types.ContainerConfig{
 			Labels:         appcontainers.Labels(appPath),
-			Name:           "studioctl-app-" + nameSuffix,
+			Name:           localtestAppContainerNamePrefix + appName,
 			Image:          imageTag,
 			User:           "",
 			RestartPolicy:  "",
@@ -156,23 +155,7 @@ func (s *Service) BuildDockerRunSpec(
 			CapAdd:  nil,
 			Detach:  true,
 		},
-		ContextPath:       contextPath,
-		Dockerfile:        dockerfile,
-		DockerfileContent: dockerfileContent,
-		ImageTag:          imageTag,
 	}, nil
-}
-
-func dockerBuildInputs(runRepo repoContext) (contextPath, dockerfile, dockerfileContent string, err error) {
-	if !runRepo.UseGeneratedDockerfile {
-		return runRepo.BuildRoot, filepath.Join(runRepo.AppRoot, "Dockerfile"), "", nil
-	}
-
-	content, err := generateDockerfile(runRepo)
-	if err != nil {
-		return "", "", "", err
-	}
-	return runRepo.BuildRoot, "", content, nil
 }
 
 func appendLocaltestEnvIfUnset(env []string) []string {
@@ -199,28 +182,4 @@ func appendEnvIfUnset(env []string, key, value string) []string {
 		}
 	}
 	return append(env, key+"="+value)
-}
-
-func appNameSuffix(appPath string) string {
-	hash := sha256.Sum256([]byte(appPath))
-	name := sanitizeName(filepath.Base(appPath))
-	if name == "" {
-		name = "app"
-	}
-	return name + "-" + hex.EncodeToString(hash[:])[:12]
-}
-
-func sanitizeName(value string) string {
-	value = strings.ToLower(value)
-	var b strings.Builder
-	b.Grow(len(value))
-	for _, r := range value {
-		switch {
-		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
-			b.WriteRune(r)
-		case b.Len() > 0:
-			b.WriteByte('-')
-		}
-	}
-	return strings.Trim(b.String(), "-")
 }

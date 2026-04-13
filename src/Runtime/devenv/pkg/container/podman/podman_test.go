@@ -30,6 +30,34 @@ func TestParseContainerInspect_ImageIDUsesImageNotDigest(t *testing.T) {
 	}
 }
 
+func TestParseContainerInspect_HealthStatus(t *testing.T) {
+	t.Parallel()
+
+	output := []byte(`[
+  {
+    "Id": "container-id",
+    "Name": "my-container",
+    "Image": "sha256:image-id",
+    "Config": { "Labels": {} },
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "ExitCode": 0,
+      "Healthcheck": { "Status": "healthy" }
+    }
+  }
+]`)
+
+	info, err := parseContainerInspect(output)
+	if err != nil {
+		t.Fatalf("parseContainerInspect() error: %v", err)
+	}
+	if info.State.HealthStatus != "healthy" {
+		t.Fatalf("HealthStatus = %q, want healthy", info.State.HealthStatus)
+	}
+}
+
 func TestParseContainerInspect_Empty_ReturnsNotFound(t *testing.T) {
 	t.Parallel()
 

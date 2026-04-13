@@ -4,7 +4,8 @@
 
 import { spawn } from 'child_process';
 import dotenv from 'dotenv';
-import { existsSync, mkdirSync, readdirSync, renameSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync } from 'fs';
+import { resolve } from 'path';
 
 const apps = readdirSync('./test/e2e/integration');
 const env = dotenv.config({ quiet: true }).parsed || {};
@@ -48,14 +49,14 @@ if (environment && !existsSync(`./test/e2e/config/${environment}.json`)) {
   process.exit(1);
 }
 
-if (environment !== 'tt02' && !env.CYPRESS_APPS_DIR) {
-  console.log(`Please set CYPRESS_APPS_DIR in your .env file to the directory where the apps are located.`);
-  process.exit(1);
-}
-
-const appsDir = env.CYPRESS_APPS_DIR;
+const appsDir = environment === 'tt02' ? undefined : resolve(env.CYPRESS_APPS_DIR || '../../test/apps');
 
 if (environment !== 'tt02') {
+  if (!appsDir || !existsSync(appsDir)) {
+    console.log(`Apps directory does not exist: ${appsDir}`);
+    process.exit(1);
+  }
+
   // Make sure every found test directory has a matching app
   const appDirs = readdirSync(appsDir);
   const appDirsSet = new Set(appDirs);
@@ -77,6 +78,10 @@ for (const app of apps) {
 
 console.log(``);
 async function runAll() {
+  if (environment !== 'tt02') {
+    await runStudioctl(['servers', 'up']);
+  }
+
   for (const app of apps) {
     if (environment === 'tt02') {
       await runCypressTests(app);
@@ -84,58 +89,174 @@ async function runAll() {
     }
 
     console.log(`Starting app: ${app}`);
-    const proc = spawn('dotnet', ['run'], { cwd: `${appsDir}/${app}/App` });
-    let successful = false;
-
-    // Connect to the output and wait until we find the line `Now listening on: http://[::]:5005`
-    proc.stdout.on('data', async (data) => {
-      const line = data.toString().trim();
-      if (line.includes('Now listening on: http://[::]:5005')) {
-        console.log(`App started successfully, running test suite`);
-        successful = true;
-        await runCypressTests(app);
-        proc.kill();
-      }
-    });
-
-    proc.on('close', (code) => {
-      if (!successful) {
-        console.error(`App failed to start, code ${code}`);
-      }
-    });
-
-    await new Promise((resolve) => proc.on('close', resolve));
+    await startApp(app);
+    try {
+      await waitForLocaltestApp(app);
+      await runCypressTests(app);
+    } finally {
+      await stopApp(app);
+    }
   }
 }
 
 async function runCypressTests(app: string) {
-  const proc = spawn('npx', ['cypress', 'run', ...allArgs, '-s', `test/e2e/integration/${app}/*.ts`], {
-    stdio: 'inherit',
-  });
+  try {
+    await runProcess('npx', ['cypress', 'run', ...allArgs, '-s', `test/e2e/integration/${app}/*.ts`]);
+  } finally {
+    // Keep Cypress artifacts even when the test process fails.
+    const artifactsAppDir = `${artifactsDir}/${startTime}-${app}`;
+    const sourceArtifacts = [
+      './test/screenshots',
+      './test/videos',
+      './test/reports',
+      './test/redux-history',
+      './test/logs',
+    ];
 
-  await new Promise((resolve) => proc.on('close', resolve));
-
-  // When the tests are done, there may be screenshots, videos, etc in the main test dir. We'll clean those up
-  // and move them to the artifacts dir, in sub-folders for each test app (and the timestamp when our tests started)
-  const artifactsAppDir = `${artifactsDir}/${startTime}-${app}`;
-  const sourceArtifacts = [
-    './test/screenshots',
-    './test/videos',
-    './test/reports',
-    './test/redux-history',
-    './test/logs',
-  ];
-
-  mkdirSync(artifactsAppDir, { recursive: true });
-  for (const source of sourceArtifacts) {
-    if (!existsSync(source)) {
-      continue;
+    mkdirSync(artifactsAppDir, { recursive: true });
+    for (const source of sourceArtifacts) {
+      if (!existsSync(source)) {
+        continue;
+      }
+      renameSync(source, `${artifactsAppDir}/${source.split('/').pop()}`);
     }
-    renameSync(source, `${artifactsAppDir}/${source.split('/').pop()}`);
   }
 }
 
-runAll().then(() => {
-  console.log('All apps have been started and all tests have been run');
-  process.exit(0);
-});
+async function startApp(app: string) {
+  await runStudioctl(['run', '--mode', 'docker', '--detach', '--random-host-port', '--path', appPath(app)]);
+}
+
+async function stopApp(app: string) {
+  // TODO: "studioctl stop"
+  const appContainerIds = (
+    await runProcessOutput('docker', [
+      'ps',
+      '-aq',
+      '--filter',
+      'label=altinn.studio/cli=app',
+      '--filter',
+      'label=altinn.studio/app-discovery=true',
+      '--filter',
+      'label=altinn.studio/cli-kind=app',
+      '--filter',
+      `label=altinn.studio/app-path=${appPath(app)}`,
+    ])
+  )
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (appContainerIds.length === 0) {
+    return;
+  }
+
+  console.log(`Stopping app: ${app}`);
+  await runProcess('docker', ['rm', '-f', ...appContainerIds]);
+}
+
+async function waitForLocaltestApp(app: string) {
+  if (!appsDir) {
+    throw new Error('appsDir is required when waiting for local apps');
+  }
+
+  const appId = readAppId(app);
+  const url = new URL(`${appId}/`, cypressBaseUrl()).toString();
+  const deadline = Date.now() + 180_000;
+  let lastStatus = 'no response';
+
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url, { redirect: 'manual' });
+      lastStatus = response.status.toString();
+      if (response.status < 500 && response.status !== 404) {
+        return;
+      }
+    } catch (error) {
+      lastStatus = error instanceof Error ? error.message : String(error);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  throw new Error(`Timed out waiting for ${appId} at ${url}. Last status: ${lastStatus}`);
+}
+
+function readAppId(app: string) {
+  if (!appsDir) {
+    throw new Error('appsDir is required when reading app metadata');
+  }
+
+  const metadata = JSON.parse(readFileSync(resolve(appsDir, app, 'App/config/applicationmetadata.json'), 'utf8')) as {
+    id?: string;
+  };
+  if (!metadata.id) {
+    throw new Error(`Missing app id in applicationmetadata.json for ${app}`);
+  }
+  return metadata.id;
+}
+
+function appPath(app: string) {
+  if (!appsDir) {
+    throw new Error('appsDir is required when running local apps');
+  }
+  return resolve(appsDir, app);
+}
+
+function cypressBaseUrl() {
+  const config = JSON.parse(readFileSync(`./test/e2e/config/${environment}.json`, 'utf8')) as { baseUrl?: string };
+  if (!config.baseUrl) {
+    throw new Error(`Missing baseUrl in Cypress config for ${environment}`);
+  }
+  return config.baseUrl.endsWith('/') ? config.baseUrl : `${config.baseUrl}/`;
+}
+
+async function runProcess(command: string, args: string[], env = process.env) {
+  const proc = spawn(command, args, { stdio: 'inherit', env });
+  const exitCode = await new Promise<number | null>((resolve, reject) => {
+    proc.on('error', reject);
+    proc.on('close', resolve);
+  });
+
+  if (exitCode !== 0) {
+    throw new Error(`${command} exited with code ${exitCode}`);
+  }
+}
+
+async function runProcessOutput(command: string, args: string[], env = process.env) {
+  const proc = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'], env });
+  let stdout = '';
+  let stderr = '';
+
+  proc.stdout.on('data', (data) => {
+    stdout += data;
+  });
+  proc.stderr.on('data', (data) => {
+    stderr += data;
+  });
+
+  const exitCode = await new Promise<number | null>((resolve, reject) => {
+    proc.on('error', reject);
+    proc.on('close', resolve);
+  });
+
+  if (exitCode !== 0) {
+    throw new Error(`${command} exited with code ${exitCode}: ${stderr.trim()}`);
+  }
+
+  return stdout;
+}
+
+async function runStudioctl(args: string[]) {
+  await runProcess('studioctl', args);
+}
+
+runAll()
+  .then(() => {
+    console.log('All apps have been started and all tests have been run');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

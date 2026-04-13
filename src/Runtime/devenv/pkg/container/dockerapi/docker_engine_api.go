@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -135,8 +136,8 @@ func (c *Client) Close() error {
 // Build builds a container image from a Dockerfile.
 // Uses CLI with BuildKit for proper --platform=$BUILDPLATFORM support in Dockerfiles.
 // The Docker Engine API doesn't support BuildKit sessions without complex setup.
-func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	return c.BuildWithProgress(ctx, contextPath, dockerfile, tag, nil)
+func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error {
+	return c.BuildWithProgress(ctx, contextPath, dockerfile, tag, nil, opts...)
 }
 
 // BuildWithProgress builds a container image and emits best-effort progress updates.
@@ -144,6 +145,7 @@ func (c *Client) BuildWithProgress(
 	ctx context.Context,
 	contextPath, dockerfile, tag string,
 	onProgress types.ProgressHandler,
+	opts ...types.BuildOptions,
 ) error {
 	binary := c.toolchain.Platform.BuildCLI()
 	if binary == "" {
@@ -160,20 +162,45 @@ func (c *Client) BuildWithProgress(
 		return errBuildxRequired
 	}
 
-	args := []string{
-		"build",
-		"--progress", "rawjson",
-		"--provenance=false",
-		"--sbom=false",
-		"-t", tag,
-		"-f", dockerfile,
-		contextPath,
-	}
+	args := dockerBuildArgs(contextPath, dockerfile, tag, firstBuildOptions(opts))
 	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
 	cmd := exec.CommandContext(ctx, binary, args...)
 	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 
 	return runStreamingBuild(binary, cmd, onProgress)
+}
+
+func dockerBuildArgs(contextPath, dockerfile, tag string, opts types.BuildOptions) []string {
+	args := make([]string, 0, 7+2*len(opts.CacheFrom)+2*len(opts.CacheTo)+5)
+	if buildxBuild(opts) {
+		args = append(args, "buildx", "build", "--load")
+	} else {
+		args = append(args, "build")
+	}
+	args = append(args, "--progress", "rawjson", "--provenance=false", "--sbom=false")
+	for _, cacheFrom := range opts.CacheFrom {
+		args = append(args, "--cache-from", cacheFrom)
+	}
+	for _, cacheTo := range opts.CacheTo {
+		args = append(args, "--cache-to", cacheTo)
+	}
+	args = append(args,
+		"-t", tag,
+		"-f", dockerfile,
+		contextPath,
+	)
+	return args
+}
+
+func buildxBuild(opts types.BuildOptions) bool {
+	return len(opts.CacheFrom) > 0 || len(opts.CacheTo) > 0
+}
+
+func firstBuildOptions(opts []types.BuildOptions) types.BuildOptions {
+	if len(opts) == 0 {
+		return types.BuildOptions{}
+	}
+	return opts[0]
 }
 
 // hasBuildx checks whether the Docker CLI has the buildx plugin installed.
@@ -443,10 +470,11 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 		return types.ContainerState{}, fmt.Errorf("failed to inspect container: %w", err)
 	}
 	return types.ContainerState{
-		Status:   info.State.Status,
-		Running:  info.State.Running,
-		Paused:   info.State.Paused,
-		ExitCode: info.State.ExitCode,
+		Status:       info.State.Status,
+		HealthStatus: dockerHealthStatus(info.State),
+		Running:      info.State.Running,
+		Paused:       info.State.Paused,
+		ExitCode:     info.State.ExitCode,
 	}, nil
 }
 
@@ -613,12 +641,20 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 		Labels:  info.Config.Labels,
 		Ports:   publishedPortsFromInspect(info.NetworkSettings),
 		State: types.ContainerState{
-			Status:   info.State.Status,
-			Running:  info.State.Running,
-			Paused:   info.State.Paused,
-			ExitCode: info.State.ExitCode,
+			Status:       info.State.Status,
+			HealthStatus: dockerHealthStatus(info.State),
+			Running:      info.State.Running,
+			Paused:       info.State.Paused,
+			ExitCode:     info.State.ExitCode,
 		},
 	}, nil
+}
+
+func dockerHealthStatus(state *dockercontainer.State) string {
+	if state == nil || state.Health == nil {
+		return ""
+	}
+	return state.Health.Status
 }
 
 // ListContainers returns containers matching the provided filters.
@@ -650,7 +686,7 @@ func (c *Client) ListContainers(ctx context.Context, filter types.ContainerListF
 			Labels:  ctr.Labels,
 			Ports:   publishedPortsFromSummary(ctr.Ports),
 			State: types.ContainerState{
-				Status:  string(ctr.State),
+				Status:  ctr.State,
 				Running: ctr.State == dockercontainer.StateRunning,
 			},
 		})
@@ -695,8 +731,8 @@ func publishedPortsFromSummary(ports []dockercontainer.Port) []types.PublishedPo
 		}
 		result = append(result, types.PublishedPort{
 			HostIP:        port.IP,
-			HostPort:      fmt.Sprint(port.PublicPort),
-			ContainerPort: fmt.Sprint(port.PrivatePort),
+			HostPort:      strconv.FormatUint(uint64(port.PublicPort), 10),
+			ContainerPort: strconv.FormatUint(uint64(port.PrivatePort), 10),
 			Protocol:      port.Type,
 		})
 	}

@@ -67,8 +67,8 @@ func runPodmanCommand(ctx context.Context, args []string) ([]byte, error) {
 }
 
 // Build builds a container image from a Dockerfile.
-func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	return c.BuildWithProgress(ctx, contextPath, dockerfile, tag, nil)
+func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error {
+	return c.BuildWithProgress(ctx, contextPath, dockerfile, tag, nil, opts...)
 }
 
 // BuildWithProgress builds a container image and emits best-effort progress updates.
@@ -76,6 +76,7 @@ func (c *Client) BuildWithProgress(
 	ctx context.Context,
 	contextPath, dockerfile, tag string,
 	onProgress types.ProgressHandler,
+	_ ...types.BuildOptions,
 ) error {
 	// Podman CLI does not expose a stable structured progress stream here.
 	// Emit lifecycle progress only to avoid brittle output parsing.
@@ -227,21 +228,17 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 		return types.ContainerState{}, fmt.Errorf("failed to inspect container: %w: %s", err, string(output))
 	}
 
-	var state struct {
-		Status   string `json:"Status"`
-		Running  bool   `json:"Running"`
-		Paused   bool   `json:"Paused"`
-		ExitCode int    `json:"ExitCode"`
-	}
+	var state podmanContainerState
 	if err := json.Unmarshal(bytes.TrimSpace(output), &state); err != nil {
 		return types.ContainerState{}, fmt.Errorf("failed to parse container state: %w", err)
 	}
 
 	return types.ContainerState{
-		Status:   state.Status,
-		Running:  state.Running,
-		Paused:   state.Paused,
-		ExitCode: state.ExitCode,
+		Status:       state.Status,
+		HealthStatus: podmanHealthStatus(state.Health.Status, state.Healthcheck.Status),
+		Running:      state.Running,
+		Paused:       state.Paused,
+		ExitCode:     state.ExitCode,
 	}, nil
 }
 
@@ -399,18 +396,26 @@ type containerInspectInfo struct {
 	Config      struct {
 		Labels map[string]string `json:"Labels"`
 	} `json:"Config"`
-	State struct {
-		Status   string `json:"Status"`
-		Running  bool   `json:"Running"`
-		Paused   bool   `json:"Paused"`
-		ExitCode int    `json:"ExitCode"`
-	} `json:"State"`
 	NetworkSettings struct {
 		Ports map[string][]struct {
 			HostIP   string `json:"HostIp"`
 			HostPort string `json:"HostPort"`
 		} `json:"Ports"`
 	} `json:"NetworkSettings"`
+	State podmanContainerState `json:"State"`
+}
+
+type podmanContainerState struct {
+	Status      string           `json:"Status"`
+	Health      podmanHealthInfo `json:"Health"`
+	Healthcheck podmanHealthInfo `json:"Healthcheck"`
+	ExitCode    int              `json:"ExitCode"`
+	Running     bool             `json:"Running"`
+	Paused      bool             `json:"Paused"`
+}
+
+type podmanHealthInfo struct {
+	Status string `json:"Status"`
 }
 
 func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
@@ -432,12 +437,20 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 		Labels:  info[0].Config.Labels,
 		Ports:   publishedPortsFromPodmanInspect(info[0].NetworkSettings.Ports),
 		State: types.ContainerState{
-			Status:   info[0].State.Status,
-			Running:  info[0].State.Running,
-			Paused:   info[0].State.Paused,
-			ExitCode: info[0].State.ExitCode,
+			Status:       info[0].State.Status,
+			HealthStatus: podmanHealthStatus(info[0].State.Health.Status, info[0].State.Healthcheck.Status),
+			Running:      info[0].State.Running,
+			Paused:       info[0].State.Paused,
+			ExitCode:     info[0].State.ExitCode,
 		},
 	}, nil
+}
+
+func podmanHealthStatus(health, healthcheck string) string {
+	if health != "" {
+		return health
+	}
+	return healthcheck
 }
 
 // ContainerInspect returns detailed information about a container.
@@ -459,13 +472,13 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 type podmanContainerListInfo struct {
 	ID      string                `json:"Id"`
 	Name    string                `json:"Name"`
-	Names   []string              `json:"Names"`
 	Image   string                `json:"Image"`
 	ImageID string                `json:"ImageID"`
-	Labels  map[string]string     `json:"Labels"`
-	Ports   []podmanPublishedPort `json:"Ports"`
 	State   string                `json:"State"`
 	Status  string                `json:"Status"`
+	Labels  map[string]string     `json:"Labels"`
+	Names   []string              `json:"Names"`
+	Ports   []podmanPublishedPort `json:"Ports"`
 }
 
 type podmanPublishedPort struct {
@@ -495,8 +508,11 @@ func (v *stringOrNumber) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v stringOrNumber) String() string {
-	return string(v)
+func (v *stringOrNumber) String() string {
+	if v == nil {
+		return ""
+	}
+	return string(*v)
 }
 
 // ListContainers returns containers matching the provided filters.
