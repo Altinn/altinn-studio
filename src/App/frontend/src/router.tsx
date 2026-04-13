@@ -15,7 +15,7 @@ import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
 import { statelessIndexLoader } from 'src/routes/index/stateless-index.loader';
 import { instanceLoader } from 'src/routes/instance/instance.loader';
-import { Component as InstanceRoute } from 'src/routes/instance/instance.route';
+import { Component as InstanceRoute, ErrorBoundary as InstanceErrorBoundary } from 'src/routes/instance/instance.route';
 import { instanceIndexLoader } from 'src/routes/instance/instance-index.loader';
 import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
 import { Component as InstanceSelectionRoute } from 'src/routes/instance-selection/instance-selection.route';
@@ -55,6 +55,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instance,
             Component: InstanceRoute,
+            ErrorBoundary: InstanceErrorBoundary,
             loader: instanceLoader(queryClient, instanceApi),
             shouldRevalidate: ({ currentParams, nextParams }) =>
               currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
