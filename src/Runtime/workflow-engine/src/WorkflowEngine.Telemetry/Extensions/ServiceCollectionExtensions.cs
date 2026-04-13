@@ -131,7 +131,7 @@ public static class ServiceCollectionExtensions
                         builder.AddMeter("Microsoft.EntityFrameworkCore");
                     }
 
-                    if (enableDatabaseMetrics || enableDatabaseInstrumentation)
+                    if (enableDatabaseMetrics)
                     {
                         builder.AddMeter("Npgsql");
                     }
