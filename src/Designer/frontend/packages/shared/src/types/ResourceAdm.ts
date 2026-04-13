@@ -48,7 +48,8 @@ export type ResourceTypeOption =
   | 'MaskinportenSchema'
   | 'BrokerService'
   | 'CorrespondenceService'
-  | 'Consent';
+  | 'Consent'
+  | 'AltinnApp';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 

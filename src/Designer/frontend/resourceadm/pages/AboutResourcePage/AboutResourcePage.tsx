@@ -75,6 +75,9 @@ export const AboutResourcePage = ({
       if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
         return false;
       }
+      if (key === 'AltinnApp' && resourceData.resourceType !== 'AltinnApp') {
+        return false;
+      }
       return true;
     })
     .map(([key, value]) => ({
