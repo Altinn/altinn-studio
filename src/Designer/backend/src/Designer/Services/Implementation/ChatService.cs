@@ -42,14 +42,14 @@ public class ChatService(IChatRepository repository) : IChatService
 
     public async Task UpdateThreadAsync(
         Guid threadId,
-        string title,
+        UpdateChatThreadRequest request,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
     {
         ChatThreadEntity thread = await GetThreadByIdAsync(threadId, cancellationToken);
-        VerifyThreadOwner(thread, context);
-        thread.Title = title;
+        VerifyUserOwnsThread(thread, context);
+        thread.Title = request.Title;
         await repository.UpdateThreadAsync(thread, cancellationToken);
     }
 
@@ -63,7 +63,7 @@ public class ChatService(IChatRepository repository) : IChatService
         if (thread is null)
             return;
 
-        VerifyThreadOwner(thread, context);
+        VerifyUserOwnsThread(thread, context);
         await repository.DeleteThreadAsync(threadId, cancellationToken);
     }
 
@@ -74,7 +74,7 @@ public class ChatService(IChatRepository repository) : IChatService
     )
     {
         ChatThreadEntity thread = await GetThreadByIdAsync(threadId, cancellationToken);
-        VerifyThreadOwner(thread, context);
+        VerifyUserOwnsThread(thread, context);
         return await repository.GetMessagesAsync(threadId, cancellationToken);
     }
 
@@ -86,7 +86,7 @@ public class ChatService(IChatRepository repository) : IChatService
     )
     {
         ChatThreadEntity thread = await GetThreadByIdAsync(threadId, cancellationToken);
-        VerifyThreadOwner(thread, context);
+        VerifyUserOwnsThread(thread, context);
 
         if (!Enum.TryParse<Role>(request.Role, ignoreCase: true, out var parsedRole))
         {
@@ -127,7 +127,7 @@ public class ChatService(IChatRepository repository) : IChatService
             ?? throw new KeyNotFoundException($"Chat thread with id '{threadId}' was not found.");
     }
 
-    private static void VerifyThreadOwner(ChatThreadEntity thread, AltinnRepoEditingContext context)
+    private static void VerifyUserOwnsThread(ChatThreadEntity thread, AltinnRepoEditingContext context)
     {
         if (thread.CreatedBy != context.Developer)
             throw new UnauthorizedAccessException($"User does not have access to chat thread '{thread.Id}'.");

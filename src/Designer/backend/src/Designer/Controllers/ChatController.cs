@@ -58,7 +58,7 @@ public class ChatController(IChatService chatService) : ControllerBase
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
         try
         {
-            await chatService.UpdateThreadAsync(threadId, request.Title, editingContext, cancellationToken);
+            await chatService.UpdateThreadAsync(threadId, request, editingContext, cancellationToken);
         }
         catch (KeyNotFoundException)
         {

@@ -22,7 +22,7 @@ public interface IChatService
 
     Task UpdateThreadAsync(
         Guid threadId,
-        string title,
+        UpdateChatThreadRequest request,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     );
