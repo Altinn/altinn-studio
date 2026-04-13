@@ -141,7 +141,6 @@ const defaultQueryMocks: AppQueries = {
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchBackendValidations: async () => [],
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
