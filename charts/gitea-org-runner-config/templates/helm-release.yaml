@@ -33,10 +33,10 @@ spec:
     resources:
       requests:
         cpu: 500m
-        memory: 3Gi
+        memory: 5Gi
       limits:
         cpu: "2"
-        memory: 3Gi
+        memory: 5Gi
     runners:
     {{- $giteaUrl := .Values.giteaInstanceUrl }}
     {{- range index .Values.runners .Values.environment }}
