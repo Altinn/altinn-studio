@@ -29,12 +29,15 @@ type RenderProps = {
   onClose?: jest.Mock;
 };
 
-const renderSlackChannelDialog = ({
-  initialValue = defaultChannel,
-  availableEnvironments = ['tt02', 'production'],
-  editingId = null,
-  onClose = jest.fn(),
-}: RenderProps = {}) =>
+const renderSlackChannelDialog = (
+  {
+    initialValue = defaultChannel,
+    availableEnvironments = ['tt02', 'production'],
+    editingId = null,
+    onClose = jest.fn(),
+  }: RenderProps = {},
+  queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
+) =>
   renderWithProviders(
     <SlackChannelDialog
       initialValue={initialValue}
@@ -43,6 +46,7 @@ const renderSlackChannelDialog = ({
       editingId={editingId}
       onClose={onClose}
     />,
+    { queries },
   );
 
 const getAddButton = () => screen.getByRole('button', { name: textMock('general.add') });
@@ -196,5 +200,23 @@ describe('SlackChannelDialog', () => {
     });
     await user.click(getAddButton());
     expect(queriesMock.addContactPoint).not.toHaveBeenCalled();
+  });
+
+  it('does not call onClose when cancel is clicked while saving', async () => {
+    const addContactPoint = jest.fn(() => new Promise<never>(() => {})); // never resolves
+    const onClose = jest.fn();
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ initialValue: validChannel, onClose }, { addContactPoint });
+    await user.click(getAddButton());
+    await user.click(getCancelButton());
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose when cancel is clicked while not saving', async () => {
+    const onClose = jest.fn();
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ onClose });
+    await user.click(getCancelButton());
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

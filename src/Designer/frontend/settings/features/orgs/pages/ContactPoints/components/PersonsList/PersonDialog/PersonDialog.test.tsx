@@ -23,12 +23,15 @@ type RenderProps = {
   onClose?: jest.Mock;
 };
 
-const renderPersonDialog = ({
-  initialValue = defaultPerson,
-  availableEnvironments = ['tt02', 'production'],
-  editingId = null,
-  onClose = jest.fn(),
-}: RenderProps = {}) =>
+const renderPersonDialog = (
+  {
+    initialValue = defaultPerson,
+    availableEnvironments = ['tt02', 'production'],
+    editingId = null,
+    onClose = jest.fn(),
+  }: RenderProps = {},
+  queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
+) =>
   renderWithProviders(
     <PersonDialog
       initialValue={initialValue}
@@ -37,6 +40,7 @@ const renderPersonDialog = ({
       editingId={editingId}
       onClose={onClose}
     />,
+    { queries },
   );
 
 const getAddButton = () => screen.getByRole('button', { name: textMock('general.add') });
@@ -220,5 +224,26 @@ describe('PersonDialog', () => {
     });
     await user.click(getAddButton());
     expect(screen.queryByText(textMock('validation_errors.invalid_phone'))).not.toBeInTheDocument();
+  });
+
+  it('does not call onClose when cancel is clicked while saving', async () => {
+    const addContactPoint = jest.fn(() => new Promise<never>(() => {})); // never resolves
+    const onClose = jest.fn();
+    const user = userEvent.setup();
+    renderPersonDialog(
+      { initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' }, onClose },
+      { addContactPoint },
+    );
+    await user.click(getAddButton());
+    await user.click(getCancelButton());
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose when cancel is clicked while not saving', async () => {
+    const onClose = jest.fn();
+    const user = userEvent.setup();
+    renderPersonDialog({ onClose });
+    await user.click(getCancelButton());
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

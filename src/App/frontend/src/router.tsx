@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -11,6 +11,7 @@ import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { Loader } from 'src/core/loading/Loader';
 import { GlobalData } from 'src/GlobalData';
+import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
 import { statelessIndexLoader } from 'src/routes/index/stateless-index.loader';
@@ -56,7 +57,7 @@ export function createRouter(queryClient: QueryClient) {
             path: routes.instance,
             Component: InstanceRoute,
             ErrorBoundary: InstanceErrorBoundary,
-            loader: instanceLoader(queryClient, instanceApi),
+            loader: instanceLoader(instanceApi),
             shouldRevalidate: ({ currentParams, nextParams }) =>
               currentParams.instanceOwnerPartyId !== nextParams.instanceOwnerPartyId ||
               currentParams.instanceGuid !== nextParams.instanceGuid,
@@ -138,6 +139,11 @@ export function createRouter(queryClient: QueryClient) {
     ],
     {
       basename: GlobalData.basename,
+      getContext() {
+        const context = new RouterContextProvider();
+        context.set(queryClientContext, queryClient);
+        return context;
+      },
     },
   );
 }
