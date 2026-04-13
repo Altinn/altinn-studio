@@ -115,7 +115,9 @@ spec:
         {{- end }}
         {{- if $.Values.dockerInDocker.enabled }}
         - name: docker-lib
-          emptyDir: {}
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi
         - name: docker-certs
           emptyDir: {}
         {{- end }}
