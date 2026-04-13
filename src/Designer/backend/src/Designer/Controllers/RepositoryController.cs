@@ -8,7 +8,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Helpers;
@@ -41,6 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
         private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
+        private readonly IBranchService _branchService;
 
         /// <summary>
         /// This is the API controller for functionality related to repositories.
@@ -52,17 +52,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
         /// <param name="syncHub">websocket syncHub</param>
+        /// <param name="branchService">the branch service</param>
         public RepositoryController(
             IGiteaClient giteaClient,
             ISourceControl sourceControl,
             IRepository repository,
-            IHubContext<SyncHub, ISyncClient> syncHub
+            IHubContext<SyncHub, ISyncClient> syncHub,
+            IBranchService branchService
         )
         {
             _giteaClient = giteaClient;
             _sourceControl = sourceControl;
             _repository = repository;
             _syncHub = syncHub;
+            _branchService = branchService;
         }
 
         /// <summary>
@@ -546,46 +549,23 @@ namespace Altinn.Studio.Designer.Controllers
         )]
         public async Task<ActionResult> DeleteBranch(string org, string repository, [FromRoute] string branchName)
         {
-            if (string.IsNullOrWhiteSpace(branchName))
-            {
-                return BadRequest("Branch name is required");
-            }
-
-            try
-            {
-                Guard.AssertValidRepoBranchName(branchName);
-            }
-            catch (ArgumentException)
-            {
-                return BadRequest($"{branchName} is an invalid branch name.");
-            }
-
-            if (branchName == General.DefaultBranch)
-            {
-                return BadRequest("Cannot delete the default branch.");
-            }
-
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                repository,
-                developer
-            );
-
-            var currentBranch = _sourceControl.GetCurrentBranch(editingContext);
-            if (currentBranch.BranchName == branchName)
-            {
-                return BadRequest("Cannot delete the currently checked out branch.");
-            }
-
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
-            _sourceControl.DeleteRemoteBranchIfExists(authenticatedContext, branchName);
-            _sourceControl.DeleteLocalBranchIfExists(editingContext, branchName);
+            DeleteBranchResult result = _branchService.DeleteBranch(authenticatedContext, branchName);
 
-            return NoContent();
+            return result switch
+            {
+                DeleteBranchResult.Success => NoContent(),
+                DeleteBranchResult.InvalidBranchName => BadRequest($"{branchName} is an invalid branch name."),
+                DeleteBranchResult.DefaultBranchProtected => BadRequest("Cannot delete the default branch."),
+                DeleteBranchResult.CheckedOutBranchProtected => BadRequest(
+                    "Cannot delete the currently checked out branch."
+                ),
+                _ => StatusCode(500),
+            };
         }
 
         /// <summary>
