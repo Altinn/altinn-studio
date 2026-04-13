@@ -64,10 +64,6 @@ public class ChatController(IChatService chatService) : ControllerBase
         {
             return NotFound();
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
         return NoContent();
     }
 
@@ -80,14 +76,7 @@ public class ChatController(IChatService chatService) : ControllerBase
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        try
-        {
-            await chatService.DeleteThreadAsync(threadId, editingContext, cancellationToken);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
+        await chatService.DeleteThreadAsync(threadId, editingContext, cancellationToken);
         return NoContent();
     }
 
@@ -112,10 +101,6 @@ public class ChatController(IChatService chatService) : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
         }
     }
 
@@ -142,10 +127,6 @@ public class ChatController(IChatService chatService) : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
         }
         catch (ArgumentException ex)
         {

@@ -36,14 +36,22 @@ public class ChatRepository : IChatRepository
     }
 
     /// <inheritdoc />
-    public async Task<ChatThreadEntity?> GetThreadByIdAsync(
+    public async Task<ChatThreadEntity?> GetThreadAsync(
         Guid threadId,
+        AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
     {
         var dbModel = await _dbContext
             .ChatThreads.AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == threadId, cancellationToken);
+            .FirstOrDefaultAsync(
+                t =>
+                    t.Id == threadId
+                    && t.Org == context.Org
+                    && t.App == context.Repo
+                    && t.CreatedBy == context.Developer,
+                cancellationToken
+            );
 
         return dbModel is null ? null : ChatThreadMapper.MapToModel(dbModel);
     }
