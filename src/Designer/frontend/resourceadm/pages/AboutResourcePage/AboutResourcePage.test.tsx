@@ -147,6 +147,27 @@ describe('AboutResourcePage', () => {
     expect(resourceTypeRadio).toBeChecked();
   });
 
+  it('should show resource type AltinnApp for migrated app', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockConsentResource, resourceType: 'AltinnApp' }}
+      />,
+    );
+
+    expect(
+      screen.getByLabelText(textMock('resourceadm.about_resource_resource_type_altinnapp')),
+    ).toBeInTheDocument();
+  });
+
+  it('should not show resource type AltinnApp for generic access resource', () => {
+    render(<AboutResourcePage {...defaultProps} />);
+
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type_altinnapp')),
+    ).not.toBeInTheDocument();
+  });
+
   it('handles title input change', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
