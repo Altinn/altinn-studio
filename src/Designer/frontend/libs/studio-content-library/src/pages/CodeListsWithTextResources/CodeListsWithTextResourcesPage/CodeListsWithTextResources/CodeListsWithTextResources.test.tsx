@@ -48,7 +48,6 @@ const codeListMultipleUsagesMock: CodeListReference[] = [
 describe('CodeListsWithTextResources', () => {
   afterEach(jest.clearAllMocks);
 
-  // TODO - This test is redundant as your are testing native functionality of details/summary. Consider removing it.
   it('renders the code list details closed by default', () => {
     renderCodeLists();
     const details = getDetailsBySummary(codeListName);
