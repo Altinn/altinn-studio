@@ -1,4 +1,4 @@
-import { type ReactNode, type JSX, createContext, useMemo, useState } from 'react';
+import { type ReactNode, type JSX, createContext, useMemo, useRef, useState } from 'react';
 import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
@@ -19,8 +19,10 @@ export const LoggerContextProvider = ({
   const reactPlugin = useMemo(() => new ReactPlugin(), []);
   const { environment } = useEnvironmentConfig();
   const [applicationInsights, setApplicationInsights] = useState<ApplicationInsights | null>(null);
+  const hasAttemptedInitialization = useRef(false);
 
-  if (environment?.aiConnectionString && !applicationInsights) {
+  if (environment?.aiConnectionString && !hasAttemptedInitialization.current) {
+    hasAttemptedInitialization.current = true;
     setApplicationInsights(
       initializeApplicationInsights(environment.aiConnectionString, config, reactPlugin),
     );
