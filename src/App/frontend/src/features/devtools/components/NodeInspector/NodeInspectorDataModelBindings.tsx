@@ -3,7 +3,7 @@ import React from 'react';
 import { useBindingSchema } from 'src/features/datamodel/useBindingSchema';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
@@ -14,7 +14,7 @@ interface Props {
 export function NodeInspectorDataModelBindings({ dataModelBindings }: Props) {
   const schema = useBindingSchema(dataModelBindings);
   const bindings = dataModelBindings as Record<string, IDataModelReference>;
-  const results = FD.useFreshBindings(bindings, 'raw');
+  const results = FormStore.data.useFreshBindings(bindings, 'raw');
   return (
     <Value
       property='dataModelBindings'

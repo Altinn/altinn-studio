@@ -943,6 +943,31 @@ public class GiteaClient(
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task<bool> IsTeamMemberAsync(
+        long teamId,
+        string username,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"teams/{teamId}/members/{username}",
+            cancellationToken
+        );
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+        response.EnsureSuccessStatusCode();
+        return true;
+    }
+
+    public async Task<List<User>> GetTeamMembersAsync(long teamId, CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync($"teams/{teamId}/members", cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<User>>(s_jsonOptions, cancellationToken);
+    }
+
     private static string AddRefIfExists(string path, string reference)
     {
         if (string.IsNullOrWhiteSpace(reference))

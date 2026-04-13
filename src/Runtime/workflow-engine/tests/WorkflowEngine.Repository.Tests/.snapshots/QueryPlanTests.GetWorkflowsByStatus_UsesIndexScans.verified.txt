@@ -10,8 +10,7 @@
       Plan Width: {Scrubbed},
       Disabled: false,
       Sort Key: [
-        w."UpdatedAt" DESC,
-        w."Id"
+        w."Id" DESC
       ],
       Plans: [
         {
@@ -25,7 +24,7 @@
           Plan Rows: {Scrubbed},
           Plan Width: {Scrubbed},
           Disabled: false,
-          Inner Unique: true,
+          Inner Unique: false,
           Hash Cond: (s."JobId" = w."Id"),
           Plans: [
             {
@@ -55,19 +54,33 @@
               Disabled: false,
               Plans: [
                 {
-                  Node Type: Index Scan,
+                  Node Type: Limit,
                   Parent Relationship: Outer,
                   Parallel Aware: {Scrubbed},
                   Async Capable: {Scrubbed},
-                  Scan Direction: Backward,
-                  Index Name: IX_Workflows_UpdatedAt,
-                  Relation Name: Workflows,
-                  Alias: w,
                   Startup Cost: {Scrubbed},
                   Total Cost: {Scrubbed},
                   Plan Rows: {Scrubbed},
                   Plan Width: {Scrubbed},
-                  Disabled: false
+                  Disabled: false,
+                  Plans: [
+                    {
+                      Node Type: Index Scan,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Scan Direction: Backward,
+                      Index Name: PK_Workflows,
+                      Relation Name: Workflows,
+                      Alias: w,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Filter: ("Status" = ANY ('{3,4}'::integer[]))
+                    }
+                  ]
                 }
               ]
             }

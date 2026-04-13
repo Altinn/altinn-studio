@@ -9,6 +9,7 @@ import { DISPLAY_NAME, SETTINGS_BASENAME } from 'app-shared/constants';
 import { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { NavigationTabs } from './NavigationTabs/NavigationTabs';
 
 export const PageLayout = () => {
   return (
@@ -24,6 +25,7 @@ export const PageLayout = () => {
         </StudioPageHeader>
       </div>
       <div className={classes.content}>
+        <NavigationTabs />
         <Outlet />
       </div>
     </div>

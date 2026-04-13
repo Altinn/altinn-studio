@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorPageProvider } from 'src/utils/layout/generator/GeneratorContext';
 import {
@@ -9,7 +10,6 @@ import {
   useGeneratorErrorBoundaryNodeRef,
 } from 'src/utils/layout/generator/GeneratorErrorBoundary';
 import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
@@ -47,7 +47,7 @@ function PageGenerator({ layout, name }: PageProps) {
   // eslint-disable-next-line react-compiler/react-compiler
   useGeneratorErrorBoundaryNodeRef().current = { type: 'page', id: name };
 
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const topLevel = layoutLookups.topLevelComponents[name];
   const pageOrder = useRawPageOrder();
   const pdfPage = usePdfLayoutName();
@@ -83,7 +83,7 @@ interface CommonProps {
 }
 
 function AddPage({ name }: CommonProps) {
-  const addPage = NodesInternal.useAddPage();
+  const addPage = FormStore.nodes.useAddPage();
 
   useEffect(() => {
     addPage(name);
@@ -97,8 +97,8 @@ interface NodeChildrenProps {
 }
 
 export function GenerateNodeChildren({ claims }: NodeChildrenProps) {
-  const layoutMap = useLayoutLookups().allComponents;
-  const map = useLayoutLookups().childClaims;
+  const layoutMap = FormBootstrap.useLayoutLookups().allComponents;
+  const map = FormBootstrap.useLayoutLookups().childClaims;
 
   return (
     <WhenParentAdded>

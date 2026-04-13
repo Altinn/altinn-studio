@@ -1,41 +1,26 @@
 import { useEffect } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
-  useShouldValidateInitial,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
-import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
-import { Validation } from 'src/features/validation/validationContext';
 
 export function BackendValidation() {
-  const updateBackendValidations = Validation.useUpdateBackendValidations();
-  const defaultDataElementId = DataModels.useDefaultDataElementId();
-  const lastSaveValidations = FD.useLastSaveValidationIssues();
-  const enabled = useShouldValidateInitial();
-  const { data: initialValidations, isFetching: isFetchingInitial } = useBackendValidationQuery({ enabled });
-  const updateIncrementalValidations = useUpdateIncrementalValidations(false);
+  const updateBackendValidations = FormStore.validation.useUpdateBackendValidations();
+  const { data: queriedInitialValidations } = useBackendValidationQuery({ enabled: false });
 
-  // Initial validation
+  // This ensures manual refetches (used by subform validation, clicking on a submit button) are reflected in state.
   useEffect(() => {
-    if (!isFetchingInitial) {
-      const initialTaskValidations = mapBackendIssuesToTaskValidations(initialValidations);
-      const initialValidatorGroups = mapBackendValidationsToValidatorGroups(initialValidations, defaultDataElementId);
+    if (queriedInitialValidations) {
+      const initialTaskValidations = mapBackendIssuesToTaskValidations(queriedInitialValidations);
+      const initialValidatorGroups = mapBackendValidationsToValidatorGroups(queriedInitialValidations);
       const backendValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups);
-      updateBackendValidations(backendValidations, { initial: initialValidations }, initialTaskValidations);
+      updateBackendValidations(backendValidations, { initial: queriedInitialValidations }, initialTaskValidations);
     }
-  }, [defaultDataElementId, initialValidations, isFetchingInitial, updateBackendValidations]);
-
-  // Incremental validation: Update validators and propagate changes to validation context
-  useEffect(() => {
-    if (lastSaveValidations) {
-      updateIncrementalValidations(lastSaveValidations);
-    }
-  }, [lastSaveValidations, updateIncrementalValidations]);
+  }, [queriedInitialValidations, updateBackendValidations]);
 
   return null;
 }
