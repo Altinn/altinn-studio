@@ -172,6 +172,53 @@ func TestExecutor_StopAndRemoveContainer_IgnoresContainerNotFound(t *testing.T) 
 	}
 }
 
+func TestExecutor_DestroyNetwork_PropagatesNetworkInUseByDefault(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.NetworkRemoveFunc = func(context.Context, string) error {
+		return types.ErrNetworkInUse
+	}
+
+	graph := NewGraph()
+	if err := graph.Add(&Network{Name: "localtest"}); err != nil {
+		t.Fatalf("graph.Add() error = %v", err)
+	}
+
+	err := NewExecutor(client).Destroy(t.Context(), graph)
+	if !errors.Is(err, types.ErrNetworkInUse) {
+		t.Fatalf("Destroy() error = %v, want ErrNetworkInUse", err)
+	}
+}
+
+func TestExecutor_DestroyNetwork_UsesLifecycleErrorHandler(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.NetworkRemoveFunc = func(context.Context, string) error {
+		return types.ErrNetworkInUse
+	}
+
+	graph := NewGraph()
+	if err := graph.Add(&Network{
+		Name: "localtest",
+		Lifecycle: LifecycleOptions{
+			HandleDestroyError: func(err error) ErrorDecision {
+				if errors.Is(err, types.ErrNetworkInUse) {
+					return ErrorDecisionIgnore
+				}
+				return ErrorDecisionDefault
+			},
+		},
+	}); err != nil {
+		t.Fatalf("graph.Add() error = %v", err)
+	}
+
+	if err := NewExecutor(client).Destroy(t.Context(), graph); err != nil {
+		t.Fatalf("Destroy() error = %v, want nil", err)
+	}
+}
+
 func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
 	t.Parallel()
 

@@ -9,11 +9,23 @@ import (
 	"os"
 	"os/exec"
 
+	containerruntime "altinn.studio/devenv/pkg/container"
+	"altinn.studio/studioctl/internal/appcontainers"
 	runsvc "altinn.studio/studioctl/internal/cmd/run"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
+)
+
+const (
+	runModeNative = "native"
+	runModeDocker = "docker"
+)
+
+var (
+	errDockerfileNotFound = errors.New("dockerfile not found")
+	errAppContainerExited = errors.New("app container exited")
 )
 
 // RunCommand implements the 'run' subcommand.
@@ -47,18 +59,33 @@ func (c *RunCommand) Usage() string {
 		"Arguments after -- are passed directly to dotnet.",
 		"",
 		"Options:",
-		"  -p, --path PATH  Specify app directory (overrides auto-detect)",
-		"  -h, --help       Show this help",
+		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
+		"  -m, --mode MODE       Run mode: native or docker (default: native)",
+		"  -d, --detach          Run app container in background (docker mode)",
+		"  --random-host-port    Publish app container to a random host port (docker mode)",
+		"  -h, --help            Show this help",
 	)
+}
+
+type runFlags struct {
+	appPath        string
+	mode           string
+	detach         bool
+	randomHostPort bool
 }
 
 // Run executes the command.
 func (c *RunCommand) Run(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("run", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
-	var appPath string
-	fs.StringVar(&appPath, "p", "", "App directory path")
-	fs.StringVar(&appPath, "path", "", "App directory path")
+	var flags runFlags
+	fs.StringVar(&flags.appPath, "p", "", "App directory path")
+	fs.StringVar(&flags.appPath, "path", "", "App directory path")
+	fs.StringVar(&flags.mode, "m", runModeNative, "Run mode")
+	fs.StringVar(&flags.mode, "mode", runModeNative, "Run mode")
+	fs.BoolVar(&flags.detach, "d", false, "Run app container in background")
+	fs.BoolVar(&flags.detach, "detach", false, "Run app container in background")
+	fs.BoolVar(&flags.randomHostPort, "random-host-port", false, "Publish app container to a random host port")
 
 	var cmdArgs, dotnetArgs []string
 	for i, arg := range args {
@@ -79,8 +106,11 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 		}
 		return fmt.Errorf("parsing flags: %w", err)
 	}
+	if flags.mode != runModeNative && flags.mode != runModeDocker {
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
+	}
 
-	result, err := c.service.ResolveApp(ctx, appPath)
+	result, err := c.service.ResolveApp(ctx, flags.appPath)
 	if err != nil {
 		if errors.Is(err, repocontext.ErrAppNotFound) {
 			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
@@ -96,7 +126,14 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 		c.out.Verbosef("Using app at %s (detected via %s)", result.AppRoot, result.AppDetectedFrom)
 	}
 
-	return c.runDotnet(ctx, result.AppRoot, dotnetArgs)
+	switch flags.mode {
+	case runModeNative:
+		return c.runDotnet(ctx, result.AppRoot, dotnetArgs)
+	case runModeDocker:
+		return c.runDocker(ctx, result, dotnetArgs, flags)
+	default:
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
+	}
 }
 
 func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []string) error {
@@ -115,6 +152,128 @@ func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []strin
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("running dotnet: %w", err)
+	}
+	return nil
+}
+
+func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection, args []string, flags runFlags) error {
+	spec, specErr := c.service.BuildDockerRunSpec(result, args, flags.randomHostPort)
+	if specErr != nil {
+		return fmt.Errorf("build docker run spec: %w", specErr)
+	}
+	if spec.DockerfileContent != "" {
+		dockerfile, writeErr := writeGeneratedDockerfile(spec.DockerfileContent)
+		if writeErr != nil {
+			return writeErr
+		}
+		defer c.removeGeneratedDockerfile(dockerfile)
+		spec.Dockerfile = dockerfile
+	}
+	if _, statErr := os.Stat(spec.Dockerfile); statErr != nil {
+		if os.IsNotExist(statErr) {
+			return fmt.Errorf("%w: %s", errDockerfileNotFound, spec.Dockerfile)
+		}
+		return fmt.Errorf("stat dockerfile: %w", statErr)
+	}
+
+	client, err := containerruntime.Detect(ctx)
+	if err != nil {
+		return fmt.Errorf("connect to container runtime: %w", err)
+	}
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			c.out.Verbosef("failed to close container client: %v", cerr)
+		}
+	}()
+
+	c.out.Verbosef("Building app image %s", spec.ImageTag)
+	if buildErr := client.Build(ctx, spec.ContextPath, spec.Dockerfile, spec.ImageTag); buildErr != nil {
+		return fmt.Errorf("build app image: %w", buildErr)
+	}
+
+	if removeErr := client.ContainerRemove(ctx, spec.Config.Name, true); removeErr != nil &&
+		!errors.Is(removeErr, containerruntime.ErrContainerNotFound) {
+		return fmt.Errorf("remove existing app container: %w", removeErr)
+	}
+
+	containerID, err := client.CreateContainer(ctx, spec.Config)
+	if err != nil {
+		return fmt.Errorf("create app container: %w", err)
+	}
+
+	info, err := client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return fmt.Errorf("inspect app container: %w", err)
+	}
+	c.printDockerRunInfo(info)
+
+	if flags.detach {
+		return nil
+	}
+
+	return c.followContainer(ctx, client, containerID)
+}
+
+func writeGeneratedDockerfile(content string) (string, error) {
+	file, err := os.CreateTemp("", "studioctl-app-*.Dockerfile")
+	if err != nil {
+		return "", fmt.Errorf("create generated dockerfile: %w", err)
+	}
+	if _, err := file.WriteString(content); err != nil {
+		closeErr := file.Close()
+		removeErr := os.Remove(file.Name())
+		return "", fmt.Errorf("write generated dockerfile: %w", errors.Join(err, closeErr, removeErr))
+	}
+	if err := file.Close(); err != nil {
+		if removeErr := os.Remove(file.Name()); removeErr != nil {
+			return "", fmt.Errorf("close generated dockerfile: %w", errors.Join(err, removeErr))
+		}
+		return "", fmt.Errorf("close generated dockerfile: %w", err)
+	}
+	return file.Name(), nil
+}
+
+func (c *RunCommand) removeGeneratedDockerfile(path string) {
+	if err := os.Remove(path); err != nil {
+		c.out.Verbosef("failed to remove generated dockerfile: %v", err)
+	}
+}
+
+func (c *RunCommand) printDockerRunInfo(info containerruntime.ContainerInfo) {
+	c.out.Printlnf("Container: %s", info.Name)
+	if candidate, ok := appcontainers.CandidateFromContainer(info); ok {
+		c.out.Printlnf("URL: %s", candidate.BaseURL)
+	}
+}
+
+func (c *RunCommand) followContainer(
+	ctx context.Context,
+	client containerruntime.ContainerClient,
+	containerID string,
+) error {
+	logs, err := client.ContainerLogs(ctx, containerID, true, "all")
+	if err != nil {
+		return fmt.Errorf("stream app container logs: %w", err)
+	}
+
+	logErr := make(chan error, 1)
+	go func() {
+		_, copyErr := io.Copy(os.Stdout, logs)
+		logErr <- copyErr
+	}()
+
+	exitCode, err := client.ContainerWait(ctx, containerID)
+	if err != nil {
+		return fmt.Errorf("wait for app container: %w", err)
+	}
+	if cerr := logs.Close(); cerr != nil {
+		c.out.Verbosef("failed to close app container logs: %v", cerr)
+	}
+	if copyErr := <-logErr; copyErr != nil {
+		return fmt.Errorf("copy app container logs: %w", copyErr)
+	}
+	if exitCode != 0 {
+		return fmt.Errorf("%w with status %d", errAppContainerExited, exitCode)
 	}
 	return nil
 }

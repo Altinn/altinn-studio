@@ -73,6 +73,29 @@ type Resource interface {
 	Dependencies() []ResourceRef
 }
 
+// ErrorDecision describes how an executor should handle a lifecycle error.
+type ErrorDecision int
+
+const (
+	// ErrorDecisionDefault preserves the executor's default error behavior.
+	ErrorDecisionDefault ErrorDecision = iota
+	// ErrorDecisionIgnore treats the error as handled.
+	ErrorDecisionIgnore
+)
+
+// ErrorHandler handles lifecycle errors.
+type ErrorHandler func(error) ErrorDecision
+
+// LifecycleOptions customizes resource lifecycle behavior.
+type LifecycleOptions struct {
+	HandleDestroyError ErrorHandler
+}
+
+// LifecycleOptionsProvider exposes resource lifecycle options.
+type LifecycleOptionsProvider interface {
+	LifecycleOptions() LifecycleOptions
+}
+
 // Validator checks that a resource has valid configuration.
 // Returns nil for resources that don't support validation.
 type Validator interface {

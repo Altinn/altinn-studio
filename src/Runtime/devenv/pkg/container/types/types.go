@@ -9,6 +9,9 @@ var ErrContainerNotFound = errors.New("container not found")
 // ErrNetworkNotFound is returned when a network does not exist.
 var ErrNetworkNotFound = errors.New("network not found")
 
+// ErrNetworkInUse is returned when a network still has attached endpoints.
+var ErrNetworkInUse = errors.New("network in use")
+
 // ErrImageNotFound is returned when an image does not exist.
 var ErrImageNotFound = errors.New("image not found")
 
@@ -163,6 +166,20 @@ type PortMapping struct {
 	Protocol      string // "tcp" or "udp", defaults to "tcp"
 }
 
+// PublishedPort describes a host port published by a container.
+type PublishedPort struct {
+	HostIP        string
+	HostPort      string
+	ContainerPort string
+	Protocol      string
+}
+
+// ContainerListFilter restricts container listing.
+type ContainerListFilter struct {
+	Labels map[string]string
+	All    bool
+}
+
 // VolumeMount defines a bind mount.
 type VolumeMount struct {
 	HostPath      string
@@ -209,6 +226,7 @@ type ContainerInfo struct {
 	Image   string // image reference used to create the container
 	ImageID string // resolved image ID (sha256:...)
 	Labels  map[string]string
+	Ports   []PublishedPort
 	State   ContainerState
 }
 

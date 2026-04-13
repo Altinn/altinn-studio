@@ -3,30 +3,52 @@ package run
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"path/filepath"
+	"strings"
 
+	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/appcontainers"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	repocontext "altinn.studio/studioctl/internal/context"
 )
 
 // TODO: this should come from the "current env".
 const localtestLoopbackHost = "127.0.0.1"
 
-func localtestEnvDefaults() map[string]string {
+func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]string {
 	return map[string]string{
-		"AppSettings__OpenIdWellKnownEndpoint":          "http://" + localtestLoopbackHost + ":5101/authentication/api/v1/openid/",
-		"OTEL_EXPORTER_OTLP_ENDPOINT":                   "http://" + localtestLoopbackHost + ":4317",
-		"PlatformSettings__ApiStorageEndpoint":          "http://" + localtestLoopbackHost + ":5101/storage/api/v1/",
-		"PlatformSettings__ApiRegisterEndpoint":         "http://" + localtestLoopbackHost + ":5101/register/api/v1/",
-		"PlatformSettings__ApiProfileEndpoint":          "http://" + localtestLoopbackHost + ":5101/profile/api/v1/",
-		"PlatformSettings__ApiAuthenticationEndpoint":   "http://" + localtestLoopbackHost + ":5101/authentication/api/v1/",
-		"PlatformSettings__ApiAuthorizationEndpoint":    "http://" + localtestLoopbackHost + ":5101/authorization/api/v1/",
-		"PlatformSettings__ApiEventsEndpoint":           "http://" + localtestLoopbackHost + ":5101/events/api/v1/",
-		"PlatformSettings__ApiPdf2Endpoint":             "http://" + localtestLoopbackHost + ":5300/pdf",
-		"PlatformSettings__ApiNotificationEndpoint":     "http://" + localtestLoopbackHost + ":5101/notifications/api/v1/",
-		"PlatformSettings__ApiCorrespondenceEndpoint":   "http://" + localtestLoopbackHost + ":5101/correspondence/api/v1/",
-		"PlatformSettings__ApiAccessManagementEndpoint": "http://" + localtestLoopbackHost + ":5101/accessmanagement/api/v1/",
+		"AppSettings__OpenIdWellKnownEndpoint":          "http://" + host + ":5101/authentication/api/v1/openid/",
+		"OTEL_EXPORTER_OTLP_ENDPOINT":                   otelEndpoint,
+		"PlatformSettings__ApiStorageEndpoint":          "http://" + host + ":5101/storage/api/v1/",
+		"PlatformSettings__ApiRegisterEndpoint":         "http://" + host + ":5101/register/api/v1/",
+		"PlatformSettings__ApiProfileEndpoint":          "http://" + host + ":5101/profile/api/v1/",
+		"PlatformSettings__ApiAuthenticationEndpoint":   "http://" + host + ":5101/authentication/api/v1/",
+		"PlatformSettings__ApiAuthorizationEndpoint":    "http://" + host + ":5101/authorization/api/v1/",
+		"PlatformSettings__ApiEventsEndpoint":           "http://" + host + ":5101/events/api/v1/",
+		"PlatformSettings__ApiPdf2Endpoint":             pdfEndpoint,
+		"PlatformSettings__ApiNotificationEndpoint":     "http://" + host + ":5101/notifications/api/v1/",
+		"PlatformSettings__ApiCorrespondenceEndpoint":   "http://" + host + ":5101/correspondence/api/v1/",
+		"PlatformSettings__ApiAccessManagementEndpoint": "http://" + host + ":5101/accessmanagement/api/v1/",
 	}
+}
+
+func nativeLocaltestEnvDefaults() map[string]string {
+	return localtestEnvDefaults(
+		localtestLoopbackHost,
+		"http://"+localtestLoopbackHost+":4317",
+		"http://"+localtestLoopbackHost+":5300/pdf",
+	)
+}
+
+func dockerLocaltestEnvDefaults() map[string]string {
+	return localtestEnvDefaults(
+		envlocaltest.ContainerLocaltest,
+		"http://"+envlocaltest.ContainerMonitoringOtelCollector+":4317",
+		"http://"+envlocaltest.ContainerPDF3+":5031/pdf",
+	)
 }
 
 // Service contains run command logic.
@@ -42,6 +64,15 @@ type DotnetRunSpec struct {
 	Args []string
 	Dir  string
 	Env  []string
+}
+
+// DockerRunSpec contains container execution details for `studioctl run --mode docker`.
+type DockerRunSpec struct {
+	ContextPath       string
+	Dockerfile        string
+	DockerfileContent string
+	ImageTag          string
+	Config            types.ContainerConfig
 }
 
 // ResolveApp detects the target app directory.
@@ -72,9 +103,89 @@ func (s *Service) BuildDotnetRunSpec(_ context.Context, appPath string, args, en
 	}
 }
 
+// BuildDockerRunSpec builds image/container configuration for an app container.
+func (s *Service) BuildDockerRunSpec(
+	result repocontext.Detection,
+	args []string,
+	randomHostPort bool,
+) (DockerRunSpec, error) {
+	appPath := result.AppRoot
+	nameSuffix := appNameSuffix(appPath)
+	hostPort := appcontainers.DefaultContainerPort
+	if randomHostPort {
+		hostPort = ""
+	}
+
+	env := appendEnvIfUnset(nil, "ASPNETCORE_ENVIRONMENT", "Development")
+	env = appendEnvIfUnset(env, "Kestrel__EndPoints__Http__Url", "http://*:"+appcontainers.DefaultContainerPort)
+	env = appendDockerLocaltestEnvIfUnset(env)
+
+	imageTag := "studioctl-app:" + nameSuffix
+	runRepo, err := newRepoContext(result)
+	if err != nil {
+		return DockerRunSpec{}, err
+	}
+	contextPath, dockerfile, dockerfileContent, err := dockerBuildInputs(runRepo)
+	if err != nil {
+		return DockerRunSpec{}, err
+	}
+
+	return DockerRunSpec{
+		Config: types.ContainerConfig{
+			Labels:         appcontainers.Labels(appPath),
+			Name:           "studioctl-app-" + nameSuffix,
+			Image:          imageTag,
+			User:           "",
+			RestartPolicy:  "",
+			ExtraHosts:     nil,
+			NetworkAliases: nil,
+			Volumes:        nil,
+			Networks: []string{
+				envlocaltest.NetworkName,
+			},
+			Ports: []types.PortMapping{
+				{
+					HostIP:        localtestLoopbackHost,
+					HostPort:      hostPort,
+					ContainerPort: appcontainers.DefaultContainerPort,
+					Protocol:      "tcp",
+				},
+			},
+			Env:     env,
+			Command: args,
+			CapAdd:  nil,
+			Detach:  true,
+		},
+		ContextPath:       contextPath,
+		Dockerfile:        dockerfile,
+		DockerfileContent: dockerfileContent,
+		ImageTag:          imageTag,
+	}, nil
+}
+
+func dockerBuildInputs(runRepo repoContext) (contextPath, dockerfile, dockerfileContent string, err error) {
+	if !runRepo.UseGeneratedDockerfile {
+		return runRepo.BuildRoot, filepath.Join(runRepo.AppRoot, "Dockerfile"), "", nil
+	}
+
+	content, err := generateDockerfile(runRepo)
+	if err != nil {
+		return "", "", "", err
+	}
+	return runRepo.BuildRoot, "", content, nil
+}
+
 func appendLocaltestEnvIfUnset(env []string) []string {
 	resolved := env
-	for key, value := range localtestEnvDefaults() {
+	for key, value := range nativeLocaltestEnvDefaults() {
+		resolved = appendEnvIfUnset(resolved, key, value)
+	}
+	return resolved
+}
+
+func appendDockerLocaltestEnvIfUnset(env []string) []string {
+	resolved := env
+	for key, value := range dockerLocaltestEnvDefaults() {
 		resolved = appendEnvIfUnset(resolved, key, value)
 	}
 	return resolved
@@ -88,4 +199,28 @@ func appendEnvIfUnset(env []string, key, value string) []string {
 		}
 	}
 	return append(env, key+"="+value)
+}
+
+func appNameSuffix(appPath string) string {
+	hash := sha256.Sum256([]byte(appPath))
+	name := sanitizeName(filepath.Base(appPath))
+	if name == "" {
+		name = "app"
+	}
+	return name + "-" + hex.EncodeToString(hash[:])[:12]
+}
+
+func sanitizeName(value string) string {
+	value = strings.ToLower(value)
+	var b strings.Builder
+	b.Grow(len(value))
+	for _, r := range value {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case b.Len() > 0:
+			b.WriteByte('-')
+		}
+	}
+	return strings.Trim(b.String(), "-")
 }

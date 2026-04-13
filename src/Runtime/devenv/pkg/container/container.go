@@ -15,6 +15,8 @@ type (
 	DetectionSource     = types.DetectionSource
 	ContainerToolchain  = types.ContainerToolchain
 	PortMapping         = types.PortMapping
+	PublishedPort       = types.PublishedPort
+	ContainerListFilter = types.ContainerListFilter
 	VolumeMount         = types.VolumeMount
 	ContainerConfig     = types.ContainerConfig
 	ImageInfo           = types.ImageInfo
@@ -29,6 +31,9 @@ var ErrContainerNotFound = types.ErrContainerNotFound
 
 // ErrNetworkNotFound is returned when a network does not exist.
 var ErrNetworkNotFound = types.ErrNetworkNotFound
+
+// ErrNetworkInUse is returned when a network still has attached endpoints.
+var ErrNetworkInUse = types.ErrNetworkInUse
 
 // ErrImageNotFound is returned when an image does not exist.
 var ErrImageNotFound = types.ErrImageNotFound
@@ -98,6 +103,9 @@ type ContainerClient interface {
 	// ContainerInspect returns detailed information about a container.
 	// Returns ErrContainerNotFound if the container does not exist.
 	ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
+
+	// ListContainers returns containers matching the provided filters.
+	ListContainers(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error)
 
 	// ContainerStart starts an existing container
 	ContainerStart(ctx context.Context, nameOrID string) error

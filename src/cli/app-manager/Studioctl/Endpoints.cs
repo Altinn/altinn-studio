@@ -24,6 +24,7 @@ internal static class Endpoints
                 Environment.Version.ToString(),
                 Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown",
                 EnvironmentValues.IsTruthy(Environment.GetEnvironmentVariable("STUDIOCTL_INTERNAL_DEV")),
+                Environment.GetEnvironmentVariable("Studioctl__Path") ?? "",
                 new TunnelStatusResponse(
                     tunnelState.Enabled,
                     tunnelState.IsConnected,
@@ -70,6 +71,7 @@ internal static class Endpoints
         string DotnetVersion,
         string AppManagerVersion,
         bool InternalDev,
+        string StudioctlPath,
         TunnelStatusResponse Tunnel,
         IReadOnlyList<DiscoveredAppResponse> Apps
     );

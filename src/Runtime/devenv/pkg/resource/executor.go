@@ -89,6 +89,10 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 			eg.Go(func() error {
 				e.notify(EventDestroyStart, r.ID(), nil)
 				if err := e.destroyResource(groupCtx, r); err != nil {
+					if handleDestroyError(r, err) == ErrorDecisionIgnore {
+						e.notify(EventDestroyDone, r.ID(), nil)
+						return nil
+					}
 					e.notify(EventDestroyFailed, r.ID(), err)
 					return fmt.Errorf("destroy %s: %w", r.ID(), err)
 				}
@@ -278,6 +282,20 @@ func (e *Executor) destroyNetwork(ctx context.Context, net *Network) error {
 		return fmt.Errorf("remove network %s: %w", net.Name, err)
 	}
 	return nil
+}
+
+func handleDestroyError(r Resource, err error) ErrorDecision {
+	provider, ok := r.(LifecycleOptionsProvider)
+	if !ok {
+		return ErrorDecisionDefault
+	}
+
+	options := provider.LifecycleOptions()
+	if options.HandleDestroyError == nil {
+		return ErrorDecisionDefault
+	}
+
+	return options.HandleDestroyError(err)
 }
 
 func (e *Executor) networkStatus(ctx context.Context, net *Network) (Status, error) {

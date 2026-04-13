@@ -1,3 +1,4 @@
+using Altinn.Studio.AppManager.Discovery.Container;
 using Altinn.Studio.AppManager.Discovery.Process;
 using Altinn.Studio.AppManager.Platform.PortListeners;
 
@@ -17,6 +18,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<PortListeners>();
         services.AddSingleton<AppMetadataProbe>();
         services.AddSingleton<IAppDiscovery, ProcessDiscovery>();
+        services.AddSingleton<IAppDiscovery, ContainerDiscovery>();
         services.AddSingleton<AppRegistry>();
         services.AddHostedService(static sp => sp.GetRequiredService<AppRegistry>());
         return services;

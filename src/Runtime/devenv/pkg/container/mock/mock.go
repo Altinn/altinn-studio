@@ -35,6 +35,7 @@ type Client struct {
 		onProgress types.ProgressHandler,
 	) error
 	ContainerInspectFunc func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
+	ListContainersFunc   func(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error)
 	ContainerStartFunc   func(ctx context.Context, nameOrID string) error
 	ContainerStopFunc    func(ctx context.Context, nameOrID string, timeout *int) error
 	ContainerRemoveFunc  func(ctx context.Context, nameOrID string, force bool) error
@@ -208,6 +209,15 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 		return c.ContainerInspectFunc(ctx, nameOrID)
 	}
 	return types.ContainerInfo{}, types.ErrContainerNotFound
+}
+
+// ListContainers implements ContainerClient.
+func (c *Client) ListContainers(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+	c.recordCall("ListContainers", filter)
+	if c.ListContainersFunc != nil {
+		return c.ListContainersFunc(ctx, filter)
+	}
+	return nil, nil
 }
 
 // ContainerStart implements ContainerClient.

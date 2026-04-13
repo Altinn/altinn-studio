@@ -403,6 +403,16 @@ func buildResourcesWithMode(
 		Name:   NetworkName,
 		Driver: "bridge",
 		Labels: labels,
+		Lifecycle: resource.LifecycleOptions{
+			// When apps are started with `studioctl run --mode docker ..`
+			// we might have active containers attached to the network
+			HandleDestroyError: func(err error) resource.ErrorDecision {
+				if errors.Is(err, types.ErrNetworkInUse) {
+					return resource.ErrorDecisionIgnore
+				}
+				return resource.ErrorDecisionDefault
+			},
+		},
 	}
 	resources = append(resources, network)
 

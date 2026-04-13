@@ -1,6 +1,7 @@
 package dockerapi
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -51,6 +52,16 @@ func TestBuildBindMounts(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("buildBindMounts()[%d] = %#v, want %#v", i, got[i], want[i])
 		}
+	}
+}
+
+func TestIsNetworkInUseError_ActiveEndpoints(t *testing.T) {
+	t.Parallel()
+
+	err := errors.New(`Error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`)
+
+	if !isNetworkInUseError(err) {
+		t.Fatal("isNetworkInUseError() = false, want true")
 	}
 }
 

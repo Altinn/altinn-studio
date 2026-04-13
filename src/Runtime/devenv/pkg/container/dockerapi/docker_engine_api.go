@@ -19,6 +19,7 @@ import (
 	cerrdefs "github.com/containerd/errdefs"
 	dockertypes "github.com/docker/docker/api/types"
 	dockercontainer "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	dockermount "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -610,6 +611,7 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 		Image:   info.Config.Image,
 		ImageID: info.Image,
 		Labels:  info.Config.Labels,
+		Ports:   publishedPortsFromInspect(info.NetworkSettings),
 		State: types.ContainerState{
 			Status:   info.State.Status,
 			Running:  info.State.Running,
@@ -617,6 +619,88 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 			ExitCode: info.State.ExitCode,
 		},
 	}, nil
+}
+
+// ListContainers returns containers matching the provided filters.
+func (c *Client) ListContainers(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+	args := filters.NewArgs()
+	for key, value := range filter.Labels {
+		label := key
+		if value != "" {
+			label += "=" + value
+		}
+		args.Add("label", label)
+	}
+
+	containers, err := c.cli.ContainerList(ctx, dockercontainer.ListOptions{
+		All:     filter.All,
+		Filters: args,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list containers: %w", err)
+	}
+
+	result := make([]types.ContainerInfo, 0, len(containers))
+	for _, ctr := range containers {
+		result = append(result, types.ContainerInfo{
+			ID:      ctr.ID,
+			Name:    firstContainerName(ctr.Names),
+			Image:   ctr.Image,
+			ImageID: ctr.ImageID,
+			Labels:  ctr.Labels,
+			Ports:   publishedPortsFromSummary(ctr.Ports),
+			State: types.ContainerState{
+				Status:  string(ctr.State),
+				Running: ctr.State == dockercontainer.StateRunning,
+			},
+		})
+	}
+	return result, nil
+}
+
+func firstContainerName(names []string) string {
+	if len(names) == 0 {
+		return ""
+	}
+	return strings.TrimPrefix(names[0], "/")
+}
+
+func publishedPortsFromPortMap(portMap nat.PortMap) []types.PublishedPort {
+	var ports []types.PublishedPort
+	for containerPort, bindings := range portMap {
+		for _, binding := range bindings {
+			ports = append(ports, types.PublishedPort{
+				HostIP:        binding.HostIP,
+				HostPort:      binding.HostPort,
+				ContainerPort: containerPort.Port(),
+				Protocol:      containerPort.Proto(),
+			})
+		}
+	}
+	return ports
+}
+
+func publishedPortsFromInspect(networkSettings *dockercontainer.NetworkSettings) []types.PublishedPort {
+	if networkSettings == nil {
+		return nil
+	}
+	return publishedPortsFromPortMap(networkSettings.Ports)
+}
+
+func publishedPortsFromSummary(ports []dockercontainer.Port) []types.PublishedPort {
+	result := make([]types.PublishedPort, 0, len(ports))
+	for _, port := range ports {
+		if port.PublicPort == 0 {
+			continue
+		}
+		result = append(result, types.PublishedPort{
+			HostIP:        port.IP,
+			HostPort:      fmt.Sprint(port.PublicPort),
+			ContainerPort: fmt.Sprint(port.PrivatePort),
+			Protocol:      port.Type,
+		})
+	}
+	return result
 }
 
 // ContainerStart starts an existing container.
@@ -697,9 +781,21 @@ func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 		if cerrdefs.IsNotFound(err) {
 			return types.ErrNetworkNotFound
 		}
+		if isNetworkInUseError(err) {
+			return types.ErrNetworkInUse
+		}
 		return fmt.Errorf("failed to remove network: %w", err)
 	}
 	return nil
+}
+
+func isNetworkInUseError(err error) bool {
+	if cerrdefs.IsConflict(err) {
+		return true
+	}
+
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "active endpoints")
 }
 
 // ContainerLogs returns a stream of container logs.

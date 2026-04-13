@@ -121,6 +121,7 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 		}
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
+	// TODO: table output. Should be refactored to be descriptive table subsequently rendered (columns are sometimes messed up)
 	c.out.Println("app-manager is running.")
 	c.out.Printlnf("Process ID: %d", status.ProcessID)
 	c.out.Println("app-manager version: " + status.AppManagerVersion)

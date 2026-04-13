@@ -31,6 +31,7 @@ const (
 	appManagerUnixSocketEnv = "APP_MANAGER_UNIX_SOCKET_PATH"
 	appManagerTunnelURLEnv  = "Tunnel__Url"
 	appManagerUpstreamEnv   = "Tunnel__UpstreamUrl"
+	appManagerStudioctlEnv  = "Studioctl__Path"
 
 	appManagerStartTimeout = 10 * time.Second
 	appManagerShutdownWait = 3 * time.Second
@@ -45,6 +46,7 @@ type startConfig struct {
 	UnixSocketPath string `json:"unixSocketPath,omitempty"`
 	TunnelURL      string `json:"tunnelUrl"`
 	UpstreamURL    string `json:"upstreamUrl"`
+	StudioctlPath  string `json:"studioctlPath"`
 	InternalDev    bool   `json:"internalDev"`
 }
 
@@ -57,8 +59,9 @@ type runtimeState struct {
 type Status struct {
 	AppManagerVersion string
 	DotnetVersion     string
-	Apps              []DiscoveredApp
+	StudioctlPath     string
 	Tunnel            TunnelStatus
+	Apps              []DiscoveredApp
 	ProcessID         int
 	InternalDev       bool
 }
@@ -173,19 +176,20 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	var status struct {
 		AppManagerVersion string `json:"appManagerVersion"`
 		DotnetVersion     string `json:"dotnetVersion"`
-		Apps              []struct {
+		StudioctlPath     string `json:"studioctlPath"`
+		Tunnel            struct {
+			URL         string `json:"url"`
+			UpstreamURL string `json:"upstreamUrl"`
+			Enabled     bool   `json:"enabled"`
+			Connected   bool   `json:"connected"`
+		} `json:"tunnel"`
+		Apps []struct {
 			ProcessID   *int   `json:"processId"`
 			AppID       string `json:"appId"`
 			BaseURL     string `json:"baseUrl"`
 			Source      string `json:"source"`
 			Description string `json:"description"`
 		} `json:"apps"`
-		Tunnel struct {
-			URL         string `json:"url"`
-			UpstreamURL string `json:"upstreamUrl"`
-			Enabled     bool   `json:"enabled"`
-			Connected   bool   `json:"connected"`
-		} `json:"tunnel"`
 		ProcessID   int  `json:"processId"`
 		InternalDev bool `json:"internalDev"`
 	}
@@ -197,6 +201,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		ProcessID:         status.ProcessID,
 		AppManagerVersion: status.AppManagerVersion,
 		DotnetVersion:     status.DotnetVersion,
+		StudioctlPath:     status.StudioctlPath,
 		InternalDev:       status.InternalDev,
 		Tunnel: TunnelStatus{
 			Enabled:     status.Tunnel.Enabled,
@@ -372,6 +377,9 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 		cmd.Env = append(cmd.Env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
 	}
 	cmd.Env = append(cmd.Env, appManagerUpstreamEnv+"="+startConfig.UpstreamURL)
+	if startConfig.StudioctlPath != "" {
+		cmd.Env = append(cmd.Env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
+	}
 	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
 	if err != nil {
 		return fmt.Errorf("open null device: %w", err)
@@ -535,6 +543,7 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, localAppURL string) 
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      TunnelURL(loadBalancerPort),
 		UpstreamURL:    rewriteHostLocalAppURL(localAppURL),
+		StudioctlPath:  currentExecutablePath(),
 		InternalDev:    isTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}
 }
@@ -546,8 +555,17 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      status.Tunnel.URL,
 		UpstreamURL:    status.Tunnel.UpstreamURL,
+		StudioctlPath:  status.StudioctlPath,
 		InternalDev:    status.InternalDev,
 	}
+}
+
+func currentExecutablePath() string {
+	path, err := os.Executable()
+	if err != nil {
+		return osutil.CurrentBin()
+	}
+	return path
 }
 
 func readAppManagerState(cfg *config.Config) (runtimeState, bool, error) {
@@ -691,6 +709,7 @@ func zeroRuntimeState() runtimeState {
 			UnixSocketPath: "",
 			TunnelURL:      "",
 			UpstreamURL:    "",
+			StudioctlPath:  "",
 			InternalDev:    false,
 		},
 		PID: 0,

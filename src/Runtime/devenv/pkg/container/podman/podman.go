@@ -405,6 +405,12 @@ type containerInspectInfo struct {
 		Paused   bool   `json:"Paused"`
 		ExitCode int    `json:"ExitCode"`
 	} `json:"State"`
+	NetworkSettings struct {
+		Ports map[string][]struct {
+			HostIP   string `json:"HostIp"`
+			HostPort string `json:"HostPort"`
+		} `json:"Ports"`
+	} `json:"NetworkSettings"`
 }
 
 func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
@@ -424,6 +430,7 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 		Image:   info[0].Image,
 		ImageID: info[0].Image,
 		Labels:  info[0].Config.Labels,
+		Ports:   publishedPortsFromPodmanInspect(info[0].NetworkSettings.Ports),
 		State: types.ContainerState{
 			Status:   info[0].State.Status,
 			Running:  info[0].State.Running,
@@ -447,6 +454,150 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 	}
 
 	return parseContainerInspect(output)
+}
+
+type podmanContainerListInfo struct {
+	ID      string                `json:"Id"`
+	Name    string                `json:"Name"`
+	Names   []string              `json:"Names"`
+	Image   string                `json:"Image"`
+	ImageID string                `json:"ImageID"`
+	Labels  map[string]string     `json:"Labels"`
+	Ports   []podmanPublishedPort `json:"Ports"`
+	State   string                `json:"State"`
+	Status  string                `json:"Status"`
+}
+
+type podmanPublishedPort struct {
+	HostIP             stringOrNumber `json:"host_ip"`
+	HostIPTitle        stringOrNumber `json:"HostIP"`
+	HostPort           stringOrNumber `json:"host_port"`
+	HostPortTitle      stringOrNumber `json:"HostPort"`
+	ContainerPort      stringOrNumber `json:"container_port"`
+	ContainerPortTitle stringOrNumber `json:"ContainerPort"`
+	Protocol           string         `json:"protocol"`
+	ProtocolTitle      string         `json:"Protocol"`
+}
+
+type stringOrNumber string
+
+func (v *stringOrNumber) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*v = stringOrNumber(s)
+		return nil
+	}
+	var n int
+	if err := json.Unmarshal(data, &n); err == nil {
+		*v = stringOrNumber(strconv.Itoa(n))
+		return nil
+	}
+	return nil
+}
+
+func (v stringOrNumber) String() string {
+	return string(v)
+}
+
+// ListContainers returns containers matching the provided filters.
+func (c *Client) ListContainers(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+	args := []string{"ps", "--format", "json"}
+	if filter.All {
+		args = append(args, "--all")
+	}
+	for key, value := range filter.Labels {
+		label := key
+		if value != "" {
+			label += "=" + value
+		}
+		args = append(args, "--filter", "label="+label)
+	}
+
+	output, err := runPodmanCommand(ctx, args)
+	if err != nil {
+		return nil, fmt.Errorf("podman list containers failed: %w\nOutput: %s", err, string(output))
+	}
+
+	var containers []podmanContainerListInfo
+	if err := json.Unmarshal(bytes.TrimSpace(output), &containers); err != nil {
+		return nil, fmt.Errorf("failed to parse podman container list output: %w", err)
+	}
+
+	result := make([]types.ContainerInfo, 0, len(containers))
+	for _, ctr := range containers {
+		status := ctr.State
+		if status == "" {
+			status = ctr.Status
+		}
+		result = append(result, types.ContainerInfo{
+			ID:      ctr.ID,
+			Name:    podmanContainerName(ctr),
+			Image:   ctr.Image,
+			ImageID: ctr.ImageID,
+			Labels:  ctr.Labels,
+			Ports:   publishedPortsFromPodmanList(ctr.Ports),
+			State: types.ContainerState{
+				Status:  status,
+				Running: strings.EqualFold(status, "running"),
+			},
+		})
+	}
+	return result, nil
+}
+
+func podmanContainerName(ctr podmanContainerListInfo) string {
+	if ctr.Name != "" {
+		return ctr.Name
+	}
+	if len(ctr.Names) > 0 {
+		return ctr.Names[0]
+	}
+	return ""
+}
+
+func publishedPortsFromPodmanList(ports []podmanPublishedPort) []types.PublishedPort {
+	result := make([]types.PublishedPort, 0, len(ports))
+	for _, port := range ports {
+		hostPort := firstNonEmpty(port.HostPort.String(), port.HostPortTitle.String())
+		if hostPort == "" {
+			continue
+		}
+		result = append(result, types.PublishedPort{
+			HostIP:        firstNonEmpty(port.HostIP.String(), port.HostIPTitle.String()),
+			HostPort:      hostPort,
+			ContainerPort: firstNonEmpty(port.ContainerPort.String(), port.ContainerPortTitle.String()),
+			Protocol:      firstNonEmpty(port.Protocol, port.ProtocolTitle),
+		})
+	}
+	return result
+}
+
+func publishedPortsFromPodmanInspect(ports map[string][]struct {
+	HostIP   string `json:"HostIp"`
+	HostPort string `json:"HostPort"`
+}) []types.PublishedPort {
+	var result []types.PublishedPort
+	for containerPort, bindings := range ports {
+		port, protocol, _ := strings.Cut(containerPort, "/")
+		for _, binding := range bindings {
+			result = append(result, types.PublishedPort{
+				HostIP:        binding.HostIP,
+				HostPort:      binding.HostPort,
+				ContainerPort: port,
+				Protocol:      protocol,
+			})
+		}
+	}
+	return result
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 // ContainerStart starts an existing container.
@@ -577,8 +728,14 @@ func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		outputStr := string(output)
-		if strings.Contains(strings.ToLower(outputStr), "network not found") {
+		outputLower := strings.ToLower(outputStr)
+		if strings.Contains(outputLower, "network not found") {
 			return types.ErrNetworkNotFound
+		}
+		if strings.Contains(outputLower, "in use") ||
+			strings.Contains(outputLower, "active endpoints") ||
+			strings.Contains(outputLower, "associated containers") {
+			return types.ErrNetworkInUse
 		}
 		return fmt.Errorf("podman network rm failed: %w\nOutput: %s", err, outputStr)
 	}
