@@ -258,27 +258,23 @@ function makeActions(
 
   function updateSchemaValidations(state: FormStoreState, dataType: string) {
     const model = state.data.models[dataType];
-    if (!model) {
-      return;
+    if (model) {
+      model.validations.schema = deriveSchemaValidations({
+        formData: model.debouncedCurrentData,
+        schemaResult: dataModels[dataType].schemaResult,
+        dataElementId: model.dataElementId ?? dataType,
+      });
     }
-
-    model.validations.schema = deriveSchemaValidations({
-      formData: model.debouncedCurrentData,
-      schemaResult: dataModels[dataType].schemaResult,
-      dataElementId: model.dataElementId ?? dataType,
-    });
   }
 
   function updateInvalidDataValidations(state: FormStoreState, dataType: string) {
     const model = state.data.models[dataType];
-    if (!model) {
-      return;
+    if (model) {
+      model.validations.invalidData = deriveInvalidDataValidations({
+        invalidData: model.invalidDebouncedCurrentData,
+        dataElementId: model.dataElementId ?? dataType,
+      });
     }
-
-    model.validations.invalidData = deriveInvalidDataValidations({
-      invalidData: model.invalidDebouncedCurrentData,
-      dataElementId: model.dataElementId ?? dataType,
-    });
   }
 
   function processChanges(state: FormStoreState, toProcess: FDSaveFinished) {
@@ -631,30 +627,36 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
     };
   }
 
-  const models = Object.keys(props.dataModels).reduce((dm, dt) => {
+  const models: FormDataSliceState['models'] = {};
+  for (const [dataType, model] of Object.entries(props.dataModels)) {
     const emptyInvalidData = {};
-    dm[dt] = {
-      currentData: props.dataModels[dt].initialData,
+    const backendValidations: FieldValidations = {};
+    for (const validation of mapBackendIssuesToFieldValidations(model.initialValidationIssues ?? [])) {
+      backendValidations[validation.field] ??= [];
+      backendValidations[validation.field].push(validation);
+    }
+
+    models[dataType] = {
+      currentData: model.initialData,
       invalidCurrentData: emptyInvalidData,
-      debouncedCurrentData: props.dataModels[dt].initialData,
+      debouncedCurrentData: model.initialData,
       invalidDebouncedCurrentData: emptyInvalidData,
-      lastSavedData: props.dataModels[dt].initialData,
-      dataElementId: props.dataModels[dt].dataElementId,
+      lastSavedData: model.initialData,
+      dataElementId: model.dataElementId,
       validations: {
-        backend: mapBackendFieldValidations(props.dataModels[dt].initialValidationIssues ?? undefined),
+        backend: backendValidations,
         schema: deriveSchemaValidations({
-          formData: props.dataModels[dt].initialData,
-          schemaResult: props.dataModels[dt].schemaResult,
-          dataElementId: props.dataModels[dt].dataElementId ?? dt,
+          formData: model.initialData,
+          schemaResult: model.schemaResult,
+          dataElementId: model.dataElementId,
         }),
         invalidData: deriveInvalidDataValidations({
           invalidData: emptyInvalidData,
-          dataElementId: props.dataModels[dt].dataElementId ?? dt,
+          dataElementId: model.dataElementId,
         }),
       },
     } satisfies DataModelState;
-    return dm;
-  }, {});
+  }
 
   return {
     models,
@@ -672,17 +674,4 @@ function isWritable(dataElementId: string | null, selectFromInstance: InstanceDa
     return true;
   }
   return selectFromInstance((instance) => instance.data.find((item) => item.id === dataElementId)?.locked) === false;
-}
-
-function mapBackendFieldValidations(
-  validationIssues: FormDataSliceProps['dataModels'][string]['initialValidationIssues'],
-): FieldValidations {
-  const validations: FieldValidations = {};
-
-  for (const validation of mapBackendIssuesToFieldValidations(validationIssues ?? [])) {
-    validations[validation.field] ??= [];
-    validations[validation.field].push(validation);
-  }
-
-  return validations;
 }

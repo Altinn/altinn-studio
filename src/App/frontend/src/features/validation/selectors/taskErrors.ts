@@ -9,11 +9,7 @@ import {
   type NodeVisibility,
   ValidationMask,
 } from 'src/features/validation/index';
-import {
-  selectBackendFieldValidationsForDataModel,
-  selectValidations,
-  validationsOfSeverity,
-} from 'src/features/validation/utils';
+import { selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
 
 const emptyArray: never[] = [];
 
@@ -48,7 +44,7 @@ export function useTaskErrors(): {
 
     // Unbound field errors
     for (const dataModel of Object.values(dataModels)) {
-      for (const field of Object.values(selectBackendFieldValidationsForDataModel(dataModel))) {
+      for (const field of Object.values(dataModel.validations.backend)) {
         allBackendErrors.push(
           ...(selectValidations(field, backendMask, 'error').filter(
             // Only select backend errors which are not already visible through formErrors

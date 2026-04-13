@@ -42,10 +42,6 @@ export function selectMergedFieldValidationsForDataModel(dataModel: DataModelSta
   );
 }
 
-export function selectBackendFieldValidationsForDataModel(dataModel: DataModelState): FieldValidations {
-  return dataModel.validations.backend;
-}
-
 export function selectFieldValidationsForDataModel(dataModel: DataModelState, field: string): BaseValidation[] {
   return [
     ...(dataModel.validations.backend[field] ?? []),

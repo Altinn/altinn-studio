@@ -23,7 +23,6 @@ import { mapBackendIssuesToTaskValidations } from 'src/features/validation/backe
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import {
   hasValidationErrors,
-  selectBackendFieldValidationsForDataModel,
   selectMergedFieldValidationsForDataModel,
   selectValidations,
 } from 'src/features/validation/utils';
@@ -222,7 +221,7 @@ function UpdateShowAllErrors() {
     const backendMask = ValidationMask.Backend | ValidationMask.CustomBackend;
     const hasFieldErrors =
       Object.values(dataModels)
-        .flatMap((model) => Object.values(selectBackendFieldValidationsForDataModel(model)))
+        .flatMap((model) => Object.values(model.validations.backend))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
     if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {

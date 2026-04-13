@@ -22,8 +22,7 @@ export function useExpressionValidation(bindings: [string, IDataModelReference][
   const out: ExpressionValidationOutput = [];
   for (const [bindingKey, reference] of bindings) {
     const dataModel = dataModels[reference.dataType];
-    const validationDefs =
-      dataModel?.expressionValidationConfig?.[toExpressionValidationKey(reference.field)] ?? emptyArray;
+    const validationDefs = dataModel?.expressionValidationConfig?.[removeIndices(reference.field)] ?? emptyArray;
     const dataElementId = dataModel?.dataElementId ?? reference.dataType;
 
     // The data model bindings and their matching validation definitions are derived from static layout configuration.
@@ -51,10 +50,6 @@ function useExpressionValidationForBinding(
   );
 
   return useMemo(() => {
-    if (validationDefs.length === 0) {
-      return [];
-    }
-
     const validations: FieldValidation[] = [];
     const field = reference.field;
 
@@ -89,6 +84,6 @@ function useExpressionValidationForBinding(
   }, [dataElementId, dataSources, reference.field, validationDefs]);
 }
 
-export function toExpressionValidationKey(field: string) {
+export function removeIndices(field: string) {
   return field.replace(/\[\d+]/g, '');
 }

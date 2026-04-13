@@ -9,7 +9,7 @@ function isScalar(value: unknown): value is string | number | boolean {
 
 interface DeriveInvalidDataValidationsParams {
   invalidData: object;
-  dataElementId: string;
+  dataElementId: string | null;
 }
 
 export function deriveInvalidDataValidations({
@@ -17,11 +17,6 @@ export function deriveInvalidDataValidations({
   dataElementId,
 }: DeriveInvalidDataValidationsParams): FieldValidations {
   const validations: FieldValidations = {};
-
-  if (Object.keys(invalidData).length === 0) {
-    return validations;
-  }
-
   const flattened = dot.dot(invalidData);
   for (const [field, value] of Object.entries(flattened)) {
     if (!isScalar(value)) {
@@ -34,7 +29,7 @@ export function deriveInvalidDataValidations({
 
     validations[field].push({
       field,
-      dataElementId,
+      dataElementId: dataElementId ?? '',
       source: FrontendValidationSource.InvalidData,
       message: { key: 'validation_errors.pattern' },
       severity: 'error',

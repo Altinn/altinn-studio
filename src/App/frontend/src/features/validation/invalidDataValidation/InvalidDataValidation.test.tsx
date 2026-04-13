@@ -9,6 +9,7 @@ describe('deriveInvalidDataValidations', () => {
           contact: {
             phone: 'not-a-number',
           },
+          empty: {},
         },
       },
       dataElementId: 'data-element-id',
