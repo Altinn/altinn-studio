@@ -21,6 +21,9 @@ namespace Altinn.Studio.Designer.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // setting `buildid` to non-nullable will fail if there are deployments will null `buildid`
+            // to remove problematic rows:
+            // !will result in lost data! `DELETE FROM deployments WHERE buildid IS NULL;`
             migrationBuilder.AlterColumn<string>(
                 name: "buildid",
                 table: "deployments",
