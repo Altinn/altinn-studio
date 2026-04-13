@@ -4,7 +4,7 @@ imageTag: ""
 giteaInstanceUrl: "http://altinn-repositories-public.default.svc.cluster.local"
 environment: "dev"
 
-runtimeClassName: "kata-mshv-vm-isolation"
+runtimeClassName: "kata-vm-isolation"
 dockerInDocker:
   enabled: true
 

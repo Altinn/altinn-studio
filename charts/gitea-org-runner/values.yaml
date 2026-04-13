@@ -16,13 +16,13 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# Set to "kata-mshv-vm-isolation" to run pods in a Kata microVM on AKS Pod Sandboxing nodes.
+# Set to "kata-vm-isolation" to run pods in a Kata microVM on AKS Pod Sandboxing nodes.
 # Leave empty to use the default runc runtime.
 runtimeClassName: ""
 
 # Docker-in-Docker sidecar. When enabled, a privileged dockerd container is added to each
 # runner pod and DOCKER_HOST is injected into the runner container pointing at the sidecar.
-# Intended to be combined with runtimeClassName: kata-mshv-vm-isolation so "privileged"
+# Intended to be combined with runtimeClassName: kata-vm-isolation so "privileged"
 # is scoped to the microVM, not the host node.
 dockerInDocker:
   enabled: false
