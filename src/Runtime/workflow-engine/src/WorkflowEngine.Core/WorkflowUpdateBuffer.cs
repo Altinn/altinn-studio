@@ -22,7 +22,28 @@ internal interface IWorkflowUpdateBuffer
     /// Submits a workflow and its dirty steps for batched persistence.
     /// Returns when the update has been flushed to the database.
     /// </summary>
-    Task Submit(Workflow workflow, CancellationToken ct, string? reason = null, Activity? parentActivity = null);
+    Task Submit(
+        Workflow workflow,
+        CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
+        string? reason = null,
+        Activity? parentActivity = null
+    );
+
+    /// <summary>
+    /// Submits a workflow and its dirty steps for batched persistence without awaiting the flush.
+    /// The update is best-effort — if a later <see cref="Submit"/> for the same workflow arrives
+    /// before this one is flushed, the deduplication logic will discard this entry and only
+    /// persist the latest state. Suitable for progress updates (e.g. step started) where
+    /// at-least-once delivery of the terminal state is sufficient.
+    /// </summary>
+    void SubmitAndForget(
+        Workflow workflow,
+        CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
+        string? reason = null,
+        Activity? parentActivity = null
+    );
 }
 
 /// <summary>
@@ -52,7 +73,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             new BoundedChannelOptions(_settings.UpdateBuffer.MaxQueueSize)
             {
                 FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = false,
+                SingleReader = true,
                 SingleWriter = false,
             }
         );
@@ -65,11 +86,12 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     public async Task Submit(
         Workflow workflow,
         CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
         string? reason = null,
         Activity? parentActivity = null
     )
     {
-        var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
+        dirtySteps ??= [];
 
         reason ??= $"workflow.{JsonNamingPolicy.CamelCase.ConvertName(workflow.Status.ToString())}";
 
@@ -99,11 +121,50 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         await tcs.Task;
     }
 
+    /// <inheritdoc/>
+    public void SubmitAndForget(
+        Workflow workflow,
+        CancellationToken ct,
+        IReadOnlyList<Step>? dirtySteps = null,
+        string? reason = null,
+        Activity? parentActivity = null
+    )
+    {
+        dirtySteps ??= [];
+
+        reason ??= $"workflow.{JsonNamingPolicy.CamelCase.ConvertName(workflow.Status.ToString())}";
+
+        Metrics
+            .Source.StartActivity(
+                "WorkflowUpdateBuffer.SubmitAndForget",
+                parentContext: parentActivity?.Context ?? workflow.EngineActivity?.Context,
+                tags:
+                [
+                    ("workflow.database.id", workflow.DatabaseId),
+                    ("workflow.operation.id", workflow.OperationId),
+                    ("workflow.status", workflow.Status.ToString()),
+                    ("dirty.steps.count", dirtySteps.Count),
+                    ("submit.reason", reason),
+                ]
+            )
+            ?.Dispose();
+
+        // No TCS — the caller doesn't need to know when this flush completes.
+        // If a later Submit() for the same workflow arrives before this one is flushed,
+        // the deduplication logic will discard this entry.
+        var request = new WorkflowUpdateRequest(workflow, dirtySteps, Completion: null);
+
+        if (!_channel.Writer.TryWrite(request))
+        {
+            Metrics.UpdateBufferDroppedItems.Add(1);
+            _logger.UpdateBufferDropped(workflow.DatabaseId, workflow.OperationId);
+        }
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.UpdateBufferStarted(_settings.UpdateBuffer.MaxBatchSize, _settings.UpdateBuffer.FlushConcurrency);
+        _logger.UpdateBufferStarted(_settings.UpdateBuffer.MaxBatchSize);
 
-        using var flushSemaphore = new SemaphoreSlim(_settings.UpdateBuffer.FlushConcurrency);
         var batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
 
         try
@@ -115,27 +176,19 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                     break;
                 }
 
+                // Brief yield to let more items accumulate before draining —
+                // under stampede conditions this significantly increases batch fill and deduplication.
+                await Task.Yield();
+
                 while (batch.Count < _settings.UpdateBuffer.MaxBatchSize && _channel.Reader.TryRead(out var item))
                 {
                     batch.Add(item);
                 }
 
-                await flushSemaphore.WaitAsync(stoppingToken);
+                DeduplicateBatch(batch);
 
-                _ = FlushAndRelease([.. batch]);
+                await FlushBatch(batch, stoppingToken);
                 batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
-
-                async Task FlushAndRelease(List<WorkflowUpdateRequest> batchToFlush)
-                {
-                    try
-                    {
-                        await FlushBatch(batchToFlush, stoppingToken);
-                    }
-                    finally
-                    {
-                        flushSemaphore.Release();
-                    }
-                }
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -143,16 +196,10 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             // Expected on shutdown
         }
 
-        // Wait for all in-flight flushes to complete (bounded to prevent indefinite hangs)
+        // Drain remaining items (bounded to prevent indefinite hangs)
         using var drainCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         try
         {
-            for (int i = 0; i < _settings.UpdateBuffer.FlushConcurrency; i++)
-            {
-                await flushSemaphore.WaitAsync(drainCts.Token);
-            }
-
-            // batch may still hold items from an interrupted iteration — append remaining channel items
             while (_channel.Reader.TryRead(out var remaining))
             {
                 batch.Add(remaining);
@@ -160,6 +207,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
             if (batch.Count > 0)
             {
+                DeduplicateBatch(batch);
                 await FlushBatch(batch, drainCts.Token);
             }
 
@@ -170,17 +218,61 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             // Cancel any items still in the current batch
             foreach (var pending in batch)
             {
-                pending.Completion.TrySetCanceled(drainCts.Token);
+                pending.Completion?.TrySetCanceled(drainCts.Token);
             }
 
             // Cancel any items still queued in the channel
             while (_channel.Reader.TryRead(out var pending))
             {
-                pending.Completion.TrySetCanceled(drainCts.Token);
+                pending.Completion?.TrySetCanceled(drainCts.Token);
             }
 
-            _logger.UpdateBufferDrainTimedOut(_settings.UpdateBuffer.FlushConcurrency);
+            _logger.UpdateBufferDrainTimedOut();
         }
+    }
+
+    /// <summary>
+    /// Removes duplicate entries for the same workflow, keeping only the latest submission.
+    /// Earlier entries are completed immediately — they've been superseded by newer state.
+    /// This is safe because the latest entry's dirty steps reflect the most recent mutations,
+    /// and the Workflow reference carries the full current state.
+    /// </summary>
+    private void DeduplicateBatch(List<WorkflowUpdateRequest> batch)
+    {
+        if (batch.Count <= 1)
+            return;
+
+        // Map each workflow ID to the index of its latest submission
+        var latest = new Dictionary<Guid, int>(batch.Count);
+        for (int i = 0; i < batch.Count; i++)
+        {
+            latest[batch[i].Workflow.DatabaseId] = i;
+        }
+
+        if (latest.Count == batch.Count)
+            return;
+
+        int superseded = batch.Count - latest.Count;
+
+        // Complete superseded entries and rebuild the batch with only the latest per workflow
+        var kept = new List<WorkflowUpdateRequest>(latest.Count);
+        for (int i = 0; i < batch.Count; i++)
+        {
+            if (latest[batch[i].Workflow.DatabaseId] == i)
+            {
+                kept.Add(batch[i]);
+            }
+            else
+            {
+                batch[i].Completion?.TrySetResult();
+            }
+        }
+
+        batch.Clear();
+        batch.AddRange(kept);
+
+        Metrics.UpdateBufferDeduplicatedItems.Add(superseded);
+        _logger.UpdateBufferDeduplicated(superseded, batch.Count);
     }
 
     private async Task FlushBatch(List<WorkflowUpdateRequest> batch, CancellationToken ct)
@@ -188,7 +280,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         // Filter out items whose callers have already canceled
         for (int i = batch.Count - 1; i >= 0; i--)
         {
-            if (batch[i].Completion.Task.IsCanceled)
+            if (batch[i].Completion?.Task.IsCanceled == true)
             {
                 batch.RemoveAt(i);
             }
@@ -216,14 +308,14 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
             foreach (var request in batch)
             {
-                request.Completion.TrySetResult();
+                request.Completion?.TrySetResult();
             }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             foreach (var request in batch)
             {
-                request.Completion.TrySetCanceled(ct);
+                request.Completion?.TrySetCanceled(ct);
             }
         }
         catch (Exception ex)
@@ -234,7 +326,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             // Fault all waiting callers
             foreach (var request in batch)
             {
-                request.Completion.TrySetException(ex);
+                request.Completion?.TrySetException(ex);
             }
         }
     }
@@ -242,29 +334,36 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
 internal static partial class WorkflowUpdateBufferLogs
 {
-    [LoggerMessage(
-        LogLevel.Information,
-        "WorkflowUpdateBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})"
-    )]
-    internal static partial void UpdateBufferStarted(
-        this ILogger<WorkflowUpdateBuffer> logger,
-        int maxBatchSize,
-        int concurrency
-    );
+    [LoggerMessage(LogLevel.Information, "WorkflowUpdateBuffer started (MaxBatchSize={MaxBatchSize})")]
+    internal static partial void UpdateBufferStarted(this ILogger<WorkflowUpdateBuffer> logger, int maxBatchSize);
 
     [LoggerMessage(LogLevel.Information, "WorkflowUpdateBuffer shutdown complete")]
     internal static partial void UpdateBufferShutdownComplete(this ILogger<WorkflowUpdateBuffer> logger);
 
-    [LoggerMessage(
-        LogLevel.Warning,
-        "WorkflowUpdateBuffer drain timed out — {Count} in-flight flushes may not have completed"
-    )]
-    internal static partial void UpdateBufferDrainTimedOut(this ILogger<WorkflowUpdateBuffer> logger, int count);
+    [LoggerMessage(LogLevel.Warning, "WorkflowUpdateBuffer drain timed out — pending items may not have been flushed")]
+    internal static partial void UpdateBufferDrainTimedOut(this ILogger<WorkflowUpdateBuffer> logger);
 
     [LoggerMessage(LogLevel.Error, "Update flush failed for {Count} requests")]
     internal static partial void UpdateBufferFlushFailed(
         this ILogger<WorkflowUpdateBuffer> logger,
         int count,
         Exception ex
+    );
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "SubmitAndForget dropped — update buffer channel full (WorkflowId={WorkflowId}, OperationId={OperationId})"
+    )]
+    internal static partial void UpdateBufferDropped(
+        this ILogger<WorkflowUpdateBuffer> logger,
+        Guid workflowId,
+        string operationId
+    );
+
+    [LoggerMessage(LogLevel.Debug, "WorkflowUpdateBuffer deduplicated {Superseded} items, {Remaining} remain in batch")]
+    internal static partial void UpdateBufferDeduplicated(
+        this ILogger<WorkflowUpdateBuffer> logger,
+        int superseded,
+        int remaining
     );
 }

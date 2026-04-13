@@ -74,6 +74,7 @@ public class HeartbeatServiceTests
                 r =>
                     r.BatchUpdateHeartbeats(
                         It.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2),
+                        It.IsAny<TimeSpan>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.AtLeastOnce
@@ -126,7 +127,12 @@ public class HeartbeatServiceTests
 
             // Verify heartbeat was still called after shutdown signal
             repo.Verify(
-                r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
+                r =>
+                    r.BatchUpdateHeartbeats(
+                        It.IsAny<IReadOnlyList<Guid>>(),
+                        It.IsAny<TimeSpan>(),
+                        It.IsAny<CancellationToken>()
+                    ),
                 Times.AtLeastOnce
             );
         }
@@ -163,7 +169,12 @@ public class HeartbeatServiceTests
             await Task.Delay(200, TestContext.Current.CancellationToken);
 
             repo.Verify(
-                r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()),
+                r =>
+                    r.BatchUpdateHeartbeats(
+                        It.IsAny<IReadOnlyList<Guid>>(),
+                        It.IsAny<TimeSpan>(),
+                        It.IsAny<CancellationToken>()
+                    ),
                 Times.Never
             );
         }
@@ -194,9 +205,15 @@ public class HeartbeatServiceTests
         tracker.TryAdd(id, workflowCts, DummyWorkflow());
 
         var callCount = 0;
-        repo.Setup(r => r.BatchUpdateHeartbeats(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
-            .Returns<IReadOnlyList<Guid>, CancellationToken>(
-                (_, _) =>
+        repo.Setup(r =>
+                r.BatchUpdateHeartbeats(
+                    It.IsAny<IReadOnlyList<Guid>>(),
+                    It.IsAny<TimeSpan>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns<IReadOnlyList<Guid>, TimeSpan, CancellationToken>(
+                (_, _, _) =>
                 {
                     var count = Interlocked.Increment(ref callCount);
                     if (count == 1)

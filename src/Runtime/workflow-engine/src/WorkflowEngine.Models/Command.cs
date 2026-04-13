@@ -5,7 +5,7 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// Base class for command descriptors that need both typed command data and typed workflow context.
 /// The engine deserializes the raw JSON into <typeparamref name="TData"/> and <typeparamref name="TContext"/>
-/// before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
+/// before calling <see cref="Validate"/> or <see cref="Execute"/>.
 /// </summary>
 /// <typeparam name="TData">The type to deserialize <see cref="CommandDefinition.Data"/> into.</typeparam>
 /// <typeparam name="TContext">The type to deserialize <see cref="Workflow.Context"/> into.</typeparam>
@@ -22,8 +22,8 @@ public abstract class Command<TData, TContext> : ICommand
     CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>
         Validate(commandData as TData, workflowContext as TContext);
 
-    Task<ExecutionResult> ICommand.ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken) =>
-        ExecuteAsync(context, cancellationToken);
+    Task<ExecutionResult> ICommand.Execute(CommandExecutionContext context, CancellationToken cancellationToken) =>
+        Execute(context, cancellationToken);
 
     /// <summary>
     /// Validates the deserialized command data and workflow context.
@@ -35,7 +35,7 @@ public abstract class Command<TData, TContext> : ICommand
     /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>
     /// and <see cref="CommandExecutionContext.GetWorkflowContext{T}"/> to access typed data.
     /// </summary>
-    protected abstract Task<ExecutionResult> ExecuteAsync(
+    protected abstract Task<ExecutionResult> Execute(
         CommandExecutionContext context,
         CancellationToken cancellationToken
     );
@@ -44,7 +44,7 @@ public abstract class Command<TData, TContext> : ICommand
 /// <summary>
 /// Base class for command descriptors that need typed command data but no workflow context.
 /// The engine deserializes the raw JSON into <typeparamref name="TData"/>
-/// before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
+/// before calling <see cref="Validate"/> or <see cref="Execute"/>.
 /// </summary>
 /// <typeparam name="TData">The type to deserialize <see cref="CommandDefinition.Data"/> into.</typeparam>
 public abstract class Command<TData> : ICommand
@@ -59,8 +59,8 @@ public abstract class Command<TData> : ICommand
     CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>
         Validate(commandData as TData);
 
-    Task<ExecutionResult> ICommand.ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken) =>
-        ExecuteAsync(context, cancellationToken);
+    Task<ExecutionResult> ICommand.Execute(CommandExecutionContext context, CancellationToken cancellationToken) =>
+        Execute(context, cancellationToken);
 
     /// <summary>
     /// Validates the deserialized command data.
@@ -72,7 +72,7 @@ public abstract class Command<TData> : ICommand
     /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>
     /// to access typed data.
     /// </summary>
-    protected abstract Task<ExecutionResult> ExecuteAsync(
+    protected abstract Task<ExecutionResult> Execute(
         CommandExecutionContext context,
         CancellationToken cancellationToken
     );
