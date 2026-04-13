@@ -52,28 +52,29 @@ export function useIsUpdatingInitialValidations() {
   return useIsFetching({ queryKey: backendValidationQueryKeys.all() }) > 0;
 }
 
-// By default we only fetch with incremental validations
-export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
-  onlyIncrementalValidators = true,
-  options: Pick<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'enabled' | 'throwOnError'> = {},
-) {
+function useBackendValidationQueryOptions(onlyIncrementalValidators: boolean) {
   const backendValidationApi = useBackendValidationApi();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage()).current;
 
-  const queryOptions = backendValidationQuery({
+  return backendValidationQuery({
     backendValidationApi,
     instanceId,
     currentLanguage,
     onlyIncrementalValidators,
   });
+}
+
+// By default we only fetch with incremental validations
+export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
+  onlyIncrementalValidators = true,
+  options: Pick<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'enabled'> = {},
+) {
+  const queryOptions = useBackendValidationQueryOptions(onlyIncrementalValidators);
 
   const query = useQuery({
-    queryKey: queryOptions.queryKey,
-    queryFn: queryOptions.queryFn,
-    gcTime: queryOptions.gcTime,
+    ...queryOptions,
     enabled: options.enabled,
-    throwOnError: options.throwOnError,
   });
 
   useEffect(() => {
@@ -84,7 +85,13 @@ export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
 }
 
 export function useRefetchInitialValidations(onlyIncrementalValidators = true) {
-  return useBackendValidationQuery(onlyIncrementalValidators, { throwOnError: false, enabled: false }).refetch;
+  const queryOptions = useBackendValidationQueryOptions(onlyIncrementalValidators);
+  const query = useQuery({
+    ...queryOptions,
+    enabled: false,
+    throwOnError: false,
+  });
+  return query.refetch;
 }
 
 export { backendValidationQueryKeys };
