@@ -1,39 +1,18 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
-import { skipToken, useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { useBackendValidationApi } from 'src/core/contexts/ApiProvider';
-import { backendValidationQueryKeys } from 'src/core/queries/backendValidation/backendValidation.queries';
+import {
+  backendValidationQuery,
+  backendValidationQueryKeys,
+} from 'src/core/queries/backendValidation/backendValidation.queries';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
 import type { BackendValidationIssue } from 'src/features/validation';
-
-type BackendValidationQueryProps = {
-  onlyIncrementalValidators: boolean | undefined;
-  instanceId: string | undefined;
-  currentLanguage: string;
-  fetchBackendValidations: (
-    instanceId: string,
-    language: string,
-    onlyIncrementalValidators?: boolean,
-  ) => Promise<BackendValidationIssue[]>;
-};
-
-function backendValidationQueryFunc({
-  onlyIncrementalValidators,
-  instanceId,
-  currentLanguage,
-  fetchBackendValidations,
-}: BackendValidationQueryProps): typeof skipToken | (() => Promise<BackendValidationIssue[]>) {
-  if (!instanceId) {
-    return skipToken;
-  }
-
-  return () => fetchBackendValidations(instanceId, currentLanguage, onlyIncrementalValidators);
-}
 
 /**
  * The same queryKey must be used for all of the functions below
@@ -79,21 +58,20 @@ export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
   options: Omit<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'queryKey' | 'queryFn'> = {},
 ) {
   const backendValidationApi = useBackendValidationApi();
-  const queryKey = useBackendValidationQueryKey();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage()).current;
 
-  const queryFn = backendValidationQueryFunc({
-    onlyIncrementalValidators,
+  const queryOptions = backendValidationQuery({
+    backendValidationApi,
     instanceId,
     currentLanguage,
-    fetchBackendValidations: backendValidationApi.fetchBackendValidations,
+    onlyIncrementalValidators,
   });
 
   const query = useQuery({
-    queryFn,
-    queryKey,
-    gcTime: 0,
+    queryKey: queryOptions.queryKey,
+    queryFn: queryOptions.queryFn,
+    gcTime: queryOptions.gcTime,
     ...options,
   });
 
