@@ -156,13 +156,6 @@ public class DeploymentService : IDeploymentService
             }
         );
 
-        // Deployment should fail if resource registry publish fails
-        // TODO: This should likely be possible to override for test environments/ttd
-        if (!registryResult.Succeeded)
-        {
-            return createdEntity;
-        }
-
         // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
         // cancels the request, but we prefer to at least attempt completion once we've started mutating state
         // This particular multi-step process can start mutating state via `AddAppToGitOpsRepoIfNotExists`
