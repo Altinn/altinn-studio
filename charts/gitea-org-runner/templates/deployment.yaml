@@ -47,17 +47,19 @@ spec:
             privileged: true
           env:
             - name: DOCKER_TLS_CERTDIR
-              value: ""
+              value: "/certs"
           args:
-            - "--host=tcp://0.0.0.0:2375"
+            - "--host=tcp://0.0.0.0:2376"
           startupProbe:
             tcpSocket:
-              port: 2375
+              port: 2376
             periodSeconds: 2
             failureThreshold: 30
           volumeMounts:
             - name: docker-lib
               mountPath: /var/lib/docker
+            - name: docker-certs
+              mountPath: /certs
       {{- end }}
       containers:
         - name: {{ $.Chart.Name }}
@@ -70,7 +72,11 @@ spec:
           env:
             {{- if $.Values.dockerInDocker.enabled }}
             - name: DOCKER_HOST
-              value: "tcp://localhost:2375"
+              value: "tcp://localhost:2376"
+            - name: DOCKER_TLS_VERIFY
+              value: "1"
+            - name: DOCKER_CERT_PATH
+              value: "/certs/client"
             {{- end }}
             {{- if .environmentVariables }}
             {{- range $variable := .environmentVariables}}
@@ -91,9 +97,16 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with $.Values.volumeMounts }}
+          {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled }}
           volumeMounts:
+            {{- with $.Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if $.Values.dockerInDocker.enabled }}
+            - name: docker-certs
+              mountPath: /certs
+              readOnly: true
+            {{- end }}
           {{- end }}
       {{- if or $.Values.volumes $.Values.dockerInDocker.enabled }}
       volumes:
@@ -102,6 +115,8 @@ spec:
         {{- end }}
         {{- if $.Values.dockerInDocker.enabled }}
         - name: docker-lib
+          emptyDir: {}
+        - name: docker-certs
           emptyDir: {}
         {{- end }}
       {{- end }}
