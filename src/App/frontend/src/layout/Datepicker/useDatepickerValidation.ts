@@ -1,7 +1,7 @@
 import { isAfter, isBefore } from 'date-fns';
 
 import { getDateConstraint, getDateFormat, strictParseISO } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
@@ -12,7 +12,7 @@ export function useDatepickerValidation(baseComponentId: string): ComponentValid
   const currentLanguage = useCurrentLanguage();
   const field = useDataModelBindingsFor(baseComponentId, 'Datepicker')?.simpleBinding;
   const component = useItemWhenType(baseComponentId, 'Datepicker');
-  const data = FD.useDebouncedPick(field);
+  const data = FormStore.data.useDebouncedPick(field);
   const minDate = getDateConstraint(component?.minDate, 'min');
   const maxDate = getDateConstraint(component?.maxDate, 'max');
   const format = getDateFormat(component?.format, currentLanguage);

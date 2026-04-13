@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react';
 
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { FormStore } from 'src/features/form/FormContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function Summary2LayoutValidator({ intermediateItem, externalItem }: NodeValidationProps<'Summary2'>) {
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   const errors = useMemo(() => {
     const errors: string[] = [];

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Altinn.Studio.Designer.Models.UserAccount;
 
 namespace Altinn.Studio.Designer.Models.BotAccount;
@@ -12,4 +13,5 @@ public class BotAccount
     public bool Deactivated { get; init; }
     public DateTimeOffset Created { get; init; }
     public string? CreatedByUsername { get; init; }
+    public List<string> DeployEnvironments { get; init; } = [];
 }

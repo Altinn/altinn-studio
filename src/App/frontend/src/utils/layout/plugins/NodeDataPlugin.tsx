@@ -1,4 +1,4 @@
-import type { NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
+import type { FormStoreSet } from 'src/features/form/FormContext';
 
 interface NodeDataPluginConfig {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -7,11 +7,7 @@ interface NodeDataPluginConfig {
   extraHooks?: Record<string, (...args: any[]) => any>;
 }
 
-export type NodeDataPluginSetState = (
-  fnOrState: ((state: NodesContext) => Partial<NodesContext>) | Partial<NodesContext>,
-) => void;
-
 export abstract class NodeDataPlugin<Config extends NodeDataPluginConfig> {
-  abstract extraFunctions(set: NodeDataPluginSetState): Config['extraFunctions'];
-  abstract extraHooks(store: NodesStoreFull): Config['extraHooks'];
+  abstract extraFunctions(set: FormStoreSet): Config['extraFunctions'];
+  abstract extraHooks(): Config['extraHooks'];
 }

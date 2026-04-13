@@ -1,4 +1,16 @@
-import type { AssistantTexts, TextAreaTexts } from '../types/AssistantTexts';
+import type {
+  AboutAssistantDialogTexts,
+  AssistantTexts,
+  TextAreaTexts,
+} from '../types/AssistantTexts';
+
+const aboutAssistantDialogTexts: AboutAssistantDialogTexts = {
+  heading: 'aboutAssistantHeading',
+  description: 'aboutAssistantDescription',
+  branchInfo: 'aboutAssistantBranchInfo',
+  branchDocsLink: 'aboutAssistantBranchDocsLink',
+  disclaimer: 'aboutAssistantDisclaimer',
+};
 
 const textAreaTexts: TextAreaTexts = {
   placeholder: 'placeholder',
@@ -15,6 +27,7 @@ export const mockTexts: AssistantTexts = {
   newThread: 'newThread',
   previousThreads: 'previousThreads',
   aboutAssistant: 'aboutAssistant',
+  aboutAssistantDialog: aboutAssistantDialogTexts,
   textarea: textAreaTexts,
   addAttachment: 'addAttachment',
   allowAppChangesSwitch: 'allowAppChangesSwitch',

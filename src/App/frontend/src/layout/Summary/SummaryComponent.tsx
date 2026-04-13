@@ -4,8 +4,8 @@ import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -128,7 +128,7 @@ const SummaryComponentInner = React.forwardRef(function (
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const currentPageId = useNavigationParam('pageKey');
 
-  const targetView = useLayoutLookups().componentToPage[targetBaseComponentId];
+  const targetView = FormBootstrap.useLayoutLookups().componentToPage[targetBaseComponentId];
   const indexedId = useIndexedId(targetBaseComponentId);
   const targetIsHidden = useIsHidden(targetBaseComponentId);
 
@@ -136,8 +136,8 @@ const SummaryComponentInner = React.forwardRef(function (
   const errors = validationsOfSeverity(validations, 'error');
 
   const navigateToComponent = useNavigateToComponent();
-  const setReturnToView = useSetReturnToView();
-  const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
+  const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const setNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
 
   const onChangeClick = async () => {
     if (!targetView) {

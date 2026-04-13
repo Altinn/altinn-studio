@@ -98,6 +98,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:
@@ -186,6 +188,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:
@@ -272,6 +276,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:

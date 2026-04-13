@@ -2,3 +2,26 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base
+patches:
+  - patch: |-
+      $patch: delete
+      apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: altinn-altinity-agents-repo
+        namespace: default
+  - patch: |-
+      $patch: delete
+      apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: altinn-altinity-agents
+        namespace: default
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: altinn-mcp-server
+        namespace: default
+      spec:
+        replicas: 0

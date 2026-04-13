@@ -2,52 +2,53 @@ import { useCallback } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { useGetCachedInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
   mapBackendIssuesToFieldValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
-import { Validation } from 'src/features/validation/validationContext';
-import type { BackendValidationIssueGroups } from 'src/features/validation';
+import type { FormStoreState } from 'src/features/form/FormContext';
+import type { BackendValidationIssue, BackendValidationIssueGroups } from 'src/features/validation';
 
 /**
  * Hook for updating incremental validations from various sources (usually the validations updated from last saved data)
  */
-export function useUpdateIncrementalValidations(setInFormData = true) {
-  const updateBackendValidations = Validation.useUpdateBackendValidations();
-  const defaultDataElementId = DataModels.useDefaultDataElementId();
+export function useUpdateIncrementalValidations() {
+  const updateBackendValidations = FormStore.validation.useUpdateBackendValidations();
   const getCachedInitialValidations = useGetCachedInitialValidations();
-  const updateInFormData = FD.useSetLastValidationIssues();
 
   return useCallback(
     (lastSaveValidations: BackendValidationIssueGroups) => {
-      const { cachedInitialValidations } = getCachedInitialValidations();
-      const initialValidatorGroups = mapBackendValidationsToValidatorGroups(
-        cachedInitialValidations,
-        defaultDataElementId,
+      updateIncrementalValidations(
+        lastSaveValidations,
+        getCachedInitialValidations().cachedInitialValidations,
+        updateBackendValidations,
       );
-
-      const newValidatorGroups = structuredClone(initialValidatorGroups);
-      for (const [group, validationIssues] of Object.entries(lastSaveValidations)) {
-        newValidatorGroups[group] = mapBackendIssuesToFieldValidations(validationIssues, defaultDataElementId);
-      }
-
-      if (setInFormData) {
-        updateInFormData(lastSaveValidations);
-      }
-
-      if (deepEqual(initialValidatorGroups, newValidatorGroups)) {
-        // Don't update any validations, only set last saved validations
-        updateBackendValidations(undefined, { incremental: lastSaveValidations });
-        return;
-      }
-
-      const backendValidations = mapValidatorGroupsToDataModelValidations(newValidatorGroups);
-      updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
     },
-    [defaultDataElementId, getCachedInitialValidations, updateBackendValidations, setInFormData, updateInFormData],
+    [getCachedInitialValidations, updateBackendValidations],
   );
+}
+
+export function updateIncrementalValidations(
+  lastSaveValidations: BackendValidationIssueGroups,
+  cachedInitialValidations: BackendValidationIssue[] | undefined,
+  updateBackendValidations: FormStoreState['validation']['updateBackendValidations'],
+) {
+  const initialValidatorGroups = mapBackendValidationsToValidatorGroups(cachedInitialValidations);
+
+  const newValidatorGroups = structuredClone(initialValidatorGroups);
+  for (const [group, validationIssues] of Object.entries(lastSaveValidations)) {
+    newValidatorGroups[group] = mapBackendIssuesToFieldValidations(validationIssues);
+  }
+
+  if (deepEqual(initialValidatorGroups, newValidatorGroups)) {
+    // Don't update any validations, only set last saved validations
+    updateBackendValidations(undefined, { incremental: lastSaveValidations });
+    return;
+  }
+
+  const backendValidations = mapValidatorGroupsToDataModelValidations(newValidatorGroups);
+  updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
 }
