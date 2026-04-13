@@ -132,35 +132,23 @@ public class DeploymentRepository : IDeploymentRepository
 
     public async Task Update(DeploymentEntity deploymentEntity)
     {
-        var tracked = await _dbContext.Deployments.FindAsync(deploymentEntity.SequenceNo);
-        var mapped = DeploymentMapper.MapToDbModel(deploymentEntity);
+        DeploymentDbModel deployment = await _dbContext
+            .Deployments.Include(d => d.Build)
+            .FirstAsync(d => d.Sequenceno == deploymentEntity.SequenceNo);
+        DeploymentDbModel mapped = DeploymentMapper.MapToDbModel(
+            deploymentEntity,
+            deployment.Sequenceno,
+            deployment.InternalBuildId
+        );
+        _dbContext.Entry(deployment).CurrentValues.SetValues(mapped);
 
-        tracked.Buildid = mapped.Buildid;
-        tracked.Buildresult = mapped.Buildresult;
-        tracked.Entity = mapped.Entity;
-
-        if (mapped.Build != null)
+        if (deployment.Build != null && mapped.Build != null)
         {
-            var existingBuild = await _dbContext
-                .Set<BuildDbModel>()
-                .FirstOrDefaultAsync(b =>
-                    b.ExternalId == mapped.Build.ExternalId && b.BuildType == mapped.Build.BuildType
-                );
-
-            if (existingBuild != null)
-            {
-                existingBuild.Status = mapped.Build.Status;
-                existingBuild.Result = mapped.Build.Result;
-                existingBuild.Started = mapped.Build.Started;
-                existingBuild.Finished = mapped.Build.Finished;
-                tracked.InternalBuildId = existingBuild.Id;
-            }
-            else
-            {
-                _dbContext.Add(mapped.Build);
-                await _dbContext.SaveChangesAsync();
-                tracked.InternalBuildId = mapped.Build.Id;
-            }
+            _dbContext.Entry(deployment.Build).CurrentValues.SetValues(mapped.Build);
+        }
+        else
+        {
+            deployment.Build = mapped.Build;
         }
 
         await _dbContext.SaveChangesAsync();
