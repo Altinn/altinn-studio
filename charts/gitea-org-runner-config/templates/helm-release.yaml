@@ -30,6 +30,13 @@ spec:
     runtimeClassName: {{ .Values.runtimeClassName | quote }}
     dockerInDocker:
       enabled: {{ .Values.dockerInDocker.enabled }}
+    resources:
+      requests:
+        cpu: 500m
+        memory: 4Gi
+      limits:
+        cpu: "2"
+        memory: 6Gi
     runners:
     {{- $giteaUrl := .Values.giteaInstanceUrl }}
     {{- range index .Values.runners .Values.environment }}
