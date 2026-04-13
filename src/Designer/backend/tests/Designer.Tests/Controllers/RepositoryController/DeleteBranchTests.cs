@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers.BranchController
+namespace Designer.Tests.Controllers.RepositoryController
 {
     public class DeleteBranchTests
         : DesignerEndpointsTestsBase<DeleteBranchTests>,
