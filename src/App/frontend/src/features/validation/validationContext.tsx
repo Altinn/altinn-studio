@@ -271,8 +271,6 @@ export const validationHooks = {
       [setShowAllBackendErrors, validating],
     );
   },
-  useUpdateDataModelValidations: () =>
-    FormStore.raw.useStaticSelector((state) => state.validation.updateDataModelValidations),
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };

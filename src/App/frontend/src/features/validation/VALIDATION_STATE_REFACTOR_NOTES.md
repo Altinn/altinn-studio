@@ -1,14 +1,13 @@
 # Validation State Refactor Notes
 
-## Current state after the second pass
+## Current state on `feat/validation-state-cleanup`
 
 - Validation ownership has moved into `state.data.models[dataType]`.
 - Each `DataModelState` stores validation buckets in `validations`:
   - `backend`
   - `schema`
   - `invalidData`
-  - `expression`
-- Validation producers for frontend validations now update by `dataType`, not `dataElementId`.
+- Expression validation is no longer stored in the form store. It is evaluated directly in `useNodeValidation(...)`.
 - Backend validation ingestion is still keyed by `dataElementId`, because that is the shape returned by the backend API.
 
 ## What was removed
@@ -18,10 +17,9 @@
 
 ## Remaining complexity
 
-- We still keep four validation buckets per model and merge them on read in some selectors.
+- We still keep three validation buckets per model and merge them on read in some selectors.
 - The merge ordering is currently implicit in selectors such as `useNodeValidation`.
 - Some read paths still start from `dataElementId` and need a lookup back into `state.data.models`.
-- `ExpressionValidation` is still an effect-component that computes derived state and writes it back into the store.
 - Schema and invalid-data validations are still stored, but they are now recalculated by the form-data state machine when debounced data changes instead of by separate React effect components.
 - `ValidationPlugin` and `ValidationStorePlugin` still store validations per node in `state.nodes.nodeData[...]`, and many consumers read from that node-scoped cache instead of deriving validations directly.
 - `useWaitForValidation()` still depends on `processedLast` in the validation slice and `registry.current.validationsProcessed[...]` in the node generator registry, because frontend validation completion is currently observed indirectly through rendered node instances.
@@ -35,9 +33,9 @@
   - schema validations are updated in the form-data state machine on debounced changes
   - invalid-data validations are updated in the form-data state machine on debounced changes
 - Repeating-group field expansion already happens from form data at read time through `FormStore.data.useDebouncedAllPaths(reference)`.
-- Expression validation is already close to field-level derivation:
-  - `ExpressionValidation.tsx` expands field paths using `useDebouncedAllPaths`
-  - each expanded field is evaluated independently in `FieldExpressionValidation`
+- Expression validation is already derived on read:
+  - `useNodeValidation(...)` evaluates expression validations directly
+  - `useExpressionValidation(...)` evaluates each binding independently
 
 ### What still requires node state today
 
@@ -138,18 +136,17 @@ This would remove most of the effect-driven synchronization and make validation 
 
 ### 3. Replace effect-components with selectors or query-like derived state
 
-Candidates:
+Status: partially done.
 
-- `src/features/validation/expressionValidation/ExpressionValidation.tsx`
+Expression validation has already been moved out of stored validation state and is now derived directly in `useNodeValidation(...)`.
 
-The ideal direction is that these stop pushing derived validations into the store and instead expose derived results directly to the selectors that need them.
+What is still left is to stop caching the merged node validations in `state.nodes.nodeData[...]` and let consumers read from selector-driven derivation instead.
 
 Recommended order for the next pass:
 
-1. Extract pure expression-validation helpers at the field level.
-2. Build a selector/hook that returns validations for one node without writing them into `state.nodes`.
-3. Migrate node-local consumers such as `useUnifiedValidationsForNode` to that selector path.
-4. Only after node-local reads work without cached node validations, tackle page/subtree queries such as `usePageHasVisibleRequiredValidations` and `useVisibleValidationsDeep`.
+1. Build a selector/hook that returns validations for one node without writing them into `state.nodes`.
+2. Migrate node-local consumers such as `useUnifiedValidationsForNode` to that selector path.
+3. Only after node-local reads work without cached node validations, tackle page/subtree queries such as `usePageHasVisibleRequiredValidations` and `useVisibleValidationsDeep`.
 
 This de-risks the migration by preserving node visibility state while removing the stored validation arrays first.
 
@@ -175,7 +172,6 @@ Introduce a selector-driven node-validation layer without changing page-level ag
 
 Concretely:
 
-- extract pure field-level expression validation helpers
 - create a `useNodeValidations` / `selectNodeValidations` path that computes:
   - empty-field validations
   - component validations
@@ -295,29 +291,3 @@ Likely answer:
   - page key / component id
   - debounced data model slices relevant to repeating groups
   - layout version
-
-### Prototype now implemented
-
-A first pure utility now exists in:
-
-- `src/utils/layout/componentInstances.ts`
-
-Current capabilities:
-
-- apply a derived location context to a data-model reference
-- apply a derived location context to all bindings for a component
-- derive concrete component instances for a base component id from:
-  - `layoutLookups`
-  - form data
-  - repeating-group ancestry
-
-Current output shape:
-
-- `componentId`
-- `pageKey`
-- `instanceKey`
-- `locationContexts`
-- `currentDataModelLocation`
-- `effectiveDataModelBindings`
-
-This is intended as the first building block for replacing node-id-based validation queries.
