@@ -39,14 +39,12 @@ export function useAuthorizedOrganizationDetails(partyId: string | undefined, in
 
 export const MissingSignaturesErrorCode = 'MissingSignatures' as const;
 export function useSignaturesValidation() {
-  const { refetch, data } = useBackendValidationQuery(
-    {
-      select: (data) => data?.some((validation) => validation.code === MissingSignaturesErrorCode),
-    },
-    false,
-  );
+  const { refetch, data } = useBackendValidationQuery({}, false);
 
-  return { refetchValidations: refetch, hasMissingSignatures: !!data };
+  return {
+    refetchValidations: refetch,
+    hasMissingSignatures: !!data?.some((validation) => validation.code === MissingSignaturesErrorCode),
+  };
 }
 
 /**
