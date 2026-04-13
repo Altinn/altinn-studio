@@ -9,6 +9,8 @@ metadata:
     runner: {{ .name }}
 spec:
   replicas: {{ .replicas | default 1 }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "gitea-org-runner.selectorLabels" $ | nindent 6 }}
