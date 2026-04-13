@@ -55,7 +55,7 @@ export function useIsUpdatingInitialValidations() {
 // By default we only fetch with incremental validations
 export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
   onlyIncrementalValidators = true,
-  options: Omit<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'queryKey' | 'queryFn'> = {},
+  options: Pick<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'enabled' | 'throwOnError'> = {},
 ) {
   const backendValidationApi = useBackendValidationApi();
   const instanceId = useLaxInstanceId();
@@ -72,7 +72,8 @@ export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
     queryKey: queryOptions.queryKey,
     queryFn: queryOptions.queryFn,
     gcTime: queryOptions.gcTime,
-    ...options,
+    enabled: options.enabled,
+    throwOnError: options.throwOnError,
   });
 
   useEffect(() => {
