@@ -39,7 +39,7 @@ export function useAuthorizedOrganizationDetails(partyId: string | undefined, in
 
 export const MissingSignaturesErrorCode = 'MissingSignatures' as const;
 export function useSignaturesValidation() {
-  const { refetch, data } = useBackendValidationQuery({}, false);
+  const { refetch, data } = useBackendValidationQuery(false, {});
 
   return {
     refetchValidations: refetch,

@@ -75,8 +75,8 @@ export function useIsUpdatingInitialValidations() {
 
 // By default we only fetch with incremental validations
 export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
-  options: Omit<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'queryKey' | 'queryFn'> = {},
   onlyIncrementalValidators = true,
+  options: Omit<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'queryKey' | 'queryFn'> = {},
 ) {
   const backendValidationApi = useBackendValidationApi();
   const queryKey = useBackendValidationQueryKey();
@@ -105,7 +105,7 @@ export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
 }
 
 export function useRefetchInitialValidations(onlyIncrementalValidators = true) {
-  return useBackendValidationQuery({ throwOnError: false, enabled: false }, onlyIncrementalValidators).refetch;
+  return useBackendValidationQuery(onlyIncrementalValidators, { throwOnError: false, enabled: false }).refetch;
 }
 
 export { backendValidationQueryKeys };
