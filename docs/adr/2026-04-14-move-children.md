@@ -25,8 +25,8 @@ Currently, layouts for rows of data in list structures are defined like this:
 
 This has several disadvantages:
 
-- When creating layouts you you must define a component somewhere on the page, copy the ID and put it into the children array. This forces you to scroll up and down to see what components are rendered where.
-- You will have components in your layout that is not actually rendered where the appear in the layout file. This is confusing.
+- When creating layouts you must define a component somewhere on the page, copy the ID and put it into the children array. This forces you to scroll up and down to see what components are rendered where.
+- You will have components in your layout that are not actually rendered where they appear in the layout file. This is confusing.
 - It also complicates layout rendering in the application code:
   - When rendering we must iterate through the layout and replace IDs with actual components
   - We must somehow indicate that the component has been moved and then prevent rendering that component.
@@ -96,7 +96,7 @@ A2: Wrap the child components in an object to indicate that they are not part of
 - Breaking change: will require support in Altinn Studio
 - Blocks [2026-04-14-reusable-components.md](2026-04-14-reusable-components.md) solution A2
 
-#### A2
+### A2
 
 #### Pros
 

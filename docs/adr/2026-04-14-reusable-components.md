@@ -13,7 +13,7 @@ As an app developer I want to be able to create custom components that can be ea
 ## Decision drivers
 
 - B1: Makes it intuitive to create and use reusable components when working with layouts in source code
-- B2: Fascilitates making a good UI for reusable components in Altinn Studio
+- B2: Facilitates making a good UI for reusable components in Altinn Studio
 
 ## Alternatives considered
 
@@ -98,7 +98,7 @@ In this solution, the same component can be used inside multiple repeating group
 
 - More complex to implement than A2
 
-### A1
+### A2
 
 #### Pros
 
