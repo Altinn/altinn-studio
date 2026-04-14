@@ -24,12 +24,18 @@ runtimeClassName: ""
 # runner pod and DOCKER_HOST is injected into the runner container pointing at the sidecar.
 # Intended to be combined with runtimeClassName: kata-vm-isolation so "privileged"
 # is scoped to the microVM, not the host node.
+#
+# On kata, /var/lib/docker cannot use the default emptyDir (virtio-fs doesn't support
+# overlay as an upper filesystem). The sidecar's entrypoint therefore loop-mounts a
+# sparse ext4 image file at /var/lib/docker when it detects virtio-fs. diskSize controls
+# the logical size of that sparse file; physical usage grows only with actual writes.
 dockerInDocker:
   enabled: false
   image:
     repository: docker
     tag: "dind"
     pullPolicy: IfNotPresent
+  diskSize: "10G"
 
 # List of runners to deploy. Each runner will create a separate deployment.
 runners: []
