@@ -13,7 +13,6 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//multi-step-1,
       operationId: /multi-step-1,
       processingOrder: 0,
       updatedAt: {Scrubbed},
@@ -25,7 +24,6 @@
     },
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//multi-step-2,
       operationId: /multi-step-2,
       processingOrder: 1,
       updatedAt: {Scrubbed},
@@ -37,7 +35,6 @@
     },
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//multi-step-3,
       operationId: /multi-step-3,
       processingOrder: 2,
       updatedAt: {Scrubbed},

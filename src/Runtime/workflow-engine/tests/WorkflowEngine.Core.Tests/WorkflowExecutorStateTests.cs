@@ -38,7 +38,6 @@ public class WorkflowExecutorStateTests
         new()
         {
             OperationId = $"step-{order}",
-            IdempotencyKey = $"key/step-{order}",
             ProcessingOrder = order,
             Command = CommandDefinition.Create("state-capture"),
             StateOut = stateOut,
