@@ -78,7 +78,12 @@ public class ResourceRegistryService : IResourceRegistry
 
     public async Task<bool> ServiceResourceExists(string id, string env)
     {
-        var resourceList = await GetServiceResourceList(env, includeApps: false, includeAltinn2: false, includeMigratedApps: false);
+        var resourceList = await GetServiceResourceList(
+            env,
+            includeApps: false,
+            includeAltinn2: false,
+            includeMigratedApps: false
+        );
         return resourceList.Any((serviceResource) => serviceResource.Identifier.Equals(id));
     }
 

@@ -58,16 +58,17 @@ public static class ResourceAdminHelper
         {
             return false;
         }
-        
-        return resource.ResourceReferences?.Any(x =>
-        {
-            string reference = x.Reference ?? string.Empty;
-            if (!string.IsNullOrEmpty(reference))
-            {
-                return x.Reference.Contains("/a1", StringComparison.OrdinalIgnoreCase) || x.Reference.Contains("/a2", StringComparison.OrdinalIgnoreCase);
-            }
-            return false;
-        }) ?? false;
-    }
 
+        return resource.ResourceReferences?.Any(x =>
+            {
+                string reference = x.Reference ?? string.Empty;
+                if (!string.IsNullOrEmpty(reference))
+                {
+                    return x.Reference.Contains("/a1", StringComparison.OrdinalIgnoreCase)
+                        || x.Reference.Contains("/a2", StringComparison.OrdinalIgnoreCase);
+                }
+                return false;
+            })
+            ?? false;
+    }
 }
