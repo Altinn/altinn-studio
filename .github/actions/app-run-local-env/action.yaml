@@ -143,6 +143,29 @@ runs:
             return args;
           }
 
+          async function logDiscoveryDiagnostics() {
+            core.info(`Expected app run targets:\n${JSON.stringify(targets, null, 2)}`);
+            core.info('Current app container discovery candidates:');
+            await exec.exec('studioctl', ['__app-containers'], {
+              cwd: workspace,
+              ignoreReturnCode: true,
+            });
+
+            const studioctlHome = process.env.STUDIOCTL_HOME;
+            if (!studioctlHome) {
+              core.info('STUDIOCTL_HOME is not set; app-manager log tail unavailable.');
+              return;
+            }
+
+            const logPath = nodePath.join(studioctlHome, 'logs', 'app-manager.log');
+            try {
+              const log = await fs.readFile(logPath, 'utf8');
+              core.info(`app-manager log tail:\n${log.split(/\r?\n/).slice(-200).join('\n')}`);
+            } catch (error) {
+              core.info(`Could not read app-manager log at ${logPath}: ${error.message}`);
+            }
+          }
+
           await exec.exec('studioctl', ['servers', 'up'], { cwd: workspace });
 
           let started = 0;
@@ -195,4 +218,5 @@ runs:
           }
 
           core.info(lastStatus);
+          await logDiscoveryDiagnostics();
           throw new Error('Timed out waiting for app-manager discovery.');

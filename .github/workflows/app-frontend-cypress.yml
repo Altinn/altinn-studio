@@ -79,22 +79,34 @@ jobs:
             const fs = require('fs/promises');
             const nodePath = require('path');
 
+            const maxParallelBuilds = 4;
             const appRoot = 'src/test/apps';
             const repository = process.env.APP_TEST_IMAGE_REPOSITORY;
             const tagSuffix = `${process.env.GITHUB_SHA.slice(0, 12)}-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}`;
             const entries = await fs.readdir(appRoot, { withFileTypes: true });
-            const targets = [];
-
-            for (const entry of entries.filter(entry => entry.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
-              const appPath = nodePath.posix.join(appRoot, entry.name);
-              const image = `${repository}:${entry.name}-${tagSuffix}`;
-              await exec.exec('studioctl', ['app', 'build', '--path', appPath, '--image-tag', image, '--push']);
-              targets.push({ path: appPath, image });
-            }
+            const targets = entries
+              .filter(entry => entry.isDirectory())
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map(entry => {
+                const appPath = nodePath.posix.join(appRoot, entry.name);
+                return { path: appPath, image: `${repository}:${entry.name}-${tagSuffix}` };
+              });
 
             if (targets.length === 0) {
               throw new Error('No app images were built.');
             }
+
+            let nextTarget = 0;
+            async function buildNext(workerId) {
+              while (nextTarget < targets.length) {
+                const target = targets[nextTarget++];
+                core.info(`Worker ${workerId}: building ${target.path}`);
+                await exec.exec('studioctl', ['app', 'build', '--path', target.path, '--image-tag', target.image, '--push']);
+              }
+            }
+
+            const workerCount = Math.min(maxParallelBuilds, targets.length);
+            await Promise.all(Array.from({ length: workerCount }, (_, index) => buildNext(index + 1)));
             core.setOutput('app-run-targets-json', JSON.stringify(targets));
 
   cypress-run-internal:
