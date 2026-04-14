@@ -112,6 +112,11 @@ public static class Metrics
         description: "Number of fire-and-forget status updates dropped because the update buffer channel was full"
     );
 
+    public static readonly Counter<long> UpdateBufferFlushedItems = Meter.CreateCounter<long>(
+        "engine.update_buffer.flushed",
+        description: "Number of workflow status updates actually written to the database after deduplication"
+    );
+
     public static readonly Counter<long> DbOperationsSucceeded = Meter.CreateCounter<long>(
         "engine.db.operations.success"
     );

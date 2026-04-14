@@ -7,11 +7,13 @@ import {
   StudioParagraph,
   StudioRadio,
   StudioRadioGroup,
-  useStudioRadioGroup,
 } from '@studio/components';
 import classes from './LoginGuide.module.css';
 
 const SKIP_GUIDE_KEY = 'altinn-studio-skip-login-guide';
+
+const HAS_ACCOUNT_GROUP_NAME = 'login-guide-has-account';
+const HAS_USED_BANK_ID_GROUP_NAME = 'login-guide-has-used-bankid';
 
 type LoginGuideProps = {
   accountLinkUrl?: string;
@@ -23,20 +25,12 @@ export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElem
   const [hasUsedBankId, setHasUsedBankId] = useState<string | null>(null);
   const [skipNextTime, setSkipNextTime] = useState(false);
 
-  const { getRadioProps: getAccountRadioProps } = useStudioRadioGroup({
-    value: hasAccount,
-    onChange: (value: string) => {
-      setHasAccount(value);
-      if (value === 'no') {
-        setHasUsedBankId(null);
-      }
-    },
-  });
-
-  const { getRadioProps: getBankIdRadioProps } = useStudioRadioGroup({
-    value: hasUsedBankId,
-    onChange: (value: string) => setHasUsedBankId(value),
-  });
+  const handleHasAccountChange = (value: string) => {
+    setHasAccount(value);
+    if (value === 'no') {
+      setHasUsedBankId(null);
+    }
+  };
 
   const handleGoToLogin = () => {
     if (skipNextTime) {
@@ -69,11 +63,17 @@ export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElem
         <StudioRadioGroup legend={t('login_guide.q1_title')} description={t('login_guide.q1_hint')}>
           <StudioRadio
             label={t('login_guide.radio_yes')}
-            {...getAccountRadioProps({ value: 'yes' })}
+            name={HAS_ACCOUNT_GROUP_NAME}
+            value='yes'
+            checked={hasAccount === 'yes'}
+            onChange={() => handleHasAccountChange('yes')}
           />
           <StudioRadio
             label={t('login_guide.radio_no')}
-            {...getAccountRadioProps({ value: 'no' })}
+            name={HAS_ACCOUNT_GROUP_NAME}
+            value='no'
+            checked={hasAccount === 'no'}
+            onChange={() => handleHasAccountChange('no')}
           />
         </StudioRadioGroup>
 
@@ -84,11 +84,17 @@ export const LoginGuide = ({ accountLinkUrl }: LoginGuideProps): React.ReactElem
           >
             <StudioRadio
               label={t('login_guide.radio_yes')}
-              {...getBankIdRadioProps({ value: 'yes' })}
+              name={HAS_USED_BANK_ID_GROUP_NAME}
+              value='yes'
+              checked={hasUsedBankId === 'yes'}
+              onChange={() => setHasUsedBankId('yes')}
             />
             <StudioRadio
               label={t('login_guide.radio_no')}
-              {...getBankIdRadioProps({ value: 'no' })}
+              name={HAS_USED_BANK_ID_GROUP_NAME}
+              value='no'
+              checked={hasUsedBankId === 'no'}
+              onChange={() => setHasUsedBankId('no')}
             />
           </StudioRadioGroup>
         )}

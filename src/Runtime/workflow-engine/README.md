@@ -13,6 +13,9 @@ Built on .NET 10, PostgreSQL, and OpenTelemetry.
 
 ### Running locally
 
+> [!TIP]
+> All Docker Compose commands below have `make` equivalents. Run `make help` to see available targets.
+
 Start the infrastructure (Postgres, PgAdmin, Grafana/LGTM, exporters, WireMock):
 
 ```sh

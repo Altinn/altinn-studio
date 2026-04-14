@@ -165,8 +165,6 @@ public sealed partial class AppCommandIntegrationTests
             var headers = log.RequestMessage.Headers;
             Assert.NotNull(headers);
 
-            Assert.NotEqual("(missing)", HttpChatterHelpers.GetHeader(headers, "X-Api-Key"));
-
             var workflowIdHeader = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.WorkflowId);
             Assert.True(
                 Guid.TryParse(workflowIdHeader, out var parsedWorkflowId),

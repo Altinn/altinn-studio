@@ -78,7 +78,6 @@ public class CancellationTests
         new()
         {
             OperationId = operationId,
-            IdempotencyKey = $"test-step-key/{operationId}",
             ProcessingOrder = processingOrder,
             Command = CommandDefinition.Create("webhook"),
         };

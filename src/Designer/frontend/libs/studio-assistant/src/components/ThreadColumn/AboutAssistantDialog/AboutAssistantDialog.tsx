@@ -25,16 +25,15 @@ export function AboutAssistantDialog({
           <StudioHeading level={2}>{texts.heading}</StudioHeading>
         </StudioDialog.Block>
         <StudioDialog.Block>
-          <StudioParagraph data-size='sm' spacing>
-            {texts.description}
-          </StudioParagraph>
-          <StudioParagraph data-size='sm' spacing>
-            {texts.branchInfo}{' '}
+          <StudioParagraph spacing>{texts.description}</StudioParagraph>
+          <StudioParagraph spacing>
+            {texts.branchInfo}
             <StudioLink target='_blank' rel='noopener noreferrer' href={branchDocsUrl}>
-              {texts.branchDocsLink} <ExternalLinkIcon />
+              <span>{texts.branchDocsLink}</span>
+              <ExternalLinkIcon />
             </StudioLink>
           </StudioParagraph>
-          <StudioParagraph data-size='sm'>{texts.disclaimer}</StudioParagraph>
+          <StudioParagraph>{texts.disclaimer}</StudioParagraph>
         </StudioDialog.Block>
       </StudioDialog>
     </StudioDialog.TriggerContext>

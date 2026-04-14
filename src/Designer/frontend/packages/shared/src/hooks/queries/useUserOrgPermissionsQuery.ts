@@ -3,14 +3,15 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-type UserOrgPermission = {
+type UserOrgPermissions = {
   canCreateOrgRepo: boolean;
+  isOrgOwner: boolean;
 };
 
-export const useUserOrgPermissionQuery = (
+export const useUserOrgPermissionsQuery = (
   org: string,
   options?: { enabled: boolean },
-): UseQueryResult<UserOrgPermission> => {
+): UseQueryResult<UserOrgPermissions> => {
   const { getUserOrgPermissions } = useServicesContext();
   return useQuery({
     queryKey: [QueryKey.UserOrgPermissions, org],

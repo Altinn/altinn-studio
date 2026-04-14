@@ -29,7 +29,6 @@ public class WorkflowEntityTests
         {
             Id = Guid.NewGuid(),
             OperationId = "noop",
-            IdempotencyKey = $"step-key-{order}",
             Status = PersistentItemStatus.Enqueued,
             ProcessingOrder = order,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),

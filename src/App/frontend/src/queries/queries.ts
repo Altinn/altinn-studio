@@ -24,7 +24,6 @@ import {
   getProcessNextUrl,
   getProcessStateUrl,
   getUpdateFileTagsUrl,
-  getValidationUrl,
   refreshJwtTokenUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
@@ -34,7 +33,7 @@ import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';
-import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
+import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
@@ -186,12 +185,6 @@ export const fetchPaymentInformation = (instanceId: string, language?: string): 
 
 export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));
-
-export const fetchBackendValidations = (
-  instanceId: string,
-  language: string,
-  onlyIncrementalValidators?: boolean,
-): Promise<BackendValidationIssue[]> => httpGet(getValidationUrl(instanceId, language, onlyIncrementalValidators));
 
 export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   // Hacky (and only) way to get the correct CDN url

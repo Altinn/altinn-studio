@@ -63,23 +63,6 @@ public class AppCommandExecutionTests
     }
 
     [Fact]
-    public async Task Execute_SetsApiKeyHeader()
-    {
-        using var fixture = AppCommandTestFixture.Create();
-        var command = GetAppCommand(fixture);
-        var data = CreateCommandData("test-command");
-        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
-        var workflow = AppCommandTestFixture.CreateWorkflow(step);
-        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
-
-        await command.Execute(context, TestContext.Current.CancellationToken);
-
-        var captured = fixture.HttpHandler.Requests[0];
-        Assert.True(captured.Headers.ContainsKey("X-Api-Key"));
-        Assert.Contains("test-api-key", captured.Headers["X-Api-Key"]);
-    }
-
-    [Fact]
     public async Task Execute_UsesCommandKeyAsRelativeUri()
     {
         using var fixture = AppCommandTestFixture.Create();

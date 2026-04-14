@@ -27,7 +27,6 @@ src/test/K6/**/yarn.lock                                        @altinn/team-cor
 .github/workflows/studio-components-legacy-deploy.yaml          @altinn/team-altinn-studio-utforming
 src/App/frontend/**/docker-compose.yml                          @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                @altinn/team-altinn-studio-utforming
-src/App/frontend/**/yarn.lock                                   @altinn/team-altinn-studio-utforming
 src/Designer/frontend/**/package.json                           @altinn/team-altinn-studio-utforming
 src/Designer/frontend/**/yarn.lock                              @altinn/team-altinn-studio-utforming
 

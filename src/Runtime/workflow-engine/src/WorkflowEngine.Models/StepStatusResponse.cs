@@ -15,12 +15,6 @@ public sealed record StepStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
-    /// An idempotency key for this workflow.
-    /// </summary>
-    [JsonPropertyName("idempotencyKey")]
-    public string? IdempotencyKey { get; init; }
-
-    /// <summary>
     /// An identifier for this operation.
     /// </summary>
     [JsonPropertyName("operationId")]
@@ -80,7 +74,6 @@ public sealed record StepStatusResponse
         new()
         {
             DatabaseId = step.DatabaseId,
-            IdempotencyKey = step.IdempotencyKey,
             OperationId = step.OperationId,
             Command = new CommandDetails { Type = step.Command.Type },
             ProcessingOrder = step.ProcessingOrder,
