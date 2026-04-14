@@ -372,18 +372,16 @@ public class ResourceAdminController : ControllerBase
                             return false;
                         }
 
-                        return resource.ResourceReferences.Any(x =>
-                            x.Reference.Contains("/a1") || x.Reference.Contains("/a2")
-                        );
+                        return ResourceAdminHelper.IsMigratedApp(resource);
                     }
 
                     try
                     {
                         environmentResources = await _resourceRegistry.GetServiceResourceList(
                             environment,
-                            true,
-                            false,
-                            true
+                            includeApps: true,
+                            includeAltinn2: false,
+                            includeMigratedApps: true
                         );
                         environmentResources = environmentResources.Where(ShouldShowResourceInList).ToList();
 
@@ -575,9 +573,9 @@ public class ResourceAdminController : ControllerBase
     {
         List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
             env.ToLower(),
-            false,
-            true,
-            false
+            includeAltinn2: false,
+            includeApps: true,
+            includeMigratedApps: false
         );
         bool serviceExists = allResources.Any(x => x.Identifier.Equals($"se_{serviceCode}_{serviceEdition}"));
         if (!serviceExists)
@@ -748,9 +746,9 @@ public class ResourceAdminController : ControllerBase
             List<AvailableService> unfiltered = new List<AvailableService>();
             List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
                 env.ToLower(),
-                false,
-                true,
-                false
+                includeApps: false,
+                includeAltinn2: true,
+                includeMigratedApps: false
             );
 
             foreach (ServiceResource resource in allResources)

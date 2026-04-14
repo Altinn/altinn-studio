@@ -698,9 +698,7 @@ public class RepositoryService : IRepository
                 && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
                 && (
                     !newResource.Identifier.StartsWith("app_")
-                    || newResource.ResourceReferences?.Any(r =>
-                        r.Reference.Contains("/a1") || r.Reference.Contains("/a2")
-                    ) == true
+                    || ResourceAdminHelper.IsMigratedApp(newResource)
                 );
             if (!isResourceIdentifierValid)
             {

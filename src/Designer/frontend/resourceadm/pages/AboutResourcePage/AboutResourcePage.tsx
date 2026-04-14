@@ -78,7 +78,7 @@ export const AboutResourcePage = ({
       if (
         key === 'AltinnApp' &&
         resourceData.resourceReferences?.some(
-          (ref) => ref.reference.includes('/a1') || ref.reference.includes('/a2'),
+          (ref) => ref.reference?.includes('/a1') || ref.reference?.includes('/a2'),
         ) !== true
       ) {
         return false;

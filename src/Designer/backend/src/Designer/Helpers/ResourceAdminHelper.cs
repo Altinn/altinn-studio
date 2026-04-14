@@ -1,6 +1,8 @@
 ﻿#nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Helpers;
@@ -49,4 +51,23 @@ public static class ResourceAdminHelper
     }
 
     public static char[] GetInvalidFileNameChars() => new char[] { '\"', '<', '>', '|', '*', '?' };
+
+    public static bool IsMigratedApp(ServiceResource resource)
+    {
+        if (resource.ResourceType != ResourceType.AltinnApp)
+        {
+            return false;
+        }
+        
+        return resource.ResourceReferences?.Any(x =>
+        {
+            string reference = x.Reference ?? string.Empty;
+            if (!string.IsNullOrEmpty(reference))
+            {
+                return x.Reference.Contains("/a1", StringComparison.OrdinalIgnoreCase) || x.Reference.Contains("/a2", StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
+        }) ?? false;
+    }
+
 }
