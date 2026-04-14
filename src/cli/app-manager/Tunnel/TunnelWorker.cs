@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
@@ -13,6 +12,8 @@ namespace Altinn.Studio.AppManager.Tunnel;
 
 internal sealed class TunnelWorker : BackgroundService
 {
+    private const HttpStatusCode UndiscoveredAppStatusCode = (HttpStatusCode)418;
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Discovery.AppRegistry _appRegistry;
     private readonly TunnelOptions _options;
@@ -94,8 +95,9 @@ internal sealed class TunnelWorker : BackgroundService
         }
         finally
         {
-            foreach (var request in pending.Values)
-                request.Cancel();
+            foreach (var entry in pending)
+                if (pending.TryRemove(entry.Key, out var request))
+                    request.Cancel();
 
             _state.SetConnected(false);
             sendLock.Dispose();
@@ -142,7 +144,12 @@ internal sealed class TunnelWorker : BackgroundService
             {
                 var frame = TunnelProtocol.ReadJsonFrame<RequestStartFrame>(TunnelFrameKind.RequestStart, message.Span);
                 var request = new PendingRequest(frame);
-                pending[frame.RequestId] = request;
+                if (!pending.TryAdd(frame.RequestId, request))
+                {
+                    request.Cancel();
+                    throw new InvalidDataException($"duplicate app tunnel request id {frame.RequestId}");
+                }
+
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
                     _logger.LogDebug(
@@ -278,7 +285,11 @@ internal sealed class TunnelWorker : BackgroundService
 
     private async Task<HttpResponseMessage> SendUpstreamRequest(PendingRequest pendingRequest)
     {
-        var request = pendingRequest.BuildHttpRequest(ResolveUpstreamUri(pendingRequest));
+        var upstreamUri = ResolveUpstreamUri(pendingRequest);
+        if (upstreamUri is null)
+            return CreateUndiscoveredAppResponse(pendingRequest);
+
+        var request = pendingRequest.BuildHttpRequest(upstreamUri);
         try
         {
             using var client = _httpClientFactory.CreateClient(TunnelHttpClient.Name);
@@ -293,6 +304,14 @@ internal sealed class TunnelWorker : BackgroundService
             request.Dispose();
             throw;
         }
+    }
+
+    private HttpResponseMessage CreateUndiscoveredAppResponse(PendingRequest pendingRequest)
+    {
+        var message = $"app '{pendingRequest.AppId}' is not discovered";
+        _logger.LogWarning("Tunnel request for undiscovered app {AppId}", pendingRequest.AppId);
+
+        return new HttpResponseMessage(UndiscoveredAppStatusCode) { Content = new StringContent(message) };
     }
 
     private HttpResponseMessage CreateDiscoveryResponse()
@@ -423,7 +442,7 @@ internal sealed class TunnelWorker : BackgroundService
         return headers;
     }
 
-    private Uri ResolveUpstreamUri(PendingRequest pendingRequest)
+    private Uri? ResolveUpstreamUri(PendingRequest pendingRequest)
     {
         if (string.IsNullOrWhiteSpace(pendingRequest.AppId))
             return new Uri(_options.UpstreamUrl, UriKind.Absolute);
@@ -431,8 +450,7 @@ internal sealed class TunnelWorker : BackgroundService
         if (_appRegistry.TryGet(pendingRequest.AppId, out var app) && app is not null)
             return app.BaseUri;
 
-        _logger.LogWarning("Tunnel request for undiscovered app {AppId}", pendingRequest.AppId);
-        throw new InvalidOperationException($"app '{pendingRequest.AppId}' is not discovered");
+        return null;
     }
 
     private static void CopyHeaders(
@@ -459,13 +477,11 @@ internal sealed class TunnelWorker : BackgroundService
                 FullMode = BoundedChannelFullMode.Wait,
             }
         );
-        private readonly bool _hasContentHeaders;
         private int _started;
 
         public PendingRequest(RequestStartFrame start)
         {
             _start = start;
-            _hasContentHeaders = start.Headers.Keys.Any(TunnelHttpHeaders.IsContentHeader);
             CancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -487,14 +503,28 @@ internal sealed class TunnelWorker : BackgroundService
 
         public async Task AppendBody(byte[] payload, bool isFinal, CancellationToken cancellationToken)
         {
-            if (payload.Length > 0)
+            try
             {
-                TunnelProtocol.EnsureFrameWithinLimit(payload.Length);
-                await _body.Writer.WriteAsync(payload, cancellationToken);
-            }
+                if (CancellationTokenSource.IsCancellationRequested)
+                    return;
 
-            if (isFinal)
-                _body.Writer.TryComplete();
+                if (payload.Length > 0)
+                {
+                    TunnelProtocol.EnsureFrameWithinLimit(payload.Length);
+                    await _body.Writer.WriteAsync(payload, cancellationToken);
+                }
+
+                if (isFinal)
+                    _body.Writer.TryComplete();
+            }
+            catch (OperationCanceledException) when (CancellationTokenSource.IsCancellationRequested)
+            {
+                // The response may complete before the client has finished streaming the request body.
+            }
+            catch (ChannelClosedException) when (CancellationTokenSource.IsCancellationRequested)
+            {
+                // The response may complete before the client has finished streaming the request body.
+            }
         }
 
         public void Cancel()
@@ -510,7 +540,7 @@ internal sealed class TunnelWorker : BackgroundService
                 new Uri(upstreamBaseUri, _start.PathAndQuery)
             );
 
-            var useStreamingBody = !IsDiscoveryRequest && (_hasContentHeaders || !IsBodyDefinitelyAbsent());
+            var useStreamingBody = !IsDiscoveryRequest && _start.HasBody;
             if (useStreamingBody)
                 request.Content = new StreamingRequestContent(_body.Reader, CancellationTokenSource.Token);
 
@@ -525,10 +555,14 @@ internal sealed class TunnelWorker : BackgroundService
                 if (TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
                     continue;
 
-                if (!request.Headers.TryAddWithoutValidation(header.Key, header.Value))
+                if (TunnelHttpHeaders.IsContentHeader(header.Key))
                 {
-                    request.Content ??= new ByteArrayContent([]);
-                    request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                    if (request.Content is not null)
+                        request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+                else
+                {
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
             }
 
@@ -542,18 +576,6 @@ internal sealed class TunnelWorker : BackgroundService
             }
 
             return request;
-        }
-
-        private bool IsBodyDefinitelyAbsent()
-        {
-            if (_start.Headers.TryGetValue(HeaderNames.ContentLength, out var contentLength))
-            {
-                return contentLength is [{ } value]
-                    && long.TryParse(value, CultureInfo.InvariantCulture, out var length)
-                    && length == 0;
-            }
-
-            return !_start.Headers.ContainsKey(HeaderNames.TransferEncoding);
         }
     }
 

@@ -24,7 +24,8 @@ public sealed record RequestStartFrame(
     string? AppId,
     string Method,
     string PathAndQuery,
-    Dictionary<string, string[]> Headers
+    Dictionary<string, string[]> Headers,
+    bool HasBody
 );
 
 public sealed record ResponseStartFrame(

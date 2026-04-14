@@ -1,6 +1,7 @@
 #nullable enable
 
 using Altinn.Studio.AppTunnel;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Net.Http.Headers;
 
 namespace LocalTest.Tunnel;
@@ -39,7 +40,7 @@ public sealed class AppTunnelProxy
             context.Request.PathBase + context.Request.Path + context.Request.QueryString
         );
 
-        if (RequestMayHaveBody(context.Request))
+        if (RequestHasDeclaredBody(context.Request))
             request.Content = new StreamContent(context.Request.Body);
 
         foreach (var header in context.Request.Headers)
@@ -53,10 +54,14 @@ public sealed class AppTunnelProxy
             if (TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
                 continue;
 
-            if (!request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray()))
+            if (TunnelHttpHeaders.IsContentHeader(header.Key))
             {
-                request.Content ??= new ByteArrayContent([]);
-                request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+                if (request.Content is not null)
+                    request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+            }
+            else
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
             }
         }
         if (
@@ -71,8 +76,10 @@ public sealed class AppTunnelProxy
         return request;
     }
 
-    private static bool RequestMayHaveBody(HttpRequest request) =>
-        request.ContentLength is > 0 || request.Headers.ContainsKey(HeaderNames.TransferEncoding);
+    private static bool RequestHasDeclaredBody(HttpRequest request) =>
+        request.ContentLength is not null
+        || request.Headers.ContainsKey(HeaderNames.TransferEncoding)
+        || request.HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;
 
     private static bool RequestRequiresUpgrade(HttpRequest request) =>
         request.Headers.ContainsKey(HeaderNames.Upgrade)

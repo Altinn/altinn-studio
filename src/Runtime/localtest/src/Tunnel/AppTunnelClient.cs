@@ -172,7 +172,8 @@ public sealed class AppTunnelClient
             {
                 var error = new HttpRequestException("app tunnel disconnected");
                 foreach (var entry in _pending)
-                    entry.Value.TrySetException(error);
+                    if (_pending.TryRemove(entry.Key, out var pending))
+                        pending.TrySetException(error);
             }
         }
 
@@ -358,7 +359,8 @@ public sealed class AppTunnelClient
                 appId,
                 request.Method.Method,
                 GetPathAndQuery(request.RequestUri),
-                CollectHeaders(request)
+                CollectHeaders(request),
+                request.Content is not null
             );
 
             await SendFrame(
@@ -502,8 +504,14 @@ public sealed class AppTunnelClient
 
             foreach (var header in response.Headers)
             {
-                if (!message.Headers.TryAddWithoutValidation(header.Key, header.Value))
+                if (TunnelHttpHeaders.IsContentHeader(header.Key))
+                {
                     message.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+                else
+                {
+                    message.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
             }
 
             foreach (var trailer in trailers)
