@@ -86,7 +86,6 @@ Idempotency-Key: app-chatter-idem/chatter-step-1
 Namespace: chatter-app-test
 Operation-Id: chatter-step-1
 Workflow-Id: Guid_3
-X-Api-Key: outgoing-app-lib-api-key
 
 {
   "commandKey": "chatter-step-1",
@@ -119,7 +118,6 @@ Idempotency-Key: app-chatter-idem/chatter-step-2
 Namespace: chatter-app-test
 Operation-Id: chatter-step-2
 Workflow-Id: Guid_3
-X-Api-Key: outgoing-app-lib-api-key
 
 {
   "commandKey": "chatter-step-2",

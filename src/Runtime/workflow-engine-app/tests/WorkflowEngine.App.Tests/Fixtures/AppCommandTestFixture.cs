@@ -60,7 +60,6 @@ internal sealed record AppCommandTestFixture(
 
         appCommandSettings ??= new AppCommandSettings
         {
-            ApiKey = "test-api-key",
             CommandEndpoint = "https://app.example.com/{Org}/{App}/commands/",
         };
 
