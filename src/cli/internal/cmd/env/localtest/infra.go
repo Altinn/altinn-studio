@@ -11,6 +11,11 @@ import (
 
 const infraDir = "infra"
 
+type infraFile struct {
+	name string
+	perm os.FileMode
+}
+
 // EnsureInfraFiles writes embedded infrastructure config files to the data directory.
 // Files are overwritten on each call to ensure they stay in sync with the binary.
 func EnsureInfraFiles(dataDir string) error {
@@ -19,20 +24,25 @@ func EnsureInfraFiles(dataDir string) error {
 		return fmt.Errorf("create infra directory: %w", err)
 	}
 
-	files := []string{
-		"postgres-init.sql",
-		"pgadmin-servers.json",
+	files := []infraFile{
+		{"postgres-init.sql", osutil.FilePermDefault},
+		{"pgadmin-servers.json", osutil.FilePermDefault},
+		{"pgpass", 0o600}, // libpq requires 0600 on pgpass files
 	}
 
-	for _, name := range files {
-		data, err := embedded.Files.ReadFile(name)
+	for _, f := range files {
+		data, err := embedded.Files.ReadFile(f.name)
 		if err != nil {
-			return fmt.Errorf("read embedded file %s: %w", name, err)
+			return fmt.Errorf("read embedded file %s: %w", f.name, err)
 		}
 
-		path := filepath.Join(dir, name)
-		if err := os.WriteFile(path, data, osutil.FilePermDefault); err != nil {
-			return fmt.Errorf("write infra file %s: %w", name, err)
+		path := filepath.Join(dir, f.name)
+		if err := os.WriteFile(path, data, f.perm); err != nil {
+			return fmt.Errorf("write infra file %s: %w", f.name, err)
+		}
+		// WriteFile does not update permissions on existing files, so ensure correct mode.
+		if err := os.Chmod(path, f.perm); err != nil {
+			return fmt.Errorf("chmod infra file %s: %w", f.name, err)
 		}
 	}
 

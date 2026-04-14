@@ -339,10 +339,12 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		if err := e.installResources(ctx, false); err != nil {
 			return err
 		}
-		if err := ValidateResourceHostPaths(buildOpts); err != nil {
-			return fmt.Errorf("validate resources: %w", err)
-		}
-		return EnsureInfraFiles(e.cfg.DataDir)
+	}
+
+	// Write embedded infra files before validation — these are baked into the
+	// binary and not part of the downloaded/local resource tarball.
+	if err := EnsureInfraFiles(e.cfg.DataDir); err != nil {
+		return err
 	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
@@ -355,7 +357,7 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		}
 	}
 
-	return EnsureInfraFiles(e.cfg.DataDir)
+	return nil
 }
 
 func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) {

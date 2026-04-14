@@ -5,5 +5,5 @@ import "embed"
 
 // Files contains embedded configuration files for infrastructure services.
 //
-//go:embed postgres-init.sql pgadmin-servers.json
+//go:embed postgres-init.sql pgadmin-servers.json pgpass
 var Files embed.FS

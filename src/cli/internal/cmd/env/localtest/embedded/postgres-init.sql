@@ -1,5 +1,8 @@
--- PostgreSQL tuning for local development (applied on first init)
+-- PostgreSQL init for local development (applied on first init)
 -- Source: workflow-engine/.docker/postgres-init.sql
+
+-- Create application databases
+CREATE DATABASE workflow_engine;
 
 -- Memory
 ALTER SYSTEM SET shared_buffers = '256MB';

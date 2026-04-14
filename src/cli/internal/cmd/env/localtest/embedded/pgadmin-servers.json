@@ -9,7 +9,8 @@
       "Username": "postgres",
       "SSLMode": "prefer",
       "SharedWithUsers": true,
-      "Shared": false
+      "Shared": false,
+      "PassFile": "/pgadmin4/pgpass.conf"
     }
   }
 }

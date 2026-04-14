@@ -122,6 +122,7 @@ func createCoreLayout(t *testing.T, dataDir string) {
 	for _, file := range []string{
 		"postgres-init.sql",
 		"pgadmin-servers.json",
+		"pgpass",
 	} {
 		path := filepath.Join(dataDir, "infra", file)
 		if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {

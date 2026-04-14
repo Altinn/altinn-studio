@@ -48,14 +48,15 @@ type RuntimeConfig struct {
 
 // ContainerSpec defines a container to run.
 type ContainerSpec struct {
-	HealthCheck  *types.HealthCheck
-	Name         string
-	Ports        []types.PortMapping
-	Environment  map[string]string
-	Volumes      []types.VolumeMount
-	ExtraHosts   []string
-	Dependencies []string
-	Command      []string
+	HealthCheck    *types.HealthCheck
+	Name           string
+	Ports          []types.PortMapping
+	Environment    map[string]string
+	Volumes        []types.VolumeMount
+	ExtraHosts     []string
+	Dependencies   []string
+	Command        []string
+	UseDefaultUser bool // When true, ignore host user override and use the image's default user
 }
 
 // ContainerStatus describes one localtest container.
@@ -206,6 +207,7 @@ func postgresContainerSpec(dataDir string) ContainerSpec {
 		Retries:     5,
 		StartPeriod: 5 * time.Second,
 	}
+	spec.UseDefaultUser = true
 	return spec
 }
 
@@ -230,7 +232,7 @@ func workflowEngineContainerSpec(extraHosts []string) ContainerSpec {
 }
 
 func pgAdminContainerSpec(dataDir string) ContainerSpec {
-	return newContainerSpec(
+	spec := newContainerSpec(
 		ContainerPgAdmin,
 		[]types.PortMapping{newPort("5050", "80")},
 		map[string]string{
@@ -245,11 +247,17 @@ func pgAdminContainerSpec(dataDir string) ContainerSpec {
 				InfraFilePath(dataDir, "pgadmin-servers.json"),
 				"/pgadmin4/servers.json",
 			),
+			newReadOnlyVolume(
+				InfraFilePath(dataDir, "pgpass"),
+				"/pgadmin4/pgpass.conf",
+			),
 		},
 		nil,
 		[]string{ContainerPostgres},
 		nil,
 	)
+	spec.UseDefaultUser = true
+	return spec
 }
 
 func localtestEnvironment(platform container.ContainerPlatform) string {
@@ -599,6 +607,11 @@ func newContainerResource(
 		}
 	}
 
+	containerUser := user
+	if spec.UseDefaultUser {
+		containerUser = ""
+	}
+
 	return &resource.Container{
 		HealthCheck:   spec.HealthCheck,
 		Name:          spec.Name,
@@ -612,7 +625,7 @@ func newContainerResource(
 		Command:       spec.Command,
 		ExtraHosts:    spec.ExtraHosts,
 		RestartPolicy: "",
-		User:          user,
+		User:          containerUser,
 	}
 }
 
