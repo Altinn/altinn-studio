@@ -11,6 +11,7 @@ const mockMessages: Message[] = [
     author: MessageAuthor.User,
     content: userMessageContent,
     timestamp: new Date(),
+    allowAppChanges: false,
   },
   {
     author: MessageAuthor.Assistant,

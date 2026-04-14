@@ -3,6 +3,8 @@ import type {
   UserMessage,
   AssistantMessage,
   WorkflowEvent,
+  WorkflowStatusEvent,
+  ErrorEvent,
   WorkflowStatus,
   ConnectionStatus,
   AssistantMessageData,
@@ -63,6 +65,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     replaceLoadingWithMessage,
     removeCancelledMessages,
     upsertAssistantMessage,
+    updateWorkflowStatusMessage,
   } = threads;
 
   useEffect(() => {
@@ -93,13 +96,9 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [],
   );
 
-  const applyStatusMessage = useCallback((statusMessage: string) => {
-    setWorkflowStatus((prev) => ({ ...prev, message: statusMessage }));
-  }, []);
-
   const resetRepoForSession = useCallback(
     (sessionId: string) => {
-      const branch = buildSessionBranch(sessionId);
+      const branch = buildSessionBranchName(sessionId);
       resetRepository(undefined, {
         onSuccess: () => {
           checkoutBranch(branch, {
@@ -131,41 +130,67 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [resetRepoForSession, markWorkflowCompleted, upsertAssistantMessage],
   );
 
-  const handleWorkflowEvent = useCallback(
-    (event: WorkflowEvent) => {
-      if (event.type === 'assistant_message') {
-        handleAssistantMessage(event);
-      } else if (event.type === 'status') {
-        const isTerminal =
-          event.data?.status === 'completed' ||
-          event.data?.status === 'failed' ||
-          event.data?.done === true;
-        if (isTerminal) {
-          setWorkflowStatus({ isActive: false });
-        } else {
-          applyStatusMessage(event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
-        }
-      } else if (event.type === 'workflow_status') {
-        applyStatusMessage(event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
-      } else if (event.type === 'error') {
+  const handleStatusEvent = useCallback(
+    (event: WorkflowStatusEvent) => {
+      const isTerminal =
+        event.data?.status === 'completed' ||
+        event.data?.status === 'failed' ||
+        event.data?.done === true;
+      if (isTerminal) {
         setWorkflowStatus({ isActive: false });
-        const currentSession = currentSessionIdRef.current;
-        if (currentSession) {
-          if (event.data?.status === 'cancelled') {
-            removeLoadingMessage(currentSession);
-          } else {
-            replaceLoadingWithMessage(currentSession, createAssistantErrorMessage());
-          }
-        }
+        return;
+      }
+
+      const sessionId = currentSessionIdRef.current;
+      if (sessionId) {
+        updateWorkflowStatusMessage(sessionId, event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
       }
     },
-    [
-      applyStatusMessage,
-      handleAssistantMessage,
-      currentSessionIdRef,
-      removeLoadingMessage,
-      replaceLoadingWithMessage,
-    ],
+    [currentSessionIdRef, updateWorkflowStatusMessage],
+  );
+
+  const handleWorkflowStatusEvent = useCallback(
+    (event: WorkflowStatusEvent) => {
+      const sessionId = currentSessionIdRef.current;
+      if (sessionId) {
+        updateWorkflowStatusMessage(sessionId, event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
+      }
+    },
+    [currentSessionIdRef, updateWorkflowStatusMessage],
+  );
+
+  const handleErrorEvent = useCallback(
+    (event: ErrorEvent) => {
+      setWorkflowStatus({ isActive: false });
+      const sessionId = currentSessionIdRef.current;
+      if (!sessionId) return;
+      if (event.data?.status === 'cancelled') {
+        removeLoadingMessage(sessionId);
+      } else {
+        replaceLoadingWithMessage(sessionId, createAssistantErrorMessage());
+      }
+    },
+    [currentSessionIdRef, removeLoadingMessage, replaceLoadingWithMessage],
+  );
+
+  const handleWorkflowEvent = useCallback(
+    (event: WorkflowEvent) => {
+      switch (event.type) {
+        case 'assistant_message':
+          handleAssistantMessage(event);
+          break;
+        case 'status':
+          handleStatusEvent(event);
+          break;
+        case 'workflow_status':
+          handleWorkflowStatusEvent(event);
+          break;
+        case 'error':
+          handleErrorEvent(event);
+          break;
+      }
+    },
+    [handleAssistantMessage, handleErrorEvent, handleStatusEvent, handleWorkflowStatusEvent],
   );
 
   useEffect(() => {
@@ -255,13 +280,16 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
     const threadId = currentSessionIdRef.current;
     if (!threadId) return;
+
     setWorkflowStatus({ isActive: false });
     const restoredContent = removeCancelledMessages(threadId);
     if (restoredContent) {
       setCancelledMessageContent(restoredContent);
     }
+
     const activeSession = backendSessionIdRef.current;
     if (!activeSession) return;
+
     try {
       await cancelWorkflow(activeSession);
     } catch (error) {
@@ -284,7 +312,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   };
 };
 
-function buildSessionBranch(sessionId: string): string {
+function buildSessionBranchName(sessionId: string): string {
   const uniqueIdWithoutPrefix = sessionId.startsWith('session_')
     ? sessionId.substring(8, 16)
     : sessionId.substring(0, 8);
