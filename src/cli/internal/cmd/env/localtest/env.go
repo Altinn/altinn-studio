@@ -68,7 +68,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg, err := e.runtimeConfig.Build(ctx, opts.Port)
+	runtimeCfg, err := e.runtimeConfig.Build(ctx)
 	if err != nil {
 		return err
 	}

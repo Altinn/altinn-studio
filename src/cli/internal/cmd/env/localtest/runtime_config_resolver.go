@@ -41,7 +41,7 @@ func newRuntimeConfigResolver(
 	}
 }
 
-func (r *runtimeConfigResolver) Build(ctx context.Context, portFlag int) (RuntimeConfig, error) {
+func (r *runtimeConfigResolver) Build(ctx context.Context) (RuntimeConfig, error) {
 	platform := r.client.Toolchain().Platform
 
 	n := networking.NewNetworking(r.client, r.cfg, r.debugf)
@@ -57,7 +57,7 @@ func (r *runtimeConfigResolver) Build(ctx context.Context, portFlag int) (Runtim
 
 	return RuntimeConfig{
 		HostGateway:      metadata.HostGateway,
-		LoadBalancerPort: strconv.Itoa(resolveLoadBalancerPort(portFlag)),
+		LoadBalancerPort: DefaultLoadBalancerPortString(),
 		LocalAppURL:      localAppURL,
 		AppManagerURL:    ResolveAppManagerURL(localAppURL),
 		User:             runtimeContainerUser(),
@@ -95,13 +95,6 @@ func ResolveAppManagerURL(localAppURL string) string {
 	}
 
 	return parsed.String()
-}
-
-func resolveLoadBalancerPort(portFlag int) int {
-	if portFlag == 0 {
-		return DefaultLoadBalancerPort
-	}
-	return portFlag
 }
 
 func runtimeContainerUser() string {
