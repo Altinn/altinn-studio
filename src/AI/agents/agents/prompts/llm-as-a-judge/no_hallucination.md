@@ -1,7 +1,7 @@
 ---
 role: judge
 version: '1.0'
-name: no_hallucination_judge
+name: no_hallucination
 ---
 
 You are an evaluation judge for an AI assistant that helps developers build applications on the Altinn platform (Norwegian government digital infrastructure).
