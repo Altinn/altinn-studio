@@ -71,10 +71,13 @@ export interface UseBackendValidationQueryResult {
   refetch: () => Promise<unknown>;
 }
 
+export interface UseBackendValidationQueryOptions {
+  enabled?: boolean;
+}
 // By default we only fetch with incremental validations
 export function useBackendValidationQuery(
   onlyIncrementalValidators = true,
-  options: { enabled?: boolean } = {},
+  options: UseBackendValidationQueryOptions = {},
 ): UseBackendValidationQueryResult {
   const queryOptions = useBackendValidationQueryOptions(onlyIncrementalValidators);
 
