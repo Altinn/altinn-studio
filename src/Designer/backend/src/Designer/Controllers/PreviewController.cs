@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -394,7 +393,7 @@ public class PreviewController(
     [HttpGet]
     [Route("api/v1/parties")]
     [UseSystemTextJson]
-    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string allowedToInstantiateFilter)
+    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string? allowedToInstantiateFilter)
     {
         List<Party> parties = new()
         {
@@ -462,8 +461,8 @@ public class PreviewController(
     public async Task<ActionResult<string>> GetInstanceId(string org, string app, CancellationToken cancellationToken)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        string refererHeader = Request.Headers["Referer"];
-        string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+        string? refererHeader = Request.Headers["Referer"];
+        string? layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
         Instance mockInstance = await _previewService.GetMockInstance(
             org,
             app,
@@ -883,8 +882,8 @@ public class PreviewController(
     /// <param name="layoutSettings">The layout settings JsonNode to modify in-place.</param>
     private static void AddPdfLayoutNameToPageOrder(JsonNode layoutSettings)
     {
-        JsonObject pagesObject = layoutSettings?["pages"] as JsonObject;
-        string pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
+        JsonObject? pagesObject = layoutSettings?["pages"] as JsonObject;
+        string? pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
         if (string.IsNullOrEmpty(pdfLayoutName))
         {
             return;
@@ -892,7 +891,7 @@ public class PreviewController(
 
         if (pagesObject?["groups"] is JsonArray groups)
         {
-            JsonObject lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
+            JsonObject? lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
 
             if (lastGroupWithOrder?["order"] is JsonArray groupOrder)
             {
@@ -915,10 +914,10 @@ public class PreviewController(
         }
     }
 
-    private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
+    private static string? GetSelectedLayoutSetInEditorFromRefererHeader(string? refererHeader)
     {
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
         return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
     }
