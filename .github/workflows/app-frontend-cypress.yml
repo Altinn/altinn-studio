@@ -48,9 +48,6 @@ jobs:
       )
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    permissions:
-      contents: read
-      packages: write
     outputs:
       app-run-targets-json: ${{ steps.build-app-images.outputs.app-run-targets-json }}
     steps:
@@ -74,7 +71,6 @@ jobs:
         id: build-app-images
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
-          APP_IMAGE_TAG_SUFFIX: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           APP_TEST_IMAGE_REPOSITORY: ${{ env.APP_TEST_IMAGE_REPOSITORY }}
           STUDIOCTL_INTERNAL_DEV: "true"
           STUDIOCTL_REGISTRY_CACHE_WRITE: "true"
@@ -85,7 +81,7 @@ jobs:
 
             const appRoot = 'src/test/apps';
             const repository = process.env.APP_TEST_IMAGE_REPOSITORY;
-            const tagSuffix = process.env.APP_IMAGE_TAG_SUFFIX;
+            const tagSuffix = `${process.env.GITHUB_SHA.slice(0, 12)}-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}`;
             const entries = await fs.readdir(appRoot, { withFileTypes: true });
             const targets = [];
 
@@ -112,9 +108,6 @@ jobs:
       )
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    permissions:
-      contents: read
-      packages: read
     needs: [build-frontend, build-app-images]
     defaults:
       run:
