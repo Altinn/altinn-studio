@@ -3,9 +3,9 @@ import { useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
+import { useBackendValidationQuery } from 'src/core/queries/backendValidation';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
-import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { signingQueries, useSigneeList } from 'src/layout/SigneeList/api';
 import { doPerformAction } from 'src/queries/queries';
 import { httpGet } from 'src/utils/network/sharedNetworking';
@@ -39,14 +39,12 @@ export function useAuthorizedOrganizationDetails(partyId: string | undefined, in
 
 export const MissingSignaturesErrorCode = 'MissingSignatures' as const;
 export function useSignaturesValidation() {
-  const { refetch, data } = useBackendValidationQuery(
-    {
-      select: (data) => data?.some((validation) => validation.code === MissingSignaturesErrorCode),
-    },
-    false,
-  );
+  const { refetch, validations } = useBackendValidationQuery(false);
 
-  return { refetchValidations: refetch, hasMissingSignatures: !!data };
+  return {
+    refetchValidations: refetch,
+    hasMissingSignatures: !!validations?.some((validation) => validation.code === MissingSignaturesErrorCode),
+  };
 }
 
 /**

@@ -40,7 +40,6 @@ internal static class WorkflowRequestExtensions
                         {
                             DatabaseId = Guid.CreateVersion7(),
                             OperationId = s.OperationId,
-                            IdempotencyKey = $"{idempotencyKey}/{s.OperationId}",
                             Status = PersistentItemStatus.Enqueued,
                             CreatedAt = metadata.CreatedAt,
                             ProcessingOrder = i,

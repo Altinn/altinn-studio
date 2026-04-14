@@ -6,7 +6,7 @@ import {
   StudioHeading,
   StudioAlert,
 } from '@studio/components';
-import type { UncommittedChangesError } from '../../types/api/BranchTypes';
+import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 import classes from './UncommittedChangesDialog.module.css';
 
 export interface UncommittedChangesDialogProps {

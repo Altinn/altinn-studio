@@ -74,7 +74,6 @@ public class WorkflowUpdateBufferTests
             .Select(i => new Step
             {
                 OperationId = $"{operationId}-step-{i}",
-                IdempotencyKey = $"key-{operationId}-{i}",
                 ProcessingOrder = i,
                 Command = CommandDefinition.Create("webhook"),
                 Status = PersistentItemStatus.Completed,

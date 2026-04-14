@@ -462,7 +462,7 @@ internal static class DashboardEndpoints
                     if (workflow is null)
                         return Results.NotFound();
 
-                    Step? s = workflow.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
+                    Step? s = workflow.Steps.FirstOrDefault(st => st.DatabaseId.ToString() == step);
                     if (s is null)
                         return Results.NotFound();
 
@@ -478,7 +478,7 @@ internal static class DashboardEndpoints
                     return Results.Json(
                         new
                         {
-                            idempotencyKey = s.IdempotencyKey,
+                            idempotencyKey = s.DatabaseId.ToString(),
                             operationId = s.OperationId,
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,
