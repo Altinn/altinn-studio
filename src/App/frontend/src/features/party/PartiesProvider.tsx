@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { delayedContext } from 'src/core/contexts/delayedContext';
-import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
+import { Loader } from 'src/core/loading/Loader';
 import { useCurrentInstance } from 'src/core/queries/instance';
 import {
   usePartiesAllowedToInstantiate as usePartiesAllowedToInstantiateBase,
@@ -31,15 +30,6 @@ const usePartiesAllowedToInstantiateQuery = () => {
     enabled: !allowAnonymous,
   };
 };
-
-const { Provider: PartiesProvider, useCtx: usePartiesAllowedToInstantiateCtx } = delayedContext(() =>
-  createQueryContext<IParty[] | undefined, false>({
-    name: 'Parties',
-    required: false,
-    default: undefined,
-    query: usePartiesAllowedToInstantiateQuery,
-  }),
-);
 
 interface SelectedParty {
   party: IParty | undefined;
@@ -71,7 +61,8 @@ const { Provider: RealSelectedPartyProvider, useCtx: useSelectedPartyCtx } = cre
  * When the user is filling out an app, the current party is always the user's party, found in the profile, filling out the form on behalf of the instance owner.
  */
 const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
-  const validParties = useValidParties();
+  const { data: validPartiesHierarchy, isPending, error } = usePartiesAllowedToInstantiateQuery();
+  const validParties = flattenParties(validPartiesHierarchy ?? []);
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
   const {
     setSelectedPartyAsync: mutateAsync,
@@ -79,6 +70,14 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
     error: errorFromMutation,
   } = useSetSelectedPartyMutation();
   const [userHasSelectedParty, setUserHasSelectedParty] = useState(false);
+
+  if (isPending) {
+    return <Loader reason='query-Parties' />;
+  }
+
+  if (error) {
+    return <DisplayError error={error as Error} />;
+  }
 
   if (errorFromMutation) {
     return <DisplayError error={errorFromMutation} />;
@@ -125,14 +124,10 @@ export function PartyProvider({ children }: PropsWithChildren) {
     return children;
   }
 
-  return (
-    <PartiesProvider>
-      <SelectedPartyProvider>{children}</SelectedPartyProvider>
-    </PartiesProvider>
-  );
+  return <SelectedPartyProvider>{children}</SelectedPartyProvider>;
 }
 
-export const usePartiesAllowedToInstantiate = () => usePartiesAllowedToInstantiateCtx();
+export const usePartiesAllowedToInstantiate = () => usePartiesAllowedToInstantiateQuery().data;
 
 /**
  * Returns the current party, or the custom selected current party if one is set.
@@ -142,8 +137,6 @@ export const usePartiesAllowedToInstantiate = () => usePartiesAllowedToInstantia
 export const useSelectedParty = () => useSelectedPartyCtx().party;
 export const useSelectedPartyIsValid = () => useSelectedPartyCtx().selectedIsValid;
 export const useSetSelectedParty = () => useSelectedPartyCtx().setParty;
-
-export const useValidParties = () => flattenParties(usePartiesAllowedToInstantiateCtx() ?? []);
 
 export const useHasSelectedParty = () => useSelectedPartyCtx().userHasSelectedParty;
 
