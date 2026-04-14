@@ -11,6 +11,9 @@ Altinn-specific host for the [Workflow Engine](../workflow-engine/README.md). Th
 
 ### Running locally
 
+> [!TIP]
+> All Docker Compose commands below have `make` equivalents. Run `make help` to see available targets.
+
 Start infrastructure and the engine in Docker:
 
 ```sh
