@@ -25,6 +25,13 @@ style: |
     pre {
       font-size: 0.85em;
       margin: 1em 0;
+      font-family: "Menlo", "Consolas", "DejaVu Sans Mono", "Courier New", monospace;
+    }
+    code {
+      font-size: 0.85em;
+      font-family: "Menlo", "Consolas", "DejaVu Sans Mono", "Courier New", monospace;
+      padding: 0.1em 0.3em;
+      margin: 0;
     }
     table {
       font-size: 0.8em;
@@ -104,19 +111,19 @@ A dedicated workflow engine that moves process execution out of the HTTP request
 ```
 Altinn App                              Workflow Engine
     │                                          │
-    │──── POST /workflows ───────────────────▶│  Validate & persist
-    │◀─── 201 Created ────────────────────────│  to PostgreSQL
+    │──── POST /workflows ────────────────────►│  Validate & persist
+    │◄─── 201 Created ─────────────────────────│  to PostgreSQL
     │                                          │
     │                                          │
     │                                          │
     │                                   Processor picks up
     │                                    workflow from DB
     │                                          │
-    │◀─── POST /callbacks ────────────────────│  Step 1
-    │──── 200 + { state } ───────────────────▶│
+    │◄─── POST /callbacks ─────────────────────│  Step 1
+    │──── 200 + { state } ────────────────────►│
     │                                          │
-    │◀─── POST /callbacks ────────────────────│  Step 2
-    │──── 200 + { state } ───────────────────▶│
+    │◄─── POST /callbacks ─────────────────────│  Step 2
+    │──── 200 + { state } ────────────────────►│
     │                                          │
     │                                  Completed or Failed
 ```
@@ -165,12 +172,12 @@ Host Application (e.g. WorkflowEngine.App)
 ├── UseWorkflowEngine()                  // wires pipeline
 │
 └── WorkflowEngine.Core (class library)
-      ├── Processor   (background loop, fetches from DB)
-      ├── Executor    (runs commands per step)
-      ├── Commands    (pluggable: Webhook, App, <future>)
-      ├── Data        (PostgreSQL, EF Core)
-      ├── Resilience  (concurrency limiters, retry strategies)
-      └── Telemetry   (OpenTelemetry via OTLP)
+      ├── Processor   // background loop, fetches from DB
+      ├── Executor    // executes the actual step commands
+      ├── Commands    // pluggable: Webhook, App, <future>
+      ├── Data        // repository, EF Core entities
+      ├── Resilience  // concurrency limiters, retry strategies
+      └── Telemetry   // OpenTelemetry via OTLP
 ```
 
 `WorkflowEngine.App` is the Altinn-specific host. It adds `AppCommand` &mdash; an HTTP callback into Altinn apps carrying full instance context (org, app, actor, lockToken, instanceGuid).
@@ -225,28 +232,9 @@ Retries are per-step with configurable backoff (exponential, linear, constant), 
 
 # Workflow Dependencies
 
-A single enqueue request can express **fan-out / fan-in** patterns:
+![](workflow-dependencies.drawio.svg)
 
-```
-              ┌──────────────────┐
-              │   process/next   │
-              │     (Task 1)     │
-              └────────┬─────────┘
-                       │
-            ┌──────────┴──────────┐
-            │                     │
-   ┌────────▼─────────┐   ┌───────▼──────────┐
-   │   notification   │   │   eFormidling    │
-   └────────┬─────────┘   └───────┬──────────┘
-            │                     │
-            └──────────┬──────────┘
-                       │
-              ┌────────▼─────────┐
-              │   process/next   │
-              │     (Task 2)     │
-              └──────────────────┘
-```
-
-- DAG resolution via topological sort. Cycle detection. Atomic insert.
-- A workflow only starts when all its dependencies have completed.
-- If a dependency fails, dependents are marked `DependencyFailed`.
+- Workflows are submitted as dependency graphs &mdash; resolved via topological sort with cycle detection.
+- A workflow starts only when all its dependencies have completed.
+- If a dependency fails, all dependents are transitively marked `DependencyFailed`.
+- Graphs can span multiple requests &mdash; later submissions reference existing workflows by ID.
