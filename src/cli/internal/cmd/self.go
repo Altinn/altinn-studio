@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	"altinn.studio/studioctl/internal/appmanager"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	selfsvc "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
@@ -221,15 +222,9 @@ func (c *SelfCommand) installResources(ctx context.Context) error {
 func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	c.out.Println("")
 
-	// TODO: Preserve the user's running app-manager state during reinstall. Stopping it here
-	// unexpectedly drops app discovery and tunnel connections for active local environments.
-	done, err := appmanager.Shutdown(ctx, c.cfg)
-	if err != nil && !errors.Is(err, appmanager.ErrNotRunning) {
-		c.out.Verbosef("failed to stop existing app-manager before install: %v", err)
-	} else if done != nil {
-		if shutdownErr := <-done; shutdownErr != nil && !errors.Is(shutdownErr, appmanager.ErrNotRunning) {
-			c.out.Verbosef("failed to stop existing app-manager before install: %v", shutdownErr)
-		}
+	wasRunning, err := c.stopAppManagerForReplacement(ctx)
+	if err != nil {
+		return err
 	}
 
 	spinner := ui.NewSpinner(c.out, "Installing app-manager...")
@@ -240,11 +235,16 @@ func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	result, err := c.service.InstallAppManager(ctx)
 	if err != nil {
 		spinner.StopWithError("Failed to install app-manager")
+		c.restartAppManagerAfterFailedReplacement(ctx, wasRunning, "")
 		return fmt.Errorf("install app-manager: %w", err)
 	}
 
 	spinner.StopWithSuccess("App-manager installed")
 	c.out.Verbosef("Installed to: %s", result.InstalledPath)
+
+	if err := c.restartAppManagerIfNeeded(ctx, wasRunning, ""); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -288,11 +288,90 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("self update: %w", err)
 	}
 
-	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
 	c.out.Verbosef("Updated binary path: %s", result.TargetPath)
 	c.out.Verbosef("Release source: %s", result.ReleaseSource)
 	c.out.Verbosef("Asset: %s", result.Asset)
+	if err := c.updateAppManager(ctx, result.Version, result.TargetPath); err != nil {
+		return fmt.Errorf("update app-manager: %w", err)
+	}
+
+	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
 	return nil
+}
+
+func (c *SelfCommand) updateAppManager(ctx context.Context, version, studioctlPath string) error {
+	wasRunning, err := c.stopAppManagerForReplacement(ctx)
+	if err != nil {
+		return err
+	}
+	result, err := c.service.InstallAppManagerVersion(ctx, version)
+	if err != nil {
+		c.restartAppManagerAfterFailedReplacement(ctx, wasRunning, studioctlPath)
+		return fmt.Errorf("install app-manager: %w", err)
+	}
+	c.out.Verbosef("Updated app-manager path: %s", result.InstalledPath)
+
+	return c.restartAppManagerIfNeeded(ctx, wasRunning, studioctlPath)
+}
+
+func (c *SelfCommand) stopAppManagerForReplacement(ctx context.Context) (bool, error) {
+	done, err := appmanager.Shutdown(ctx, c.cfg)
+	if err != nil {
+		if errors.Is(err, appmanager.ErrNotRunning) {
+			return false, nil
+		}
+		return false, fmt.Errorf("stop existing app-manager before install: %w", err)
+	}
+	if done == nil {
+		return false, nil
+	}
+
+	if shutdownErr := <-done; shutdownErr != nil {
+		if errors.Is(shutdownErr, appmanager.ErrNotRunning) {
+			return false, nil
+		}
+		return false, fmt.Errorf("stop existing app-manager before install: %w", shutdownErr)
+	}
+
+	return true, nil
+}
+
+func (c *SelfCommand) restartAppManagerAfterFailedReplacement(ctx context.Context, wasRunning bool, studioctlPath string) {
+	if !wasRunning {
+		return
+	}
+	if err := c.restartAppManager(ctx, studioctlPath); err != nil {
+		c.out.Verbosef("failed to restart app-manager after failed install: %v", err)
+	}
+}
+
+func (c *SelfCommand) restartAppManagerIfNeeded(ctx context.Context, wasRunning bool, studioctlPath string) error {
+	if !wasRunning {
+		return nil
+	}
+	if err := c.restartAppManager(ctx, studioctlPath); err != nil {
+		return fmt.Errorf("restart app-manager: %w", err)
+	}
+	return nil
+}
+
+func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath string) error {
+	if studioctlPath == "" {
+		return appmanager.EnsureStarted(
+			ctx,
+			c.cfg,
+			envlocaltest.DefaultLoadBalancerPortString(),
+			envlocaltest.ResolveLocalAppURL(),
+		)
+	}
+
+	return appmanager.EnsureStartedWithStudioctlPath(
+		ctx,
+		c.cfg,
+		envlocaltest.DefaultLoadBalancerPortString(),
+		envlocaltest.ResolveLocalAppURL(),
+		studioctlPath,
+	)
 }
 
 func (c *SelfCommand) runUninstall(args []string) error {

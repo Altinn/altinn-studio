@@ -120,9 +120,10 @@ func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
 
 	if err := client.shutdown(ctx); err != nil {
 		if !errors.Is(err, ErrNotRunning) {
-			return nil, fmt.Errorf("shutdown app-manager: %w", err)
-		}
-		if pid <= 0 {
+			if pid <= 0 {
+				return nil, fmt.Errorf("shutdown app-manager: %w", err)
+			}
+		} else if pid <= 0 {
 			return nil, ErrNotRunning
 		}
 	}
@@ -246,7 +247,18 @@ func (c *Client) shutdown(ctx context.Context) error {
 
 // EnsureStarted starts or reconciles app-manager for the provided localtest runtime settings.
 func EnsureStarted(ctx context.Context, cfg *config.Config, loadBalancerPort, localAppURL string) error {
-	desired := buildStartConfig(cfg, loadBalancerPort, localAppURL)
+	return EnsureStartedWithStudioctlPath(ctx, cfg, loadBalancerPort, localAppURL, currentExecutablePath())
+}
+
+// EnsureStartedWithStudioctlPath starts or reconciles app-manager with an explicit studioctl path.
+func EnsureStartedWithStudioctlPath(
+	ctx context.Context,
+	cfg *config.Config,
+	loadBalancerPort,
+	localAppURL,
+	studioctlPath string,
+) error {
+	desired := buildStartConfig(cfg, loadBalancerPort, localAppURL, studioctlPath)
 	client := NewClient(cfg)
 
 	status, err := client.Status(ctx)
@@ -467,6 +479,13 @@ func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) 
 		return status.ProcessID, nil
 	}
 	if !errors.Is(err, ErrNotRunning) {
+		state, ok, stateErr := readAppManagerState(cfg)
+		if stateErr != nil {
+			return 0, fmt.Errorf("read persisted app-manager state after status failure: %w", stateErr)
+		}
+		if ok {
+			return state.PID, nil
+		}
 		return 0, fmt.Errorf("get app-manager status before shutdown: %w", err)
 	}
 
@@ -536,14 +555,14 @@ func managedProcessStopped(pid int) (bool, error) {
 	return !running, nil
 }
 
-func buildStartConfig(cfg *config.Config, loadBalancerPort, localAppURL string) startConfig {
+func buildStartConfig(cfg *config.Config, loadBalancerPort, localAppURL, studioctlPath string) startConfig {
 	return startConfig{
 		BinaryPath:     cfg.AppManagerBinaryPath(),
 		WorkingDir:     cfg.Home,
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      TunnelURL(loadBalancerPort),
 		UpstreamURL:    rewriteHostLocalAppURL(localAppURL),
-		StudioctlPath:  currentExecutablePath(),
+		StudioctlPath:  studioctlPath,
 		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}
 }

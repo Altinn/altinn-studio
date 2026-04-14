@@ -63,6 +63,7 @@ type UpdateResult struct {
 	Asset         string
 	TargetPath    string
 	ReleaseSource string
+	Version       string
 }
 
 // UninstallResult describes a completed self uninstall.
@@ -75,6 +76,7 @@ type resolvedUpdate struct {
 	binaryBase string
 	checksums  string
 	targetPath string
+	version    string
 	skipCheck  bool
 }
 
@@ -121,6 +123,7 @@ func (s *Service) UpdateBinary(ctx context.Context, opts UpdateOptions) (result 
 		Asset:         resolved.asset,
 		TargetPath:    resolved.targetPath,
 		ReleaseSource: resolved.binaryBase,
+		Version:       resolved.version,
 	}
 	return result, nil
 }
@@ -149,6 +152,7 @@ func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath stri
 		binaryBase: binaryBase,
 		checksums:  checksums,
 		targetPath: execPath,
+		version:    version,
 		skipCheck:  opts.SkipChecksum,
 	}, nil
 }
