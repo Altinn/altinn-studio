@@ -247,7 +247,10 @@ func (c *Client) ensureImageExists(ctx context.Context, imageRef string) error {
 }
 
 // buildDockerConfigs assembles the Docker container and host configs from a ContainerConfig.
-func buildDockerConfigs(cfg types.ContainerConfig, platform types.ContainerPlatform) (*dockercontainer.Config, *dockercontainer.HostConfig) {
+func buildDockerConfigs(
+	cfg types.ContainerConfig,
+	platform types.ContainerPlatform,
+) (*dockercontainer.Config, *dockercontainer.HostConfig) {
 	portBindings, exposedPorts := buildPortMappings(cfg.Ports)
 
 	containerCfg := &dockercontainer.Config{

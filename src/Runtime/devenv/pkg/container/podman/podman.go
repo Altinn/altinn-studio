@@ -250,7 +250,7 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 	}
 
 	var state struct {
-		Health   *struct {
+		Health *struct {
 			Status string `json:"Status"`
 		} `json:"Health"`
 		Status   string `json:"Status"`
@@ -425,7 +425,7 @@ type containerInspectInfo struct {
 		Labels map[string]string `json:"Labels"`
 	} `json:"Config"`
 	State struct {
-		Health   *struct {
+		Health *struct {
 			Status string `json:"Status"`
 		} `json:"Health"`
 		Status   string `json:"Status"`
