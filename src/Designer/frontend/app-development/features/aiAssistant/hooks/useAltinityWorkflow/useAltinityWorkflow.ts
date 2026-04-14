@@ -4,9 +4,7 @@ import type {
   AssistantMessage,
   WorkflowEvent,
   WorkflowStatus,
-  AgentResponse,
   ConnectionStatus,
-  UserAttachment,
   AssistantMessageData,
 } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
@@ -25,8 +23,6 @@ import {
 
 const INITIAL_WORKFLOW_MESSAGE = 'Jobber med saken...';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
-const WORKFLOW_ERROR_MESSAGE =
-  'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
 
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
@@ -60,18 +56,12 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     currentSessionId,
     currentSessionIdRef,
     setCurrentSession,
-<<<<<<< HEAD
-    persistMessage,
-    removeLastUserMessage,
-=======
     createThread,
     addMessageToThread,
     removeLoadingMessage,
     replaceLoadingWithMessage,
     removeCancelledMessages,
     upsertAssistantMessage,
-    updateWorkflowStatusMessage,
->>>>>>> 8a35062947 (use db for thread and message storage)
   } = threads;
 
   useEffect(() => {
@@ -131,20 +121,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
       if (!event.session_id) return;
 
-      const finalAssistantMessage: AssistantMessage = {
-        author: MessageAuthor.Assistant,
-        content: messageContent,
-        timestamp: messageTimestamp,
-        filesChanged: assistantMessage.filesChanged || [],
-        sources: assistantMessage.sources || [],
-      };
-      persistMessage(event.session_id, finalAssistantMessage);
+      upsertAssistantMessage(event.session_id, assistantMessage, messageContent, messageTimestamp);
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(event.session_id);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, persistMessage],
+    [resetRepoForSession, markWorkflowCompleted, upsertAssistantMessage],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -165,18 +148,23 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         applyStatusMessage(event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
       } else if (event.type === 'error') {
         setWorkflowStatus({ isActive: false });
-        if (!event.session_id) return;
-        if (event.data?.status === 'cancelled') return;
-        const errorMessage: AssistantMessage = {
-          author: MessageAuthor.Assistant,
-          content: WORKFLOW_ERROR_MESSAGE,
-          timestamp: new Date(),
-          filesChanged: [],
-        };
-        persistMessage(event.session_id, errorMessage);
+        const currentSession = currentSessionIdRef.current;
+        if (currentSession) {
+          if (event.data?.status === 'cancelled') {
+            removeLoadingMessage(currentSession);
+          } else {
+            replaceLoadingWithMessage(currentSession, createAssistantErrorMessage());
+          }
+        }
       }
     },
-    [applyStatusMessage, handleAssistantMessage, persistMessage],
+    [
+      applyStatusMessage,
+      handleAssistantMessage,
+      currentSessionIdRef,
+      removeLoadingMessage,
+      replaceLoadingWithMessage,
+    ],
   );
 
   useEffect(() => {
@@ -191,17 +179,16 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     });
   }, [onAgentMessage, handleWorkflowEvent]);
 
-  const startAgentWorkflow = useCallback(
-    async (
-      threadId: string,
-      goal: string,
-      allowAppChanges: boolean,
-      attachments?: UserAttachment[],
-    ): Promise<AgentResponse> => {
+  const runWorkflowForSession = useCallback(
+    async (threadId: string, userMessage: UserMessage): Promise<void> => {
       const activeSession = backendSessionIdRef.current;
       if (!activeSession) {
-        throw new Error('No active backend session — connection not established');
+        console.error('No active backend session — connection not established');
+        return;
       }
+
+      addMessageToThread(threadId, userMessage);
+      addMessageToThread(threadId, createAssistantLoadingMessage());
 
       setWorkflowStatus({
         isActive: true,
@@ -215,40 +202,17 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       try {
         const result = await startWorkflow({
           session_id: activeSession,
-          goal: goal,
-          org: org,
-          app: app,
+          goal: userMessage.content,
+          org,
+          app,
           branch: branchToUse,
-          allow_app_changes: allowAppChanges,
-          attachments,
+          allow_app_changes: userMessage.allowAppChanges ?? false,
+          attachments: userMessage.attachments,
         });
 
         if (!result.accepted) {
           setWorkflowStatus({ isActive: false });
-        }
-
-        return result;
-      } catch (error) {
-        setWorkflowStatus({ isActive: false });
-        throw error;
-      }
-    },
-    [app, currentBranch, org, startWorkflow],
-  );
-
-  const runWorkflowForSession = useCallback(
-    async (threadId: string, userMessage: UserMessage): Promise<void> => {
-      persistMessage(threadId, userMessage);
-
-      try {
-        const result = await startAgentWorkflow(
-          threadId,
-          userMessage.content,
-          userMessage.allowAppChanges ?? false,
-          userMessage.attachments,
-        );
-        if (!result.accepted) {
-          persistMessage(threadId, {
+          replaceLoadingWithMessage(threadId, {
             author: MessageAuthor.Assistant,
             content: formatRejectionMessage(result),
             timestamp: new Date(),
@@ -257,15 +221,11 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
-        persistMessage(threadId, {
-          author: MessageAuthor.Assistant,
-          content: WORKFLOW_ERROR_MESSAGE,
-          timestamp: new Date(),
-          filesChanged: [],
-        });
+        setWorkflowStatus({ isActive: false });
+        replaceLoadingWithMessage(threadId, createAssistantErrorMessage());
       }
     },
-    [persistMessage, startAgentWorkflow],
+    [addMessageToThread, app, currentBranch, org, replaceLoadingWithMessage, startWorkflow],
   );
 
   const onSubmitUserMessage = useCallback(
@@ -300,7 +260,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     const threadId = currentSessionIdRef.current;
     if (!threadId) return;
     setWorkflowStatus({ isActive: false });
-    const restoredContent = removeLastUserMessage(threadId);
+    const restoredContent = removeCancelledMessages(threadId);
     if (restoredContent) {
       setCancelledMessageContent(restoredContent);
     }
@@ -311,7 +271,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, currentSessionIdRef, removeLastUserMessage]);
+  }, [cancelWorkflow, currentSessionIdRef, removeCancelledMessages]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
@@ -333,6 +293,26 @@ function buildSessionBranch(sessionId: string): string {
     ? sessionId.substring(8, 16)
     : sessionId.substring(0, 8);
   return `altinity_session_${uniqueIdWithoutPrefix}`;
+}
+
+function createAssistantLoadingMessage(): AssistantMessage {
+  return {
+    author: MessageAuthor.Assistant,
+    content: `\n\nVent litt...`,
+    timestamp: new Date(),
+    filesChanged: [],
+    isLoading: true,
+  };
+}
+
+function createAssistantErrorMessage(): AssistantMessage {
+  return {
+    author: MessageAuthor.Assistant,
+    content:
+      'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+    timestamp: new Date(),
+    filesChanged: [],
+  };
 }
 
 function createThreadTitle(messageContent: string): string {
