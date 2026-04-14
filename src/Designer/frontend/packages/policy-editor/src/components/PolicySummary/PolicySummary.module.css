@@ -1,6 +1,7 @@
 .feedbackAlert {
   max-width: 50%;
   margin-bottom: var(--fds-spacing-4);
+  margin-top: var(--fds-spacing-4);
 }
 
 .feedbackFormWrapper {
