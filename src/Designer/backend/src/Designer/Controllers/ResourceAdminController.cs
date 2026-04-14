@@ -358,17 +358,6 @@ public class ResourceAdminController : ControllerBase
                 string cacheKey = $"resourcelist_${environment}";
                 if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                 {
-                    bool ShouldShowResourceInList(ServiceResource resource)
-                    {
-                        // Keep all non-AltinnApp resources
-                        if (resource.ResourceType != ResourceType.AltinnApp)
-                        {
-                            return true;
-                        }
-
-                        return ResourceAdminHelper.IsMigratedApp(resource);
-                    }
-
                     try
                     {
                         environmentResources = await _resourceRegistry.GetServiceResourceList(
@@ -377,7 +366,12 @@ public class ResourceAdminController : ControllerBase
                             includeAltinn2: false,
                             includeMigratedApps: true
                         );
-                        environmentResources = environmentResources.Where(ShouldShowResourceInList).ToList();
+                        environmentResources = environmentResources
+                            .Where(resource =>
+                                resource.ResourceType != ResourceType.AltinnApp
+                                || ResourceAdminHelper.IsMigratedApp(resource)
+                            )
+                            .ToList();
 
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
                             .SetPriority(CacheItemPriority.High)
