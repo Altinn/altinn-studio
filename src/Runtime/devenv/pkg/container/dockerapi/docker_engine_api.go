@@ -147,7 +147,7 @@ func (c *Client) BuildWithProgress(
 	onProgress types.ProgressHandler,
 	opts ...types.BuildOptions,
 ) error {
-	binary, err := c.runtimeCLI()
+	binary, err := runtimeCLI(c.toolchain.Platform)
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func hasBuildx(ctx context.Context, dockerBinary string) bool {
 
 // Push pushes an image to a registry.
 func (c *Client) Push(ctx context.Context, img string) error {
-	binary, err := c.runtimeCLI()
+	binary, err := runtimeCLI(c.toolchain.Platform)
 	if err != nil {
 		return err
 	}
@@ -222,10 +222,10 @@ func (c *Client) Push(ctx context.Context, img string) error {
 	return nil
 }
 
-func (c *Client) runtimeCLI() (string, error) {
-	binary := c.toolchain.Platform.BuildCLI()
+func runtimeCLI(platform types.ContainerPlatform) (string, error) {
+	binary := platform.BuildCLI()
 	if binary == "" {
-		return "", fmt.Errorf("%w for platform %s", errRuntimeCLINotFound, c.toolchain.Platform)
+		return "", fmt.Errorf("%w for platform %s", errRuntimeCLINotFound, platform)
 	}
 	if _, err := exec.LookPath(binary); err != nil {
 		return "", fmt.Errorf("%w: %s", errRuntimeCLINotFound, binary)

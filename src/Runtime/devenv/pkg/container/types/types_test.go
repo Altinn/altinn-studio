@@ -111,9 +111,9 @@ func TestContainerPlatformBuildCLI(t *testing.T) {
 func TestContainerPlatformPushArgs(t *testing.T) {
 	tests := []struct {
 		name     string
-		platform ContainerPlatform
 		image    string
 		want     []string
+		platform ContainerPlatform
 	}{
 		{
 			name:     "docker remote registry",
