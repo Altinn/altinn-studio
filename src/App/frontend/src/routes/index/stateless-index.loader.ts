@@ -12,6 +12,5 @@ export function statelessIndexLoader() {
       const queryKeys = new URL(request.url).search;
       return redirect(`/${firstPage}${queryKeys}`);
     }
-    return null;
   };
 }

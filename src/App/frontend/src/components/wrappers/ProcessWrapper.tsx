@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,7 +21,7 @@ import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTask } from 'src/features/process/service/ServiceTask';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useIsValidTaskId, useNavigateToTask, useStartUrl } from 'src/hooks/useNavigatePage';
+import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { useWaitForQueries } from 'src/hooks/useWaitForQueries';
 import { getComponentDef, implementsSubRouting } from 'src/layout';
 import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
@@ -70,31 +69,6 @@ function NavigationError({ label }: NavigationErrorProps) {
       </Flex>
     </>
   );
-}
-
-/**
- * Fallback component used only in Form.tsx when the URL contains an invalid or missing page ID.
- * This can't move to a route loader because it depends on hidden page filtering, which requires
- * React context (layout data, form data, expression evaluation).
- *
- * To remove this: move hidden-page awareness into the page route loader so it can redirect
- * before rendering, then replace the Form.tsx usage with a loader-level redirect.
- */
-export function NavigateToStartUrl() {
-  const navigate = useNavigate();
-  const startUrl = useStartUrl();
-  const location = useLocation();
-  const isNavigating = useIsNavigating();
-
-  const currentLocation = location.pathname + location.search;
-
-  useEffect(() => {
-    if (currentLocation !== startUrl && !isNavigating) {
-      navigate(startUrl, { replace: true });
-    }
-  }, [currentLocation, navigate, startUrl, isNavigating]);
-
-  return <Loader reason='navigate-to-start' />;
 }
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
