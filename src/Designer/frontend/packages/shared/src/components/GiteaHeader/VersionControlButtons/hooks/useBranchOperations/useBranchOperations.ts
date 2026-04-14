@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
 import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBranchMutation';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
+import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import { HttpResponseUtils } from 'app-shared/utils/httpResponseUtils';
+import { DEFAULT_APP_BRANCH } from 'app-shared/constants';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
 import type { AxiosError } from 'axios';
 
@@ -11,6 +13,7 @@ export interface UseBranchOperationsResult {
   checkoutExistingBranch: (branchName: string) => void;
   checkoutNewBranch: (branchName: string) => void;
   discardChangesAndCheckout: (targetBranch: string) => void;
+  deleteCurrentBranch: (branchName: string) => void;
   clearUncommittedChangesError: () => void;
   isLoading: boolean;
   uncommittedChangesError: UncommittedChangesError | null;
@@ -30,6 +33,7 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
   const createBranchMutation = useCreateBranchMutation(org, app);
   const checkoutBranchMutation = useCheckoutBranchMutation(org, app);
   const discardChangesMutation = useDiscardChangesMutation(org, app);
+  const deleteBranchMutation = useDeleteBranchMutation(org, app);
 
   const handleCheckoutError = (error: AxiosError<UncommittedChangesError>): void => {
     if (HttpResponseUtils.isConflict(error) && error.response?.data) {
@@ -73,6 +77,20 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
     });
   };
 
+  const deleteCurrentBranch = (branchName: string): void => {
+    discardChangesMutation.mutate(undefined, {
+      onSuccess: () => {
+        checkoutBranchMutation.mutate(DEFAULT_APP_BRANCH, {
+          onSuccess: () => {
+            deleteBranchMutation.mutate(branchName, {
+              onSuccess: () => location.reload(),
+            });
+          },
+        });
+      },
+    });
+  };
+
   const clearUncommittedChangesError = (): void => {
     setUncommittedChangesError(null);
   };
@@ -80,12 +98,14 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
   const isLoading =
     createBranchMutation.isPending ||
     checkoutBranchMutation.isPending ||
-    discardChangesMutation.isPending;
+    discardChangesMutation.isPending ||
+    deleteBranchMutation.isPending;
 
   return {
     checkoutExistingBranch,
     checkoutNewBranch,
     discardChangesAndCheckout,
+    deleteCurrentBranch,
     clearUncommittedChangesError,
     uncommittedChangesError,
     createError,

@@ -72,14 +72,6 @@ export const getCreateInstancesUrl = (partyId: number, language?: string) => {
   return `${appPath}/instances${queryString}`;
 };
 
-export const getValidationUrl = (instanceId: string, language: string, onlyIncrementalValidators?: boolean) => {
-  const queryString = getQueryStringFromObject({
-    language,
-    onlyIncrementalValidators: onlyIncrementalValidators?.toString(),
-  });
-  return `${appPath}/instances/${instanceId}/validate${queryString}`;
-};
-
 export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
   `${appPath}/instances/${instanceId}/data/${dataElementId}/pdf/format`;
 

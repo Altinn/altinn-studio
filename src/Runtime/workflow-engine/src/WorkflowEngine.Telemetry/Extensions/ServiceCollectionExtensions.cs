@@ -13,7 +13,9 @@ public static class ServiceCollectionExtensions
     {
         public IServiceCollection AddTelemetry(
             bool emitQueryParameters = false,
-            bool enableDatabaseInstrumentation = false
+            bool enableDatabaseInstrumentation = false,
+            bool enableDatabaseMetrics = true,
+            double traceSamplingRate = 1.0
         )
         {
             services
@@ -27,6 +29,15 @@ public static class ServiceCollectionExtensions
                 )
                 .WithTracing(builder =>
                 {
+                    if (traceSamplingRate < 1.0)
+                    {
+                        builder.SetSampler(
+                            new ParentBasedSampler(
+                                new TraceIdRatioBasedSampler(Math.Clamp(traceSamplingRate, 0.0, 1.0))
+                            )
+                        );
+                    }
+
                     builder
                         .AddSource(Metrics.ServiceName)
                         .AddHttpClientInstrumentation(opts =>
@@ -46,6 +57,7 @@ public static class ServiceCollectionExtensions
 
                     if (enableDatabaseInstrumentation)
                     {
+                        builder.AddSource("Npgsql");
                         builder.AddEntityFrameworkCoreInstrumentation(opts =>
                         {
                             opts.EnrichWithIDbCommand = (activity, command) =>
@@ -117,7 +129,12 @@ public static class ServiceCollectionExtensions
 
                     if (enableDatabaseInstrumentation)
                     {
-                        builder.AddMeter("Microsoft.EntityFrameworkCore").AddMeter("Npgsql");
+                        builder.AddMeter("Microsoft.EntityFrameworkCore");
+                    }
+
+                    if (enableDatabaseMetrics)
+                    {
+                        builder.AddMeter("Npgsql");
                     }
 
                     builder

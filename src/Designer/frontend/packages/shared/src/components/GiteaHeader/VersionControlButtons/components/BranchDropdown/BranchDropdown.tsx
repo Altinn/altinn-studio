@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@studio/hooks';
 import { StudioDropdown, StudioSpinner } from '@studio/components';
-import { BranchingIcon, PlusIcon } from '@studio/icons';
+import { BranchingIcon, PlusIcon, TrashIcon } from '@studio/icons';
 import { UncommittedChangesDialog } from './UncommittedChangesDialog';
 import { CreateBranchDialog } from './CreateBranchDialog';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { DEFAULT_APP_BRANCH, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
+import { DeleteBranchDialog } from './DeleteBranchDialog';
 import classes from './BranchDropdown.module.css';
 import { useBranchData } from '../../hooks/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations';
@@ -16,6 +17,7 @@ export const BranchDropdown = () => {
   const { t } = useTranslation();
   const { owner: org, repoName: app } = useGiteaHeaderContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const { currentBranch, branchList, isLoading: isLoadingData } = useBranchData(org, app);
@@ -23,6 +25,7 @@ export const BranchDropdown = () => {
     checkoutExistingBranch,
     checkoutNewBranch,
     discardChangesAndCheckout,
+    deleteCurrentBranch,
     clearUncommittedChangesError,
     uncommittedChangesError,
     createError,
@@ -31,6 +34,8 @@ export const BranchDropdown = () => {
 
   const triggerButtonText = shouldDisplayText ? currentBranch : undefined;
   const isLoading = isLoadingData || isLoadingOperations;
+  const canDeleteCurrentBranch = currentBranch !== DEFAULT_APP_BRANCH;
+  const shouldDisplayBranchList = branchList?.length > 1;
 
   if (isLoading) {
     return (
@@ -52,14 +57,18 @@ export const BranchDropdown = () => {
         data-color-scheme='light'
         triggerButtonClassName={classes.branchButton}
       >
-        <StudioDropdown.List>
-          <BranchListItems
+        <BranchActions
+          canDeleteCurrentBranch={canDeleteCurrentBranch}
+          onCreateBranchClick={() => setShowCreateDialog(true)}
+          onDeleteBranchClick={() => setShowDeleteDialog(true)}
+        />
+        {shouldDisplayBranchList && (
+          <BranchList
             branchList={branchList}
             currentBranch={currentBranch}
             onBranchClick={checkoutExistingBranch}
-            onCreateBranchClick={() => setShowCreateDialog(true)}
           />
-        </StudioDropdown.List>
+        )}
       </StudioDropdown>
       <CreateBranchDialog
         isOpen={showCreateDialog}
@@ -68,6 +77,12 @@ export const BranchDropdown = () => {
         onCreateBranch={checkoutNewBranch}
         isLoading={isLoading}
         createError={createError}
+      />
+      <DeleteBranchDialog
+        branchName={currentBranch}
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onDelete={deleteCurrentBranch}
       />
       {uncommittedChangesError && (
         <UncommittedChangesDialog
@@ -81,39 +96,66 @@ export const BranchDropdown = () => {
   );
 };
 
-interface BranchListItemsProps {
-  branchList: Array<Branch> | undefined;
-  currentBranch: string | undefined;
-  onBranchClick: (branchName: string) => void;
+interface BranchActionsProps {
+  canDeleteCurrentBranch: boolean;
   onCreateBranchClick: () => void;
+  onDeleteBranchClick: () => void;
 }
 
-const BranchListItems = ({
-  branchList,
-  currentBranch,
-  onBranchClick,
+const BranchActions = ({
+  canDeleteCurrentBranch,
   onCreateBranchClick,
-}: BranchListItemsProps) => {
+  onDeleteBranchClick,
+}: BranchActionsProps) => {
   const { t } = useTranslation();
 
   return (
-    <>
-      {branchList?.map((branch) => (
-        <StudioDropdown.Item key={branch.name}>
-          <StudioDropdown.Button
-            onClick={() => onBranchClick(branch.name)}
-            disabled={branch.name === currentBranch}
-          >
-            {branch.name}
-          </StudioDropdown.Button>
-        </StudioDropdown.Item>
-      ))}
+    <StudioDropdown.List>
+      <StudioDropdown.Heading>{t('branching.actions_heading')}</StudioDropdown.Heading>
       <StudioDropdown.Item>
         <StudioDropdown.Button onClick={onCreateBranchClick}>
           <PlusIcon />
           {t('branching.new_branch_dialog.trigger')}
         </StudioDropdown.Button>
       </StudioDropdown.Item>
-    </>
+      {canDeleteCurrentBranch && (
+        <StudioDropdown.Item>
+          <StudioDropdown.Button onClick={onDeleteBranchClick} data-color='danger'>
+            <TrashIcon />
+            {t('branching.delete_branch_dialog.title')}
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+      )}
+    </StudioDropdown.List>
+  );
+};
+
+interface BranchListProps {
+  branchList: Array<Branch> | undefined;
+  currentBranch: string | undefined;
+  onBranchClick: (branchName: string) => void;
+}
+
+const BranchList = ({ branchList, currentBranch, onBranchClick }: BranchListProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <StudioDropdown.List>
+      <StudioDropdown.Heading>{t('branching.select_branch_heading')}</StudioDropdown.Heading>
+      <div className={classes.branchList}>
+        {branchList?.map((branch) => (
+          <StudioDropdown.Item key={branch.name}>
+            <StudioDropdown.Button
+              onClick={() => onBranchClick(branch.name)}
+              disabled={branch.name === currentBranch}
+              title={t('branching.switch_to_branch', { branchName: branch.name })}
+            >
+              <BranchingIcon />
+              {branch.name}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+        ))}
+      </div>
+    </StudioDropdown.List>
   );
 };

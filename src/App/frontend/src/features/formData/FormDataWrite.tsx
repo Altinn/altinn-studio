@@ -7,6 +7,10 @@ import type { AxiosRequestConfig } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
+import {
+  type useGetCachedInitialValidations,
+  useIsUpdatingInitialValidations,
+} from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { FormStore } from 'src/features/form/FormContext';
@@ -22,7 +26,6 @@ import {
   type BackendValidationIssueGroups,
   IgnoredValidators,
 } from 'src/features/validation';
-import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
@@ -33,7 +36,6 @@ import type { FormDataWriteProxies } from 'src/features/formData/FormDataWritePr
 import type { FDActionResult, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
 import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
-import type { useGetCachedInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';

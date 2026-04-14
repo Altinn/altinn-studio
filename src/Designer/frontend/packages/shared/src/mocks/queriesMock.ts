@@ -287,6 +287,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
   createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
   createOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),

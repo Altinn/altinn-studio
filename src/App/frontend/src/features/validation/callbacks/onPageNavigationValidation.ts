@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
+import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
