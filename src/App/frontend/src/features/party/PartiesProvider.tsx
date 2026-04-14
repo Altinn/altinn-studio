@@ -12,14 +12,14 @@ import {
 } from 'src/core/queries/party';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
-import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
+import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { GlobalData } from 'src/GlobalData';
 import type { IParty } from 'src/types/shared';
 
 const usePartiesAllowedToInstantiateQuery = () => {
-  const allowAnonymous = useIsAllowAnonymous(false);
+  const allowAnonymous = useAllowAnonymous();
 
-  const utils = usePartiesAllowedToInstantiateBase({ enabled: allowAnonymous });
+  const utils = usePartiesAllowedToInstantiateBase({ enabled: !allowAnonymous });
 
   useEffect(() => {
     utils.error && window.logError('Fetching parties failed:\n', utils.error);
@@ -28,7 +28,7 @@ const usePartiesAllowedToInstantiateQuery = () => {
   return {
     ...utils,
     data: utils.parties,
-    enabled: allowAnonymous,
+    enabled: !allowAnonymous,
   };
 };
 
@@ -120,8 +120,8 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
 };
 
 export function PartyProvider({ children }: PropsWithChildren) {
-  const allowAnonymous = useIsAllowAnonymous(false);
-  if (!allowAnonymous) {
+  const allowAnonymous = useAllowAnonymous();
+  if (allowAnonymous) {
     return children;
   }
 
