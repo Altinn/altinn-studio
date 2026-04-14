@@ -8,7 +8,8 @@
 
 Currently, layouts for rows of data in list structures are defined like this:
 
-```[
+```
+[
 	{
 		"type": "RepeatingGroup",
 		"children": [ "childOne" ],
@@ -42,7 +43,8 @@ A1: Define full components as children instead of IDs
 
 We define the full components as children:
 
-`[
+```
+[
 	{
 		"type": "VehicleRepeatingGroup",
 		"extends": "RepeatingGroup",
@@ -53,23 +55,28 @@ We define the full components as children:
 			}
 		 ]
 	}
-]`
+]
+```
 
 A2: Wrap the child components in an object to indicate that they are not part of the normal layout flow:
 
+```
 {
-layout: [
-{
-id: 'A',
-children: ['B'],
-},
-],
-components: [
-{
-id: 'B',
-},
-],
-};`
+  "layout":
+    [
+    {
+      "id":"A",
+       "children":
+        ["B"]
+       }
+     ],
+     "components":[
+     {
+     "id":"B"
+     }
+   ]
+ }
+```
 
 ## Pros and cons
 

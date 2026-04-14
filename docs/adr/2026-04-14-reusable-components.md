@@ -24,24 +24,27 @@ A1: custom components folder in your ui folder
 
 `Vehicles.json`:
 
-`{
-"type": "RepeatingGroup",
-"dataModelBinding": "vehicles",
-"children" : [
+```
 {
-"type": "Input",
-"dataModelBinding": ".regNo"
-},
-{
-"type": "Input",
-"dataModelBinding": ".manufacturer"
+  "type": "RepeatingGroup",
+  "dataModelBinding": "vehicles",
+  "children" : [
+    {
+      "type": "Input",
+      "dataModelBinding": ".regNo"
+    },
+  {
+    "type": "Input",
+    "dataModelBinding": ".manufacturer"
+    }
+  ]
 }
-]
-}
+```
 
 This can then be used in your layout like this:
 
-`{
+```
+{
 	"layout" : [
 		{
 			"type": "Vehicles",
@@ -52,11 +55,13 @@ This can then be used in your layout like this:
 			"dataModelBinding": "MyDataModel.Mopeds"
 		}
 		]
-}`
+}
+```
 
 A2: Reuse of components defined in the same layout file
 
-`{
+```
+{
 "layout": [
 	{
 		"type": "RepeatingGroup",
@@ -74,7 +79,8 @@ A2: Reuse of components defined in the same layout file
 		"datamodelBinding": ".name"
 	},
 ]
-}`
+}
+```
 
 In this solution, the same component can be used inside multiple repeating groups in the same layout file.
 
