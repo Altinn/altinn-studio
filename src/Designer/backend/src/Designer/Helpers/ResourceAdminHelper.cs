@@ -64,7 +64,7 @@ public static class ResourceAdminHelper
             string reference = x.Reference ?? string.Empty;
             if (!string.IsNullOrEmpty(reference))
             {
-                return x.Reference.Contains("/a1", StringComparison.OrdinalIgnoreCase) || x.Reference.Contains("/a2", StringComparison.OrdinalIgnoreCase);
+                return reference.Contains("/a1", StringComparison.OrdinalIgnoreCase) || reference.Contains("/a2", StringComparison.OrdinalIgnoreCase);
             }
             return false;
         }) ?? false;
