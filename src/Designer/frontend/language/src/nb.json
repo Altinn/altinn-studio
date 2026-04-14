@@ -179,7 +179,7 @@
   "app_create_release.release_version_number_validation": "Må være en unik kombinasjon av tall, små bokstaver (a-z) og spesialtegnene \".\" og \"-\". Maks 128 tegn.",
   "app_create_release.status_popover": "Status for neste bygg",
   "app_create_release.still_building_release": "Bygger fortsatt versjon {{version}}",
-  "app_create_release.validation_error_message": "Vi har funnet valideringsfeil i dine siste endringer. Du må rette opp feilene i <0>denne listen</0> før appen kan publiseres til Ressursregisteret. Fortsetter du med disse feilene vil publiseringen av metadata til Ressursregisteret mislykkes. Appen vil likevel kunne publiseres til miljløet, men Ressursregisteret vil ikke ha oppdatert informasjon om appen din.",
+  "app_create_release.validation_error_message": "Rett valideringsfeilene i <0>listen</0> før du publiserer appen til Ressursregisteret. Publiserer du uten å rette feilene, blir appen publisert til miljøet – men Ressursregisteret får ikke oppdatert informasjon.",
   "app_create_release.validation_errors": "Du må rette opp valideringsfeil.",
   "app_create_release.validation_warning": "Det er funnet feil eller mangler i appen din.",
   "app_create_release.validation_warning_message": "Vi har funnet valideringsfeil i dine siste endringer. Disse er ikke kritiske. Du kan fortsatt bygge en ny versjon og publisere den. Se oversikt over feilene i <0>denne listen</0>.",
