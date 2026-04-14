@@ -227,7 +227,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
-        Assert.True(doc.RootElement.TryGetProperty("databaseId", out var id));
+        Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var id));
         Assert.Equal(stepId.ToString(), id.GetString());
         Assert.True(doc.RootElement.TryGetProperty("status", out _));
     }
