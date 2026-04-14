@@ -1,12 +1,14 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { type BackendValidationApi, backendValidationApi } from 'src/core/api-client/backendValidation.api';
 import { type InstanceApi, instanceApi } from 'src/core/api-client/instance.api';
 import { type PartyApi, partyApi } from 'src/core/api-client/party.api';
 import { type TextResourcesApi, textResourcesApi } from 'src/core/api-client/textResources.api';
 import { createContext } from 'src/core/contexts/context';
 
 export interface ApiClients {
+  backendValidationApi: BackendValidationApi;
   partyApi: PartyApi;
   instanceApi: InstanceApi;
   textResourcesApi: TextResourcesApi;
@@ -17,6 +19,7 @@ interface ApiProviderProps extends PropsWithChildren {
 }
 
 const defaultApis: ApiClients = {
+  backendValidationApi,
   partyApi,
   instanceApi,
   textResourcesApi,
@@ -25,7 +28,7 @@ const defaultApis: ApiClients = {
 const { Provider, useCtx } = createContext<ApiClients>({
   name: 'ApiProvider',
   required: false,
-  default: { partyApi, instanceApi, textResourcesApi },
+  default: { backendValidationApi, partyApi, instanceApi, textResourcesApi },
 });
 
 export function ApiProvider({ children, apis }: ApiProviderProps) {
@@ -35,3 +38,4 @@ export function ApiProvider({ children, apis }: ApiProviderProps) {
 export const usePartyApi = () => useCtx().partyApi;
 export const useTextResourcesApi = () => useCtx().textResourcesApi;
 export const useInstanceApi = () => useCtx().instanceApi;
+export const useBackendValidationApi = () => useCtx().backendValidationApi;

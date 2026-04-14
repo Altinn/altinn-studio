@@ -28,7 +28,6 @@ jest.mock('src/features/profile/ProfileProvider');
 jest.mock('src/features/language/useLanguage');
 jest.mock('src/features/language/Lang');
 jest.mock('src/features/instance/useProcessQuery');
-jest.mock('src/features/validation/backendValidation/backendValidationQuery');
 jest.mock('src/layout/SigneeList/api');
 jest.mock('src/layout/SigningActions/api');
 jest.mock('src/layout/SigningActions/utils');

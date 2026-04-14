@@ -41,11 +41,6 @@ internal static class AppCommandOptionsBuilderExtensions
             const string ns = nameof(AppCommandSettings);
 
             builder.Validate(
-                config => !string.IsNullOrEmpty(config.ApiKey),
-                $"{ns}.{nameof(AppCommandSettings.ApiKey)} value is missing."
-            );
-
-            builder.Validate(
                 config => Uri.TryCreate(config.CommandEndpoint, UriKind.Absolute, out _),
                 $"{ns}.{nameof(AppCommandSettings.CommandEndpoint)} does not appear to be a valid URL."
             );
