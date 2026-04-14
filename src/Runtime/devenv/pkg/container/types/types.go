@@ -1,7 +1,10 @@
 // Package types defines the shared container runtime data types used across implementations.
 package types
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // ErrContainerNotFound is returned when a container does not exist.
 var ErrContainerNotFound = errors.New("container not found")
@@ -99,6 +102,23 @@ func (p ContainerPlatform) BuildCLI() string {
 	default:
 		return ""
 	}
+}
+
+// PushArgs returns the runtime-specific arguments for pushing an image.
+func (p ContainerPlatform) PushArgs(image string) []string {
+	args := []string{"push"}
+	if p == PlatformPodman && IsLocalRegistryReference(image) {
+		// kind/devenv pushes target local plain-http registries.
+		args = append(args, "--tls-verify=false")
+	}
+	return append(args, image)
+}
+
+// IsLocalRegistryReference reports whether the image points at the local plain-http registry used by devenv.
+func IsLocalRegistryReference(image string) bool {
+	return strings.HasPrefix(image, "localhost:") ||
+		strings.HasPrefix(image, "127.0.0.1:") ||
+		strings.HasPrefix(image, "[::1]:")
 }
 
 // ContainerAccessMode describes how the client communicates with the platform.

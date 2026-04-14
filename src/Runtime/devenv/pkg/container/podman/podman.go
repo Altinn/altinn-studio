@@ -102,28 +102,12 @@ func (c *Client) BuildWithProgress(
 // Push pushes an image to a registry.
 func (c *Client) Push(ctx context.Context, image string) error {
 	//nolint:gosec // The podman binary is fixed and the arguments come from explicit caller configuration.
-	cmd := exec.CommandContext(ctx, "podman", podmanPushArgs(image)...)
+	cmd := exec.CommandContext(ctx, "podman", types.PlatformPodman.PushArgs(image)...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("podman push failed: %w\nOutput: %s", err, string(output))
 	}
 	return nil
-}
-
-func podmanPushArgs(image string) []string {
-	args := []string{"push"}
-	if isLocalRegistryReference(image) {
-		// kind/devenv pushes target local plain-http registries.
-		args = append(args, "--tls-verify=false")
-	}
-	args = append(args, image)
-	return args
-}
-
-func isLocalRegistryReference(image string) bool {
-	return strings.HasPrefix(image, "localhost:") ||
-		strings.HasPrefix(image, "127.0.0.1:") ||
-		strings.HasPrefix(image, "[::1]:")
 }
 
 // CreateContainer creates and optionally starts a container.

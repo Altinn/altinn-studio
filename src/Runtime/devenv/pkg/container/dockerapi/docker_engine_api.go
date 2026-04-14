@@ -32,12 +32,12 @@ import (
 )
 
 var (
-	errExecExitCode      = errors.New("exec exited with non-zero status")
-	errImagePullFailed   = errors.New("image pull failed")
-	errWaitWithoutStatus = errors.New("wait completed without status")
-	errContextCancelled  = errors.New("context cancelled while waiting for container")
-	errBuildCLINotFound  = errors.New("container build CLI not found")
-	errBuildxRequired    = errors.New("docker buildx plugin is required but not installed")
+	errExecExitCode       = errors.New("exec exited with non-zero status")
+	errImagePullFailed    = errors.New("image pull failed")
+	errWaitWithoutStatus  = errors.New("wait completed without status")
+	errContextCancelled   = errors.New("context cancelled while waiting for container")
+	errRuntimeCLINotFound = errors.New("container runtime CLI not found")
+	errBuildxRequired     = errors.New("docker buildx plugin is required but not installed")
 )
 
 // Client implements ContainerClient for Docker using the official SDK.
@@ -147,12 +147,9 @@ func (c *Client) BuildWithProgress(
 	onProgress types.ProgressHandler,
 	opts ...types.BuildOptions,
 ) error {
-	binary := c.toolchain.Platform.BuildCLI()
-	if binary == "" {
-		return fmt.Errorf("%w for platform %s", errBuildCLINotFound, c.toolchain.Platform)
-	}
-	if _, err := exec.LookPath(binary); err != nil {
-		return fmt.Errorf("%w: %s", errBuildCLINotFound, binary)
+	binary, err := c.runtimeCLI()
+	if err != nil {
+		return err
 	}
 
 	if c.toolchain.Platform == types.PlatformPodman {
@@ -211,21 +208,29 @@ func hasBuildx(ctx context.Context, dockerBinary string) bool {
 
 // Push pushes an image to a registry.
 func (c *Client) Push(ctx context.Context, img string) error {
-	resp, err := c.cli.ImagePush(ctx, img, image.PushOptions{
-		// Empty auth for local registry
-		RegistryAuth: "e30=", // base64 encoded "{}"
-	})
+	binary, err := c.runtimeCLI()
 	if err != nil {
-		return fmt.Errorf("docker push failed: %w", err)
-	}
-	defer closeBestEffort(resp)
-
-	// Read push output to detect errors
-	if err := jsonmessage.DisplayJSONMessagesStream(resp, io.Discard, 0, false, nil); err != nil {
-		return fmt.Errorf("docker push failed: %w", err)
+		return err
 	}
 
+	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
+	cmd := exec.CommandContext(ctx, binary, c.toolchain.Platform.PushArgs(img)...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s push failed: %w\nOutput: %s", binary, err, string(output))
+	}
 	return nil
+}
+
+func (c *Client) runtimeCLI() (string, error) {
+	binary := c.toolchain.Platform.BuildCLI()
+	if binary == "" {
+		return "", fmt.Errorf("%w for platform %s", errRuntimeCLINotFound, c.toolchain.Platform)
+	}
+	if _, err := exec.LookPath(binary); err != nil {
+		return "", fmt.Errorf("%w: %s", errRuntimeCLINotFound, binary)
+	}
+	return binary, nil
 }
 
 // CreateContainer creates and optionally starts a container.

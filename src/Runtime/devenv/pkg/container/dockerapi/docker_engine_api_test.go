@@ -167,7 +167,7 @@ func TestBuild_ColimaRequiresDockerCLIAtCallSite(t *testing.T) {
 	if err == nil {
 		t.Fatal("Build() error = nil, want non-nil")
 	}
-	if want := "container build CLI not found"; !strings.Contains(err.Error(), want) {
+	if want := "container runtime CLI not found"; !strings.Contains(err.Error(), want) {
 		t.Fatalf("Build() error = %q", err)
 	}
 }
