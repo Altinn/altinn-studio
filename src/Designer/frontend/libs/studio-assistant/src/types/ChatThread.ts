@@ -30,7 +30,7 @@ export type UserMessage = {
   author: MessageAuthor.User;
   content: string;
   timestamp: Date;
-  allowAppChanges?: boolean;
+  allowAppChanges: boolean;
   attachments?: UserAttachment[];
 };
 
