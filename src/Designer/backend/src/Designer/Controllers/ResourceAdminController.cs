@@ -366,12 +366,6 @@ public class ResourceAdminController : ControllerBase
                             return true;
                         }
 
-                        // For AltinnApp resources, keep only if they have migrated app references
-                        if (resource.ResourceReferences == null || resource.ResourceReferences.Count == 0)
-                        {
-                            return false;
-                        }
-
                         return ResourceAdminHelper.IsMigratedApp(resource);
                     }
 
@@ -696,7 +690,12 @@ public class ResourceAdminController : ControllerBase
         string cacheKey = $"resourcelist_with_apps${env}";
         if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
         {
-            environmentResources = await _resourceRegistry.GetServiceResourceList(env, true, false, true);
+            environmentResources = await _resourceRegistry.GetServiceResourceList(
+                env,
+                includeApps: true,
+                includeAltinn2: false,
+                includeMigratedApps: true
+            );
 
             MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
