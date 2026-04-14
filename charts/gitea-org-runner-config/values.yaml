@@ -7,6 +7,8 @@ environment: "dev"
 runtimeClassName: "kata-vm-isolation"
 dockerInDocker:
   enabled: true
+studioctlSupport:
+  enabled: true
 
 # Environment-specific runner configurations
 # dev/staging: only ttd

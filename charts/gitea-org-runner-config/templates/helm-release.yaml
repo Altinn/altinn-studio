@@ -30,6 +30,8 @@ spec:
     runtimeClassName: {{ .Values.runtimeClassName | quote }}
     dockerInDocker:
       enabled: {{ .Values.dockerInDocker.enabled }}
+    studioctlSupport:
+      enabled: {{ .Values.studioctlSupport.enabled }}
     resources:
       requests:
         cpu: 500m

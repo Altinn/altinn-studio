@@ -68,6 +68,10 @@ spec:
           volumeMounts:
             - name: docker-certs
               mountPath: /certs
+            {{- if $.Values.studioctlSupport.enabled }}
+            - name: studioctl-home
+              mountPath: {{ $.Values.studioctlSupport.home | default "/altinn-studio" }}
+            {{- end }}
       {{- end }}
       containers:
         - name: {{ $.Chart.Name }}
@@ -85,6 +89,10 @@ spec:
               value: "1"
             - name: DOCKER_CERT_PATH
               value: "/certs/client"
+            {{- end }}
+            {{- if $.Values.studioctlSupport.enabled }}
+            - name: STUDIOCTL_HOME
+              value: {{ $.Values.studioctlSupport.home | default "/altinn-studio" | quote }}
             {{- end }}
             {{- if .environmentVariables }}
             {{- range $variable := .environmentVariables}}
@@ -105,7 +113,7 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled }}
+          {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled $.Values.studioctlSupport.enabled }}
           volumeMounts:
             {{- with $.Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
@@ -115,14 +123,22 @@ spec:
               mountPath: /certs
               readOnly: true
             {{- end }}
+            {{- if $.Values.studioctlSupport.enabled }}
+            - name: studioctl-home
+              mountPath: {{ $.Values.studioctlSupport.home | default "/altinn-studio" }}
+            {{- end }}
           {{- end }}
-      {{- if or $.Values.volumes $.Values.dockerInDocker.enabled }}
+      {{- if or $.Values.volumes $.Values.dockerInDocker.enabled $.Values.studioctlSupport.enabled }}
       volumes:
         {{- with $.Values.volumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- if $.Values.dockerInDocker.enabled }}
         - name: docker-certs
+          emptyDir: {}
+        {{- end }}
+        {{- if $.Values.studioctlSupport.enabled }}
+        - name: studioctl-home
           emptyDir: {}
         {{- end }}
       {{- end }}

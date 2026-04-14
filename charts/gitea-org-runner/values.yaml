@@ -37,6 +37,15 @@ dockerInDocker:
     pullPolicy: IfNotPresent
   diskSize: "10G"
 
+# studioctl support: mounts a shared emptyDir at STUDIOCTL_HOME in both the runner
+# and the dockerd sidecar, and sets STUDIOCTL_HOME on the runner. This makes
+# studioctl's bind mounts visible to dockerd across the DinD container boundary,
+# since the docker client's filesystem view (runner) and the docker daemon's
+# filesystem view (dockerd sidecar) are otherwise disjoint.
+studioctlSupport:
+  enabled: false
+  home: "/altinn-studio"
+
 # List of runners to deploy. Each runner will create a separate deployment.
 runners: []
   # - name: ttd
