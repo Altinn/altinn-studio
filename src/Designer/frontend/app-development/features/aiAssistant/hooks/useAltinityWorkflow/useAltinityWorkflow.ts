@@ -270,17 +270,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   const onSubmitUserMessage = useCallback(
     async (message: UserMessage): Promise<void> => {
-      const trimmedContent = message.content?.trim();
-      if (!trimmedContent) return;
-
-      const userMessage: UserMessage = {
-        ...message,
-        content: trimmedContent,
-        timestamp: new Date(),
-      };
+      if (!message.content) return;
 
       if (currentSessionId) {
-        await runWorkflowForSession(currentSessionId, userMessage);
+        await runWorkflowForSession(currentSessionId, message);
         return;
       }
 
@@ -289,11 +282,12 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         return;
       }
 
-      const threadTitle = trimmedContent.slice(0, 50) + (trimmedContent.length > 50 ? '...' : '');
+      const threadTitle = createThreadTitle(message.content);
+
       try {
         const threadId = await createThread(threadTitle);
         setCurrentSession(threadId);
-        await runWorkflowForSession(threadId, userMessage);
+        await runWorkflowForSession(threadId, message);
       } catch (error) {
         console.error('Failed to create thread:', error);
         setWorkflowStatus({ isActive: false });
@@ -339,4 +333,11 @@ function buildSessionBranch(sessionId: string): string {
     ? sessionId.substring(8, 16)
     : sessionId.substring(0, 8);
   return `altinity_session_${uniqueIdWithoutPrefix}`;
+}
+
+function createThreadTitle(messageContent: string): string {
+  const titleMaxLength = 50;
+  const truncatedMessageContent = messageContent.slice(0, titleMaxLength);
+  const punctuation = messageContent.length > titleMaxLength ? '...' : '';
+  return truncatedMessageContent + punctuation;
 }
