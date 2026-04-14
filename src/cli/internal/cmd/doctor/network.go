@@ -3,12 +3,16 @@ package doctor
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"slices"
 	"strconv"
 	"time"
 
+	"altinn.studio/devenv/pkg/container"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/networking"
+	"altinn.studio/studioctl/internal/ui"
 )
 
 const (
@@ -20,10 +24,6 @@ const (
 func (s *Service) buildNetwork(ctx context.Context, runChecks bool) *Network {
 	var network Network
 	network.LocalhostAddrs, network.LocalhostError = s.resolveLocalhost(ctx)
-
-	if runChecks {
-		network.LoopbackEndpoints = s.probeLoopbackEndpoints(ctx)
-	}
 
 	if !runChecks {
 		status := networking.GetCacheStatus(s.cfg.Home)
@@ -50,6 +50,10 @@ func (s *Service) buildNetwork(ctx context.Context, runChecks bool) *Network {
 		}
 	}()
 
+	if s.localtestRunning(ctx, client) {
+		network.LoopbackEndpoints = s.probeLoopbackEndpoints(ctx)
+	}
+
 	n := networking.NewNetworking(client, s.cfg, s.debugf)
 	metadata, err := n.RefreshNetworkMetadata(ctx)
 	if err != nil {
@@ -65,6 +69,16 @@ func (s *Service) buildNetwork(ctx context.Context, runChecks bool) *Network {
 	network.ContainerDNS = metadata.LocalDNS
 	network.PingOK = &pingOK
 	return &network
+}
+
+func (s *Service) localtestRunning(ctx context.Context, client container.ContainerClient) bool {
+	env := envlocaltest.NewEnv(s.cfg, ui.NewOutput(io.Discard, io.Discard, false), client)
+	status, err := env.Status(ctx)
+	if err != nil {
+		s.debugf("failed to get localtest status before loopback probes: %v", err)
+		return false
+	}
+	return status.Running
 }
 
 func (s *Service) resolveLocalhost(ctx context.Context) ([]string, string) {
