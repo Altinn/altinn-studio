@@ -231,21 +231,6 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	return resp.ID, nil
 }
 
-// ensureImageExists checks that the image is available locally, pulling it if missing.
-func (c *Client) ensureImageExists(ctx context.Context, imageRef string) error {
-	_, err := c.cli.ImageInspect(ctx, imageRef)
-	if err == nil {
-		return nil
-	}
-	if !cerrdefs.IsNotFound(err) {
-		return fmt.Errorf("failed to inspect image %s: %w", imageRef, err)
-	}
-	if pullErr := c.ImagePull(ctx, imageRef); pullErr != nil {
-		return fmt.Errorf("failed to pull image %s: %w", imageRef, pullErr)
-	}
-	return nil
-}
-
 // buildDockerConfigs assembles the Docker container and host configs from a ContainerConfig.
 func buildDockerConfigs(
 	cfg types.ContainerConfig,
@@ -766,6 +751,21 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 	case <-ctx.Done():
 		return -1, fmt.Errorf("%w: %w", errContextCancelled, ctx.Err())
 	}
+}
+
+// ensureImageExists checks that the image is available locally, pulling it if missing.
+func (c *Client) ensureImageExists(ctx context.Context, imageRef string) error {
+	_, err := c.cli.ImageInspect(ctx, imageRef)
+	if err == nil {
+		return nil
+	}
+	if !cerrdefs.IsNotFound(err) {
+		return fmt.Errorf("failed to inspect image %s: %w", imageRef, err)
+	}
+	if pullErr := c.ImagePull(ctx, imageRef); pullErr != nil {
+		return fmt.Errorf("failed to pull image %s: %w", imageRef, pullErr)
+	}
+	return nil
 }
 
 //nolint:errcheck,gosec // Client and stream cleanup is best-effort during setup and teardown paths.

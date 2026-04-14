@@ -129,6 +129,7 @@ func isLocalRegistryReference(image string) bool {
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	args := buildCreateArgs(cfg)
 
+	//nolint:gosec // The podman binary is fixed and the arguments come from explicit caller configuration.
 	cmd := exec.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -424,7 +425,11 @@ type containerInspectInfo struct {
 	Config struct {
 		Labels map[string]string `json:"Labels"`
 	} `json:"Config"`
-	State struct {
+	ID          string `json:"Id"`
+	Name        string `json:"Name"`
+	Image       string `json:"Image"`
+	ImageDigest string `json:"ImageDigest"`
+	State       struct {
 		Health *struct {
 			Status string `json:"Status"`
 		} `json:"Health"`
@@ -433,10 +438,6 @@ type containerInspectInfo struct {
 		Running  bool   `json:"Running"`
 		Paused   bool   `json:"Paused"`
 	} `json:"State"`
-	ID          string `json:"Id"`
-	Name        string `json:"Name"`
-	Image       string `json:"Image"`
-	ImageDigest string `json:"ImageDigest"`
 }
 
 func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
