@@ -20,6 +20,7 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 
 	assertEnvContainsAll(t, spec.Config.Env, []string{
 		"AppSettings__OpenIdWellKnownEndpoint=http://localtest:5101/authentication/api/v1/openid/",
+		"GeneralSettings__ExternalAppBaseUrl=http://local.altinn.cloud:8000/{org}/{app}/",
 		"OTEL_EXPORTER_OTLP_ENDPOINT=http://monitoring_otel_collector:4317",
 		"PlatformSettings__ApiStorageEndpoint=http://localtest:5101/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://localtest-pdf3:5031/pdf",

@@ -12,6 +12,7 @@ import (
 	"altinn.studio/studioctl/internal/appnaming"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/networking"
 )
 
 // TODO: this should come from the "current env".
@@ -23,6 +24,7 @@ const (
 func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]string {
 	return map[string]string{
 		"AppSettings__OpenIdWellKnownEndpoint":          "http://" + host + ":5101/authentication/api/v1/openid/",
+		"GeneralSettings__ExternalAppBaseUrl":           localtestExternalAppBaseURL(),
 		"OTEL_EXPORTER_OTLP_ENDPOINT":                   otelEndpoint,
 		"PlatformSettings__ApiStorageEndpoint":          "http://" + host + ":5101/storage/api/v1/",
 		"PlatformSettings__ApiRegisterEndpoint":         "http://" + host + ":5101/register/api/v1/",
@@ -35,6 +37,10 @@ func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]str
 		"PlatformSettings__ApiCorrespondenceEndpoint":   "http://" + host + ":5101/correspondence/api/v1/",
 		"PlatformSettings__ApiAccessManagementEndpoint": "http://" + host + ":5101/accessmanagement/api/v1/",
 	}
+}
+
+func localtestExternalAppBaseURL() string {
+	return "http://" + networking.LocalDomain + ":" + envlocaltest.DefaultLoadBalancerPortString() + "/{org}/{app}/"
 }
 
 func nativeLocaltestEnvDefaults() map[string]string {
