@@ -6,6 +6,7 @@ import type {
   WorkflowStatus,
   ConnectionStatus,
   AssistantMessageData,
+  AgentResponse,
 } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -212,12 +213,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
         if (!result.accepted) {
           setWorkflowStatus({ isActive: false });
-          replaceLoadingWithMessage(threadId, {
-            author: MessageAuthor.Assistant,
-            content: formatRejectionMessage(result),
-            timestamp: new Date(),
-            filesChanged: [],
-          });
+          replaceLoadingWithMessage(threadId, createAssistantRejectionMessage(result));
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
@@ -310,6 +306,15 @@ function createAssistantErrorMessage(): AssistantMessage {
     author: MessageAuthor.Assistant,
     content:
       'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+    timestamp: new Date(),
+    filesChanged: [],
+  };
+}
+
+function createAssistantRejectionMessage(response: AgentResponse): AssistantMessage {
+  return {
+    author: MessageAuthor.Assistant,
+    content: formatRejectionMessage(response),
     timestamp: new Date(),
     filesChanged: [],
   };
