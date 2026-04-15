@@ -52,7 +52,7 @@ func (c DevImageConfig) PDF3Dockerfile() string {
 }
 
 // WorkflowEngineContextPath returns the build context path for the workflow engine image.
-// The build context is the repo root because the Dockerfile copies from multiple directories.
+// The build context is <RepoRoot>/src because the Dockerfile copies from multiple directories.
 func (c DevImageConfig) WorkflowEngineContextPath() string {
 	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src"))
 }

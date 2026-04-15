@@ -207,7 +207,7 @@ func postgresContainerSpec(dataDir string) ContainerSpec {
 		[]string{"postgres", "-c", "shared_preload_libraries=pg_stat_statements"},
 	)
 	spec.HealthCheck = &types.HealthCheck{
-		Test:        []string{"CMD-SHELL", "pg_isready -U postgres"},
+		Test:        []string{"CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U postgres -d workflow_engine"},
 		Interval:    postgresHealthInterval,
 		Timeout:     postgresHealthTimeout,
 		Retries:     postgresHealthRetries,

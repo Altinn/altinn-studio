@@ -317,6 +317,11 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 		return err
 	}
 	if !needsCreate {
+		if c.HealthCheck != nil {
+			if err := e.waitForHealthy(ctx, c); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
