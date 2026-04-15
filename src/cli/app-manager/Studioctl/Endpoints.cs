@@ -1,4 +1,5 @@
 using System.Reflection;
+using Altinn.Studio.AppManager.Discovery;
 using Altinn.Studio.AppManager.Platform;
 using Altinn.Studio.AppManager.Tunnel;
 
@@ -10,12 +11,14 @@ internal static class Endpoints
     {
         var studioctl = api.MapGroup("/studioctl");
         studioctl.MapGet("/status", GetStatus);
+        studioctl.MapPost("/apps", RegisterApp);
+        studioctl.MapDelete("/apps", UnregisterApp);
         studioctl.MapPost("/shutdown", Shutdown);
         studioctl.MapPost("/upgrades", NotImplemented);
         return studioctl;
     }
 
-    private static IResult GetStatus(Discovery.AppRegistry registry, TunnelState tunnelState)
+    private static IResult GetStatus(AppRegistry registry, TunnelState tunnelState)
     {
         return Results.Ok(
             new StatusResponse(
@@ -39,6 +42,51 @@ internal static class Endpoints
                 ]
             )
         );
+    }
+
+    private static IResult RegisterApp(AppRegistry registry, RegisterAppRequest? request)
+    {
+        if (request is null)
+            return Results.BadRequest(new CommandResponse("request body is required"));
+
+        if (string.IsNullOrWhiteSpace(request.AppId))
+            return Results.BadRequest(new CommandResponse("appId is required"));
+
+        if (
+            string.IsNullOrWhiteSpace(request.BaseUrl)
+            || !Uri.TryCreate(request.BaseUrl, UriKind.Absolute, out var baseUri)
+            || (baseUri.Scheme != Uri.UriSchemeHttp && baseUri.Scheme != Uri.UriSchemeHttps)
+        )
+        {
+            return Results.BadRequest(new CommandResponse("baseUrl must be an absolute http or https URL"));
+        }
+
+        var description = string.IsNullOrWhiteSpace(request.Description)
+            ? $"studioctl app {request.AppId}"
+            : request.Description;
+        if (request.GracePeriodSeconds <= 0)
+            return Results.BadRequest(new CommandResponse("gracePeriodSeconds must be positive"));
+
+        registry.Register(request.AppId.Trim(), baseUri, description, TimeSpan.FromSeconds(request.GracePeriodSeconds));
+        return Results.Accepted(value: new CommandResponse("app registered"));
+    }
+
+    private static IResult UnregisterApp(AppRegistry registry, string? appId, string? baseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(appId))
+            return Results.BadRequest(new CommandResponse("appId is required"));
+
+        if (
+            string.IsNullOrWhiteSpace(baseUrl)
+            || !Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
+            || (baseUri.Scheme != Uri.UriSchemeHttp && baseUri.Scheme != Uri.UriSchemeHttps)
+        )
+        {
+            return Results.BadRequest(new CommandResponse("baseUrl must be an absolute http or https URL"));
+        }
+
+        registry.Unregister(appId.Trim(), baseUri);
+        return Results.Accepted(value: new CommandResponse("app unregistered"));
     }
 
     private static async Task<IResult> Shutdown(IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
@@ -72,6 +120,8 @@ internal static class Endpoints
     );
 
     private sealed record TunnelStatusResponse(bool Enabled, bool Connected, string? Url);
+
+    private sealed record RegisterAppRequest(string AppId, string BaseUrl, string? Description, int GracePeriodSeconds);
 
     private sealed record DiscoveredAppResponse(
         string AppId,

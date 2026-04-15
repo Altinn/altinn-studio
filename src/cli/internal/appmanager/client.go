@@ -3,12 +3,14 @@ package appmanager
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,6 +26,7 @@ const (
 
 	healthPath   = "/api/v1/healthz"
 	statusPath   = "/api/v1/studioctl/status"
+	registerPath = "/api/v1/studioctl/apps"
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
 	appManagerUnixSocketEnv = "APP_MANAGER_UNIX_SOCKET_PATH"
@@ -82,17 +85,27 @@ var (
 	// ErrNotRunning is returned when app-manager is not reachable.
 	ErrNotRunning = errors.New("app-manager is not running")
 	// ErrBinaryMissing is returned when the app-manager binary is not installed.
-	ErrBinaryMissing            = errors.New("app-manager binary not found")
-	errUnexpectedHealthStatus   = errors.New("unexpected app-manager health status")
-	errUnexpectedStatusStatus   = errors.New("unexpected app-manager status response")
-	errUnexpectedShutdownStatus = errors.New("unexpected app-manager shutdown response")
-	errAppManagerStartTimedOut  = errors.New("app-manager start timed out")
-	errInvalidPIDFile           = errors.New("pid file does not contain a positive pid")
+	ErrBinaryMissing              = errors.New("app-manager binary not found")
+	errUnexpectedHealthStatus     = errors.New("unexpected app-manager health status")
+	errUnexpectedRegisterStatus   = errors.New("unexpected app-manager register response")
+	errUnexpectedUnregisterStatus = errors.New("unexpected app-manager unregister response")
+	errUnexpectedStatusStatus     = errors.New("unexpected app-manager status response")
+	errUnexpectedShutdownStatus   = errors.New("unexpected app-manager shutdown response")
+	errAppManagerStartTimedOut    = errors.New("app-manager start timed out")
+	errInvalidPIDFile             = errors.New("pid file does not contain a positive pid")
 )
 
 // Client talks to the local app-manager control plane.
 type Client struct {
 	http *http.Client
+}
+
+// AppRegistration describes an app endpoint registered explicitly by studioctl.
+type AppRegistration struct {
+	AppID              string `json:"appId"`
+	BaseURL            string `json:"baseUrl"`
+	Description        string `json:"description,omitempty"`
+	GracePeriodSeconds int    `json:"gracePeriodSeconds"`
 }
 
 // NewClient constructs an app-manager control-plane client.
@@ -226,6 +239,65 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}
 
 	return result, nil
+}
+
+// RegisterApp registers an app endpoint explicitly with app-manager.
+func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) error {
+	body, err := json.Marshal(registration)
+	if err != nil {
+		return fmt.Errorf("encode app registration: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		controlBaseURL+registerPath,
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return fmt.Errorf("build register app request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("%w: %s", errUnexpectedRegisterStatus, resp.Status)
+	}
+
+	return nil
+}
+
+// UnregisterApp removes an app endpoint explicitly registered with app-manager.
+func (c *Client) UnregisterApp(ctx context.Context, appID, baseURL string) error {
+	values := url.Values{}
+	values.Set("appId", appID)
+	values.Set("baseUrl", baseURL)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		controlBaseURL+registerPath+"?"+values.Encode(),
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("build unregister app request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("%w: %s", errUnexpectedUnregisterStatus, resp.Status)
+	}
+
+	return nil
 }
 
 // shutdown asks app-manager to stop itself.

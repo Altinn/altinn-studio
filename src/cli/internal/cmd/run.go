@@ -2,20 +2,26 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
+	"altinn.studio/studioctl/internal/appmanager"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	runsvc "altinn.studio/studioctl/internal/cmd/run"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -25,16 +31,26 @@ const (
 	runModeDocker                     = "docker"
 	foregroundContainerCleanupTimeout = 10 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
+	appManagerCleanupTimeout          = 2 * time.Second
+	appStartupTimeout                 = 15 * time.Second
+	appStartupRequestTimeout          = time.Second
+	appStartupPollInterval            = 500 * time.Millisecond
 )
 
 var (
-	errAppContainerExited = errors.New("app container exited")
-	errAppRunStopped      = errors.New("app run stopped")
+	errAppContainerEndpointUnavailable = errors.New("app container endpoint unavailable")
+	errAppContainerExited              = errors.New("app container exited")
+	errAppContainerStoppedBeforeReady  = errors.New("app container stopped before becoming reachable through localtest")
+	errAppExitedBeforeReady            = errors.New("app exited before becoming reachable through localtest")
+	errAppRunStopped                   = errors.New("app run stopped")
+	errAppStartupTimedOut              = errors.New("app did not become reachable through localtest")
+	errStudioctlConfigRequired         = errors.New("studioctl config is required")
 )
 
 // RunCommand implements the 'run' subcommand.
 type RunCommand struct {
 	out     *ui.Output
+	cfg     *config.Config
 	service *runsvc.Service
 }
 
@@ -42,6 +58,7 @@ type RunCommand struct {
 func NewRunCommand(cfg *config.Config, out *ui.Output) *RunCommand {
 	return &RunCommand{
 		out:     out,
+		cfg:     cfg,
 		service: runsvc.NewService(),
 	}
 }
@@ -123,28 +140,28 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
 
-	result, err := c.service.ResolveApp(ctx, flags.appPath)
+	target, err := c.service.ResolveApp(ctx, flags.appPath)
 	if err != nil {
 		if errors.Is(err, repocontext.ErrAppNotFound) {
 			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
 		}
-		return fmt.Errorf("detect app: %w", err)
+		return fmt.Errorf("resolve app: %w", err)
 	}
 
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("get working directory: %w", err)
 	}
-	if result.AppRoot != cwd {
-		c.out.Verbosef("Using app at %s (detected via %s)", result.AppRoot, result.AppDetectedFrom)
+	if target.Detection.AppRoot != cwd {
+		c.out.Verbosef("Using app at %s (detected via %s)", target.Detection.AppRoot, target.Detection.AppDetectedFrom)
 	}
 
 	var runErr error
 	switch flags.mode {
 	case runModeNative:
-		runErr = c.runDotnet(ctx, result.AppRoot, dotnetArgs)
+		runErr = c.runDotnet(ctx, target, dotnetArgs)
 	case runModeDocker:
-		runErr = c.runDocker(ctx, result, dotnetArgs, flags)
+		runErr = c.runDocker(ctx, target, dotnetArgs, flags)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
@@ -155,7 +172,8 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 	return runErr
 }
 
-func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []string) error {
+func (c *RunCommand) runDotnet(ctx context.Context, target runsvc.Target, args []string) error {
+	appPath := target.Detection.AppRoot
 	spec := c.service.BuildDotnetRunSpec(ctx, appPath, args, os.Environ())
 
 	c.out.Verbosef("Running: dotnet %v", spec.Args)
@@ -177,6 +195,17 @@ func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []strin
 	go func() {
 		waitErr <- cmd.Wait()
 	}()
+
+	if err := c.registerAndWaitForApp(
+		ctx,
+		target.AppID,
+		spec.BaseURL,
+		processReadinessMonitor(waitErr),
+	); err != nil {
+		stopDotnetProcess(cmd.Process, waitErr)
+		return err
+	}
+	defer c.unregisterAppBestEffort(ctx, target.AppID, spec.BaseURL)
 
 	select {
 	case err := <-waitErr:
@@ -222,7 +251,222 @@ func killProcessBestEffort(process *os.Process) {
 	process.Kill()
 }
 
-func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection, args []string, flags runFlags) error {
+type readinessMonitor func(context.Context) error
+
+type appMetadataResponse struct {
+	ID string `json:"id"`
+}
+
+func processReadinessMonitor(waitErr chan error) readinessMonitor {
+	return func(context.Context) error {
+		select {
+		case err := <-waitErr:
+			waitErr <- err
+			if err != nil {
+				return fmt.Errorf("%w: %w", errAppExitedBeforeReady, err)
+			}
+			return errAppExitedBeforeReady
+		default:
+			return nil
+		}
+	}
+}
+
+func containerReadinessMonitor(
+	client containerruntime.ContainerClient,
+	containerID string,
+) readinessMonitor {
+	return func(ctx context.Context) error {
+		state, err := client.ContainerState(ctx, containerID)
+		if err != nil {
+			return fmt.Errorf("inspect app container state while waiting for startup: %w", err)
+		}
+		if !state.Running {
+			if state.Status != "" {
+				return fmt.Errorf("%w: %s", errAppContainerStoppedBeforeReady, state.Status)
+			}
+			return errAppContainerStoppedBeforeReady
+		}
+		return nil
+	}
+}
+
+func (c *RunCommand) registerAndWaitForApp(
+	ctx context.Context,
+	appID, baseURL string,
+	monitor readinessMonitor,
+) error {
+	if c.cfg == nil {
+		return errStudioctlConfigRequired
+	}
+	if err := appmanager.EnsureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString()); err != nil {
+		return startupOperationError(ctx, "start app-manager", err)
+	}
+
+	client := appmanager.NewClient(c.cfg)
+	if err := client.RegisterApp(ctx, appmanager.AppRegistration{
+		GracePeriodSeconds: int(appStartupTimeout.Seconds()),
+		AppID:              appID,
+		BaseURL:            baseURL,
+		Description:        "studioctl run " + appID,
+	}); err != nil {
+		if ctx.Err() != nil {
+			c.unregisterAppBestEffort(ctx, appID, baseURL)
+		}
+		return startupOperationError(ctx, "register app with app-manager", err)
+	}
+
+	url := localtestApplicationMetadataURL(appID)
+	c.out.Printlnf("Waiting for app through localtest: %s", url)
+	if err := waitForLocaltestApp(ctx, appID, url, monitor); err != nil {
+		c.unregisterAppBestEffort(ctx, appID, baseURL)
+		return err
+	}
+	c.out.Printlnf("App ready: %s", url)
+	return nil
+}
+
+func startupOperationError(ctx context.Context, operation string, err error) error {
+	if ctx.Err() != nil {
+		return errAppRunStopped
+	}
+	return fmt.Errorf("%s: %w", operation, err)
+}
+
+func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID, baseURL string) {
+	if c.cfg == nil {
+		return
+	}
+
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), appManagerCleanupTimeout)
+	defer cancel()
+
+	if err := appmanager.NewClient(c.cfg).UnregisterApp(cleanupCtx, appID, baseURL); err != nil {
+		c.out.Verbosef("failed to unregister app %s from app-manager: %v", appID, err)
+	}
+}
+
+func localtestApplicationMetadataURL(appID string) string {
+	// TODO: Move localtest URL construction to somewhere sensible (app package, localtest package).
+	return "http://" + networking.LocalDomain + ":" + envlocaltest.DefaultLoadBalancerPortString() +
+		"/" + strings.Trim(appID, "/") + "/api/v1/applicationmetadata"
+}
+
+func waitForLocaltestApp(ctx context.Context, appID, url string, monitor readinessMonitor) error {
+	waitCtx, cancel := context.WithTimeout(ctx, appStartupTimeout)
+	defer cancel()
+
+	client := &http.Client{
+		Timeout:   appStartupRequestTimeout,
+		Transport: localHTTPTransport(),
+	}
+	var lastStatus string
+	for {
+		if err := appStartupContextError(ctx, waitCtx, appID, url, lastStatus); err != nil {
+			return err
+		}
+
+		if err := monitor(waitCtx); err != nil {
+			if ctx.Err() != nil {
+				return errAppRunStopped
+			}
+			if waitCtx.Err() != nil {
+				return appStartupTimeoutError(appID, url, lastStatus)
+			}
+			return err
+		}
+
+		status, ready := probeLocaltestApp(waitCtx, client, appID, url)
+		if ready {
+			return nil
+		}
+		lastStatus = status
+
+		select {
+		case <-ctx.Done():
+			return errAppRunStopped
+		case <-waitCtx.Done():
+			return appStartupContextError(ctx, waitCtx, appID, url, lastStatus)
+		case <-time.After(appStartupPollInterval):
+		}
+	}
+}
+
+func appStartupContextError(ctx, waitCtx context.Context, appID, url, lastStatus string) error {
+	if ctx.Err() != nil {
+		return errAppRunStopped
+	}
+	if waitCtx.Err() != nil {
+		return appStartupTimeoutError(appID, url, lastStatus)
+	}
+	return nil
+}
+
+func appStartupTimeoutError(appID, url, lastStatus string) error {
+	return fmt.Errorf(
+		"%w: app %s was not available within %s at %s; last status: %s; make sure localtest is running: studioctl env up",
+		errAppStartupTimedOut,
+		appID,
+		appStartupTimeout,
+		url,
+		lastStatusOrDefault(lastStatus),
+	)
+}
+
+func localHTTPTransport() http.RoundTripper {
+	transport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return http.DefaultTransport
+	}
+
+	localTransport := transport.Clone()
+	localTransport.Proxy = nil
+	return localTransport
+}
+
+func lastStatusOrDefault(status string) string {
+	if status == "" {
+		return "no response"
+	}
+	return status
+}
+
+func probeLocaltestApp(ctx context.Context, client *http.Client, appID, url string) (string, bool) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err.Error(), false
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err.Error(), false
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		status := resp.Status
+		if err := resp.Body.Close(); err != nil {
+			return err.Error(), false
+		}
+		return status, false
+	}
+
+	var metadata appMetadataResponse
+	decodeErr := json.NewDecoder(resp.Body).Decode(&metadata)
+	closeErr := resp.Body.Close()
+	if decodeErr != nil {
+		return "invalid application metadata response: " + decodeErr.Error(), false
+	}
+	if closeErr != nil {
+		return "close application metadata response: " + closeErr.Error(), false
+	}
+	if metadata.ID != appID {
+		return fmt.Sprintf("application metadata id %q, want %q", metadata.ID, appID), false
+	}
+	return resp.Status, true
+}
+
+func (c *RunCommand) runDocker(ctx context.Context, target runsvc.Target, args []string, flags runFlags) error {
+	result := target.Detection
 	spec, specErr := c.service.BuildDockerRunSpec(result, args, runsvc.DockerRunOptions{
 		ImageTag:       flags.imageTag,
 		RandomHostPort: flags.randomHostPort,
@@ -261,18 +505,24 @@ func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection
 
 	info, err := client.ContainerInspect(ctx, containerID)
 	if err != nil {
-		if !flags.detach {
-			if removeErr := c.removeForegroundContainer(ctx, client, containerID); removeErr != nil {
-				return errors.Join(fmt.Errorf("inspect app container: %w", err), removeErr)
-			}
-		}
-		return fmt.Errorf("inspect app container: %w", err)
+		return c.withAppContainerCleanup(
+			ctx,
+			client,
+			containerID,
+			fmt.Errorf("inspect app container: %w", err),
+		)
 	}
 	c.printDockerRunInfo(info)
+
+	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID)
+	if err != nil {
+		return c.withAppContainerCleanup(ctx, client, containerID, err)
+	}
 
 	if flags.detach {
 		return nil
 	}
+	defer c.unregisterAppBestEffort(ctx, target.AppID, baseURL)
 
 	runErr := c.followContainer(ctx, client, containerID)
 	removeErr := c.removeForegroundContainer(ctx, client, containerID)
@@ -283,6 +533,44 @@ func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection
 		return errors.Join(runErr, removeErr)
 	}
 	return runErr
+}
+
+func (c *RunCommand) withAppContainerCleanup(
+	ctx context.Context,
+	client containerruntime.ContainerClient,
+	containerID string,
+	err error,
+) error {
+	if removeErr := c.removeForegroundContainer(ctx, client, containerID); removeErr != nil {
+		if errors.Is(err, errAppRunStopped) {
+			return removeErr
+		}
+		return errors.Join(err, removeErr)
+	}
+	return err
+}
+
+func (c *RunCommand) waitForDockerAppReady(
+	ctx context.Context,
+	client containerruntime.ContainerClient,
+	containerID string,
+	info containerruntime.ContainerInfo,
+	appID string,
+) (string, error) {
+	candidate, ok := appcontainers.CandidateFromContainer(info)
+	if !ok {
+		return "", errAppContainerEndpointUnavailable
+	}
+
+	if err := c.registerAndWaitForApp(
+		ctx,
+		appID,
+		candidate.BaseURL,
+		containerReadinessMonitor(client, containerID),
+	); err != nil {
+		return "", err
+	}
+	return candidate.BaseURL, nil
 }
 
 func (c *RunCommand) removeForegroundContainer(

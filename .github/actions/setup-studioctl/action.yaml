@@ -22,5 +22,6 @@ runs:
       run: |
         studioctl_home="${GITHUB_WORKSPACE}/src/cli/build/dev-home"
         echo "STUDIOCTL_HOME=$studioctl_home" >> "$GITHUB_ENV"
+        echo "STUDIOCTL_INTERNAL_DEV=true" >> "$GITHUB_ENV"
         echo "$studioctl_home/bin" >> "$GITHUB_PATH"
       shell: bash

@@ -3,8 +3,12 @@ package run
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/appcontainers"
@@ -15,10 +19,13 @@ import (
 	"altinn.studio/studioctl/internal/networking"
 )
 
+var errInvalidAppMetadataID = errors.New("application metadata id must be on the form org/app")
+
 // TODO: this should come from the "current env".
 const (
 	localtestLoopbackHost           = "127.0.0.1"
 	localtestAppContainerNamePrefix = "localtest-app-"
+	appMetadataFile                 = "App/config/applicationmetadata.json"
 )
 
 func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]string {
@@ -69,9 +76,10 @@ func NewService() *Service {
 
 // DotnetRunSpec contains subprocess execution details for `dotnet run`.
 type DotnetRunSpec struct {
-	Args []string
-	Dir  string
-	Env  []string
+	Dir     string
+	BaseURL string
+	Args    []string
+	Env     []string
 }
 
 // DockerRunSpec contains container execution details for `studioctl run --mode docker`.
@@ -85,16 +93,35 @@ type DockerRunOptions struct {
 	RandomHostPort bool
 }
 
+// Target describes the app resolved for a run command.
+type Target struct {
+	AppID     string
+	Detection repocontext.Detection
+}
+
+type appMetadata struct {
+	ID string `json:"id"`
+}
+
 // ResolveApp detects the target app directory.
-func (s *Service) ResolveApp(ctx context.Context, appPath string) (repocontext.Detection, error) {
+func (s *Service) ResolveApp(ctx context.Context, appPath string) (Target, error) {
 	result, err := repocontext.DetectFromCwd(ctx, appPath)
 	if err != nil {
-		return repocontext.Detection{}, fmt.Errorf("detect app: %w", err)
+		return Target{}, fmt.Errorf("detect app: %w", err)
 	}
 	if !result.InAppRepo {
-		return repocontext.Detection{}, repocontext.ErrAppNotFound
+		return Target{}, repocontext.ErrAppNotFound
 	}
-	return result, nil
+
+	appID, err := readAppID(result.AppRoot)
+	if err != nil {
+		return Target{}, fmt.Errorf("read app id: %w", err)
+	}
+
+	return Target{
+		AppID:     appID,
+		Detection: result,
+	}, nil
 }
 
 // BuildDotnetRunSpec builds arguments/environment for `dotnet run`.
@@ -104,13 +131,47 @@ func (s *Service) BuildDotnetRunSpec(_ context.Context, appPath string, args, en
 	dotnetArgs = append(dotnetArgs, args...)
 
 	resolvedEnv := appendEnvIfUnset(env, "ASPNETCORE_ENVIRONMENT", "Development")
+	resolvedEnv = appendEnvIfUnset(
+		resolvedEnv,
+		"Kestrel__EndPoints__Http__Url",
+		"http://"+localtestLoopbackHost+":"+appcontainers.DefaultContainerPort,
+	)
 	resolvedEnv = appendLocaltestEnvIfUnset(resolvedEnv)
 
 	return DotnetRunSpec{
-		Args: dotnetArgs,
-		Dir:  appPath,
-		Env:  resolvedEnv,
+		Dir:     appPath,
+		BaseURL: nativeAppBaseURL(),
+		Args:    dotnetArgs,
+		Env:     resolvedEnv,
 	}
+}
+
+func readAppID(appPath string) (string, error) {
+	metadataPath := filepath.Join(appPath, appMetadataFile)
+	content, err := os.ReadFile(metadataPath) //nolint:gosec // App path is the detected local app root.
+	if err != nil {
+		return "", fmt.Errorf("read application metadata: %w", err)
+	}
+
+	var metadata appMetadata
+	if err := json.Unmarshal(content, &metadata); err != nil {
+		return "", fmt.Errorf("parse application metadata: %w", err)
+	}
+
+	appID := strings.TrimSpace(metadata.ID)
+	if !validAppID(appID) {
+		return "", errInvalidAppMetadataID
+	}
+	return appID, nil
+}
+
+func nativeAppBaseURL() string {
+	return "http://" + localtestLoopbackHost + ":" + appcontainers.DefaultContainerPort
+}
+
+func validAppID(appID string) bool {
+	org, app, ok := strings.Cut(appID, "/")
+	return ok && org != "" && app != "" && !strings.Contains(app, "/")
 }
 
 // BuildDockerRunSpec builds image/container configuration for an app container.

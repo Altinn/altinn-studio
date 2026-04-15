@@ -55,7 +55,6 @@ runs:
       working-directory: ${{ github.workspace }}
       shell: bash
       env:
-        STUDIOCTL_INTERNAL_DEV: "true"
         STUDIOCTL_REGISTRY_CACHE_WRITE: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       run: |
         studioctl env up --detach
@@ -110,6 +109,7 @@ runs:
           const fs = require('fs/promises');
           const nodePath = require('path');
           const workspace = process.env.GITHUB_WORKSPACE;
+          const maxParallelStarts = 4;
 
           const targetsJson = process.env.APP_RUN_TARGETS_JSON;
           let targets;
@@ -143,33 +143,7 @@ runs:
             return args;
           }
 
-          async function logDiscoveryDiagnostics() {
-            core.info(`Expected app run targets:\n${JSON.stringify(targets, null, 2)}`);
-            core.info('Current app container discovery candidates:');
-            await exec.exec('studioctl', ['__app-containers'], {
-              cwd: workspace,
-              ignoreReturnCode: true,
-            });
-
-            const studioctlHome = process.env.STUDIOCTL_HOME;
-            if (!studioctlHome) {
-              core.info('STUDIOCTL_HOME is not set; app-manager log tail unavailable.');
-              return;
-            }
-
-            const logPath = nodePath.join(studioctlHome, 'logs', 'app-manager.log');
-            try {
-              const log = await fs.readFile(logPath, 'utf8');
-              core.info(`app-manager log tail:\n${log.split(/\r?\n/).slice(-200).join('\n')}`);
-            } catch (error) {
-              core.info(`Could not read app-manager log at ${logPath}: ${error.message}`);
-            }
-          }
-
-          await exec.exec('studioctl', ['servers', 'up'], { cwd: workspace });
-
-          let started = 0;
-          for (const target of targets) {
+          async function validateTarget(target) {
             if (!target || typeof target !== 'object' || Array.isArray(target)) {
               throw new Error('Each app run target must be an object.');
             }
@@ -184,39 +158,22 @@ runs:
             }
 
             await assertDirectory(target.path);
-            await exec.exec('studioctl', targetRunArgs(target.path, target.image), { cwd: workspace });
-            started += 1;
+            return target;
           }
 
-          if (started === 0) {
+          const validTargets = await Promise.all(targets.map(validateTarget));
+          if (validTargets.length === 0) {
             throw new Error('No app containers were started.');
           }
 
-          const deadline = Date.now() + 180_000;
-          let lastStatus = '';
-          while (Date.now() < deadline) {
-            let stdout = '';
-            let stderr = '';
-            // TODO: Use `studioctl servers status --json` when that output mode exists.
-            await exec.exec('studioctl', ['servers', 'status'], {
-              cwd: workspace,
-              ignoreReturnCode: true,
-              listeners: {
-                stdout: data => { stdout += data.toString(); },
-                stderr: data => { stderr += data.toString(); },
-              },
-            });
-            lastStatus = stdout + stderr;
-            const match = lastStatus.match(/discovered apps:\s+(\d+)/);
-            const discovered = match ? Number.parseInt(match[1], 10) : 0;
-            if (discovered >= started) {
-              core.info(`Discovered ${discovered} app containers.`);
-              return;
+          let nextTarget = 0;
+          async function startNext(workerId) {
+            while (nextTarget < validTargets.length) {
+              const target = validTargets[nextTarget++];
+              core.info(`Worker ${workerId}: starting ${target.path}`);
+              await exec.exec('studioctl', targetRunArgs(target.path, target.image), { cwd: workspace });
             }
-            core.info(`Waiting for app-manager discovery: ${discovered}/${started}`);
-            await new Promise(resolve => setTimeout(resolve, 5000));
           }
 
-          core.info(lastStatus);
-          await logDiscoveryDiagnostics();
-          throw new Error('Timed out waiting for app-manager discovery.');
+          const workerCount = Math.min(maxParallelStarts, validTargets.length);
+          await Promise.all(Array.from({ length: workerCount }, (_, index) => startNext(index + 1)));

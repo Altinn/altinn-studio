@@ -1,6 +1,8 @@
 package run_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	runsvc "altinn.studio/studioctl/internal/cmd/run"
@@ -45,6 +47,48 @@ func TestBuildDockerRunSpec_UsesImageTagOverride(t *testing.T) {
 	}
 }
 
+func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
+	t.Parallel()
+
+	spec := runsvc.NewService().BuildDotnetRunSpec(t.Context(), t.TempDir(), nil, nil)
+
+	assertEnvContainsAll(t, spec.Env, []string{
+		"Kestrel__EndPoints__Http__Url=http://127.0.0.1:5005",
+	})
+	if spec.BaseURL != "http://127.0.0.1:5005" {
+		t.Fatalf("BaseURL = %q, want %q", spec.BaseURL, "http://127.0.0.1:5005")
+	}
+}
+
+func TestResolveApp_ReadsAppID(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+
+	target, err := runsvc.NewService().ResolveApp(t.Context(), appPath)
+	if err != nil {
+		t.Fatalf("ResolveApp() error = %v", err)
+	}
+	if target.AppID != "ttd/test-app" {
+		t.Fatalf("AppID = %q, want %q", target.AppID, "ttd/test-app")
+	}
+	if target.Detection.AppRoot != appPath {
+		t.Fatalf("AppRoot = %q, want %q", target.Detection.AppRoot, appPath)
+	}
+}
+
+func TestResolveApp_RejectsInvalidAppID(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"invalid"}`)
+
+	if _, err := runsvc.NewService().ResolveApp(t.Context(), appPath); err == nil {
+		t.Fatal("ResolveApp() error = nil, want error")
+	}
+}
+
 func assertEnvContainsAll(t *testing.T, env, want []string) {
 	t.Helper()
 
@@ -56,5 +100,18 @@ func assertEnvContainsAll(t *testing.T, env, want []string) {
 		if _, ok := seen[expected]; !ok {
 			t.Fatalf("env does not contain %q\n%v", expected, env)
 		}
+	}
+}
+
+func writeAppMetadata(t *testing.T, appPath, content string) {
+	t.Helper()
+
+	configDir := filepath.Join(appPath, "App", "config")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	metadataPath := filepath.Join(configDir, "applicationmetadata.json")
+	if err := os.WriteFile(metadataPath, []byte(content), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
 	}
 }

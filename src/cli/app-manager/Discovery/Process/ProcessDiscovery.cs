@@ -48,5 +48,5 @@ internal sealed class ProcessDiscovery : IAppDiscovery
         }
     }
 
-    private static Uri BuildLoopbackUri(int port) => new($"http://localhost:{port}", UriKind.Absolute);
+    private static Uri BuildLoopbackUri(int port) => new($"http://127.0.0.1:{port}", UriKind.Absolute);
 }
