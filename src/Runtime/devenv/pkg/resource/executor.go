@@ -473,6 +473,14 @@ func (e *Executor) containerStatus(ctx context.Context, c *Container) (Status, e
 // waitForHealthy polls a container's health status until it reports "healthy",
 // or returns an error if the container becomes unhealthy or the context is cancelled.
 func (e *Executor) waitForHealthy(ctx context.Context, c *Container) error {
+	// Derive a safety timeout from the health check config so we never spin forever
+	// even if the container stays in "starting" due to a daemon bug.
+	maxWait := c.HealthCheck.StartPeriod +
+		(c.HealthCheck.Interval * time.Duration(c.HealthCheck.Retries+1)) +
+		c.HealthCheck.Timeout
+	ctx, cancel := context.WithTimeout(ctx, maxWait)
+	defer cancel()
+
 	ticker := time.NewTicker(healthPollInterval)
 	defer ticker.Stop()
 

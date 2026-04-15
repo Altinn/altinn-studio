@@ -27,7 +27,6 @@ func EnsureInfraFiles(dataDir string) error {
 	files := []infraFile{
 		{"postgres-init.sql", osutil.FilePermDefault},
 		{"pgadmin-servers.json", osutil.FilePermDefault},
-		{"pgpass", 0o600}, // libpq requires 0600 on pgpass files
 	}
 
 	for _, f := range files {
@@ -44,6 +43,17 @@ func EnsureInfraFiles(dataDir string) error {
 		if err := os.Chmod(path, f.perm); err != nil {
 			return fmt.Errorf("chmod infra file %s: %w", f.name, err)
 		}
+	}
+
+	// Generate pgpass from constants so credentials have a single source of truth.
+	// libpq requires 0600 permissions on pgpass files.
+	pgpassPath := filepath.Join(dir, "pgpass")
+	pgpassContent := fmt.Sprintf("%s:%s:*:%s:%s\n", ContainerPostgres, postgresPort, postgresUser, postgresPassword)
+	if err := os.WriteFile(pgpassPath, []byte(pgpassContent), osutil.FilePermOwnerOnly); err != nil {
+		return fmt.Errorf("write infra file pgpass: %w", err)
+	}
+	if err := os.Chmod(pgpassPath, osutil.FilePermOwnerOnly); err != nil {
+		return fmt.Errorf("chmod infra file pgpass: %w", err)
 	}
 
 	return nil

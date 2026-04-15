@@ -38,6 +38,15 @@ const (
 	postgresHealthTimeout     = 5 * time.Second
 	postgresHealthRetries     = 5
 	postgresHealthStartPeriod = 5 * time.Second
+
+	postgresUser         = "postgres"
+	postgresPassword     = "postgres123"
+	postgresDB           = "postgres"
+	postgresPort         = "5432"
+	workflowEngineDB     = "workflow_engine"
+	pgAdminEmail         = "admin@altinn.no"
+	pgAdminPassword      = "admin123"
+	pgAdminContainerPort = "80"
 )
 
 // ErrInvalidResourceLayout is returned when required host paths are missing or have wrong type.
@@ -189,11 +198,11 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 func postgresContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
 		ContainerPostgres,
-		[]types.PortMapping{newPort("5433", "5432")},
+		[]types.PortMapping{newPort("5433", postgresPort)},
 		map[string]string{
-			"POSTGRES_DB":       "postgres",
-			"POSTGRES_USER":     "postgres",
-			"POSTGRES_PASSWORD": "postgres123",
+			"POSTGRES_DB":       postgresDB,
+			"POSTGRES_USER":     postgresUser,
+			"POSTGRES_PASSWORD": postgresPassword,
 			"TZ":                "Europe/Oslo",
 		},
 		[]types.VolumeMount{
@@ -207,7 +216,7 @@ func postgresContainerSpec(dataDir string) ContainerSpec {
 		[]string{"postgres", "-c", "shared_preload_libraries=pg_stat_statements"},
 	)
 	spec.HealthCheck = &types.HealthCheck{
-		Test:        []string{"CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U postgres -d workflow_engine"},
+		Test:        []string{"CMD-SHELL", "pg_isready -h 127.0.0.1 -p " + postgresPort + " -U " + postgresUser},
 		Interval:    postgresHealthInterval,
 		Timeout:     postgresHealthTimeout,
 		Retries:     postgresHealthRetries,
@@ -226,7 +235,7 @@ func workflowEngineContainerSpec(extraHosts []string) ContainerSpec {
 		},
 		map[string]string{
 			"ASPNETCORE_ENVIRONMENT":            "Docker",
-			"ConnectionStrings__WorkflowEngine": "Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres123",
+			"ConnectionStrings__WorkflowEngine": "Host=postgres;Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
 			"AppCommand__CommandEndpoint":       "http://host.docker.internal:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
 		},
 		nil,
@@ -239,10 +248,10 @@ func workflowEngineContainerSpec(extraHosts []string) ContainerSpec {
 func pgAdminContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
 		ContainerPgAdmin,
-		[]types.PortMapping{newPort("5050", "80")},
+		[]types.PortMapping{newPort("5050", pgAdminContainerPort)},
 		map[string]string{
-			"PGADMIN_DEFAULT_EMAIL":                   "admin@altinn.no",
-			"PGADMIN_DEFAULT_PASSWORD":                "admin123",
+			"PGADMIN_DEFAULT_EMAIL":                   pgAdminEmail,
+			"PGADMIN_DEFAULT_PASSWORD":                pgAdminPassword,
 			"PGADMIN_CONFIG_SERVER_MODE":              "False",
 			"PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED": "False",
 			"GUNICORN_ACCESS_LOGFILE":                 "/dev/null",
@@ -434,47 +443,27 @@ func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
 }
 
 func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResource {
-	images := make(map[string]resource.ImageResource, len(coreContainerNames()))
-
-	if opts.ImageMode == DevMode && opts.DevConfig != nil {
-		images[ContainerLocaltest] = &resource.LocalImage{
-			ContextPath: opts.DevConfig.LocaltestContextPath(),
-			Dockerfile:  opts.DevConfig.LocaltestDockerfile(),
-			Tag:         devImageTagLocaltest,
-		}
-		images[ContainerPDF3] = &resource.LocalImage{
-			ContextPath: opts.DevConfig.PDF3ContextPath(),
-			Dockerfile:  opts.DevConfig.PDF3Dockerfile(),
-			Tag:         devImageTagPDF3,
-		}
-		images[ContainerWorkflowEngine] = &resource.LocalImage{
-			ContextPath: opts.DevConfig.WorkflowEngineContextPath(),
-			Dockerfile:  opts.DevConfig.WorkflowEngineDockerfile(),
-			Tag:         devImageTagWorkflowEngine,
-		}
-	} else {
-		images[ContainerLocaltest] = &resource.RemoteImage{
-			Ref:        opts.Images.Core.Localtest.Ref(),
-			PullPolicy: resource.PullIfNotPresent,
-		}
-		images[ContainerPDF3] = &resource.RemoteImage{
-			Ref:        opts.Images.Core.PDF3.Ref(),
-			PullPolicy: resource.PullIfNotPresent,
-		}
-		images[ContainerWorkflowEngine] = &resource.RemoteImage{
-			Ref:        opts.Images.Core.WorkflowEngine.Ref(),
-			PullPolicy: resource.PullIfNotPresent,
-		}
+	if opts.ImageMode != DevMode || opts.DevConfig == nil {
+		return buildRemoteCoreImages(opts.Images.Core)
 	}
 
-	// Postgres and pgAdmin are always remote images (no dev-mode builds)
-	images[ContainerPostgres] = &resource.RemoteImage{
-		Ref:        opts.Images.Core.Postgres.Ref(),
-		PullPolicy: resource.PullIfNotPresent,
+	images := buildRemoteCoreImages(opts.Images.Core)
+
+	// Override buildable images with local dev builds
+	images[ContainerLocaltest] = &resource.LocalImage{
+		ContextPath: opts.DevConfig.LocaltestContextPath(),
+		Dockerfile:  opts.DevConfig.LocaltestDockerfile(),
+		Tag:         devImageTagLocaltest,
 	}
-	images[ContainerPgAdmin] = &resource.RemoteImage{
-		Ref:        opts.Images.Core.PgAdmin.Ref(),
-		PullPolicy: resource.PullIfNotPresent,
+	images[ContainerPDF3] = &resource.LocalImage{
+		ContextPath: opts.DevConfig.PDF3ContextPath(),
+		Dockerfile:  opts.DevConfig.PDF3Dockerfile(),
+		Tag:         devImageTagPDF3,
+	}
+	images[ContainerWorkflowEngine] = &resource.LocalImage{
+		ContextPath: opts.DevConfig.WorkflowEngineContextPath(),
+		Dockerfile:  opts.DevConfig.WorkflowEngineDockerfile(),
+		Tag:         devImageTagWorkflowEngine,
 	}
 
 	return images
