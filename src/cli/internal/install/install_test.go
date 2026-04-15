@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -535,6 +536,9 @@ func TestExtractTarGz_ReplacesWrongTypePaths(t *testing.T) {
 
 func TestExtractTarGz_PreservesFileModeWhenEnabled(t *testing.T) {
 	t.Parallel()
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows does not preserve POSIX executable bits")
+	}
 
 	dst := t.TempDir()
 	tarData := createTestTarGzRaw(t, []tarEntry{
