@@ -52,7 +52,6 @@ public class DeploymentEntity : BaseEntity
         DeployEventType.UpgradeFailed,
         DeployEventType.UninstallSucceeded,
         DeployEventType.UninstallFailed,
-        DeployEventType.ResourceRegistryPublishFailed,
     ];
 
     /// <summary>
