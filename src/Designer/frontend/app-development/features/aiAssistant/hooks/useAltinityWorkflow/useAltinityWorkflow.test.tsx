@@ -53,7 +53,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(startWorkflow).not.toHaveBeenCalled();
-    expect(threads.addMessageToThread).not.toHaveBeenCalled();
+    expect(threads.persistMessage).not.toHaveBeenCalled();
   });
 
   it('creates thread and starts workflow for new session', async () => {
@@ -90,7 +90,7 @@ describe('useAltinityWorkflow', () => {
 
     expect(threads.createThread).toHaveBeenCalledWith('Hello');
     expect(threads.setCurrentSession).toHaveBeenCalledWith('new-thread-id');
-    expect(threads.addMessageToThread).toHaveBeenCalledWith(
+    expect(threads.persistMessage).toHaveBeenCalledWith(
       'new-thread-id',
       expect.objectContaining({ author: MessageAuthor.User, content: 'Hello' }),
     );
@@ -111,17 +111,13 @@ const createThreadState = (): AltinityThreadState => ({
   chatThreads: [],
   currentSessionId: null,
   currentSessionIdRef: { current: null },
+  persistedMessages: [],
   setCurrentSession: jest.fn(),
   selectThread: jest.fn(),
   createNewThread: jest.fn(),
   createThread: jest.fn().mockResolvedValue('new-thread-id'),
   deleteThread: jest.fn(),
-  addMessageToThread: jest.fn(),
-  removeLoadingMessage: jest.fn(),
-  replaceLoadingWithMessage: jest.fn(),
-  removeCancelledMessages: jest.fn(),
-  upsertAssistantMessage: jest.fn(),
-  updateWorkflowStatusMessage: jest.fn(),
+  persistMessage: jest.fn(),
 });
 
 const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {

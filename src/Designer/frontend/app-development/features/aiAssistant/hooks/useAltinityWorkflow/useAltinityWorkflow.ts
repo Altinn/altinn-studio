@@ -61,8 +61,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     setCurrentSession,
     createThread,
     addMessageToThread,
-    removeLoadingMessage,
-    replaceLoadingWithMessage,
     removeCancelledMessages,
     upsertAssistantMessage,
     updateWorkflowStatusMessage,
@@ -164,13 +162,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       setWorkflowStatus({ isActive: false });
       const sessionId = currentSessionIdRef.current;
       if (!sessionId) return;
-      if (event.data?.status === 'cancelled') {
-        removeLoadingMessage(sessionId);
-      } else {
-        replaceLoadingWithMessage(sessionId, createAssistantErrorMessage());
-      }
+      if (event.data?.status === 'cancelled') return;
+      addMessageToThread(sessionId, createAssistantErrorMessage());
     },
-    [currentSessionIdRef, removeLoadingMessage, replaceLoadingWithMessage],
+    [currentSessionIdRef, addMessageToThread],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -214,7 +209,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       }
 
       addMessageToThread(threadId, userMessage);
-      addMessageToThread(threadId, createAssistantLoadingMessage());
 
       setWorkflowStatus({
         isActive: true,
@@ -238,15 +232,15 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
         if (!result.accepted) {
           setWorkflowStatus({ isActive: false });
-          replaceLoadingWithMessage(threadId, createAssistantRejectionMessage(result));
+          addMessageToThread(threadId, createAssistantRejectionMessage(result));
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
         setWorkflowStatus({ isActive: false });
-        replaceLoadingWithMessage(threadId, createAssistantErrorMessage());
+        addMessageToThread(threadId, createAssistantErrorMessage());
       }
     },
-    [addMessageToThread, app, currentBranch, org, replaceLoadingWithMessage, startWorkflow],
+    [addMessageToThread, app, currentBranch, org, startWorkflow],
   );
 
   const onSubmitUserMessage = useCallback(
@@ -317,16 +311,6 @@ function buildSessionBranchName(sessionId: string): string {
     ? sessionId.substring(8, 16)
     : sessionId.substring(0, 8);
   return `altinity_session_${uniqueIdWithoutPrefix}`;
-}
-
-function createAssistantLoadingMessage(): AssistantMessage {
-  return {
-    author: MessageAuthor.Assistant,
-    content: `\n\nVent litt...`,
-    timestamp: new Date(),
-    filesChanged: [],
-    isLoading: true,
-  };
 }
 
 function createAssistantErrorMessage(): AssistantMessage {

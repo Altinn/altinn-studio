@@ -49,17 +49,13 @@ const createThreadState = (): AltinityThreadState => ({
   chatThreads: [],
   currentSessionId: null,
   currentSessionIdRef: { current: null },
+  persistedMessages: [],
   setCurrentSession: jest.fn(),
   selectThread: jest.fn(),
   createNewThread: jest.fn(),
   createThread: jest.fn().mockResolvedValue('new-thread-id'),
   deleteThread: jest.fn(),
-  addMessageToThread: jest.fn(),
-  removeLoadingMessage: jest.fn(),
-  replaceLoadingWithMessage: jest.fn(),
-  removeCancelledMessages: jest.fn(),
-  upsertAssistantMessage: jest.fn(),
-  updateWorkflowStatusMessage: jest.fn(),
+  persistMessage: jest.fn(),
 });
 
 const renderUseAltinityAssistant = () => renderHook(() => useAltinityAssistant());
