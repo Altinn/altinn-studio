@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.Studio.AppManager.Platform;
 
 namespace Altinn.Studio.AppManager.Discovery.Container;
 
@@ -41,16 +41,9 @@ internal sealed class ContainerDiscovery : IAppDiscovery
         CancellationToken cancellationToken
     )
     {
-        using var process = new System.Diagnostics.Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = studioctlPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            },
-        };
+        using var process = new System.Diagnostics.Process { StartInfo = ProcessUtil.CreateStartInfo(studioctlPath) };
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
         process.StartInfo.ArgumentList.Add("__app-containers");
 
         if (!process.Start())

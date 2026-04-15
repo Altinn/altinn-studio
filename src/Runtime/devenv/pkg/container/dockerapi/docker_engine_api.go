@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/processutil"
 
 	cerrdefs "github.com/containerd/errdefs"
 	dockertypes "github.com/docker/docker/api/types"
@@ -162,7 +163,7 @@ func (c *Client) BuildWithProgress(
 
 	args := dockerBuildArgs(contextPath, dockerfile, tag, firstBuildOptions(opts))
 	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
-	cmd := exec.CommandContext(ctx, binary, args...)
+	cmd := processutil.CommandContext(ctx, binary, args...)
 	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 
 	return runStreamingBuild(binary, cmd, onProgress)
@@ -203,7 +204,7 @@ func firstBuildOptions(opts []types.BuildOptions) types.BuildOptions {
 
 // hasBuildx checks whether the Docker CLI has the buildx plugin installed.
 func hasBuildx(ctx context.Context, dockerBinary string) bool {
-	out, err := exec.CommandContext(ctx, dockerBinary, "buildx", "version").CombinedOutput()
+	out, err := processutil.CommandContext(ctx, dockerBinary, "buildx", "version").CombinedOutput()
 	return err == nil && len(out) > 0
 }
 
@@ -215,7 +216,7 @@ func (c *Client) Push(ctx context.Context, img string) error {
 	}
 
 	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
-	cmd := exec.CommandContext(ctx, binary, c.toolchain.Platform.PushArgs(img)...)
+	cmd := processutil.CommandContext(ctx, binary, c.toolchain.Platform.PushArgs(img)...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("%s push failed: %w\nOutput: %s", binary, err, string(output))
@@ -991,7 +992,7 @@ func runIndeterminateBuild(
 ) error {
 	args := []string{"build", "-t", tag, "-f", dockerfile, contextPath}
 	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
-	cmd := exec.CommandContext(ctx, binary, args...)
+	cmd := processutil.CommandContext(ctx, binary, args...)
 
 	reportProgress(onProgress, types.ProgressUpdate{
 		Message:       "build started",

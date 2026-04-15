@@ -13,11 +13,11 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 
+	"altinn.studio/devenv/pkg/processutil"
 	selfapp "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
@@ -363,7 +363,7 @@ func goBuild(output, ldflags, pkg, goos, goarch string) error {
 	}
 	args = append(args, "-o", output, pkg)
 
-	cmd := exec.CommandContext(context.Background(), "go", args...)
+	cmd := processutil.CommandContext(context.Background(), "go", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "GOOS="+goos, "GOARCH="+goarch)
@@ -399,7 +399,7 @@ func publishAppManager(goos, goarch, outputDir string) (string, error) {
 	}
 
 	//nolint:gosec // G204: command and arguments are fixed local tooling with validated RID values.
-	cmd := exec.CommandContext(context.Background(), "dotnet", args...)
+	cmd := processutil.CommandContext(context.Background(), "dotnet", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = "."
@@ -445,7 +445,7 @@ func runBinary(binary string, env []string, args ...string) error {
 	}
 
 	//nolint:gosec // G204: binary is validated to be the local studioctl executable built by this dev helper.
-	cmd := exec.CommandContext(context.Background(), binary, args...)
+	cmd := processutil.CommandContext(context.Background(), binary, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -520,7 +520,7 @@ func windowsPath(path string) (string, error) {
 
 func commandOutput(name string, args ...string) (string, error) {
 	//nolint:gosec // G204: the caller provides known local tooling commands only.
-	cmd := exec.CommandContext(context.Background(), name, args...)
+	cmd := processutil.CommandContext(context.Background(), name, args...)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("run command %q: %w", name, err)
@@ -540,7 +540,7 @@ func runWindowsInstall(binaryPath, appManagerPath, tarballPath, installDir strin
 	)
 
 	//nolint:gosec // G204: script is assembled from validated local paths for the Windows install handoff.
-	cmd := exec.CommandContext(context.Background(), "powershell.exe", "-NoProfile", "-Command", script)
+	cmd := processutil.CommandContext(context.Background(), "powershell.exe", "-NoProfile", "-Command", script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin

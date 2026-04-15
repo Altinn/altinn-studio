@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/auth"
 )
 
@@ -219,7 +220,7 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 	}
 
 	//nolint:gosec // G204: cloneURL and destPath are constructed from validated inputs
-	cmd := exec.CommandContext(ctx, gitPath, "clone", cloneURL, destPath)
+	cmd := processutil.CommandContext(ctx, gitPath, "clone", cloneURL, destPath)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {

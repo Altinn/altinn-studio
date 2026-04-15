@@ -3,10 +3,10 @@ package doctor
 import (
 	"context"
 	"os"
-	"os/exec"
 	"runtime"
 	"strings"
 
+	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/osutil"
 
 	"golang.org/x/term"
@@ -63,7 +63,7 @@ func getLinuxVersion(ctx context.Context) (osName, osVersion string) {
 	}
 
 	// Get version (kernel) using uname -r
-	output, err := exec.CommandContext(ctx, "uname", "-r").Output()
+	output, err := processutil.CommandContext(ctx, "uname", "-r").Output()
 	if err == nil {
 		osVersion = strings.TrimSpace(string(output))
 	}
@@ -73,13 +73,13 @@ func getLinuxVersion(ctx context.Context) (osName, osVersion string) {
 
 func getDarwinVersion(ctx context.Context) (osName, osVersion string) {
 	// Get macOS product version
-	output, err := exec.CommandContext(ctx, "sw_vers", "-productVersion").Output()
+	output, err := processutil.CommandContext(ctx, "sw_vers", "-productVersion").Output()
 	if err == nil {
 		osVersion = strings.TrimSpace(string(output))
 	}
 
 	// Get macOS product name (e.g., "macOS")
-	output, err = exec.CommandContext(ctx, "sw_vers", "-productName").Output()
+	output, err = processutil.CommandContext(ctx, "sw_vers", "-productName").Output()
 	if err == nil {
 		osName = strings.TrimSpace(string(output))
 	}
@@ -89,7 +89,7 @@ func getDarwinVersion(ctx context.Context) (osName, osVersion string) {
 
 func getWindowsVersion(ctx context.Context) (osName, osVersion string) {
 	// Get Windows version using ver command (e.g., "Microsoft Windows [Version 10.0.22631.4890]")
-	output, err := exec.CommandContext(ctx, "cmd", "/c", "ver").Output()
+	output, err := processutil.CommandContext(ctx, "cmd", "/c", "ver").Output()
 	if err != nil {
 		return "", ""
 	}

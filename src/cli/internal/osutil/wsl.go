@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
+
+	"altinn.studio/devenv/pkg/processutil"
 )
 
 // IsWSL detects if running in Windows Subsystem for Linux.
@@ -30,7 +31,7 @@ func openWSL(_ context.Context, browserURL string) error {
 	// We use Background() so the browser process survives program exit
 	// (CommandContext kills subprocess when context is cancelled).
 	//nolint:contextcheck,gosec // intentionally detached; browserURL is validated to http/https by OpenContext.
-	cmd := exec.CommandContext(context.Background(), "cmd.exe", "/c", "start", "", browserURL)
+	cmd := processutil.CommandContext(context.Background(), "cmd.exe", "/c", "start", "", browserURL)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open browser via cmd.exe: %w", err)
 	}

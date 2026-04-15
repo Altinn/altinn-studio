@@ -9,11 +9,11 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/appmanager"
@@ -29,7 +29,7 @@ import (
 const (
 	runModeNative                     = "native"
 	runModeContainer                  = "container"
-	foregroundContainerCleanupTimeout = 10 * time.Second
+	foregroundContainerCleanupTimeout = 15 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
 	appManagerCleanupTimeout          = 2 * time.Second
 	appStartupTimeout                 = 15 * time.Second
@@ -179,7 +179,7 @@ func (c *RunCommand) runDotnet(ctx context.Context, target runsvc.Target, args [
 	c.out.Verbosef("Running: dotnet %v", spec.Args)
 
 	//nolint:gosec // G204: subprocess arguments are from CLI flags, intentional passthrough behavior
-	cmd := exec.CommandContext(context.WithoutCancel(ctx), "dotnet", spec.Args...)
+	cmd := processutil.CommandContext(context.WithoutCancel(ctx), "dotnet", spec.Args...)
 	cmd.Dir = spec.Dir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -528,7 +528,8 @@ func (c *RunCommand) runDocker(ctx context.Context, target runsvc.Target, args [
 	removeErr := c.removeForegroundContainer(ctx, client, containerID)
 	if removeErr != nil {
 		if errors.Is(runErr, errAppRunStopped) {
-			return removeErr
+			c.out.Warningf("%v", removeErr)
+			return errAppRunStopped
 		}
 		return errors.Join(runErr, removeErr)
 	}

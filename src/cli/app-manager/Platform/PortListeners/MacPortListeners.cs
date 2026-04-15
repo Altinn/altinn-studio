@@ -176,16 +176,10 @@ internal sealed partial class MacPortListeners : IPortListenerSource
     {
         using var process = new System.Diagnostics.Process
         {
-            StartInfo = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            },
+            StartInfo = ProcessUtil.CreateStartInfo(fileName, arguments),
         };
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
 
         process.Start();
         var stdout = process.StandardOutput.ReadToEndAsync(cancellationToken);

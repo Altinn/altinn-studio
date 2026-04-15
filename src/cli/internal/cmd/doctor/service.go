@@ -10,6 +10,7 @@ import (
 	"sort"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -260,7 +261,7 @@ func (s *Service) runVersionOutput(ctx context.Context, name string) ([]byte, er
 func commandVersionOutput(ctx context.Context, name string) ([]byte, error) {
 	switch name {
 	case "dotnet", "docker", "podman", "colima":
-		output, err := exec.CommandContext(ctx, name, "--version").Output()
+		output, err := processutil.CommandContext(ctx, name, "--version").Output()
 		if err != nil {
 			return nil, fmt.Errorf("run %s --version: %w", name, err)
 		}

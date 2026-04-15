@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"os/exec"
 	"runtime"
+
+	"altinn.studio/devenv/pkg/processutil"
 )
 
 // ErrUnsupportedPlatform is returned when the current platform is not supported.
@@ -31,13 +33,13 @@ func OpenContext(ctx context.Context, rawURL string) error {
 	switch runtime.GOOS {
 	case "linux":
 		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
-		cmd = exec.CommandContext(ctx, "xdg-open", safeURL)
+		cmd = processutil.CommandContext(ctx, "xdg-open", safeURL)
 	case "darwin":
 		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
-		cmd = exec.CommandContext(ctx, "open", safeURL)
+		cmd = processutil.CommandContext(ctx, "open", safeURL)
 	case "windows":
 		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
-		cmd = exec.CommandContext(ctx, "cmd", "/c", "start", "", safeURL)
+		cmd = processutil.CommandContext(ctx, "cmd", "/c", "start", "", safeURL)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedPlatform, runtime.GOOS)
 	}
