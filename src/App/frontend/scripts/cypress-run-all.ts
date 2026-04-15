@@ -136,10 +136,6 @@ async function stopApp(app: string) {
       '--filter',
       'label=altinn.studio/cli=app',
       '--filter',
-      'label=altinn.studio/app-discovery=true',
-      '--filter',
-      'label=altinn.studio/cli-kind=app',
-      '--filter',
       `label=altinn.studio/app-path=${appPath(app)}`,
     ])
   )

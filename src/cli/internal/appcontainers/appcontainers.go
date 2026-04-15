@@ -12,12 +12,7 @@ import (
 const (
 	labelKeyManaged   = "altinn.studio/cli"
 	labelValueManaged = "app"
-	labelKeyDiscovery = "altinn.studio/app-discovery"
-	labelValueTrue    = "true"
-	labelKeyKind      = "altinn.studio/cli-kind"
-	labelValueKindApp = "app"
 	labelKeyAppPath   = "altinn.studio/app-path"
-	labelKeyAppPort   = "altinn.studio/app-port"
 
 	// DefaultContainerPort is the port app containers listen on.
 	DefaultContainerPort = "5005"
@@ -35,11 +30,8 @@ type Candidate struct {
 // Labels returns labels for a studioctl-managed app container.
 func Labels(appPath string) map[string]string {
 	return map[string]string{
-		labelKeyManaged:   labelValueManaged,
-		labelKeyDiscovery: labelValueTrue,
-		labelKeyKind:      labelValueKindApp,
-		labelKeyAppPath:   appPath,
-		labelKeyAppPort:   DefaultContainerPort,
+		labelKeyManaged: labelValueManaged,
+		labelKeyAppPath: appPath,
 	}
 }
 
@@ -47,9 +39,7 @@ func Labels(appPath string) map[string]string {
 func DiscoveryFilter() types.ContainerListFilter {
 	return types.ContainerListFilter{
 		Labels: map[string]string{
-			labelKeyManaged:   labelValueManaged,
-			labelKeyDiscovery: labelValueTrue,
-			labelKeyKind:      labelValueKindApp,
+			labelKeyManaged: labelValueManaged,
 		},
 		All: false,
 	}
@@ -78,7 +68,7 @@ func CandidateFromContainer(ctr types.ContainerInfo) (Candidate, bool) {
 		return zeroCandidate(), false
 	}
 
-	hostPort := publishedHostPort(ctr, appPort(ctr))
+	hostPort := publishedHostPort(ctr, DefaultContainerPort)
 	if hostPort == "" {
 		return zeroCandidate(), false
 	}
@@ -94,13 +84,6 @@ func CandidateFromContainer(ctr types.ContainerInfo) (Candidate, bool) {
 		Source:      "container",
 		Description: "container " + name,
 	}, true
-}
-
-func appPort(ctr types.ContainerInfo) string {
-	if port := ctr.Labels[labelKeyAppPort]; port != "" {
-		return port
-	}
-	return DefaultContainerPort
 }
 
 func zeroCandidate() Candidate {
