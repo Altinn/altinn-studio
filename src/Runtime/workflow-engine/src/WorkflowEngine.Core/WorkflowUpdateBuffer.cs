@@ -185,8 +185,6 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
                     batch.Add(item);
                 }
 
-                DeduplicateBatch(batch);
-
                 await FlushBatch(batch, stoppingToken);
                 batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
             }
@@ -207,7 +205,6 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
             if (batch.Count > 0)
             {
-                DeduplicateBatch(batch);
                 await FlushBatch(batch, drainCts.Token);
             }
 
@@ -237,10 +234,10 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// This is safe because the latest entry's dirty steps reflect the most recent mutations,
     /// and the Workflow reference carries the full current state.
     /// </summary>
-    private void DeduplicateBatch(List<WorkflowUpdateRequest> batch)
+    private int DeduplicateBatch(List<WorkflowUpdateRequest> batch)
     {
         if (batch.Count <= 1)
-            return;
+            return 0;
 
         // Map each workflow ID to the index of its latest submission
         var latest = new Dictionary<Guid, int>(batch.Count);
@@ -250,7 +247,7 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
         }
 
         if (latest.Count == batch.Count)
-            return;
+            return 0;
 
         int superseded = batch.Count - latest.Count;
 
@@ -273,10 +270,14 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
         Metrics.UpdateBufferDeduplicatedItems.Add(superseded);
         _logger.UpdateBufferDeduplicated(superseded, batch.Count);
+
+        return superseded;
     }
 
     private async Task FlushBatch(List<WorkflowUpdateRequest> batch, CancellationToken ct)
     {
+        var deduplicated = DeduplicateBatch(batch);
+
         // Filter out items whose callers have already canceled
         for (int i = batch.Count - 1; i >= 0; i--)
         {
@@ -291,9 +292,20 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             return;
         }
 
+        var totalDirtySteps = batch.Sum(x => x.DirtySteps.Count);
+        var distinctNamespaces = batch.Select(x => x.Workflow.Namespace).Distinct().Count();
+
         using var activity = Metrics.Source.StartActivity(
             "WorkflowUpdateBuffer.FlushBatch",
-            tags: [("batch.size", batch.Count)],
+            tags:
+            [
+                ("batch.received", batch.Count + deduplicated),
+                ("batch.deduplicated", deduplicated),
+                ("batch.flushed", batch.Count),
+                ("batch.dirty.steps", totalDirtySteps),
+                ("batch.namespaces", distinctNamespaces),
+                ("db.operation", "batch_update_workflows_and_steps"),
+            ],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Workflow.EngineTraceContext)).ToActivityLinks()
         );
 
@@ -305,6 +317,8 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             var updates = batch.Select(r => new BatchWorkflowStatusUpdate(r.Workflow, r.DirtySteps)).ToList();
 
             await repo.BatchUpdateWorkflowsAndSteps(updates, ct);
+
+            Metrics.UpdateBufferFlushedItems.Add(batch.Count);
 
             foreach (var request in batch)
             {

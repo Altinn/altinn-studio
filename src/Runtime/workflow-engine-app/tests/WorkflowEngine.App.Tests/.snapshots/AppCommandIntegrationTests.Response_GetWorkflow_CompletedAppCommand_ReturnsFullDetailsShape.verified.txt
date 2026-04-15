@@ -13,7 +13,6 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//details-shape,
       operationId: /details-shape,
       processingOrder: 0,
       updatedAt: {Scrubbed},

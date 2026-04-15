@@ -29,7 +29,6 @@ public class ResourceRegistryService : IResourceRegistry
     private readonly HttpClient _httpClient;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMaskinportenService _maskinPortenService;
-    private readonly IClientDefinition _maskinportenClientDefinition;
     private readonly PlatformSettings _platformSettings;
     private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
     private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
@@ -44,7 +43,6 @@ public class ResourceRegistryService : IResourceRegistry
         HttpClient httpClient,
         IHttpClientFactory httpClientFactory,
         IMaskinportenService maskinportenService,
-        IClientDefinition maskinPortenClientDefinition,
         PlatformSettings platformSettings,
         IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment,
         IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings,
@@ -54,7 +52,6 @@ public class ResourceRegistryService : IResourceRegistry
         _httpClient = httpClient;
         _httpClientFactory = httpClientFactory;
         _maskinPortenService = maskinportenService;
-        _maskinportenClientDefinition = maskinPortenClientDefinition;
         _platformSettings = platformSettings;
         _resourceRegistrySettings = resourceRegistryEnvironment.Value;
         _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
@@ -93,8 +90,7 @@ public class ResourceRegistryService : IResourceRegistry
         byte[] policyContent = null
     )
     {
-        _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(GetMaskinportenIntegrationSettings(env));
         string publishResourceToResourceRegistryUrl;
         string fullWritePolicyToResourceRegistryUrl;
 
@@ -267,8 +263,9 @@ public class ResourceRegistryService : IResourceRegistry
         string environment
     )
     {
-        _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(
+            GetMaskinportenIntegrationSettings(environment)
+        );
 
         string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
         string url =
@@ -288,8 +285,9 @@ public class ResourceRegistryService : IResourceRegistry
         string environment
     )
     {
-        _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(
+            GetMaskinportenIntegrationSettings(environment)
+        );
 
         string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
 
@@ -711,8 +709,7 @@ public class ResourceRegistryService : IResourceRegistry
         string eTag = null
     )
     {
-        _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
-        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+        TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(GetMaskinportenIntegrationSettings(env));
         //Checks if not tested locally by passing dev as env parameter
         string baseUrl = !env.ToLower().Equals("dev")
             ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}"
@@ -743,15 +740,15 @@ public class ResourceRegistryService : IResourceRegistry
 
     // RRR end
 
-    private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
+    private async Task<TokenResponse> GetBearerTokenFromMaskinporten(IMaskinportenSettings settings)
     {
         return await _maskinPortenService.GetToken(
-            _maskinportenClientDefinition.ClientSettings.EncodedJwk,
-            _maskinportenClientDefinition.ClientSettings.Environment,
-            _maskinportenClientDefinition.ClientSettings.ClientId,
-            _maskinportenClientDefinition.ClientSettings.Scope,
-            _maskinportenClientDefinition.ClientSettings.Resource,
-            _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo
+            settings.EncodedJwk,
+            settings.Environment,
+            settings.ClientId,
+            settings.Scope,
+            settings.Resource,
+            settings.ConsumerOrgNo
         );
     }
 

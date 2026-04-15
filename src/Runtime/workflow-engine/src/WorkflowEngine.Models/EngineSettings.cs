@@ -17,13 +17,31 @@ public sealed record EngineSettings
     public bool EnableTelemetry { get; set; } = true;
 
     /// <summary>
-    /// Whether to enable database-level tracing and metrics instrumentation (EF Core + Npgsql).
+    /// Trace sampling rate between 0.0 (drop all traces) and 1.0 (keep all traces).
+    /// Defaults to <c>1.0</c>. Lower this during stress testing to reduce OTLP export volume
+    /// while keeping metrics and logs at full fidelity.
+    /// Only affects traces — metrics and logs are always exported at 100%.
+    /// </summary>
+    [JsonPropertyName("traceSamplingRate")]
+    public double TraceSamplingRate { get; set; } = 1.0;
+
+    /// <summary>
+    /// Whether to enable database-level trace instrumentation (EF Core spans).
     /// Defaults to <c>false</c>. The engine's hot-path DB operations use raw Npgsql commands,
-    /// so this primarily adds spans for lighter EF Core queries (dashboard reads, single lookups)
-    /// and Npgsql connection pool / command metrics. Enable for debugging database-level issues.
+    /// so this primarily adds spans for lighter EF Core queries (dashboard reads, single lookups).
+    /// Enable for debugging database-level issues. Implies <see cref="EnableDatabaseMetrics"/>.
     /// </summary>
     [JsonPropertyName("enableDatabaseInstrumentation")]
     public bool EnableDatabaseInstrumentation { get; set; }
+
+    /// <summary>
+    /// Whether to enable Npgsql connection pool and command metrics
+    /// (<c>db_client_connection_count</c>, <c>db_client_connection_max</c>, etc.).
+    /// Defaults to <c>true</c>. These are lightweight gauge/histogram metrics with negligible overhead.
+    /// Automatically enabled when <see cref="EnableDatabaseInstrumentation"/> is <c>true</c>.
+    /// </summary>
+    [JsonPropertyName("enableDatabaseMetrics")]
+    public bool EnableDatabaseMetrics { get; set; } = true;
 
     /// <summary>
     /// Maximum number of workflows allowed in a single enqueue request.

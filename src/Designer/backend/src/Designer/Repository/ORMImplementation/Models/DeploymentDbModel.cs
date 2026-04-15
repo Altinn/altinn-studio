@@ -8,7 +8,7 @@ public partial class DeploymentDbModel
 {
     public long Sequenceno { get; set; }
 
-    public string Buildid { get; set; } = null!;
+    public string Buildid { get; set; }
 
     public string Tagname { get; set; } = null!;
 
@@ -18,7 +18,7 @@ public partial class DeploymentDbModel
 
     public string EnvName { get; set; } = null!;
 
-    public string Buildresult { get; set; } = null!;
+    public string Buildresult { get; set; }
 
     public DateTime Created { get; set; }
 
@@ -30,7 +30,7 @@ public partial class DeploymentDbModel
 
     public DeploymentType DeploymentType { get; set; } = DeploymentType.Deploy;
 
-    public BuildDbModel Build { get; set; } = null!;
+    public BuildDbModel Build { get; set; }
 
     public ICollection<DeployEventDbModel> Events { get; set; } = new List<DeployEventDbModel>();
 }

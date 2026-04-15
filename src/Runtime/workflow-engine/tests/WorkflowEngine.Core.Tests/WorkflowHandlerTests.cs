@@ -80,7 +80,6 @@ public class WorkflowHandlerTests
         new()
         {
             OperationId = operationId,
-            IdempotencyKey = $"test-step-key/{operationId}",
             ProcessingOrder = processingOrder,
             Command = CommandDefinition.Create("webhook"),
             RetryStrategy = retryStrategy,

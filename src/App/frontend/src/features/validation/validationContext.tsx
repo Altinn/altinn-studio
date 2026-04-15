@@ -3,6 +3,7 @@ import React, { Fragment, useCallback, useEffect, useMemo, useRef } from 'react'
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
+import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { hasPendingAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
@@ -16,10 +17,6 @@ import {
   type WaitForValidation,
 } from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
-import {
-  useGetCachedInitialValidations,
-  useRefetchInitialValidations,
-} from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,

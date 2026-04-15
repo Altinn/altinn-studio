@@ -36,7 +36,6 @@ The Altinn-specific command that calls back into Altinn apps via HTTP POST.
 
 Configuration via `appsettings.json` under `AppCommandSettings`:
 
-- `ApiKey` — API key sent to the app
 - `CommandEndpoint` — URL template with `{Org}`, `{App}`, `{InstanceOwnerPartyId}`, `{InstanceGuid}` placeholders
 
 ## Tests

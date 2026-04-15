@@ -60,9 +60,19 @@ public static class WorkflowEngineBuilderExtensions
                     $"EngineSettings:{nameof(EngineSettings.EnableDatabaseInstrumentation)}",
                     defaultValue: Defaults.EngineSettings.EnableDatabaseInstrumentation
                 );
+                bool enableDatabaseMetrics = builder.Configuration.GetValue(
+                    $"EngineSettings:{nameof(EngineSettings.EnableDatabaseMetrics)}",
+                    defaultValue: Defaults.EngineSettings.EnableDatabaseMetrics
+                );
+                double traceSamplingRate = builder.Configuration.GetValue(
+                    $"EngineSettings:{nameof(EngineSettings.TraceSamplingRate)}",
+                    defaultValue: Defaults.EngineSettings.TraceSamplingRate
+                );
                 builder.Services.AddTelemetry(
                     emitQueryParameters: isDev,
-                    enableDatabaseInstrumentation: enableDatabaseInstrumentation
+                    enableDatabaseInstrumentation: enableDatabaseInstrumentation,
+                    enableDatabaseMetrics: enableDatabaseMetrics,
+                    traceSamplingRate: traceSamplingRate
                 );
             }
 

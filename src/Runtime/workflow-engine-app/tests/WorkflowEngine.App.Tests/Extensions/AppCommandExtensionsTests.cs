@@ -17,49 +17,13 @@ public class AppCommandExtensionsTests
         var services = new ServiceCollection();
         services.ConfigureAppCommand(opts =>
         {
-            opts.ApiKey = "my-api-key";
             opts.CommandEndpoint = "https://example.com/{Org}/{App}/callbacks";
         });
 
         using var sp = services.BuildServiceProvider();
         var options = sp.GetRequiredService<IOptions<AppCommandSettings>>();
 
-        Assert.Equal("my-api-key", options.Value.ApiKey);
         Assert.Equal("https://example.com/{Org}/{App}/callbacks", options.Value.CommandEndpoint);
-    }
-
-    [Fact]
-    public void ConfigureAppCommand_DefaultApiKeyHeaderName()
-    {
-        var services = new ServiceCollection();
-        services.ConfigureAppCommand(opts =>
-        {
-            opts.ApiKey = "my-api-key";
-            opts.CommandEndpoint = "https://example.com/{Org}/{App}/callbacks";
-        });
-
-        using var sp = services.BuildServiceProvider();
-        var options = sp.GetRequiredService<IOptions<AppCommandSettings>>();
-
-        Assert.Equal("X-Api-Key", options.Value.ApiKeyHeaderName);
-    }
-
-    [Fact]
-    public void ConfigureAppCommand_EmptyApiKey_ThrowsOnResolve()
-    {
-        var services = new ServiceCollection();
-        services.ConfigureAppCommand(opts =>
-        {
-            opts.ApiKey = "";
-            opts.CommandEndpoint = "https://example.com/{Org}/{App}/callbacks";
-        });
-
-        using var sp = services.BuildServiceProvider();
-
-        var ex = Assert.Throws<OptionsValidationException>(() =>
-            sp.GetRequiredService<IOptions<AppCommandSettings>>().Value
-        );
-        Assert.Contains("ApiKey", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -68,7 +32,6 @@ public class AppCommandExtensionsTests
         var services = new ServiceCollection();
         services.ConfigureAppCommand(opts =>
         {
-            opts.ApiKey = "my-key";
             opts.CommandEndpoint = "not a valid url";
         });
 
@@ -86,7 +49,6 @@ public class AppCommandExtensionsTests
         var services = new ServiceCollection();
         services.ConfigureAppCommand(opts =>
         {
-            opts.ApiKey = "my-key";
             opts.CommandEndpoint = null!;
         });
 
@@ -95,22 +57,5 @@ public class AppCommandExtensionsTests
 
         Assert.NotNull(options.Value.CommandEndpoint);
         Assert.Contains("workflow-engine-callbacks", options.Value.CommandEndpoint, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void ConfigureAppCommand_CustomApiKeyHeaderName_Preserved()
-    {
-        var services = new ServiceCollection();
-        services.ConfigureAppCommand(opts =>
-        {
-            opts.ApiKey = "my-key";
-            opts.CommandEndpoint = "https://example.com/callbacks";
-            opts.ApiKeyHeaderName = "Authorization";
-        });
-
-        using var sp = services.BuildServiceProvider();
-        var options = sp.GetRequiredService<IOptions<AppCommandSettings>>();
-
-        Assert.Equal("Authorization", options.Value.ApiKeyHeaderName);
     }
 }

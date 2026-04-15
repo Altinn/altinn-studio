@@ -18,4 +18,12 @@ public interface IDeployEventRepository
     /// <param name="deployEvent">The deploy event to add</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task AddAsync(string org, string buildId, DeployEvent deployEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a deploy event to a deployment by its sequence number
+    /// </summary>
+    /// <param name="sequenceNo">Deployment sequence number</param>
+    /// <param name="deployEvent">The deploy event to add</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task AddBySequenceNoAsync(long sequenceNo, DeployEvent deployEvent, CancellationToken cancellationToken = default);
 }
