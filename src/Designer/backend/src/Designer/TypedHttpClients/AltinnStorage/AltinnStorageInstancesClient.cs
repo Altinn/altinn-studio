@@ -45,6 +45,7 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         bool? isArchivedFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
+        bool? isProcessComplete,
         bool? isSoftDeletedFilter,
         bool? isHardDeletedFilter,
         DateOnly? createdBeforeFilter,
@@ -83,6 +84,15 @@ public class AltinnStorageInstancesClient : IAltinnStorageInstancesClient
         if (confirmedFilter != null)
         {
             uri = QueryHelpers.AddQueryString(uri, "confirmed", confirmedFilter.Value.ToString().ToLowerInvariant());
+        }
+
+        if (isProcessComplete != null)
+        {
+            uri = QueryHelpers.AddQueryString(
+                uri,
+                "process.isComplete",
+                isProcessComplete.Value.ToString().ToLowerInvariant()
+            );
         }
 
         if (isSoftDeletedFilter != null)
