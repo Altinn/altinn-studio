@@ -318,8 +318,8 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 	}
 	if !needsCreate {
 		if c.HealthCheck != nil {
-			if err := e.waitForHealthy(ctx, c); err != nil {
-				return err
+			if healthErr := e.waitForHealthy(ctx, c); healthErr != nil {
+				return healthErr
 			}
 		}
 		return nil

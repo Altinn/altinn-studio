@@ -536,12 +536,15 @@ func buildResourcesWithMode(
 	}
 
 	// Build core container resources in two passes:
-	// 1. Create all containers so they can reference each other for DependsOn
-	// 2. Add them to the resource list
+	// 1. Pre-populate map with empty placeholders so forward DependsOn refs resolve
+	// 2. Fill each container, resolving dependencies against the complete map
 	coreContainerResources := make(map[string]*resource.Container, len(core))
 	for i := range core {
+		coreContainerResources[core[i].Name] = &resource.Container{}
+	}
+	for i := range core {
 		spec := &core[i]
-		c := newContainerResource(
+		*coreContainerResources[spec.Name] = *newContainerResource(
 			spec,
 			coreImages[spec.Name],
 			resource.Ref(network),
@@ -550,7 +553,6 @@ func buildResourcesWithMode(
 			mode,
 			coreContainerResources,
 		)
-		coreContainerResources[spec.Name] = c
 	}
 	for _, name := range coreContainerNames() {
 		resources = append(resources, coreContainerResources[name])
