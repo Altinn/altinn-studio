@@ -361,7 +361,6 @@ func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath strin
 			ctx,
 			c.cfg,
 			envlocaltest.DefaultLoadBalancerPortString(),
-			envlocaltest.ResolveLocalAppURL(),
 		); err != nil {
 			return fmt.Errorf("ensure app-manager started: %w", err)
 		}
@@ -372,7 +371,6 @@ func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath strin
 		ctx,
 		c.cfg,
 		envlocaltest.DefaultLoadBalancerPortString(),
-		envlocaltest.ResolveLocalAppURL(),
 		studioctlPath,
 	); err != nil {
 		return fmt.Errorf("ensure app-manager started with studioctl path: %w", err)

@@ -95,7 +95,6 @@ func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 		ctx,
 		c.cfg,
 		envlocaltest.DefaultLoadBalancerPortString(),
-		envlocaltest.ResolveLocalAppURL(),
 	); err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
@@ -133,7 +132,6 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 		}
 		c.out.Println("tunnel: " + state)
 		c.out.Println("tunnel url: " + status.Tunnel.URL)
-		c.out.Println("upstream url: " + status.Tunnel.UpstreamURL)
 	} else {
 		c.out.Println("tunnel: disabled")
 	}

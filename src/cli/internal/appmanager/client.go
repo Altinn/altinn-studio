@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,7 +16,6 @@ import (
 	"time"
 
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -30,7 +28,6 @@ const (
 
 	appManagerUnixSocketEnv = "APP_MANAGER_UNIX_SOCKET_PATH"
 	appManagerTunnelURLEnv  = "Tunnel__Url"
-	appManagerUpstreamEnv   = "Tunnel__UpstreamUrl"
 	appManagerStudioctlEnv  = "Studioctl__Path"
 
 	appManagerStartTimeout = 10 * time.Second
@@ -45,7 +42,6 @@ type startConfig struct {
 	WorkingDir     string `json:"workingDir"`
 	UnixSocketPath string `json:"unixSocketPath,omitempty"`
 	TunnelURL      string `json:"tunnelUrl"`
-	UpstreamURL    string `json:"upstreamUrl"`
 	StudioctlPath  string `json:"studioctlPath"`
 	InternalDev    bool   `json:"internalDev"`
 }
@@ -68,10 +64,9 @@ type Status struct {
 
 // TunnelStatus describes the configured app tunnel.
 type TunnelStatus struct {
-	URL         string
-	UpstreamURL string
-	Enabled     bool
-	Connected   bool
+	URL       string
+	Enabled   bool
+	Connected bool
 }
 
 // DiscoveredApp describes one discovered app endpoint.
@@ -189,10 +184,9 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		DotnetVersion     string `json:"dotnetVersion"`
 		StudioctlPath     string `json:"studioctlPath"`
 		Tunnel            struct {
-			URL         string `json:"url"`
-			UpstreamURL string `json:"upstreamUrl"`
-			Enabled     bool   `json:"enabled"`
-			Connected   bool   `json:"connected"`
+			URL       string `json:"url"`
+			Enabled   bool   `json:"enabled"`
+			Connected bool   `json:"connected"`
 		} `json:"tunnel"`
 		Apps []struct {
 			ProcessID   *int   `json:"processId"`
@@ -215,10 +209,9 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		StudioctlPath:     status.StudioctlPath,
 		InternalDev:       status.InternalDev,
 		Tunnel: TunnelStatus{
-			Enabled:     status.Tunnel.Enabled,
-			Connected:   status.Tunnel.Connected,
-			URL:         status.Tunnel.URL,
-			UpstreamURL: status.Tunnel.UpstreamURL,
+			Enabled:   status.Tunnel.Enabled,
+			Connected: status.Tunnel.Connected,
+			URL:       status.Tunnel.URL,
 		},
 		Apps: make([]DiscoveredApp, 0, len(status.Apps)),
 	}
@@ -256,8 +249,8 @@ func (c *Client) shutdown(ctx context.Context) error {
 }
 
 // EnsureStarted starts or reconciles app-manager for the provided localtest runtime settings.
-func EnsureStarted(ctx context.Context, cfg *config.Config, loadBalancerPort, localAppURL string) error {
-	return EnsureStartedWithStudioctlPath(ctx, cfg, loadBalancerPort, localAppURL, currentExecutablePath())
+func EnsureStarted(ctx context.Context, cfg *config.Config, loadBalancerPort string) error {
+	return EnsureStartedWithStudioctlPath(ctx, cfg, loadBalancerPort, currentExecutablePath())
 }
 
 // EnsureStartedWithStudioctlPath starts or reconciles app-manager with an explicit studioctl path.
@@ -265,10 +258,9 @@ func EnsureStartedWithStudioctlPath(
 	ctx context.Context,
 	cfg *config.Config,
 	loadBalancerPort,
-	localAppURL,
 	studioctlPath string,
 ) error {
-	desired := buildStartConfig(cfg, loadBalancerPort, localAppURL, studioctlPath)
+	desired := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
 	client := NewClient(cfg)
 
 	status, err := client.Status(ctx)
@@ -398,7 +390,6 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	if startConfig.TunnelURL != "" {
 		cmd.Env = append(cmd.Env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
 	}
-	cmd.Env = append(cmd.Env, appManagerUpstreamEnv+"="+startConfig.UpstreamURL)
 	if startConfig.StudioctlPath != "" {
 		cmd.Env = append(cmd.Env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
 	}
@@ -565,13 +556,12 @@ func managedProcessStopped(pid int) (bool, error) {
 	return !running, nil
 }
 
-func buildStartConfig(cfg *config.Config, loadBalancerPort, localAppURL, studioctlPath string) startConfig {
+func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) startConfig {
 	return startConfig{
 		BinaryPath:     cfg.AppManagerBinaryPath(),
 		WorkingDir:     cfg.Home,
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      TunnelURL(loadBalancerPort),
-		UpstreamURL:    rewriteHostLocalAppURL(localAppURL),
 		StudioctlPath:  studioctlPath,
 		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}
@@ -583,7 +573,6 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		WorkingDir:     cfg.Home,
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      status.Tunnel.URL,
-		UpstreamURL:    status.Tunnel.UpstreamURL,
 		StudioctlPath:  status.StudioctlPath,
 		InternalDev:    status.InternalDev,
 	}
@@ -672,30 +661,6 @@ func closeResponseBody(resp *http.Response) {
 func ignoreError(error) {
 }
 
-func rewriteHostLocalAppURL(localAppURL string) string {
-	parsed, err := url.Parse(localAppURL)
-	if err != nil {
-		return localAppURL
-	}
-
-	host := strings.ToLower(parsed.Hostname())
-	switch host {
-	case networking.LocalDomain, "host.docker.internal", "host.containers.internal":
-		parsed.Host = rewriteHostPort("127.0.0.1", parsed.Port())
-	case "":
-		parsed.Host = rewriteHostPort("127.0.0.1", parsed.Port())
-	}
-
-	return parsed.String()
-}
-
-func rewriteHostPort(host, port string) string {
-	if port == "" {
-		return host
-	}
-	return net.JoinHostPort(host, port)
-}
-
 func readAppManagerLogTail(path string) string {
 	//nolint:gosec // G304: log path is derived from resolved STUDIOCTL_HOME and never user-supplied per request.
 	file, err := os.Open(path)
@@ -733,7 +698,6 @@ func zeroRuntimeState() runtimeState {
 			WorkingDir:     "",
 			UnixSocketPath: "",
 			TunnelURL:      "",
-			UpstreamURL:    "",
 			StudioctlPath:  "",
 			InternalDev:    false,
 		},

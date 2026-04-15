@@ -30,7 +30,6 @@ internal static class ServiceCollectionExtensions
             .Configure(options =>
             {
                 options.Url = configuration["Tunnel:Url"];
-                options.UpstreamUrl = configuration["Tunnel:UpstreamUrl"] ?? options.UpstreamUrl;
                 if (int.TryParse(configuration["Tunnel:ConnectTimeoutSeconds"], out var timeoutSeconds))
                 {
                     options.ConnectTimeout = TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds));

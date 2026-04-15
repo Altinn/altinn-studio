@@ -72,7 +72,6 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 		HostGateway:      "127.0.0.1",
 		LoadBalancerPort: "8000",
 		LocalAppURL:      "http://host.docker.internal:5005",
-		AppManagerURL:    "http://127.0.0.1:5005",
 		Platform:         container.PlatformColima,
 	})
 
@@ -88,7 +87,6 @@ func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *te
 		HostGateway:      "10.88.0.1",
 		LoadBalancerPort: "8000",
 		LocalAppURL:      "http://host.docker.internal:5005",
-		AppManagerURL:    "http://127.0.0.1:5005",
 		Platform:         container.PlatformPodman,
 	})
 
@@ -139,7 +137,6 @@ func newResourceBuildOptions(dataDir string, includeMonitoring bool) ResourceBui
 			HostGateway:      "127.0.0.1",
 			LoadBalancerPort: "8000",
 			LocalAppURL:      "http://host.docker.internal:5005",
-			AppManagerURL:    "http://127.0.0.1:5005",
 			Platform:         container.PlatformDocker,
 		},
 		IncludeMonitoring: includeMonitoring,

@@ -175,7 +175,6 @@ func (e *Env) ensureAppManager(ctx context.Context, runtimeCfg RuntimeConfig) er
 		ctx,
 		e.cfg,
 		runtimeCfg.LoadBalancerPort,
-		runtimeCfg.LocalAppURL,
 	); err != nil {
 		return fmt.Errorf("ensure app-manager: %w", err)
 	}

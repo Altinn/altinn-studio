@@ -8,12 +8,9 @@ internal sealed class TunnelState
     public TunnelState(TunnelOptions options)
     {
         Url = options.Url;
-        UpstreamUrl = options.UpstreamUrl;
     }
 
     public string? Url { get; }
-
-    public string UpstreamUrl { get; }
 
     public bool Enabled => !string.IsNullOrWhiteSpace(Url);
 

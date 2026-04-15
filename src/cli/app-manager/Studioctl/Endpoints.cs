@@ -25,12 +25,7 @@ internal static class Endpoints
                 Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown",
                 EnvironmentValues.IsTruthy(Environment.GetEnvironmentVariable("STUDIOCTL_INTERNAL_DEV")),
                 Environment.GetEnvironmentVariable("Studioctl__Path") ?? "",
-                new TunnelStatusResponse(
-                    tunnelState.Enabled,
-                    tunnelState.IsConnected,
-                    tunnelState.Url,
-                    tunnelState.UpstreamUrl
-                ),
+                new TunnelStatusResponse(tunnelState.Enabled, tunnelState.IsConnected, tunnelState.Url),
                 [
                     .. registry
                         .GetAll()
@@ -76,7 +71,7 @@ internal static class Endpoints
         IReadOnlyList<DiscoveredAppResponse> Apps
     );
 
-    private sealed record TunnelStatusResponse(bool Enabled, bool Connected, string? Url, string UpstreamUrl);
+    private sealed record TunnelStatusResponse(bool Enabled, bool Connected, string? Url);
 
     private sealed record DiscoveredAppResponse(
         string AppId,

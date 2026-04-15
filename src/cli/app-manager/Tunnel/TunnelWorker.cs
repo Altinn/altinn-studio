@@ -13,6 +13,13 @@ namespace Altinn.Studio.AppManager.Tunnel;
 internal sealed class TunnelWorker : BackgroundService
 {
     private const HttpStatusCode UndiscoveredAppStatusCode = (HttpStatusCode)418;
+    private const string LocalFallbackHost = "127.0.0.1";
+    private const int LocalFallbackPort = 5005;
+    internal static readonly Uri LocalFallbackUpstreamUri = new UriBuilder(
+        Uri.UriSchemeHttp,
+        LocalFallbackHost,
+        LocalFallbackPort
+    ).Uri;
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Discovery.AppRegistry _appRegistry;
@@ -445,7 +452,7 @@ internal sealed class TunnelWorker : BackgroundService
     private Uri? ResolveUpstreamUri(PendingRequest pendingRequest)
     {
         if (string.IsNullOrWhiteSpace(pendingRequest.AppId))
-            return new Uri(_options.UpstreamUrl, UriKind.Absolute);
+            return LocalFallbackUpstreamUri;
 
         if (_appRegistry.TryGet(pendingRequest.AppId, out var app) && app is not null)
             return app.BaseUri;
