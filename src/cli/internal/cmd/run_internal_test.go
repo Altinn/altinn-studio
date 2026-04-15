@@ -1,0 +1,50 @@
+package cmd
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"strings"
+	"testing"
+
+	containermock "altinn.studio/devenv/pkg/container/mock"
+	"altinn.studio/studioctl/internal/ui"
+)
+
+var errRemoveFailed = errors.New("remove failed")
+
+func TestFollowContainer_ContextCancelledReturnsRunStopped(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	client := containermock.New()
+	client.ContainerLogsFunc = func(context.Context, string, bool, string) (io.ReadCloser, error) {
+		return io.NopCloser(strings.NewReader("")), nil
+	}
+	client.ContainerWaitFunc = func(context.Context, string) (int, error) {
+		return 0, fmt.Errorf("context cancelled while waiting for container: %w", ctx.Err())
+	}
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	err := cmd.followContainer(ctx, client, "app-container")
+	if !errors.Is(err, errAppRunStopped) {
+		t.Fatalf("followContainer() error = %v, want errAppRunStopped", err)
+	}
+}
+
+func TestRemoveForegroundContainer_ReturnsRemoveError(t *testing.T) {
+	client := containermock.New()
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
+		return errRemoveFailed
+	}
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	err := cmd.removeForegroundContainer(t.Context(), client, "app-container")
+	if err == nil {
+		t.Fatal("removeForegroundContainer() error = nil, want error")
+	}
+	if !strings.Contains(err.Error(), "remove app container") {
+		t.Fatalf("removeForegroundContainer() error = %v, want remove context", err)
+	}
+}

@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"time"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/appcontainers"
@@ -20,12 +21,15 @@ import (
 )
 
 const (
-	runModeNative = "native"
-	runModeDocker = "docker"
+	runModeNative                     = "native"
+	runModeDocker                     = "docker"
+	foregroundContainerCleanupTimeout = 10 * time.Second
+	dotnetShutdownTimeout             = 10 * time.Second
 )
 
 var (
 	errAppContainerExited = errors.New("app container exited")
+	errAppRunStopped      = errors.New("app run stopped")
 )
 
 // RunCommand implements the 'run' subcommand.
@@ -135,14 +139,20 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 		c.out.Verbosef("Using app at %s (detected via %s)", result.AppRoot, result.AppDetectedFrom)
 	}
 
+	var runErr error
 	switch flags.mode {
 	case runModeNative:
-		return c.runDotnet(ctx, result.AppRoot, dotnetArgs)
+		runErr = c.runDotnet(ctx, result.AppRoot, dotnetArgs)
 	case runModeDocker:
-		return c.runDocker(ctx, result, dotnetArgs, flags)
+		runErr = c.runDocker(ctx, result, dotnetArgs, flags)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
+	if errors.Is(runErr, errAppRunStopped) {
+		c.out.Println("App stopped.")
+		return nil
+	}
+	return runErr
 }
 
 func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []string) error {
@@ -151,7 +161,7 @@ func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []strin
 	c.out.Verbosef("Running: dotnet %v", spec.Args)
 
 	//nolint:gosec // G204: subprocess arguments are from CLI flags, intentional passthrough behavior
-	cmd := exec.CommandContext(ctx, "dotnet", spec.Args...)
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), "dotnet", spec.Args...)
 	cmd.Dir = spec.Dir
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -159,10 +169,57 @@ func (c *RunCommand) runDotnet(ctx context.Context, appPath string, args []strin
 
 	cmd.Env = spec.Env
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("running dotnet: %w", err)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start dotnet: %w", err)
 	}
-	return nil
+
+	waitErr := make(chan error, 1)
+	go func() {
+		waitErr <- cmd.Wait()
+	}()
+
+	select {
+	case err := <-waitErr:
+		if err != nil {
+			if ctx.Err() != nil {
+				return errAppRunStopped
+			}
+			return fmt.Errorf("running dotnet: %w", err)
+		}
+		if ctx.Err() != nil {
+			return errAppRunStopped
+		}
+		return nil
+	case <-ctx.Done():
+		stopDotnetProcess(cmd.Process, waitErr)
+		return errAppRunStopped
+	}
+}
+
+func stopDotnetProcess(process *os.Process, waitErr <-chan error) {
+	signalProcessBestEffort(process, os.Interrupt)
+	select {
+	case <-waitErr:
+	case <-time.After(dotnetShutdownTimeout):
+		killProcessBestEffort(process)
+		<-waitErr
+	}
+}
+
+//nolint:errcheck,gosec // Shutdown signaling is best-effort; timeout fallback kills the process.
+func signalProcessBestEffort(process *os.Process, signal os.Signal) {
+	if process == nil {
+		return
+	}
+	process.Signal(signal)
+}
+
+//nolint:errcheck,gosec // Cleanup fallback is best-effort after graceful shutdown times out.
+func killProcessBestEffort(process *os.Process) {
+	if process == nil {
+		return
+	}
+	process.Kill()
 }
 
 func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection, args []string, flags runFlags) error {
@@ -204,6 +261,11 @@ func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection
 
 	info, err := client.ContainerInspect(ctx, containerID)
 	if err != nil {
+		if !flags.detach {
+			if removeErr := c.removeForegroundContainer(ctx, client, containerID); removeErr != nil {
+				return errors.Join(fmt.Errorf("inspect app container: %w", err), removeErr)
+			}
+		}
 		return fmt.Errorf("inspect app container: %w", err)
 	}
 	c.printDockerRunInfo(info)
@@ -212,7 +274,30 @@ func (c *RunCommand) runDocker(ctx context.Context, result repocontext.Detection
 		return nil
 	}
 
-	return c.followContainer(ctx, client, containerID)
+	runErr := c.followContainer(ctx, client, containerID)
+	removeErr := c.removeForegroundContainer(ctx, client, containerID)
+	if removeErr != nil {
+		if errors.Is(runErr, errAppRunStopped) {
+			return removeErr
+		}
+		return errors.Join(runErr, removeErr)
+	}
+	return runErr
+}
+
+func (c *RunCommand) removeForegroundContainer(
+	ctx context.Context,
+	client containerruntime.ContainerClient,
+	containerID string,
+) error {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), foregroundContainerCleanupTimeout)
+	defer cancel()
+
+	if err := client.ContainerRemove(cleanupCtx, containerID, true); err != nil &&
+		!errors.Is(err, containerruntime.ErrContainerNotFound) {
+		return fmt.Errorf("remove app container: %w", err)
+	}
+	return nil
 }
 
 func validateDockerRunImageFlags(flags runFlags) error {
@@ -295,13 +380,17 @@ func (c *RunCommand) followContainer(
 	}()
 
 	exitCode, err := client.ContainerWait(ctx, containerID)
-	if err != nil {
-		return fmt.Errorf("wait for app container: %w", err)
-	}
 	if cerr := logs.Close(); cerr != nil {
 		c.out.Verbosef("failed to close app container logs: %v", cerr)
 	}
-	if copyErr := <-logErr; copyErr != nil {
+	copyErr := <-logErr
+	if err != nil {
+		if ctx.Err() != nil {
+			return errAppRunStopped
+		}
+		return fmt.Errorf("wait for app container: %w", err)
+	}
+	if copyErr != nil {
 		return fmt.Errorf("copy app container logs: %w", copyErr)
 	}
 	if exitCode != 0 {
