@@ -225,10 +225,9 @@ func workflowEngineContainerSpec(extraHosts []string) ContainerSpec {
 			newPort("8081", "8081"),
 		},
 		map[string]string{
-			"ASPNETCORE_ENVIRONMENT":                 "Docker",
-			"ConnectionStrings__WorkflowEngine":      "Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres123",
-			"AppCommand__CommandEndpoint":            "http://host.docker.internal:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
-			"EngineSettings__ResetDatabaseOnStartup": "true",
+			"ASPNETCORE_ENVIRONMENT":            "Docker",
+			"ConnectionStrings__WorkflowEngine": "Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres123",
+			"AppCommand__CommandEndpoint":       "http://host.docker.internal:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
 		},
 		nil,
 		extraHosts,
