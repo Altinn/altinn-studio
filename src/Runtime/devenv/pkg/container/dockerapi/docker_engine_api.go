@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
@@ -858,7 +859,77 @@ func (c *Client) ContainerLogs(ctx context.Context, nameOrID string, follow bool
 		}
 		return nil, fmt.Errorf("failed to get container logs: %w", err)
 	}
-	return logs, nil
+	return demuxDockerLogs(logs), nil
+}
+
+func demuxDockerLogs(logs io.ReadCloser) io.ReadCloser {
+	pr, pw := io.Pipe()
+	reader := &dockerLogReader{
+		reader: pr,
+		source: logs,
+	}
+
+	go func() {
+		_, err := stdcopy.StdCopy(pw, pw, logs)
+		sourceErr := reader.closeSource()
+		if err != nil && !errors.Is(err, io.EOF) {
+			if reader.isClosed() {
+				if closeErr := pw.Close(); closeErr != nil {
+					return
+				}
+				return
+			}
+			_ = pw.CloseWithError(fmt.Errorf("demux docker logs: %w", err))
+			return
+		}
+		if sourceErr != nil && !reader.isClosed() {
+			_ = pw.CloseWithError(fmt.Errorf("close docker logs: %w", sourceErr))
+			return
+		}
+		if closeErr := pw.Close(); closeErr != nil {
+			return
+		}
+	}()
+
+	return reader
+}
+
+type dockerLogReader struct {
+	source    io.Closer
+	closeErr  error
+	reader    *io.PipeReader
+	closeOnce sync.Once
+	closedMu  sync.Mutex
+	closed    bool
+}
+
+//nolint:wrapcheck // io.Reader implementations should preserve EOF semantics.
+func (r *dockerLogReader) Read(p []byte) (int, error) {
+	return r.reader.Read(p)
+}
+
+func (r *dockerLogReader) Close() error {
+	r.closedMu.Lock()
+	r.closed = true
+	r.closedMu.Unlock()
+
+	if err := r.closeSource(); err != nil {
+		return fmt.Errorf("close docker log reader: %w", err)
+	}
+	return nil
+}
+
+func (r *dockerLogReader) closeSource() error {
+	r.closeOnce.Do(func() {
+		r.closeErr = r.source.Close()
+	})
+	return r.closeErr
+}
+
+func (r *dockerLogReader) isClosed() bool {
+	r.closedMu.Lock()
+	defer r.closedMu.Unlock()
+	return r.closed
 }
 
 // ContainerWait blocks until the container exits and returns the exit code.

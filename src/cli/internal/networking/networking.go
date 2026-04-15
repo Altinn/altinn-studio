@@ -16,7 +16,6 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/docker"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -263,8 +262,6 @@ func parseNetworkProbeOutput(output string) NetworkMetadata {
 
 	for line := range strings.SplitSeq(output, "\n") {
 		line = strings.TrimSpace(line)
-		// Handle docker log stream format (8 byte header per line)
-		line = docker.StripMultiplexedHeader(line)
 
 		if after, ok := strings.CutPrefix(line, "GATEWAY:"); ok {
 			metadata.HostGateway = after
