@@ -92,7 +92,7 @@ spec:
             {{- end }}
             {{- if $.Values.shareWorkspace.enabled }}
             - name: STUDIOCTL_HOME
-              value: {{ printf "%s/studioctl" ($.Values.shareWorkspace.path | default "/root/.cache/act") | quote }}
+              value: {{ $.Values.shareWorkspace.studioctlHome | quote }}
             {{- end }}
             {{- if .environmentVariables }}
             {{- range $variable := .environmentVariables}}

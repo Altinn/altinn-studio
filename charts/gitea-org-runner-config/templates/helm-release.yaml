@@ -32,6 +32,7 @@ spec:
       enabled: {{ .Values.dockerInDocker.enabled }}
     shareWorkspace:
       enabled: {{ .Values.shareWorkspace.enabled }}
+      studioctlHome: {{ .Values.shareWorkspace.studioctlHome | quote }}
     resources:
       requests:
         cpu: 500m
