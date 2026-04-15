@@ -9,7 +9,6 @@ dockerInDocker:
   enabled: true
 shareWorkspace:
   enabled: true
-  studioctlHome: "/root/.cache/act/studioctl"
 
 # Environment-specific runner configurations
 # dev/staging: only ttd

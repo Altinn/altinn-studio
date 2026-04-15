@@ -46,14 +46,14 @@ dockerInDocker:
 # act_runner stores every per-job session directory, so all workflow state lands
 # inside the shared tree automatically.
 #
-# When enabled, STUDIOCTL_HOME is set on the runner so studioctl writes its
-# state into the shared tree instead of ~/.config/altinn-studio. The value
-# must stay inside `path` for studioctl's bind mounts to resolve via the
-# shared volume, otherwise dockerd will fail to see studioctl's testdata.
+# NOTE: STUDIOCTL_HOME is set in the altinn-gitea-runner image itself
+# (Dockerfile ENV) to /root/.cache/act/studioctl, which MUST be inside
+# shareWorkspace.path. If you change `path` here, also update STUDIOCTL_HOME
+# in the runner image Dockerfile — otherwise studioctl's bind mounts will
+# fail because dockerd won't see studioctl's testdata via the shared volume.
 shareWorkspace:
   enabled: false
   path: "/root/.cache/act"
-  studioctlHome: "/root/.cache/act/studioctl"
   sizeLimit: "10Gi"
 
 # List of runners to deploy. Each runner will create a separate deployment.

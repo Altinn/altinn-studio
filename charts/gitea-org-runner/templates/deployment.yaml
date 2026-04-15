@@ -90,10 +90,6 @@ spec:
             - name: DOCKER_CERT_PATH
               value: "/certs/client"
             {{- end }}
-            {{- if $.Values.shareWorkspace.enabled }}
-            - name: STUDIOCTL_HOME
-              value: {{ $.Values.shareWorkspace.studioctlHome | quote }}
-            {{- end }}
             {{- if .environmentVariables }}
             {{- range $variable := .environmentVariables}}
             - name: {{ $variable.name }}
