@@ -146,8 +146,9 @@ func (s *Service) validatePayloadDir(payloadDir string) error {
 
 func appManagerExtractOptions() installpkg.ExtractTarGzOptions {
 	return installpkg.ExtractTarGzOptions{
-		MaxArchiveSize: appManagerMaxArchiveSize,
-		MaxFileSize:    appManagerMaxFileSize,
+		MaxArchiveSize:   appManagerMaxArchiveSize,
+		MaxFileSize:      appManagerMaxFileSize,
+		PreserveFileMode: true,
 	}
 }
 

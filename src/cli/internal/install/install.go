@@ -40,8 +40,9 @@ const (
 
 // ExtractTarGzOptions configures tar.gz extraction limits.
 type ExtractTarGzOptions struct {
-	MaxArchiveSize int64
-	MaxFileSize    int64
+	MaxArchiveSize   int64
+	MaxFileSize      int64
+	PreserveFileMode bool
 }
 
 // Sentinel errors for install operations.
@@ -437,7 +438,7 @@ func extractTarGzWithOptions(r io.Reader, dst string, opts ExtractTarGzOptions) 
 			return fmt.Errorf("read tar header: %w", err)
 		}
 
-		if err := extractTarEntry(tr, header, dst, opts.MaxFileSize); err != nil {
+		if err := extractTarEntry(tr, header, dst, opts); err != nil {
 			return err
 		}
 	}
@@ -445,7 +446,7 @@ func extractTarGzWithOptions(r io.Reader, dst string, opts ExtractTarGzOptions) 
 	return nil
 }
 
-func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string, maxEntryFileSize int64) error {
+func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string, opts ExtractTarGzOptions) error {
 	// Validate and sanitize path to prevent path traversal
 	cleanName := filepath.Clean(header.Name)
 	if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
@@ -478,7 +479,7 @@ func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string, maxEntryFil
 		}
 
 	case tar.TypeReg:
-		if err := extractRegularFileWithLimit(tr, header, target, maxEntryFileSize); err != nil {
+		if err := extractRegularFileWithOptions(tr, header, target, opts); err != nil {
 			return err
 		}
 	}
@@ -487,20 +488,29 @@ func extractTarEntry(tr *tar.Reader, header *tar.Header, dst string, maxEntryFil
 }
 
 func extractRegularFile(tr *tar.Reader, header *tar.Header, target string) (err error) {
-	return extractRegularFileWithLimit(tr, header, target, maxFileSize)
+	return extractRegularFileWithOptions(
+		tr,
+		header,
+		target,
+		ExtractTarGzOptions{
+			MaxArchiveSize:   0,
+			MaxFileSize:      maxFileSize,
+			PreserveFileMode: false,
+		},
+	)
 }
 
-func extractRegularFileWithLimit(
+func extractRegularFileWithOptions(
 	tr *tar.Reader,
 	header *tar.Header,
 	target string,
-	maxEntryFileSize int64,
+	opts ExtractTarGzOptions,
 ) (err error) {
 	if header.Size < 0 {
 		return fmt.Errorf("%w: %s (%d)", ErrInvalidArchiveFileSize, header.Name, header.Size)
 	}
 
-	if maxEntryFileSize > 0 && header.Size > maxEntryFileSize {
+	if opts.MaxFileSize > 0 && header.Size > opts.MaxFileSize {
 		return fmt.Errorf("%w: %s", ErrFileTooLarge, header.Name)
 	}
 
@@ -517,8 +527,9 @@ func extractRegularFileWithLimit(
 		return fmt.Errorf("create parent dir for %s: %w", target, mkdirErr)
 	}
 
+	fileMode := archiveFileMode(header, opts.PreserveFileMode)
 	//nolint:gosec // G304: target is sanitized in extractTarEntry
-	f, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, osutil.FilePermDefault)
+	f, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, fileMode)
 	if err != nil {
 		return fmt.Errorf("create file %s: %w", target, err)
 	}
@@ -527,14 +538,36 @@ func extractRegularFileWithLimit(
 	if _, copyErr := io.Copy(f, io.LimitReader(tr, header.Size)); copyErr != nil {
 		return fmt.Errorf("write file %s: %w", target, copyErr)
 	}
+	if opts.PreserveFileMode {
+		if chmodErr := f.Chmod(fileMode); chmodErr != nil {
+			return fmt.Errorf("set file mode for %s: %w", target, chmodErr)
+		}
+	}
 
 	return nil
 }
 
+func archiveFileMode(header *tar.Header, preserve bool) os.FileMode {
+	if !preserve {
+		return osutil.FilePermDefault
+	}
+	const permissionBits = 0o777
+	perm := header.Mode & permissionBits
+	if perm < 0 || perm > permissionBits {
+		return osutil.FilePermDefault
+	}
+	mode := os.FileMode(perm)
+	if mode == 0 {
+		return osutil.FilePermDefault
+	}
+	return mode
+}
+
 func localtestResourcesExtractOptions() ExtractTarGzOptions {
 	return ExtractTarGzOptions{
-		MaxArchiveSize: maxArchiveSize,
-		MaxFileSize:    maxFileSize,
+		MaxArchiveSize:   maxArchiveSize,
+		MaxFileSize:      maxFileSize,
+		PreserveFileMode: false,
 	}
 }
 

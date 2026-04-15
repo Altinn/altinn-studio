@@ -533,6 +533,28 @@ func TestExtractTarGz_ReplacesWrongTypePaths(t *testing.T) {
 	})
 }
 
+func TestExtractTarGz_PreservesFileModeWhenEnabled(t *testing.T) {
+	t.Parallel()
+
+	dst := t.TempDir()
+	tarData := createTestTarGzRaw(t, []tarEntry{
+		{name: "bin/app-manager", content: "binary", mode: 0o755},
+	})
+
+	err := extractTarGzWithOptions(bytes.NewReader(tarData), dst, ExtractTarGzOptions{PreserveFileMode: true})
+	if err != nil {
+		t.Fatalf("extractTarGzWithOptions() error = %v", err)
+	}
+
+	info, err := os.Stat(filepath.Join(dst, "bin", "app-manager"))
+	if err != nil {
+		t.Fatalf("stat extracted file: %v", err)
+	}
+	if info.Mode()&0o111 == 0 {
+		t.Fatalf("extracted file mode = %v, want executable bit", info.Mode().Perm())
+	}
+}
+
 func TestExtractRegularFile_NegativeSize(t *testing.T) {
 	t.Parallel()
 
@@ -767,6 +789,7 @@ func verifyFileContent(t *testing.T, path, want string) {
 type tarEntry struct {
 	name    string
 	content string
+	mode    int64
 	isDir   bool
 }
 
@@ -790,15 +813,23 @@ func createTestTarGzRaw(t *testing.T, entries []tarEntry) []byte {
 	for _, entry := range entries {
 		var header *tar.Header
 		if entry.isDir {
+			mode := entry.mode
+			if mode == 0 {
+				mode = 0o755
+			}
 			header = &tar.Header{
 				Name:     entry.name,
-				Mode:     0o755,
+				Mode:     mode,
 				Typeflag: tar.TypeDir,
 			}
 		} else {
+			mode := entry.mode
+			if mode == 0 {
+				mode = 0o644
+			}
 			header = &tar.Header{
 				Name:     entry.name,
-				Mode:     0o644,
+				Mode:     mode,
 				Size:     int64(len(entry.content)),
 				Typeflag: tar.TypeReg,
 			}
