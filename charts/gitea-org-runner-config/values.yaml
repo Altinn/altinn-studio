@@ -7,7 +7,7 @@ environment: "dev"
 runtimeClassName: "kata-vm-isolation"
 dockerInDocker:
   enabled: true
-studioctlSupport:
+shareWorkspace:
   enabled: true
 
 # Environment-specific runner configurations

@@ -30,8 +30,8 @@ spec:
     runtimeClassName: {{ .Values.runtimeClassName | quote }}
     dockerInDocker:
       enabled: {{ .Values.dockerInDocker.enabled }}
-    studioctlSupport:
-      enabled: {{ .Values.studioctlSupport.enabled }}
+    shareWorkspace:
+      enabled: {{ .Values.shareWorkspace.enabled }}
     resources:
       requests:
         cpu: 500m

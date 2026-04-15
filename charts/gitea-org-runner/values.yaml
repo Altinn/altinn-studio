@@ -37,14 +37,21 @@ dockerInDocker:
     pullPolicy: IfNotPresent
   diskSize: "10G"
 
-# studioctl support: mounts a shared emptyDir at STUDIOCTL_HOME in both the runner
-# and the dockerd sidecar, and sets STUDIOCTL_HOME on the runner. This makes
-# studioctl's bind mounts visible to dockerd across the DinD container boundary,
-# since the docker client's filesystem view (runner) and the docker daemon's
-# filesystem view (dockerd sidecar) are otherwise disjoint.
-studioctlSupport:
+# Shared workspace: mounts a shared emptyDir at act_runner's cache dir in both
+# the runner and the dockerd sidecar. This makes any bind mount from the tenant's
+# workflow (including $(pwd), $GITHUB_WORKSPACE, and tools like studioctl) resolve
+# correctly across the DinD container boundary, because the docker client's
+# filesystem view (runner) and the docker daemon's filesystem view (dockerd
+# sidecar) are otherwise disjoint. The default path /root/.cache/act is where
+# act_runner stores every per-job session directory, so all workflow state lands
+# inside the shared tree automatically.
+#
+# When enabled, STUDIOCTL_HOME is also set to <path>/studioctl so studioctl's
+# resources are written into the shared tree instead of ~/.config/altinn-studio.
+shareWorkspace:
   enabled: false
-  home: "/altinn-studio"
+  path: "/root/.cache/act"
+  sizeLimit: "10Gi"
 
 # List of runners to deploy. Each runner will create a separate deployment.
 runners: []

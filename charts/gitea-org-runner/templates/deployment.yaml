@@ -68,9 +68,9 @@ spec:
           volumeMounts:
             - name: docker-certs
               mountPath: /certs
-            {{- if $.Values.studioctlSupport.enabled }}
-            - name: studioctl-home
-              mountPath: {{ $.Values.studioctlSupport.home | default "/altinn-studio" }}
+            {{- if $.Values.shareWorkspace.enabled }}
+            - name: act-cache
+              mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
             {{- end }}
       {{- end }}
       containers:
@@ -90,9 +90,9 @@ spec:
             - name: DOCKER_CERT_PATH
               value: "/certs/client"
             {{- end }}
-            {{- if $.Values.studioctlSupport.enabled }}
+            {{- if $.Values.shareWorkspace.enabled }}
             - name: STUDIOCTL_HOME
-              value: {{ $.Values.studioctlSupport.home | default "/altinn-studio" | quote }}
+              value: {{ printf "%s/studioctl" ($.Values.shareWorkspace.path | default "/root/.cache/act") | quote }}
             {{- end }}
             {{- if .environmentVariables }}
             {{- range $variable := .environmentVariables}}
@@ -113,7 +113,7 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled $.Values.studioctlSupport.enabled }}
+          {{- if or $.Values.volumeMounts $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
           volumeMounts:
             {{- with $.Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
@@ -123,12 +123,12 @@ spec:
               mountPath: /certs
               readOnly: true
             {{- end }}
-            {{- if $.Values.studioctlSupport.enabled }}
-            - name: studioctl-home
-              mountPath: {{ $.Values.studioctlSupport.home | default "/altinn-studio" }}
+            {{- if $.Values.shareWorkspace.enabled }}
+            - name: act-cache
+              mountPath: {{ $.Values.shareWorkspace.path | default "/root/.cache/act" }}
             {{- end }}
           {{- end }}
-      {{- if or $.Values.volumes $.Values.dockerInDocker.enabled $.Values.studioctlSupport.enabled }}
+      {{- if or $.Values.volumes $.Values.dockerInDocker.enabled $.Values.shareWorkspace.enabled }}
       volumes:
         {{- with $.Values.volumes }}
         {{- toYaml . | nindent 8 }}
@@ -137,9 +137,10 @@ spec:
         - name: docker-certs
           emptyDir: {}
         {{- end }}
-        {{- if $.Values.studioctlSupport.enabled }}
-        - name: studioctl-home
-          emptyDir: {}
+        {{- if $.Values.shareWorkspace.enabled }}
+        - name: act-cache
+          emptyDir:
+            sizeLimit: {{ $.Values.shareWorkspace.sizeLimit | default "10Gi" }}
         {{- end }}
       {{- end }}
       {{- with $.Values.nodeSelector }}
