@@ -224,7 +224,8 @@ func getPowerShellProfilePath(ctx context.Context) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, powerShellProfileTimeout)
 	defer cancel()
 
-	if output, err := processutil.CommandContext(ctx, "pwsh", "-NoProfile", "-Command", "echo $PROFILE").Output(); err == nil {
+	if output, err := processutil.CommandContext(ctx, "pwsh", "-NoProfile", "-Command", "echo $PROFILE").
+		Output(); err == nil {
 		if profile := strings.TrimSpace(string(output)); profile != "" {
 			return profile, nil
 		}

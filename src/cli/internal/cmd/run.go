@@ -178,7 +178,6 @@ func (c *RunCommand) runDotnet(ctx context.Context, target runsvc.Target, args [
 
 	c.out.Verbosef("Running: dotnet %v", spec.Args)
 
-	//nolint:gosec // G204: subprocess arguments are from CLI flags, intentional passthrough behavior
 	cmd := processutil.CommandContext(context.WithoutCancel(ctx), "dotnet", spec.Args...)
 	cmd.Dir = spec.Dir
 	cmd.Stdin = os.Stdin

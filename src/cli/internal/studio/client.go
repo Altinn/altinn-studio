@@ -219,7 +219,6 @@ func (c *Client) execGitClone(ctx context.Context, cloneURL, destPath string) er
 		return ErrGitNotFound
 	}
 
-	//nolint:gosec // G204: cloneURL and destPath are constructed from validated inputs
 	cmd := processutil.CommandContext(ctx, gitPath, "clone", cloneURL, destPath)
 
 	output, err := cmd.CombinedOutput()

@@ -162,7 +162,6 @@ func (c *Client) BuildWithProgress(
 	}
 
 	args := dockerBuildArgs(contextPath, dockerfile, tag, firstBuildOptions(opts))
-	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
 	cmd := processutil.CommandContext(ctx, binary, args...)
 	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 
@@ -215,7 +214,6 @@ func (c *Client) Push(ctx context.Context, img string) error {
 		return err
 	}
 
-	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
 	cmd := processutil.CommandContext(ctx, binary, c.toolchain.Platform.PushArgs(img)...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -991,7 +989,6 @@ func runIndeterminateBuild(
 	onProgress types.ProgressHandler,
 ) error {
 	args := []string{"build", "-t", tag, "-f", dockerfile, contextPath}
-	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
 	cmd := processutil.CommandContext(ctx, binary, args...)
 
 	reportProgress(onProgress, types.ProgressUpdate{

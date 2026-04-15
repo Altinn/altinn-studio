@@ -57,7 +57,6 @@ func reportProgress(onProgress types.ProgressHandler, progress types.ProgressUpd
 	}
 }
 
-//nolint:gosec // The podman binary is fixed and the arguments come from explicit caller configuration.
 func runPodmanCommand(ctx context.Context, args []string) ([]byte, error) {
 	cmd := processutil.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
@@ -102,7 +101,6 @@ func (c *Client) BuildWithProgress(
 
 // Push pushes an image to a registry.
 func (c *Client) Push(ctx context.Context, image string) error {
-	//nolint:gosec // The podman binary is fixed and the arguments come from explicit caller configuration.
 	cmd := processutil.CommandContext(ctx, "podman", types.PlatformPodman.PushArgs(image)...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -202,7 +200,6 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 // ContainerState returns the state of a container.
 // Returns ErrContainerNotFound if the container does not exist.
 func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.ContainerState, error) {
-	//nolint:gosec // The podman binary is fixed and the inspected container name is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "inspect", "--format", "{{json .State}}", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -229,7 +226,6 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 
 // ContainerNetworks returns the networks the container is attached to.
 func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]string, error) {
-	//nolint:gosec // The podman binary is fixed and the inspected container name is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "inspect", "-f", "{{json .NetworkSettings.Networks}}", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -255,7 +251,6 @@ func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]stri
 // Exec executes a command in a running container.
 func (c *Client) Exec(ctx context.Context, container string, cmd []string) error {
 	args := append([]string{"exec", container}, cmd...)
-	//nolint:gosec // The podman binary is fixed and the exec arguments come from explicit caller configuration.
 	execCmd := processutil.CommandContext(ctx, "podman", args...)
 	output, err := execCmd.CombinedOutput()
 	if err != nil {
@@ -305,7 +300,6 @@ func (c *Client) ExecWithIO(
 
 // NetworkConnect connects a container to a network.
 func (c *Client) NetworkConnect(ctx context.Context, network, container string) error {
-	//nolint:gosec // The podman binary is fixed and the network/container names are passed as arguments.
 	cmd := processutil.CommandContext(ctx, "podman", "network", "connect", network, container)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -316,7 +310,6 @@ func (c *Client) NetworkConnect(ctx context.Context, network, container string) 
 
 // ImageInspect returns metadata about an image.
 func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInfo, error) {
-	//nolint:gosec // The podman binary is fixed and the image reference is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "image", "inspect", image)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -440,7 +433,6 @@ func podmanHealthStatus(health, healthcheck string) string {
 
 // ContainerInspect returns detailed information about a container.
 func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error) {
-	//nolint:gosec // The podman binary is fixed and the inspected container name is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "inspect", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -603,7 +595,6 @@ func firstNonEmpty(values ...string) string {
 
 // ContainerStart starts an existing container.
 func (c *Client) ContainerStart(ctx context.Context, nameOrID string) error {
-	//nolint:gosec // The podman binary is fixed and the container name is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "start", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -689,7 +680,6 @@ func (c *Client) NetworkCreate(ctx context.Context, cfg types.NetworkConfig) (st
 
 // NetworkInspect returns information about a network.
 func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.NetworkInfo, error) {
-	//nolint:gosec // The podman binary is fixed and the network name is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "network", "inspect", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -724,7 +714,6 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 
 // NetworkRemove removes a network.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
-	//nolint:gosec // The podman binary is fixed and the network name is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "network", "rm", nameOrID)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -851,7 +840,6 @@ func killProcessBestEffort(process *os.Process) {
 
 // ContainerWait blocks until the container exits and returns the exit code.
 func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error) {
-	//nolint:gosec // The podman binary is fixed and the container name is passed as an argument.
 	cmd := processutil.CommandContext(ctx, "podman", "wait", nameOrID)
 	output, err := cmd.Output()
 	if err != nil {

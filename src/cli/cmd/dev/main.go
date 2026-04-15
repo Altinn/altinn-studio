@@ -398,7 +398,6 @@ func publishAppManager(goos, goarch, outputDir string) (string, error) {
 		"-p:DebugSymbols=false",
 	}
 
-	//nolint:gosec // G204: command and arguments are fixed local tooling with validated RID values.
 	cmd := processutil.CommandContext(context.Background(), "dotnet", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -444,7 +443,6 @@ func runBinary(binary string, env []string, args ...string) error {
 		return err
 	}
 
-	//nolint:gosec // G204: binary is validated to be the local studioctl executable built by this dev helper.
 	cmd := processutil.CommandContext(context.Background(), binary, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -519,7 +517,6 @@ func windowsPath(path string) (string, error) {
 }
 
 func commandOutput(name string, args ...string) (string, error) {
-	//nolint:gosec // G204: the caller provides known local tooling commands only.
 	cmd := processutil.CommandContext(context.Background(), name, args...)
 	output, err := cmd.Output()
 	if err != nil {
@@ -539,7 +536,6 @@ func runWindowsInstall(binaryPath, appManagerPath, tarballPath, installDir strin
 		powerShellSingleQuoted(installDir),
 	)
 
-	//nolint:gosec // G204: script is assembled from validated local paths for the Windows install handoff.
 	cmd := processutil.CommandContext(context.Background(), "powershell.exe", "-NoProfile", "-Command", script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

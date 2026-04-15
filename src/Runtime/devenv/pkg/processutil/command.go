@@ -7,6 +7,7 @@ import (
 
 // CommandContext creates a command with platform-specific process defaults.
 func CommandContext(ctx context.Context, name string, args ...string) *exec.Cmd {
+	//nolint:gosec // Callers pass fixed tool names or validated paths; arguments are never evaluated by a shell.
 	cmd := exec.CommandContext(ctx, name, args...)
 	ApplyNoWindow(cmd)
 	return cmd

@@ -326,7 +326,14 @@ func activeDockerContextHost(ctx context.Context) (string, error) {
 	ctxTimeout, cancel := context.WithTimeout(ctx, dockerContextTimeout)
 	defer cancel()
 
-	cmd := processutil.CommandContext(ctxTimeout, "docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}")
+	cmd := processutil.CommandContext(
+		ctxTimeout,
+		"docker",
+		"context",
+		"inspect",
+		"--format",
+		"{{.Endpoints.docker.Host}}",
+	)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("inspect docker context host: %w", err)

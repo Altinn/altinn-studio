@@ -32,13 +32,10 @@ func OpenContext(ctx context.Context, rawURL string) error {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "linux":
-		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
 		cmd = processutil.CommandContext(ctx, "xdg-open", safeURL)
 	case "darwin":
-		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
 		cmd = processutil.CommandContext(ctx, "open", safeURL)
 	case "windows":
-		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
 		cmd = processutil.CommandContext(ctx, "cmd", "/c", "start", "", safeURL)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedPlatform, runtime.GOOS)

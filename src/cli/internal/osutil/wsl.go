@@ -30,7 +30,7 @@ func openWSL(_ context.Context, browserURL string) error {
 	// The empty string argument is the window title (required when URL contains special chars).
 	// We use Background() so the browser process survives program exit
 	// (CommandContext kills subprocess when context is cancelled).
-	//nolint:contextcheck,gosec // intentionally detached; browserURL is validated to http/https by OpenContext.
+	//nolint:contextcheck // intentionally detached; browserURL is validated to http/https by OpenContext.
 	cmd := processutil.CommandContext(context.Background(), "cmd.exe", "/c", "start", "", browserURL)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open browser via cmd.exe: %w", err)
