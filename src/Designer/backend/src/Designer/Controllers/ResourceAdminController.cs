@@ -367,10 +367,7 @@ public class ResourceAdminController : ControllerBase
                             includeMigratedApps: true
                         );
                         environmentResources = environmentResources
-                            .Where(resource =>
-                                resource.ResourceType != ResourceType.AltinnApp
-                                || ResourceAdminHelper.IsMigratedApp(resource)
-                            )
+                            .Where(resource => resource.ResourceType != ResourceType.AltinnApp)
                             .ToList();
 
                         var cacheEntryOptions = new MemoryCacheEntryOptions()

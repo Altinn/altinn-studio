@@ -72,7 +72,6 @@
   "resourceadm.about_resource_resource_type_brokerservice": "Formidlingstjeneste",
   "resourceadm.about_resource_resource_type_correspondenceservice": "Meldingstjeneste",
   "resourceadm.about_resource_resource_type_consentresource": "Samtykkeressurs",
-  "resourceadm.about_resource_resource_type_altinnapp": "Migrert Altinn app",
   "resourceadm.about_resource_resource_type_error": "Du må velge en ressurstype.",
   "resourceadm.about_resource_resource_type_generic_access_resource": "Generisk tilgangsressurs",
   "resourceadm.about_resource_resource_type_label": "Velg en ressurstype fra listen under.",

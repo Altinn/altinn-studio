@@ -147,49 +147,19 @@ describe('AboutResourcePage', () => {
     expect(resourceTypeRadio).toBeChecked();
   });
 
-  it('should show resource type AltinnApp for migrated altinn 1 app', () => {
+  it('should not show resource type radio control for migrated altinn apps', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
         resourceData={{
           ...mockConsentResource,
-          resourceType: 'AltinnApp',
-          resourceReferences: [
-            { reference: 'ttd/a1-test-app', referenceType: 'Default', referenceSource: 'Default' },
-          ],
+          resourceType: 'MigratedApp',
         }}
       />,
     );
 
     expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_resource_type_altinnapp')),
-    ).toBeInTheDocument();
-  });
-
-  it('should show resource type AltinnApp for migrated altinn 2 app', () => {
-    render(
-      <AboutResourcePage
-        {...defaultProps}
-        resourceData={{
-          ...mockConsentResource,
-          resourceType: 'AltinnApp',
-          resourceReferences: [
-            { reference: 'ttd/a2-test-app', referenceType: 'Default', referenceSource: 'Default' },
-          ],
-        }}
-      />,
-    );
-
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_resource_type_altinnapp')),
-    ).toBeInTheDocument();
-  });
-
-  it('should not show resource type AltinnApp for generic access resource', () => {
-    render(<AboutResourcePage {...defaultProps} />);
-
-    expect(
-      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type_altinnapp')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type')),
     ).not.toBeInTheDocument();
   });
 

@@ -75,14 +75,6 @@ export const AboutResourcePage = ({
       if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
         return false;
       }
-      if (
-        key === 'AltinnApp' &&
-        resourceData.resourceReferences?.some(
-          (ref) => ref.reference?.includes('/a1') || ref.reference?.includes('/a2'),
-        ) !== true
-      ) {
-        return false;
-      }
       return true;
     })
     .map(([key, value]) => ({
@@ -156,18 +148,20 @@ export const AboutResourcePage = ({
           readOnly
           onBlur={() => {}}
         />
-        <ResourceRadioGroup
-          id='resourceType'
-          label={t('resourceadm.about_resource_resource_type')}
-          description={t('resourceadm.about_resource_resource_type_label')}
-          value={resourceData.resourceType}
-          options={resourceTypeOptions}
-          onChange={(selected: ResourceTypeOption) =>
-            handleSave({ ...resourceData, resourceType: selected })
-          }
-          required
-          errors={validationErrors.filter((error) => error.field === 'resourceType')}
-        />
+        {resourceData.resourceType !== 'MigratedApp' && (
+          <ResourceRadioGroup
+            id='resourceType'
+            label={t('resourceadm.about_resource_resource_type')}
+            description={t('resourceadm.about_resource_resource_type_label')}
+            value={resourceData.resourceType}
+            options={resourceTypeOptions}
+            onChange={(selected: ResourceTypeOption) =>
+              handleSave({ ...resourceData, resourceType: selected })
+            }
+            required
+            errors={validationErrors.filter((error) => error.field === 'resourceType')}
+          />
+        )}
         <ResourceLanguageTextField
           id='title'
           label={t('resourceadm.about_resource_resource_title_label')}

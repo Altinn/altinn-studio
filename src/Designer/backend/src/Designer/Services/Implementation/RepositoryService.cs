@@ -696,7 +696,7 @@ public class RepositoryService : IRepository
             bool isResourceIdentifierValid =
                 !string.IsNullOrEmpty(newResource.Identifier)
                 && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex)
-                && (!newResource.Identifier.StartsWith("app_") || ResourceAdminHelper.IsMigratedApp(newResource));
+                && (!newResource.Identifier.StartsWith("app_") || newResource.ResourceType == ResourceType.MigratedApp);
             if (!isResourceIdentifierValid)
             {
                 return new StatusCodeResult(400);

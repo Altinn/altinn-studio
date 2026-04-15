@@ -28,14 +28,13 @@ import {
 /**
  * The map of resource type
  */
-export const resourceTypeMap: Record<ResourceTypeOption, string> = {
+export const resourceTypeMap: Record<Exclude<ResourceTypeOption, 'MigratedApp'>, string> = {
   GenericAccessResource: 'resourceadm.about_resource_resource_type_generic_access_resource',
   Systemresource: 'resourceadm.about_resource_resource_type_system_resource',
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
   Consent: 'resourceadm.about_resource_resource_type_consentresource',
-  AltinnApp: 'resourceadm.about_resource_resource_type_altinnapp',
 };
 
 /**

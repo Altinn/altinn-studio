@@ -49,7 +49,7 @@ export type ResourceTypeOption =
   | 'BrokerService'
   | 'CorrespondenceService'
   | 'Consent'
-  | 'AltinnApp';
+  | 'MigratedApp';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
