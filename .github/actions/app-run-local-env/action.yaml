@@ -136,7 +136,7 @@ runs:
           }
 
           function targetRunArgs(path, image) {
-            const args = ['run', '--mode', 'docker', '--detach', '--random-host-port', '--path', path];
+            const args = ['run', '--mode', 'container', '--detach', '--random-host-port', '--path', path];
             if (image) {
               args.push('--image-tag', image, '--pull', '--skip-build');
             }

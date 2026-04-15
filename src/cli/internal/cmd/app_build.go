@@ -22,8 +22,8 @@ func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
 	var push bool
 	fs.StringVar(&appPath, "p", "", "App directory path")
 	fs.StringVar(&appPath, "path", "", "App directory path")
-	fs.StringVar(&mode, "m", runModeDocker, "Build mode")
-	fs.StringVar(&mode, "mode", runModeDocker, "Build mode")
+	fs.StringVar(&mode, "m", runModeContainer, "Build mode")
+	fs.StringVar(&mode, "mode", runModeContainer, "Build mode")
 	fs.StringVar(&imageTag, "image-tag", "", "App container image tag")
 	fs.BoolVar(&push, "push", false, "Push app container image after build")
 
@@ -34,7 +34,7 @@ func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
 		}
 		return fmt.Errorf("parsing flags: %w", err)
 	}
-	if mode != runModeDocker {
+	if mode != runModeContainer {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, mode)
 	}
 	if push && imageTag == "" {
@@ -94,7 +94,7 @@ func (c *AppCommand) appBuildUsage() string {
 		"",
 		"Options:",
 		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
-		"  -m, --mode MODE       Build mode: docker (default: docker)",
+		"  -m, --mode MODE       Build mode: container (default: container)",
 		"  --image-tag IMAGE     App container image tag",
 		"  --push                Push app container image after build",
 		"  -h, --help            Show this help",

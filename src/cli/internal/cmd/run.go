@@ -28,7 +28,7 @@ import (
 
 const (
 	runModeNative                     = "native"
-	runModeDocker                     = "docker"
+	runModeContainer                  = "container"
 	foregroundContainerCleanupTimeout = 10 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
 	appManagerCleanupTimeout          = 2 * time.Second
@@ -81,12 +81,12 @@ func (c *RunCommand) Usage() string {
 		"",
 		"Options:",
 		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
-		"  -m, --mode MODE       Run mode: native or docker (default: native)",
-		"  -d, --detach          Run app container in background (docker mode)",
-		"  --random-host-port    Publish app container to a random host port (docker mode)",
-		"  --image-tag IMAGE     Use a specific app container image tag (docker mode)",
-		"  --pull                Pull app container image before start (docker mode)",
-		"  --skip-build          Skip building the app container image (docker mode)",
+		"  -m, --mode MODE       Run mode: native or container (default: native)",
+		"  -d, --detach          Run app container in background (container mode)",
+		"  --random-host-port    Publish app container to a random host port (container mode)",
+		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
+		"  --pull                Pull app container image before start (container mode)",
+		"  --skip-build          Skip building the app container image (container mode)",
 		"  -h, --help            Show this help",
 	)
 }
@@ -136,7 +136,7 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 		}
 		return fmt.Errorf("parsing flags: %w", err)
 	}
-	if flags.mode != runModeNative && flags.mode != runModeDocker {
+	if flags.mode != runModeNative && flags.mode != runModeContainer {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
 
@@ -160,7 +160,7 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 	switch flags.mode {
 	case runModeNative:
 		runErr = c.runDotnet(ctx, target, dotnetArgs)
-	case runModeDocker:
+	case runModeContainer:
 		runErr = c.runDocker(ctx, target, dotnetArgs, flags)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)

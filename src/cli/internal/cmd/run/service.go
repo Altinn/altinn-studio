@@ -82,7 +82,7 @@ type DotnetRunSpec struct {
 	Env     []string
 }
 
-// DockerRunSpec contains container execution details for `studioctl run --mode docker`.
+// DockerRunSpec contains container execution details for `studioctl run --mode container`.
 type DockerRunSpec struct {
 	Config types.ContainerConfig
 }
