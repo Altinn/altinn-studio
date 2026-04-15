@@ -33,6 +33,11 @@ const (
 	flavorDocker              = "Docker"
 	flavorPodman              = "Podman"
 	flavorUnknown             = "Unknown"
+
+	postgresHealthInterval    = 10 * time.Second
+	postgresHealthTimeout     = 5 * time.Second
+	postgresHealthRetries     = 5
+	postgresHealthStartPeriod = 5 * time.Second
 )
 
 // ErrInvalidResourceLayout is returned when required host paths are missing or have wrong type.
@@ -105,13 +110,15 @@ func newContainerSpec(
 	extraHosts, deps, cmd []string,
 ) ContainerSpec {
 	return ContainerSpec{
-		Name:         name,
-		Ports:        ports,
-		Environment:  env,
-		Volumes:      volumes,
-		ExtraHosts:   extraHosts,
-		Dependencies: deps,
-		Command:      cmd,
+		HealthCheck:    nil,
+		Name:           name,
+		Ports:          ports,
+		Environment:    env,
+		Volumes:        volumes,
+		ExtraHosts:     extraHosts,
+		Dependencies:   deps,
+		Command:        cmd,
+		UseDefaultUser: false,
 	}
 }
 
@@ -130,7 +137,6 @@ func newContainerStatus(name, status string) ContainerStatus {
 	}
 }
 
-//nolint:funlen // Container spec list is more readable as a single function
 func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 	extraHosts := []string{
 		"host.docker.internal:" + cfg.HostGateway,
@@ -202,10 +208,10 @@ func postgresContainerSpec(dataDir string) ContainerSpec {
 	)
 	spec.HealthCheck = &types.HealthCheck{
 		Test:        []string{"CMD-SHELL", "pg_isready -U postgres"},
-		Interval:    10 * time.Second,
-		Timeout:     5 * time.Second,
-		Retries:     5,
-		StartPeriod: 5 * time.Second,
+		Interval:    postgresHealthInterval,
+		Timeout:     postgresHealthTimeout,
+		Retries:     postgresHealthRetries,
+		StartPeriod: postgresHealthStartPeriod,
 	}
 	spec.UseDefaultUser = true
 	return spec
@@ -500,7 +506,6 @@ func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageReso
 	}
 }
 
-//nolint:funlen // Resource graph assembly is more readable as a single flow.
 func buildResourcesWithMode(
 	dataDir string,
 	runtimeCfg RuntimeConfig,
@@ -585,9 +590,11 @@ func newContainerResource(
 ) *resource.Container {
 	if mode == containerModeDestroy {
 		return &resource.Container{
+			HealthCheck:   nil,
 			Name:          spec.Name,
 			Image:         resource.Ref(imageRes),
 			Networks:      []resource.ResourceRef{network},
+			DependsOn:     nil,
 			Labels:        labels,
 			Ports:         nil,
 			Volumes:       nil,

@@ -178,6 +178,7 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 	}
 
 	cfg := types.ContainerConfig{
+		HealthCheck:   nil,
 		Name:          containerName,
 		Image:         n.cfg.Images.Utility.Busybox.Ref(),
 		Command:       []string{"sh", "-c", networkProbeScript()},
