@@ -535,25 +535,9 @@ func buildResourcesWithMode(
 		resources = append(resources, coreImages[name])
 	}
 
-	// Build core container resources in two passes:
-	// 1. Pre-populate map with empty placeholders so forward DependsOn refs resolve
-	// 2. Fill each container, resolving dependencies against the complete map
-	coreContainerResources := make(map[string]*resource.Container, len(core))
-	for i := range core {
-		coreContainerResources[core[i].Name] = &resource.Container{}
-	}
-	for i := range core {
-		spec := &core[i]
-		*coreContainerResources[spec.Name] = *newContainerResource(
-			spec,
-			coreImages[spec.Name],
-			resource.Ref(network),
-			labels,
-			runtimeCfg.User,
-			mode,
-			coreContainerResources,
-		)
-	}
+	coreContainerResources := buildCoreContainerResources(
+		core, coreImages, resource.Ref(network), labels, runtimeCfg.User, mode,
+	)
 	for _, name := range coreContainerNames() {
 		resources = append(resources, coreContainerResources[name])
 	}
@@ -579,6 +563,42 @@ func buildResourcesWithMode(
 	}
 
 	return resources
+}
+
+// buildCoreContainerResources builds container resources in two passes:
+// 1. Pre-populate map with empty placeholders so forward DependsOn refs resolve
+// 2. Fill each container, resolving dependencies against the complete map.
+func buildCoreContainerResources(
+	specs []ContainerSpec,
+	images map[string]resource.ImageResource,
+	network resource.ResourceRef,
+	labels map[string]string,
+	user string,
+	mode containerResourceMode,
+) map[string]*resource.Container {
+	m := make(map[string]*resource.Container, len(specs))
+	for i := range specs {
+		m[specs[i].Name] = &resource.Container{
+			HealthCheck:   nil,
+			Image:         resource.ResourceRef{},
+			Labels:        nil,
+			Name:          "",
+			RestartPolicy: "",
+			User:          "",
+			Networks:      nil,
+			DependsOn:     nil,
+			Ports:         nil,
+			Volumes:       nil,
+			Env:           nil,
+			Command:       nil,
+			ExtraHosts:    nil,
+		}
+	}
+	for i := range specs {
+		spec := &specs[i]
+		*m[spec.Name] = *newContainerResource(spec, images[spec.Name], network, labels, user, mode, m)
+	}
+	return m
 }
 
 func newContainerResource(
