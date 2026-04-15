@@ -10,7 +10,10 @@ metadata:
 spec:
   replicas: {{ .replicas | default 1 }}
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       {{- include "gitea-org-runner.selectorLabels" $ | nindent 6 }}
