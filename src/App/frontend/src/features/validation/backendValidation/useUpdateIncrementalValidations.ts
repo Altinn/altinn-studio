@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
+import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useGetCachedInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
   mapBackendIssuesToFieldValidations,
   mapBackendValidationsToValidatorGroups,

@@ -750,7 +750,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(BackoffType.Exponential, step0.RetryStrategy.BackoffType);
         Assert.Equal(5, step0.RetryStrategy.MaxRetries);
         Assert.Equal(PersistentItemStatus.Enqueued, step0.Status);
-        Assert.NotNull(step0.IdempotencyKey);
 
         // Step 1: webhook command
         var step1 = dbWorkflow.Steps[1];

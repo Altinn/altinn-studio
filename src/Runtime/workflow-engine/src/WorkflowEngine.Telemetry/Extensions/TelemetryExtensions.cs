@@ -95,7 +95,6 @@ public static class TelemetryExtensions
             IEnumerable<ActivityEvent>? events = null
         )
         {
-            activity.Record();
             activity.SetStatus(ActivityStatusCode.Error, errorMessage ?? exception?.Message);
             if (exception is not null)
             {
@@ -124,7 +123,6 @@ public static class TelemetryExtensions
         /// </summary>
         public void Succeeded()
         {
-            activity.Record();
             activity.SetStatus(ActivityStatusCode.Ok);
         }
 

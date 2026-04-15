@@ -32,6 +32,7 @@ import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { fetchFormBootstrapForInstance } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
+import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { PartyApi } from 'src/core/api-client/party.api';
 import type { ApiClients } from 'src/core/contexts/ApiProvider';
@@ -43,6 +44,7 @@ import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layo
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 type ApiOverrides = Partial<{
+  backendValidationApi: Partial<BackendValidationApi>;
   partyApi: Partial<PartyApi>;
   instanceApi: Partial<InstanceApi>;
 }>;
@@ -139,7 +141,6 @@ const defaultQueryMocks: AppQueries = {
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchBackendValidations: async () => [],
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
@@ -148,6 +149,9 @@ const defaultQueryMocks: AppQueries = {
 };
 
 const defaultApiMocks: Omit<ApiClients, 'textResourcesApi'> = {
+  backendValidationApi: {
+    fetchBackendValidations: async () => [],
+  },
   partyApi: {
     getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
     setSelectedParty: async () => 'Party successfully updated',
@@ -405,6 +409,10 @@ export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {
   };
 
   const finalApis: Omit<ApiClients, 'textResourcesApi'> = {
+    backendValidationApi: {
+      ...defaultApiMocks.backendValidationApi,
+      ...apis?.backendValidationApi,
+    },
     partyApi: {
       ...defaultApiMocks.partyApi,
       ...apis?.partyApi,

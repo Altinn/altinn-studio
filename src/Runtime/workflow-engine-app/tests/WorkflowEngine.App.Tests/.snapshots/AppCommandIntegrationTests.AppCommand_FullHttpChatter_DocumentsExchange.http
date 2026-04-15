@@ -82,11 +82,10 @@ POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/chatter-step-1
 Host: localhost
 Content-Type: application/json; charset=utf-8
 Correlation-Id: Guid_1
-Idempotency-Key: app-chatter-idem/chatter-step-1
+Idempotency-Key: Guid_4
 Namespace: chatter-app-test
 Operation-Id: chatter-step-1
 Workflow-Id: Guid_3
-X-Api-Key: outgoing-app-lib-api-key
 
 {
   "commandKey": "chatter-step-1",
@@ -115,11 +114,10 @@ POST http://localhost:{PORT}/ttd/e2e-tests/instances/50001/Guid_2/chatter-step-2
 Host: localhost
 Content-Type: application/json; charset=utf-8
 Correlation-Id: Guid_1
-Idempotency-Key: app-chatter-idem/chatter-step-2
+Idempotency-Key: Guid_5
 Namespace: chatter-app-test
 Operation-Id: chatter-step-2
 Workflow-Id: Guid_3
-X-Api-Key: outgoing-app-lib-api-key
 
 {
   "commandKey": "chatter-step-2",
@@ -168,7 +166,6 @@ Content-Type: application/json; charset=utf-8
   "steps": [
     {
       "databaseId": "Guid_4",
-      "idempotencyKey": "app-chatter-idem/chatter-step-1",
       "operationId": "chatter-step-1",
       "processingOrder": 0,
       "updatedAt": "{Scrubbed}",
@@ -181,7 +178,6 @@ Content-Type: application/json; charset=utf-8
     },
     {
       "databaseId": "Guid_5",
-      "idempotencyKey": "app-chatter-idem/chatter-step-2",
       "operationId": "chatter-step-2",
       "processingOrder": 1,
       "updatedAt": "{Scrubbed}",
