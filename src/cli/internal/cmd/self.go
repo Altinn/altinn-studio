@@ -242,11 +242,7 @@ func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	spinner.StopWithSuccess("App-manager installed")
 	c.out.Verbosef("Installed to: %s", result.InstalledPath)
 
-	if err := c.restartAppManagerIfNeeded(ctx, wasRunning, ""); err != nil {
-		return err
-	}
-
-	return nil
+	return c.restartAppManagerIfNeeded(ctx, wasRunning, "")
 }
 
 func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
@@ -336,7 +332,11 @@ func (c *SelfCommand) stopAppManagerForReplacement(ctx context.Context) (bool, e
 	return true, nil
 }
 
-func (c *SelfCommand) restartAppManagerAfterFailedReplacement(ctx context.Context, wasRunning bool, studioctlPath string) {
+func (c *SelfCommand) restartAppManagerAfterFailedReplacement(
+	ctx context.Context,
+	wasRunning bool,
+	studioctlPath string,
+) {
 	if !wasRunning {
 		return
 	}
@@ -357,21 +357,27 @@ func (c *SelfCommand) restartAppManagerIfNeeded(ctx context.Context, wasRunning 
 
 func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath string) error {
 	if studioctlPath == "" {
-		return appmanager.EnsureStarted(
+		if err := appmanager.EnsureStarted(
 			ctx,
 			c.cfg,
 			envlocaltest.DefaultLoadBalancerPortString(),
 			envlocaltest.ResolveLocalAppURL(),
-		)
+		); err != nil {
+			return fmt.Errorf("ensure app-manager started: %w", err)
+		}
+		return nil
 	}
 
-	return appmanager.EnsureStartedWithStudioctlPath(
+	if err := appmanager.EnsureStartedWithStudioctlPath(
 		ctx,
 		c.cfg,
 		envlocaltest.DefaultLoadBalancerPortString(),
 		envlocaltest.ResolveLocalAppURL(),
 		studioctlPath,
-	)
+	); err != nil {
+		return fmt.Errorf("ensure app-manager started with studioctl path: %w", err)
+	}
+	return nil
 }
 
 func (c *SelfCommand) runUninstall(args []string) error {

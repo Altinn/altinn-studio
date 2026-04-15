@@ -40,7 +40,10 @@ func (s *Service) InstallAppManager(ctx context.Context) (result InstallAppManag
 }
 
 // InstallAppManagerVersion installs the app-manager payload for a specific studioctl release version.
-func (s *Service) InstallAppManagerVersion(ctx context.Context, version string) (result InstallAppManagerResult, err error) {
+func (s *Service) InstallAppManagerVersion(
+	ctx context.Context,
+	version string,
+) (result InstallAppManagerResult, err error) {
 	installedPath, err := s.installAppManagerPayload(ctx, version)
 	if err != nil {
 		return InstallAppManagerResult{}, err
@@ -49,7 +52,10 @@ func (s *Service) InstallAppManagerVersion(ctx context.Context, version string) 
 	return InstallAppManagerResult{InstalledPath: installedPath}, nil
 }
 
-func (s *Service) installAppManagerPayload(ctx context.Context, releaseVersion string) (installedPath string, err error) {
+func (s *Service) installAppManagerPayload(
+	ctx context.Context,
+	releaseVersion string,
+) (installedPath string, err error) {
 	if localSourcePath := os.Getenv(config.EnvAppManagerBinary); localSourcePath != "" {
 		return s.installAppManagerFromLocalSource(localSourcePath)
 	}

@@ -118,14 +118,8 @@ func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
 		return nil, err
 	}
 
-	if err := client.shutdown(ctx); err != nil {
-		if !errors.Is(err, ErrNotRunning) {
-			if pid <= 0 {
-				return nil, fmt.Errorf("shutdown app-manager: %w", err)
-			}
-		} else if pid <= 0 {
-			return nil, ErrNotRunning
-		}
+	if err := shutdownError(client.shutdown(ctx), pid); err != nil {
+		return nil, err
 	}
 
 	done := make(chan error, 1)
@@ -135,6 +129,22 @@ func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
 	}()
 
 	return done, nil
+}
+
+func shutdownError(err error, pid int) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, ErrNotRunning) {
+		if pid <= 0 {
+			return ErrNotRunning
+		}
+		return nil
+	}
+	if pid <= 0 {
+		return fmt.Errorf("shutdown app-manager: %w", err)
+	}
+	return nil
 }
 
 // Health checks whether app-manager is reachable.
