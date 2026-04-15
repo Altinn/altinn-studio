@@ -93,8 +93,15 @@ func MaterializeDockerfile(spec *BuildSpec) (func() error, error) {
 	return cleanup, nil
 }
 
-func dockerBuildInputs(runRepo repoContext) (contextPath, dockerfile, dockerfileContent string, err error) {
+func dockerBuildInputs(runRepo repoContext) (string, string, string, error) {
 	if !runRepo.UseGeneratedDockerfile {
+		content, ok, err := appDockerfileWithConfigCopy(runRepo)
+		if err != nil {
+			return "", "", "", err
+		}
+		if ok {
+			return runRepo.BuildRoot, "", content, nil
+		}
 		return runRepo.BuildRoot, filepath.Join(runRepo.AppRoot, "Dockerfile"), "", nil
 	}
 

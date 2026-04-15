@@ -19,6 +19,7 @@ const dockerfileCopyMinFields = 4
 var (
 	errUnsupportedAppDockerfile = errors.New("unsupported app Dockerfile")
 	errExpectedMultiStage       = errors.New("expected a multi-stage Dockerfile")
+	errDockerfileStageNotFound  = errors.New("dockerfile stage not found")
 )
 
 func generateDockerfile(runRepo repoContext) (string, error) {
@@ -104,6 +105,40 @@ func appDockerfileFinalStage(appRoot string) (string, error) {
 	return stage, nil
 }
 
+func appDockerfileWithConfigCopy(runRepo repoContext) (string, bool, error) {
+	instruction, ok, err := appConfigCopyInstruction(runRepo)
+	if err != nil {
+		return "", false, err
+	}
+	if !ok {
+		return "", false, nil
+	}
+
+	dockerfile := filepath.Join(runRepo.AppRoot, "Dockerfile")
+	//nolint:gosec // G304: appRoot comes from repository detection and is constrained before use.
+	data, err := os.ReadFile(dockerfile)
+	if err != nil {
+		return "", false, fmt.Errorf("read app Dockerfile: %w", err)
+	}
+	if dockerfileCopiesAppConfigToOutput(string(data)) {
+		return "", false, nil
+	}
+	insertAt, err := namedStageEnd(data, "build")
+	if err != nil {
+		return "", false, fmt.Errorf("%w: %s: %w", errUnsupportedAppDockerfile, dockerfile, err)
+	}
+
+	var b strings.Builder
+	b.Grow(len(data) + len(instruction) + 1)
+	b.Write(data[:insertAt])
+	if insertAt > 0 && data[insertAt-1] != '\n' {
+		b.WriteByte('\n')
+	}
+	b.WriteString(instruction)
+	b.Write(data[insertAt:])
+	return b.String(), true, nil
+}
+
 func finalStageStart(data []byte) (int, error) {
 	fromCount := 0
 	finalFromStart := -1
@@ -123,8 +158,57 @@ func finalStageStart(data []byte) (int, error) {
 	return finalFromStart, nil
 }
 
+func namedStageEnd(data []byte, stageName string) (int, error) {
+	stageStart, err := namedStageStart(data, stageName)
+	if err != nil {
+		return 0, err
+	}
+
+	offset := stageStart
+	continued := false
+	for _, line := range bytes.SplitAfter(data[stageStart:], []byte("\n")) {
+		if offset > stageStart && !continued && isDockerfileInstruction(line, "FROM") {
+			return offset, nil
+		}
+		continued = dockerfileLineContinues(string(line))
+		offset += len(line)
+	}
+	return len(data), nil
+}
+
+func namedStageStart(data []byte, stageName string) (int, error) {
+	offset := 0
+	continued := false
+	for _, line := range bytes.SplitAfter(data, []byte("\n")) {
+		if !continued && isNamedStage(line, stageName) {
+			return offset, nil
+		}
+		continued = dockerfileLineContinues(string(line))
+		offset += len(line)
+	}
+	return 0, fmt.Errorf("%w: %s", errDockerfileStageNotFound, stageName)
+}
+
+func isNamedStage(line []byte, stageName string) bool {
+	if !isDockerfileInstruction(line, "FROM") {
+		return false
+	}
+
+	fields := strings.Fields(string(line))
+	for i := 1; i+1 < len(fields); i++ {
+		if strings.EqualFold(fields[i], "AS") && strings.EqualFold(fields[i+1], stageName) {
+			return true
+		}
+	}
+	return false
+}
+
 func finalStageCopiesGeneratedBuildOutput(stage string) bool {
 	return slices.ContainsFunc(dockerfileInstructions(stage), copyFromBuildOutput)
+}
+
+func dockerfileCopiesAppConfigToOutput(content string) bool {
+	return slices.ContainsFunc(dockerfileInstructions(content), copyAppConfigToOutput)
 }
 
 func dockerfileInstructions(content string) []string {
@@ -175,6 +259,67 @@ func copyFromBuildOutput(instruction string) bool {
 	return false
 }
 
+func copyAppConfigToOutput(instruction string) bool {
+	if !isDockerfileInstruction([]byte(instruction), "COPY") {
+		return false
+	}
+
+	paths, ok := copyInstructionPaths(instruction)
+	if !ok || len(paths) < 2 {
+		return false
+	}
+
+	dest := normalizeDockerfilePath(paths[len(paths)-1])
+	if dest != "/app_output/config" {
+		return false
+	}
+
+	for _, source := range paths[:len(paths)-1] {
+		if normalizeDockerfileSourcePath(source) == "App/config" {
+			return true
+		}
+	}
+	return false
+}
+
+func copyInstructionPaths(instruction string) ([]string, bool) {
+	trimmed := strings.TrimSpace(instruction)
+	fields := strings.Fields(trimmed)
+	if len(fields) < 2 || !strings.EqualFold(fields[0], "COPY") {
+		return nil, false
+	}
+
+	rest := strings.TrimSpace(strings.TrimPrefix(trimmed, fields[0]))
+	if strings.HasPrefix(rest, "[") {
+		var paths []string
+		if err := json.Unmarshal([]byte(rest), &paths); err != nil {
+			return nil, false
+		}
+		return paths, true
+	}
+
+	paths := fields[1:]
+	for len(paths) > 0 && strings.HasPrefix(paths[0], "--") {
+		paths = paths[1:]
+	}
+	return paths, true
+}
+
+func normalizeDockerfileSourcePath(path string) string {
+	path = strings.TrimPrefix(normalizeDockerfilePath(path), "/")
+	path = strings.TrimPrefix(path, "./")
+	return pathpkg.Clean(path)
+}
+
+func normalizeDockerfilePath(path string) string {
+	path = strings.Trim(path, `"'`)
+	path = strings.TrimSuffix(path, "/")
+	if path == "" {
+		return "."
+	}
+	return pathpkg.Clean(path)
+}
+
 func isDockerfileInstruction(line []byte, instruction string) bool {
 	trimmed := strings.TrimLeft(string(line), " \t")
 	if trimmed == "" || strings.HasPrefix(trimmed, "#") {
@@ -210,17 +355,34 @@ func writeCopyDir(b *strings.Builder, contextRoot, path string) error {
 }
 
 func writeAppConfigCopy(b *strings.Builder, runRepo repoContext) error {
+	instruction, ok, err := appConfigCopyInstruction(runRepo)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	b.WriteString(instruction)
+	return nil
+}
+
+func appConfigCopyInstruction(runRepo repoContext) (string, bool, error) {
 	configDir := filepath.Join(runRepo.AppRoot, "App", "config")
 	if !dirExists(configDir) {
-		return nil
+		return "", false, nil
 	}
 
 	rel, err := relPathWithin(runRepo.BuildRoot, configDir)
 	if err != nil {
-		return err
+		return "", false, err
 	}
 
-	return writeRun(b, "sh", "-c", "rm -rf /app_output/config && cp -R "+shellQuote("/repo/"+rel)+" /app_output/config")
+	var b strings.Builder
+	if err := writeDockerfileInstruction(&b, "COPY", filepath.ToSlash(rel)+"/", "/app_output/config/"); err != nil {
+		return "", false, err
+	}
+
+	return b.String(), true, nil
 }
 
 func writeRun(b *strings.Builder, args ...string) error {
@@ -237,8 +399,4 @@ func writeDockerfileInstruction(b *strings.Builder, instruction string, args ...
 	b.Write(encoded)
 	b.WriteByte('\n')
 	return nil
-}
-
-func shellQuote(value string) string {
-	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
 }
