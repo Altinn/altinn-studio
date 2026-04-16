@@ -9,6 +9,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -26,12 +27,19 @@ type Executor struct {
 
 const containerSpecHashLabel = "altinn.studio/devenv-spec-hash"
 const networkResourceIDPrefix = "network:"
+const containerReadyTimeout = 2 * time.Minute
+const containerReadyPollInterval = 500 * time.Millisecond
+const containerStatusExited = "exited"
+const containerStatusDead = "dead"
 
 var (
 	errUnknownResourceType      = errors.New("unknown resource type")
 	errImageNotResolved         = errors.New("image not resolved")
 	errNetworkNameUnresolvable  = errors.New("cannot resolve network name")
 	errImageMissingForPullNever = errors.New("image not found locally and pull policy is Never")
+	errContainerExited          = errors.New("container exited before becoming ready")
+	errContainerUnhealthy       = errors.New("container healthcheck failed")
+	errContainerReadyTimeout    = errors.New("container did not become ready before timeout")
 )
 
 // NewExecutor creates an executor with the given container client.
@@ -89,6 +97,10 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 			eg.Go(func() error {
 				e.notify(EventDestroyStart, r.ID(), nil)
 				if err := e.destroyResource(groupCtx, r); err != nil {
+					if handleDestroyError(r, err) == ErrorDecisionIgnore {
+						e.notify(EventDestroyDone, r.ID(), nil)
+						return nil
+					}
 					e.notify(EventDestroyFailed, r.ID(), err)
 					return fmt.Errorf("destroy %s: %w", r.ID(), err)
 				}
@@ -214,7 +226,7 @@ func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) error {
 
 	if err := e.client.BuildWithProgress(ctx, img.ContextPath, dockerfile, img.Tag, func(update types.ProgressUpdate) {
 		e.notifyProgress(img.ID(), progressFromContainerUpdate(update))
-	}); err != nil {
+	}, img.Build); err != nil {
 		return fmt.Errorf("build image %s: %w", img.Tag, err)
 	}
 
@@ -278,6 +290,20 @@ func (e *Executor) destroyNetwork(ctx context.Context, net *Network) error {
 		return fmt.Errorf("remove network %s: %w", net.Name, err)
 	}
 	return nil
+}
+
+func handleDestroyError(r Resource, err error) ErrorDecision {
+	provider, ok := r.(LifecycleOptionsProvider)
+	if !ok {
+		return ErrorDecisionDefault
+	}
+
+	options := provider.LifecycleOptions()
+	if options.HandleDestroyError == nil {
+		return ErrorDecisionDefault
+	}
+
+	return options.HandleDestroyError(err)
 }
 
 func (e *Executor) networkStatus(ctx context.Context, net *Network) (Status, error) {
@@ -344,10 +370,10 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 			if startErr := e.client.ContainerStart(ctx, c.Name); startErr != nil {
 				return fmt.Errorf("start container %s: %w", c.Name, startErr)
 			}
-			return nil
+			return e.waitForContainerReadyIfEnabled(ctx, c)
 		} else {
 			// Already running with correct config
-			return nil
+			return e.waitForContainerReadyIfEnabled(ctx, c)
 		}
 	} else if !errors.Is(err, types.ErrContainerNotFound) {
 		return fmt.Errorf("inspect container %s: %w", c.Name, err)
@@ -355,17 +381,18 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 
 	// Create container
 	cfg := types.ContainerConfig{
-		Name:          c.Name,
-		Image:         imageID,
-		Command:       c.Command,
-		Env:           c.Env,
-		Ports:         c.Ports,
-		Volumes:       c.Volumes,
-		ExtraHosts:    c.ExtraHosts,
-		RestartPolicy: c.RestartPolicy,
-		Labels:        desiredLabels,
-		Detach:        true,
-		User:          c.User,
+		Name:           c.Name,
+		Image:          imageID,
+		Command:        c.Command,
+		Env:            c.Env,
+		Ports:          c.Ports,
+		Volumes:        c.Volumes,
+		ExtraHosts:     c.ExtraHosts,
+		NetworkAliases: c.NetworkAliases,
+		RestartPolicy:  c.RestartPolicy,
+		Labels:         desiredLabels,
+		Detach:         true,
+		User:           c.User,
 	}
 
 	cfg.Networks = networks
@@ -378,7 +405,7 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 	// Connect to additional networks
 	// TODO: implement NetworkConnect in container client for multiple networks
 
-	return nil
+	return e.waitForContainerReadyIfEnabled(ctx, c)
 }
 
 func (e *Executor) destroyContainer(ctx context.Context, c *Container) error {
@@ -423,17 +450,80 @@ func (e *Executor) containerStatus(ctx context.Context, c *Container) (Status, e
 	}
 
 	switch {
-	case info.State.Running:
+	case info.State.Running && containerHealthReady(info.State.HealthStatus):
 		return StatusReady, nil
+	case info.State.Running && containerHealthFailed(info.State.HealthStatus):
+		return StatusFailed, nil
+	case info.State.Running:
+		return StatusPending, nil
 	case info.State.Status == "created":
 		return StatusPending, nil
-	case info.State.Status == "exited" && info.State.ExitCode == 0:
+	case info.State.Status == containerStatusExited && info.State.ExitCode == 0:
 		return StatusReady, nil
-	case info.State.Status == "exited":
+	case info.State.Status == containerStatusExited:
 		return StatusFailed, nil
 	default:
 		return StatusUnknown, nil
 	}
+}
+
+func (e *Executor) waitForContainerReady(ctx context.Context, name string) error {
+	waitCtx, cancel := context.WithTimeout(ctx, containerReadyTimeout)
+	defer cancel()
+
+	for {
+		info, err := e.client.ContainerInspect(waitCtx, name)
+		if err != nil {
+			return fmt.Errorf("inspect container %s: %w", name, err)
+		}
+
+		if containerReady(info.State) {
+			return nil
+		}
+		if err := containerReadinessError(name, info.State); err != nil {
+			return err
+		}
+
+		timer := time.NewTimer(containerReadyPollInterval)
+		select {
+		case <-waitCtx.Done():
+			timer.Stop()
+			if errors.Is(waitCtx.Err(), context.DeadlineExceeded) {
+				return fmt.Errorf("%w: %s", errContainerReadyTimeout, name)
+			}
+			return fmt.Errorf("wait for container %s: %w", name, waitCtx.Err())
+		case <-timer.C:
+		}
+	}
+}
+
+func (e *Executor) waitForContainerReadyIfEnabled(ctx context.Context, c *Container) error {
+	if !c.Lifecycle.WaitForReady {
+		return nil
+	}
+	return e.waitForContainerReady(ctx, c.Name)
+}
+
+func containerReady(state types.ContainerState) bool {
+	return state.Running && containerHealthReady(state.HealthStatus)
+}
+
+func containerHealthReady(status string) bool {
+	return status == "" || strings.EqualFold(status, "healthy")
+}
+
+func containerHealthFailed(status string) bool {
+	return strings.EqualFold(status, "unhealthy")
+}
+
+func containerReadinessError(name string, state types.ContainerState) error {
+	if containerHealthFailed(state.HealthStatus) {
+		return fmt.Errorf("%w: %s", errContainerUnhealthy, name)
+	}
+	if state.Status == containerStatusExited || state.Status == containerStatusDead {
+		return fmt.Errorf("%w: %s (status %s, exit code %d)", errContainerExited, name, state.Status, state.ExitCode)
+	}
+	return nil
 }
 
 func (e *Executor) notify(event EventType, id ResourceID, err error) {
@@ -509,6 +599,7 @@ func containerSpecHash(c *Container, imageID string, networks []string) string {
 	writeSortedList(&b, "networks", networks)
 	writeSortedList(&b, "env", c.Env)
 	writeSortedList(&b, "extraHosts", c.ExtraHosts)
+	writeSortedList(&b, "networkAliases", c.NetworkAliases)
 
 	b.WriteString("command=")
 	b.WriteString(strings.Join(c.Command, "\x00"))

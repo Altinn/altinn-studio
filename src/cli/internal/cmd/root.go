@@ -55,6 +55,7 @@ func NewCLI(cfg *config.Config) *CLI {
 		commands: make(map[string]Command),
 	}
 
+	// TODO: stop command as well, --detach for .net runs as well?
 	cli.Register(NewRunCommand(cfg, out))
 	cli.Register(NewEnvCommand(cfg, out))
 	cli.Register(NewAuthCommand(cfg, out))
@@ -63,6 +64,7 @@ func NewCLI(cfg *config.Config) *CLI {
 	cli.Register(NewAppCommand(cfg, out))
 	cli.Register(NewServersCommand(cfg, out))
 	cli.Register(NewShellCommand(cfg, out))
+	cli.Register(NewAppContainersCommand(cfg, out))
 
 	return cli
 }
@@ -87,7 +89,7 @@ func (c *CLI) Run(ctx context.Context, args []string) int {
 	}
 
 	if cmdName == "-V" || cmdName == flagVersion || cmdName == versionSubcmd {
-		c.out.Printf("%s %s\n", osutil.CurrentBin(), c.cfg.Version)
+		c.out.Printlnf("%s %s", osutil.CurrentBin(), c.cfg.Version)
 		return 0
 	}
 
@@ -108,9 +110,11 @@ func (c *CLI) Run(ctx context.Context, args []string) int {
 }
 
 func (c *CLI) printUsage() {
-	c.out.Printf("%s - Altinn Studio CLI\n\n", osutil.CurrentBin())
-	c.out.Printf("Usage: %s <command> [options]\n\n", osutil.CurrentBin())
-	c.out.Printf("Commands:\n")
+	c.out.Printlnf("%s - Altinn Studio CLI", osutil.CurrentBin())
+	c.out.Println("")
+	c.out.Printlnf("Usage: %s <command> [options]", osutil.CurrentBin())
+	c.out.Println("")
+	c.out.Println("Commands:")
 
 	maxLen := 0
 	for name := range c.commands {
@@ -122,17 +126,19 @@ func (c *CLI) printUsage() {
 	order := []string{"run", "env", "auth", "app", "install", "doctor", "self", "servers", "shell"}
 	for _, name := range order {
 		if cmd, ok := c.commands[name]; ok {
-			c.out.Printf("  %-*s  %s\n", maxLen+2, name, cmd.Synopsis())
+			c.out.Printlnf("  %-*s  %s", maxLen+2, name, cmd.Synopsis())
 		}
 	}
 
-	c.out.Printf("\nGlobal Options:\n")
-	c.out.Printf("  --home DIR        Override home directory (default: %s)\n", defaultHomePathForHelp())
-	c.out.Printf("  --socket-dir DIR  Override socket directory\n")
-	c.out.Printf("  -v, --verbose     Verbose output\n")
-	c.out.Printf("  -V, --version     Print version\n")
-	c.out.Printf("  -h, --help        Print help\n")
-	c.out.Printf("\nRun '%s <command> --help' for more information on a command.\n", osutil.CurrentBin())
+	c.out.Println("")
+	c.out.Println("Global Options:")
+	c.out.Printlnf("  --home DIR        Override home directory (default: %s)", defaultHomePathForHelp())
+	c.out.Println("  --socket-dir DIR  Override socket directory")
+	c.out.Println("  -v, --verbose     Verbose output")
+	c.out.Println("  -V, --version     Print version")
+	c.out.Println("  -h, --help        Print help")
+	c.out.Println("")
+	c.out.Printlnf("Run '%s <command> --help' for more information on a command.", osutil.CurrentBin())
 }
 
 func defaultHomePathForHelp() string {
@@ -291,8 +297,9 @@ func initializeMainConfig(flags config.Flags, args []string) (*config.Config, er
 
 	fmt.Fprintf(
 		os.Stderr,
-		"warning: config initialization failed, running doctor with fallback paths: %v\n",
+		"warning: config initialization failed, running doctor with fallback paths: %v%s",
 		err,
+		osutil.LineBreak,
 	)
 	return fallbackCfg, nil
 }
@@ -301,13 +308,13 @@ func initializeMainConfig(flags config.Flags, args []string) (*config.Config, er
 func Main() int {
 	flags, args, err := ParseGlobalFlags()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error parsing flags: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error parsing flags: %v%s", err, osutil.LineBreak)
 		return 1
 	}
 
 	cfg, err := initializeMainConfig(flags, args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "%v%s", err, osutil.LineBreak)
 		return 1
 	}
 

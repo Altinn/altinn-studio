@@ -76,6 +76,18 @@ func TestDefaultAssetName(t *testing.T) {
 	}
 }
 
+func TestAppManagerAssetName(t *testing.T) {
+	t.Parallel()
+
+	got, err := self.AppManagerAssetName("windows", "amd64")
+	if err != nil {
+		t.Fatalf("AppManagerAssetName() unexpected error: %v", err)
+	}
+	if got != "app-manager-windows-amd64.tar.gz" {
+		t.Fatalf("AppManagerAssetName() = %q, want %q", got, "app-manager-windows-amd64.tar.gz")
+	}
+}
+
 func TestChecksumForAsset(t *testing.T) {
 	t.Parallel()
 

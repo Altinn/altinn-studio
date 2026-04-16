@@ -60,8 +60,7 @@ if (-not $Asset) {
 }
 
 if (-not $InstallDir -and [Console]::IsInputRedirected) {
-    if (-not $env:LOCALAPPDATA) { throw "LOCALAPPDATA not set and -InstallDir not provided" }
-    $InstallDir = Join-Path (Join-Path $env:LOCALAPPDATA "Programs") "studioctl"
+    throw "Non-interactive install requires -InstallDir or STUDIOCTL_INSTALL_DIR"
 }
 
 if ($Version -eq "latest") {

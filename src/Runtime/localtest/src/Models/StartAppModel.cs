@@ -95,10 +95,5 @@ namespace LocalTest.Models
         /// The current app mode
         /// </summary>
         public AppMode AppMode { get; set; }
-
-        /// <summary>
-        /// Whether there are any registered apps
-        /// </summary>
-        public bool HasRegisteredApps { get; set; }
     }
 }

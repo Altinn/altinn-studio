@@ -1,8 +1,12 @@
 package dockerapi
 
 import (
+	"errors"
+	"io"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
 
@@ -10,6 +14,10 @@ import (
 	dockermount "github.com/docker/docker/api/types/mount"
 	systemtypes "github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/pkg/jsonmessage"
+)
+
+var errNetworkActiveEndpoints = errors.New(
+	`error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`,
 )
 
 func TestBuildBindMounts(t *testing.T) {
@@ -51,6 +59,14 @@ func TestBuildBindMounts(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("buildBindMounts()[%d] = %#v, want %#v", i, got[i], want[i])
 		}
+	}
+}
+
+func TestIsNetworkInUseError_ActiveEndpoints(t *testing.T) {
+	t.Parallel()
+
+	if !isNetworkInUseError(errNetworkActiveEndpoints) {
+		t.Fatal("isNetworkInUseError() = false, want true")
 	}
 }
 
@@ -153,8 +169,106 @@ func TestBuild_ColimaRequiresDockerCLIAtCallSite(t *testing.T) {
 	if err == nil {
 		t.Fatal("Build() error = nil, want non-nil")
 	}
-	if want := "container build CLI not found"; !strings.Contains(err.Error(), want) {
+	if want := "container runtime CLI not found"; !strings.Contains(err.Error(), want) {
 		t.Fatalf("Build() error = %q", err)
+	}
+}
+
+func TestDemuxDockerLogs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "stdout and stderr frames",
+			input: dockerLogFrame(1, "hello") + dockerLogFrame(2, "warn\n"),
+			want:  "hellowarn\n",
+		},
+		{
+			name:  "partial lines stay contiguous",
+			input: dockerLogFrame(1, "war") + dockerLogFrame(1, "n: one\n"),
+			want:  "warn: one\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			logs := demuxDockerLogs(io.NopCloser(strings.NewReader(tt.input)))
+			got, err := io.ReadAll(logs)
+			if closeErr := logs.Close(); closeErr != nil {
+				t.Fatalf("Close() error = %v", closeErr)
+			}
+			if err != nil {
+				t.Fatalf("ReadAll() error = %v", err)
+			}
+			if string(got) != tt.want {
+				t.Fatalf("demuxDockerLogs() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDemuxDockerLogs_CloseStopsReaderCleanly(t *testing.T) {
+	t.Parallel()
+
+	sourceReader, sourceWriter := io.Pipe()
+	defer func() {
+		if err := sourceWriter.Close(); err != nil {
+			return
+		}
+	}()
+
+	logs := demuxDockerLogs(sourceReader)
+	done := make(chan error, 1)
+	go func() {
+		_, err := io.ReadAll(logs)
+		done <- err
+	}()
+
+	if err := logs.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("ReadAll() error = %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("ReadAll() did not stop after Close()")
+	}
+}
+
+func dockerLogFrame(stream byte, payload string) string {
+	return string([]byte{stream, 0, 0, 0, 0, 0, 0, byte(len(payload))}) + payload
+}
+
+func TestDockerBuildArgs_IncludesRegistryCache(t *testing.T) {
+	t.Parallel()
+
+	got := dockerBuildArgs(".", "Dockerfile", "localtest:dev", types.BuildOptions{
+		CacheFrom: []string{"type=registry,ref=example/cache:latest"},
+		CacheTo:   []string{"type=registry,ref=example/cache:latest,mode=max"},
+	})
+	want := []string{
+		"buildx", "build",
+		"--load",
+		"--progress", "rawjson",
+		"--provenance=false",
+		"--sbom=false",
+		"--cache-from", "type=registry,ref=example/cache:latest",
+		"--cache-to", "type=registry,ref=example/cache:latest,mode=max",
+		"-t", "localtest:dev",
+		"-f", "Dockerfile",
+		".",
+	}
+	if !slices.Equal(got, want) {
+		t.Fatalf("dockerBuildArgs() = %#v, want %#v", got, want)
 	}
 }
 

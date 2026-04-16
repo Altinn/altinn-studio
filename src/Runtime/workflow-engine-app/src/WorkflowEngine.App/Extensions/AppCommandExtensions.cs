@@ -1,6 +1,10 @@
 using Microsoft.Extensions.Options;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.App.Constants;
+using WorkflowEngine.Commands.Extensions;
+
+// CA1305: Specify IFormatProvider
+#pragma warning disable CA1305
 
 namespace WorkflowEngine.App.Extensions;
 
@@ -39,9 +43,18 @@ internal static class AppCommandOptionsBuilderExtensions
         public OptionsBuilder<AppCommandSettings> ValidateAppCommandSettings()
         {
             const string ns = nameof(AppCommandSettings);
+            AppWorkflowContext dummyContext = new()
+            {
+                Actor = new Actor { UserIdOrOrgNumber = "501337" },
+                App = "app",
+                Org = "org",
+                InstanceOwnerPartyId = 12345,
+                InstanceGuid = Guid.NewGuid(),
+                LockToken = "asdf",
+            };
 
             builder.Validate(
-                config => Uri.TryCreate(config.CommandEndpoint, UriKind.Absolute, out _),
+                config => Uri.TryCreate(config.CommandEndpoint.FormatWith(dummyContext), UriKind.Absolute, out _),
                 $"{ns}.{nameof(AppCommandSettings.CommandEndpoint)} does not appear to be a valid URL."
             );
 

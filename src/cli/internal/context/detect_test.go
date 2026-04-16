@@ -3,7 +3,6 @@ package context_test
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -161,7 +160,7 @@ func TestDetect_StudioRepo(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	createGitRepo(t, root, "https://github.com/Altinn/altinn-studio.git")
+	createStudioRepoMarker(t, root)
 	start := filepath.Join(root, "src", "Designer")
 	if err := os.MkdirAll(start, osutil.DirPermDefault); err != nil {
 		t.Fatal(err)
@@ -179,18 +178,39 @@ func TestDetect_StudioRepo(t *testing.T) {
 	}
 }
 
-func TestDetect_StudioRepo_NoMatchingRemote(t *testing.T) {
+func TestDetect_StudioRepo_MarkerMissing(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	createGitRepo(t, root, "https://github.com/example/other.git")
-
 	result, err := repocontext.Detect(context.Background(), root, "")
 	if err != nil {
 		t.Fatalf("Detect() error = %v", err)
 	}
 	if result.InStudioRepo {
 		t.Fatal("expected InStudioRepo=false")
+	}
+}
+
+func TestDetect_StudioRepo_DetectsMarkerInParentDir(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	createStudioRepoMarker(t, root)
+
+	start := filepath.Join(root, "src", "cli")
+	if err := os.MkdirAll(start, osutil.DirPermDefault); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := repocontext.Detect(context.Background(), start, "")
+	if err != nil {
+		t.Fatalf("Detect() error = %v", err)
+	}
+	if !result.InStudioRepo {
+		t.Fatal("expected InStudioRepo=true")
+	}
+	if result.StudioRoot != root {
+		t.Fatalf("StudioRoot = %q, want %q", result.StudioRoot, root)
 	}
 }
 
@@ -229,23 +249,10 @@ func createAppWithCsproj(t *testing.T, root string) {
 	}
 }
 
-func createGitRepo(t *testing.T, root, remoteURL string) {
+func createStudioRepoMarker(t *testing.T, root string) {
 	t.Helper()
 
-	if _, err := exec.LookPath("git"); err != nil {
-		t.Skip("git not available")
-	}
-
-	runGit(t, root, "init")
-	runGit(t, root, "remote", "add", "origin", remoteURL)
-}
-
-func runGit(t *testing.T, repoDir string, args ...string) {
-	t.Helper()
-
-	cmdArgs := append([]string{"-C", repoDir}, args...)
-	cmd := exec.CommandContext(context.Background(), "git", cmdArgs...)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("git %v failed: %v\n%s", args, err, out)
+	if err := os.WriteFile(filepath.Join(root, ".altinn-studio-root"), []byte{}, osutil.FilePermDefault); err != nil {
+		t.Fatal(err)
 	}
 }
