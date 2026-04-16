@@ -72,6 +72,9 @@ export const AboutResourcePage = ({
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap)
     .filter(([key]) => {
+      if (key === 'MigratedApp') {
+        return false;
+      }
       if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
         return false;
       }
