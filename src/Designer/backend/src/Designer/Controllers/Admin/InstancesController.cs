@@ -45,6 +45,7 @@ public class InstancesController : ControllerBase
         [FromQuery] bool? isSoftDeleted,
         [FromQuery] bool? isHardDeleted,
         [FromQuery] DateOnly? createdBefore,
+        [FromQuery] int? size,
         CancellationToken ct
     )
     {
@@ -73,6 +74,7 @@ public class InstancesController : ControllerBase
                 isSoftDeleted,
                 isHardDeleted,
                 createdBefore,
+                size,
                 ct
             );
             return new InstancesResponse()

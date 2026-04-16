@@ -26,6 +26,7 @@ public interface IAltinnStorageInstancesClient
         bool? isSoftDeletedFilter,
         bool? isHardDeletedFilter,
         DateOnly? createdBeforeFilter,
+        int? size,
         CancellationToken ct
     );
 
