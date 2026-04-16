@@ -1,7 +1,6 @@
 package harness
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -10,8 +9,6 @@ import (
 	"regexp"
 	"testing"
 	"time"
-
-	"github.com/docker/docker/pkg/stdcopy"
 
 	"altinn.studio/devenv/pkg/container"
 )
@@ -162,20 +159,12 @@ func readContainerOutput(
 		}
 	}()
 
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-
-	if client.Toolchain().AccessMode == container.AccessDockerEngineAPI {
-		if _, copyErr := stdcopy.StdCopy(&stdout, &stderr, logs); copyErr != nil {
-			return "", "", fmt.Errorf("demux docker logs: %w", copyErr)
-		}
-	} else {
-		if _, copyErr := io.Copy(&stdout, logs); copyErr != nil {
-			return "", "", fmt.Errorf("read logs: %w", copyErr)
-		}
+	output, copyErr := io.ReadAll(logs)
+	if copyErr != nil {
+		return "", "", fmt.Errorf("read logs: %w", copyErr)
 	}
 
-	return stdout.String(), stderr.String(), err
+	return string(output), "", err
 }
 
 func NormalizeVeraPDFXML(report string) string {

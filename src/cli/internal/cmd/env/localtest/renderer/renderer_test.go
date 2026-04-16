@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -417,8 +418,38 @@ func TestScreenRenderer_PrintLinesRepositionsCursorWhenShrinking(t *testing.T) {
 	if !strings.Contains(got, "\033[1A\r") {
 		t.Fatalf("output %q missing shrink cursor adjustment", got)
 	}
+	if !strings.HasSuffix(got, "\r") {
+		t.Fatalf("output %q missing trailing carriage return", got)
+	}
 	if renderer.renderedLines != 2 {
 		t.Fatalf("renderedLines = %d, want 2", renderer.renderedLines)
+	}
+}
+
+func TestScreenRenderer_StopLeavesCursorAtLineStartForFollowupOutput(t *testing.T) {
+	t.Parallel()
+
+	restoreTermFuncs := stubTerminalFuncsForTest(
+		func(int) bool { return true },
+		func(int) (int, int, error) { return 160, 24, nil },
+	)
+	defer restoreTermFuncs()
+
+	out := &fakeFDBuffer{fd: 7}
+	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
+	output := ui.NewOutput(out, io.Discard, false)
+	renderer := NewTable(output, []resource.Resource{image, container}, OperationApply)
+
+	renderer.Start()
+	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: image.ID()})
+	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: container.ID()})
+	renderer.Stop()
+	output.Success("Environment started")
+
+	got := out.String()
+	if !strings.Contains(got, "\rEnvironment started"+osutil.LineBreak) {
+		t.Fatalf("output %q missing flush-left follow-up success line", got)
 	}
 }
 

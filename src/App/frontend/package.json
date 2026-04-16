@@ -6,7 +6,6 @@
   "license": "MIT",
   "exports": "./src/index.tsx",
   "scripts": {
-    "cy:all": "tsx scripts/cypress-run-all.ts",
     "gen": "tsx src/codegen/run.ts",
     "copy-schemas": "tsx scripts/copy-schemas.ts",
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",

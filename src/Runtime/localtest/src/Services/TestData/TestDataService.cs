@@ -1,7 +1,6 @@
 #nullable enable
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
-using LocalTest.Services.AppRegistry;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -14,16 +13,14 @@ public class TestDataService
     private readonly IMemoryCache _cache;
     private readonly LocalPlatformSettings _settings;
     private readonly ILogger<TestDataService> _logger;
-    private readonly AppRegistryService _appRegistryService;
 
-    public TestDataService(ILocalApp localApp, TenorDataRepository tenorDataRepository, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger, AppRegistryService appRegistryService)
+    public TestDataService(ILocalApp localApp, TenorDataRepository tenorDataRepository, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger)
     {
         _localApp = localApp;
         _tenorDataRepository = tenorDataRepository;
         _cache = memoryCache;
         _settings = settings.Value;
         _logger = logger;
-        _appRegistryService = appRegistryService;
     }
 
     public async Task<TestDataModel> GetTestData(CancellationToken cancellationToken = default)
