@@ -40,13 +40,13 @@ func (p *Picker) Run(ctx context.Context) (string, error) {
 		return "", ErrNoWritableLocation
 	}
 
-	p.out.Printf("Where would you like to install %s?\n", osutil.CurrentBin())
+	p.out.Printlnf("Where would you like to install %s?", osutil.CurrentBin())
 	p.out.Println("")
 
 	options := p.buildOptions()
 
 	for i, opt := range options {
-		p.out.Printf("  [%d] %s\n", i+1, opt.Label)
+		p.out.Printlnf("  [%d] %s", i+1, opt.Label)
 	}
 	p.out.Println("")
 

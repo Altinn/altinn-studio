@@ -63,6 +63,7 @@ type UpdateResult struct {
 	Asset         string
 	TargetPath    string
 	ReleaseSource string
+	Version       string
 }
 
 // UninstallResult describes a completed self uninstall.
@@ -75,6 +76,7 @@ type resolvedUpdate struct {
 	binaryBase string
 	checksums  string
 	targetPath string
+	version    string
 	skipCheck  bool
 }
 
@@ -121,6 +123,7 @@ func (s *Service) UpdateBinary(ctx context.Context, opts UpdateOptions) (result 
 		Asset:         resolved.asset,
 		TargetPath:    resolved.targetPath,
 		ReleaseSource: resolved.binaryBase,
+		Version:       resolved.version,
 	}
 	return result, nil
 }
@@ -149,6 +152,7 @@ func resolveUpdateOptions(ctx context.Context, opts UpdateOptions, execPath stri
 		binaryBase: binaryBase,
 		checksums:  checksums,
 		targetPath: execPath,
+		version:    version,
 		skipCheck:  opts.SkipChecksum,
 	}, nil
 }
@@ -472,6 +476,21 @@ func NormalizeReleaseVersion(raw string) (string, error) {
 
 // DefaultAssetName returns the default release asset name for an OS/architecture pair.
 func DefaultAssetName(goos, goarch string) (string, error) {
+	return defaultAssetName("studioctl", goos, goarch)
+}
+
+func defaultAssetName(baseName, goos, goarch string) (string, error) {
+	asset, err := baseAssetName(baseName, goos, goarch)
+	if err != nil {
+		return "", err
+	}
+	if goos == osWindows {
+		asset += exeSuffix
+	}
+	return asset, nil
+}
+
+func baseAssetName(baseName, goos, goarch string) (string, error) {
 	var osPart string
 	switch goos {
 	case osLinux:
@@ -494,11 +513,7 @@ func DefaultAssetName(goos, goarch string) (string, error) {
 		return "", fmt.Errorf("%w: %s", ErrUnsupportedArchitecture, goarch)
 	}
 
-	asset := "studioctl-" + osPart + "-" + archPart
-	if goos == osWindows {
-		asset += exeSuffix
-	}
-	return asset, nil
+	return baseName + "-" + osPart + "-" + archPart, nil
 }
 
 // ReleaseURLs returns binary and checksum URLs for the given repository and release.
