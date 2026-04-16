@@ -14,11 +14,12 @@ import {
   ValidationMask,
   type ValidationsProcessedLast,
   type WaitForValidation,
-} from 'src/features/validation';
+
+ DataModelValidations} from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
 import { mapBackendIssuesToTaskValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
-import { hasValidationErrors, mergeFieldValidations, selectValidations } from 'src/features/validation/utils';
+import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
@@ -52,6 +53,7 @@ export function createValidationSlice(
     state: {
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
     },
+    otherDataElementBackendValidations: {},
     setShowAllBackendErrors: (newValue) =>
       set((state) => {
         state.validation.showAllBackendErrors = newValue;
@@ -95,9 +97,21 @@ export function updateBackendValidations(
       state.validation.state.task = taskValidations;
     }
     if (backendValidations) {
+      const mountedDataElementIds = new Set<string>();
       for (const [dataType, model] of Object.entries(state.data.models)) {
         const dataModelKey = model.dataElementId ?? dataType;
+        mountedDataElementIds.add(dataModelKey);
         model.validations.backend = backendValidations[dataModelKey] ?? {};
+      }
+
+      if (!state.nodes.isEmbedded) {
+        const otherDataElementBackendValidations: DataModelValidations = {};
+        for (const [dataElementId, validations] of Object.entries(backendValidations)) {
+          if (!mountedDataElementIds.has(dataElementId)) {
+            otherDataElementBackendValidations[dataElementId] = validations;
+          }
+        }
+        state.validation.otherDataElementBackendValidations = otherDataElementBackendValidations;
       }
     }
   };
@@ -167,11 +181,13 @@ function ManageShowAllErrors() {
 }
 
 function UpdateShowAllErrors() {
-  const [taskValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
-    state.validation.state.task,
-    state.data.models,
-    state.validation.setShowAllBackendErrors,
-  ]);
+  const [taskValidations, dataModels, otherDataElementBackendValidations, setShowAllErrors] =
+    FormStore.raw.useShallowSelector((state) => [
+      state.validation.state.task,
+      state.data.models,
+      state.validation.otherDataElementBackendValidations,
+      state.validation.setShowAllBackendErrors,
+    ]);
 
   const isFirstRender = useRef(true);
 
@@ -207,40 +223,35 @@ function UpdateShowAllErrors() {
   useEffect(() => {
     const backendMask = ValidationMask.Backend | ValidationMask.CustomBackend;
     const hasFieldErrors =
-      Object.values(dataModels)
-        .flatMap((model) => Object.values(model.validations.backend))
+      [
+        ...Object.values(dataModels).map((model) => model.validations.backend),
+        ...Object.values(otherDataElementBackendValidations),
+      ]
+        .flatMap((validations) => Object.values(validations))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
     if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
       setShowAllErrors(false);
     }
-  }, [dataModels, setShowAllErrors, taskValidations]);
+  }, [dataModels, otherDataElementBackendValidations, setShowAllErrors, taskValidations]);
 
   return null;
 }
 
 export const validationHooks = {
-  useDataElementsWithErrors: (dataType: string) =>
-    FormStore.raw.useMemoSelector((state) => {
-      const dataModel = state.data.models[dataType];
-      if (dataModel) {
-        const mergedValidations = Object.values(
-          mergeFieldValidations(
-            dataModel.validations.backend,
-            dataModel.validations.invalidData,
-            dataModel.validations.schema,
-          ),
-        );
-        for (const fieldValidations of mergedValidations) {
-          for (const validation of fieldValidations) {
-            if (validation.severity === 'error') {
-              return [dataModel.dataElementId ?? dataType];
-            }
-          }
+  useDataElementsWithErrors: (dataElementIds: string[]) =>
+    FormStore.raw.useShallowSelector((state) => {
+      const elementsWithErrors: string[] = [];
+      for (const dataElementId of Object.keys(state.validation.otherDataElementBackendValidations)) {
+        if (!dataElementIds.includes(dataElementId)) {
+          continue;
+        }
+        const validations = state.validation.otherDataElementBackendValidations[dataElementId];
+        if (Object.values(validations).some((v) => hasValidationErrors(v))) {
+          elementsWithErrors.push(dataElementId);
         }
       }
-
-      return [];
+      return elementsWithErrors;
     }),
 
   useShowAllBackendErrors: () => FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors),
