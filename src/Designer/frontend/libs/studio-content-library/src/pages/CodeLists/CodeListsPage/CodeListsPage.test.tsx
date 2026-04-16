@@ -5,7 +5,8 @@ import type { CodeListsPageProps } from './CodeListsPage';
 import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { codeLists, coloursData } from './test-data/codeLists';
+import { codeLists, coloursFile } from './test-data/codeLists';
+import { StringUtils } from '@studio/pure-functions';
 
 // Test data:
 const onPublish = jest.fn();
@@ -72,7 +73,7 @@ describe('CodeListsPage', () => {
     const user = userEvent.setup();
     renderCodeListPage();
 
-    const nameField = getNameField(coloursData.name);
+    const nameField = getNameField(coloursFile.name);
     const newName = 'a';
     await user.clear(nameField);
     await user.type(nameField, newName);
@@ -81,7 +82,7 @@ describe('CodeListsPage', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     const savedCodeLists = onSave.mock.calls[0][0];
     expect(savedCodeLists).toHaveLength(codeLists.length);
-    expect(savedCodeLists[0].name).toEqual(newName);
+    expect(savedCodeLists[0].name).toEqual(newName + '.json');
   });
 
   it('Does not call onSave when there are validation errors', async () => {
@@ -127,7 +128,8 @@ function getCodeListDetails(name: string): HTMLElement {
   else throw new Error('Could not find code list details element.');
 }
 
-const getCodeListHeading = (name: string): HTMLElement => screen.getByRole('button', { name });
+const getCodeListHeading = (name: string): HTMLElement =>
+  screen.getByRole('button', { name: StringUtils.removeEnd(name, '.json') });
 
 const queryCodeListHeading = (name: string): HTMLElement | null =>
   screen.queryByRole('button', { name });

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { ChangeEventHandler, ReactElement, ReactNode } from 'react';
 import { useCodeListEditorTexts } from '../useCodeListEditorTexts';
 import {
@@ -9,22 +9,23 @@ import {
 } from '@studio/components';
 import type { CodeList } from '../../../../types/CodeList';
 import type { CodeListData } from '../../../../types/CodeListData';
-import { updateCodes, updateName } from './utils';
+import { codeListFileToData, updateCodes, updateName } from './utils';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListDataEditor.module.css';
 import { Publishing } from './Publishing';
+import { CodeListFile } from '../../../../types/CodeListFile';
 
 export type CodeListDataEditorProps = Readonly<{
-  data: CodeListData;
+  file: CodeListFile;
   isPublishing: boolean;
   onDelete: () => void;
   onPublish: (data: CodeListData) => void;
-  onUpdate: (newData: CodeListData) => void;
+  onUpdate: (newFile: CodeListFile) => void;
   publishedCodeLists: string[];
 }>;
 
 export function CodeListDataEditor({
-  data,
+  file,
   isPublishing,
   onDelete,
   onPublish,
@@ -34,21 +35,23 @@ export function CodeListDataEditor({
   const texts = useCodeListEditorTexts();
   const { t } = useTranslation();
 
+  const data = useMemo<CodeListData>(() => codeListFileToData(file), [file]);
+
   const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     (event) => {
       const { value } = event.target;
-      const newData = updateName(data, value);
-      onUpdate(newData);
+      const newFile = updateName(file, value);
+      onUpdate(newFile);
     },
-    [data, onUpdate],
+    [file, onUpdate],
   );
 
   const handleCodeListUpdate = useCallback(
     (newCodeList: CodeList): void => {
-      const newData = updateCodes(data, newCodeList);
-      onUpdate(newData);
+      const newFile = updateCodes(file, newCodeList);
+      onUpdate(newFile);
     },
-    [data, onUpdate],
+    [file, onUpdate],
   );
 
   const handlePublish = useCallback((): void => onPublish(data), [data, onPublish]);

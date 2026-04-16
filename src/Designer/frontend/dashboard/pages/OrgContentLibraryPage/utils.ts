@@ -2,6 +2,8 @@ import type {
   TextResources as LibraryTextResources,
   TextResourceWithLanguage as LibraryTextResourceWithLanguage,
   CodeListData as LibraryCodeListData,
+  CodeListFile as LibraryCodeListFile,
+  OrdinaryCodeListFile as LibraryOrdinaryCodeListFile,
 } from '@studio/content-library';
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
@@ -13,10 +15,8 @@ import type {
 } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { CodeListDataNew } from 'app-shared/types/CodeListDataNew';
 import { CODE_LIST_FOLDER } from 'app-shared/constants';
-import { Guard } from '@studio/guard';
 import { FileNameUtils } from '@studio/pure-functions';
 import type { BackendLibraryFile, FileKind, LibraryFile } from 'app-shared/types/LibraryFile';
-import { isCodeListValid } from './validators/isCodelistValid';
 
 export function textResourceWithLanguageToMutationArgs({
   language,
@@ -35,15 +35,13 @@ export function textResourcesWithLanguageToLibraryTextResources({
 
 export function backendCodeListsToLibraryCodeLists(
   response: SharedResourcesResponse,
-): LibraryCodeListData[] {
+): LibraryCodeListFile[] {
   return response.files.map(backendCodeListToLibraryCodeList);
 }
 
-function backendCodeListToLibraryCodeList(backendFile: BackendLibraryFile): LibraryCodeListData {
+function backendCodeListToLibraryCodeList(backendFile: BackendLibraryFile): LibraryCodeListFile {
   const libraryFile = addFileKind(backendFile);
-  const fileWithExtension = FileNameUtils.extractFileName(libraryFile.path);
-  Guard.againstNonJsonTypes(fileWithExtension);
-  const fileName = FileNameUtils.removeExtension(fileWithExtension);
+  const fileName = FileNameUtils.extractFileName(libraryFile.path);
   return tryConvertFile(libraryFile, fileName);
 }
 
@@ -81,42 +79,34 @@ function isOfKind<Kind extends FileKind>(
       );
   }
 }
-function tryConvertFile(file: LibraryFile, fileName: string) {
+
+function tryConvertFile(file: LibraryFile, fileName: string): LibraryCodeListFile {
   switch (file.kind) {
     case 'content':
-      return convertToLibraryCodeListData(file, fileName);
+      return convertToLibraryCodeListFile(file, fileName);
     case 'problem':
-      return displayProblem(fileName);
+      return displayProblem(file, fileName);
     case 'url':
-      return throwForUrl();
+      throw Error('Code list files should be json files.');
   }
 }
 
-function throwForUrl(): LibraryCodeListData {
-  throw Error('Code list files should be json files.');
+function displayProblem(
+  { problem }: LibraryFile<'problem'>,
+  fileName: string,
+): LibraryCodeListFile {
+  return { name: fileName, problem };
 }
 
-function displayProblem(fileName: string): LibraryCodeListData {
-  // TODO: We should show the user that a codelist is corrupted
-  return { name: fileName, codes: [] };
-}
-
-function convertToLibraryCodeListData(
+function convertToLibraryCodeListFile(
   file: LibraryFile<'content'>,
   fileName: string,
-): LibraryCodeListData {
-  try {
-    const decoded = atobUTF8(file.content);
-    const parsed = JSON.parse(decoded);
-    const codeList = parsed.codes || parsed; // Support both formats
-    return {
-      name: fileName,
-      codes: isCodeListValid(codeList) ? codeList : [],
-    };
-  } catch {
-    // TODO: We should show the user that a codelist is corrupted
-    return { name: fileName, codes: [] };
-  }
+): LibraryCodeListFile {
+  const decoded = atobUTF8(file.content);
+  return {
+    name: fileName,
+    content: decoded,
+  };
 }
 
 function atobUTF8(data: string): string {
@@ -138,11 +128,12 @@ export function btoaUTF8(data: string): string {
 
 export function libraryCodeListsToUpdatePayload(
   currentData: SharedResourcesResponse,
-  updatedCodeLists: LibraryCodeListData[],
+  updatedCodeListFiles: LibraryCodeListFile[],
   commitMessage: string,
 ): UpdateSharedResourcesRequest {
-  const files: FileMetadata[] = mapFiles(updatedCodeLists);
-  const updatedNames = new Set(updatedCodeLists.map((cl) => cl.name));
+  const ordinaryFiles = filterOutProblematicFiles(updatedCodeListFiles);
+  const files: FileMetadata[] = mapFiles(ordinaryFiles);
+  const updatedNames = new Set(updatedCodeListFiles.map((cl) => cl.name));
   const deletedFiles = filterFilesToDelete(currentData, updatedNames);
 
   return {
@@ -152,10 +143,16 @@ export function libraryCodeListsToUpdatePayload(
   };
 }
 
-function mapFiles(updatedCodeLists: LibraryCodeListData[]): FileMetadata[] {
-  return updatedCodeLists.map((codeList) => ({
-    path: `${CODE_LIST_FOLDER}/${codeList.name}.json`,
-    content: JSON.stringify(codeList.codes, null, 2),
+const filterOutProblematicFiles = (files: LibraryCodeListFile[]): LibraryOrdinaryCodeListFile[] =>
+  files.filter(hasContent);
+
+const hasContent = (file: LibraryCodeListFile): file is LibraryOrdinaryCodeListFile =>
+  file.hasOwnProperty('content');
+
+function mapFiles(updatedCodeListFiles: LibraryOrdinaryCodeListFile[]): FileMetadata[] {
+  return updatedCodeListFiles.map(({ name, content }) => ({
+    path: `${CODE_LIST_FOLDER}/${name}`,
+    content,
   }));
 }
 
@@ -170,7 +167,7 @@ function filterFilesToDelete(currentData: SharedResourcesResponse, updatedNames:
 }
 
 function isDeleted(file: LibraryFile, updatedNames: Set<string>): boolean {
-  const fileName = FileNameUtils.extractFileName(FileNameUtils.removeExtension(file.path));
+  const fileName = FileNameUtils.extractFileName(file.path);
   return file.kind !== 'problem' && !updatedNames.has(fileName);
 }
 
