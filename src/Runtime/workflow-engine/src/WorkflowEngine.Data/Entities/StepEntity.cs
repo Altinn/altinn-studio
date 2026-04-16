@@ -24,6 +24,8 @@ internal sealed class StepEntity
 
     public DateTimeOffset CreatedAt { get; set; }
 
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
+
     public DateTimeOffset? UpdatedAt { get; set; }
 
     public int ProcessingOrder { get; set; }
@@ -58,6 +60,7 @@ internal sealed class StepEntity
             EngineTraceContext = step.EngineTraceContext,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
+            ExecutionStartedAt = step.ExecutionStartedAt,
             UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
             RequeueCount = step.RequeueCount,
@@ -88,6 +91,7 @@ internal sealed class StepEntity
             Status = Status,
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
+            ExecutionStartedAt = ExecutionStartedAt,
             UpdatedAt = UpdatedAt,
             RequeueCount = RequeueCount,
             Command = command,

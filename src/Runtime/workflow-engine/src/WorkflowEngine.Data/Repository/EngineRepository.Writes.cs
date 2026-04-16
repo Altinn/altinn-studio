@@ -110,6 +110,7 @@ internal sealed partial class EngineRepository
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
                                     .SetProperty(t => t.StateOut, step.StateOut)
                                     .SetProperty(t => t.UpdatedAt, step.UpdatedAt)
+                                    .SetProperty(t => t.ExecutionStartedAt, step.ExecutionStartedAt)
                                     .SetProperty(t => t.EngineTraceContext, step.EngineTraceContext),
                             ct
                         );
@@ -911,6 +912,7 @@ internal sealed partial class EngineRepository
                         var stepErrorHistories = new object[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
                         var stepEngineTraceContexts = new object[allSteps.Count];
+                        var stepExecutionStartedAts = new object[allSteps.Count];
 
                         for (int i = 0; i < allSteps.Count; i++)
                         {
@@ -924,20 +926,24 @@ internal sealed partial class EngineRepository
                                     : DBNull.Value;
                             stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
                             stepEngineTraceContexts[i] = (object?)s.EngineTraceContext ?? DBNull.Value;
+                            stepExecutionStartedAts[i] = s.ExecutionStartedAt.HasValue
+                                ? s.ExecutionStartedAt.Value
+                                : DBNull.Value;
                         }
 
                         const string updateStepsSql = """
                         UPDATE "engine"."Steps" AS s
-                        SET "Status"             = v.status,
-                            "RequeueCount"       = v.requeue_count,
-                            "ErrorHistory"       = v.error_history,
-                            "StateOut"           = v.state_out,
-                            "EngineTraceContext" = v.engine_trace_context,
-                            "UpdatedAt"          = @now
+                        SET "Status"              = v.status,
+                            "RequeueCount"        = v.requeue_count,
+                            "ErrorHistory"        = v.error_history,
+                            "StateOut"            = v.state_out,
+                            "EngineTraceContext"  = v.engine_trace_context,
+                            "ExecutionStartedAt"  = v.execution_started_at,
+                            "UpdatedAt"           = @now
                         FROM (
                             SELECT *
-                            FROM unnest(@ids, @statuses, @requeue_counts, @error_histories, @engine_trace_contexts, @state_outs)
-                                AS t(id, status, requeue_count, error_history, engine_trace_context, state_out)
+                            FROM unnest(@ids, @statuses, @requeue_counts, @error_histories, @engine_trace_contexts, @state_outs, @execution_started_ats)
+                                AS t(id, status, requeue_count, error_history, engine_trace_context, state_out, execution_started_at)
                             ORDER BY t.id
                         ) AS v
                         WHERE s."Id" = v.id
@@ -963,6 +969,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("engine_trace_contexts", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
                                 Value = stepEngineTraceContexts,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("execution_started_ats", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = stepExecutionStartedAts,
                             }
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
@@ -1096,10 +1108,13 @@ internal sealed partial class EngineRepository
                         }
                     }
 
-                    // Reset non-completed steps for all resumed workflows
+                    // Reset non-completed steps for all resumed workflows. Clear
+                    // ExecutionStartedAt so the next attempt populates it fresh — the
+                    // dashboard derives step duration from ExecutionStartedAt → UpdatedAt
+                    // and should reflect the new run, not a stale prior attempt.
                     const string resetStepsSql = """
                     UPDATE engine."Steps"
-                    SET "Status" = @enqueued, "RequeueCount" = 0, "UpdatedAt" = @now
+                    SET "Status" = @enqueued, "RequeueCount" = 0, "UpdatedAt" = @now, "ExecutionStartedAt" = NULL
                     WHERE "JobId" = ANY(@ids)
                       AND "Status" != @completed
                     """;

@@ -1,5 +1,8 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.TestKit;
@@ -230,6 +233,114 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var id));
         Assert.Equal(stepId.ToString(), id.GetString());
         Assert.True(doc.RootElement.TryGetProperty("status", out _));
+    }
+
+    [Fact]
+    public async Task Step_CompletedWorkflow_IncludesPersistedExecutionStartedAt()
+    {
+        // Arrange — run a workflow to completion and capture wall-clock bounds so we can
+        // assert that the persisted ExecutionStartedAt falls inside them. Until we added
+        // the column, this was always null and the dashboard could not render step duration.
+        var before = DateTimeOffset.UtcNow;
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
+        );
+        var enqueueResponse = await _client.Enqueue(request);
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        var after = DateTimeOffset.UtcNow;
+
+        var stepId = status.Steps[0].DatabaseId;
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={stepId}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert — ExecutionStartedAt is present, sits between our bounds, and never exceeds UpdatedAt
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+
+        Assert.True(
+            doc.RootElement.TryGetProperty("executionStartedAt", out var startProp),
+            "executionStartedAt must be serialized — the dashboard step-duration display depends on it"
+        );
+        var executionStartedAt = startProp.GetDateTimeOffset();
+        Assert.True(doc.RootElement.TryGetProperty("updatedAt", out var updatedProp));
+        var updatedAt = updatedProp.GetDateTimeOffset();
+
+        Assert.InRange(executionStartedAt, before.AddSeconds(-1), after.AddSeconds(1));
+        Assert.True(executionStartedAt <= updatedAt, "Step must not finish before it started");
+    }
+
+    [Fact]
+    public async Task Step_Resume_PersistsExecutionStartedAtOfLastAttempt()
+    {
+        // Arrange — fail once, then resume via dashboard. We expect the final persisted
+        // ExecutionStartedAt to reflect the *second* attempt, not the first: each retry
+        // overwrites the in-memory value (WorkflowHandler), ResumeWorkflow clears it to
+        // NULL, and the next processing run sets it fresh.
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .RespondWith(Response.Create().WithStatusCode(400).WithBody("Bad Request"));
+
+        var enqueueResponse = await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/fail-then-resume")])
+            )
+        );
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        var stepStatus = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+
+        using var client = fixture.CreateEngineClient();
+        var stepId = stepStatus.Steps[0].DatabaseId;
+
+        // Capture ExecutionStartedAt after the first (failed) attempt.
+        var firstAttemptStart = await FetchExecutionStartedAt(client, workflowId, stepId);
+        Assert.NotNull(firstAttemptStart);
+
+        // Flip WireMock to succeed and trigger the retry via dashboard.
+        fixture.WireMock.Reset();
+        fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200));
+
+        var beforeRetry = DateTimeOffset.UtcNow;
+        using var retryResponse = await client.PostAsJsonAsync(
+            "/dashboard/retry",
+            new { workflowId, @namespace = EngineApiClient.DefaultNamespace },
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal(HttpStatusCode.OK, retryResponse.StatusCode);
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        // Act — read the final persisted value.
+        var secondAttemptStart = await FetchExecutionStartedAt(client, workflowId, stepId);
+
+        // Assert — persisted value reflects the retry, not the original attempt.
+        Assert.NotNull(secondAttemptStart);
+        Assert.True(
+            secondAttemptStart > firstAttemptStart,
+            $"Expected resume's ExecutionStartedAt ({secondAttemptStart:O}) to be later than "
+                + $"the failed attempt's ({firstAttemptStart:O})"
+        );
+        Assert.True(secondAttemptStart >= beforeRetry.AddSeconds(-1));
+    }
+
+    private static async Task<DateTimeOffset?> FetchExecutionStartedAt(HttpClient client, Guid workflowId, Guid stepId)
+    {
+        using var response = await client.GetAsync(
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={stepId}",
+            TestContext.Current.CancellationToken
+        );
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        return doc.RootElement.TryGetProperty("executionStartedAt", out var prop) ? prop.GetDateTimeOffset() : null;
     }
 
     [Fact]
