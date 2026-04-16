@@ -339,7 +339,7 @@ const getCodeListDetails = (codeListTitle: string): HTMLElement =>
 
 const getCodeListHeading = (codeListTitle: string): HTMLElement => getSummaryByText(codeListTitle);
 
-const queryCodeListHeading = (codeListTitle: string): HTMLElement =>
+const queryCodeListHeading = (codeListTitle: string): HTMLElement | null =>
   querySummaryByText(codeListTitle);
 
 const renderCodeListsWithTextResourcesPage = (
