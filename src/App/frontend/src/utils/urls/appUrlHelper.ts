@@ -1,11 +1,11 @@
 import { IgnoredValidators } from 'src/features/validation';
+import { GlobalData } from 'src/GlobalData';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 
 const { org, app } = window;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
-export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
@@ -16,8 +16,6 @@ export const getInstantiateUrl = (language?: string) => {
 };
 
 export const getSetSelectedPartyUrl = (partyId: string | number) => `${appPath}/api/v1/parties/${partyId}`;
-
-export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
 export const getPaymentInformationUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
@@ -72,14 +70,6 @@ export const getActionsUrl = (partyId: string, instanceId: string, language?: st
 export const getCreateInstancesUrl = (partyId: number, language?: string) => {
   const queryString = getQueryStringFromObject({ instanceOwnerPartyId: partyId.toString(), language });
   return `${appPath}/instances${queryString}`;
-};
-
-export const getValidationUrl = (instanceId: string, language: string, onlyIncrementalValidators?: boolean) => {
-  const queryString = getQueryStringFromObject({
-    language,
-    onlyIncrementalValidators: onlyIncrementalValidators?.toString(),
-  });
-  return `${appPath}/instances/${instanceId}/validate${queryString}`;
 };
 
 export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
@@ -150,16 +140,12 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
   window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
 };
 
-export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
-export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
-export const getLayoutsUrl = (uiFolder: string) => `${appPath}/api/layouts/${uiFolder}`;
-export const getInstanceLayoutsUrl = (uiFolder: string, instanceId: string) =>
-  `${appPath}/instances/${instanceId}/layouts/${uiFolder}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
-export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';
-export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
+export const getAppFrontendCDNPath = () => GlobalData.platformFrontendSettings.appFrontendCdnBaseUrl;
+export const getFrontendVersionsCDN = () => `${getAppFrontendCDNPath()}/index.json`;
+export const getHelpCircleIllustrationUrl = () => GlobalData.platformFrontendSettings.helpCircleIllustrationUrl;
 
 export type ParamValue = string | number | boolean | null;
 
@@ -254,4 +240,48 @@ export const getDataListsUrl = ({
   url.search = new URLSearchParams(stringParams).toString();
 
   return url.toString();
+};
+
+export const getFormBootstrapUrlForInstance = (options: {
+  instanceId: string;
+  uiFolder: string;
+  dataElementId?: string;
+  pdf?: boolean;
+  language?: string;
+}): string => {
+  const { instanceId, uiFolder, dataElementId, pdf, language } = options;
+  const params = new URLSearchParams();
+
+  if (dataElementId) {
+    params.set('dataElementId', dataElementId);
+  }
+  if (pdf) {
+    params.set('pdf', 'true');
+  }
+  if (language) {
+    params.set('language', language);
+  }
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return `${appPath}/instances/${instanceId}/bootstrap-form/${uiFolder}${queryString}`;
+};
+
+export const getFormBootstrapUrlForStateless = (options: {
+  uiFolder: string;
+  language?: string;
+  prefill?: string;
+}): string => {
+  const { uiFolder, language, prefill } = options;
+  const params = new URLSearchParams();
+
+  if (language) {
+    params.set('language', language);
+  }
+
+  if (prefill) {
+    params.set('prefill', prefill);
+  }
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return `${appPath}/api/bootstrap-form/${uiFolder}${queryString}`;
 };

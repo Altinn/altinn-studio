@@ -101,7 +101,7 @@ public class DeploymentServiceTest
 
         _applicationInformationService
             .Setup(ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -110,6 +110,17 @@ public class DeploymentServiceTest
                 )
             )
             .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -152,12 +163,10 @@ public class DeploymentServiceTest
 
         // Assert
         Assert.NotNull(deploymentEntity);
-
-        var properties = deploymentEntity.GetType().GetProperties();
-        foreach (var property in properties)
-        {
-            Assert.NotNull(property.GetValue(deploymentEntity));
-        }
+        Assert.NotNull(deploymentEntity.TagName);
+        Assert.NotNull(deploymentEntity.EnvName);
+        Assert.NotNull(deploymentEntity.Org);
+        Assert.NotNull(deploymentEntity.App);
 
         _releaseRepository.Verify(
             r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
@@ -165,12 +174,22 @@ public class DeploymentServiceTest
         );
         _applicationInformationService.Verify(
             ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _applicationInformationService.Verify(
+            ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
                 ),
             Times.Once
         );
@@ -195,6 +214,224 @@ public class DeploymentServiceTest
         );
     }
 
+    [Theory]
+    [InlineData("ttd", "apps-test-tba")]
+    public async Task CreateAsync_WhenResourceRegistryPublishFails_ContinuesPipelineAndRecordsFailedEvent(
+        string org,
+        string app
+    )
+    {
+        // Arrange
+        DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+        _releaseRepository
+            .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(GetReleases("updatedRelease.json").First());
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(false, "Validation errors: some error"));
+
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .ReturnsAsync(
+                (DeploymentEntity entity) =>
+                {
+                    entity.SequenceNo = 1;
+                    return entity;
+                }
+            );
+
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _deploymentLogger.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _featureManager.Object,
+            _runtimeGatewayClient.Object,
+            _slackClient.Object,
+            _alertsSettings,
+            _apiKeyService.Object
+        );
+
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
+        // Act
+        DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+        // Assert
+        Assert.NotNull(deploymentEntity);
+        Assert.NotNull(deploymentEntity.Build);
+
+        _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
+
+        _deployEventRepository.Verify(
+            r =>
+                r.AddBySequenceNoAsync(
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
+                    It.Is<DeployEvent>(e => e.EventType == DeployEventType.ResourceRegistryPublishFailed),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+
+        _deployEventRepository.Verify(
+            r =>
+                r.AddBySequenceNoAsync(
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
+                    It.Is<DeployEvent>(e => e.EventType == DeployEventType.PipelineScheduled),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+
+        _azureDevOpsBuildClient.Verify(
+            b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Theory]
+    [InlineData("ttd", "apps-test-tba")]
+    public async Task CreateAsync_WhenResourceRegistryPublishSucceeds_QueuesPipelineAndRecordsBothEvents(
+        string org,
+        string app
+    )
+    {
+        // Arrange
+        DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+        _releaseRepository
+            .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(GetReleases("updatedRelease.json").First());
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
+
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .ReturnsAsync(
+                (DeploymentEntity entity) =>
+                {
+                    entity.SequenceNo = 1;
+                    return entity;
+                }
+            );
+
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _deploymentLogger.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _featureManager.Object,
+            _runtimeGatewayClient.Object,
+            _slackClient.Object,
+            _alertsSettings,
+            _apiKeyService.Object
+        );
+
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
+
+        // Act
+        DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+        // Assert
+        Assert.NotNull(deploymentEntity);
+        Assert.NotNull(deploymentEntity.Build);
+
+        _deployEventRepository.Verify(
+            r =>
+                r.AddBySequenceNoAsync(
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
+                    It.Is<DeployEvent>(e => e.EventType == DeployEventType.ResourceRegistryPublishSucceeded),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _deployEventRepository.Verify(
+            r =>
+                r.AddBySequenceNoAsync(
+                    It.Is<long>(seq => seq == deploymentEntity.SequenceNo),
+                    It.Is<DeployEvent>(e => e.EventType == DeployEventType.PipelineScheduled),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+
+        _azureDevOpsBuildClient.Verify(
+            b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Once);
+    }
+
     [Fact]
     public async Task CreateAsync_WithW3cActivity_SetsAlwaysSamplingTag()
     {
@@ -211,7 +448,7 @@ public class DeploymentServiceTest
 
         _applicationInformationService
             .Setup(ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -220,6 +457,17 @@ public class DeploymentServiceTest
                 )
             )
             .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -358,7 +606,7 @@ public class DeploymentServiceTest
 
         _applicationInformationService
             .Setup(ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -367,6 +615,17 @@ public class DeploymentServiceTest
                 )
             )
             .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -498,7 +757,7 @@ public class DeploymentServiceTest
 
         _applicationInformationService
             .Setup(ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -507,6 +766,17 @@ public class DeploymentServiceTest
                 )
             )
             .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -616,7 +886,7 @@ public class DeploymentServiceTest
 
         _applicationInformationService
             .Setup(ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -625,6 +895,17 @@ public class DeploymentServiceTest
                 )
             )
             .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -1655,7 +1936,7 @@ public class DeploymentServiceTest
 
         _applicationInformationService
             .Setup(ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -1664,6 +1945,17 @@ public class DeploymentServiceTest
                 )
             )
             .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -1756,7 +2048,7 @@ public class DeploymentServiceTest
 
         _applicationInformationService
             .Setup(ais =>
-                ais.UpdateApplicationInformationAsync(
+                ais.UpdateApplicationMetadataAndPoliciesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -1765,6 +2057,17 @@ public class DeploymentServiceTest
                 )
             )
             .Returns(Task.CompletedTask);
+
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
         _azureDevOpsBuildClient
             .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))

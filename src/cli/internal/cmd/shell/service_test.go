@@ -1,6 +1,9 @@
 package shell_test
 
 import (
+	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	shellsvc "altinn.studio/studioctl/internal/cmd/shell"
@@ -41,5 +44,37 @@ func TestFormatAliasLine_Bash_EscapesSingleQuote(t *testing.T) {
 	want := "alias s='/tmp/ab'\"'\"'cd'"
 	if got != want {
 		t.Fatalf("FormatAliasLine() = %q, want %q", got, want)
+	}
+}
+
+func TestConfigureAlias_CreatesMissingConfigFile(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("HOME", tmp)
+	t.Setenv("USERPROFILE", tmp)
+	t.Setenv("HOMEDRIVE", "")
+	t.Setenv("HOMEPATH", "")
+
+	result, err := shellsvc.NewService().ConfigureAlias(context.Background(), shellsvc.AliasOptions{
+		AliasName: "s",
+		Shell:     "bash",
+	})
+	if err != nil {
+		t.Fatalf("ConfigureAlias() error = %v", err)
+	}
+
+	wantPath := filepath.Join(tmp, ".bashrc")
+	if result.Status != shellsvc.AliasStatusAdded {
+		t.Fatalf("ConfigureAlias() status = %q, want %q", result.Status, shellsvc.AliasStatusAdded)
+	}
+	if result.ConfigPath != wantPath {
+		t.Fatalf("ConfigureAlias() config path = %q, want %q", result.ConfigPath, wantPath)
+	}
+
+	content, err := os.ReadFile(wantPath)
+	if err != nil {
+		t.Fatalf("ReadFile(%q) error = %v", wantPath, err)
+	}
+	if string(content) != result.AliasLine+"\n" {
+		t.Fatalf("config file content = %q, want %q", string(content), result.AliasLine+"\n")
 	}
 }

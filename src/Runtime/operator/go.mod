@@ -13,7 +13,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v1.25.1
 	github.com/fluxcd/source-controller/api v1.8.1
 	github.com/gkampitakis/go-snaps v0.5.21
-	github.com/go-jose/go-jose/v4 v4.1.3
+	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-logr/logr v1.4.3
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/go-viper/mapstructure/v2 v2.5.0
@@ -36,7 +36,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.35.3
 	k8s.io/apimachinery v0.35.3
 	k8s.io/client-go v0.35.3
-	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2
+	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5
 	sigs.k8s.io/controller-runtime v0.23.3
 )
 

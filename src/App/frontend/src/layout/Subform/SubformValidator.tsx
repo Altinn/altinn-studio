@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function SubformValidator(props: NodeValidationProps<'Subform'>) {
@@ -16,7 +16,7 @@ export function SubformValidator(props: NodeValidationProps<'Subform'>) {
     (x) => x.id.toLocaleLowerCase() === targetType?.toLocaleLowerCase(),
   );
 
-  const addError = NodesInternal.useAddError();
+  const addError = FormStore.nodes.useAddError();
 
   useEffect(() => {
     let error: string | null = null;

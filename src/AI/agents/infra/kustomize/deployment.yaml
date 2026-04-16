@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-altinity-agents
+  annotations:
+    altinn.studio/image: altinn-altinity-agents:latest
+    altinn.studio/image-tag: latest
+  labels:
+    release: altinn-altinity-agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: altinn-altinity-agents
+  template:
+    metadata:
+      labels:
+        app: altinn-altinity-agents
+    spec:
+      serviceAccountName: altinn-altinity-agents-sa
+      containers:
+        - name: altinn-altinity-agents
+          image: altinn-altinity-agents:latest
+          ports:
+            - containerPort: 8071
+              name: http
+              protocol: TCP
+          env:
+            - name: AZURE_OPENAI_ENDPOINT
+              value: "https://rndlabaidemoss0618689180.openai.azure.com/"
+            - name: AZURE_ANTHROPIC_ENDPOINT
+              value: "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/"
+            - name: GITEA_BASE_URL
+              value: "http://altinn-repositories-public"
+            - name: MCP_SERVER_URL
+              value: "http://altinn-mcp-server/mcp/sse"
+            - name: AZURE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-altinity-agents-secret
+                  key: AZURE_API_KEY
+            - name: LANGFUSE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-altinity-agents-secret
+                  key: LANGFUSE_SECRET_KEY
+            - name: LANGFUSE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: altinn-altinity-agents-secret
+                  key: LANGFUSE_PUBLIC_KEY
+            - name: LANGFUSE_BASE_URL
+              value: "https://langfuse.digdir.cloud"
+            - name: LANGFUSE_ENABLED
+              value: "true"
+            - name: LANGFUSE_ENVIRONMENT
+              value: "development"
+            - name: LANGFUSE_RELEASE
+              value: "altinity-agents-v1"

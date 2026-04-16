@@ -74,7 +74,7 @@ POST http://localhost:{PORT}/step-1 HTTP/1.1
 Host: localhost
 Content-Type: text/plain
 Correlation-Id: Guid_1
-Idempotency-Key: chatter-idem-key//step-1
+Idempotency-Key: Guid_3
 Namespace: chatter-test
 Operation-Id: /step-1
 Workflow-Id: Guid_2
@@ -90,7 +90,7 @@ HTTP/1.1 200
 GET http://localhost:{PORT}/step-2 HTTP/1.1
 Host: localhost
 Correlation-Id: Guid_1
-Idempotency-Key: chatter-idem-key//step-2
+Idempotency-Key: Guid_4
 Namespace: chatter-test
 Operation-Id: /step-2
 Workflow-Id: Guid_2
@@ -124,7 +124,6 @@ Content-Type: application/json; charset=utf-8
   "steps": [
     {
       "databaseId": "Guid_3",
-      "idempotencyKey": "chatter-idem-key//step-1",
       "operationId": "/step-1",
       "processingOrder": 0,
       "updatedAt": "{Scrubbed}",
@@ -136,7 +135,6 @@ Content-Type: application/json; charset=utf-8
     },
     {
       "databaseId": "Guid_4",
-      "idempotencyKey": "chatter-idem-key//step-2",
       "operationId": "/step-2",
       "processingOrder": 1,
       "updatedAt": "{Scrubbed}",

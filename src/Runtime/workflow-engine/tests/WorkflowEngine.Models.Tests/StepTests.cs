@@ -17,7 +17,6 @@ public class StepTests
         {
             DatabaseId = sharedGuid,
             OperationId = "step-1-command",
-            IdempotencyKey = "key-1",
             ProcessingOrder = 0,
             Command = _randomCommand,
         };
@@ -25,7 +24,6 @@ public class StepTests
         {
             DatabaseId = sharedGuid,
             OperationId = "step-2-command",
-            IdempotencyKey = "key-2",
             ProcessingOrder = 0,
             Command = _randomCommand,
         };
@@ -33,7 +31,6 @@ public class StepTests
         {
             DatabaseId = Guid.NewGuid(),
             OperationId = "step-3-command",
-            IdempotencyKey = "key-3",
             ProcessingOrder = 0,
             Command = _randomCommand,
         };
@@ -69,7 +66,6 @@ public class StepTests
         var step = new Step
         {
             OperationId = "process-payment",
-            IdempotencyKey = "step-key",
             CreatedAt = createdAt,
             ProcessingOrder = 2,
             Command = command,
@@ -93,7 +89,6 @@ public class StepTests
         var step = new Step
         {
             OperationId = "noop",
-            IdempotencyKey = "step-key",
             ProcessingOrder = 0,
             Command = new CommandDefinition { Type = "noop" },
         };

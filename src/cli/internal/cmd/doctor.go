@@ -40,15 +40,16 @@ func (c *DoctorCommand) Synopsis() string { return "Diagnose environment and con
 
 // Usage returns the full help text.
 func (c *DoctorCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s doctor [options]
-
-Diagnose the development environment and show any issues.
-
-Options:
-  -c, --checks   Run active checks (probe host gateway, validate connectivity)
-  --json         Output as JSON
-  -h             Show this help
-`, osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s doctor [options]", osutil.CurrentBin()),
+		"",
+		"Diagnose the development environment and show any issues.",
+		"",
+		"Options:",
+		"  -c, --checks   Run active checks (probe host gateway, validate connectivity)",
+		"  --json         Output as JSON",
+		"  -h             Show this help",
+	)
 }
 
 // Run executes the command.
@@ -86,7 +87,7 @@ func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 		if err != nil {
 			return fmt.Errorf("marshal doctor json: %w", err)
 		}
-		c.out.Printf("%s\n", payload)
+		c.out.Println(string(payload))
 		return nil
 	}
 
@@ -101,7 +102,7 @@ func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 }
 
 func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
-	c.out.Printf("%s doctor\n", osutil.CurrentBin())
+	c.out.Printlnf("%s doctor", osutil.CurrentBin())
 	c.out.Println("")
 
 	sec := c.out.NewSection(doctorKeyWidth)
@@ -273,6 +274,8 @@ func (c *DoctorCommand) renderDoctorCachedNetworkSection(sec *ui.Section, networ
 		}
 		sec.KeyValue("Cache", doctorCacheStateLabel(network))
 	}
+
+	c.renderDoctorLocalhostSection(sec, network)
 }
 
 func doctorCacheStateLabel(network *doctorsvc.Network) string {
@@ -294,6 +297,8 @@ func doctorCacheStateLabel(network *doctorsvc.Network) string {
 func (c *DoctorCommand) renderDoctorActiveNetworkSection(sec *ui.Section, network *doctorsvc.Network) {
 	if network.Error != "" {
 		sec.KeyValueStatus(false, "Host Gateway", network.Error)
+		c.renderDoctorLocalhostSection(sec, network)
+		c.renderDoctorLoopbackSection(sec, network)
 		return
 	}
 
@@ -314,6 +319,35 @@ func (c *DoctorCommand) renderDoctorActiveNetworkSection(sec *ui.Section, networ
 		sec.KeyValueStatus(true, "Container DNS", networking.LocalDomain+" -> "+network.ContainerDNS)
 	} else {
 		sec.KeyValueStatus(false, "Container DNS", networking.LocalDomain+" unresolvable")
+	}
+
+	c.renderDoctorLocalhostSection(sec, network)
+	c.renderDoctorLoopbackSection(sec, network)
+}
+
+func (c *DoctorCommand) renderDoctorLocalhostSection(sec *ui.Section, network *doctorsvc.Network) {
+	switch {
+	case network.LocalhostError != "":
+		sec.KeyValueStatus(false, "Localhost", network.LocalhostError)
+	case len(network.LocalhostAddrs) == 0:
+		sec.KeyValueStatus(false, "Localhost", "unresolvable")
+	default:
+		sec.KeyValueStatus(true, "Localhost", "localhost -> "+strings.Join(network.LocalhostAddrs, ", "))
+	}
+}
+
+func (c *DoctorCommand) renderDoctorLoopbackSection(sec *ui.Section, network *doctorsvc.Network) {
+	for _, probe := range network.LoopbackEndpoints {
+		label := "Loopback " + strings.ToUpper(probe.Family)
+		if probe.Reachable {
+			sec.KeyValueStatus(true, label, probe.Endpoint+" reachable")
+			continue
+		}
+		msg := probe.Endpoint + " unreachable"
+		if probe.Error != "" {
+			msg += " (" + probe.Error + ")"
+		}
+		sec.KeyValueStatus(false, label, msg)
 	}
 }
 

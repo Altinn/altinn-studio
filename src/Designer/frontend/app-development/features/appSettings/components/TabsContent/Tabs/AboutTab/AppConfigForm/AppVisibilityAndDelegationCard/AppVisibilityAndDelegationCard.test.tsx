@@ -43,13 +43,37 @@ describe('AppVisibilityAndDelegationCard', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('disables second switch and shows description + correct info when visible is true', async () => {
-    const user = userEvent.setup();
-    const onChangeDelegable = jest.fn();
+  it('switches and texts are rendered correctly when both are toggled off', async () => {
+    renderAppVisibilityAndDelegationCard({
+      visible: false,
+      delegable: false,
+    });
+    const visibleSwitch = screen.getByRole('switch', {
+      name: textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
+    });
+    const delegableSwitch = screen.getByRole('switch', {
+      name: textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
+    });
+    expect(visibleSwitch).toBeDisabled();
+    expect(visibleSwitch).not.toBeChecked();
+    expect(delegableSwitch).toBeEnabled();
+    expect(delegableSwitch).not.toBeChecked();
+    expect(
+      screen.getByText(
+        textMock('app_settings.about_tab_visibility_and_delegation_info_hidden_no_delegation'),
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        textMock('app_settings.about_tab_visibility_and_delegation_description_text'),
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it('switches and texts are rendered correctly when both are toggled on', async () => {
     renderAppVisibilityAndDelegationCard({
       visible: true,
       delegable: true,
-      onChangeDelegable,
     });
     const visibleSwitch = screen.getByRole('switch', {
       name: textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
@@ -58,8 +82,9 @@ describe('AppVisibilityAndDelegationCard', () => {
       name: textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
     });
     expect(visibleSwitch).toBeEnabled();
+    expect(visibleSwitch).toBeChecked();
+    expect(delegableSwitch).toBeEnabled();
     expect(delegableSwitch).toBeChecked();
-    expect(delegableSwitch).toBeDisabled();
     expect(
       screen.getByText(
         textMock('app_settings.about_tab_visibility_and_delegation_info_visible_can_delegate'),
@@ -70,52 +95,69 @@ describe('AppVisibilityAndDelegationCard', () => {
         textMock('app_settings.about_tab_visibility_and_delegation_description_text'),
       ),
     ).toBeInTheDocument();
-    await user.click(delegableSwitch);
-    expect(onChangeDelegable).not.toHaveBeenCalled();
   });
 
-  it('enables second switch and shows warning + description when hidden and delegable', () => {
-    const onChangeDelegable = jest.fn();
-    renderAppVisibilityAndDelegationCard({
-      visible: false,
-      delegable: true,
-      onChangeDelegable,
-    });
-    const delegableSwitch = screen.getByRole('switch', {
-      name: textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
-    });
-    expect(delegableSwitch).toBeEnabled();
-    const warningTexts = screen.getAllByText(
-      textMock('app_settings.about_tab_visibility_and_delegation_warning_hidden_delegate_via_api'),
-    );
-    expect(warningTexts.length).toBeGreaterThan(0);
-
-    expect(
-      screen.getByText(
-        textMock('app_settings.about_tab_visibility_and_delegation_description_text'),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('calls change handlers when switches are toggled', async () => {
+  it('should not be possible to toggle visible switch when delegable is false', async () => {
     const user = userEvent.setup();
     const onChangeVisible = jest.fn();
-    const onChangeDelegable = jest.fn();
     renderAppVisibilityAndDelegationCard({
       visible: false,
       delegable: false,
       onChangeVisible,
-      onChangeDelegable,
     });
     const visibleSwitch = screen.getByRole('switch', {
       name: textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
     });
+
+    await user.click(visibleSwitch);
+    expect(onChangeVisible).not.toHaveBeenCalled();
+  });
+
+  it('should be possible to toggle visible switch when delegable is true', async () => {
+    const user = userEvent.setup();
+    const onChangeVisible = jest.fn();
+    renderAppVisibilityAndDelegationCard({
+      visible: false,
+      delegable: true,
+      onChangeVisible,
+    });
+    const visibleSwitch = screen.getByRole('switch', {
+      name: textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
+    });
+
+    await user.click(visibleSwitch);
+    expect(onChangeVisible).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls change handler when delegable switch is toggled', async () => {
+    const user = userEvent.setup();
+    const onChangeDelegable = jest.fn();
+    renderAppVisibilityAndDelegationCard({
+      visible: false,
+      delegable: false,
+      onChangeDelegable,
+    });
+
     const delegableSwitch = screen.getByRole('switch', {
       name: textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
     });
-    await user.click(visibleSwitch);
     await user.click(delegableSwitch);
-    expect(onChangeVisible).toHaveBeenCalledTimes(1);
     expect(onChangeDelegable).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls change handler when visible switch is toggled', async () => {
+    const user = userEvent.setup();
+    const onChangeVisible = jest.fn();
+    renderAppVisibilityAndDelegationCard({
+      visible: false,
+      delegable: true,
+      onChangeVisible,
+    });
+    const visibleSwitch = screen.getByRole('switch', {
+      name: textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
+    });
+
+    await user.click(visibleSwitch);
+    expect(onChangeVisible).toHaveBeenCalledTimes(1);
   });
 });

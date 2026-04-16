@@ -8,7 +8,6 @@ public class WorkflowExtensionsTests
         new()
         {
             OperationId = "op",
-            IdempotencyKey = $"step-key-{order}",
             ProcessingOrder = order,
             Command = new CommandDefinition { Type = "noop" },
             Status = status,

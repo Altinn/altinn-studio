@@ -23,6 +23,23 @@ type workflowRunDeps struct {
 
 // RunWorkflow executes the release workflow.
 func RunWorkflow(ctx context.Context, req WorkflowRequest, log Logger) error {
+	deps, err := buildWorkflowRunDeps(ctx, req, log)
+	if err != nil {
+		return err
+	}
+
+	return RunWorkflowWithDeps(ctx, req, deps.git, deps.gh, nil, log)
+}
+
+// RunWorkflowWithDeps executes the release workflow with injected dependencies.
+func RunWorkflowWithDeps(
+	ctx context.Context,
+	req WorkflowRequest,
+	git GitRunner,
+	gh GitHubRunner,
+	builder ComponentBuilder,
+	log Logger,
+) error {
 	if log == nil {
 		log = NopLogger{}
 	}
@@ -35,13 +52,23 @@ func RunWorkflow(ctx context.Context, req WorkflowRequest, log Logger) error {
 	if req.BaseBranch == "" {
 		return errBaseBranchRequired
 	}
-
-	deps, err := buildWorkflowRunDeps(ctx, req, log)
-	if err != nil {
-		return err
+	if git == nil {
+		return errGitRequired
+	}
+	if gh == nil {
+		return errGitHubRequired
 	}
 
-	version, err := resolveWorkflowVersion(deps.component, req.BaseBranch, deps.repoRoot)
+	component, err := GetComponent(req.Component)
+	if err != nil {
+		return fmt.Errorf("get component: %w", err)
+	}
+	repoRoot, err := git.RepoRoot(ctx)
+	if err != nil {
+		return fmt.Errorf("get repo root: %w", err)
+	}
+
+	version, err := resolveWorkflowVersion(component, req.BaseBranch, repoRoot)
 	if err != nil {
 		return fmt.Errorf("resolve version: %w", err)
 	}
@@ -51,12 +78,12 @@ func RunWorkflow(ctx context.Context, req WorkflowRequest, log Logger) error {
 		Version:               version,
 		ChangelogPath:         "",
 		OutputDir:             "",
-		RepoRoot:              deps.repoRoot,
+		RepoRoot:              repoRoot,
 		DryRun:                req.DryRun,
 		Draft:                 req.Draft,
 		UnsafeSkipBranchCheck: req.UnsafeSkipBranchCheck,
 	}
-	workflow, err := NewWorkflow(ctx, cfg, deps.git, deps.gh, nil, log)
+	workflow, err := NewWorkflow(ctx, cfg, git, gh, builder, log)
 	if err != nil {
 		return fmt.Errorf("create workflow: %w", err)
 	}

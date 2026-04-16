@@ -60,7 +60,6 @@ internal sealed record AppCommandTestFixture(
 
         appCommandSettings ??= new AppCommandSettings
         {
-            ApiKey = "test-api-key",
             CommandEndpoint = "https://app.example.com/{Org}/{App}/commands/",
         };
 
@@ -145,7 +144,6 @@ internal sealed record AppCommandTestFixture(
         new()
         {
             OperationId = operationId,
-            IdempotencyKey = $"test-step-key/{operationId}",
             ProcessingOrder = 0,
             Command = command,
         };

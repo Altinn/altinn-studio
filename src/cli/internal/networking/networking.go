@@ -16,7 +16,6 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/docker"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -178,19 +177,20 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 	}
 
 	cfg := types.ContainerConfig{
-		Name:          containerName,
-		Image:         n.cfg.Images.Utility.Busybox.Ref(),
-		Command:       []string{"sh", "-c", networkProbeScript()},
-		Env:           nil,
-		Ports:         nil,
-		Volumes:       nil,
-		ExtraHosts:    nil,
-		Networks:      nil,
-		RestartPolicy: "",
-		Detach:        false,
-		Labels:        nil,
-		User:          "",
-		CapAdd:        nil,
+		Name:           containerName,
+		Image:          n.cfg.Images.Utility.Busybox.Ref(),
+		Command:        []string{"sh", "-c", networkProbeScript()},
+		Env:            nil,
+		Ports:          nil,
+		Volumes:        nil,
+		ExtraHosts:     nil,
+		Networks:       nil,
+		RestartPolicy:  "",
+		Detach:         false,
+		Labels:         nil,
+		NetworkAliases: nil,
+		User:           "",
+		CapAdd:         nil,
 	}
 
 	containerID, err := n.client.CreateContainer(ctx, cfg)
@@ -262,8 +262,6 @@ func parseNetworkProbeOutput(output string) NetworkMetadata {
 
 	for line := range strings.SplitSeq(output, "\n") {
 		line = strings.TrimSpace(line)
-		// Handle docker log stream format (8 byte header per line)
-		line = docker.StripMultiplexedHeader(line)
 
 		if after, ok := strings.CutPrefix(line, "GATEWAY:"); ok {
 			metadata.HostGateway = after
