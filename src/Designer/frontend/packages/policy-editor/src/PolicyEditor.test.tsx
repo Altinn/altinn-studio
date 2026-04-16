@@ -39,7 +39,7 @@ describe('PolicyEditor', () => {
     renderPolicyEditor();
     expect(screen.getByText(textMock('policy_editor.rules_summary'))).toBeInTheDocument();
     expect(screen.getByText(textMock('policy_editor.rules_edit'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('policy_editor.summary_heading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('policy_editor.summary_info_about'))).toBeInTheDocument();
   });
 
   it('renders rules view when usage type is resource', () => {

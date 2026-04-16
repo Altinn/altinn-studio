@@ -61,7 +61,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
 describe('PolicySummary', () => {
   it('should render', () => {
     renderPolicySummary({});
-    expect(screen.getByText(textMock('policy_editor.summary_heading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('policy_editor.summary_info_about'))).toBeInTheDocument();
   });
 
   it('should render subject summary for each subject in policy rule', () => {

@@ -8,7 +8,8 @@ import userEvent from '@testing-library/user-event';
 describe('PolicyEditorTabs', () => {
   it('should render summary tab selected by default', () => {
     renderPolicyEditorTabs();
-    expect(screen.getByText(textMock('policy_editor.rules_summary'))).toBeInTheDocument();
+    const summaryTabName = textMock('policy_editor.rules_summary');
+    expect(screen.getByRole('tab', { name: summaryTabName, selected: true })).toBeInTheDocument();
   });
 
   it('should switch to rules tab when rules tab is clicked', async () => {
