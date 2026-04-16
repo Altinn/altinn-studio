@@ -144,9 +144,9 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 			ContainerLocaltest,
 		)
 	}
-	if got := workflowEngine.Environment["AppCommand__CommandEndpoint"]; got != "http://local.altinn.cloud:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/" {
+	if got := workflowEngine.Environment["AppCommandSettings__CommandEndpoint"]; got != "http://local.altinn.cloud:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/" {
 		t.Fatalf(
-			"workflowEngine.Environment[AppCommand__CommandEndpoint] = %q, want localtest network callback URL",
+			"workflowEngine.Environment[AppCommandSettings__CommandEndpoint] = %q, want localtest network callback URL",
 			got,
 		)
 	}

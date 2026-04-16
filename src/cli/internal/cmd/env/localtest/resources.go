@@ -247,9 +247,9 @@ func workflowEngineContainerSpec() ContainerSpec {
 			newPort("8081", "8081"),
 		},
 		map[string]string{
-			"ASPNETCORE_ENVIRONMENT":            "Docker",
-			"ConnectionStrings__WorkflowEngine": "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
-			"AppCommand__CommandEndpoint":       localtestInternalBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
+			"ASPNETCORE_ENVIRONMENT":              "Docker",
+			"ConnectionStrings__WorkflowEngine":   "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
+			"AppCommandSettings__CommandEndpoint": localtestInternalBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
 		},
 		nil,
 		nil,
