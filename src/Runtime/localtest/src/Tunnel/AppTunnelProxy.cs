@@ -23,14 +23,11 @@ public sealed class AppTunnelProxy
         CancellationToken cancellationToken
     )
     {
-        using var request = await CreateRequestAsync(context, cancellationToken);
+        using var request = CreateRequest(context);
         await _client.Proxy(request, appId, context, cancellationToken);
     }
 
-    private static async Task<HttpRequestMessage> CreateRequestAsync(
-        HttpContext context,
-        CancellationToken cancellationToken
-    )
+    private static HttpRequestMessage CreateRequest(HttpContext context)
     {
         if (RequestRequiresUpgrade(context.Request))
             throw new InvalidOperationException("upgrade requests are not supported by the app tunnel");
