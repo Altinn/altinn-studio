@@ -33,12 +33,12 @@ type DevImageConfig struct {
 
 // LocaltestContextPath returns the build context path for the localtest image.
 func (c DevImageConfig) LocaltestContextPath() string {
-	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src/Runtime/localtest"))
+	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src"))
 }
 
 // LocaltestDockerfile returns the full Dockerfile path for localtest.
 func (c DevImageConfig) LocaltestDockerfile() string {
-	return filepath.ToSlash(filepath.Join(c.LocaltestContextPath(), "Dockerfile"))
+	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src/Runtime/localtest/Dockerfile"))
 }
 
 // PDF3ContextPath returns the build context path for the pdf3 image.

@@ -43,6 +43,27 @@ public class BotAccountApiKeysStudioOidcTests : StudioOidcGiteaIntegrationTestsB
     }
 
     [Fact]
+    public async Task GetBotAccount_ShouldIncludeApiKeyCount()
+    {
+        var botId = await CreateBotAccountAsync("listkey_bot");
+
+        using var keyContent = CreateApiKeyRequestContent("list-key", DateTimeOffset.UtcNow.AddDays(30));
+        using HttpResponseMessage createResponse = await HttpClient.PostAsync(
+            $"{BaseUrl}/{botId}/api-keys",
+            keyContent
+        );
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        using HttpResponseMessage getResponse = await HttpClient.GetAsync($"{BaseUrl}/{botId}");
+
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        string body = await getResponse.Content.ReadAsStringAsync();
+        var botAccount = JsonSerializer.Deserialize<BotAccountResponse>(body, s_jsonOptions);
+        Assert.NotNull(botAccount);
+        Assert.Equal(1, botAccount.ApiKeyCount);
+    }
+
+    [Fact]
     public async Task ListApiKeys_ShouldReturnKeys()
     {
         var botId = await CreateBotAccountAsync("listkey_bot");

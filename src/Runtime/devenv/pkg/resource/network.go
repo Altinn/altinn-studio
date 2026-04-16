@@ -7,9 +7,10 @@ var errNetworkNameRequired = errors.New("network name is required")
 // Network is a resource representing a container network.
 // It is a pure value type - use Executor to apply to infrastructure.
 type Network struct {
-	Labels map[string]string
-	Name   string
-	Driver string
+	Labels    map[string]string
+	Lifecycle LifecycleOptions
+	Name      string
+	Driver    string
 }
 
 // ID returns the unique identifier for this network.
@@ -21,6 +22,11 @@ func (n *Network) ID() ResourceID {
 // Networks have no dependencies.
 func (n *Network) Dependencies() []ResourceRef {
 	return nil
+}
+
+// LifecycleOptions returns resource lifecycle behavior.
+func (n *Network) LifecycleOptions() LifecycleOptions {
+	return n.Lifecycle
 }
 
 // NetworkName returns the network name for container API calls.
@@ -45,7 +51,8 @@ type NetworkResource interface {
 
 // Compile-time interface checks.
 var (
-	_ Resource        = (*Network)(nil)
-	_ NetworkResource = (*Network)(nil)
-	_ Validator       = (*Network)(nil)
+	_ Resource                 = (*Network)(nil)
+	_ NetworkResource          = (*Network)(nil)
+	_ Validator                = (*Network)(nil)
+	_ LifecycleOptionsProvider = (*Network)(nil)
 )

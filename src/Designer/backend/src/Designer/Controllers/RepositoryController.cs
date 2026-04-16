@@ -40,6 +40,7 @@ public class RepositoryController : ControllerBase
     private readonly ISourceControl _sourceControl;
     private readonly IRepository _repository;
     private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
+    private readonly IBranchService _branchService;
 
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -51,17 +52,20 @@ public class RepositoryController : ControllerBase
     /// <param name="sourceControl">the source control</param>
     /// <param name="repository">the repository control</param>
     /// <param name="syncHub">websocket syncHub</param>
+    /// <param name="branchService">the branch service</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         IRepository repository,
-        IHubContext<SyncHub, ISyncClient> syncHub
+        IHubContext<SyncHub, ISyncClient> syncHub,
+        IBranchService branchService
     )
     {
         _giteaClient = giteaClient;
         _sourceControl = sourceControl;
         _repository = repository;
         _syncHub = syncHub;
+        _branchService = branchService;
     }
 
     /// <summary>
@@ -529,6 +533,37 @@ public class RepositoryController : ControllerBase
         );
         var branch = await _sourceControl.CreateBranch(editingContext, request.BranchName);
         return Ok(branch);
+    }
+
+    /// <summary>
+    /// Deletes a branch from the repository
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repository">The name of repository</param>
+    /// <param name="branchName">The name of the branch to delete</param>
+    [HttpDelete]
+    [Route(
+        "repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/{**branchName}"
+    )]
+    public async Task<ActionResult> DeleteBranch(string org, string repository, [FromRoute] string branchName)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
+
+        DeleteBranchResult result = _branchService.DeleteBranch(authenticatedContext, branchName);
+
+        return result switch
+        {
+            DeleteBranchResult.Success => NoContent(),
+            DeleteBranchResult.InvalidBranchName => BadRequest($"{branchName} is an invalid branch name."),
+            DeleteBranchResult.DefaultBranchProtected => BadRequest("Cannot delete the default branch."),
+            DeleteBranchResult.CheckedOutBranchProtected => BadRequest(
+                "Cannot delete the currently checked out branch."
+            ),
+            _ => StatusCode(500),
+        };
     }
 
     /// <summary>

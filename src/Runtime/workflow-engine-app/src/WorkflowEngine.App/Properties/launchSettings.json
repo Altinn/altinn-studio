@@ -10,6 +10,17 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
+    "http-stress": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:8080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "EngineSettings__TraceSamplingRate": "0.01",
+        "EngineSettings__EnableDatabaseInstrumentation": "false"
+      }
+    },
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,

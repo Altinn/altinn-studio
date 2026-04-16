@@ -83,7 +83,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     }
 
     /// <inheritdoc/>
-    protected override async Task<ExecutionResult> ExecuteAsync(
+    protected override async Task<ExecutionResult> Execute(
         CommandExecutionContext context,
         CancellationToken cancellationToken
     )
@@ -164,7 +164,6 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     {
         var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext);
         var client = _httpClientFactory.CreateClient();
-        client.DefaultRequestHeaders.Add(_settings.ApiKeyHeaderName, _settings.ApiKey);
         client.BaseAddress = new Uri(baseUrl);
 
         return client;

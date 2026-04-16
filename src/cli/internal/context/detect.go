@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -19,8 +18,8 @@ const (
 	// appPrimarySignal is the primary file that indicates an Altinn app repository.
 	appPrimarySignal = "App/config/applicationmetadata.json"
 
-	// studioRemoteSlug identifies the canonical Altinn Studio git remote.
-	studioRemoteSlug = "altinn/altinn-studio"
+	// studioRootMarker identifies the root of the Altinn Studio repository.
+	studioRootMarker = ".altinn-studio-root"
 )
 
 // ErrAppNotFound is returned when no Altinn app repository is found.
@@ -172,19 +171,8 @@ func csprojHasAltinnRef(path string) bool {
 	return bytes.Contains(content, []byte("Altinn.App"))
 }
 
-func isStudioRepoRoot(ctx context.Context, dir string) bool {
-	if _, err := os.Stat(filepath.Join(dir, ".git")); err != nil {
-		return false
-	}
-
-	//nolint:gosec // G204: git binary and flags are fixed; dir comes from validated local directory traversal.
-	cmd := exec.CommandContext(ctx, "git", "-C", dir, "remote", "-v")
-	out, err := cmd.Output()
-	if err != nil {
-		return false
-	}
-
-	return strings.Contains(strings.ToLower(string(out)), studioRemoteSlug)
+func isStudioRepoRoot(_ context.Context, dir string) bool {
+	return fileExists(filepath.Join(dir, studioRootMarker))
 }
 
 func fileExists(path string) bool {

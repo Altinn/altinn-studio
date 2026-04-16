@@ -19,7 +19,6 @@ type Env interface {
 
 // UpOptions configures environment startup.
 type UpOptions struct {
-	Port        int
 	Detach      bool
 	Monitoring  bool
 	OpenBrowser bool

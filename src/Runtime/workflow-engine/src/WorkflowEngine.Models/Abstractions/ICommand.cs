@@ -4,7 +4,7 @@ namespace WorkflowEngine.Models.Abstractions;
 /// Describes a command type: its expected data shapes and how to validate and execute it.
 /// Implementations are registered at startup and looked up by <see cref="CommandDefinition.Type"/> at runtime.
 /// The engine deserializes <see cref="CommandDefinition.Data"/> and <see cref="Workflow.Context"/> into
-/// the declared types before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
+/// the declared types before calling <see cref="Validate"/> or <see cref="Execute"/>.
 /// </summary>
 public interface ICommand
 {
@@ -36,5 +36,5 @@ public interface ICommand
     /// typed data accessible via <see cref="CommandExecutionContext.GetCommandData{T}"/>
     /// and <see cref="CommandExecutionContext.GetWorkflowContext{T}"/>.
     /// </summary>
-    Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken);
+    Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken cancellationToken);
 }

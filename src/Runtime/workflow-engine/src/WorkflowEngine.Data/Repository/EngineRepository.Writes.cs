@@ -130,12 +130,12 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(
+    public async Task<BatchEnqueueResult[]> BatchEnqueueWorkflows(
         IReadOnlyList<BufferedEnqueueRequest> requests,
         CancellationToken cancellationToken
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchEnqueueWorkflowsAsync");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchEnqueueWorkflows");
 
         var results = new BatchEnqueueResult[requests.Count];
         var perRequestWorkflows = new Workflow[requests.Count][];
@@ -766,7 +766,11 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task BatchUpdateHeartbeats(IReadOnlyList<Guid> workflowIds, CancellationToken cancellationToken)
+    public async Task BatchUpdateHeartbeats(
+        IReadOnlyList<Guid> workflowIds,
+        TimeSpan staleThreshold,
+        CancellationToken cancellationToken
+    )
     {
         if (workflowIds.Count == 0)
             return;
@@ -775,6 +779,7 @@ internal sealed partial class EngineRepository
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var now = timeProvider.GetUtcNow();
+        var updatedBefore = now - staleThreshold;
 
         try
         {
@@ -787,12 +792,14 @@ internal sealed partial class EngineRepository
                     SET "HeartbeatAt" = @now
                     WHERE "Id" = ANY(@ids)
                       AND "Status" = @status
+                      AND "UpdatedAt" < @updatedBefore
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                     cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", [.. workflowIds]));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Processing));
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("updatedBefore", updatedBefore));
                     await cmd.ExecuteNonQueryAsync(ct);
                 },
                 cancellationToken
@@ -862,7 +869,7 @@ internal sealed partial class EngineRepository
                     SET "Status"             = v.status,
                         "UpdatedAt"          = @now,
                         "BackoffUntil"       = v.backoff_until,
-                        "HeartbeatAt"        = CASE WHEN v.status = 1 THEN w."HeartbeatAt" ELSE NULL END,
+                        "HeartbeatAt"        = CASE WHEN v.status = 1 THEN @now ELSE NULL END,
                         "EngineTraceContext" = v.engine_trace_context
                     FROM (
                         SELECT *
@@ -960,10 +967,6 @@ internal sealed partial class EngineRepository
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                         await cmd.ExecuteNonQueryAsync(ct);
-
-                        // Clear pending changes flags
-                        foreach (var step in allSteps)
-                            step.HasPendingChanges = false;
                     }
 
                     await tx.CommitAsync(ct);

@@ -113,23 +113,21 @@ public partial class EngineTests
         Assert.Contains("/step-2", logs[1].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
 
         // Assert metadata headers on each outbound request
-        foreach (var log in logs)
+        for (int i = 0; i < logs.Count; i++)
         {
-            var headers = log.RequestMessage.Headers;
+            var step = status.Steps[i];
+
+            var headers = logs[i].RequestMessage.Headers;
             Assert.NotNull(headers);
 
             var workflowIdHeader = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.WorkflowId);
-            Assert.True(
-                Guid.TryParse(workflowIdHeader, out var parsedWorkflowId),
-                $"{WorkflowMetadataConstants.Headers.WorkflowId} should be a valid GUID"
-            );
-            Assert.Equal(workflowId, parsedWorkflowId);
+            Assert.Equal(workflowId.ToString(), workflowIdHeader);
 
-            var stepOpId = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.OperationId);
-            Assert.NotEmpty(stepOpId);
+            var stepOpIdHeader = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.OperationId);
+            Assert.Equal(step.OperationId, stepOpIdHeader);
 
-            var idemKey = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.IdempotencyKey);
-            Assert.Equal($"chatter-idem-key/{stepOpId}", idemKey);
+            var idemKeyHeader = HttpChatterHelpers.GetHeader(headers, WorkflowMetadataConstants.Headers.IdempotencyKey);
+            Assert.Equal(step.DatabaseId.ToString(), idemKeyHeader);
 
             Assert.Equal(
                 "chatter-test",
