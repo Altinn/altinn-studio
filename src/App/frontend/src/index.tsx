@@ -3,9 +3,7 @@
 import 'core-js';
 
 import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
-if (executeHashRouterRedirect()) {
-  throw new Error('HashRouterRedirect: Redirecting to browser-router route');
-}
+const isRedirectingFromHashRoute = executeHashRouterRedirect();
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -31,6 +29,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (isRedirectingFromHashRoute) {
+    return;
+  }
   propagateTraceWhenPdf();
 
   const container = document.getElementById('root');
