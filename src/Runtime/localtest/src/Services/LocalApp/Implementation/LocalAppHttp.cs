@@ -29,6 +29,7 @@ namespace LocalTest.Services.LocalApp.Implementation
         public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
         public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
         public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
+        private static readonly TimeSpan ApplicationMetadataRequestTimeout = TimeSpan.FromSeconds(5);
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _defaultAppUrl;
@@ -134,7 +135,13 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
-                return await GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false", appId, cancellationToken);
+                using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCancellationTokenSource.CancelAfter(ApplicationMetadataRequestTimeout);
+                return await GetStringAsync(
+                    $"{appId}/api/v1/applicationmetadata?checkOrgApp=false",
+                    appId,
+                    timeoutCancellationTokenSource.Token
+                );
             });
 
             return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
@@ -183,19 +190,21 @@ namespace LocalTest.Services.LocalApp.Implementation
                 }
             }
 
-            // Always try to get app from default port 5005
-            // This allows both registered apps and the default app to coexist
-            try
+            if (ShouldProbeDefaultLocalApp(discoveredApps))
             {
-                var app = await GetApplicationMetadata(null, cancellationToken);
-                if (app != null && !ret.ContainsKey(app.Id))
+                // Only use the legacy default app URL when no app has been registered through the tunnel.
+                try
                 {
-                    ret.Add(app.Id, app);
+                    var app = await GetApplicationMetadata(null, cancellationToken);
+                    if (app != null && !ret.ContainsKey(app.Id))
+                    {
+                        ret.Add(app.Id, app);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "No app found on default port 5005");
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "No app found on default port 5005");
+                }
             }
 
             return ret;
@@ -260,40 +269,36 @@ namespace LocalTest.Services.LocalApp.Implementation
                     }
                 }
 
-                // Also try default app (port 5005) as fallback
-                try
+                if (ShouldProbeDefaultLocalApp(discoveredApps))
                 {
-                    var defaultAppMetadata = await GetApplicationMetadata(DefaultAppSentinel, cancellationToken);
-                    if (defaultAppMetadata != null)
+                    // Only use the legacy default app URL when no app has been registered through the tunnel.
+                    try
                     {
-                        if (discoveredApps.Any(app => string.Equals(app.AppId, defaultAppMetadata.Id, StringComparison.Ordinal)))
+                        var defaultAppMetadata = await GetApplicationMetadata(DefaultAppSentinel, cancellationToken);
+                        if (defaultAppMetadata != null)
                         {
-                            goto SkipDefaultApp;
-                        }
+                            var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged, cancellationToken);
 
-                        var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged, cancellationToken);
-
-                        if (defaultResult.AppWasReachable)
-                        {
-                            reachableApps++;
-                            if (defaultResult.AppHadData)
+                            if (defaultResult.AppWasReachable)
                             {
-                                appsWithData++;
+                                reachableApps++;
+                                if (defaultResult.AppHadData)
+                                {
+                                    appsWithData++;
+                                }
+                                merged = defaultResult.MergedData;
                             }
-                            merged = defaultResult.MergedData;
                         }
                     }
-
-                SkipDefaultApp:;
-                }
-                catch (InvalidOperationException ex)
-                {
-                    _logger.LogCritical(ex, "Test data conflict detected when loading from default app");
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "No default app found on port 5005");
+                    catch (InvalidOperationException ex)
+                    {
+                        _logger.LogCritical(ex, "Test data conflict detected when loading from default app");
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "No default app found on port 5005");
+                    }
                 }
 
                 var allHaveData = merged != null && reachableApps > 0 && appsWithData == reachableApps;
@@ -305,6 +310,9 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             return result ?? new ILocalApp.TestDataResult(null, false);
         }
+
+        private static bool ShouldProbeDefaultLocalApp(IReadOnlyList<TunnelDiscoveredApp> discoveredApps) =>
+            discoveredApps.Count == 0;
 
         private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged, CancellationToken cancellationToken = default)
         {

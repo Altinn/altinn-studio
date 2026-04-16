@@ -89,11 +89,8 @@ public class ProxyMiddleware
             }
             catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
             {
-                if (!CanFallbackToLocalAppUrl(context))
-                    throw;
-
-                context.Response.Clear();
-                _logger.LogDebug(ex, "Tunnel proxy failed for app {AppId}, falling back to LocalAppUrl", appId);
+                await HandleTunnelProxyError(context, ex, appId);
+                return;
             }
         }
 
@@ -209,7 +206,7 @@ public class ProxyMiddleware
             ActivityHeadersPropagator = new ReverseProxyPropagator(
                 DistributedContextPropagator.Current
             ),
-            ConnectTimeout = TimeSpan.FromSeconds(15),
+            ConnectTimeout = TimeSpan.FromSeconds(5),
         }
     );
 
@@ -338,6 +335,22 @@ public class ProxyMiddleware
 
         var errorPage = GetErrorPage(targetHost);
         await context.Response.WriteAsync(errorPage);
+    }
+
+    private async Task HandleTunnelProxyError(HttpContext context, Exception exception, string appId)
+    {
+        _logger.LogWarning(exception, "Tunnel proxy failed for app {AppId}", appId);
+
+        if (context.Response.HasStarted)
+        {
+            return;
+        }
+
+        context.Response.Clear();
+        context.Response.StatusCode = 502;
+        context.Response.ContentType = "text/html; charset=utf-8";
+
+        await context.Response.WriteAsync(GetErrorPage($"app tunnel for {appId}"));
     }
 
     /// <summary>
