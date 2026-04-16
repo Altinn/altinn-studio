@@ -8,6 +8,7 @@ var (
 	errBaseBranchRequired     = errors.New("base branch is required")
 	errRepoRootRequired       = errors.New("repo root is required")
 	errGitRequired            = errors.New("git client is required")
+	errGitHubRequired         = errors.New("github client is required")
 	errChangelogNil           = errors.New("changelog is required")
 	errReleaseVersionRequired = errors.New("version is required")
 	errValidationBaseRequired = errors.New("base commit is required")

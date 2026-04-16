@@ -5,5 +5,8 @@
   "cSpell.words": [
     "avmerkingsbokser",
     "filstørrelsen"
-  ]
+  ],
+  "json.schemaDownload.trustedDomains": {
+    "https://altinncdn.no/": true
+  }
 }

@@ -412,10 +412,11 @@ public sealed partial class AppFixture : IAsyncDisposable
                 return _localtestContainerImage;
 
             logger.LogInformation("Building localtest container image");
-            var localtestDirectory = Path.Join(_repoSourceDirectory, "Runtime", "localtest");
             var localtestBuilder = new ImageFromDockerfileBuilder()
                 .WithName($"applib-localtest:latest")
-                .WithDockerfileDirectory(localtestDirectory)
+                .WithContextDirectory(_repoSourceDirectory)
+                .WithDockerfileDirectory(_repoSourceDirectory)
+                .WithDockerfile(Path.Join("Runtime", "localtest", "Dockerfile"))
                 .WithCleanUp(false)
                 .WithDeleteIfExists(_forceRebuild);
 

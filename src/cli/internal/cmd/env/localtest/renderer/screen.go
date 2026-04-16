@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -152,11 +153,14 @@ func (r *screenRenderer) printLinesLocked(lines []string) {
 		if i < lineCount {
 			b.WriteString(lines[i])
 		}
-		b.WriteByte('\n')
+		b.WriteString(osutil.LineBreak)
 	}
 	if maxLines > lineCount {
 		fmt.Fprintf(&b, "\033[%dA\r", maxLines-lineCount)
 	}
+	// Keep the cursor at column 0 after the interactive frame so later plain output
+	// starts flush-left on terminals where '\n' does not imply carriage return.
+	b.WriteByte('\r')
 
 	r.renderedLines = lineCount
 	r.out.Print(b.String())

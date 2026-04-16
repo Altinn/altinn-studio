@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"runtime"
 
+	"altinn.studio/studioctl/internal/appmanager"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	selfsvc "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
@@ -25,7 +27,7 @@ func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
 		cfg:     cfg,
 		out:     out,
-		service: selfsvc.NewService(cfg.DataDir, cfg.Version),
+		service: selfsvc.NewService(cfg),
 	}
 }
 
@@ -37,17 +39,18 @@ func (c *SelfCommand) Synopsis() string { return fmt.Sprintf("Manage %s itself",
 
 // Usage returns the full help text.
 func (c *SelfCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s self <subcommand> [options]
-
-Manage the %s installation.
-
-Subcommands:
-  install   Install binary and localtest resources
-  update    Check for and install updates
-  uninstall Remove installed binary
-
-Run '%s self <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s self <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		fmt.Sprintf("Manage the %s installation.", osutil.CurrentBin()),
+		"",
+		"Subcommands:",
+		"  install   Install binary, app-manager, and localtest resources",
+		"  update    Check for and install updates",
+		"  uninstall Remove installed binary",
+		"",
+		fmt.Sprintf("Run '%s self <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -78,18 +81,19 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("self install", flag.ContinueOnError)
 	fs.Usage = func() {
-		c.out.Printf(`Usage: %s self install [options]
-
-Install %s binary to PATH and download localtest resources.
-
-Options:
-  --path DIR          Install binary to specific directory (non-interactive)
-  --skip-resources    Skip downloading localtest resources
-  -h, --help          Show this help message
-
-If --path is not specified, an interactive picker will prompt you to
-choose from detected installation locations.
-`, osutil.CurrentBin(), osutil.CurrentBin())
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s self install [options]", osutil.CurrentBin()),
+			"",
+			fmt.Sprintf("Install %s, app-manager, and localtest resources.", osutil.CurrentBin()),
+			"",
+			"Options:",
+			"  --path DIR          Install binary to specific directory (non-interactive)",
+			"  --skip-resources    Skip localtest resources",
+			"  -h, --help          Show this help message",
+			"",
+			"If --path is not specified, an interactive picker will prompt you to",
+			"choose from detected installation locations.",
+		))
 	}
 
 	var targetPath string
@@ -131,7 +135,7 @@ func (c *SelfCommand) pickInstallLocation(ctx context.Context, candidates []self
 		if errors.Is(err, selfsvc.ErrSkipped) {
 			c.out.Println("")
 			c.out.Println("Installation skipped.")
-			c.out.Printf("You can manually move the %s binary to a directory in your PATH.\n", osutil.CurrentBin())
+			c.out.Printlnf("You can manually move the %s binary to a directory in your PATH.", osutil.CurrentBin())
 			return "", nil
 		}
 		return "", fmt.Errorf("select install location: %w", err)
@@ -145,7 +149,7 @@ func (c *SelfCommand) performInstall(
 	candidates []selfsvc.Candidate,
 	skipResources bool,
 ) error {
-	c.out.Printf("Installing binary to %s...\n", targetPath)
+	c.out.Printlnf("Installing binary to %s...", targetPath)
 
 	result, err := c.service.InstallBinary(targetPath)
 	if err != nil {
@@ -171,13 +175,13 @@ func (c *SelfCommand) performInstall(
 		}
 	}
 
-	return nil
+	return c.installAppManager(ctx)
 }
 
 func (c *SelfCommand) handleNoWritableLocations() error {
 	c.out.Error("No writable installation locations found.")
 	c.out.Println("")
-	c.out.Printf("You can manually install %s by copying it to a directory in your PATH.\n", osutil.CurrentBin())
+	c.out.Printlnf("You can manually install %s by copying it to a directory in your PATH.", osutil.CurrentBin())
 	c.out.Println("Common locations include:")
 	c.out.Println("  - ~/.local/bin (Linux/macOS)")
 	c.out.Println("  - /usr/local/bin (requires sudo)")
@@ -215,18 +219,45 @@ func (c *SelfCommand) installResources(ctx context.Context) error {
 	return nil
 }
 
+func (c *SelfCommand) installAppManager(ctx context.Context) error {
+	c.out.Println("")
+
+	wasRunning, err := c.stopAppManagerForReplacement(ctx)
+	if err != nil {
+		return err
+	}
+
+	spinner := ui.NewSpinner(c.out, "Installing app-manager...")
+	if !c.cfg.Verbose {
+		spinner.Start()
+	}
+
+	result, err := c.service.InstallAppManager(ctx)
+	if err != nil {
+		spinner.StopWithError("Failed to install app-manager")
+		c.restartAppManagerAfterFailedReplacement(ctx, wasRunning, "")
+		return fmt.Errorf("install app-manager: %w", err)
+	}
+
+	spinner.StopWithSuccess("App-manager installed")
+	c.out.Verbosef("Installed to: %s", result.InstalledPath)
+
+	return c.restartAppManagerIfNeeded(ctx, wasRunning, "")
+}
+
 func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("self update", flag.ContinueOnError)
 	fs.Usage = func() {
-		c.out.Printf(`Usage: %s self update [options]
-
-Update %s in-place.
-
-Options:
-  --version VERSION    Release version (vX.Y.Z or studioctl/vX.Y.Z, default: newest available)
-  --skip-checksum      Skip SHA256 checksum verification
-  -h, --help           Show this help message
-`, osutil.CurrentBin(), osutil.CurrentBin())
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s self update [options]", osutil.CurrentBin()),
+			"",
+			fmt.Sprintf("Update %s in-place.", osutil.CurrentBin()),
+			"",
+			"Options:",
+			"  --version VERSION    Release version (vX.Y.Z or studioctl/vX.Y.Z, default: newest available)",
+			"  --skip-checksum      Skip SHA256 checksum verification",
+			"  -h, --help           Show this help message",
+		))
 	}
 
 	var version string
@@ -241,7 +272,7 @@ Options:
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	c.out.Printf("Current version: %s\n", c.cfg.Version)
+	c.out.Printlnf("Current version: %s", c.cfg.Version)
 	result, err := c.service.UpdateBinary(
 		ctx,
 		selfsvc.UpdateOptions{
@@ -253,23 +284,111 @@ Options:
 		return fmt.Errorf("self update: %w", err)
 	}
 
-	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
 	c.out.Verbosef("Updated binary path: %s", result.TargetPath)
 	c.out.Verbosef("Release source: %s", result.ReleaseSource)
 	c.out.Verbosef("Asset: %s", result.Asset)
+	if err := c.updateAppManager(ctx, result.Version, result.TargetPath); err != nil {
+		return fmt.Errorf("update app-manager: %w", err)
+	}
+
+	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
+	return nil
+}
+
+func (c *SelfCommand) updateAppManager(ctx context.Context, version, studioctlPath string) error {
+	wasRunning, err := c.stopAppManagerForReplacement(ctx)
+	if err != nil {
+		return err
+	}
+	result, err := c.service.InstallAppManagerVersion(ctx, version)
+	if err != nil {
+		c.restartAppManagerAfterFailedReplacement(ctx, wasRunning, studioctlPath)
+		return fmt.Errorf("install app-manager: %w", err)
+	}
+	c.out.Verbosef("Updated app-manager path: %s", result.InstalledPath)
+
+	return c.restartAppManagerIfNeeded(ctx, wasRunning, studioctlPath)
+}
+
+func (c *SelfCommand) stopAppManagerForReplacement(ctx context.Context) (bool, error) {
+	done, err := appmanager.Shutdown(ctx, c.cfg)
+	if err != nil {
+		if errors.Is(err, appmanager.ErrNotRunning) {
+			return false, nil
+		}
+		return false, fmt.Errorf("stop existing app-manager before install: %w", err)
+	}
+	if done == nil {
+		return false, nil
+	}
+
+	if shutdownErr := <-done; shutdownErr != nil {
+		if errors.Is(shutdownErr, appmanager.ErrNotRunning) {
+			return false, nil
+		}
+		return false, fmt.Errorf("stop existing app-manager before install: %w", shutdownErr)
+	}
+
+	return true, nil
+}
+
+func (c *SelfCommand) restartAppManagerAfterFailedReplacement(
+	ctx context.Context,
+	wasRunning bool,
+	studioctlPath string,
+) {
+	if !wasRunning {
+		return
+	}
+	if err := c.restartAppManager(ctx, studioctlPath); err != nil {
+		c.out.Verbosef("failed to restart app-manager after failed install: %v", err)
+	}
+}
+
+func (c *SelfCommand) restartAppManagerIfNeeded(ctx context.Context, wasRunning bool, studioctlPath string) error {
+	if !wasRunning {
+		return nil
+	}
+	if err := c.restartAppManager(ctx, studioctlPath); err != nil {
+		return fmt.Errorf("restart app-manager: %w", err)
+	}
+	return nil
+}
+
+func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath string) error {
+	if studioctlPath == "" {
+		if err := appmanager.EnsureStarted(
+			ctx,
+			c.cfg,
+			envlocaltest.DefaultLoadBalancerPortString(),
+		); err != nil {
+			return fmt.Errorf("ensure app-manager started: %w", err)
+		}
+		return nil
+	}
+
+	if err := appmanager.EnsureStartedWithStudioctlPath(
+		ctx,
+		c.cfg,
+		envlocaltest.DefaultLoadBalancerPortString(),
+		studioctlPath,
+	); err != nil {
+		return fmt.Errorf("ensure app-manager started with studioctl path: %w", err)
+	}
 	return nil
 }
 
 func (c *SelfCommand) runUninstall(args []string) error {
 	fs := flag.NewFlagSet("self uninstall", flag.ContinueOnError)
 	fs.Usage = func() {
-		c.out.Printf(`Usage: %s self uninstall [options]
-
-Remove the installed %s.
-
-Options:
-  -h, --help  Show this help message
-`, osutil.CurrentBin(), osutil.CurrentBin())
+		c.out.Print(joinLines(
+			fmt.Sprintf("Usage: %s self uninstall [options]", osutil.CurrentBin()),
+			"",
+			fmt.Sprintf("Remove the installed %s.", osutil.CurrentBin()),
+			"",
+			"Options:",
+			"  -h, --help  Show this help message",
+		))
 	}
 
 	if err := fs.Parse(args); err != nil {

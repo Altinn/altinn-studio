@@ -71,11 +71,47 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 	containers := coreContainers(t.TempDir(), RuntimeConfig{
 		HostGateway:      "127.0.0.1",
 		LoadBalancerPort: "8000",
+		LocalAppURL:      "http://host.docker.internal:5005",
 		Platform:         container.PlatformColima,
 	})
 
 	if got := containers[0].Environment["DOTNET_ENVIRONMENT"]; got != "Docker" {
 		t.Fatalf("DOTNET_ENVIRONMENT = %q, want %q", got, "Docker")
+	}
+}
+
+func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *testing.T) {
+	t.Parallel()
+
+	containers := coreContainers(t.TempDir(), RuntimeConfig{
+		HostGateway:      "10.88.0.1",
+		LoadBalancerPort: "8000",
+		LocalAppURL:      "http://host.docker.internal:5005",
+		Platform:         container.PlatformPodman,
+	})
+
+	if len(containers) != 2 {
+		t.Fatalf("coreContainers() len = %d, want 2", len(containers))
+	}
+
+	localtest := containers[0]
+	if got := localtest.NetworkAliases; len(got) != 1 || got[0] != "local.altinn.cloud" {
+		t.Fatalf("localtest.NetworkAliases = %v, want [local.altinn.cloud]", got)
+	}
+
+	pdf3 := containers[1]
+	for _, host := range pdf3.ExtraHosts {
+		if strings.HasPrefix(host, "local.altinn.cloud:") {
+			t.Fatalf("pdf3.ExtraHosts unexpectedly contains local.altinn.cloud host override: %v", pdf3.ExtraHosts)
+		}
+	}
+
+	if got := pdf3.Environment["PDF3_LOCALTEST_PUBLIC_BASE_URL"]; got != "http://local.altinn.cloud:5101" {
+		t.Fatalf(
+			"pdf3.Environment[PDF3_LOCALTEST_PUBLIC_BASE_URL] = %q, want %q",
+			got,
+			"http://local.altinn.cloud:5101",
+		)
 	}
 }
 
@@ -100,6 +136,7 @@ func newResourceBuildOptions(dataDir string, includeMonitoring bool) ResourceBui
 		RuntimeConfig: RuntimeConfig{
 			HostGateway:      "127.0.0.1",
 			LoadBalancerPort: "8000",
+			LocalAppURL:      "http://host.docker.internal:5005",
 			Platform:         container.PlatformDocker,
 		},
 		IncludeMonitoring: includeMonitoring,
