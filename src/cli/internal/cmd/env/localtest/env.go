@@ -360,8 +360,8 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		}
 	}
 
-	// Write embedded infra files before validation — these are baked into the
-	// binary and not part of the downloaded/local resource tarball.
+	// Write generated infra files before validation. Static infra files are
+	// installed with the localtest resources tarball.
 	if err := EnsureInfraFiles(e.cfg.DataDir); err != nil {
 		return err
 	}

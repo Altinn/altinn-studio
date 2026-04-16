@@ -199,6 +199,7 @@ func (s *Service) BuildDockerRunSpec(
 	return DockerRunSpec{
 		Config: types.ContainerConfig{
 			Labels:         appcontainers.Labels(appPath),
+			HealthCheck:    nil,
 			Name:           localtestAppContainerNamePrefix + appName,
 			Image:          imageTag,
 			User:           "",

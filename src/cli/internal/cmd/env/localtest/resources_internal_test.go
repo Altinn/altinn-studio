@@ -149,6 +149,7 @@ func createCoreLayout(t *testing.T, dataDir string) {
 		filepath.Join(dataDir, "testdata"),
 		filepath.Join(dataDir, "AltinnPlatformLocal"),
 		filepath.Join(dataDir, "infra"),
+		filepath.Join(dataDir, "infra", "workflow-engine"),
 	} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatalf("create directory %q: %v", dir, err)
@@ -161,7 +162,7 @@ func createCoreLayout(t *testing.T, dataDir string) {
 		"pgadmin-servers.json",
 		"pgpass",
 	} {
-		path := filepath.Join(dataDir, "infra", file)
+		path := filepath.Join(dataDir, "infra", "workflow-engine", file)
 		if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
 			t.Fatalf("write %q: %v", path, err)
 		}

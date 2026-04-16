@@ -216,7 +216,7 @@ func postgresContainerSpec(dataDir string) ContainerSpec {
 		},
 		[]types.VolumeMount{
 			newReadOnlyVolume(
-				InfraFilePath(dataDir, "postgres-init.sql"),
+				WorkflowEngineInfraFilePath(dataDir, "postgres-init.sql"),
 				"/docker-entrypoint-initdb.d/01-tuning.sql",
 			),
 		},
@@ -269,11 +269,11 @@ func pgAdminContainerSpec(dataDir string) ContainerSpec {
 		},
 		[]types.VolumeMount{
 			newReadOnlyVolume(
-				InfraFilePath(dataDir, "pgadmin-servers.json"),
+				WorkflowEngineInfraFilePath(dataDir, "pgadmin-servers.json"),
 				"/pgadmin4/servers.json",
 			),
 			newReadOnlyVolume(
-				InfraFilePath(dataDir, "pgpass"),
+				WorkflowEngineInfraFilePath(dataDir, "pgpass"),
 				"/pgadmin4/pgpass.conf",
 			),
 		},
@@ -482,7 +482,11 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 	images[ContainerWorkflowEngine] = &resource.LocalImage{
 		ContextPath: opts.DevConfig.WorkflowEngineContextPath(),
 		Dockerfile:  opts.DevConfig.WorkflowEngineDockerfile(),
-		Tag:         devImageTagWorkflowEngine,
+		Build: types.BuildOptions{
+			CacheFrom: nil,
+			CacheTo:   nil,
+		},
+		Tag: devImageTagWorkflowEngine,
 	}
 
 	return images
