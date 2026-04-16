@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Windows support, including Podman Desktop
+- Support for running apps as containers with `studioctl run --mode container`
+
+### Changed
+
+- Improve networking reliability across runtime configurations
+- `studioctl run` now waits for the app to be ready before returning
+
 ## [0.1.0-preview.4] - 2026-03-12
 
 ### Added
