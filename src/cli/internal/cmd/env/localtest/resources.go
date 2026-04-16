@@ -160,7 +160,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 
 	dotnetEnv := localtestEnvironment(cfg.Platform)
 
-	return []ContainerSpec{
+	containers := []ContainerSpec{
 		newContainerSpec(
 			ContainerLocaltest,
 			[]types.PortMapping{
@@ -198,15 +198,18 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]string{ContainerLocaltest},
 			nil,
 		),
-		postgresContainerSpec(dataDir),
+		workflowEngineDbContainerSpec(dataDir),
 		workflowEngineContainerSpec(),
-		pgAdminContainerSpec(dataDir),
 	}
+	if !config.IsCI() {
+		containers = append(containers, workflowEnginePgAdminContainerSpec(dataDir))
+	}
+	return containers
 }
 
-func postgresContainerSpec(dataDir string) ContainerSpec {
+func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
-		ContainerPostgres,
+		ContainerWorkflowEngineDb,
 		[]types.PortMapping{newPort("5433", postgresPort)},
 		map[string]string{
 			"POSTGRES_DB":       postgresDB,
@@ -245,13 +248,13 @@ func workflowEngineContainerSpec() ContainerSpec {
 		},
 		map[string]string{
 			"ASPNETCORE_ENVIRONMENT":            "Docker",
-			"ConnectionStrings__WorkflowEngine": "Host=postgres;Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
+			"ConnectionStrings__WorkflowEngine": "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
 			"AppCommand__CommandEndpoint":       localtestInternalBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
 		},
 		nil,
 		nil,
 		nil,
-		[]string{ContainerPostgres},
+		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},
 		nil,
 	)
 }
@@ -260,9 +263,9 @@ func localtestInternalBaseURL() string {
 	return "http://" + networking.LocalDomain + ":" + localtestServicePort
 }
 
-func pgAdminContainerSpec(dataDir string) ContainerSpec {
+func workflowEnginePgAdminContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
-		ContainerPgAdmin,
+		ContainerWorkflowEnginePgAdmin,
 		[]types.PortMapping{newPort("5050", pgAdminContainerPort)},
 		map[string]string{
 			"PGADMIN_DEFAULT_EMAIL":                   pgAdminEmail,
@@ -283,7 +286,7 @@ func pgAdminContainerSpec(dataDir string) ContainerSpec {
 		},
 		nil,
 		nil,
-		[]string{ContainerPostgres},
+		[]string{ContainerWorkflowEngineDb},
 		nil,
 	)
 	spec.UseDefaultUser = true
@@ -497,7 +500,7 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 }
 
 func buildCacheOptions(ref string) types.BuildOptions {
-	if ref == "" || !config.IsTruthyEnv(os.Getenv("CI")) {
+	if ref == "" || !config.IsCI() {
 		return types.BuildOptions{
 			CacheFrom: nil,
 			CacheTo:   nil,
@@ -524,7 +527,7 @@ func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageReso
 			Ref:        core.PDF3.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
-		ContainerPostgres: &resource.RemoteImage{
+		ContainerWorkflowEngineDb: &resource.RemoteImage{
 			Ref:        core.Postgres.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
@@ -532,7 +535,7 @@ func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageReso
 			Ref:        core.WorkflowEngine.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
-		ContainerPgAdmin: &resource.RemoteImage{
+		ContainerWorkflowEnginePgAdmin: &resource.RemoteImage{
 			Ref:        core.PgAdmin.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
@@ -574,15 +577,15 @@ func buildResourcesWithMode(
 	}
 	resources = append(resources, network)
 
-	for _, name := range coreContainerNames() {
-		resources = append(resources, coreImages[name])
+	for i := range core {
+		resources = append(resources, coreImages[core[i].Name])
 	}
 
 	coreContainerResources := buildCoreContainerResources(
 		core, coreImages, resource.Ref(network), labels, runtimeCfg.User, mode,
 	)
-	for _, name := range coreContainerNames() {
-		resources = append(resources, coreContainerResources[name])
+	for i := range core {
+		resources = append(resources, coreContainerResources[core[i].Name])
 	}
 
 	if includeMonitoring {

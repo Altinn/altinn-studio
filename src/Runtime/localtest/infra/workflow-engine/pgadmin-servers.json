@@ -3,7 +3,7 @@
     "1": {
       "Name": "Altinn Studio (local)",
       "Group": "Servers",
-      "Host": "postgres",
+      "Host": "localtest-workflow-engine-db",
       "Port": 5432,
       "MaintenanceDB": "postgres",
       "Username": "postgres",

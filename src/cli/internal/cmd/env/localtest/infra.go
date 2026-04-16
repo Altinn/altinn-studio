@@ -23,7 +23,13 @@ func EnsureInfraFiles(dataDir string) error {
 	// Generate pgpass from constants so credentials have a single source of truth.
 	// libpq requires 0600 permissions on pgpass files.
 	pgpassPath := filepath.Join(dir, "pgpass")
-	pgpassContent := fmt.Sprintf("%s:%s:*:%s:%s\n", ContainerPostgres, postgresPort, postgresUser, postgresPassword)
+	pgpassContent := fmt.Sprintf(
+		"%s:%s:*:%s:%s\n",
+		ContainerWorkflowEngineDb,
+		postgresPort,
+		postgresUser,
+		postgresPassword,
+	)
 	if err := os.WriteFile(pgpassPath, []byte(pgpassContent), osutil.FilePermOwnerOnly); err != nil {
 		return fmt.Errorf("write infra file pgpass: %w", err)
 	}

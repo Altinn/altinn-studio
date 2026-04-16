@@ -4,10 +4,12 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/studioctl/internal/config"
 )
 
 func TestValidateResourceHostPaths(t *testing.T) {
@@ -81,7 +83,7 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 }
 
 func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
-	t.Parallel()
+	t.Setenv(config.EnvCI, "")
 
 	containers := coreContainers(t.TempDir(), RuntimeConfig{
 		HostGateway:      "10.88.0.1",
@@ -92,6 +94,13 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 
 	if len(containers) != len(coreContainerNames()) {
 		t.Fatalf("coreContainers() len = %d, want %d", len(containers), len(coreContainerNames()))
+	}
+
+	if got := []string{containers[2].Name, containers[3].Name, containers[4].Name}; !slices.Equal(
+		got,
+		[]string{ContainerWorkflowEngineDb, ContainerWorkflowEngine, ContainerWorkflowEnginePgAdmin},
+	) {
+		t.Fatalf("added core container names = %v, want localtest-prefixed names", got)
 	}
 
 	localtest := containers[0]
@@ -118,11 +127,48 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	if got := workflowEngine.ExtraHosts; got != nil {
 		t.Fatalf("workflowEngine.ExtraHosts = %v, want nil", got)
 	}
+	if got := workflowEngine.Environment["ConnectionStrings__WorkflowEngine"]; !strings.Contains(
+		got,
+		"Host=localtest-workflow-engine-db;",
+	) {
+		t.Fatalf(
+			"workflowEngine.Environment[ConnectionStrings__WorkflowEngine] = %q, want localtest-workflow-engine-db host",
+			got,
+		)
+	}
+	if !slices.Equal(workflowEngine.Dependencies, []string{ContainerWorkflowEngineDb, ContainerLocaltest}) {
+		t.Fatalf(
+			"workflowEngine.Dependencies = %v, want [%s %s]",
+			workflowEngine.Dependencies,
+			ContainerWorkflowEngineDb,
+			ContainerLocaltest,
+		)
+	}
 	if got := workflowEngine.Environment["AppCommand__CommandEndpoint"]; got != "http://local.altinn.cloud:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/" {
 		t.Fatalf(
 			"workflowEngine.Environment[AppCommand__CommandEndpoint] = %q, want localtest network callback URL",
 			got,
 		)
+	}
+}
+
+func TestCoreContainers_SkipsPgAdminInCI(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	containers := coreContainers(t.TempDir(), RuntimeConfig{
+		HostGateway:      "10.88.0.1",
+		LoadBalancerPort: "8000",
+		LocalAppURL:      "http://host.docker.internal:5005",
+		Platform:         container.PlatformPodman,
+	})
+
+	if slices.Contains(coreContainerNames(), ContainerWorkflowEnginePgAdmin) {
+		t.Fatalf("coreContainerNames() contains %q in CI", ContainerWorkflowEnginePgAdmin)
+	}
+	if slices.ContainsFunc(containers, func(spec ContainerSpec) bool {
+		return spec.Name == ContainerWorkflowEnginePgAdmin
+	}) {
+		t.Fatalf("coreContainers() contains %q in CI", ContainerWorkflowEnginePgAdmin)
 	}
 }
 

@@ -21,10 +21,18 @@ func IsTruthyEnv(value string) bool {
 	return value == "1" || strings.EqualFold(value, "true")
 }
 
+// IsCI reports whether the process is running in CI.
+func IsCI() bool {
+	return IsTruthyEnv(os.Getenv(EnvCI))
+}
+
 //go:embed config.yaml
 var embeddedConfig []byte
 
 const (
+	// EnvCI is the common CI marker used by GitHub Actions and other CI systems.
+	EnvCI = "CI"
+
 	// AppName is the application name used for platform-specific directories.
 	AppName = "altinn-studio"
 

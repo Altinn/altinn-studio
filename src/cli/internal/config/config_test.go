@@ -44,6 +44,14 @@ func TestIsTruthyEnv(t *testing.T) {
 	}
 }
 
+func TestIsCI(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	if !config.IsCI() {
+		t.Fatalf("IsCI() = false, want true")
+	}
+}
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 

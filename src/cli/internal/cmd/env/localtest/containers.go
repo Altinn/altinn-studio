@@ -1,17 +1,19 @@
 package localtest
 
+import "altinn.studio/studioctl/internal/config"
+
 // Container name constants - single source of truth for all container names.
 const (
 	// ContainerLocaltest is the main localtest container.
 	ContainerLocaltest = "localtest"
 	// ContainerPDF3 is the PDF service container.
 	ContainerPDF3 = "localtest-pdf3"
-	// ContainerPostgres is the shared PostgreSQL database container.
-	ContainerPostgres = "postgres"
+	// ContainerWorkflowEngineDb is the workflow-engine PostgreSQL database container.
+	ContainerWorkflowEngineDb = "localtest-workflow-engine-db"
 	// ContainerWorkflowEngine is the workflow engine app container.
-	ContainerWorkflowEngine = "workflow-engine"
-	// ContainerPgAdmin is the pgAdmin web UI container.
-	ContainerPgAdmin = "pgadmin"
+	ContainerWorkflowEngine = "localtest-workflow-engine"
+	// ContainerWorkflowEnginePgAdmin is the pgAdmin web UI container.
+	ContainerWorkflowEnginePgAdmin = "localtest-workflow-engine-pgadmin"
 
 	// ContainerMonitoringTempo is the Tempo tracing container.
 	ContainerMonitoringTempo = "monitoring_tempo"
@@ -27,13 +29,16 @@ const (
 
 // coreContainerNames returns the core container names in order.
 func coreContainerNames() []string {
-	return []string{
+	names := []string{
 		ContainerLocaltest,
 		ContainerPDF3,
-		ContainerPostgres,
+		ContainerWorkflowEngineDb,
 		ContainerWorkflowEngine,
-		ContainerPgAdmin,
 	}
+	if !config.IsCI() {
+		names = append(names, ContainerWorkflowEnginePgAdmin)
+	}
+	return names
 }
 
 // monitoringContainerNames returns monitoring container names in order.

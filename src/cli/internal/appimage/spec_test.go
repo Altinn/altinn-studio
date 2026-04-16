@@ -162,7 +162,7 @@ ENTRYPOINT ["dotnet","App.dll"]
 }
 
 func TestBuildSpecForApp_GeneratedDockerfileUsesAppSpecificCacheRef(t *testing.T) {
-	t.Setenv("CI", "true")
+	t.Setenv(config.EnvCI, "true")
 	t.Setenv(config.EnvRegistryCacheWrite, "")
 
 	studioRoot := t.TempDir()
