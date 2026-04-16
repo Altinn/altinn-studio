@@ -211,15 +211,14 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
                 await using var stepCmd = dataSource.CreateCommand(
                     """
                     INSERT INTO engine."Steps"
-                        ("Id", "JobId", "OperationId", "IdempotencyKey", "CommandJson",
+                        ("Id", "JobId", "OperationId", "CommandJson",
                          "Status", "CreatedAt", "ProcessingOrder", "RequeueCount")
-                    VALUES (@id, @jobId, 'step-op', @idemKey, '{"type":"webhook"}',
+                    VALUES (@id, @jobId, 'step-op', '{"type":"webhook"}',
                             @status, @createdAt, @order, 0)
                     """
                 );
                 stepCmd.Parameters.AddWithValue("id", Guid.NewGuid());
                 stepCmd.Parameters.AddWithValue("jobId", id);
-                stepCmd.Parameters.AddWithValue("idemKey", Guid.NewGuid().ToString("N"));
                 stepCmd.Parameters.AddWithValue("status", status);
                 stepCmd.Parameters.AddWithValue("createdAt", createdAt);
                 stepCmd.Parameters.AddWithValue("order", s);

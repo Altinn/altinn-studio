@@ -11,7 +11,6 @@ namespace WorkflowEngine.App.Tests.Fixtures;
 public sealed class AppTestFixture : EngineAppFixture<Program>
 {
     public const string DefaultInstanceLockToken = "e2e-lock-token-abc123";
-    private const string TestApiKey = "outgoing-app-lib-api-key";
 
     private string AppCommandEndpoint =>
         $"http://localhost:{WireMock.Port}/{{Org}}/{{App}}/instances/{{InstanceOwnerPartyId}}/{{InstanceGuid}}/workflow-engine-callbacks";
@@ -24,7 +23,6 @@ public sealed class AppTestFixture : EngineAppFixture<Program>
                     $$"""
                     {
                       "AppCommandSettings": {
-                        "ApiKey": "{{TestApiKey}}",
                         "CommandEndpoint": "{{AppCommandEndpoint}}"
                       }
                     }

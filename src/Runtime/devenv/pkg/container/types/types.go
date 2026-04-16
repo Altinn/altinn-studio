@@ -1,13 +1,19 @@
 // Package types defines the shared container runtime data types used across implementations.
 package types
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // ErrContainerNotFound is returned when a container does not exist.
 var ErrContainerNotFound = errors.New("container not found")
 
 // ErrNetworkNotFound is returned when a network does not exist.
 var ErrNetworkNotFound = errors.New("network not found")
+
+// ErrNetworkInUse is returned when a network still has attached endpoints.
+var ErrNetworkInUse = errors.New("network in use")
 
 // ErrImageNotFound is returned when an image does not exist.
 var ErrImageNotFound = errors.New("image not found")
@@ -16,6 +22,12 @@ var ErrImageNotFound = errors.New("image not found")
 // Adding these ensures consistent behavior across runtimes.
 // See: https://github.com/containers/common/pull/1240
 var defaultPodmanCapabilities = [...]string{"NET_RAW", "MKNOD", "AUDIT_WRITE"}
+
+// BuildOptions controls container image build behavior.
+type BuildOptions struct {
+	CacheFrom []string
+	CacheTo   []string
+}
 
 // DefaultPodmanCapabilities returns a copy of default Podman capabilities.
 // Returning a copy prevents accidental global mutation by callers.
@@ -92,6 +104,23 @@ func (p ContainerPlatform) BuildCLI() string {
 	}
 }
 
+// PushArgs returns the runtime-specific arguments for pushing an image.
+func (p ContainerPlatform) PushArgs(image string) []string {
+	args := []string{"push"}
+	if p == PlatformPodman && IsLocalRegistryReference(image) {
+		// kind/devenv pushes target local plain-http registries.
+		args = append(args, "--tls-verify=false")
+	}
+	return append(args, image)
+}
+
+// IsLocalRegistryReference reports whether the image points at the local plain-http registry used by devenv.
+func IsLocalRegistryReference(image string) bool {
+	return strings.HasPrefix(image, "localhost:") ||
+		strings.HasPrefix(image, "127.0.0.1:") ||
+		strings.HasPrefix(image, "[::1]:")
+}
+
 // ContainerAccessMode describes how the client communicates with the platform.
 type ContainerAccessMode int
 
@@ -163,6 +192,20 @@ type PortMapping struct {
 	Protocol      string // "tcp" or "udp", defaults to "tcp"
 }
 
+// PublishedPort describes a host port published by a container.
+type PublishedPort struct {
+	HostIP        string
+	HostPort      string
+	ContainerPort string
+	Protocol      string
+}
+
+// ContainerListFilter restricts container listing.
+type ContainerListFilter struct {
+	Labels map[string]string
+	All    bool
+}
+
 // VolumeMount defines a bind mount.
 type VolumeMount struct {
 	HostPath      string
@@ -172,19 +215,20 @@ type VolumeMount struct {
 
 // ContainerConfig defines options for creating a container.
 type ContainerConfig struct {
-	Labels        map[string]string
-	Name          string
-	Image         string
-	User          string
-	RestartPolicy string
-	ExtraHosts    []string
-	Volumes       []VolumeMount
-	Networks      []string
-	Ports         []PortMapping
-	Env           []string
-	Command       []string
-	CapAdd        []string
-	Detach        bool
+	Labels         map[string]string
+	Name           string
+	Image          string
+	User           string
+	RestartPolicy  string
+	ExtraHosts     []string
+	NetworkAliases []string
+	Volumes        []VolumeMount
+	Networks       []string
+	Ports          []PortMapping
+	Env            []string
+	Command        []string
+	CapAdd         []string
+	Detach         bool
 }
 
 // ImageInfo contains metadata about an image.
@@ -195,10 +239,11 @@ type ImageInfo struct {
 
 // ContainerState represents the state of a container.
 type ContainerState struct {
-	Status   string // "created", "running", "paused", "restarting", "removing", "exited", "dead"
-	Running  bool
-	Paused   bool
-	ExitCode int
+	Status       string // "created", "running", "paused", "restarting", "removing", "exited", "dead"
+	HealthStatus string // empty when the container has no healthcheck
+	Running      bool
+	Paused       bool
+	ExitCode     int
 }
 
 // ContainerInfo contains detailed information about a container.
@@ -208,6 +253,7 @@ type ContainerInfo struct {
 	Image   string // image reference used to create the container
 	ImageID string // resolved image ID (sha256:...)
 	Labels  map[string]string
+	Ports   []PublishedPort
 	State   ContainerState
 }
 

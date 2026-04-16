@@ -265,8 +265,8 @@ public sealed class RetentionTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var cmd = dataSource.CreateCommand(
             """
-            INSERT INTO engine."Steps" ("Id", "JobId", "OperationId", "IdempotencyKey", "CommandJson", "Status", "CreatedAt", "ProcessingOrder", "RequeueCount")
-            VALUES (@id, @jobId, 'test-step', @id::text, '{"type":"webhook"}', 3, @createdAt, 0, 0)
+            INSERT INTO engine."Steps" ("Id", "JobId", "OperationId", "CommandJson", "Status", "CreatedAt", "ProcessingOrder", "RequeueCount")
+            VALUES (@id, @jobId, 'test-step', '{"type":"webhook"}', 3, @createdAt, 0, 0)
             """
         );
         cmd.Parameters.AddWithValue("id", Guid.NewGuid());

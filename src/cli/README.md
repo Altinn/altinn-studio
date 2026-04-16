@@ -26,6 +26,8 @@ Windows (PowerShell):
 iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
 ```
 
+The install flow also installs `app-manager` and localtest resources by default.
+
 Pin to a specific version:
 
 ```sh
@@ -62,6 +64,8 @@ studioctl run
 cd src/cli
 make user-install
 ```
+
+That installs `studioctl`, `app-manager`, and localtest resources into your user setup.
 
 Development loop:
 

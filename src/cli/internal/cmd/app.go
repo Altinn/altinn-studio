@@ -38,16 +38,18 @@ func (c *AppCommand) Synopsis() string { return "Manage Altinn app" }
 
 // Usage returns the full help text.
 func (c *AppCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s app <subcommand> [options]
-
-Manage Altinn apps.
-
-Subcommands:
-  clone     Clone an app repository from Altinn Studio
-  update    Update Altinn.App NuGet packages and frontend
-
-Run '%s app <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s app <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		"Manage Altinn apps.",
+		"",
+		"Subcommands:",
+		"  build     Build an app container image",
+		"  clone     Clone an app repository from Altinn Studio",
+		"  update    Update Altinn.App NuGet packages and frontend",
+		"",
+		fmt.Sprintf("Run '%s app <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -61,6 +63,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 	subArgs := args[1:]
 
 	switch subCmd {
+	case "build":
+		return c.runBuild(ctx, subArgs)
 	case "clone":
 		return c.runClone(ctx, subArgs)
 	case "update":
@@ -96,7 +100,7 @@ func (c *AppCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("detect app: %w", err)
 	}
 
-	c.out.Printf("App found: %s\n", result.AppPath)
+	c.out.Printlnf("App found: %s", result.AppPath)
 	c.out.Println("")
 
 	c.out.Println("App update not yet implemented.")
@@ -162,8 +166,8 @@ func (c *AppCommand) runClone(ctx context.Context, args []string) error {
 
 	c.out.Successf("Cloned to %s", result.AbsPath)
 	c.out.Println("")
-	c.out.Printf("Next steps:\n")
-	c.out.Printf("  cd %s && %s env up\n", dest, osutil.CurrentBin())
+	c.out.Println("Next steps:")
+	c.out.Printlnf("  cd %s && %s env up", dest, osutil.CurrentBin())
 
 	return nil
 }

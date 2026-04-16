@@ -75,6 +75,10 @@ dev-install: ## Install to isolated dev home directory (cross-platform)
 user-install: ## Install to user directories (cross-platform)
 	go run ./cmd/dev install -user
 
+.PHONY: user-install-winhost
+user-install-winhost: ## From WSL, install studioctl onto the Windows host
+	go run ./cmd/dev install -user -windows-host
+
 .PHONY: dev-run
 dev-run: dev-install ## Run studioctl with dev config (use CMD="env up" etc)
 	STUDIOCTL_HOME=$(abspath $(DEV_HOME)) $(DEV_HOME)/bin/studioctl $(CMD)

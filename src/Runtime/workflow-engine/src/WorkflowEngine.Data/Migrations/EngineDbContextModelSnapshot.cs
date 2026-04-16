@@ -18,7 +18,7 @@ namespace WorkflowEngine.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("engine")
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -82,10 +82,6 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.Property<string>("ErrorHistory")
                         .HasColumnType("jsonb");
-
-                    b.Property<string>("IdempotencyKey")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<Guid>("JobId")
                         .HasColumnType("uuid");

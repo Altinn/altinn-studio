@@ -11,6 +11,11 @@ public sealed record Workflow : PersistentItem
     public Guid? CorrelationId { get; init; }
 
     /// <summary>
+    /// The idempotency key for this workflow, unique within a namespace.
+    /// </summary>
+    public required string IdempotencyKey { get; set; }
+
+    /// <summary>
     /// Primary isolation boundary. Idempotency keys are unique within a namespace.
     /// Example: an instance GUID, a customer ID, a project ID — whatever the host defines.
     /// </summary>
