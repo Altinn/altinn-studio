@@ -67,6 +67,7 @@ export const FormStore = {
 };
 
 export interface FormStoreState {
+  parent: FormStoreApi | undefined;
   data: FormDataSliceState & FormDataMethods;
   validation: ValidationSliceState & ValidationInternals;
   nodes: NodesSliceState;
@@ -74,6 +75,17 @@ export interface FormStoreState {
 }
 
 export type FormStoreApi = StoreApi<FormStoreState>;
+
+export function getTopMostFormStore(store: FormStoreApi): FormStoreApi {
+  let current = store;
+  while (true) {
+    const parent = current.getState().parent;
+    if (!parent) {
+      return current;
+    }
+    current = parent;
+  }
+}
 
 export type FormStoreSet = (
   partial:

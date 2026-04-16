@@ -9,15 +9,19 @@ import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
+  type BackendValidationIssue,
   type BaseValidation,
-  type DataModelValidations,
   type FieldValidations,
   ValidationMask,
   type ValidationsProcessedLast,
   type WaitForValidation,
 } from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
-import { mapBackendIssuesToTaskValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
+import {
+  mapBackendIssuesToTaskValidations,
+  mapBackendValidationsToValidatorGroups,
+  mapValidatorGroupsToDataModelValidations,
+} from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
 import { useWaitForState } from 'src/hooks/useWaitForState';
@@ -41,6 +45,7 @@ export interface ValidationInternals {
     processedLast?: Partial<ValidationsProcessedLast>,
     taskValidations?: BaseValidation[],
   ) => void;
+  setOtherDataElementBackendValidations: (dataElementId: string, validationIssues: BackendValidationIssue[]) => void;
 }
 
 export function createValidationSlice(
@@ -77,6 +82,20 @@ export function createValidationSlice(
       set((state) => {
         updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
       }),
+    setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
+      set((state) => {
+        if (!getMountedDataElementIds(state).has(dataElementId)) {
+          const validations = mapValidatorGroupsToDataModelValidations(
+            mapBackendValidationsToValidatorGroups(validationIssues),
+          )[dataElementId];
+
+          if (validations && Object.keys(validations).length > 0) {
+            state.validation.otherDataElementBackendValidations[dataElementId] = validations;
+          } else {
+            delete state.validation.otherDataElementBackendValidations[dataElementId];
+          }
+        }
+      }),
   };
 }
 
@@ -97,24 +116,33 @@ export function updateBackendValidations(
       state.validation.state.task = taskValidations;
     }
     if (backendValidations) {
-      const mountedDataElementIds = new Set<string>();
       for (const [dataType, model] of Object.entries(state.data.models)) {
         const dataModelKey = model.dataElementId ?? dataType;
-        mountedDataElementIds.add(dataModelKey);
         model.validations.backend = backendValidations[dataModelKey] ?? {};
       }
 
-      if (!state.nodes.isEmbedded) {
-        const otherDataElementBackendValidations: DataModelValidations = {};
+      if (!state.parent) {
+        const mountedDataElementIds = getMountedDataElementIds(state);
+        const isFullSnapshotUpdate = Boolean(processedLast?.initial);
+        if (isFullSnapshotUpdate) {
+          state.validation.otherDataElementBackendValidations = {};
+        }
         for (const [dataElementId, validations] of Object.entries(backendValidations)) {
           if (!mountedDataElementIds.has(dataElementId)) {
-            otherDataElementBackendValidations[dataElementId] = validations;
+            state.validation.otherDataElementBackendValidations[dataElementId] = validations;
           }
         }
-        state.validation.otherDataElementBackendValidations = otherDataElementBackendValidations;
       }
     }
   };
+}
+
+function getMountedDataElementIds(state: Pick<FormStoreState, 'data'>): Set<string> {
+  const mountedDataElementIds = new Set<string>();
+  for (const [dataType, model] of Object.entries(state.data.models)) {
+    mountedDataElementIds.add(model.dataElementId ?? dataType);
+  }
+  return mountedDataElementIds;
 }
 
 export function ValidationEffects() {

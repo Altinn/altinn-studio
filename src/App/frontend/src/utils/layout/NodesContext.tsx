@@ -211,7 +211,6 @@ export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): For
 
 export interface NodesSliceProps {
   readOnly: boolean;
-  isEmbedded: boolean;
 }
 
 export const NodesProvider = ({ children }: PropsWithChildren) => {
@@ -342,9 +341,6 @@ function NodesLoader() {
 export const nodesHooks = {
   useIsReadOnly() {
     return FormStore.raw.useSelector((state) => state.nodes.readOnly);
-  },
-  useIsEmbedded() {
-    return FormStore.raw.useSelector((state) => state.nodes.isEmbedded);
   },
   useFullErrorList() {
     return FormStore.raw.useMemoSelector((s) => {
