@@ -30,9 +30,12 @@ const (
 	devImageTagLocaltest      = "localtest:dev"
 	devImageTagPDF3           = "localtest-pdf3:dev"
 	devImageTagWorkflowEngine = "workflow-engine:dev"
+	buildCacheRefLocaltest    = "ghcr.io/altinn/altinn-studio/localtest-main-cache:latest"
+	buildCacheRefPDF3         = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
 	flavorDocker              = "Docker"
 	flavorPodman              = "Podman"
 	flavorUnknown             = "Unknown"
+	localtestServicePort      = "5101"
 
 	postgresHealthInterval    = 10 * time.Second
 	postgresHealthTimeout     = 5 * time.Second
@@ -56,6 +59,7 @@ var ErrInvalidResourceLayout = errors.New("invalid localtest resource layout")
 type RuntimeConfig struct {
 	HostGateway      string                      // resolved host gateway IP (e.g., "172.17.0.1")
 	LoadBalancerPort string                      // port for localtest (default: "8000")
+	LocalAppURL      string                      // localtest-side default app URL
 	User             string                      // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Platform         container.ContainerPlatform // selected container platform
 }
@@ -68,6 +72,7 @@ type ContainerSpec struct {
 	Environment    map[string]string
 	Volumes        []types.VolumeMount
 	ExtraHosts     []string
+	NetworkAliases []string
 	Dependencies   []string
 	Command        []string
 	UseDefaultUser bool // When true, ignore host user override and use the image's default user
@@ -116,7 +121,7 @@ func newContainerSpec(
 	ports []types.PortMapping,
 	env map[string]string,
 	volumes []types.VolumeMount,
-	extraHosts, deps, cmd []string,
+	extraHosts, networkAliases, deps, cmd []string,
 ) ContainerSpec {
 	return ContainerSpec{
 		HealthCheck:    nil,
@@ -125,6 +130,7 @@ func newContainerSpec(
 		Environment:    env,
 		Volumes:        volumes,
 		ExtraHosts:     extraHosts,
+		NetworkAliases: networkAliases,
 		Dependencies:   deps,
 		Command:        cmd,
 		UseDefaultUser: false,
@@ -147,10 +153,9 @@ func newContainerStatus(name, status string) ContainerStatus {
 }
 
 func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
-	extraHosts := []string{
+	hostExtraHosts := []string{
 		"host.docker.internal:" + cfg.HostGateway,
 		"host.containers.internal:" + cfg.HostGateway,
-		networking.LocalDomain + ":" + cfg.HostGateway,
 	}
 
 	dotnetEnv := localtestEnvironment(cfg.Platform)
@@ -159,19 +164,21 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 		newContainerSpec(
 			ContainerLocaltest,
 			[]types.PortMapping{
-				newPort(cfg.LoadBalancerPort, "5101"), // Main port
-				newPort("5101", "5101"),               // Internal port
+				newPort(cfg.LoadBalancerPort, localtestServicePort), // Main port
+				newPort(localtestServicePort, localtestServicePort), // Internal port
 			},
 			map[string]string{
-				"DOTNET_ENVIRONMENT":        dotnetEnv,
-				"GeneralSettings__BaseUrl":  "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
-				"GeneralSettings__HostName": networking.LocalDomain,
+				"DOTNET_ENVIRONMENT":                 dotnetEnv,
+				"GeneralSettings__BaseUrl":           "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
+				"GeneralSettings__HostName":          networking.LocalDomain,
+				"LocalPlatformSettings__LocalAppUrl": cfg.LocalAppURL,
 			},
 			[]types.VolumeMount{
 				newVolume(filepath.Join(dataDir, "testdata"), "/testdata"),
 				newVolume(filepath.Join(dataDir, "AltinnPlatformLocal"), "/AltinnPlatformLocal"),
 			},
-			extraHosts,
+			hostExtraHosts,
+			[]string{networking.LocalDomain},
 			nil,
 			nil,
 		),
@@ -179,18 +186,20 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			ContainerPDF3,
 			[]types.PortMapping{newPort("5300", "5031")},
 			map[string]string{
-				"TZ":                             "Europe/Oslo",
-				"PDF3_ENVIRONMENT":               "localtest",
-				"PDF3_QUEUE_SIZE":                "3",
-				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
+				"TZ":               "Europe/Oslo",
+				"PDF3_ENVIRONMENT": "localtest",
+				"PDF3_QUEUE_SIZE":  "3",
+				// pdf3 reaches localtest over the container network, not through the host-published load balancer port.
+				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + localtestServicePort,
 			},
 			nil,
-			extraHosts,
+			hostExtraHosts,
+			nil,
 			[]string{ContainerLocaltest},
 			nil,
 		),
 		postgresContainerSpec(dataDir),
-		workflowEngineContainerSpec(extraHosts),
+		workflowEngineContainerSpec(hostExtraHosts),
 		pgAdminContainerSpec(dataDir),
 	}
 }
@@ -211,6 +220,7 @@ func postgresContainerSpec(dataDir string) ContainerSpec {
 				"/docker-entrypoint-initdb.d/01-tuning.sql",
 			),
 		},
+		nil,
 		nil,
 		nil,
 		[]string{"postgres", "-c", "shared_preload_libraries=pg_stat_statements"},
@@ -240,6 +250,7 @@ func workflowEngineContainerSpec(extraHosts []string) ContainerSpec {
 		},
 		nil,
 		extraHosts,
+		nil,
 		[]string{ContainerPostgres},
 		nil,
 	)
@@ -266,6 +277,7 @@ func pgAdminContainerSpec(dataDir string) ContainerSpec {
 				"/pgadmin4/pgpass.conf",
 			),
 		},
+		nil,
 		nil,
 		[]string{ContainerPostgres},
 		nil,
@@ -305,6 +317,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			},
 			nil,
 			nil,
+			nil,
 			[]string{"-config.file=/etc/tempo.yaml", "-log.level=error"},
 		),
 		newContainerSpec(
@@ -314,6 +327,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]types.VolumeMount{
 				newVolume(filepath.Join(infraDir, "mimir.yaml"), "/etc/mimir.yaml"),
 			},
+			nil,
 			nil,
 			nil,
 			[]string{"-config.file=/etc/mimir.yaml", "-target=all", "-log.level=error"},
@@ -327,6 +341,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			},
 			nil,
 			nil,
+			nil,
 			[]string{"-config.file=/etc/loki.yaml", "-target=all", "-log.level=error"},
 		),
 		newContainerSpec(
@@ -336,6 +351,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]types.VolumeMount{
 				newVolume(filepath.Join(infraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
 			},
+			nil,
 			nil,
 			[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
 			[]string{"--config=/etc/otel-collector.yaml"},
@@ -364,6 +380,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				newVolume(filepath.Join(infraDir, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
 			},
 			extraHosts,
+			nil,
 			[]string{
 				ContainerMonitoringOtelCollector,
 				ContainerMonitoringMimir,
@@ -429,6 +446,7 @@ func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
 		Platform:         opts.Platform,
 		HostGateway:      "", // not used for destroy
 		LoadBalancerPort: "", // not used for destroy
+		LocalAppURL:      "", // not used for destroy
 		User:             "", // not used for destroy
 	}
 
@@ -449,15 +467,16 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 
 	images := buildRemoteCoreImages(opts.Images.Core)
 
-	// Override buildable images with local dev builds
 	images[ContainerLocaltest] = &resource.LocalImage{
 		ContextPath: opts.DevConfig.LocaltestContextPath(),
 		Dockerfile:  opts.DevConfig.LocaltestDockerfile(),
+		Build:       buildCacheOptions(buildCacheRefLocaltest),
 		Tag:         devImageTagLocaltest,
 	}
 	images[ContainerPDF3] = &resource.LocalImage{
 		ContextPath: opts.DevConfig.PDF3ContextPath(),
 		Dockerfile:  opts.DevConfig.PDF3Dockerfile(),
+		Build:       buildCacheOptions(buildCacheRefPDF3),
 		Tag:         devImageTagPDF3,
 	}
 	images[ContainerWorkflowEngine] = &resource.LocalImage{
@@ -467,6 +486,24 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 	}
 
 	return images
+}
+
+func buildCacheOptions(ref string) types.BuildOptions {
+	if ref == "" || !config.IsTruthyEnv(os.Getenv("CI")) {
+		return types.BuildOptions{
+			CacheFrom: nil,
+			CacheTo:   nil,
+		}
+	}
+
+	opts := types.BuildOptions{
+		CacheFrom: []string{"type=registry,ref=" + ref},
+		CacheTo:   nil,
+	}
+	if config.IsTruthyEnv(os.Getenv(config.EnvRegistryCacheWrite)) {
+		opts.CacheTo = []string{"type=registry,ref=" + ref + ",mode=max"}
+	}
+	return opts
 }
 
 func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageResource {
@@ -516,6 +553,16 @@ func buildResourcesWithMode(
 		Name:   NetworkName,
 		Driver: "bridge",
 		Labels: labels,
+		Lifecycle: resource.LifecycleOptions{
+			// When apps are started with `studioctl run --mode container ..`
+			// we might have active containers attached to the network
+			HandleDestroyError: func(err error) resource.ErrorDecision {
+				if errors.Is(err, types.ErrNetworkInUse) {
+					return resource.ErrorDecisionIgnore
+				}
+				return resource.ErrorDecisionDefault
+			},
+		},
 	}
 	resources = append(resources, network)
 
@@ -567,19 +614,26 @@ func buildCoreContainerResources(
 	m := make(map[string]*resource.Container, len(specs))
 	for i := range specs {
 		m[specs[i].Name] = &resource.Container{
-			HealthCheck:   nil,
-			Image:         resource.ResourceRef{},
-			Labels:        nil,
-			Name:          "",
-			RestartPolicy: "",
-			User:          "",
-			Networks:      nil,
-			DependsOn:     nil,
-			Ports:         nil,
-			Volumes:       nil,
-			Env:           nil,
-			Command:       nil,
-			ExtraHosts:    nil,
+			HealthCheck: nil,
+			Image:       resource.ResourceRef{},
+			Labels:      nil,
+			Lifecycle: resource.ContainerLifecycleOptions{
+				LifecycleOptions: resource.LifecycleOptions{
+					HandleDestroyError: nil,
+				},
+				WaitForReady: false,
+			},
+			Name:           "",
+			RestartPolicy:  "",
+			User:           "",
+			Networks:       nil,
+			DependsOn:      nil,
+			Ports:          nil,
+			Volumes:        nil,
+			Env:            nil,
+			Command:        nil,
+			ExtraHosts:     nil,
+			NetworkAliases: nil,
 		}
 	}
 	for i := range specs {
@@ -600,19 +654,26 @@ func newContainerResource(
 ) *resource.Container {
 	if mode == containerModeDestroy {
 		return &resource.Container{
-			HealthCheck:   nil,
-			Name:          spec.Name,
-			Image:         resource.Ref(imageRes),
-			Networks:      []resource.ResourceRef{network},
-			DependsOn:     nil,
-			Labels:        labels,
-			Ports:         nil,
-			Volumes:       nil,
-			Env:           nil,
-			Command:       nil,
-			ExtraHosts:    nil,
-			RestartPolicy: "",
-			User:          "",
+			HealthCheck: nil,
+			Name:        spec.Name,
+			Image:       resource.Ref(imageRes),
+			Networks:    []resource.ResourceRef{network},
+			DependsOn:   nil,
+			Lifecycle: resource.ContainerLifecycleOptions{
+				LifecycleOptions: resource.LifecycleOptions{
+					HandleDestroyError: nil,
+				},
+				WaitForReady: false,
+			},
+			Labels:         labels,
+			Ports:          nil,
+			Volumes:        nil,
+			Env:            nil,
+			Command:        nil,
+			ExtraHosts:     nil,
+			NetworkAliases: nil,
+			RestartPolicy:  "",
+			User:           "",
 		}
 	}
 
@@ -630,19 +691,26 @@ func newContainerResource(
 	}
 
 	return &resource.Container{
-		HealthCheck:   spec.HealthCheck,
-		Name:          spec.Name,
-		Image:         resource.Ref(imageRes),
-		Networks:      []resource.ResourceRef{network},
-		DependsOn:     dependsOn,
-		Ports:         spec.Ports,
-		Volumes:       spec.Volumes,
-		Env:           toEnvSlice(spec.Environment),
-		Labels:        labels,
-		Command:       spec.Command,
-		ExtraHosts:    spec.ExtraHosts,
-		RestartPolicy: "",
-		User:          containerUser,
+		HealthCheck: spec.HealthCheck,
+		Name:        spec.Name,
+		Image:       resource.Ref(imageRes),
+		Networks:    []resource.ResourceRef{network},
+		DependsOn:   dependsOn,
+		Ports:       spec.Ports,
+		Volumes:     spec.Volumes,
+		Env:         toEnvSlice(spec.Environment),
+		Labels:      labels,
+		Command:     spec.Command,
+		ExtraHosts:  spec.ExtraHosts,
+		Lifecycle: resource.ContainerLifecycleOptions{
+			LifecycleOptions: resource.LifecycleOptions{
+				HandleDestroyError: nil,
+			},
+			WaitForReady: true,
+		},
+		NetworkAliases: spec.NetworkAliases,
+		RestartPolicy:  "",
+		User:           containerUser,
 	}
 }
 

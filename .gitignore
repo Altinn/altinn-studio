@@ -406,3 +406,5 @@ stats.csv
 # Local scratch space for notes, TODOs, plans etc..
 .notes/*
 !.notes/.gitkeep
+
+.cache/

@@ -189,6 +189,92 @@ public class AddAsyncTests : DbIntegrationTestsBase
 
     [Theory]
     [InlineData("ttd")]
+    public async Task AddBySequenceNoAsync_ShouldInsertEventInDatabase(string org)
+    {
+        // Arrange
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org);
+        await DbFixture.PrepareEntityInDatabase(deploymentEntity);
+
+        var sequenceNo = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
+            .AsNoTracking()
+            .Where(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id)
+            .Select(d => d.Sequenceno)
+            .SingleAsync();
+
+        var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(
+            DbFixture.DbContext,
+            featureManager.Object,
+            _timeProvider
+        );
+        var deployEvent = new DeployEvent
+        {
+            EventType = DeployEventType.ResourceRegistryPublishSucceeded,
+            Message = "Published to Resource Registry",
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.Internal,
+        };
+
+        // Act
+        await repository.AddBySequenceNoAsync(sequenceNo, deployEvent);
+
+        // Assert
+        var dbEvent = await DbFixture
+            .DbContext.DeployEvents.AsNoTracking()
+            .FirstOrDefaultAsync(e =>
+                e.DeploymentSequenceNo == sequenceNo
+                && e.EventType == DeployEventType.ResourceRegistryPublishSucceeded.ToString()
+            );
+
+        Assert.NotNull(dbEvent);
+        Assert.Equal(deployEvent.Message, dbEvent.Message);
+    }
+
+    [Theory]
+    [InlineData("ttd")]
+    public async Task AddBySequenceNoAsync_DoesNotRequireFeatureFlag(string org)
+    {
+        // Arrange
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org);
+        await DbFixture.PrepareEntityInDatabase(deploymentEntity);
+
+        var sequenceNo = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
+            .AsNoTracking()
+            .Where(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id)
+            .Select(d => d.Sequenceno)
+            .SingleAsync();
+
+        var featureManager = CreateFeatureManagerMock(gitOpsEnabled: false);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(
+            DbFixture.DbContext,
+            featureManager.Object,
+            _timeProvider
+        );
+        var deployEvent = new DeployEvent
+        {
+            EventType = DeployEventType.ResourceRegistryPublishFailed,
+            Message = "Resource Registry publish failed: some error",
+            Timestamp = _timeProvider.GetUtcNow(),
+            Origin = DeployEventOrigin.Internal,
+        };
+
+        // Act
+        await repository.AddBySequenceNoAsync(sequenceNo, deployEvent);
+
+        var dbEvent = await DbFixture
+            .DbContext.DeployEvents.AsNoTracking()
+            .FirstOrDefaultAsync(e =>
+                e.DeploymentSequenceNo == sequenceNo
+                && e.EventType == DeployEventType.ResourceRegistryPublishFailed.ToString()
+            );
+
+        Assert.NotNull(dbEvent);
+    }
+
+    [Theory]
+    [InlineData("ttd")]
     public async Task AddAsync_WhenFeatureFlagDisabled_ShouldNotInsertEvent(string org)
     {
         // Arrange

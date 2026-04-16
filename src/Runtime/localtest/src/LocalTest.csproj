@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../../Shared/AppTunnel/**/*.cs" LinkBase="AppTunnel" />
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageReference Include="Altinn.Common.PEP" Version="4.1.2" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.6.1" />

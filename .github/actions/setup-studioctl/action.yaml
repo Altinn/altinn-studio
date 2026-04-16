@@ -1,0 +1,27 @@
+name: "Setup studioctl"
+description: "Builds a dev studioctl install for CI workflows"
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      with:
+        go-version-file: src/cli/go.mod
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
+      with:
+        dotnet-version: "10.0.x"
+
+    - name: Build studioctl dev install
+      working-directory: src/cli
+      run: make dev-install
+      shell: bash
+
+    - name: Set studioctl paths
+      run: |
+        studioctl_home="${GITHUB_WORKSPACE}/src/cli/build/dev-home"
+        echo "STUDIOCTL_HOME=$studioctl_home" >> "$GITHUB_ENV"
+        echo "STUDIOCTL_INTERNAL_DEV=true" >> "$GITHUB_ENV"
+        echo "$studioctl_home/bin" >> "$GITHUB_PATH"
+      shell: bash

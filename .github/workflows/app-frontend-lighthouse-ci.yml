@@ -5,7 +5,7 @@ on:
       - 'main'
     paths:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
-      - './.github/actions/**'
+      - '.github/actions/**'
       - 'src/App/frontend/**'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
@@ -13,7 +13,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - '.github/workflows/app-frontend-lighthouse-ci.yml'
-      - './.github/actions/**'
+      - '.github/actions/**'
       - 'src/App/frontend/**'
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
@@ -34,24 +34,12 @@ jobs:
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
-  build-localtest:
-    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - name: Build localtest
-        uses: ./.github/actions/app-build-localtest
-        with:
-          docker-profile: 'test-apps'
-
   lighthouse:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Lighthouse CI
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [build-frontend, build-localtest]
+    needs: [build-frontend]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -62,7 +50,8 @@ jobs:
         with:
           run-frontend: true
           run-localtest: true
-          docker-profile: test-apps
+          app-run-targets-json: |
+            [{ "path": "src/test/apps/component-library" }]
 
       - name: Run Lighthouse CI
         env:
@@ -126,5 +115,4 @@ jobs:
 
       - name: Stop localtest
         if: always()
-        working-directory: src/Runtime/localtest
-        run: docker compose down
+        uses: ./.github/actions/app-stop-local-env

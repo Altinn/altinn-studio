@@ -6,8 +6,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using LocalTest.Configuration;
-using LocalTest.Services.AppRegistry;
+using LocalTest.Tunnel;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Transforms;
 
@@ -18,8 +19,8 @@ public class ProxyMiddleware
     private readonly RequestDelegate _nextMiddleware;
     private readonly LocalPlatformSettings _settings;
     private readonly IHttpForwarder _forwarder;
-    private readonly AppRegistryService _appRegistryService;
     private readonly ILogger<ProxyMiddleware> _logger;
+    private readonly AppTunnelProxy _appTunnelProxy;
 
     // Cookie name for frontend version override (URL-encoded URL)
     private const string FrontendVersionCookie = "frontendVersion";
@@ -29,14 +30,14 @@ public class ProxyMiddleware
         IOptions<LocalPlatformSettings> localPlatformSettings,
         IHttpForwarder forwarder,
         ILogger<ProxyMiddleware> logger,
-        AppRegistryService appRegistryService
+        AppTunnelProxy appTunnelProxy
     )
     {
         _nextMiddleware = nextMiddleware;
         _settings = localPlatformSettings.Value;
         _forwarder = forwarder;
         _logger = logger;
-        _appRegistryService = appRegistryService;
+        _appTunnelProxy = appTunnelProxy;
     }
 
     // Path prefixes handled directly by localtest (not proxied to apps)
@@ -55,6 +56,7 @@ public class ProxyMiddleware
         "/storage/",
         "/notifications/",
         "/health",
+        "/internal/",
     ];
 
     public async Task Invoke(HttpContext context)
@@ -77,20 +79,38 @@ public class ProxyMiddleware
             return;
         }
 
-        // Try to route to registered app first
         var appId = ExtractAppIdFromPath(path);
-        if (appId != null)
+        if (appId != null && _appTunnelProxy.IsConnected)
         {
-            var targetUrl = _appRegistryService.GetUrl(appId);
-            if (targetUrl != null)
+            try
             {
-                _logger.LogDebug("Proxying request for registered app {AppId} to {TargetUrl}", appId, targetUrl);
-                await ProxyRequest(context, targetUrl);
+                await ProxyTunneledRequest(context, appId);
+                return;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
+            {
+                await HandleTunnelProxyError(context, ex, appId);
                 return;
             }
         }
 
-        // App not registered - fallback to LocalAppUrl (port 5005)
+        if (_appTunnelProxy.IsConnected)
+        {
+            try
+            {
+                await ProxyTunneledRequest(context, appId: null);
+                return;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
+            {
+                if (!CanFallbackToLocalAppUrl(context))
+                    throw;
+
+                context.Response.Clear();
+                _logger.LogDebug(ex, "Tunnel proxy failed for default app, falling back to LocalAppUrl");
+            }
+        }
+
         if (!string.IsNullOrEmpty(_settings.LocalAppUrl))
         {
             await ProxyRequest(context, _settings.LocalAppUrl);
@@ -169,6 +189,12 @@ public class ProxyMiddleware
         return null;
     }
 
+    private static bool CanFallbackToLocalAppUrl(HttpContext context) =>
+        !context.Response.HasStarted && !RequestMayHaveBody(context.Request);
+
+    private static bool RequestMayHaveBody(HttpRequest request) =>
+        request.ContentLength is > 0 || request.Headers.ContainsKey(HeaderNames.TransferEncoding);
+
     private static readonly HttpMessageInvoker _httpClient = new(
         new SocketsHttpHandler
         {
@@ -180,7 +206,7 @@ public class ProxyMiddleware
             ActivityHeadersPropagator = new ReverseProxyPropagator(
                 DistributedContextPropagator.Current
             ),
-            ConnectTimeout = TimeSpan.FromSeconds(15),
+            ConnectTimeout = TimeSpan.FromSeconds(5),
         }
     );
 
@@ -202,6 +228,60 @@ public class ProxyMiddleware
         {
             await HandleProxyError(context, error, targetHost);
         }
+    }
+
+    private async Task ProxyTunneledRequest(HttpContext context, string? appId)
+    {
+        var frontendVersionUrl = GetFrontendVersionUrl(context);
+        if (frontendVersionUrl == null)
+        {
+            context.Response.OnStarting(() =>
+            {
+                LocaltestResponseTransformer.RewriteCookieDomains(context.Response.Headers);
+                return Task.CompletedTask;
+            });
+            await _appTunnelProxy.ProxyAsync(context, appId, context.RequestAborted);
+            return;
+        }
+
+        await ProxyTunneledRequestWithBufferedResponse(context, appId, frontendVersionUrl);
+    }
+
+    private async Task ProxyTunneledRequestWithBufferedResponse(
+        HttpContext context,
+        string? appId,
+        string frontendVersionUrl
+    )
+    {
+        var originalBody = context.Response.Body;
+        await using var bufferedBody = new MemoryStream();
+        context.Response.Body = bufferedBody;
+
+        try
+        {
+            await _appTunnelProxy.ProxyAsync(context, appId, context.RequestAborted);
+        }
+        finally
+        {
+            context.Response.Body = originalBody;
+        }
+
+        LocaltestResponseTransformer.RewriteCookieDomains(context.Response.Headers);
+
+        bufferedBody.Position = 0;
+        var transformer = new LocaltestResponseTransformer(frontendVersionUrl, _logger);
+        var rewritten = await transformer.RewriteBufferedFrontendResources(
+            context,
+            bufferedBody,
+            context.RequestAborted
+        );
+        if (rewritten)
+        {
+            return;
+        }
+
+        bufferedBody.Position = 0;
+        await bufferedBody.CopyToAsync(originalBody, context.RequestAborted);
     }
 
     /// <summary>
@@ -255,6 +335,22 @@ public class ProxyMiddleware
 
         var errorPage = GetErrorPage(targetHost);
         await context.Response.WriteAsync(errorPage);
+    }
+
+    private async Task HandleTunnelProxyError(HttpContext context, Exception exception, string appId)
+    {
+        _logger.LogWarning(exception, "Tunnel proxy failed for app {AppId}", appId);
+
+        if (context.Response.HasStarted)
+        {
+            return;
+        }
+
+        context.Response.Clear();
+        context.Response.StatusCode = 502;
+        context.Response.ContentType = "text/html; charset=utf-8";
+
+        await context.Response.WriteAsync(GetErrorPage($"app tunnel for {appId}"));
     }
 
     /// <summary>
@@ -317,22 +413,11 @@ public class ProxyMiddleware
 /// </summary>
 internal sealed class LocaltestHttpTransformer : HttpTransformer
 {
-    private readonly string? _frontendVersionUrl;
-    private readonly ILogger _logger;
-
-    private const string OldCookieDomain = "altinn3local.no";
-    private const string NewCookieDomain = "local.altinn.cloud";
-
-    // Regex to match altinn-app-frontend resources
-    private static readonly Regex FrontendResourceRegex = new(
-        @"(https?://[^""'\s]*/)(altinn-app-frontend\.(js|css))",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase
-    );
+    private readonly LocaltestResponseTransformer _responseTransformer;
 
     public LocaltestHttpTransformer(string? frontendVersionUrl, ILogger logger)
     {
-        _frontendVersionUrl = frontendVersionUrl;
-        _logger = logger;
+        _responseTransformer = new LocaltestResponseTransformer(frontendVersionUrl, logger);
     }
 
     public override async ValueTask TransformRequestAsync(
@@ -368,12 +453,16 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
         }
 
         // Rewrite cookie domains in Set-Cookie headers
-        RewriteCookieDomains(httpContext, proxyResponse);
+        LocaltestResponseTransformer.RewriteCookieDomains(httpContext.Response.Headers);
 
         // Check if we need to modify the response body for frontend version substitution
-        if (_frontendVersionUrl != null && IsHtmlResponse(proxyResponse))
+        if (_responseTransformer.ShouldRewriteFrontendResources(proxyResponse))
         {
-            var rewritten = await RewriteFrontendResources(httpContext, proxyResponse, cancellationToken);
+            var rewritten = await _responseTransformer.RewriteFrontendResources(
+                httpContext,
+                proxyResponse,
+                cancellationToken
+            );
             if (rewritten)
             {
                 return false; // We've handled the body, don't let YARP copy it again
@@ -383,20 +472,78 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
         return result;
     }
 
-    /// <summary>
-    /// Check if response is HTML that might need frontend resource rewriting.
-    /// </summary>
-    private static bool IsHtmlResponse(HttpResponseMessage proxyResponse)
+    public override async ValueTask TransformResponseTrailersAsync(
+        HttpContext httpContext,
+        HttpResponseMessage proxyResponse,
+        CancellationToken cancellationToken
+    )
     {
-        var contentType = proxyResponse.Content?.Headers?.ContentType?.MediaType;
-        return string.Equals(contentType, "text/html", StringComparison.OrdinalIgnoreCase);
+        await base.TransformResponseTrailersAsync(httpContext, proxyResponse, cancellationToken);
+    }
+}
+
+internal sealed class LocaltestResponseTransformer
+{
+    private readonly string? _frontendVersionUrl;
+    private readonly ILogger _logger;
+
+    private const string OldCookieDomain = "altinn3local.no";
+    private const string NewCookieDomain = "local.altinn.cloud";
+
+    // Regex to match altinn-app-frontend resources.
+    private static readonly Regex FrontendResourceRegex = new(
+        @"(https?://[^""'\s]*/)(altinn-app-frontend\.(js|css))",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase
+    );
+
+    public LocaltestResponseTransformer(string? frontendVersionUrl, ILogger logger)
+    {
+        _frontendVersionUrl = frontendVersionUrl;
+        _logger = logger;
+    }
+
+    public bool ShouldRewriteFrontendResources(HttpResponseMessage proxyResponse)
+    {
+        return _frontendVersionUrl != null && IsHtmlResponse(proxyResponse.Content?.Headers?.ContentType?.MediaType);
+    }
+
+    public async Task<bool> RewriteBufferedFrontendResources(
+        HttpContext httpContext,
+        Stream body,
+        CancellationToken cancellationToken
+    )
+    {
+        if (_frontendVersionUrl == null || !IsHtmlResponse(httpContext.Response.ContentType))
+        {
+            return false;
+        }
+
+        var contentEncodings = GetContentEncodings(httpContext.Response.Headers);
+        var charset = GetCharset(httpContext.Response.ContentType);
+        return await RewriteFrontendResources(
+            httpContext,
+            body,
+            contentEncodings,
+            charset,
+            cancellationToken
+        );
+    }
+
+    private static bool IsHtmlResponse(string? mediaType)
+    {
+        if (string.IsNullOrWhiteSpace(mediaType))
+        {
+            return false;
+        }
+
+        return mediaType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
     /// Rewrite frontend resource URLs in HTML response.
     /// Replaces altinn-app-frontend.js/css URLs with the frontendVersion URL.
     /// </summary>
-    private async Task<bool> RewriteFrontendResources(
+    public async Task<bool> RewriteFrontendResources(
         HttpContext httpContext,
         HttpResponseMessage proxyResponse,
         CancellationToken cancellationToken
@@ -407,11 +554,38 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
             return false;
         }
 
-        var originalContent = await ReadResponseContentAsync(proxyResponse, cancellationToken);
-        if (originalContent == null)
+        await using var contentStream = await proxyResponse.Content.ReadAsStreamAsync(cancellationToken);
+        return await RewriteFrontendResources(
+            httpContext,
+            contentStream,
+            proxyResponse.Content.Headers.ContentEncoding,
+            proxyResponse.Content.Headers.ContentType?.CharSet,
+            cancellationToken
+        );
+    }
+
+    private async Task<bool> RewriteFrontendResources(
+        HttpContext httpContext,
+        Stream contentStream,
+        ICollection<string> contentEncodings,
+        string? charset,
+        CancellationToken cancellationToken
+    )
+    {
+        var decodedStream = CreateDecodingStream(contentStream, contentEncodings);
+        if (decodedStream is null)
         {
+            _logger.LogWarning(
+                "Skipping frontend rewrite due to unsupported content encoding: {ContentEncoding}",
+                string.Join(", ", contentEncodings)
+            );
             return false;
         }
+
+        using var decodedStreamScope = decodedStream;
+        var encoding = GetContentEncoding(charset);
+        using var reader = new StreamReader(decodedStreamScope, encoding, detectEncodingFromByteOrderMarks: true);
+        var originalContent = await reader.ReadToEndAsync(cancellationToken);
 
         var modifiedContent = FrontendResourceRegex.Replace(
             originalContent,
@@ -426,7 +600,7 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
             );
         }
 
-        httpContext.Response.Headers.Remove("Content-Encoding");
+        httpContext.Response.Headers.Remove(HeaderNames.ContentEncoding);
 
         var bytes = Encoding.UTF8.GetBytes(modifiedContent);
         httpContext.Response.ContentLength = bytes.Length;
@@ -434,36 +608,7 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
         return true;
     }
 
-    private async Task<string?> ReadResponseContentAsync(
-        HttpResponseMessage proxyResponse,
-        CancellationToken cancellationToken
-    )
-    {
-        var content = proxyResponse.Content;
-        if (content is null)
-        {
-            return null;
-        }
-
-        var contentStream = await content.ReadAsStreamAsync(cancellationToken);
-        var decodedStream = CreateDecodingStream(contentStream, content.Headers.ContentEncoding);
-        if (decodedStream is null)
-        {
-            await contentStream.DisposeAsync();
-            _logger.LogWarning(
-                "Skipping frontend rewrite due to unsupported content encoding: {ContentEncoding}",
-                string.Join(", ", content.Headers.ContentEncoding)
-            );
-            return null;
-        }
-
-        using var decodedStreamScope = decodedStream;
-        var encoding = GetContentEncoding(content.Headers.ContentType?.CharSet);
-        using var reader = new StreamReader(decodedStreamScope, encoding, detectEncodingFromByteOrderMarks: true);
-        return await reader.ReadToEndAsync();
-    }
-
-    private Stream? CreateDecodingStream(Stream contentStream, ICollection<string> contentEncodings)
+    private static Stream? CreateDecodingStream(Stream contentStream, ICollection<string> contentEncodings)
     {
         if (contentEncodings.Count == 0)
         {
@@ -518,35 +663,49 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
         }
     }
 
-    public override async ValueTask TransformResponseTrailersAsync(
-        HttpContext httpContext,
-        HttpResponseMessage proxyResponse,
-        CancellationToken cancellationToken
-    )
+    private static string? GetCharset(string? contentType)
     {
-        await base.TransformResponseTrailersAsync(httpContext, proxyResponse, cancellationToken);
+        if (
+            string.IsNullOrWhiteSpace(contentType)
+            || !MediaTypeHeaderValue.TryParse(contentType, out var mediaType)
+        )
+        {
+            return null;
+        }
+
+        return mediaType.Charset.Value;
+    }
+
+    private static string[] GetContentEncodings(IHeaderDictionary headers)
+    {
+        if (!headers.TryGetValue(HeaderNames.ContentEncoding, out var values))
+        {
+            return [];
+        }
+
+        return values
+            .SelectMany(value => value?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [])
+            .ToArray();
     }
 
     /// <summary>
     /// Rewrite Set-Cookie headers to replace old domain with new domain.
     /// </summary>
-    private void RewriteCookieDomains(HttpContext httpContext, HttpResponseMessage proxyResponse)
+    public static void RewriteCookieDomains(IHeaderDictionary headers)
     {
-        if (!proxyResponse.Headers.TryGetValues("Set-Cookie", out var cookies))
+        if (!headers.TryGetValue(HeaderNames.SetCookie, out var cookies))
         {
             return;
         }
 
-        httpContext.Response.Headers.Remove("Set-Cookie");
-
-        foreach (var cookie in cookies)
-        {
-            var rewrittenCookie = cookie.Replace(
-                $"domain={OldCookieDomain}",
-                $"domain={NewCookieDomain}",
-                StringComparison.OrdinalIgnoreCase
-            );
-            httpContext.Response.Headers.Append("Set-Cookie", rewrittenCookie);
-        }
+        headers[HeaderNames.SetCookie] = cookies
+            .Select(cookie =>
+                cookie?.Replace(
+                    $"domain={OldCookieDomain}",
+                    $"domain={NewCookieDomain}",
+                    StringComparison.OrdinalIgnoreCase
+                ) ?? string.Empty
+            )
+            .ToArray();
     }
 }
