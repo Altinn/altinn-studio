@@ -2,6 +2,9 @@
 // all the polyfills we need and inject them here
 import 'core-js';
 
+import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
+const isRedirectingFromHashRoute = executeHashRouterRedirect();
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
@@ -26,6 +29,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (isRedirectingFromHashRoute) {
+    return;
+  }
   propagateTraceWhenPdf();
 
   const container = document.getElementById('root');

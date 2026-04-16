@@ -14,17 +14,19 @@ var (
 // Container is a resource representing a container.
 // It is a pure value type - use Executor to apply to infrastructure.
 type Container struct {
-	Image         ResourceRef
-	Labels        map[string]string
-	Name          string
-	RestartPolicy string
-	User          string
-	Networks      []ResourceRef
-	Ports         []types.PortMapping
-	Volumes       []types.VolumeMount
-	Env           []string
-	Command       []string
-	ExtraHosts    []string
+	Image          ResourceRef
+	Labels         map[string]string
+	Lifecycle      ContainerLifecycleOptions
+	Name           string
+	RestartPolicy  string
+	User           string
+	Networks       []ResourceRef
+	Ports          []types.PortMapping
+	Volumes        []types.VolumeMount
+	Env            []string
+	Command        []string
+	ExtraHosts     []string
+	NetworkAliases []string
 }
 
 // ID returns the unique identifier for this container.
@@ -41,6 +43,11 @@ func (c *Container) Dependencies() []ResourceRef {
 	return deps
 }
 
+// LifecycleOptions returns shared resource lifecycle behavior.
+func (c *Container) LifecycleOptions() LifecycleOptions {
+	return c.Lifecycle.LifecycleOptions
+}
+
 // Validate checks that the container configuration is valid.
 func (c *Container) Validate() error {
 	if c.Name == "" {
@@ -54,6 +61,7 @@ func (c *Container) Validate() error {
 
 // Compile-time interface checks.
 var (
-	_ Resource  = (*Container)(nil)
-	_ Validator = (*Container)(nil)
+	_ Resource                 = (*Container)(nil)
+	_ Validator                = (*Container)(nil)
+	_ LifecycleOptionsProvider = (*Container)(nil)
 )
