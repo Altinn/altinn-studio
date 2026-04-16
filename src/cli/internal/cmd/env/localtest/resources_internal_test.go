@@ -80,7 +80,7 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 	}
 }
 
-func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *testing.T) {
+func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	t.Parallel()
 
 	containers := coreContainers(t.TempDir(), RuntimeConfig{
@@ -111,6 +111,17 @@ func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *te
 			"pdf3.Environment[PDF3_LOCALTEST_PUBLIC_BASE_URL] = %q, want %q",
 			got,
 			"http://local.altinn.cloud:5101",
+		)
+	}
+
+	workflowEngine := containers[3]
+	if got := workflowEngine.ExtraHosts; got != nil {
+		t.Fatalf("workflowEngine.ExtraHosts = %v, want nil", got)
+	}
+	if got := workflowEngine.Environment["AppCommand__CommandEndpoint"]; got != "http://local.altinn.cloud:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/" {
+		t.Fatalf(
+			"workflowEngine.Environment[AppCommand__CommandEndpoint] = %q, want localtest network callback URL",
+			got,
 		)
 	}
 }

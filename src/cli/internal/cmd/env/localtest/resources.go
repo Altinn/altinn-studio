@@ -190,7 +190,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				"PDF3_ENVIRONMENT": "localtest",
 				"PDF3_QUEUE_SIZE":  "3",
 				// pdf3 reaches localtest over the container network, not through the host-published load balancer port.
-				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + localtestServicePort,
+				"PDF3_LOCALTEST_PUBLIC_BASE_URL": localtestInternalBaseURL(),
 			},
 			nil,
 			hostExtraHosts,
@@ -199,7 +199,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			nil,
 		),
 		postgresContainerSpec(dataDir),
-		workflowEngineContainerSpec(hostExtraHosts),
+		workflowEngineContainerSpec(),
 		pgAdminContainerSpec(dataDir),
 	}
 }
@@ -236,7 +236,7 @@ func postgresContainerSpec(dataDir string) ContainerSpec {
 	return spec
 }
 
-func workflowEngineContainerSpec(extraHosts []string) ContainerSpec {
+func workflowEngineContainerSpec() ContainerSpec {
 	return newContainerSpec(
 		ContainerWorkflowEngine,
 		[]types.PortMapping{
@@ -246,14 +246,18 @@ func workflowEngineContainerSpec(extraHosts []string) ContainerSpec {
 		map[string]string{
 			"ASPNETCORE_ENVIRONMENT":            "Docker",
 			"ConnectionStrings__WorkflowEngine": "Host=postgres;Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
-			"AppCommand__CommandEndpoint":       "http://host.docker.internal:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
+			"AppCommand__CommandEndpoint":       localtestInternalBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
 		},
 		nil,
-		extraHosts,
+		nil,
 		nil,
 		[]string{ContainerPostgres},
 		nil,
 	)
+}
+
+func localtestInternalBaseURL() string {
+	return "http://" + networking.LocalDomain + ":" + localtestServicePort
 }
 
 func pgAdminContainerSpec(dataDir string) ContainerSpec {
