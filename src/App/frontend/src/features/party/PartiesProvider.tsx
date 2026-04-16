@@ -76,7 +76,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   }
 
   if (error) {
-    return <DisplayError error={error as Error} />;
+    return <DisplayError error={error} />;
   }
 
   if (errorFromMutation) {
