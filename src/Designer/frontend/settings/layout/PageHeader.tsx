@@ -1,29 +1,21 @@
-import classes from './PageHeader.module.css';
-import { OrgContext } from './PageLayout';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { StudioPageHeader } from '@studio/components';
-import { useMediaQuery } from '@studio/hooks';
 import type { ReactElement } from 'react';
+import { useMatch, useNavigate } from 'react-router-dom';
+import { StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { NavLink, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { useContext } from 'react';
-import { RoutePaths } from 'admin/enums/RoutePaths';
+import './PageLayout.css';
+import { DISPLAY_NAME, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { useMediaQuery } from '@studio/hooks';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { StudioProfileMenuComponent } from 'app-shared/components';
 
-export const PageHeader = (): ReactElement => {
-  const org = useContext(OrgContext);
+export const PageHeader = () => {
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { t } = useTranslation();
 
   return (
     <div data-color-scheme='dark'>
       <StudioPageHeader>
         <StudioPageHeader.Main>
-          <StudioPageHeader.Left
-            showTitle={shouldDisplayDesktopMenu}
-            title={org ? org.full_name || org.username : t('general.title')}
-          />
+          <StudioPageHeader.Left title={DISPLAY_NAME} showTitle={shouldDisplayDesktopMenu} />
           {shouldDisplayDesktopMenu && <CenterContent />}
           <StudioPageHeader.Right>
             <ProfileMenu />
@@ -34,16 +26,18 @@ export const PageHeader = (): ReactElement => {
   );
 };
 
-export const CenterContent = (): ReactElement => {
+const CenterContent = (): ReactElement => {
   const { t } = useTranslation();
-  const { org } = useParams();
+  const orgMatch = useMatch('/orgs/:org/*');
+  const activeOrgUsername = orgMatch?.params.org ?? null;
+  const dashboardContext = activeOrgUsername ?? 'self';
   const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
 
   return (
     <StudioPageHeader.Center>
       <StudioPageHeader.HeaderLink
         renderLink={(props) => (
-          <a href={org ? `/dashboard/app-dashboard/${org}` : '/dashboard'} {...props}>
+          <a href={`/dashboard/app-dashboard/${dashboardContext}`} {...props}>
             <span>{t('dashboard.header_item_dashboard')}</span>
           </a>
         )}
@@ -51,16 +45,19 @@ export const CenterContent = (): ReactElement => {
       {adminEnabled && (
         <StudioPageHeader.HeaderLink
           renderLink={(props) => (
-            <NavLink data-color='dark' to={org ? `/${org}/apps` : '/'} {...props}>
-              <span className={classes.active}>{t('admin.apps.title')}</span>
-            </NavLink>
+            <a
+              href={dashboardContext === 'self' ? '/admin' : `/admin/${dashboardContext}`}
+              {...props}
+            >
+              <span>{t('admin.apps.title')}</span>
+            </a>
           )}
         />
       )}
       <StudioPageHeader.HeaderLink
         isBeta={true}
         renderLink={(props) => (
-          <a href={`/dashboard/org-library/${org ?? 'self'}`} {...props}>
+          <a href={`/dashboard/org-library/${dashboardContext}`} {...props}>
             <span>{t('dashboard.header_item_library')}</span>
           </a>
         )}
@@ -71,13 +68,15 @@ export const CenterContent = (): ReactElement => {
 
 const ProfileMenu = (): ReactElement => {
   const navigate = useNavigate();
-  const orgMatch = useMatch('/:org/*');
-  const subPath = orgMatch?.params['*'] || RoutePaths.Apps;
+  const orgMatch = useMatch('/orgs/:org/*');
+  const subPath = orgMatch?.params['*'] || '';
+  const orgPath = (username: string) =>
+    subPath ? `/orgs/${username}/${subPath}` : `/orgs/${username}`;
 
   return (
     <StudioProfileMenuComponent
-      onOrgClick={(org) => navigate(`/${org.username}/${subPath}`)}
-      onUserClick={() => navigate('/')}
+      onOrgClick={(org) => navigate(orgPath(org.username))}
+      onUserClick={() => navigate('/user')}
     />
   );
 };

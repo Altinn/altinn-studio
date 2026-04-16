@@ -19,15 +19,17 @@ const envTitle = textMock('general.production_environment_alt').toLowerCase();
 const orgName = org;
 
 const orgMock = {
-  name: {
-    en: org,
-    nb: org,
-    nn: org,
-  },
-  logo: '',
-  orgnr: '',
-  homepage: '',
-  environments: [],
+  username: org,
+  full_name: org,
+  avatar_url: '',
+  id: 1,
+};
+
+const orgMockWithoutFullName = {
+  username: org,
+  full_name: '',
+  avatar_url: '',
+  id: 1,
 };
 
 const defaultProps: AppsTableProps = {
@@ -135,6 +137,38 @@ describe('AppsTable', () => {
       ).toBeInTheDocument();
     });
 
+    it('should use org username when full name is missing in missing rights alert', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      const queryClient = createQueryClientMock();
+
+      queryClient.setQueryData([QueryKey.PublishedApps, org], {
+        production: [
+          {
+            app,
+            env,
+            org,
+            version: '1',
+          },
+        ],
+      });
+
+      renderAppsTable(queryClient, defaultProps, orgMockWithoutFullName);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.errors.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.errors.missing_rights', { envTitle, orgName: org }),
+        ),
+      ).toBeInTheDocument();
+    });
+
     it('should render error metrics', () => {
       const queryClient = createQueryClientMock();
 
@@ -239,10 +273,11 @@ describe('AppsTable', () => {
 const renderAppsTable = (
   client = createQueryClientMock(),
   props: AppsTableProps = defaultProps,
+  currentOrg = orgMock,
 ) => {
   render(
     <MemoryRouter>
-      <OrgContext.Provider value={orgMock}>
+      <OrgContext.Provider value={currentOrg}>
         <QueryClientProvider client={client}>
           <AppsTable {...props} />
         </QueryClientProvider>

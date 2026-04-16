@@ -59,7 +59,7 @@ export const PageHeaderContextProvider = ({
   const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: org === user.login ? `${SETTINGS_BASENAME}/user` : `${SETTINGS_BASENAME}/orgs/${org}`,
       openInNewTab: false,
     },
     itemName: t('settings'),
@@ -78,7 +78,8 @@ export const PageHeaderContextProvider = ({
     logOutMenuItem,
   ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [settingsMenuItem, docsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [settingsMenuItem] : [] },
+    { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

@@ -9,7 +9,7 @@ import { App } from 'admin/layout/App';
 import { PageLayout } from 'admin/layout/PageLayout';
 import { PageLayout as AppsLayout } from 'admin/features/apps/layout/PageLayout';
 import { ADMIN_BASENAME } from 'app-shared/constants';
-import { NotFoundPage } from 'admin/layout/NotFoundPage';
+import { NotFoundPage } from 'admin/pages/NotFoundPage/NotFoundPage';
 import {
   AppRouteErrorBoundary,
   NotFoundRouteErrorBoundary,
@@ -22,20 +22,25 @@ const BASE_PATH = '/:org';
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<App />} errorElement={<AppRouteErrorBoundary />}>
-      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
-        <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
-          {routerRoutes.map((route) => (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={<route.page />}
-              errorElement={<RouteErrorBoundary />}
-            />
-          ))}
+      <Route element={<PageLayout />}>
+        <Route path={BASE_PATH} errorElement={<RouteErrorBoundary />}>
+          <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
+            {routerRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={<route.page />}
+                errorElement={<RouteErrorBoundary />}
+              />
+            ))}
+          </Route>
+          <Route
+            path='*'
+            element={<NotFoundPage />}
+            errorElement={<NotFoundRouteErrorBoundary />}
+          />
         </Route>
-        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
-      <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,
   ),
   {

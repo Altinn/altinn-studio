@@ -55,8 +55,9 @@ export const InstancesTable = ({
     isHardDeleted,
     createdBefore,
   );
-  const { t, i18n } = useTranslation();
-  const orgName = useCurrentOrg().name[i18n.language];
+  const { t } = useTranslation();
+  const currentOrg = useCurrentOrg();
+  const orgName = currentOrg.full_name || currentOrg.username;
   const envTitle = useEnvironmentTitle(environment);
 
   switch (status) {

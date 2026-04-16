@@ -8,6 +8,7 @@ const persistFeatureKey = 'persistFeatureFlag';
  */
 export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
+  Admin = 'admin',
   ComponentConfigBeta = 'componentConfigBeta',
   Maskinporten = 'maskinporten',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',

@@ -76,7 +76,10 @@ export const HeaderContextProvider = ({
   const settingsMenuItem: NavigationMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href:
+        selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
+          ? `${SETTINGS_BASENAME}/user`
+          : `${SETTINGS_BASENAME}/orgs/${selectedContext}`,
       openInNewTab: false,
     },
     itemName: t('settings'),
@@ -94,15 +97,13 @@ export const HeaderContextProvider = ({
     showName: true,
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
-  const otherMenuItems: NavigationMenuItem[] = [
-    ...(studioOidc ? [settingsMenuItem] : []),
-    giteaMenuItem,
-  ];
-  const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];
+  const otherMenuItems: NavigationMenuItem[] = studioOidc ? [settingsMenuItem] : [];
+  const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, giteaMenuItem, logOutMenuItem];
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
     { items: otherMenuItems },
+    { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

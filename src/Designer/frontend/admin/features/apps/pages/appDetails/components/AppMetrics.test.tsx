@@ -14,19 +14,21 @@ import { OrgContext } from 'admin/layout/PageLayout';
 
 const env = 'test';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${env.toUpperCase()}`;
-const orgName = org;
+const orgFullName = 'Test Org Full Name';
 const range = 5;
 
 const orgMock = {
-  name: {
-    en: org,
-    nb: org,
-    nn: org,
-  },
-  logo: '',
-  orgnr: '',
-  homepage: '',
-  environments: [],
+  username: org,
+  full_name: orgFullName,
+  avatar_url: '',
+  id: 1,
+};
+
+const orgMockWithoutFullName = {
+  username: org,
+  full_name: '',
+  avatar_url: '',
+  id: 1,
 };
 
 jest.mock('react-chartjs-2');
@@ -78,7 +80,26 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByText(
-          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName }),
+          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName: orgFullName }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('should use org username when full name is missing in missing rights alert', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      renderAppMetrics(createQueryClientMock(), defaultProps, orgMockWithoutFullName);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.app.health.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName: org }),
         ),
       ).toBeInTheDocument();
     });
@@ -173,7 +194,7 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByText(
-          textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName }),
+          textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName: orgFullName }),
         ),
       ).toBeInTheDocument();
     });
@@ -291,7 +312,9 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.app.missing_rights', { envTitle, orgName })),
+        screen.getByText(
+          textMock('admin.metrics.app.missing_rights', { envTitle, orgName: orgFullName }),
+        ),
       ).toBeInTheDocument();
     });
 
@@ -356,10 +379,11 @@ describe('AppMetrics', () => {
 const renderAppMetrics = (
   client = createQueryClientMock(),
   props: AppMetricsProps = defaultProps,
+  currentOrg = orgMock,
 ) => {
   render(
     <MemoryRouter>
-      <OrgContext.Provider value={orgMock}>
+      <OrgContext.Provider value={currentOrg}>
         <QueryClientProvider client={client}>
           <AppMetrics {...props} />
         </QueryClientProvider>

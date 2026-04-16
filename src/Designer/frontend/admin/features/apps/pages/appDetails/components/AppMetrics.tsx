@@ -44,10 +44,11 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     environment: string;
     app: string;
   };
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const envTitle = useEnvironmentTitle(environment);
-  const orgName = useCurrentOrg().name[i18n.language];
+  const currentOrg = useCurrentOrg();
+  const orgName = currentOrg.full_name || currentOrg.username;
 
   const {
     data: appHealthMetrics,
