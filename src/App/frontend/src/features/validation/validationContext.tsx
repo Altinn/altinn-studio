@@ -10,12 +10,12 @@ import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
   type BaseValidation,
+  type DataModelValidations,
   type FieldValidations,
   ValidationMask,
   type ValidationsProcessedLast,
   type WaitForValidation,
-
- DataModelValidations} from 'src/features/validation';
+} from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
 import { mapBackendIssuesToTaskValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
