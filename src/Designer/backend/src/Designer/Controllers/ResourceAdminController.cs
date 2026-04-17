@@ -372,7 +372,7 @@ public class ResourceAdminController : ControllerBase
                     }
                 }
 
-                IEnumerable<ServiceResource>? environmentResourcesForOrg = environmentResources!.Where(x =>
+                IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources!.Where(x =>
                     x.HasCompetentAuthority?.Orgcode != null
                     && x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
                 );
@@ -719,7 +719,7 @@ public class ResourceAdminController : ControllerBase
             foreach (ServiceResource resource in allResources)
             {
                 if (
-                    resource?.HasCompetentAuthority!.Orgcode != null
+                    resource.HasCompetentAuthority!.Orgcode != null
                     && resource.ResourceReferences != null
                     && resource.ResourceReferences.Exists(r =>
                         r.ReferenceType != null && r.ReferenceType.Equals(ResourceReferenceType.ServiceCode)

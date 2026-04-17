@@ -115,7 +115,7 @@ public class RepositoryController : ControllerBase
         string org,
         [FromQuery] string? sourceRepository,
         [FromQuery] string? targetRepository,
-        [FromQuery] string? targetOrg = null
+        [FromQuery] string? targetOrg
     )
     {
         (bool isValid, IActionResult? errorResponse) = await IsValidCopyAppRequestAsync(
@@ -384,7 +384,7 @@ public class RepositoryController : ControllerBase
         {
             RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
             _sourceControl.Push(authenticatedContext);
-            foreach (RepositoryContent repoContent in repoStatus!.ContentStatus)
+            foreach (RepositoryContent repoContent in repoStatus.ContentStatus)
             {
                 Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
                 SyncSuccess syncSuccess = new(source);
