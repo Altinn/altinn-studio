@@ -17,7 +17,11 @@ _MAX_PATCH_CHARS = 8000
 
 
 def _parse_judge_response(response: str) -> tuple[bool | None, str]:
-    """Extract (passed, reasoning) from the judge's JSON response."""
+    """Extract (passed, comment) from the judge's JSON response.
+
+    Combines reasoning and findings into a single comment for Langfuse,
+    so each finding with its V-number is visible on the trace.
+    """
     try:
         match = re.search(r"\{.*\}", response.strip(), re.DOTALL)
         if match:
@@ -30,7 +34,17 @@ def _parse_judge_response(response: str) -> tuple[bool | None, str]:
                 return None, f"Invalid score field — raw response: {response[:200]}"
             passed = score == 1
             reasoning = str(data.get("reasoning", ""))
-            return passed, reasoning
+            findings = data.get("findings", [])
+            if findings:
+                findings_text = "; ".join(
+                    f"[{f.get('requirement', '?')}] {f.get('description', '')}"
+                    for f in findings
+                    if isinstance(f, dict)
+                )
+                comment = f"{reasoning} | Findings: {findings_text}"
+            else:
+                comment = reasoning
+            return passed, comment
     except Exception as e:
         log.warning("Failed to parse no_security_issues judge response: %s | raw: %.200s", e, response)
     return None, f"Parse error — raw response: {response[:200]}"
