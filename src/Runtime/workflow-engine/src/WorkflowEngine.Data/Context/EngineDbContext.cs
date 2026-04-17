@@ -42,6 +42,8 @@ internal sealed class EngineDbContext : DbContext
 
             entity.HasIndex(e => e.HeartbeatAt).HasFilter($"\"Status\" = {(int)PersistentItemStatus.Processing}");
 
+            entity.Property(e => e.LeaseToken).HasDefaultValueSql("gen_random_uuid()");
+
             entity
                 .HasIndex(e => e.UpdatedAt)
                 .HasFilter(
