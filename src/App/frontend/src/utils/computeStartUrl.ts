@@ -1,8 +1,7 @@
 import { processLayoutSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { TaskKeys } from 'src/routesBuilder';
-import { isProcessTaskType, ProcessTaskType } from 'src/types';
-import type { IProcess } from 'src/types/shared';
+import { ProcessTaskType } from 'src/types';
 
 export interface ComputeStartUrlParams {
   instanceOwnerPartyId?: string;
@@ -59,37 +58,4 @@ export function computeStartUrl({
 export function getRawFirstPage(folderId: string | undefined): string | undefined {
   const settings = getUiFolderSettings(folderId);
   return processLayoutSettings(settings).order[0];
-}
-
-export function getTaskTypeForLoader(
-  processData: IProcess | undefined,
-  taskId: string | undefined,
-  isStateless: boolean,
-  uiFolders: Record<string, unknown>,
-): ProcessTaskType {
-  // Replicate the exact logic from useGetTaskTypeById:
-  // If the taskId is found in processTasks OR matches currentTask, use currentTask.
-  const task =
-    (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
-      ? processData?.currentTask
-      : undefined;
-
-  if (isStateless || taskId === TaskKeys.CustomReceipt || (taskId && taskId in uiFolders)) {
-    return ProcessTaskType.Data;
-  }
-
-  if (taskId === TaskKeys.ProcessEnd || processData?.ended) {
-    return ProcessTaskType.Archived;
-  }
-
-  if (task?.elementType === 'ServiceTask') {
-    return ProcessTaskType.Service;
-  }
-
-  const altinnTaskType = task?.altinnTaskType;
-  if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
-    return altinnTaskType;
-  }
-
-  return ProcessTaskType.Unknown;
 }

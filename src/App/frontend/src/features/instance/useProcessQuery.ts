@@ -52,43 +52,55 @@ export function useTaskTypeFromBackend() {
 }
 
 /**
- * This hook returns the taskType of a given taskId. If the
- * taskId cannot be found in processTasks it will return the
- * taskType of the currentTask if the currentTask matches
- * the taskId provided.
+ * Pure classifier: resolves the ProcessTaskType of a given taskId.
+ *
+ * If the taskId cannot be found in processTasks, it falls back to the currentTask's
+ * type when the currentTask matches the taskId provided.
+ *
+ * Stateless apps only have data tasks. As soon as they start creating an instance
+ * from that stateless step, applicationMetadata.isStatelessApp will return false
+ * and we'll proceed as normal.
+ */
+export function getTaskTypeById(
+  processData: IProcess | undefined,
+  taskId: string | undefined,
+  isStateless: boolean,
+  uiFolders: Record<string, unknown>,
+): ProcessTaskType {
+  const task =
+    (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
+      ? processData?.currentTask
+      : undefined;
+
+  if (isStateless || taskId === TaskKeys.CustomReceipt || (taskId && taskId in uiFolders)) {
+    return ProcessTaskType.Data;
+  }
+
+  if (taskId === TaskKeys.ProcessEnd || processData?.ended) {
+    return ProcessTaskType.Archived;
+  }
+
+  if (task?.elementType === 'ServiceTask') {
+    return ProcessTaskType.Service;
+  }
+
+  const altinnTaskType = task?.altinnTaskType;
+  if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
+    return altinnTaskType;
+  }
+
+  return ProcessTaskType.Unknown;
+}
+
+/**
+ * Hook wrapper for getTaskTypeById that pulls inputs from React context.
  */
 export function useGetTaskTypeById() {
   const { data: processData } = useProcessQuery();
   const isStateless = useIsStateless();
   const uiFolders = getUiConfig().folders;
 
-  return (taskId: string | undefined) => {
-    const task =
-      (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
-        ? processData?.currentTask
-        : undefined;
-
-    if (isStateless || taskId === TaskKeys.CustomReceipt || (taskId && taskId in uiFolders)) {
-      // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
-      // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
-      return ProcessTaskType.Data;
-    }
-
-    if (taskId === TaskKeys.ProcessEnd || processData?.ended) {
-      return ProcessTaskType.Archived;
-    }
-
-    if (task?.elementType === 'ServiceTask') {
-      return ProcessTaskType.Service;
-    }
-
-    const altinnTaskType = task?.altinnTaskType;
-    if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
-      return altinnTaskType;
-    }
-
-    return ProcessTaskType.Unknown;
-  };
+  return (taskId: string | undefined) => getTaskTypeById(processData, taskId, isStateless, uiFolders);
 }
 
 /**

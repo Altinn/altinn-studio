@@ -275,7 +275,7 @@ function HandleNavigationFocusComponent() {
  * To remove this: move hidden-page awareness into the page route loader so it can redirect
  * before rendering, then replace the Form.tsx usage with a loader-level redirect.
  */
-export function NavigateToStartUrl() {
+function NavigateToStartUrl() {
   const navigate = useNavigate();
   const startUrl = useStartUrl();
   const location = useLocation();
