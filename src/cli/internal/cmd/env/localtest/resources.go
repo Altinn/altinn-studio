@@ -29,7 +29,7 @@ const (
 
 	devImageTagLocaltest      = "localtest:dev"
 	devImageTagPDF3           = "localtest-pdf3:dev"
-	devImageTagWorkflowEngine = "workflow-engine:dev"
+	devImageTagWorkflowEngine = "localtest-workflow-engine:dev"
 	buildCacheRefLocaltest    = "ghcr.io/altinn/altinn-studio/localtest-main-cache:latest"
 	buildCacheRefPDF3         = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
 	infraDir                  = "infra"
