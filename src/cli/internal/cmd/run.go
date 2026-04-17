@@ -3,12 +3,10 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,7 +22,6 @@ import (
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
-	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -36,7 +33,6 @@ const (
 	dotnetShutdownTimeout             = 10 * time.Second
 	appManagerCleanupTimeout          = 2 * time.Second
 	appStartupTimeout                 = 15 * time.Second
-	appStartupRequestTimeout          = time.Second
 	appStartupPollInterval            = 500 * time.Millisecond
 )
 
@@ -398,10 +394,6 @@ func killProcessBestEffort(process *os.Process) {
 
 type readinessMonitor func(context.Context) error
 
-type appMetadataResponse struct {
-	ID string `json:"id"`
-}
-
 func processReadinessMonitor(waitErr chan error) readinessMonitor {
 	return func(context.Context) error {
 		select {
@@ -450,29 +442,23 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	}
 
 	client := appmanager.NewClient(c.cfg)
-	baseURL, err := waitForPortAppRegistration(ctx, client, appID, port, monitor)
+	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, port, monitor)
 	if err != nil {
 		return "", err
 	}
 
-	url := localtestApplicationMetadataURL(appID)
-	c.out.Printlnf("Waiting for app through localtest: %s", url)
-	if err := waitForLocaltestApp(ctx, appID, url, monitor); err != nil {
-		c.unregisterAppBestEffort(ctx, appID, baseURL)
-		return "", err
-	}
-	c.out.Printlnf("App ready: %s", url)
+	c.out.Printlnf("App ready: %s", baseURL)
 	return baseURL, nil
 }
 
-func waitForPortAppRegistration(
+func registerPortAppWithStartupMonitor(
 	ctx context.Context,
 	client *appmanager.Client,
 	appID string,
 	port int,
 	monitor readinessMonitor,
 ) (string, error) {
-	return waitForAppRegistration(
+	return registerAppWithStartupMonitor(
 		ctx,
 		client,
 		appmanager.AppRegistration{
@@ -511,18 +497,12 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	}
 
 	client := appmanager.NewClient(c.cfg)
-	baseURL, err := waitForPortAppRegistration(ctx, client, appID, hostPort, monitor)
+	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, hostPort, monitor)
 	if err != nil {
 		return "", err
 	}
 
-	url := localtestApplicationMetadataURL(appID)
-	c.out.Printlnf("Waiting for app through localtest: %s", url)
-	if err := waitForLocaltestApp(ctx, appID, url, monitor); err != nil {
-		c.unregisterAppBestEffort(ctx, appID, baseURL)
-		return "", err
-	}
-	c.out.Printlnf("App ready: %s", url)
+	c.out.Printlnf("App ready: %s", baseURL)
 	return baseURL, nil
 }
 
@@ -540,29 +520,23 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	}
 
 	client := appmanager.NewClient(c.cfg)
-	baseURL, err := waitForProcessAppRegistration(ctx, client, appID, processID, monitor)
+	baseURL, err := registerProcessAppWithStartupMonitor(ctx, client, appID, processID, monitor)
 	if err != nil {
 		return "", err
 	}
 
-	url := localtestApplicationMetadataURL(appID)
-	c.out.Printlnf("Waiting for app through localtest: %s", url)
-	if err := waitForLocaltestApp(ctx, appID, url, monitor); err != nil {
-		c.unregisterAppBestEffort(ctx, appID, baseURL)
-		return "", err
-	}
-	c.out.Printlnf("App ready: %s", url)
+	c.out.Printlnf("App ready: %s", baseURL)
 	return baseURL, nil
 }
 
-func waitForProcessAppRegistration(
+func registerProcessAppWithStartupMonitor(
 	ctx context.Context,
 	client *appmanager.Client,
 	appID string,
 	processID int,
 	monitor readinessMonitor,
 ) (string, error) {
-	return waitForAppRegistration(
+	return registerAppWithStartupMonitor(
 		ctx,
 		client,
 		appmanager.AppRegistration{
@@ -577,7 +551,7 @@ func waitForProcessAppRegistration(
 	)
 }
 
-func waitForAppRegistration(
+func registerAppWithStartupMonitor(
 	ctx context.Context,
 	client *appmanager.Client,
 	registration appmanager.AppRegistration,
@@ -587,47 +561,66 @@ func waitForAppRegistration(
 	waitCtx, cancel := context.WithTimeout(ctx, appStartupTimeout)
 	defer cancel()
 
-	for {
-		if err := appRegistrationContextError(ctx, waitCtx, timeoutErr); err != nil {
-			return "", err
-		}
+	if err := monitor(waitCtx); err != nil {
+		return "", startupMonitorError(ctx, waitCtx, err, timeoutErr)
+	}
 
-		if err := monitor(waitCtx); err != nil {
-			if ctx.Err() != nil {
-				return "", errAppRunStopped
-			}
-			if waitCtx.Err() != nil {
-				return "", timeoutErr
-			}
-			return "", err
-		}
-
+	registrationDone := make(chan appRegistrationResult, 1)
+	go func() {
 		baseURL, err := client.RegisterApp(waitCtx, registration)
-		if err == nil {
-			return baseURL, nil
-		}
-		if !isRetryableAppRegistrationError(err) {
-			if ctx.Err() != nil {
-				return "", errAppRunStopped
-			}
-			return "", startupOperationError(ctx, "register app with app-manager", err)
+		registrationDone <- appRegistrationResult{baseURL: baseURL, err: err}
+	}()
+
+	ticker := time.NewTicker(appStartupPollInterval)
+	defer ticker.Stop()
+
+	for {
+		if err := startupContextError(ctx, waitCtx, timeoutErr); err != nil {
+			return "", err
 		}
 
 		select {
+		case result := <-registrationDone:
+			if result.err == nil {
+				return result.baseURL, nil
+			}
+			if errors.Is(result.err, appmanager.ErrAppEndpointNotFound) ||
+				errors.Is(result.err, context.DeadlineExceeded) ||
+				waitCtx.Err() != nil {
+				return "", timeoutErr
+			}
+			if ctx.Err() != nil {
+				return "", errAppRunStopped
+			}
+			return "", startupOperationError(ctx, "register app with app-manager", result.err)
+		case <-ticker.C:
+			if err := monitor(waitCtx); err != nil {
+				return "", startupMonitorError(ctx, waitCtx, err, timeoutErr)
+			}
 		case <-ctx.Done():
 			return "", errAppRunStopped
 		case <-waitCtx.Done():
 			return "", timeoutErr
-		case <-time.After(appStartupPollInterval):
 		}
 	}
 }
 
-func isRetryableAppRegistrationError(err error) bool {
-	return errors.Is(err, appmanager.ErrAppEndpointNotFound) || errors.Is(err, context.DeadlineExceeded)
+type appRegistrationResult struct {
+	err     error
+	baseURL string
 }
 
-func appRegistrationContextError(ctx, waitCtx context.Context, timeoutErr error) error {
+func startupMonitorError(ctx, waitCtx context.Context, err, timeoutErr error) error {
+	if ctx.Err() != nil {
+		return errAppRunStopped
+	}
+	if waitCtx.Err() != nil {
+		return timeoutErr
+	}
+	return err
+}
+
+func startupContextError(ctx, waitCtx context.Context, timeoutErr error) error {
 	if ctx.Err() != nil {
 		return errAppRunStopped
 	}
@@ -665,125 +658,6 @@ func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID, baseURL
 	if err := appmanager.NewClient(c.cfg).UnregisterApp(cleanupCtx, appID, baseURL); err != nil {
 		c.out.Verbosef("failed to unregister app %s from app-manager: %v", appID, err)
 	}
-}
-
-func localtestApplicationMetadataURL(appID string) string {
-	// TODO: Move localtest URL construction to somewhere sensible (app package, localtest package).
-	return "http://" + networking.LocalDomain + ":" + envlocaltest.DefaultLoadBalancerPortString() +
-		"/" + strings.Trim(appID, "/") + "/api/v1/applicationmetadata"
-}
-
-func waitForLocaltestApp(ctx context.Context, appID, url string, monitor readinessMonitor) error {
-	waitCtx, cancel := context.WithTimeout(ctx, appStartupTimeout)
-	defer cancel()
-
-	client := &http.Client{
-		Timeout:   appStartupRequestTimeout,
-		Transport: localHTTPTransport(),
-	}
-	var lastStatus string
-	for {
-		if err := appStartupContextError(ctx, waitCtx, appID, url, lastStatus); err != nil {
-			return err
-		}
-
-		if err := monitor(waitCtx); err != nil {
-			if ctx.Err() != nil {
-				return errAppRunStopped
-			}
-			if waitCtx.Err() != nil {
-				return appStartupTimeoutError(appID, url, lastStatus)
-			}
-			return err
-		}
-
-		status, ready := probeLocaltestApp(waitCtx, client, appID, url)
-		if ready {
-			return nil
-		}
-		lastStatus = status
-
-		select {
-		case <-ctx.Done():
-			return errAppRunStopped
-		case <-waitCtx.Done():
-			return appStartupContextError(ctx, waitCtx, appID, url, lastStatus)
-		case <-time.After(appStartupPollInterval):
-		}
-	}
-}
-
-func appStartupContextError(ctx, waitCtx context.Context, appID, url, lastStatus string) error {
-	if ctx.Err() != nil {
-		return errAppRunStopped
-	}
-	if waitCtx.Err() != nil {
-		return appStartupTimeoutError(appID, url, lastStatus)
-	}
-	return nil
-}
-
-func appStartupTimeoutError(appID, url, lastStatus string) error {
-	return fmt.Errorf(
-		"%w: app %s was not available within %s at %s; last status: %s; make sure localtest is running: studioctl env up",
-		errAppStartupTimedOut,
-		appID,
-		appStartupTimeout,
-		url,
-		lastStatusOrDefault(lastStatus),
-	)
-}
-
-func localHTTPTransport() http.RoundTripper {
-	transport, ok := http.DefaultTransport.(*http.Transport)
-	if !ok {
-		return http.DefaultTransport
-	}
-
-	localTransport := transport.Clone()
-	localTransport.Proxy = nil
-	return localTransport
-}
-
-func lastStatusOrDefault(status string) string {
-	if status == "" {
-		return "no response"
-	}
-	return status
-}
-
-func probeLocaltestApp(ctx context.Context, client *http.Client, appID, url string) (string, bool) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return err.Error(), false
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err.Error(), false
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		status := resp.Status
-		if err := resp.Body.Close(); err != nil {
-			return err.Error(), false
-		}
-		return status, false
-	}
-
-	var metadata appMetadataResponse
-	decodeErr := json.NewDecoder(resp.Body).Decode(&metadata)
-	closeErr := resp.Body.Close()
-	if decodeErr != nil {
-		return "invalid application metadata response: " + decodeErr.Error(), false
-	}
-	if closeErr != nil {
-		return "close application metadata response: " + closeErr.Error(), false
-	}
-	if metadata.ID != appID {
-		return fmt.Sprintf("application metadata id %q, want %q", metadata.ID, appID), false
-	}
-	return resp.Status, true
 }
 
 func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, args []string, flags runFlags) error {

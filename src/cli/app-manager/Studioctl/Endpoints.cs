@@ -8,6 +8,8 @@ namespace Altinn.Studio.AppManager.Studioctl;
 
 internal static class Endpoints
 {
+    private static readonly TimeSpan _registerPollInterval = TimeSpan.FromMilliseconds(500);
+
     public static RouteGroupBuilder MapStudioctlEndpoints(this RouteGroupBuilder api)
     {
         var studioctl = api.MapGroup("/studioctl");
@@ -77,11 +79,11 @@ internal static class Endpoints
             if (!AppEndpointUri.TryLoopbackHttp(port, out var baseUri) || baseUri is null)
                 return Results.BadRequest(new CommandResponse("port must be in range 1-65535"));
 
-            var result = await RegisterIfAppMatches(
+            var result = await WaitForMatchingApp(
                 registry,
                 probe,
                 appId,
-                baseUri,
+                _ => Task.FromResult<IReadOnlyList<Uri>>([baseUri]),
                 description,
                 TimeSpan.FromSeconds(request.GracePeriodSeconds),
                 cancellationToken
@@ -92,26 +94,16 @@ internal static class Endpoints
         if (request.ProcessId is not { } processId || processId <= 0)
             return Results.BadRequest(new CommandResponse("processId must be positive"));
 
-        var listeners = await portListeners.Get(cancellationToken);
-        foreach (var listener in listeners.Where(listener => listener.ProcessId == processId))
-        {
-            if (!AppEndpointUri.TryFromListener(listener, out var baseUri) || baseUri is null)
-                continue;
-
-            var result = await RegisterIfAppMatches(
-                registry,
-                probe,
-                appId,
-                baseUri,
-                description,
-                TimeSpan.FromSeconds(request.GracePeriodSeconds),
-                cancellationToken
-            );
-            if (result is not null)
-                return result;
-        }
-
-        return Results.NotFound(new CommandResponse("matching app endpoint not found"));
+        var processResult = await WaitForMatchingApp(
+            registry,
+            probe,
+            appId,
+            token => ProcessListenerUris(portListeners, processId, token),
+            description,
+            TimeSpan.FromSeconds(request.GracePeriodSeconds),
+            cancellationToken
+        );
+        return processResult ?? Results.NotFound(new CommandResponse("matching app endpoint not found"));
     }
 
     private static IResult UnregisterApp(AppRegistry registry, string? appId, string? baseUrl)
@@ -151,22 +143,53 @@ internal static class Endpoints
         return Results.StatusCode(StatusCodes.Status501NotImplemented);
     }
 
-    private static async Task<IResult?> RegisterIfAppMatches(
+    private static async Task<IResult?> WaitForMatchingApp(
         AppRegistry registry,
         AppMetadataProbe probe,
         string appId,
-        Uri baseUri,
+        Func<CancellationToken, Task<IReadOnlyList<Uri>>> candidateUris,
         string description,
         TimeSpan gracePeriod,
         CancellationToken cancellationToken
     )
     {
-        var resolvedAppId = await probe.Probe(baseUri, cancellationToken);
-        if (!string.Equals(resolvedAppId, appId, StringComparison.OrdinalIgnoreCase))
-            return null;
+        var deadline = TimeProvider.System.GetUtcNow() + gracePeriod;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var baseUri in await candidateUris(cancellationToken))
+            {
+                var resolvedAppId = await probe.Probe(baseUri, cancellationToken);
+                if (!string.Equals(resolvedAppId, appId, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-        registry.Register(appId, baseUri, description, gracePeriod);
-        return Results.Accepted(value: new RegisterAppResponse("app registered", baseUri.ToString()));
+                registry.Register(appId, baseUri, description, gracePeriod);
+                return Results.Accepted(value: new RegisterAppResponse("app registered", baseUri.ToString()));
+            }
+
+            var delay = deadline - TimeProvider.System.GetUtcNow();
+            if (delay <= TimeSpan.Zero)
+                return null;
+
+            await Task.Delay(delay < _registerPollInterval ? delay : _registerPollInterval, cancellationToken);
+        }
+    }
+
+    private static async Task<IReadOnlyList<Uri>> ProcessListenerUris(
+        PortListeners portListeners,
+        int processId,
+        CancellationToken cancellationToken
+    )
+    {
+        var listeners = await portListeners.Get(cancellationToken);
+        var uris = new List<Uri>();
+        foreach (var listener in listeners.Where(listener => listener.ProcessId == processId))
+        {
+            if (AppEndpointUri.TryFromListener(listener, out var baseUri) && baseUri is not null)
+                uris.Add(baseUri);
+        }
+
+        return uris;
     }
 
     private sealed record StatusResponse(

@@ -33,11 +33,12 @@ const (
 	appManagerTunnelURLEnv  = "Tunnel__Url"
 	appManagerStudioctlEnv  = "Studioctl__Path"
 
-	appManagerStartTimeout = 10 * time.Second
-	appManagerShutdownWait = 3 * time.Second
-	appManagerPollInterval = 100 * time.Millisecond
-	appTunnelEndpointPath  = "/internal/tunnel/app"
-	appManagerLogTailLines = 40
+	appManagerStartTimeout          = 10 * time.Second
+	appManagerRegisterTimeoutMargin = 2 * time.Second
+	appManagerShutdownWait          = 3 * time.Second
+	appManagerPollInterval          = 100 * time.Millisecond
+	appTunnelEndpointPath           = "/internal/tunnel/app"
+	appManagerLogTailLines          = 40
 )
 
 type startConfig struct {
@@ -100,6 +101,7 @@ var (
 // Client talks to the local app-manager control plane.
 type Client struct {
 	http *http.Client
+	cfg  *config.Config
 }
 
 // AppRegistration describes an app endpoint registered explicitly by studioctl.
@@ -114,11 +116,19 @@ type AppRegistration struct {
 // NewClient constructs an app-manager control-plane client.
 func NewClient(cfg *config.Config) *Client {
 	return &Client{
+		cfg: cfg,
 		http: &http.Client{
 			Transport: transportForConfig(cfg),
 			Timeout:   2 * time.Second,
 		},
 	}
+}
+
+func appRegistrationTimeout(registration AppRegistration) time.Duration {
+	if registration.GracePeriodSeconds <= 0 {
+		return appManagerRegisterTimeoutMargin
+	}
+	return time.Duration(registration.GracePeriodSeconds)*time.Second + appManagerRegisterTimeoutMargin
 }
 
 // Shutdown stops app-manager and returns a completion channel that resolves when shutdown is fully complete.
@@ -262,7 +272,11 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.http.Do(req)
+	client := &http.Client{
+		Transport: transportForConfig(c.cfg),
+		Timeout:   appRegistrationTimeout(registration),
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", classifyClientError(err)
 	}
