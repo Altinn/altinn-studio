@@ -4,10 +4,15 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func TestValidateResourceHostPaths(t *testing.T) {
@@ -80,8 +85,8 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 	}
 }
 
-func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *testing.T) {
-	t.Parallel()
+func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
 
 	containers := coreContainers(t.TempDir(), RuntimeConfig{
 		HostGateway:      "10.88.0.1",
@@ -90,8 +95,15 @@ func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *te
 		Platform:         container.PlatformPodman,
 	})
 
-	if len(containers) != 2 {
-		t.Fatalf("coreContainers() len = %d, want 2", len(containers))
+	if len(containers) != len(coreContainerNames()) {
+		t.Fatalf("coreContainers() len = %d, want %d", len(containers), len(coreContainerNames()))
+	}
+
+	if got := []string{containers[2].Name, containers[3].Name, containers[4].Name}; !slices.Equal(
+		got,
+		[]string{ContainerWorkflowEngineDb, ContainerWorkflowEngine, ContainerPgAdmin},
+	) {
+		t.Fatalf("added core container names = %v, want localtest-prefixed names", got)
 	}
 
 	localtest := containers[0]
@@ -112,6 +124,188 @@ func TestCoreContainers_LocaltestUsesNetworkAliasAndPdf3AvoidsHostOverride(t *te
 			got,
 			"http://local.altinn.cloud:5101",
 		)
+	}
+
+	workflowEngine := containers[3]
+	wantPorts := []struct {
+		hostPort      string
+		containerPort string
+	}{
+		{hostPort: "9080", containerPort: "8080"},
+		{hostPort: "9081", containerPort: "8081"},
+	}
+	gotPorts := make([]struct {
+		hostPort      string
+		containerPort string
+	}, 0, len(workflowEngine.Ports))
+	for _, port := range workflowEngine.Ports {
+		gotPorts = append(gotPorts, struct {
+			hostPort      string
+			containerPort string
+		}{
+			hostPort:      port.HostPort,
+			containerPort: port.ContainerPort,
+		})
+	}
+	if !slices.Equal(gotPorts, wantPorts) {
+		t.Fatalf("workflowEngine.Ports = %v, want %v", gotPorts, wantPorts)
+	}
+	if got := workflowEngine.ExtraHosts; got != nil {
+		t.Fatalf("workflowEngine.ExtraHosts = %v, want nil", got)
+	}
+	if got := workflowEngine.Environment["ConnectionStrings__WorkflowEngine"]; !strings.Contains(
+		got,
+		"Host=localtest-workflow-engine-db;",
+	) {
+		t.Fatalf(
+			"workflowEngine.Environment[ConnectionStrings__WorkflowEngine] = %q, want localtest-workflow-engine-db host",
+			got,
+		)
+	}
+	if !slices.Equal(workflowEngine.Dependencies, []string{ContainerWorkflowEngineDb, ContainerLocaltest}) {
+		t.Fatalf(
+			"workflowEngine.Dependencies = %v, want [%s %s]",
+			workflowEngine.Dependencies,
+			ContainerWorkflowEngineDb,
+			ContainerLocaltest,
+		)
+	}
+	if got := workflowEngine.Environment["AppCommandSettings__CommandEndpoint"]; got != "http://local.altinn.cloud:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/" {
+		t.Fatalf(
+			"workflowEngine.Environment[AppCommandSettings__CommandEndpoint] = %q, want localtest network callback URL",
+			got,
+		)
+	}
+}
+
+func TestCoreContainers_SkipsPgAdminInCI(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	containers := coreContainers(t.TempDir(), RuntimeConfig{
+		HostGateway:      "10.88.0.1",
+		LoadBalancerPort: "8000",
+		LocalAppURL:      "http://host.docker.internal:5005",
+		Platform:         container.PlatformPodman,
+	})
+
+	if slices.Contains(coreContainerNames(), ContainerPgAdmin) {
+		t.Fatalf("coreContainerNames() contains %q in CI", ContainerPgAdmin)
+	}
+	if slices.ContainsFunc(containers, func(spec ContainerSpec) bool {
+		return spec.Name == ContainerPgAdmin
+	}) {
+		t.Fatalf("coreContainers() contains %q in CI", ContainerPgAdmin)
+	}
+}
+
+func TestBuildResources_FailsForUnknownContainerDependency(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	specs := []ContainerSpec{
+		newContainerSpec(
+			"localtest-dependent",
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			[]string{"missing-container"},
+			nil,
+		),
+	}
+	images := map[string]resource.ImageResource{
+		"localtest-dependent": &resource.RemoteImage{Ref: "example.local/dependent:latest"},
+	}
+	network := resource.Ref(&resource.Network{Name: NetworkName})
+
+	containerResource := newContainerResource(
+		&specs[0],
+		images["localtest-dependent"],
+		network,
+		nil,
+		"",
+		containerModeApply,
+	)
+
+	graph := resource.NewGraph()
+	if err := graph.Add(&resource.Network{Name: NetworkName}); err != nil {
+		t.Fatalf("graph.Add(network) error = %v", err)
+	}
+	if err := graph.Add(images["localtest-dependent"]); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+	if err := graph.Add(containerResource); err != nil {
+		t.Fatalf("graph.Add(container) error = %v", err)
+	}
+
+	if err := graph.Validate(); err == nil {
+		t.Fatalf("graph.Validate() error = nil, want missing dependency error")
+	}
+}
+
+func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	dataDir := t.TempDir()
+	containers := coreContainers(dataDir, RuntimeConfig{
+		HostGateway:      "10.88.0.1",
+		LoadBalancerPort: "8000",
+		LocalAppURL:      "http://host.docker.internal:5005",
+		Platform:         container.PlatformPodman,
+	})
+
+	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
+		return spec.Name == ContainerPgAdmin
+	})
+	if index < 0 {
+		t.Fatalf("coreContainers() missing %q", ContainerPgAdmin)
+	}
+
+	pgAdmin := containers[index]
+	if got := pgAdmin.Environment["PGPASS_FILE"]; got != pgAdminConnectionSource {
+		t.Fatalf("pgAdmin.Environment[PGPASS_FILE] = %q, want %q", got, pgAdminConnectionSource)
+	}
+	if _, ok := pgAdmin.Environment["PGPASSWORD"]; ok {
+		t.Fatalf("pgAdmin.Environment unexpectedly contains PGPASSWORD")
+	}
+	hasPgpassMount := false
+	for _, volume := range pgAdmin.Volumes {
+		if volume.HostPath == workflowEngineInfraFilePath(dataDir, "pgpass") &&
+			volume.ContainerPath == pgAdminConnectionSource &&
+			volume.ReadOnly {
+			hasPgpassMount = true
+			break
+		}
+	}
+	if !hasPgpassMount {
+		t.Fatalf("pgAdmin.Volumes missing read-only pgpass mount: %v", pgAdmin.Volumes)
+	}
+}
+
+func TestEnsurePgpassWritesReadableSourceFile(t *testing.T) {
+	dataDir := t.TempDir()
+
+	if err := ensurePgpass(dataDir); err != nil {
+		t.Fatalf("ensurePgpass() error = %v", err)
+	}
+
+	path := workflowEngineInfraFilePath(dataDir, "pgpass")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read pgpass: %v", err)
+	}
+	want := "localtest-workflow-engine-db:5432:*:postgres:postgres\n"
+	if string(content) != want {
+		t.Fatalf("pgpass content = %q, want %q", string(content), want)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat pgpass: %v", err)
+	}
+	if runtime.GOOS != "windows" && info.Mode().Perm() != osutil.FilePermDefault {
+		got := info.Mode().Perm()
+		t.Fatalf("pgpass mode = %v, want %v", got, osutil.FilePermDefault)
 	}
 }
 
@@ -148,9 +342,23 @@ func createCoreLayout(t *testing.T, dataDir string) {
 	for _, dir := range []string{
 		filepath.Join(dataDir, "testdata"),
 		filepath.Join(dataDir, "AltinnPlatformLocal"),
+		filepath.Join(dataDir, "infra"),
+		filepath.Join(dataDir, "infra", "workflow-engine"),
 	} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatalf("create directory %q: %v", dir, err)
+		}
+	}
+
+	// Infrastructure config files needed by core containers
+	for _, file := range []string{
+		"postgres-init.sql",
+		"pgadmin-servers.json",
+		"pgpass",
+	} {
+		path := filepath.Join(dataDir, "infra", "workflow-engine", file)
+		if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
+			t.Fatalf("write %q: %v", path, err)
 		}
 	}
 }
