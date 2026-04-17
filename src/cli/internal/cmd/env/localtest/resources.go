@@ -32,6 +32,8 @@ const (
 	devImageTagWorkflowEngine = "workflow-engine:dev"
 	buildCacheRefLocaltest    = "ghcr.io/altinn/altinn-studio/localtest-main-cache:latest"
 	buildCacheRefPDF3         = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
+	infraDir                  = "infra"
+	workflowEngineInfraDir    = "workflow-engine"
 	flavorDocker              = "Docker"
 	flavorPodman              = "Podman"
 	flavorUnknown             = "Unknown"
@@ -42,14 +44,15 @@ const (
 	postgresHealthRetries     = 5
 	postgresHealthStartPeriod = 5 * time.Second
 
-	postgresUser         = "postgres"
-	postgresPassword     = "postgres123"
-	postgresDB           = "postgres"
-	postgresPort         = "5432"
-	workflowEngineDB     = "workflow_engine"
-	pgAdminEmail         = "admin@altinn.no"
-	pgAdminPassword      = "admin123"
-	pgAdminContainerPort = "80"
+	postgresUser            = "postgres"
+	postgresPassword        = "postgres"
+	postgresDB              = "postgres"
+	postgresPort            = "5432"
+	workflowEngineDB        = "workflow_engine"
+	pgAdminEmail            = "admin@altinn.no"
+	pgAdminPassword         = "admin123"
+	pgAdminContainerPort    = "80"
+	pgAdminConnectionSource = "/pgadmin4/connection-source.conf"
 )
 
 // ErrInvalidResourceLayout is returned when required host paths are missing or have wrong type.
@@ -202,7 +205,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 		workflowEngineContainerSpec(),
 	}
 	if !config.IsCI() {
-		containers = append(containers, workflowEnginePgAdminContainerSpec(dataDir))
+		containers = append(containers, pgAdminContainerSpec(dataDir))
 	}
 	return containers
 }
@@ -219,7 +222,7 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 		},
 		[]types.VolumeMount{
 			newReadOnlyVolume(
-				WorkflowEngineInfraFilePath(dataDir, "postgres-init.sql"),
+				workflowEngineInfraFilePath(dataDir, "postgres-init.sql"),
 				"/docker-entrypoint-initdb.d/01-tuning.sql",
 			),
 		},
@@ -263,25 +266,26 @@ func localtestInternalBaseURL() string {
 	return "http://" + networking.LocalDomain + ":" + localtestServicePort
 }
 
-func workflowEnginePgAdminContainerSpec(dataDir string) ContainerSpec {
+func pgAdminContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
-		ContainerWorkflowEnginePgAdmin,
+		ContainerPgAdmin,
 		[]types.PortMapping{newPort("5050", pgAdminContainerPort)},
 		map[string]string{
 			"PGADMIN_DEFAULT_EMAIL":                   pgAdminEmail,
 			"PGADMIN_DEFAULT_PASSWORD":                pgAdminPassword,
 			"PGADMIN_CONFIG_SERVER_MODE":              "False",
 			"PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED": "False",
+			"PGPASS_FILE":                             pgAdminConnectionSource,
 			"GUNICORN_ACCESS_LOGFILE":                 "/dev/null",
 		},
 		[]types.VolumeMount{
 			newReadOnlyVolume(
-				WorkflowEngineInfraFilePath(dataDir, "pgadmin-servers.json"),
+				workflowEngineInfraFilePath(dataDir, "pgadmin-servers.json"),
 				"/pgadmin4/servers.json",
 			),
 			newReadOnlyVolume(
-				WorkflowEngineInfraFilePath(dataDir, "pgpass"),
-				"/pgadmin4/pgpass.conf",
+				workflowEngineInfraFilePath(dataDir, "pgpass"),
+				pgAdminConnectionSource,
 			),
 		},
 		nil,
@@ -291,6 +295,14 @@ func workflowEnginePgAdminContainerSpec(dataDir string) ContainerSpec {
 	)
 	spec.UseDefaultUser = true
 	return spec
+}
+
+func workflowEngineInfraFilePath(dataDir, name string) string {
+	return filepath.Join(workflowEngineInfraPath(dataDir), name)
+}
+
+func workflowEngineInfraPath(dataDir string) string {
+	return filepath.Join(dataDir, infraDir, workflowEngineInfraDir)
 }
 
 func localtestEnvironment(platform container.ContainerPlatform) string {
@@ -312,7 +324,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 		networking.LocalDomain + ":" + cfg.HostGateway,
 	}
 
-	infraDir := filepath.Join(dataDir, "infra")
+	infraPath := filepath.Join(dataDir, infraDir)
 
 	return []ContainerSpec{
 		newContainerSpec(
@@ -320,7 +332,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			nil,
 			nil,
 			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "tempo.yaml"), "/etc/tempo.yaml"),
+				newVolume(filepath.Join(infraPath, "tempo.yaml"), "/etc/tempo.yaml"),
 			},
 			nil,
 			nil,
@@ -332,7 +344,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			nil,
 			nil,
 			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "mimir.yaml"), "/etc/mimir.yaml"),
+				newVolume(filepath.Join(infraPath, "mimir.yaml"), "/etc/mimir.yaml"),
 			},
 			nil,
 			nil,
@@ -344,7 +356,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			nil,
 			nil,
 			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "loki.yaml"), "/etc/loki.yaml"),
+				newVolume(filepath.Join(infraPath, "loki.yaml"), "/etc/loki.yaml"),
 			},
 			nil,
 			nil,
@@ -356,7 +368,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]types.PortMapping{newPort("4317", "4317")},
 			nil,
 			[]types.VolumeMount{
-				newVolume(filepath.Join(infraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
+				newVolume(filepath.Join(infraPath, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
 			},
 			nil,
 			nil,
@@ -377,14 +389,14 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			},
 			[]types.VolumeMount{
 				newVolume(
-					filepath.Join(infraDir, "grafana-datasources.yaml"),
+					filepath.Join(infraPath, "grafana-datasources.yaml"),
 					"/etc/grafana/provisioning/datasources/datasources.yaml",
 				),
 				newVolume(
-					filepath.Join(infraDir, "grafana-dashboards.yaml"),
+					filepath.Join(infraPath, "grafana-dashboards.yaml"),
 					"/etc/grafana/provisioning/dashboards/dashboards.yaml",
 				),
-				newVolume(filepath.Join(infraDir, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
+				newVolume(filepath.Join(infraPath, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
 			},
 			extraHosts,
 			nil,
@@ -528,14 +540,14 @@ func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageReso
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerWorkflowEngineDb: &resource.RemoteImage{
-			Ref:        core.Postgres.Ref(),
+			Ref:        core.WorkflowEngineDb.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerWorkflowEngine: &resource.RemoteImage{
 			Ref:        core.WorkflowEngine.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
-		ContainerWorkflowEnginePgAdmin: &resource.RemoteImage{
+		ContainerPgAdmin: &resource.RemoteImage{
 			Ref:        core.PgAdmin.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},

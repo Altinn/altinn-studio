@@ -10,6 +10,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func TestValidateResourceHostPaths(t *testing.T) {
@@ -98,7 +99,7 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 
 	if got := []string{containers[2].Name, containers[3].Name, containers[4].Name}; !slices.Equal(
 		got,
-		[]string{ContainerWorkflowEngineDb, ContainerWorkflowEngine, ContainerWorkflowEnginePgAdmin},
+		[]string{ContainerWorkflowEngineDb, ContainerWorkflowEngine, ContainerPgAdmin},
 	) {
 		t.Fatalf("added core container names = %v, want localtest-prefixed names", got)
 	}
@@ -162,13 +163,78 @@ func TestCoreContainers_SkipsPgAdminInCI(t *testing.T) {
 		Platform:         container.PlatformPodman,
 	})
 
-	if slices.Contains(coreContainerNames(), ContainerWorkflowEnginePgAdmin) {
-		t.Fatalf("coreContainerNames() contains %q in CI", ContainerWorkflowEnginePgAdmin)
+	if slices.Contains(coreContainerNames(), ContainerPgAdmin) {
+		t.Fatalf("coreContainerNames() contains %q in CI", ContainerPgAdmin)
 	}
 	if slices.ContainsFunc(containers, func(spec ContainerSpec) bool {
-		return spec.Name == ContainerWorkflowEnginePgAdmin
+		return spec.Name == ContainerPgAdmin
 	}) {
-		t.Fatalf("coreContainers() contains %q in CI", ContainerWorkflowEnginePgAdmin)
+		t.Fatalf("coreContainers() contains %q in CI", ContainerPgAdmin)
+	}
+}
+
+func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	dataDir := t.TempDir()
+	containers := coreContainers(dataDir, RuntimeConfig{
+		HostGateway:      "10.88.0.1",
+		LoadBalancerPort: "8000",
+		LocalAppURL:      "http://host.docker.internal:5005",
+		Platform:         container.PlatformPodman,
+	})
+
+	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
+		return spec.Name == ContainerPgAdmin
+	})
+	if index < 0 {
+		t.Fatalf("coreContainers() missing %q", ContainerPgAdmin)
+	}
+
+	pgAdmin := containers[index]
+	if got := pgAdmin.Environment["PGPASS_FILE"]; got != pgAdminConnectionSource {
+		t.Fatalf("pgAdmin.Environment[PGPASS_FILE] = %q, want %q", got, pgAdminConnectionSource)
+	}
+	if _, ok := pgAdmin.Environment["PGPASSWORD"]; ok {
+		t.Fatalf("pgAdmin.Environment unexpectedly contains PGPASSWORD")
+	}
+	hasPgpassMount := false
+	for _, volume := range pgAdmin.Volumes {
+		if volume.HostPath == workflowEngineInfraFilePath(dataDir, "pgpass") &&
+			volume.ContainerPath == pgAdminConnectionSource &&
+			volume.ReadOnly {
+			hasPgpassMount = true
+			break
+		}
+	}
+	if !hasPgpassMount {
+		t.Fatalf("pgAdmin.Volumes missing read-only pgpass mount: %v", pgAdmin.Volumes)
+	}
+}
+
+func TestEnsurePgpassWritesReadableSourceFile(t *testing.T) {
+	dataDir := t.TempDir()
+
+	if err := ensurePgpass(dataDir); err != nil {
+		t.Fatalf("ensurePgpass() error = %v", err)
+	}
+
+	path := workflowEngineInfraFilePath(dataDir, "pgpass")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read pgpass: %v", err)
+	}
+	want := "localtest-workflow-engine-db:5432:*:postgres:postgres\n"
+	if string(content) != want {
+		t.Fatalf("pgpass content = %q, want %q", string(content), want)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("stat pgpass: %v", err)
+	}
+	if got := info.Mode().Perm(); got != osutil.FilePermDefault {
+		t.Fatalf("pgpass mode = %v, want %v", got, osutil.FilePermDefault)
 	}
 }
 

@@ -12,8 +12,8 @@ const (
 	ContainerWorkflowEngineDb = "localtest-workflow-engine-db"
 	// ContainerWorkflowEngine is the workflow engine app container.
 	ContainerWorkflowEngine = "localtest-workflow-engine"
-	// ContainerWorkflowEnginePgAdmin is the pgAdmin web UI container.
-	ContainerWorkflowEnginePgAdmin = "localtest-workflow-engine-pgadmin"
+	// ContainerPgAdmin is the pgAdmin web UI container.
+	ContainerPgAdmin = "localtest-pgadmin"
 
 	// ContainerMonitoringTempo is the Tempo tracing container.
 	ContainerMonitoringTempo = "monitoring_tempo"
@@ -36,7 +36,7 @@ func coreContainerNames() []string {
 		ContainerWorkflowEngine,
 	}
 	if !config.IsCI() {
-		names = append(names, ContainerWorkflowEnginePgAdmin)
+		names = append(names, ContainerPgAdmin)
 	}
 	return names
 }

@@ -360,9 +360,7 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		}
 	}
 
-	// Write generated infra files before validation. Static infra files are
-	// installed with the localtest resources tarball.
-	if err := EnsureInfraFiles(e.cfg.DataDir); err != nil {
+	if err := ensurePgpass(e.cfg.DataDir); err != nil {
 		return err
 	}
 
@@ -371,11 +369,37 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		if installErr := e.installResources(ctx, true); installErr != nil {
 			return installErr
 		}
+		if err := ensurePgpass(e.cfg.DataDir); err != nil {
+			return err
+		}
 		if err := ValidateResourceHostPaths(buildOpts); err != nil {
 			return fmt.Errorf("validate resources after reinstall: %w", err)
 		}
 	}
 
+	return nil
+}
+
+func ensurePgpass(dataDir string) error {
+	content := fmt.Sprintf(
+		"%s:%s:*:%s:%s\n",
+		ContainerWorkflowEngineDb,
+		postgresPort,
+		postgresUser,
+		postgresPassword,
+	)
+	if err := os.MkdirAll(workflowEngineInfraPath(dataDir), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create workflow-engine infra directory: %w", err)
+	}
+
+	path := workflowEngineInfraFilePath(dataDir, "pgpass")
+	// PgAdmin's entrypoint runs as the image user and must read this bind mount before it copies it to a private 0600 file.
+	if err := os.WriteFile(path, []byte(content), osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("write pgpass: %w", err)
+	}
+	if err := os.Chmod(path, osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("chmod pgpass: %w", err)
+	}
 	return nil
 }
 

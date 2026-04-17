@@ -7,10 +7,12 @@
       "Port": 5432,
       "MaintenanceDB": "postgres",
       "Username": "postgres",
-      "SSLMode": "prefer",
+      "ConnectionParameters": {
+        "passfile": "/var/lib/pgadmin/.pgpass",
+        "sslmode": "prefer"
+      },
       "SharedWithUsers": true,
-      "Shared": false,
-      "PassFile": "/pgadmin4/pgpass.conf"
+      "Shared": false
     }
   }
 }

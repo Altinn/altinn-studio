@@ -10,7 +10,7 @@ images:
     pdf3:
       image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
       tag: "f359420517"
-    postgres:
+    workflow-engine-db:
       image: postgres
       tag: "18"
     workflow-engine:
