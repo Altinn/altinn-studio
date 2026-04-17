@@ -28,7 +28,7 @@ const (
 	appMetadataFile                 = "App/config/applicationmetadata.json"
 )
 
-func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]string {
+func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint, workflowEngineEndpoint string) map[string]string {
 	return map[string]string{
 		"AppSettings__OpenIdWellKnownEndpoint":          "http://" + host + ":5101/authentication/api/v1/openid/",
 		"GeneralSettings__ExternalAppBaseUrl":           localtestExternalAppBaseURL(),
@@ -43,6 +43,7 @@ func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]str
 		"PlatformSettings__ApiNotificationEndpoint":     "http://" + host + ":5101/notifications/api/v1/",
 		"PlatformSettings__ApiCorrespondenceEndpoint":   "http://" + host + ":5101/correspondence/api/v1/",
 		"PlatformSettings__ApiAccessManagementEndpoint": "http://" + host + ":5101/accessmanagement/api/v1/",
+		"PlatformSettings__ApiWorkflowEngineEndpoint":   workflowEngineEndpoint,
 	}
 }
 
@@ -55,6 +56,7 @@ func nativeLocaltestEnvDefaults() map[string]string {
 		localtestLoopbackHost,
 		"http://"+localtestLoopbackHost+":4317",
 		"http://"+localtestLoopbackHost+":5300/pdf",
+		"http://"+localtestLoopbackHost+":8080/api/v1/",
 	)
 }
 
@@ -63,6 +65,7 @@ func dockerLocaltestEnvDefaults() map[string]string {
 		envlocaltest.ContainerLocaltest,
 		"http://"+envlocaltest.ContainerMonitoringOtelCollector+":4317",
 		"http://"+envlocaltest.ContainerPDF3+":5031/pdf",
+		"http://"+envlocaltest.ContainerWorkflowEngine+":8080/api/v1/",
 	)
 }
 
@@ -199,6 +202,7 @@ func (s *Service) BuildDockerRunSpec(
 	return DockerRunSpec{
 		Config: types.ContainerConfig{
 			Labels:         appcontainers.Labels(appPath),
+			HealthCheck:    nil,
 			Name:           localtestAppContainerNamePrefix + appName,
 			Image:          imageTag,
 			User:           "",
