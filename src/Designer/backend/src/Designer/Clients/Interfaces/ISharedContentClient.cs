@@ -13,7 +13,7 @@ public interface ISharedContentClient
     /// <param name="orgName">The organisation identifier.</param>
     /// <param name="codeListId">The code list id.</param>
     /// <param name="codeList">The code list.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The current version string of the published code list.</returns>
     Task<string> PublishCodeList(
         string orgName,
@@ -28,7 +28,7 @@ public interface ISharedContentClient
     /// <param name="orgName">Organisation name.</param>
     /// <param name="codeListId">The code list id.</param>
     /// <param name="version">The code list version.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The published code list.</returns>
     Task<CodeList?> GetPublishedCodeListForOrg(
         string orgName,
@@ -42,7 +42,7 @@ public interface ISharedContentClient
     /// </summary>
     /// <param name="orgName">Organisation.</param>
     /// <param name="path">Path to a folder.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The published library elements from mentioned path.</returns>
     Task<List<string>> GetPublishedResourcesForOrg(
         string orgName,

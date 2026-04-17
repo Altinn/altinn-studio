@@ -13,7 +13,7 @@ public interface ITaskNavigationService
     /// Get task navigation
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The list of task navigation groups.</returns>
     public Task<IEnumerable<TaskNavigationGroup>> GetTaskNavigation(
         AltinnRepoEditingContext altinnRepoEditingContext,
@@ -36,7 +36,7 @@ public interface ITaskNavigationService
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="taskNavigationGroupList">The list of task navigation groups.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task UpdateTaskNavigation(
         AltinnRepoEditingContext altinnRepoEditingContext,
         IEnumerable<TaskNavigationGroup> taskNavigationGroupList,

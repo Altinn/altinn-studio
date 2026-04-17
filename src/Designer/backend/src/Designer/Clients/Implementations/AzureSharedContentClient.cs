@@ -130,7 +130,7 @@ public class AzureSharedContentClient : ISharedContentClient
                 );
             }
 
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
             return !string.IsNullOrWhiteSpace(responseContent)
                 ? JsonSerializer.Deserialize<CodeList>(responseContent, s_jsonOptions)
