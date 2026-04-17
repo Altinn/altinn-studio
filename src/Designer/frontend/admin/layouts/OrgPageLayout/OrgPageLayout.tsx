@@ -1,26 +1,30 @@
 import React from 'react';
 import { Outlet, useParams } from 'react-router-dom';
-import { useOrganizationsQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { StudioCenter, StudioPageError, StudioPageSpinner } from '@studio/components';
+import { useOrganizationsQuery } from 'app-shared/hooks/queries';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { NotFoundPage } from '../../pages/NotFoundPage/NotFoundPage';
 import { OrgContext } from '../../contexts/OrgContext';
+import { StudioPageError } from 'app-shared/components';
 
 export const OrgPageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
   const { org: orgParam } = useParams<{ org: string }>();
-  const { data: organizations, isPending: isOrgsPending } = useOrganizationsQuery();
-  const { data: user, isPending: isUserPending } = useUserQuery();
+  const {
+    data: organizations,
+    isPending: isOrgsPending,
+    isError: isOrgsError,
+  } = useOrganizationsQuery();
 
-  if (isUserPending || isOrgsPending) {
+  if (isOrgsPending) {
     return (
       <StudioCenter>
-        <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
+        <StudioPageSpinner spinnerTitle={t('general.loading')} />
       </StudioCenter>
     );
   }
 
-  if (!user) {
+  if (isOrgsError) {
     return <StudioPageError />;
   }
 

@@ -6,13 +6,13 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { BotAccounts } from './BotAccounts';
 import { Route, Routes } from 'react-router-dom';
+import type { BotAccount } from 'app-shared/types/BotAccount';
 
 const RoutedBotAccounts = () => (
   <Routes>
     <Route path=':owner/*' element={<BotAccounts />} />
   </Routes>
 );
-import type { BotAccount } from 'app-shared/types/BotAccount';
 
 jest.mock('./components/BotAccountsList/BotAccountsList', () => ({
   BotAccountsList: ({

@@ -1,12 +1,10 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { screen, waitFor } from '@testing-library/react';
+import { Route, Routes } from 'react-router-dom';
 import { OrgPageLayout } from './OrgPageLayout';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -29,19 +27,23 @@ const RoutedOrgPageLayout = () => (
   </Routes>
 );
 
-const renderOrgPageLayout = (initialEntries = ['/ttd/apps'], queries = {}) => {
+type RenderOptions = {
+  initialEntries?: string[];
+  queries?: Record<string, unknown>;
+  seedOrganizations?: boolean;
+};
+
+const renderOrgPageLayout = ({
+  initialEntries = ['/ttd/apps'],
+  queries = {},
+  seedOrganizations = true,
+}: RenderOptions = {}) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.CurrentUser], userMock);
-  queryClient.setQueryData([QueryKey.Organizations], [orgMock]);
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <FeatureFlagsProvider>
-        <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-          <RoutedOrgPageLayout />
-        </ServicesContextProvider>
-      </FeatureFlagsProvider>
-    </MemoryRouter>,
-  );
+  if (seedOrganizations) {
+    queryClient.setQueryData([QueryKey.Organizations], [orgMock]);
+  }
+  return renderWithProviders(<RoutedOrgPageLayout />, { queryClient, queries, initialEntries });
 };
 
 describe('OrgPageLayout', () => {
@@ -51,41 +53,27 @@ describe('OrgPageLayout', () => {
   });
 
   it('renders the loading spinner while data is pending', () => {
-    const queryClient = createQueryClientMock();
-    render(
-      <MemoryRouter initialEntries={['/ttd/apps']}>
-        <FeatureFlagsProvider>
-          <ServicesContextProvider
-            {...queriesMock}
-            getUser={() => new Promise<never>(() => {})}
-            client={queryClient}
-          >
-            <RoutedOrgPageLayout />
-          </ServicesContextProvider>
-        </FeatureFlagsProvider>
-      </MemoryRouter>,
-    );
-    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+    renderOrgPageLayout({
+      queries: { getOrganizations: () => new Promise<never>(() => {}) },
+      seedOrganizations: false,
+    });
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
   });
 
-  it('renders the error page when user is missing after loading', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], null);
-    queryClient.setQueryData([QueryKey.Organizations], [orgMock]);
-    render(
-      <MemoryRouter initialEntries={['/ttd/apps']}>
-        <FeatureFlagsProvider>
-          <ServicesContextProvider {...queriesMock} client={queryClient}>
-            <RoutedOrgPageLayout />
-          </ServicesContextProvider>
-        </FeatureFlagsProvider>
-      </MemoryRouter>,
-    );
-    expect(screen.queryByText('Outlet')).not.toBeInTheDocument();
+  it('renders the error page when the organizations query fails', async () => {
+    renderOrgPageLayout({
+      queries: { getOrganizations: () => Promise.reject(new Error('failed')) },
+      seedOrganizations: false,
+    });
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: textMock('general.page_error_title') }),
+      ).toBeInTheDocument();
+    });
   });
 
   it('renders the not-found page when org is not in the list', () => {
-    renderOrgPageLayout(['/unknown-org/apps']);
+    renderOrgPageLayout({ initialEntries: ['/unknown-org/apps'] });
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
     ).toBeInTheDocument();

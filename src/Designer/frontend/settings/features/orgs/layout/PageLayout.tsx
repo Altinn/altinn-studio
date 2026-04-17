@@ -21,7 +21,7 @@ export const PageLayout = () => {
   if (isOrgsPending || (isOrgPermissionsPending && !!selectedOrg)) {
     return (
       <StudioCenter>
-        <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
+        <StudioPageSpinner spinnerTitle={t('general.loading')} />
       </StudioCenter>
     );
   }

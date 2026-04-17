@@ -67,7 +67,7 @@ describe('PageLayout', () => {
       queryClient: localQueryClient,
       queries: { getOrganizations: () => new Promise<never>(() => {}) },
     });
-    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
   });
 
   it('renders the not-found page when org is not in the org list', () => {
@@ -85,7 +85,7 @@ describe('PageLayout', () => {
       queryClient: localQueryClient,
       queries: { getUserOrgPermissions: () => new Promise<never>(() => {}) },
     });
-    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
   });
 
   it('renders error page when organizations query fails', async () => {

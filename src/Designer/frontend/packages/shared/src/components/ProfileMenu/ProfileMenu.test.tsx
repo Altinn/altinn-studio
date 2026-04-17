@@ -123,7 +123,7 @@ describe('ProfileMenu', () => {
     renderProfileMenu();
     await user.click(screen.getByRole('button', { name: 'Test User' }));
     const settingsLink = screen.getByRole('menuitem', { name: textMock('settings') });
-    expect(settingsLink).toHaveAttribute('href', expect.stringContaining('testuser'));
+    expect(settingsLink).toHaveAttribute('href', '/settings/testuser');
   });
 
   it('shows the settings link pointing to org path when studioOidc is enabled and org is active', async () => {
@@ -136,7 +136,7 @@ describe('ProfileMenu', () => {
       }),
     );
     const settingsLink = screen.getByRole('menuitem', { name: textMock('settings') });
-    expect(settingsLink).toHaveAttribute('href', expect.stringContaining('ttd'));
+    expect(settingsLink).toHaveAttribute('href', '/settings/ttd');
   });
 
   it('renders the logout button', async () => {

@@ -22,36 +22,52 @@ const RoutedUserPageLayout = () => (
   </Routes>
 );
 
-const renderUserPageLayout = (initialEntries = ['/testuser/profile'], queryOverrides = {}) => {
+type RenderOptions = {
+  initialEntries?: string[];
+  queries?: Record<string, unknown>;
+  seedCurrentUser?: boolean;
+};
+
+const renderUserPageLayout = ({
+  initialEntries = ['/testuser/profile'],
+  queries = {},
+  seedCurrentUser = true,
+}: RenderOptions = {}) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.CurrentUser], loggedInUser);
-  return renderWithProviders(<RoutedUserPageLayout />, {
-    initialEntries,
-    queryClient,
-    ...queryOverrides,
-  });
+  if (seedCurrentUser) {
+    queryClient.setQueryData([QueryKey.CurrentUser], loggedInUser);
+  }
+  return renderWithProviders(<RoutedUserPageLayout />, { initialEntries, queryClient, queries });
 };
 
 describe('UserPageLayout', () => {
   it('renders PageLayout when owner matches the logged-in user', () => {
-    renderUserPageLayout(['/testuser/profile']);
+    renderUserPageLayout({ initialEntries: ['/testuser/profile'] });
     expect(screen.getByText('PageLayout')).toBeInTheDocument();
   });
 
   it('renders the not-found page when owner does not match the logged-in user', () => {
-    renderUserPageLayout(['/ttd/profile']);
+    renderUserPageLayout({ initialEntries: ['/ttd/profile'] });
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
     ).toBeInTheDocument();
   });
 
-  it('renders PageLayout while user data is still loading', () => {
-    const queryClient = createQueryClientMock();
-    renderWithProviders(<RoutedUserPageLayout />, {
-      initialEntries: ['/ttd/profile'],
-      queryClient,
+  it('renders the loading spinner while user data is still loading', () => {
+    renderUserPageLayout({
+      initialEntries: ['/testuser/profile'],
       queries: { getUser: () => new Promise<never>(() => {}) },
+      seedCurrentUser: false,
     });
-    expect(screen.getByText('PageLayout')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
+  });
+
+  it('renders the error page when the user query fails', async () => {
+    renderUserPageLayout({
+      initialEntries: ['/testuser/profile'],
+      queries: { getUser: () => Promise.reject(new Error('failed')) },
+      seedCurrentUser: false,
+    });
+    await screen.findByRole('heading', { name: textMock('general.page_error_title') });
   });
 });

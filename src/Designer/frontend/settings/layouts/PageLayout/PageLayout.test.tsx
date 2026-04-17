@@ -9,6 +9,7 @@ import { user as userMock } from 'app-shared/mocks/mocks';
 import { DISPLAY_NAME } from 'app-shared/constants';
 import { useMediaQuery } from '@studio/hooks';
 import { useFeatureFlag } from '@studio/feature-flags';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { Route, Routes } from 'react-router-dom';
 
 const mockNavigate = jest.fn();
@@ -19,7 +20,7 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: () => ({ environment: {} }),
+  useEnvironmentConfig: jest.fn(() => ({ environment: {} })),
 }));
 jest.mock('@studio/hooks', () => ({
   ...jest.requireActual('@studio/hooks'),
@@ -37,10 +38,20 @@ const organizationsMock = [
   { username: 'skd', full_name: '', avatar_url: '', id: 2 },
 ];
 
-const renderPageLayout = (initialEntries = ['/test']) => {
+type RenderOptions = {
+  initialEntries?: string[];
+  currentUser?: typeof userWithName;
+  organizations?: typeof organizationsMock;
+};
+
+const renderPageLayout = ({
+  initialEntries = ['/test'],
+  currentUser = userWithName,
+  organizations = organizationsMock,
+}: RenderOptions = {}) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.CurrentUser], userWithName);
-  queryClient.setQueryData([QueryKey.Organizations], organizationsMock);
+  queryClient.setQueryData([QueryKey.CurrentUser], currentUser);
+  queryClient.setQueryData([QueryKey.Organizations], organizations);
   return renderWithProviders(
     <Routes>
       <Route path='/:owner/*' element={<PageLayout />} />
@@ -55,7 +66,10 @@ describe('PageLayout', () => {
     (useFeatureFlag as jest.Mock).mockReturnValue(false);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
 
   it('renders the app title in the header', () => {
     renderPageLayout();
@@ -73,7 +87,7 @@ describe('PageLayout', () => {
   });
 
   it('renders the profile menu trigger with user and org name on an org page', () => {
-    renderPageLayout(['/ttd/contact-points']);
+    renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
     expect(
       screen.getByRole('button', {
         name: textMock('shared.header_user_for_org', {
@@ -85,19 +99,10 @@ describe('PageLayout', () => {
   });
 
   it('renders the profile menu trigger with login when full name is empty', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], {
-      ...userMock,
-      full_name: '',
-      login: 'test',
+    renderPageLayout({
+      currentUser: { ...userMock, full_name: '', login: 'test' },
+      organizations: [],
     });
-    queryClient.setQueryData([QueryKey.Organizations], []);
-    renderWithProviders(
-      <Routes>
-        <Route path='/:owner/*' element={<PageLayout />} />
-      </Routes>,
-      { queryClient, initialEntries: ['/test'] },
-    );
     expect(screen.getByRole('button', { name: 'test' })).toBeInTheDocument();
   });
 
@@ -141,7 +146,7 @@ describe('PageLayout', () => {
 
   it('preserves the active sub-path when switching org', async () => {
     const user = userEvent.setup();
-    renderPageLayout(['/ttd/contact-points']);
+    renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
     await user.click(
       screen.getByRole('button', {
         name: textMock('shared.header_user_for_org', {
@@ -156,7 +161,7 @@ describe('PageLayout', () => {
 
   it('drops org-only sub-path when switching from org to user', async () => {
     const user = userEvent.setup();
-    renderPageLayout(['/ttd/bot-accounts']);
+    renderPageLayout({ initialEntries: ['/ttd/bot-accounts'] });
     await user.click(
       screen.getByRole('button', {
         name: textMock('shared.header_user_for_org', {
@@ -171,28 +176,28 @@ describe('PageLayout', () => {
 
   it('drops user-only sub-path when switching from user to org', async () => {
     const user = userEvent.setup();
-    renderPageLayout(['/test/api-keys']);
+    renderPageLayout({ initialEntries: ['/test/api-keys'] });
     await user.click(screen.getByRole('button', { name: userWithName.full_name }));
     await user.click(screen.getByRole('menuitemradio', { name: organizationsMock[0].full_name }));
     expect(mockNavigate).toHaveBeenCalledWith(`/${organizationsMock[0].username}`);
   });
 
   it('renders the dashboard header link using self context when no org is active', () => {
-    renderPageLayout(['/test']);
+    renderPageLayout({ initialEntries: ['/test'] });
     expect(
       screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
     ).toHaveAttribute('href', '/dashboard/app-dashboard/self');
   });
 
   it('renders the dashboard header link using the active org', () => {
-    renderPageLayout(['/ttd/contact-points']);
+    renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
     expect(
       screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
     ).toHaveAttribute('href', '/dashboard/app-dashboard/ttd');
   });
 
   it('does not render the published apps header link when Admin flag is disabled', () => {
-    renderPageLayout(['/ttd/contact-points']);
+    renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
     expect(
       screen.queryByRole('link', { name: textMock('admin.apps.title') }),
     ).not.toBeInTheDocument();
@@ -200,7 +205,7 @@ describe('PageLayout', () => {
 
   it('renders the published apps header link using the active org when Admin flag is enabled', () => {
     (useFeatureFlag as jest.Mock).mockReturnValue(true);
-    renderPageLayout(['/ttd/contact-points']);
+    renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
     expect(screen.getByRole('link', { name: textMock('admin.apps.title') })).toHaveAttribute(
       'href',
       '/admin/ttd',
@@ -208,7 +213,7 @@ describe('PageLayout', () => {
   });
 
   it('renders the library header link using the active org', () => {
-    renderPageLayout(['/ttd/contact-points']);
+    renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
     expect(
       screen.getByRole('link', { name: textMock('dashboard.header_item_library') }),
     ).toHaveAttribute('href', '/dashboard/org-library/ttd');
@@ -216,7 +221,7 @@ describe('PageLayout', () => {
 
   it('does not render the dashboard link in the profile menu', async () => {
     const user = userEvent.setup();
-    renderPageLayout(['/test']);
+    renderPageLayout({ initialEntries: ['/test'] });
     await user.click(screen.getByRole('button', { name: userWithName.full_name }));
     expect(
       screen.queryByRole('menuitem', { name: textMock('dashboard.header_item_dashboard') }),
@@ -232,20 +237,13 @@ describe('PageLayout', () => {
 
   it('renders the settings menu item when studioOidc is enabled', async () => {
     const user = userEvent.setup();
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.CurrentUser], userWithName);
-    queryClient.setQueryData([QueryKey.Organizations], []);
-    jest
-      .spyOn(require('app-shared/contexts/EnvironmentConfigContext'), 'useEnvironmentConfig')
-      .mockReturnValue({ environment: { featureFlags: { studioOidc: true } } });
-    renderWithProviders(
-      <Routes>
-        <Route path='/:owner/*' element={<PageLayout />} />
-      </Routes>,
-      { queryClient, initialEntries: ['/test'] },
-    );
+    jest.mocked(useEnvironmentConfig).mockReturnValue({
+      environment: { featureFlags: { studioOidc: true } },
+      isLoading: false,
+      error: null,
+    });
+    renderPageLayout({ organizations: [] });
     await user.click(screen.getByRole('button', { name: userWithName.full_name }));
     expect(screen.getByText(textMock('settings'))).toBeInTheDocument();
-    jest.restoreAllMocks();
   });
 });

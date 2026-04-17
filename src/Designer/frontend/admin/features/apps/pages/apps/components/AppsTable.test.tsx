@@ -16,11 +16,11 @@ import { OrgContext } from 'admin/contexts/OrgContext';
 const range = 1440;
 const env = 'production';
 const envTitle = textMock('general.production_environment_alt').toLowerCase();
-const orgName = org;
+const orgFullName = 'Test Org Full Name';
 
 const orgMock = {
   username: org,
-  full_name: org,
+  full_name: orgFullName,
   avatar_url: '',
   id: 1,
 };
@@ -133,7 +133,9 @@ describe('AppsTable', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.errors.missing_rights', { envTitle, orgName })),
+        screen.getByText(
+          textMock('admin.metrics.errors.missing_rights', { envTitle, orgName: orgFullName }),
+        ),
       ).toBeInTheDocument();
     });
 

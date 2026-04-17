@@ -100,7 +100,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
     { items: selectableOrgMenuItems },
-    { items: studioOidc ? [settingsMenuItem] : [] },
+    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
     { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];

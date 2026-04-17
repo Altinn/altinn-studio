@@ -49,7 +49,7 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [settingsMenuItem] : [] },
+    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
     { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];

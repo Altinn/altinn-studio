@@ -11,7 +11,7 @@ import { useUserQuery } from 'app-shared/hooks/queries';
 import { RoutePaths as OrgRoutePaths } from '../../features/orgs/routes/RoutePaths';
 import { RoutePaths as UserRoutePaths } from '../../features/user/routes/RoutePaths';
 
-export const PageHeader = () => {
+export const PageHeader = (): ReactElement => {
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   return (
@@ -76,8 +76,8 @@ const RightContent = (): ReactElement => {
   const subPath = ownerMatch?.params['*'] || '';
   const { owner } = useParams();
 
-  const orgSubPages = Object.values(OrgRoutePaths) as string[];
-  const userSubPages = Object.values(UserRoutePaths) as string[];
+  const orgSubPages = Object.values(OrgRoutePaths);
+  const userSubPages = Object.values(UserRoutePaths);
 
   const buildPath = (username: string, validSubPages: string[]) => {
     const page = validSubPages.includes(subPath) ? subPath : '';

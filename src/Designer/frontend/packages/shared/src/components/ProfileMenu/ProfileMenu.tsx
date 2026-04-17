@@ -10,7 +10,7 @@ import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigConte
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import type { User } from 'app-shared/types/Repository';
 
-export type OrgOption = {
+type OrgOption = {
   username: string;
   displayName: string;
   isActive: boolean;
@@ -34,9 +34,10 @@ export const ProfileMenu = ({
   const { mutate: logout } = useLogoutMutation();
   const isOrgContext = currentUserOrg !== undefined && currentUserOrg !== user?.login;
   const org = isOrgContext ? currentUserOrg : undefined;
+  const owner = org ?? user?.login;
   const { environment } = useEnvironmentConfig();
   const studioOidc = environment?.featureFlags?.studioOidc;
-  var username = user?.full_name || user?.login;
+  const username = user?.full_name || user?.login;
 
   const organizationsOptions: OrgOption[] =
     organizations?.map((organization) => ({
@@ -66,23 +67,27 @@ export const ProfileMenu = ({
     isActive: !org,
   };
 
-  const settingsMenuItem = {
-    action: {
-      type: 'link' as const,
-      href: `${SETTINGS_BASENAME}/${org ?? user?.login}`,
-      openInNewTab: false,
-    },
-    itemName: t('settings'),
-  };
+  const settingsMenuItem = owner
+    ? {
+        action: {
+          type: 'link' as const,
+          href: `${SETTINGS_BASENAME}/${owner}`,
+          openInNewTab: false,
+        },
+        itemName: t('settings'),
+      }
+    : null;
 
-  const giteaMenuItem = {
-    action: {
-      type: 'link' as const,
-      href: repositoryOwnerPath(org ?? user?.login ?? ''),
-      openInNewTab: true,
-    },
-    itemName: t('shared.header_go_to_gitea'),
-  };
+  const giteaMenuItem = owner
+    ? {
+        action: {
+          type: 'link' as const,
+          href: repositoryOwnerPath(owner),
+          openInNewTab: true,
+        },
+        itemName: t('shared.header_go_to_gitea'),
+      }
+    : null;
 
   const logOutMenuItem = {
     action: { type: 'button' as const, onClick: logout },
@@ -91,8 +96,8 @@ export const ProfileMenu = ({
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
     { items: [...orgMenuItems, userMenuItem] },
-    { items: studioOidc ? [settingsMenuItem] : [] },
-    { items: [giteaMenuItem] },
+    ...(studioOidc && settingsMenuItem ? [{ items: [settingsMenuItem] }] : []),
+    ...(giteaMenuItem ? [{ items: [giteaMenuItem] }] : []),
     { items: [logOutMenuItem] },
   ];
 

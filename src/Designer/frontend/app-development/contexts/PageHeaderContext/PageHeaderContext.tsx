@@ -78,7 +78,7 @@ export const PageHeaderContextProvider = ({
     logOutMenuItem,
   ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [settingsMenuItem] : [] },
+    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
     { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];

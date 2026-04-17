@@ -70,7 +70,7 @@ describe('PageHeader', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders the app title in the header', () => {
@@ -138,13 +138,7 @@ describe('PageHeader', () => {
 
   it('preserves the active sub-path when switching org', async () => {
     const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={['/ttd/apps/at22/my-app']}>
-        <FeatureFlagsProvider>
-          <PageHeader />
-        </FeatureFlagsProvider>
-      </MemoryRouter>,
-    );
+    renderPageHeader(['/ttd/apps/at22/my-app']);
 
     await user.click(screen.getByRole('button', { name: triggerButtonName }));
 
@@ -153,9 +147,9 @@ describe('PageHeader', () => {
   });
 });
 
-const renderPageHeader = () =>
+const renderPageHeader = (initialEntries?: string[]) =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <FeatureFlagsProvider>
         <PageHeader />
       </FeatureFlagsProvider>
