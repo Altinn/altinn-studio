@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
@@ -33,8 +32,8 @@ public class DataController(
     // </summary>
     public override void OnActionExecuting(ActionExecutingContext context)
     {
-        string org = context.RouteData.Values["org"] as string;
-        string app = context.RouteData.Values["app"] as string;
+        string? org = context.RouteData.Values["org"] as string;
+        string? app = context.RouteData.Values["app"] as string;
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
@@ -66,7 +65,7 @@ public class DataController(
     public ActionResult<DataElement> Post(
         [FromRoute] int partyId,
         [FromRoute] Guid instanceGuid,
-        [FromQuery] string dataType
+        [FromQuery] string? dataType
     )
     {
         DataElement dataElement = dataService.CreateDataElement(partyId, instanceGuid, dataType);
