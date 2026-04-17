@@ -1,7 +1,5 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -394,7 +392,7 @@ public partial class PreviewController(
     [HttpGet]
     [Route("api/v1/parties")]
     [UseSystemTextJson]
-    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string allowedToInstantiateFilter)
+    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string? allowedToInstantiateFilter)
     {
         List<Party> parties = new()
         {
@@ -462,8 +460,8 @@ public partial class PreviewController(
     public async Task<ActionResult<string>> GetInstanceId(string org, string app, CancellationToken cancellationToken)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-        string refererHeader = Request.Headers["Referer"];
-        string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+        string? refererHeader = Request.Headers["Referer"];
+        string? layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
         Instance mockInstance = await previewService.GetMockInstance(
             org,
             app,
@@ -898,7 +896,7 @@ public partial class PreviewController(
         return Ok(lookupResponse);
     }
 
-    private static List<Option> MapToOptions(CodeList libraryCodeListResponse)
+    private static List<Option> MapToOptions(CodeList? libraryCodeListResponse)
     {
         if (libraryCodeListResponse?.Codes == null)
         {
@@ -923,8 +921,7 @@ public partial class PreviewController(
     /// Gets a value from a language collection.
     /// Attempts to find a value in this order: Nb, Nn, En, then first available (alphabetically by key).
     /// </summary>
-    [return: NotNullIfNotNull(nameof(languageCollection))]
-    private static string GetValueWithLanguageFallback(Dictionary<string, string> languageCollection)
+    private static string? GetValueWithLanguageFallback(Dictionary<string, string>? languageCollection)
     {
         if (languageCollection == null)
         {
@@ -937,7 +934,7 @@ public partial class PreviewController(
         }
 
         if (
-            languageCollection.TryGetValue(LanguageConst.Nb, out string value)
+            languageCollection.TryGetValue(LanguageConst.Nb, out string? value)
             || languageCollection.TryGetValue(LanguageConst.Nn, out value)
             || languageCollection.TryGetValue(LanguageConst.En, out value)
         )
@@ -955,8 +952,8 @@ public partial class PreviewController(
     /// <param name="layoutSettings">The layout settings JsonNode to modify in-place.</param>
     private static void AddPdfLayoutNameToPageOrder(JsonNode layoutSettings)
     {
-        JsonObject pagesObject = layoutSettings?["pages"] as JsonObject;
-        string pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
+        JsonObject? pagesObject = layoutSettings?["pages"] as JsonObject;
+        string? pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
         if (string.IsNullOrEmpty(pdfLayoutName))
         {
             return;
@@ -964,7 +961,7 @@ public partial class PreviewController(
 
         if (pagesObject?["groups"] is JsonArray groups)
         {
-            JsonObject lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
+            JsonObject? lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
 
             if (lastGroupWithOrder?["order"] is JsonArray groupOrder)
             {
@@ -987,10 +984,10 @@ public partial class PreviewController(
         }
     }
 
-    private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
+    private static string? GetSelectedLayoutSetInEditorFromRefererHeader(string? refererHeader)
     {
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
         return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
     }

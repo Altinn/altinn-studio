@@ -1,4 +1,3 @@
-#nullable disable
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;

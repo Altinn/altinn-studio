@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -43,7 +42,7 @@ public class OrgContentController : ControllerBase
     [Route("content")]
     public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences(
         [FromRoute] string orgName,
-        [FromQuery] string contentType
+        [FromQuery] string? contentType
     )
     {
         if (!await _orgService.IsOrg(orgName))
