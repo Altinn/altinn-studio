@@ -127,6 +127,29 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	}
 
 	workflowEngine := containers[3]
+	wantPorts := []struct {
+		hostPort      string
+		containerPort string
+	}{
+		{hostPort: "9080", containerPort: "8080"},
+		{hostPort: "9081", containerPort: "8081"},
+	}
+	gotPorts := make([]struct {
+		hostPort      string
+		containerPort string
+	}, 0, len(workflowEngine.Ports))
+	for _, port := range workflowEngine.Ports {
+		gotPorts = append(gotPorts, struct {
+			hostPort      string
+			containerPort string
+		}{
+			hostPort:      port.HostPort,
+			containerPort: port.ContainerPort,
+		})
+	}
+	if !slices.Equal(gotPorts, wantPorts) {
+		t.Fatalf("workflowEngine.Ports = %v, want %v", gotPorts, wantPorts)
+	}
 	if got := workflowEngine.ExtraHosts; got != nil {
 		t.Fatalf("workflowEngine.ExtraHosts = %v, want nil", got)
 	}

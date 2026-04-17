@@ -246,8 +246,8 @@ func workflowEngineContainerSpec() ContainerSpec {
 	return newContainerSpec(
 		ContainerWorkflowEngine,
 		[]types.PortMapping{
-			newPort("8080", "8080"),
-			newPort("8081", "8081"),
+			newPort("9080", "8080"),
+			newPort("9081", "8081"),
 		},
 		map[string]string{
 			"ASPNETCORE_ENVIRONMENT":              "Docker",
