@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
@@ -101,6 +102,68 @@ public class WorkflowHandlerTests
             });
 
         return mock;
+    }
+
+    [Fact]
+    public async Task Handle_WhenBufferRaisesLeaseLost_ExitsCleanlyWithoutThrowing()
+    {
+        var executor = MockExecutor(ExecutionResult.Success());
+        var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
+
+        // Custom handler setup: the final Submit (workflow.Completed) throws LeaseLostException,
+        // simulating a worker whose lease was reclaimed mid-processing.
+        var buffer = new Mock<IWorkflowUpdateBuffer>();
+        buffer
+            .Setup(b =>
+                b.Submit(
+                    It.IsAny<Workflow>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Activity?>()
+                )
+            )
+            .Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
+                (w, _, _, _, _) =>
+                    w.Status == PersistentItemStatus.Completed
+                        ? Task.FromException(new LeaseLostException(w.DatabaseId))
+                        : Task.CompletedTask
+            );
+
+        var settings = Options.Create(
+            new EngineSettings
+            {
+                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                DefaultStepRetryStrategy = RetryStrategy.None(),
+                DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
+                DatabaseRetryStrategy = RetryStrategy.None(),
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
+                Concurrency = new ConcurrencySettings
+                {
+                    MaxWorkers = 5,
+                    MaxDbOperations = 5,
+                    MaxHttpCalls = 5,
+                },
+            }
+        );
+        var handler = new WorkflowHandler(
+            executor.Object,
+            buffer.Object,
+            settings,
+            FixedTime,
+            NullLogger<WorkflowHandler>.Instance
+        );
+
+        // Must not rethrow — caller should observe a clean return and rely on warn log + counter.
+        var handleTask = handler.Handle(workflow, CancellationToken.None);
+        await handleTask;
+        Assert.True(handleTask.IsCompletedSuccessfully);
     }
 
     [Fact]
