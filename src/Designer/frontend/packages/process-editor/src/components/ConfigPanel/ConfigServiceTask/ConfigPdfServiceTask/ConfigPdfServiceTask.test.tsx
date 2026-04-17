@@ -1,4 +1,4 @@
-import { studioScreen } from '@studio/ui-test';
+import { screen } from '@studio/ui-test';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
@@ -55,7 +55,7 @@ describe('ConfigPdfServiceTask', () => {
       });
 
       expect(
-        studioScreen.getByText(
+        screen.getByText(
           textMock('process_editor.palette_pdf_service_task_version_error', {
             version: '8.9.0',
           }),
@@ -76,7 +76,7 @@ describe('ConfigPdfServiceTask', () => {
       });
 
       expect(
-        studioScreen.getByText(
+        screen.getByText(
           textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
             version: '4.25.2',
           }),
@@ -97,7 +97,7 @@ describe('ConfigPdfServiceTask', () => {
       });
 
       expect(
-        studioScreen.queryByText(
+        screen.queryByText(
           textMock('process_editor.palette_pdf_service_task_version_error', {
             version: '8.9.0',
           }),
@@ -105,7 +105,7 @@ describe('ConfigPdfServiceTask', () => {
       ).not.toBeInTheDocument();
 
       expect(
-        studioScreen.queryByText(
+        screen.queryByText(
           textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
             version: '4.25.2',
           }),
@@ -119,17 +119,17 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       expect(
-        studioScreen.getFieldsetByLegend(textMock('process_editor.configuration_panel_pdf_mode')),
+        screen.getFieldsetByLegend(textMock('process_editor.configuration_panel_pdf_mode')),
       ).toBeInTheDocument();
 
       expect(
-        studioScreen.getByRole('radio', {
+        screen.getByRole('radio', {
           name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
         }),
       ).toBeInTheDocument();
 
       expect(
-        studioScreen.getByRole('radio', {
+        screen.getByRole('radio', {
           name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
         }),
       ).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe('ConfigPdfServiceTask', () => {
     it('should default to automatic mode when no layout set exists for the task', () => {
       renderConfigPdfServiceTask();
 
-      const automaticRadio = studioScreen.getByRole('radio', {
+      const automaticRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
       });
       expect(automaticRadio).toBeChecked();
@@ -147,7 +147,7 @@ describe('ConfigPdfServiceTask', () => {
     it('should default to layout-based mode when a layout set exists for the task', () => {
       renderConfigPdfServiceTask({ withLayoutSet: true });
 
-      const layoutBasedRadio = studioScreen.getByRole('radio', {
+      const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
       });
       expect(layoutBasedRadio).toBeChecked();
@@ -158,7 +158,7 @@ describe('ConfigPdfServiceTask', () => {
 
       renderConfigPdfServiceTask();
 
-      const layoutBasedRadio = studioScreen.getByRole('radio', {
+      const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
       });
       await user.click(layoutBasedRadio);
@@ -182,7 +182,7 @@ describe('ConfigPdfServiceTask', () => {
         },
       });
 
-      const automaticRadio = studioScreen.getByRole('radio', {
+      const automaticRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
       });
       await user.click(automaticRadio);
@@ -207,7 +207,7 @@ describe('ConfigPdfServiceTask', () => {
         },
       });
 
-      const automaticRadio = studioScreen.getByRole('radio', {
+      const automaticRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
       });
       await user.click(automaticRadio);
@@ -215,7 +215,7 @@ describe('ConfigPdfServiceTask', () => {
       expect(window.confirm).toHaveBeenCalled();
       expect(deleteLayoutSetMock).not.toHaveBeenCalled();
 
-      const layoutBasedRadio = studioScreen.getByRole('radio', {
+      const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
       });
       expect(layoutBasedRadio).toBeChecked();
@@ -228,13 +228,13 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       // First switch to layout-based
-      const layoutBasedRadio = studioScreen.getByRole('radio', {
+      const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
       });
       await user.click(layoutBasedRadio);
 
       // Then switch back to automatic (no layout set was created)
-      const automaticRadio = studioScreen.getByRole('radio', {
+      const automaticRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
       });
       await user.click(automaticRadio);
@@ -249,7 +249,7 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       // PdfAutomaticTaskSelection renders a combobox
-      expect(studioScreen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('should render PdfLayoutBasedSection when in layout-based mode', async () => {
@@ -257,14 +257,14 @@ describe('ConfigPdfServiceTask', () => {
 
       renderConfigPdfServiceTask();
 
-      const layoutBasedRadio = studioScreen.getByRole('radio', {
+      const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
       });
       await user.click(layoutBasedRadio);
 
       // PdfLayoutBasedSection renders layout set name input
       expect(
-        studioScreen.getByLabelText(
+        screen.getByLabelText(
           textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
         ),
       ).toBeInTheDocument();
@@ -274,7 +274,7 @@ describe('ConfigPdfServiceTask', () => {
       renderConfigPdfServiceTask();
 
       expect(
-        studioScreen.getByRole('button', {
+        screen.getByRole('button', {
           name: textMock('process_editor.configuration_panel_pdf_filename_label'),
         }),
       ).toBeInTheDocument();

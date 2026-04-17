@@ -13,7 +13,7 @@ import { CodeListUsageTaskType } from '../../../../types/CodeListUsageTaskType';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import { textResourcesNb } from '../../../../test-data/textResources';
 import { Guard } from '@studio/guard';
-import { studioScreen } from '@studio/ui-test';
+import { screen } from '@studio/ui-test';
 
 const onDeleteCodeListMock = jest.fn();
 const onUpdateCodeListIdMock = jest.fn();
@@ -50,14 +50,14 @@ describe('CodeListsWithTextResources', () => {
 
   it('renders the code list details closed by default', () => {
     renderCodeLists();
-    const details = studioScreen.getDetailsBySummary(codeListName);
+    const details = screen.getDetailsBySummary(codeListName);
 
     expect(details).not.toHaveAttribute('open');
   });
 
   it('renders the code list details open by default if code list title is equal to codeListInEditMode', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
-    const details = studioScreen.getDetailsBySummary(codeListName);
+    const details = screen.getDetailsBySummary(codeListName);
     expect(details).toHaveAttribute('open');
   });
 
@@ -71,7 +71,7 @@ describe('CodeListsWithTextResources', () => {
         },
       ),
     );
-    const codeListDetailsHeaderSubTitlePlural = studioScreen.queryByText(
+    const codeListDetailsHeaderSubTitlePlural = screen.queryByText(
       textMock(
         'app_content_library.code_lists_with_text_resources.code_list_details_usage_sub_title_plural',
         {
@@ -93,7 +93,7 @@ describe('CodeListsWithTextResources', () => {
 
   it('renders the details header title with single usage information if used once', () => {
     renderCodeLists({ codeListsUsages: codeListSingleUsageMock });
-    const codeListDetailsHeaderSubTitleSingle = studioScreen.getByText(
+    const codeListDetailsHeaderSubTitleSingle = screen.getByText(
       textMock(
         'app_content_library.code_lists_with_text_resources.code_list_details_usage_sub_title_single',
         {
@@ -106,7 +106,7 @@ describe('CodeListsWithTextResources', () => {
 
   it('renders the details header title with plural usage information if used multiple times', () => {
     renderCodeLists({ codeListsUsages: codeListMultipleUsagesMock });
-    const codeListDetailsHeaderSubTitlePlural = studioScreen.getByText(
+    const codeListDetailsHeaderSubTitlePlural = screen.getByText(
       textMock(
         'app_content_library.code_lists_with_text_resources.code_list_details_usage_sub_title_plural',
         {
@@ -132,7 +132,7 @@ describe('CodeListsWithTextResources', () => {
       textMock('app_content_library.code_lists_with_text_resources.code_list_show_usage'),
     );
     await user.click(viewCodeListUsagesButton);
-    const codeListUsagesModalTitle = studioScreen.getByText(
+    const codeListUsagesModalTitle = screen.getByText(
       textMock(
         'app_content_library.code_lists_with_text_resources.code_list_show_usage_modal_title',
       ),
@@ -155,7 +155,7 @@ describe('CodeListsWithTextResources', () => {
 
   it('renders the code list editor', () => {
     renderCodeLists();
-    const codeListEditor = studioScreen.getByText(textMock('code_list_editor.legend'));
+    const codeListEditor = screen.getByText(textMock('code_list_editor.legend'));
     expect(codeListEditor).toBeInTheDocument();
   });
 
@@ -163,7 +163,7 @@ describe('CodeListsWithTextResources', () => {
     const user = userEvent.setup();
     const codeListValueText = 'codeListValueText';
     renderCodeLists();
-    const codeListFirstItemValue = studioScreen.getByLabelText(
+    const codeListFirstItemValue = screen.getByLabelText(
       textMock('code_list_editor.value_item', { number: 1 }),
     );
     await user.type(codeListFirstItemValue, codeListValueText);
@@ -183,7 +183,7 @@ describe('CodeListsWithTextResources', () => {
     const textResources = [{ id: 'test', value: 'some value' }];
     renderCodeLists({ onCreateTextResource, textResources });
 
-    const codeListFirstItemLabel = studioScreen.getByRole('textbox', {
+    const codeListFirstItemLabel = screen.getByRole('textbox', {
       name: textMock('code_list_editor.text_resource.label.value', { number: 1 }),
     });
     await user.type(codeListFirstItemLabel, codeListValueText);
@@ -203,7 +203,7 @@ describe('CodeListsWithTextResources', () => {
 
   it('renders the code list title label', () => {
     renderCodeLists();
-    const codeListTitleLabel = studioScreen.getByText(
+    const codeListTitleLabel = screen.getByText(
       textMock('app_content_library.code_lists_with_text_resources.code_list_edit_id_label'),
     );
     expect(codeListTitleLabel).toBeInTheDocument();
@@ -221,7 +221,7 @@ describe('CodeListsWithTextResources', () => {
     renderCodeLists({
       codeListsUsages: codeListSingleUsageMock,
     });
-    const codeListId = studioScreen.getByTitle(
+    const codeListId = screen.getByTitle(
       textMock(
         'app_content_library.code_lists_with_text_resources.code_list_edit_id_disabled_title',
       ),
@@ -235,7 +235,7 @@ describe('CodeListsWithTextResources', () => {
     const invalidCodeListName = 'invalidCodeListName';
     renderCodeLists({ codeListNames: [invalidCodeListName] });
     await changeCodeListId(user, codeListName, invalidCodeListName);
-    const errorMessage = studioScreen.getByText(textMock('validation_errors.file_name_occupied'));
+    const errorMessage = screen.getByText(textMock('validation_errors.file_name_occupied'));
     expect(errorMessage).toBeInTheDocument();
   });
 
@@ -243,7 +243,7 @@ describe('CodeListsWithTextResources', () => {
     const user = userEvent.setup();
     renderCodeLists({ codeListNames: [codeListName] });
     await changeCodeListId(user, codeListName, codeListName);
-    const errorMessage = studioScreen.queryByText(textMock('validation_errors.file_name_occupied'));
+    const errorMessage = screen.queryByText(textMock('validation_errors.file_name_occupied'));
     expect(errorMessage).not.toBeInTheDocument();
   });
 
@@ -259,7 +259,7 @@ describe('CodeListsWithTextResources', () => {
     renderCodeLists({
       codeListDataList: [{ ...codeListsDataMock[0], hasError: true, data: undefined }],
     });
-    const errorMessage = studioScreen.getByText(
+    const errorMessage = screen.getByText(
       textMock('app_content_library.code_lists_with_text_resources.format_error'),
     );
     expect(errorMessage).toBeInTheDocument();
@@ -302,13 +302,13 @@ const changeCodeListId = async (
   oldCodeListId: string,
   newCodeListId: string,
 ): Promise<void> => {
-  const codeListIdToggleTextfield = studioScreen.getByTitle(
+  const codeListIdToggleTextfield = screen.getByTitle(
     textMock('app_content_library.code_lists_with_text_resources.code_list_view_id_title', {
       codeListName: oldCodeListId,
     }),
   );
   await user.click(codeListIdToggleTextfield);
-  const codeListIdInput = studioScreen.getByLabelText(
+  const codeListIdInput = screen.getByLabelText(
     textMock('app_content_library.code_lists_with_text_resources.code_list_edit_id_label'),
   );
   await user.clear(codeListIdInput);
@@ -365,7 +365,6 @@ describe('updateCodeListWithMetadata', () => {
 });
 
 const getButton = (name: string, expanded?: boolean): HTMLElement =>
-  studioScreen.getByRole('button', { name, expanded });
+  screen.getByRole('button', { name, expanded });
 
-const queryButton = (name: string): HTMLElement | null =>
-  studioScreen.queryByRole('button', { name });
+const queryButton = (name: string): HTMLElement | null => screen.queryByRole('button', { name });

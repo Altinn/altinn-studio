@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { codeLists, coloursData } from './test-data/codeLists';
-import { studioScreen, studioWithin } from '@studio/ui-test';
+import { screen, within } from '@studio/ui-test';
 
 // Test data:
 const onPublish = jest.fn();
@@ -28,7 +28,7 @@ describe('CodeListsPage', () => {
   it('Renders with the given code lists', () => {
     renderCodeListPage();
     codeLists.forEach((codeList) => {
-      expect(studioScreen.getDetailsBySummary(codeList.name)).toBeInTheDocument();
+      expect(screen.getDetailsBySummary(codeList.name)).toBeInTheDocument();
     });
   });
 
@@ -37,7 +37,7 @@ describe('CodeListsPage', () => {
     renderCodeListPage();
     await addNewCodeList(user);
     const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
-    expect(studioScreen.getDetailsBySummary(nameOfNewList)).toBeInTheDocument();
+    expect(screen.getDetailsBySummary(nameOfNewList)).toBeInTheDocument();
   });
 
   it('Rerenders with updated data when something is changed', async () => {
@@ -49,7 +49,7 @@ describe('CodeListsPage', () => {
     const nameInput = getNameField(textMock('app_content_library.code_lists.unnamed'));
     await user.type(nameInput, newName);
 
-    expect(studioScreen.getDetailsBySummary(newName)).toBeInTheDocument();
+    expect(screen.getDetailsBySummary(newName)).toBeInTheDocument();
   });
 
   it('Deletes the code list when the delete button is clicked', async () => {
@@ -57,16 +57,16 @@ describe('CodeListsPage', () => {
     renderCodeListPage();
     await addNewCodeList(user);
     const nameOfNewList = textMock('app_content_library.code_lists.unnamed');
-    const details = studioScreen.getDetailsBySummary(nameOfNewList);
-    const deleteButtonName = textMock('general.delete');
-    await user.click(studioWithin(details).getByRole('button', { name: deleteButtonName }));
-    expect(studioScreen.queryDetailsBySummary(nameOfNewList)).not.toBeInTheDocument();
+    const details = screen.getDetailsBySummary(nameOfNewList);
+    const deleteButton = within(details).getByRole('button', { name: textMock('general.delete') });
+    await user.click(deleteButton);
+    expect(screen.queryDetailsBySummary(nameOfNewList)).not.toBeInTheDocument();
   });
 
   it('Displays a placeholder when the list of code lists is empty', () => {
     renderCodeListPage({ codeLists: [] });
     const placeholderText = textMock('app_content_library.code_lists.empty');
-    expect(studioScreen.getByText(placeholderText)).toBeInTheDocument();
+    expect(screen.getByText(placeholderText)).toBeInTheDocument();
   });
 
   it('Calls the onSave callback with the updated code lists when the save button is clicked', async () => {
@@ -99,7 +99,7 @@ describe('CodeListsPage', () => {
     await addNewCodeList(user);
     await saveCodeLists(user);
     const expectedMessage = textMock('app_content_library.code_lists.error.missing_name');
-    expect(studioScreen.getByText(expectedMessage)).toBeInTheDocument();
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
   });
 });
 
@@ -108,13 +108,13 @@ function renderCodeListPage(props?: Partial<CodeListsPageProps>): RenderResult {
 }
 
 const addNewCodeList = async (user: UserEvent): Promise<void> =>
-  user.click(studioScreen.getByRole('button', { name: textMock('general.add') }));
+  user.click(screen.getByRole('button', { name: textMock('general.add') }));
 
 const saveCodeLists = async (user: UserEvent): Promise<void> =>
-  user.click(studioScreen.getByRole('button', { name: textMock('general.save') }));
+  user.click(screen.getByRole('button', { name: textMock('general.save') }));
 
 function getNameField(name: string): HTMLElement {
-  const details = studioScreen.getDetailsBySummary(name);
+  const details = screen.getDetailsBySummary(name);
   const nameLabel = textMock('app_content_library.code_lists.name');
-  return studioWithin(details).getByRole('textbox', { name: nameLabel });
+  return within(details).getByRole('textbox', { name: nameLabel });
 }

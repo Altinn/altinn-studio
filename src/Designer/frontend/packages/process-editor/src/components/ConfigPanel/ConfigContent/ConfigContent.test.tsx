@@ -14,7 +14,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
-import { studioScreen } from '@studio/ui-test';
+import { screen } from '@studio/ui-test';
 
 const tasks = [
   {
@@ -65,7 +65,7 @@ describe('ConfigContent', () => {
   it('should render heading for selected task', () => {
     renderConfigContent();
     expect(
-      studioScreen.getByRole('heading', {
+      screen.getByRole('heading', {
         name: textMock('process_editor.configuration_panel_data_task'),
         level: 2,
       }),
@@ -76,13 +76,13 @@ describe('ConfigContent', () => {
     const user = userEvent.setup();
     renderConfigContent();
 
-    const helpTextButton = studioScreen.getByRole('button', {
+    const helpTextButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
     });
     await user.click(helpTextButton);
 
     expect(
-      studioScreen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
+      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
     ).toBeInTheDocument();
   });
 
@@ -90,7 +90,7 @@ describe('ConfigContent', () => {
     renderConfigContent();
 
     expect(
-      studioScreen.getByRole('button', {
+      screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_change_task_id'),
       }),
     ).toBeInTheDocument();
@@ -105,12 +105,12 @@ describe('ConfigContent', () => {
           bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
         },
       );
-      studioScreen.getByRole('heading', {
+      screen.getByRole('heading', {
         name: textMock(`process_editor.configuration_panel_${taskType}_task`),
         level: 2,
       });
-      expect(studioScreen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
-      expect(studioScreen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+      expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
+      expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
     },
   );
 
@@ -124,7 +124,7 @@ describe('ConfigContent', () => {
         },
       );
       expect(
-        studioScreen.queryByRole('button', {
+        screen.queryByRole('button', {
           name: textMock('process_editor.configuration_panel_set_data_model_link'),
         }),
       ).not.toBeInTheDocument();
@@ -134,7 +134,7 @@ describe('ConfigContent', () => {
   it('should render data type selector for task type data', () => {
     renderConfigContent();
     expect(
-      studioScreen.queryByRole('button', {
+      screen.queryByRole('button', {
         name: textMock('process_editor.configuration_panel_set_data_model_link'),
       }),
     ).not.toBeInTheDocument();
@@ -144,23 +144,23 @@ describe('ConfigContent', () => {
     const connectedDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
     renderConfigContent();
     expect(
-      studioScreen.getByRole('button', {
+      screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_set_data_model', {
           dataModelName: connectedDataType,
         }),
       }),
     ).toBeInTheDocument();
-    expect(studioScreen.getByText(connectedDataType)).toBeInTheDocument();
+    expect(screen.getByText(connectedDataType)).toBeInTheDocument();
   });
 
   it('should render the Policy accordion', async () => {
     renderConfigContent();
-    const policyDetails = studioScreen.getDetailsBySummary(
+    const policyDetails = screen.getDetailsBySummary(
       textMock('process_editor.configuration_panel_policy_title'),
     );
     const user = userEvent.setup();
     await user.click(policyDetails);
-    const editPolicyLink = await studioScreen.findByText(
+    const editPolicyLink = await screen.findByText(
       textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
     );
     expect(editPolicyLink).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe('ConfigContent', () => {
 
   it('should render the Design accordion when a task has a connected layoutset', () => {
     renderConfigContent();
-    const designDetails = studioScreen.getDetailsBySummary(
+    const designDetails = screen.getDetailsBySummary(
       textMock('process_editor.configuration_panel_design_title'),
     );
     expect(designDetails).toBeInTheDocument();
@@ -193,7 +193,7 @@ describe('ConfigContent', () => {
       );
 
       expect(
-        studioScreen.queryByRole('button', {
+        screen.queryByRole('button', {
           name: textMock(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
           ),
@@ -215,7 +215,7 @@ describe('ConfigContent', () => {
       );
 
       expect(
-        studioScreen.getByRole('button', {
+        screen.getByRole('button', {
           name: textMock(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
           ),
@@ -235,7 +235,7 @@ describe('ConfigContent', () => {
       expect(shouldDisplayAction).toHaveBeenCalledWith(mockBpmnDetails.id);
 
       expect(
-        studioScreen.getByRole('textbox', {
+        screen.getByRole('textbox', {
           name: textMock('process_editor.recommended_action.new_name_label'),
         }),
       ).toBeInTheDocument();

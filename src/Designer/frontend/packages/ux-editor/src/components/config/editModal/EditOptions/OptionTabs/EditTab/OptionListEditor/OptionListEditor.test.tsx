@@ -23,7 +23,7 @@ import {
   latestVersionString,
 } from '../../utils/published-code-list-reference-utils';
 import { FeatureFlag } from '@studio/feature-flags';
-import { studioScreen } from '@studio/ui-test';
+import { screen } from '@studio/ui-test';
 
 // Mocks:
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
@@ -67,22 +67,22 @@ describe('OptionListEditor', () => {
 
     await user.click(getEditButton());
 
-    expect(studioScreen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
-      studioScreen.getByText(textMock('ux_editor.options.modal_header_library_code_list')),
+      screen.getByText(textMock('ux_editor.options.modal_header_library_code_list')),
     ).toBeInTheDocument();
   });
 
   it('Displays the correct text when optionsId refers to a fixed version of a published code list', () => {
     renderOptionListEditorWithPublishedCodeList('1');
     const expectedText = textMock('ux_editor.options.published_code_list_in_use_fixed');
-    expect(studioScreen.getByText(expectedText)).toBeInTheDocument();
+    expect(screen.getByText(expectedText)).toBeInTheDocument();
   });
 
   it('Displays the correct text when optionsId refers to the latest version of a published code list', () => {
     renderOptionListEditorWithPublishedCodeList(latestVersionString);
     const expectedText = textMock('ux_editor.options.published_code_list_in_use_latest');
-    expect(studioScreen.getByText(expectedText)).toBeInTheDocument();
+    expect(screen.getByText(expectedText)).toBeInTheDocument();
   });
 
   it('Opens the published code list form when optionsId refers to a published code list and the user clicks the edit button', async () => {
@@ -90,7 +90,7 @@ describe('OptionListEditor', () => {
     renderOptionListEditorWithPublishedCodeList();
     await user.click(getEditButton());
     const formLegend = textMock('ux_editor.options.published_code_list.choose');
-    expect(studioScreen.getFieldsetByLegend(formLegend)).toBeInTheDocument();
+    expect(screen.getFieldsetByLegend(formLegend)).toBeInTheDocument();
   });
 
   it('Removes the optionsId setting when it refers to a published code list and the user clicks the delete button', async () => {
@@ -112,7 +112,7 @@ describe('OptionListEditor', () => {
     });
 
     expect(
-      studioScreen.getByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+      screen.getByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
     ).toBeInTheDocument();
   });
 
@@ -124,13 +124,11 @@ describe('OptionListEditor', () => {
       props: { component: componentWithOptionsId },
     });
     await waitForElementToBeRemoved(() =>
-      studioScreen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+      screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
     );
 
     expect(
-      studioScreen.getByText(
-        textMock('ux_editor.modal_properties_fetch_option_list_error_message'),
-      ),
+      screen.getByText(textMock('ux_editor.modal_properties_fetch_option_list_error_message')),
     ).toBeInTheDocument();
   });
 
@@ -152,11 +150,11 @@ describe('OptionListEditor', () => {
 });
 
 function getEditButton() {
-  return studioScreen.getByRole('button', { name: textMock('general.edit') });
+  return screen.getByRole('button', { name: textMock('general.edit') });
 }
 
 function getDeleteButton() {
-  return studioScreen.getByRole('button', { name: textMock('general.delete') });
+  return screen.getByRole('button', { name: textMock('general.delete') });
 }
 
 const defaultProps: OptionListEditorProps = {

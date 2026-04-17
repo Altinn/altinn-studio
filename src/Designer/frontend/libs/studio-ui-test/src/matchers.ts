@@ -1,11 +1,8 @@
-import { screen, within } from '@testing-library/react';
+import {
+  screen as testingLibraryScreen,
+  within as testingLibraryWithin,
+} from '@testing-library/react';
 import type { queries, BoundFunctions, MatcherFunction } from '@testing-library/react';
-
-export const studioScreen: StudioMatchers = extendMatcherObject(screen);
-
-export function studioWithin(element: HTMLElement): StudioMatchers {
-  return extendMatcherObject(within(element));
-}
 
 export type StudioMatchers = BoundFunctions<typeof queries> & {
   getDetailsBySummary: (summary: string) => HTMLElement;
@@ -15,7 +12,15 @@ export type StudioMatchers = BoundFunctions<typeof queries> & {
   querySummaryByText: (summary: string) => HTMLElement | null;
 };
 
-function extendMatcherObject(matcherObject: Screen | ReturnType<typeof within>): StudioMatchers {
+export const screen: StudioMatchers = extendMatcherObject(testingLibraryScreen);
+
+export function within(element: HTMLElement): StudioMatchers {
+  return extendMatcherObject(testingLibraryWithin(element));
+}
+
+function extendMatcherObject(
+  matcherObject: Screen | ReturnType<typeof testingLibraryWithin>,
+): StudioMatchers {
   return {
     ...matcherObject,
     getDetailsBySummary(summary: string): HTMLDetailsElement {

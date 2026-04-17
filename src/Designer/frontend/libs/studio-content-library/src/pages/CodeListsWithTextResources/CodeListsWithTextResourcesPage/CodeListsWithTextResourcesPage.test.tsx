@@ -15,7 +15,7 @@ import { ArrayUtils } from '@studio/pure-functions';
 import { label1ResourceNb, textResources } from '../../../test-data/textResources';
 import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';
-import { studioScreen, studioWithin } from '@studio/ui-test';
+import { screen, within } from '@studio/ui-test';
 
 const onCreateCodeList = jest.fn();
 const onCreateTextResource = jest.fn();
@@ -42,7 +42,7 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('renders the codeList page heading', () => {
     renderCodeListsWithTextResourcesPage();
-    const codeListHeading = studioScreen.getByRole('heading', {
+    const codeListHeading = screen.getByRole('heading', {
       name: textMock('app_content_library.code_lists_with_text_resources.page_name'),
     });
     expect(codeListHeading).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('renders a code list counter message', () => {
     renderCodeListsWithTextResourcesPage();
-    const codeListCounterMessage = studioScreen.getByText(
+    const codeListCounterMessage = screen.getByText(
       textMock('app_content_library.code_lists_with_text_resources.code_lists_count_info_plural'),
     );
     expect(codeListCounterMessage).toBeInTheDocument();
@@ -58,11 +58,11 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('renders code list actions', () => {
     renderCodeListsWithTextResourcesPage();
-    const codeListSearchField = studioScreen.getByRole('searchbox');
-    const codeListCreatButton = studioScreen.getByRole('button', {
+    const codeListSearchField = screen.getByRole('searchbox');
+    const codeListCreatButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     });
-    const codeListUploadButton = studioScreen.getByRole('button', {
+    const codeListUploadButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
     });
     expect(codeListSearchField).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('CodeListsWithTextResourcesPage', () => {
     const user = userEvent.setup();
     const codeListsSearchParam = 'code';
     renderCodeListsWithTextResourcesPage();
-    const searchInput = studioScreen.getByRole('searchbox');
+    const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
     ArrayUtils.mapByKey(codeListDataList, 'title').forEach((codeListTitle) => {
       expect(getCodeListHeading(codeListTitle)).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe('CodeListsWithTextResourcesPage', () => {
     const user = userEvent.setup();
     const codeListsSearchParam = '2';
     renderCodeListsWithTextResourcesPage();
-    const searchInput = studioScreen.getByRole('searchbox');
+    const searchInput = screen.getByRole('searchbox');
     await user.type(searchInput, codeListsSearchParam);
     expect(getCodeListHeading(codeList2Data.title)).toBeInTheDocument();
     expect(queryCodeListHeading(codeList1Data.title)).not.toBeInTheDocument();
@@ -137,10 +137,10 @@ describe('CodeListsWithTextResourcesPage', () => {
     const idButtonLabel = textMock(
       'app_content_library.code_lists_with_text_resources.code_list_edit_id_label',
     );
-    const codeListIdButton = studioWithin(details).getByRole('button', { name: idButtonLabel });
+    const codeListIdButton = within(details).getByRole('button', { name: idButtonLabel });
     await user.click(codeListIdButton);
 
-    const codeListIdInput = studioWithin(details).getByRole('textbox', { name: idButtonLabel });
+    const codeListIdInput = within(details).getByRole('textbox', { name: idButtonLabel });
     await user.click(codeListIdInput);
     await user.keyboard(additionalChars);
     await user.tab();
@@ -155,7 +155,7 @@ describe('CodeListsWithTextResourcesPage', () => {
     const newValueText = 'newValueText';
     renderCodeListsWithTextResourcesPage();
     const details = getCodeListDetails(codeList1Data.title);
-    const codeListFirstItemValue = studioWithin(details).getByRole('textbox', {
+    const codeListFirstItemValue = within(details).getByRole('textbox', {
       name: textMock('code_list_editor.value_item', { number: 1 }),
     });
 
@@ -282,7 +282,7 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('renders an info box when no code lists are passed', () => {
     renderCodeListsWithTextResourcesPage({ codeListDataList: [] });
-    const alert = studioScreen.getByText(
+    const alert = screen.getByText(
       textMock('app_content_library.code_lists_with_text_resources.info_box.title'),
     );
     expect(alert).toBeInTheDocument();
@@ -290,7 +290,7 @@ describe('CodeListsWithTextResourcesPage', () => {
 
   it('does not render an info box when code lists are passed', () => {
     renderCodeListsWithTextResourcesPage();
-    const alert = studioScreen.queryByText(
+    const alert = screen.queryByText(
       textMock('app_content_library.code_lists_with_text_resources.info_box.title'),
     );
     expect(alert).not.toBeInTheDocument();
@@ -298,7 +298,7 @@ describe('CodeListsWithTextResourcesPage', () => {
 });
 
 const uploadCodeList = async (user: UserEvent, fileName: string): Promise<void> => {
-  const fileUploaderButton = studioScreen.getByLabelText(
+  const fileUploaderButton = screen.getByLabelText(
     textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
   );
   const file = new File(['test'], `${fileName}.json`, { type: 'application/json' });
@@ -316,7 +316,7 @@ const openAndGetFirstLabelField = async (
 
 const getFirstLabelField = (area: HTMLElement): HTMLElement => {
   const labelFieldLabel = textMock('code_list_editor.text_resource.label.value', { number: 1 });
-  return studioWithin(area).getByRole('textbox', { name: labelFieldLabel });
+  return within(area).getByRole('textbox', { name: labelFieldLabel });
 };
 
 const openAndGetFirstDescriptionField = async (
@@ -331,17 +331,17 @@ const openAndGetFirstDescriptionField = async (
 const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
   const inputLabelKey = 'code_list_editor.text_resource.description.value';
   const descriptionFieldLabel = textMock(inputLabelKey, { number: 1 });
-  return studioWithin(area).getByRole('textbox', { name: descriptionFieldLabel });
+  return within(area).getByRole('textbox', { name: descriptionFieldLabel });
 };
 
 const getCodeListDetails = (codeListTitle: string): HTMLElement =>
-  studioScreen.getDetailsBySummary(codeListTitle);
+  screen.getDetailsBySummary(codeListTitle);
 
 const getCodeListHeading = (codeListTitle: string): HTMLElement =>
-  studioScreen.getSummaryByText(codeListTitle);
+  screen.getSummaryByText(codeListTitle);
 
 const queryCodeListHeading = (codeListTitle: string): HTMLElement | null =>
-  studioScreen.querySummaryByText(codeListTitle);
+  screen.querySummaryByText(codeListTitle);
 
 const renderCodeListsWithTextResourcesPage = (
   props: Partial<CodeListsWithTextResourcesPageProps> = {},
@@ -352,34 +352,34 @@ const openCreateDialog = async (user: UserEvent): Promise<HTMLElement> => {
   const createButtonLabel = textMock(
     'app_content_library.code_lists_with_text_resources.create_new_code_list',
   );
-  await user.click(studioScreen.getByRole('button', { name: createButtonLabel }));
-  return studioScreen.getByRole('dialog');
+  await user.click(screen.getByRole('button', { name: createButtonLabel }));
+  return screen.getByRole('dialog');
 };
 
 const addCodeListItem = async (user: UserEvent, area: HTMLElement): Promise<void> => {
   const addButtonLabel = textMock('code_list_editor.add_option');
-  await user.click(studioWithin(area).getByRole('button', { name: addButtonLabel }));
+  await user.click(within(area).getByRole('button', { name: addButtonLabel }));
 };
 
 const openSearchModeForFirstLabel = async (user: UserEvent, area: HTMLElement): Promise<void> => {
   const radioLabel = textMock('code_list_editor.text_resource.label.search_mode', { number: 1 });
-  const radio = studioWithin(area).getByRole('radio', { name: radioLabel });
+  const radio = within(area).getByRole('radio', { name: radioLabel });
   await user.click(radio);
 };
 
 const openEditModeForFirstLabel = async (user: UserEvent, area: HTMLElement): Promise<void> => {
   const radioLabel = textMock('code_list_editor.text_resource.label.edit_mode', { number: 1 });
-  const radio = await studioWithin(area).findByRole('radio', { name: radioLabel });
+  const radio = await within(area).findByRole('radio', { name: radioLabel });
   await user.click(radio);
 };
 
 const openFirstLabelCombobox = async (user: UserEvent, area: HTMLElement): Promise<void> => {
   const comboboxLabel = textMock('code_list_editor.text_resource.label.select', { number: 1 });
-  const combobox = studioWithin(area).getByRole('combobox', { name: comboboxLabel });
+  const combobox = within(area).getByRole('combobox', { name: comboboxLabel });
   await user.click(combobox);
 };
 
 const getTextResourceOption = (textResource: TextResource): HTMLElement =>
-  studioScreen.getByRole('option', { name: retrieveOptionName(textResource) });
+  screen.getByRole('option', { name: retrieveOptionName(textResource) });
 
 const retrieveOptionName = ({ value, id }: TextResource): string => `${value} ${id}`;

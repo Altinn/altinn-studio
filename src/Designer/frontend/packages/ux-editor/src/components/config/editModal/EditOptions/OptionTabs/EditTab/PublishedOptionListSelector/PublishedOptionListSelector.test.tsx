@@ -20,7 +20,7 @@ import type { PublishedCodeListReferenceValues } from '../../types/PublishedCode
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PUBLISHED_CODE_LIST_FOLDER } from 'app-shared/constants';
-import { studioScreen } from '@studio/ui-test';
+import { screen } from '@studio/ui-test';
 
 // Test data:
 const orgName = 'some-org';
@@ -59,12 +59,12 @@ describe('PublishedOptionListSelector', () => {
 
   it('Does not render any button when the feature flag is not activated', () => {
     renderPublishedOptionListSelector();
-    expect(studioScreen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('Does not display any form initially', () => {
     renderPublishedOptionListSelectorWithData();
-    expect(studioScreen.queryByRole('group')).not.toBeInTheDocument();
+    expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 
   it('Displays the published code list selection form when the user clicks the button', async () => {
@@ -74,7 +74,7 @@ describe('PublishedOptionListSelector', () => {
     await user.openForm();
 
     const formName = textMock('ux_editor.options.published_code_list.choose');
-    expect(studioScreen.getFieldsetByLegend(formName)).toBeInTheDocument();
+    expect(screen.getFieldsetByLegend(formName)).toBeInTheDocument();
   });
 
   it('Renders the latest version radio button as checked by default', async () => {
@@ -174,7 +174,7 @@ describe('PublishedOptionListSelector', () => {
     await user.pickName(codeListName1);
     await user.clickSave();
 
-    expect(studioScreen.queryByRole('group')).not.toBeInTheDocument();
+    expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 
   describe('Sets the fixed version number to the one that is currently latest when …', () => {
@@ -267,7 +267,7 @@ describe('PublishedOptionListSelector', () => {
     await waitFor(expect(getPublishedResources).toHaveBeenCalled);
 
     const expectedMessage = textMock('ux_editor.options.published_code_list.loading_error');
-    expect(studioScreen.getByText(expectedMessage)).toBeInTheDocument();
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
   });
 
   it('Displays a message instead of a form when there are no published code lists', async () => {
@@ -277,7 +277,7 @@ describe('PublishedOptionListSelector', () => {
     await user.openForm();
 
     const expectedMessage = textMock('ux_editor.options.published_code_list.no_lists');
-    expect(studioScreen.getByText(expectedMessage)).toBeInTheDocument();
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
   });
 });
 
@@ -332,7 +332,7 @@ function setupUser(): ExtendedUserEvent {
       await this.click(getPublishedCodeListButton());
     },
     async pickName(name: string): Promise<void> {
-      await this.selectOptions(getNameInput(), studioScreen.getByRole('option', { name }));
+      await this.selectOptions(getNameInput(), screen.getByRole('option', { name }));
     },
     async clearName(): Promise<void> {
       await this.pickName(textMock('ux_editor.options.published_code_list.name_placeholder'));
@@ -357,16 +357,16 @@ function setupUser(): ExtendedUserEvent {
 }
 
 function getPublishedCodeListButton(): HTMLElement {
-  return studioScreen.getByRole('button', { name: openFormButtonText });
+  return screen.getByRole('button', { name: openFormButtonText });
 }
 
 function getNameInput(): HTMLElement {
   const name = textMock('ux_editor.options.published_code_list.name');
-  return studioScreen.getByRole('combobox', { name });
+  return screen.getByRole('combobox', { name });
 }
 
 function getSaveButton(): HTMLElement {
-  return studioScreen.getByRole('button', { name: textMock('general.save') });
+  return screen.getByRole('button', { name: textMock('general.save') });
 }
 
 function expectLatestVersionState(): void {
@@ -384,17 +384,17 @@ function expectFixedVersionState(version: number): void {
 
 function getLatestVersionRadioButton(): HTMLElement {
   const latestVersionLabel = textMock('ux_editor.options.published_code_list.latest_version');
-  return studioScreen.getByRole('radio', { name: latestVersionLabel });
+  return screen.getByRole('radio', { name: latestVersionLabel });
 }
 
 function getFixedVersionRadioButton(): HTMLElement {
   const fixedVersionLabel = textMock('ux_editor.options.published_code_list.fixed_version');
-  return studioScreen.getByRole('radio', { name: fixedVersionLabel });
+  return screen.getByRole('radio', { name: fixedVersionLabel });
 }
 
 function getVersionNumberInput(): HTMLElement {
   const versionNumberInputLabel = textMock('ux_editor.options.published_code_list.version');
-  return studioScreen.getByRole('spinbutton', { name: versionNumberInputLabel });
+  return screen.getByRole('spinbutton', { name: versionNumberInputLabel });
 }
 
 function createComponentWithReference(
