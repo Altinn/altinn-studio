@@ -1,7 +1,7 @@
 import type { JSONSchema7 } from 'json-schema';
 
-import { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import { deriveSchemaValidations } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
 
