@@ -68,6 +68,12 @@ internal sealed class AppMetadataProbe
                 _logger.LogDebug(ex, "Metadata probe to {BaseUri} failed", baseUri);
             return null;
         }
+        catch (JsonException ex)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug(ex, "Metadata probe to {BaseUri} returned invalid JSON", baseUri);
+            return null;
+        }
         catch (TaskCanceledException ex)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
