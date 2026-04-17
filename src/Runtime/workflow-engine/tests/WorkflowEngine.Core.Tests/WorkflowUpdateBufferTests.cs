@@ -5,6 +5,7 @@ using Moq;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
@@ -107,6 +108,7 @@ public class WorkflowUpdateBufferTests
                 {
                     if (gate is not null)
                         await gate.Task;
+                    return new BatchUpdateResult([], []);
                 }
             );
     }
@@ -205,6 +207,7 @@ public class WorkflowUpdateBufferTests
                         batchSizes.Add(updates.Count);
                     }
                     await gate.Task;
+                    return new BatchUpdateResult([], []);
                 }
             );
 
@@ -395,7 +398,13 @@ public class WorkflowUpdateBufferTests
             .Callback<IReadOnlyList<BatchWorkflowStatusUpdate>, CancellationToken>(
                 (updates, _) => capturedUpdates ??= updates
             )
-            .Returns(async (IReadOnlyList<BatchWorkflowStatusUpdate> _, CancellationToken _) => await gate.Task);
+            .Returns(
+                async (IReadOnlyList<BatchWorkflowStatusUpdate> _, CancellationToken _) =>
+                {
+                    await gate.Task;
+                    return new BatchUpdateResult([], []);
+                }
+            );
 
         using var serviceCts = new CancellationTokenSource();
         await buffer.StartAsync(serviceCts.Token);
@@ -428,6 +437,89 @@ public class WorkflowUpdateBufferTests
         }
         finally
         {
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
+
+    [Fact]
+    public async Task Submit_RejectedByRepo_FaultsCallerWithLeaseLostException()
+    {
+        var (buffer, repo) = CreateBuffer();
+
+        var workflow = CreateTestWorkflow();
+
+        // Repo reports the workflow as rejected — its lease was reclaimed by another host.
+        repo.Setup(r =>
+                r.BatchUpdateWorkflowsAndSteps(
+                    It.IsAny<IReadOnlyList<BatchWorkflowStatusUpdate>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.FromResult(new BatchUpdateResult([], [workflow.DatabaseId])));
+
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
+
+        try
+        {
+            var ex = await Assert.ThrowsAsync<LeaseLostException>(() =>
+                buffer.Submit(workflow, TestContext.Current.CancellationToken)
+            );
+            Assert.Equal(workflow.DatabaseId, ex.WorkflowId);
+        }
+        finally
+        {
+            await serviceCts.CancelAsync();
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
+
+    [Fact]
+    public async Task Submit_MixedBatch_FaultsOnlyRejectedCallers()
+    {
+        var (buffer, repo) = CreateBuffer();
+
+        var accepted = CreateTestWorkflow("accepted");
+        var rejected = CreateTestWorkflow("rejected");
+
+        repo.Setup(r =>
+                r.BatchUpdateWorkflowsAndSteps(
+                    It.IsAny<IReadOnlyList<BatchWorkflowStatusUpdate>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns<IReadOnlyList<BatchWorkflowStatusUpdate>, CancellationToken>(
+                (updates, _) =>
+                {
+                    var acceptedIds = updates
+                        .Where(u => u.Workflow.OperationId == "accepted")
+                        .Select(u => u.Workflow.DatabaseId)
+                        .ToList();
+                    var rejectedIds = updates
+                        .Where(u => u.Workflow.OperationId == "rejected")
+                        .Select(u => u.Workflow.DatabaseId)
+                        .ToList();
+                    return Task.FromResult(new BatchUpdateResult(acceptedIds, rejectedIds));
+                }
+            );
+
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
+
+        try
+        {
+            var acceptTask = buffer.Submit(accepted, TestContext.Current.CancellationToken);
+            var rejectTask = buffer.Submit(rejected, TestContext.Current.CancellationToken);
+
+            await acceptTask;
+            var ex = await Assert.ThrowsAsync<LeaseLostException>(() => rejectTask);
+            Assert.Equal(rejected.DatabaseId, ex.WorkflowId);
+        }
+        finally
+        {
+            await serviceCts.CancelAsync();
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await buffer.StopAsync(stopCts.Token);
         }

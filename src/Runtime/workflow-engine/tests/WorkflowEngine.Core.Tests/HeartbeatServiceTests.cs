@@ -240,4 +240,59 @@ public class HeartbeatServiceTests
             await service.StopAsync(stopCts.Token);
         }
     }
+
+    [Fact]
+    public async Task HeartbeatService_OnLostLease_CancelsInFlightWorkflow_WithoutStampingCancellationRequestedAt()
+    {
+        var tracker = new InFlightTracker(TimeProvider.System);
+        var repo = new Mock<IEngineRepository>();
+        var settings = Options.Create(DefaultSettings());
+        using var service = new HeartbeatService(
+            tracker,
+            repo.Object,
+            settings,
+            TimeProvider.System,
+            NullLogger<HeartbeatService>.Instance
+        );
+
+        var id = Guid.NewGuid();
+        var workflow = DummyWorkflow();
+        workflow.DatabaseId = id;
+        workflow.LeaseToken = Guid.NewGuid();
+        using var workflowCts = new CancellationTokenSource();
+        tracker.TryAdd(id, workflowCts, workflow);
+
+        // Repo reports the lease as lost on every heartbeat call
+        repo.Setup(r =>
+                r.BatchUpdateHeartbeats(
+                    It.IsAny<IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)>>(),
+                    It.IsAny<TimeSpan>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns<IReadOnlyList<(Guid, Guid)>, TimeSpan, CancellationToken>(
+                (leases, _, _) => Task.FromResult<IReadOnlyList<Guid>>(leases.Select(l => l.Item1).ToList())
+            );
+
+        using var cts = new CancellationTokenSource();
+        _ = service.StartAsync(cts.Token);
+
+        try
+        {
+            // Wait for the first sweep to fire
+            await Task.Delay(200, TestContext.Current.CancellationToken);
+
+            // Lease-lost abandonment should cancel the in-flight CTS but NOT stamp CancellationRequestedAt:
+            // the workflow itself is not canceled, only this host's attempt to process it.
+            Assert.True(workflowCts.IsCancellationRequested);
+            Assert.Null(workflow.CancellationRequestedAt);
+        }
+        finally
+        {
+            await cts.CancelAsync();
+            tracker.TryRemove(id, out _);
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.StopAsync(stopCts.Token);
+        }
+    }
 }
