@@ -22,7 +22,6 @@ describe('StudioField', () => {
   });
 });
 
-// TODO -Field must have an input element or a console.warn will be thrown.
 const renderField = (props: Partial<StudioFieldProps> = {}): RenderResult => {
   return render(<StudioField {...props}>{testInput}</StudioField>);
 };
