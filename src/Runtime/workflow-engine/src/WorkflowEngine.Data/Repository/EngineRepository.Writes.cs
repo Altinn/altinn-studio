@@ -862,14 +862,14 @@ internal sealed partial class EngineRepository
     private sealed record FetchRow(Guid Id, bool WasStale);
 
     /// <inheritdoc/>
-    public async Task BatchUpdateWorkflowsAndSteps(
+    public async Task<BatchUpdateResult> BatchUpdateWorkflowsAndSteps(
         IReadOnlyList<BatchWorkflowStatusUpdate> updates,
         CancellationToken cancellationToken
     )
     {
         if (updates.Count == 0)
         {
-            return;
+            return new BatchUpdateResult([], []);
         }
 
         using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowsAndSteps");
@@ -878,9 +878,12 @@ internal sealed partial class EngineRepository
 
         try
         {
+            List<Guid> accepted = [];
             await ExecuteWithRetry(
                 async ct =>
                 {
+                    accepted.Clear();
+
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
@@ -893,6 +896,7 @@ internal sealed partial class EngineRepository
                     var statuses = new int[sorted.Count];
                     var backoffUntils = new object[sorted.Count];
                     var engineTraceContexts = new object[sorted.Count];
+                    var leaseTokens = new Guid[sorted.Count];
 
                     for (int i = 0; i < sorted.Count; i++)
                     {
@@ -901,8 +905,12 @@ internal sealed partial class EngineRepository
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
+                        leaseTokens[i] = w.LeaseToken;
                     }
 
+                    // Lease-token compare-and-swap: rows whose LeaseToken no longer matches the
+                    // caller's token are silently skipped. RETURNING gives us the accepted ids,
+                    // and any input id not in that set is reclaimed/lost.
                     const string updateWorkflowsSql = """
                     UPDATE "engine"."Workflows" AS w
                     SET "Status"             = v.status,
@@ -912,11 +920,13 @@ internal sealed partial class EngineRepository
                         "EngineTraceContext" = v.engine_trace_context
                     FROM (
                         SELECT *
-                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
-                            AS t(id, status, backoff_until, engine_trace_context)
+                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts, @lease_tokens)
+                            AS t(id, status, backoff_until, engine_trace_context, lease_token)
                         ORDER BY t.id
                     ) AS v
                     WHERE w."Id" = v.id
+                      AND w."LeaseToken" = v.lease_token
+                    RETURNING w."Id"
                     """;
 
                     await using (var cmd = new NpgsqlCommand(updateWorkflowsSql, conn, tx))
@@ -935,12 +945,25 @@ internal sealed partial class EngineRepository
                                 Value = engineTraceContexts,
                             }
                         );
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("lease_tokens", leaseTokens));
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                        await cmd.ExecuteNonQueryAsync(ct);
+
+                        await using var reader = await cmd.ExecuteReaderAsync(ct);
+                        while (await reader.ReadAsync(ct))
+                        {
+                            accepted.Add(reader.GetGuid(0));
+                        }
                     }
 
-                    // 2. Bulk update all dirty steps across all workflows
-                    var allSteps = sorted.SelectMany(u => u.DirtySteps).OrderBy(s => s.DatabaseId).ToList();
+                    // 2. Bulk update dirty steps — but only for accepted workflows.
+                    //    A rejected workflow's steps must not land, otherwise we leak step state
+                    //    into a workflow we no longer own.
+                    var acceptedIds = accepted.ToHashSet();
+                    var allSteps = sorted
+                        .Where(u => acceptedIds.Contains(u.Workflow.DatabaseId))
+                        .SelectMany(u => u.DirtySteps)
+                        .OrderBy(s => s.DatabaseId)
+                        .ToList();
 
                     if (allSteps.Count > 0)
                     {
@@ -1016,6 +1039,25 @@ internal sealed partial class EngineRepository
                 },
                 cancellationToken
             );
+
+            var acceptedSet = accepted.ToHashSet();
+            List<Guid> rejected = [];
+            foreach (var u in updates)
+            {
+                if (!acceptedSet.Contains(u.Workflow.DatabaseId))
+                {
+                    rejected.Add(u.Workflow.DatabaseId);
+                }
+            }
+
+            if (rejected.Count > 0)
+            {
+                activity?.SetTag("lease.lost", true);
+                activity?.SetTag("lease.lost.count", rejected.Count);
+                logger.BatchUpdateLeaseLost(rejected.Count, updates.Count);
+            }
+
+            return new BatchUpdateResult(accepted, rejected);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

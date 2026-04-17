@@ -156,7 +156,7 @@ public class WorkflowUpdateBufferTests
             .Callback<IReadOnlyList<BatchWorkflowStatusUpdate>, CancellationToken>(
                 (updates, _) => capturedUpdates = updates
             )
-            .Returns(Task.CompletedTask);
+            .Returns(Task.FromResult(new BatchUpdateResult([], [])));
 
         using var serviceCts = new CancellationTokenSource();
         await buffer.StartAsync(serviceCts.Token);
@@ -353,7 +353,7 @@ public class WorkflowUpdateBufferTests
             .Callback<IReadOnlyList<BatchWorkflowStatusUpdate>, CancellationToken>(
                 (updates, _) => Interlocked.Add(ref flushCount, updates.Count)
             )
-            .Returns(Task.CompletedTask);
+            .Returns(Task.FromResult(new BatchUpdateResult([], [])));
 
         using var serviceCts = new CancellationTokenSource();
         await buffer.StartAsync(serviceCts.Token);

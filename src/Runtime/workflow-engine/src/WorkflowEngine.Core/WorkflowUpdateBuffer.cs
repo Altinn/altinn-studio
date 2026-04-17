@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -316,13 +317,34 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
 
             var updates = batch.Select(r => new BatchWorkflowStatusUpdate(r.Workflow, r.DirtySteps)).ToList();
 
-            await repo.BatchUpdateWorkflowsAndSteps(updates, ct);
+            var result = await repo.BatchUpdateWorkflowsAndSteps(updates, ct);
 
             Metrics.UpdateBufferFlushedItems.Add(batch.Count);
 
-            foreach (var request in batch)
+            if (result.Rejected.Count == 0)
             {
-                request.Completion?.TrySetResult();
+                foreach (var request in batch)
+                {
+                    request.Completion?.TrySetResult();
+                }
+            }
+            else
+            {
+                // Rejected items had their lease reclaimed by another host. Fault only those callers
+                // so the owning processor stops quickly and does not retry. Accepted items are
+                // completed normally.
+                var rejected = result.Rejected.ToHashSet();
+                foreach (var request in batch)
+                {
+                    if (rejected.Contains(request.Workflow.DatabaseId))
+                    {
+                        request.Completion?.TrySetException(new LeaseLostException(request.Workflow.DatabaseId));
+                    }
+                    else
+                    {
+                        request.Completion?.TrySetResult();
+                    }
+                }
             }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)

@@ -187,8 +187,12 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.
+    /// Each workflow is only written when its <c>LeaseToken</c> still matches the value on the row —
+    /// workflows that have been reclaimed by another host are silently rejected and their step updates
+    /// are skipped. Returns the accepted/rejected split; callers should fault the corresponding
+    /// submit-waiters with <c>LeaseLostException</c> on rejected ids.
     /// </summary>
-    Task BatchUpdateWorkflowsAndSteps(
+    Task<BatchUpdateResult> BatchUpdateWorkflowsAndSteps(
         IReadOnlyList<BatchWorkflowStatusUpdate> updates,
         CancellationToken cancellationToken
     );
