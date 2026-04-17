@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 )
@@ -170,6 +171,51 @@ func TestCoreContainers_SkipsPgAdminInCI(t *testing.T) {
 		return spec.Name == ContainerPgAdmin
 	}) {
 		t.Fatalf("coreContainers() contains %q in CI", ContainerPgAdmin)
+	}
+}
+
+func TestBuildResources_FailsForUnknownContainerDependency(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	specs := []ContainerSpec{
+		newContainerSpec(
+			"localtest-dependent",
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+			[]string{"missing-container"},
+			nil,
+		),
+	}
+	images := map[string]resource.ImageResource{
+		"localtest-dependent": &resource.RemoteImage{Ref: "example.local/dependent:latest"},
+	}
+	network := resource.Ref(&resource.Network{Name: NetworkName})
+
+	containerResource := newContainerResource(
+		&specs[0],
+		images["localtest-dependent"],
+		network,
+		nil,
+		"",
+		containerModeApply,
+	)
+
+	graph := resource.NewGraph()
+	if err := graph.Add(&resource.Network{Name: NetworkName}); err != nil {
+		t.Fatalf("graph.Add(network) error = %v", err)
+	}
+	if err := graph.Add(images["localtest-dependent"]); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+	if err := graph.Add(containerResource); err != nil {
+		t.Fatalf("graph.Add(container) error = %v", err)
+	}
+
+	if err := graph.Validate(); err == nil {
+		t.Fatalf("graph.Validate() error = nil, want missing dependency error")
 	}
 }
 

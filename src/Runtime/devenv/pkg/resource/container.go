@@ -33,7 +33,12 @@ type Container struct {
 
 // ID returns the unique identifier for this container.
 func (c *Container) ID() ResourceID {
-	return ResourceID("container:" + c.Name)
+	return ContainerID(c.Name)
+}
+
+// ContainerID returns the unique resource ID for a container name.
+func ContainerID(name string) ResourceID {
+	return ResourceID("container:" + name)
 }
 
 // Dependencies returns resources that must be applied before this container.

@@ -593,11 +593,16 @@ func buildResourcesWithMode(
 		resources = append(resources, coreImages[core[i].Name])
 	}
 
-	coreContainerResources := buildCoreContainerResources(
-		core, coreImages, resource.Ref(network), labels, runtimeCfg.User, mode,
-	)
 	for i := range core {
-		resources = append(resources, coreContainerResources[core[i].Name])
+		spec := &core[i]
+		resources = append(resources, newContainerResource(
+			spec,
+			coreImages[spec.Name],
+			resource.Ref(network),
+			labels,
+			runtimeCfg.User,
+			mode,
+		))
 	}
 
 	if includeMonitoring {
@@ -615,55 +620,11 @@ func buildResourcesWithMode(
 				labels,
 				"", // Monitoring containers use default user (config mounts are read-only)
 				mode,
-				coreContainerResources,
 			))
 		}
 	}
 
 	return resources
-}
-
-// buildCoreContainerResources builds container resources in two passes:
-// 1. Pre-populate map with empty placeholders so forward DependsOn refs resolve
-// 2. Fill each container, resolving dependencies against the complete map.
-func buildCoreContainerResources(
-	specs []ContainerSpec,
-	images map[string]resource.ImageResource,
-	network resource.ResourceRef,
-	labels map[string]string,
-	user string,
-	mode containerResourceMode,
-) map[string]*resource.Container {
-	m := make(map[string]*resource.Container, len(specs))
-	for i := range specs {
-		m[specs[i].Name] = &resource.Container{
-			HealthCheck: nil,
-			Image:       resource.ResourceRef{},
-			Labels:      nil,
-			Lifecycle: resource.ContainerLifecycleOptions{
-				LifecycleOptions: resource.LifecycleOptions{
-					HandleDestroyError: nil,
-				},
-				WaitForReady: false,
-			},
-			Name:           "",
-			RestartPolicy:  "",
-			User:           "",
-			Networks:       nil,
-			DependsOn:      nil,
-			Ports:          nil,
-			Volumes:        nil,
-			Env:            nil,
-			Command:        nil,
-			ExtraHosts:     nil,
-			NetworkAliases: nil,
-		}
-	}
-	for i := range specs {
-		spec := &specs[i]
-		*m[spec.Name] = *newContainerResource(spec, images[spec.Name], network, labels, user, mode, m)
-	}
-	return m
 }
 
 func newContainerResource(
@@ -673,7 +634,6 @@ func newContainerResource(
 	labels map[string]string,
 	user string,
 	mode containerResourceMode,
-	containerResources map[string]*resource.Container,
 ) *resource.Container {
 	if mode == containerModeDestroy {
 		return &resource.Container{
@@ -700,14 +660,6 @@ func newContainerResource(
 		}
 	}
 
-	// Resolve container-to-container dependencies
-	var dependsOn []resource.ResourceRef
-	for _, depName := range spec.Dependencies {
-		if dep, ok := containerResources[depName]; ok {
-			dependsOn = append(dependsOn, resource.Ref(dep))
-		}
-	}
-
 	containerUser := user
 	if spec.UseDefaultUser {
 		containerUser = ""
@@ -718,7 +670,7 @@ func newContainerResource(
 		Name:        spec.Name,
 		Image:       resource.Ref(imageRes),
 		Networks:    []resource.ResourceRef{network},
-		DependsOn:   dependsOn,
+		DependsOn:   containerDependencyRefs(spec.Dependencies),
 		Ports:       spec.Ports,
 		Volumes:     spec.Volumes,
 		Env:         toEnvSlice(spec.Environment),
@@ -735,6 +687,17 @@ func newContainerResource(
 		RestartPolicy:  "",
 		User:           containerUser,
 	}
+}
+
+func containerDependencyRefs(names []string) []resource.ResourceRef {
+	if len(names) == 0 {
+		return nil
+	}
+	refs := make([]resource.ResourceRef, len(names))
+	for i, name := range names {
+		refs[i] = resource.RefID(resource.ContainerID(name))
+	}
+	return refs
 }
 
 func toEnvSlice(env map[string]string) []string {
