@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"altinn.studio/devenv/pkg/container/types"
@@ -18,7 +19,11 @@ import (
 	"altinn.studio/studioctl/internal/networking"
 )
 
-var errInvalidAppMetadataID = errors.New("application metadata id must be on the form org/app")
+var (
+	errAppProjectNotFound   = errors.New("app project not found")
+	errInvalidAppMetadataID = errors.New("application metadata id must be on the form org/app")
+	errMultipleAppProjects  = errors.New("multiple app projects found")
+)
 
 // TODO: this should come from the "current env".
 const (
@@ -68,12 +73,21 @@ func dockerLocaltestEnvDefaults() map[string]string {
 	)
 }
 
-// DotnetRunSpec contains subprocess execution details for `dotnet run`.
+// DotnetRunSpec contains build and subprocess execution details for native app run.
 type DotnetRunSpec struct {
-	Dir     string
-	BaseURL string
-	Args    []string
-	Env     []string
+	Dir            string
+	ProjectPath    string
+	BaseURL        string
+	AppArgs        []string
+	BuildArgs      []string
+	TargetPathArgs []string
+	Env            []string
+	Port           int
+}
+
+// DotnetRunOptions contains native run-specific app options.
+type DotnetRunOptions struct {
+	RandomHostPort bool
 }
 
 // DockerRunSpec contains container execution details for `studioctl app run --mode container`.
@@ -118,26 +132,41 @@ func (s *Service) ResolveRunTarget(ctx context.Context, appPath string) (RunTarg
 	}, nil
 }
 
-// BuildDotnetRunSpec builds arguments/environment for `dotnet run`.
-func (s *Service) BuildDotnetRunSpec(_ context.Context, appPath string, args, env []string) DotnetRunSpec {
-	dotnetArgs := make([]string, 0, 3+len(args))
-	dotnetArgs = append(dotnetArgs, "run", "--project", filepath.Join(appPath, "App"))
-	dotnetArgs = append(dotnetArgs, args...)
+// BuildDotnetRunSpec builds arguments/environment for native app run.
+func (s *Service) BuildDotnetRunSpec(
+	_ context.Context,
+	appPath string,
+	args, env []string,
+	opts DotnetRunOptions,
+) (DotnetRunSpec, error) {
+	projectPath, err := appProjectPath(appPath)
+	if err != nil {
+		return DotnetRunSpec{}, err
+	}
+	port := appcontainers.DefaultContainerPort
+	if opts.RandomHostPort {
+		port = "0"
+	}
+	baseURL := nativeAppBaseURL(port)
 
 	resolvedEnv := appendEnvIfUnset(env, "ASPNETCORE_ENVIRONMENT", "Development")
 	resolvedEnv = appendEnvIfUnset(
 		resolvedEnv,
 		"Kestrel__EndPoints__Http__Url",
-		"http://"+localtestLoopbackHost+":"+appcontainers.DefaultContainerPort,
+		baseURL,
 	)
 	resolvedEnv = appendLocaltestEnvIfUnset(resolvedEnv)
 
 	return DotnetRunSpec{
-		Dir:     appPath,
-		BaseURL: nativeAppBaseURL(),
-		Args:    dotnetArgs,
-		Env:     resolvedEnv,
-	}
+		Dir:            filepath.Dir(projectPath),
+		ProjectPath:    projectPath,
+		BaseURL:        baseURL,
+		Port:           nativeAppPort(port),
+		AppArgs:        args,
+		BuildArgs:      []string{"build", projectPath},
+		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
+		Env:            resolvedEnv,
+	}, nil
 }
 
 func readAppID(appPath string) (string, error) {
@@ -159,8 +188,44 @@ func readAppID(appPath string) (string, error) {
 	return appID, nil
 }
 
-func nativeAppBaseURL() string {
-	return "http://" + localtestLoopbackHost + ":" + appcontainers.DefaultContainerPort
+func nativeAppBaseURL(port string) string {
+	return "http://" + localtestLoopbackHost + ":" + port
+}
+
+func nativeAppPort(port string) int {
+	value, err := strconv.Atoi(port)
+	if err != nil {
+		return 0
+	}
+	return value
+}
+
+// DotnetAppRunCommand returns the executable and args for a built .NET app target.
+func DotnetAppRunCommand(targetPath string, args []string) (string, []string) {
+	if strings.EqualFold(filepath.Ext(targetPath), ".dll") {
+		dotnetArgs := make([]string, 0, 1+len(args))
+		dotnetArgs = append(dotnetArgs, targetPath)
+		dotnetArgs = append(dotnetArgs, args...)
+		return "dotnet", dotnetArgs
+	}
+
+	runArgs := make([]string, 0, len(args))
+	runArgs = append(runArgs, args...)
+	return targetPath, runArgs
+}
+
+func appProjectPath(appPath string) (string, error) {
+	projectPaths, err := filepath.Glob(filepath.Join(appPath, "App", "*.csproj"))
+	if err != nil {
+		return "", fmt.Errorf("find app project: %w", err)
+	}
+	if len(projectPaths) == 0 {
+		return "", fmt.Errorf("%w: %s", errAppProjectNotFound, filepath.Join(appPath, "App"))
+	}
+	if len(projectPaths) > 1 {
+		return "", fmt.Errorf("%w: %s", errMultipleAppProjects, filepath.Join(appPath, "App"))
+	}
+	return projectPaths[0], nil
 }
 
 func validAppID(appID string) bool {

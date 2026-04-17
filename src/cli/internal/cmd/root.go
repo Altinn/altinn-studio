@@ -55,7 +55,7 @@ func NewCLI(cfg *config.Config) *CLI {
 		commands: make(map[string]Command),
 	}
 
-	// TODO: stop command as well, --detach for .net runs as well?
+	// TODO: stop command as well?
 	cli.Register(NewRunCommand(cfg, out))
 	cli.Register(NewEnvCommand(cfg, out))
 	cli.Register(NewAuthCommand(cfg, out))

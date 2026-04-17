@@ -4,6 +4,8 @@ namespace Altinn.Studio.AppManager.Discovery;
 
 internal sealed class AppMetadataProbe
 {
+    public const string HttpClientName = "app-metadata-probe";
+
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
     // checkOrgApp=false makes LocalTest ignore the route values and return the app's actual org/app id.
@@ -22,7 +24,7 @@ internal sealed class AppMetadataProbe
     {
         try
         {
-            using var client = _httpClientFactory.CreateClient();
+            using var client = _httpClientFactory.CreateClient(HttpClientName);
             client.BaseAddress = baseUri;
             using var response = await client.GetAsync(WildcardMetadataProbePath, cancellationToken);
             if (!response.IsSuccessStatusCode)

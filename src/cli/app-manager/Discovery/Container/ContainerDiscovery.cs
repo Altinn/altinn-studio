@@ -111,19 +111,19 @@ internal sealed class ContainerDiscovery : IAppDiscovery
 
     private static IEnumerable<AppDiscoveryCandidate> ToDiscoveryCandidate(ContainerCandidate candidate)
     {
-        if (
-            string.IsNullOrWhiteSpace(candidate.BaseUrl)
-            || !Uri.TryCreate(candidate.BaseUrl, UriKind.Absolute, out var baseUri)
-        )
-        {
+        if (candidate.HostPort <= 0 || candidate.HostPort > 65535)
             yield break;
-        }
 
-        yield return new AppDiscoveryCandidate(candidate.Source, baseUri, null, candidate.Description);
+        yield return new AppDiscoveryCandidate(
+            candidate.Source,
+            new Uri($"http://127.0.0.1:{candidate.HostPort}", UriKind.Absolute),
+            null,
+            candidate.Description
+        );
     }
 
     private sealed record ContainerCandidate(
-        [property: JsonPropertyName("baseUrl")] string BaseUrl,
+        [property: JsonPropertyName("hostPort")] int HostPort,
         [property: JsonPropertyName("source")] string Source,
         [property: JsonPropertyName("description")] string Description
     );

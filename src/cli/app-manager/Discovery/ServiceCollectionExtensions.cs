@@ -11,7 +11,13 @@ internal static class ServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.AddHttpClient();
+        services.AddHttpClient(
+            AppMetadataProbe.HttpClientName,
+            static client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(1);
+            }
+        );
         services.AddSingleton<IPortListenerSource, LinuxPortListeners>();
         services.AddSingleton<IPortListenerSource, MacPortListeners>();
         services.AddSingleton<IPortListenerSource, WindowsPortListeners>();
