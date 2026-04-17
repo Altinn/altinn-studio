@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ public class DeploymentRepository : IDeploymentRepository
         var dbObject = DeploymentMapper.MapToDbModel(deploymentEntity);
         _dbContext.Deployments.Add(dbObject);
         await _dbContext.SaveChangesAsync();
+        deploymentEntity.SequenceNo = dbObject.Sequenceno;
         return deploymentEntity;
     }
 
@@ -88,7 +90,11 @@ public class DeploymentRepository : IDeploymentRepository
             .Include(d => d.Events)
             .AsNoTracking()
             .Where(x =>
-                x.Org == org && x.App == app && x.EnvName == environment && x.Build.Result.ToLower() == "succeeded"
+                x.Org == org
+                && x.App == app
+                && x.EnvName == environment
+                && x.Build != null
+                && x.Build.Result.ToLower() == "succeeded"
             );
 
         deploymentsQuery =
@@ -126,17 +132,25 @@ public class DeploymentRepository : IDeploymentRepository
 
     public async Task Update(DeploymentEntity deploymentEntity)
     {
-        var dbIds = await _dbContext
+        DeploymentDbModel deployment = await _dbContext
             .Deployments.Include(d => d.Build)
-            .AsNoTracking()
-            .Where(d => d.Org == deploymentEntity.Org && d.Buildid == deploymentEntity.Build.Id)
-            .Select(d => new { SequnceNo = d.Sequenceno, BuildId = d.Build.Id })
-            .SingleAsync();
+            .FirstAsync(d => d.Sequenceno == deploymentEntity.SequenceNo);
+        DeploymentDbModel mapped = DeploymentMapper.MapToDbModel(
+            deploymentEntity,
+            deployment.Sequenceno,
+            deployment.InternalBuildId
+        );
+        _dbContext.Entry(deployment).CurrentValues.SetValues(mapped);
 
-        var mappedDbObject = DeploymentMapper.MapToDbModel(deploymentEntity, dbIds.SequnceNo, dbIds.BuildId);
+        if (deployment.Build != null && mapped.Build != null)
+        {
+            _dbContext.Entry(deployment.Build).CurrentValues.SetValues(mapped.Build);
+        }
+        else
+        {
+            deployment.Build = mapped.Build;
+        }
 
-        _dbContext.Entry(mappedDbObject).State = EntityState.Modified;
-        _dbContext.Entry(mappedDbObject.Build).State = EntityState.Modified;
         await _dbContext.SaveChangesAsync();
     }
 
