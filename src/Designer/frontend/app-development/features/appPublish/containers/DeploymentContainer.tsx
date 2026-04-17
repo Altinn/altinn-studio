@@ -67,7 +67,7 @@ export const DeploymentContainer = () => {
       {orgEnvironmentList.map((orgEnvironment: Environment) => {
         const pipelineDeploymentList = appDeployment.pipelineDeploymentList
           .filter((item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase())
-          .filter((item, index) => index === 0 || item.build.result !== BuildResult.none);
+          .filter((item, index) => index === 0 || item.build?.result !== BuildResult.none);
         const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );

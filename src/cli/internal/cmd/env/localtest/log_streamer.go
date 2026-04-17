@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"altinn.studio/devenv/pkg/container"
-	"altinn.studio/studioctl/internal/docker"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -111,8 +110,7 @@ func (s *logStreamer) streamContainerLogs(
 		case <-ctx.Done():
 			return
 		default:
-			line := docker.StripMultiplexedHeader(scanner.Text())
-			s.out.Println(prefix + line)
+			s.out.Println(prefix + scanner.Text())
 		}
 	}
 }

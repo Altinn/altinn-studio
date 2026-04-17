@@ -13,6 +13,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/dockerapi"
 	"altinn.studio/devenv/pkg/container/podman"
+	"altinn.studio/devenv/pkg/processutil"
 )
 
 const dockerContextTimeout = 5 * time.Second
@@ -325,7 +326,14 @@ func activeDockerContextHost(ctx context.Context) (string, error) {
 	ctxTimeout, cancel := context.WithTimeout(ctx, dockerContextTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctxTimeout, "docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}")
+	cmd := processutil.CommandContext(
+		ctxTimeout,
+		"docker",
+		"context",
+		"inspect",
+		"--format",
+		"{{.Endpoints.docker.Host}}",
+	)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("inspect docker context host: %w", err)

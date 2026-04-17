@@ -22,9 +22,11 @@ public interface IAltinnStorageInstancesClient
         bool? isArchivedFilter,
         string? archiveReferenceFilter,
         bool? confirmedFilter,
+        bool? isProcessComplete,
         bool? isSoftDeletedFilter,
         bool? isHardDeletedFilter,
         DateOnly? createdBeforeFilter,
+        int? size,
         CancellationToken ct
     );
 

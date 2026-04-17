@@ -1,0 +1,778 @@
+// Package appmanager provides local control-plane integration with the app-manager host service.
+package appmanager
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net"
+	"net/http"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
+)
+
+const (
+	controlBaseURL = "http://app-manager"
+
+	healthPath   = "/api/v1/healthz"
+	statusPath   = "/api/v1/studioctl/status"
+	registerPath = "/api/v1/studioctl/apps"
+	shutdownPath = "/api/v1/studioctl/shutdown"
+
+	appManagerUnixSocketEnv = "APP_MANAGER_UNIX_SOCKET_PATH"
+	appManagerTunnelURLEnv  = "Tunnel__Url"
+	appManagerStudioctlEnv  = "Studioctl__Path"
+
+	appManagerStartTimeout = 10 * time.Second
+	appManagerShutdownWait = 3 * time.Second
+	appManagerPollInterval = 100 * time.Millisecond
+	appTunnelEndpointPath  = "/internal/tunnel/app"
+	appManagerLogTailLines = 40
+)
+
+type startConfig struct {
+	BinaryPath     string `json:"binaryPath"`
+	WorkingDir     string `json:"workingDir"`
+	UnixSocketPath string `json:"unixSocketPath,omitempty"`
+	TunnelURL      string `json:"tunnelUrl"`
+	StudioctlPath  string `json:"studioctlPath"`
+	InternalDev    bool   `json:"internalDev"`
+}
+
+type runtimeState struct {
+	Start startConfig `json:"start"`
+	PID   int         `json:"pid"`
+}
+
+// Status describes the current app-manager status.
+type Status struct {
+	AppManagerVersion string
+	DotnetVersion     string
+	StudioctlPath     string
+	Tunnel            TunnelStatus
+	Apps              []DiscoveredApp
+	ProcessID         int
+	InternalDev       bool
+}
+
+// TunnelStatus describes the configured app tunnel.
+type TunnelStatus struct {
+	URL       string
+	Enabled   bool
+	Connected bool
+}
+
+// DiscoveredApp describes one discovered app endpoint.
+type DiscoveredApp struct {
+	ProcessID   *int
+	AppID       string
+	BaseURL     string
+	Source      string
+	Description string
+}
+
+var (
+	// ErrNotRunning is returned when app-manager is not reachable.
+	ErrNotRunning = errors.New("app-manager is not running")
+	// ErrBinaryMissing is returned when the app-manager binary is not installed.
+	ErrBinaryMissing              = errors.New("app-manager binary not found")
+	errUnexpectedHealthStatus     = errors.New("unexpected app-manager health status")
+	errUnexpectedRegisterStatus   = errors.New("unexpected app-manager register response")
+	errUnexpectedUnregisterStatus = errors.New("unexpected app-manager unregister response")
+	errUnexpectedStatusStatus     = errors.New("unexpected app-manager status response")
+	errUnexpectedShutdownStatus   = errors.New("unexpected app-manager shutdown response")
+	errAppManagerStartTimedOut    = errors.New("app-manager start timed out")
+	errInvalidPIDFile             = errors.New("pid file does not contain a positive pid")
+)
+
+// Client talks to the local app-manager control plane.
+type Client struct {
+	http *http.Client
+}
+
+// AppRegistration describes an app endpoint registered explicitly by studioctl.
+type AppRegistration struct {
+	AppID              string `json:"appId"`
+	BaseURL            string `json:"baseUrl"`
+	Description        string `json:"description,omitempty"`
+	GracePeriodSeconds int    `json:"gracePeriodSeconds"`
+}
+
+// NewClient constructs an app-manager control-plane client.
+func NewClient(cfg *config.Config) *Client {
+	return &Client{
+		http: &http.Client{
+			Transport: transportForConfig(cfg),
+			Timeout:   2 * time.Second,
+		},
+	}
+}
+
+// Shutdown stops app-manager and returns a completion channel that resolves when shutdown is fully complete.
+func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
+	client := NewClient(cfg)
+	pid, err := currentManagedPID(ctx, client, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := shutdownError(client.shutdown(ctx), pid); err != nil {
+		return nil, err
+	}
+
+	done := make(chan error, 1)
+	go func() {
+		done <- waitForManagedShutdown(ctx, cfg, client, pid)
+		close(done)
+	}()
+
+	return done, nil
+}
+
+func shutdownError(err error, pid int) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, ErrNotRunning) {
+		if pid <= 0 {
+			return ErrNotRunning
+		}
+		return nil
+	}
+	if pid <= 0 {
+		return fmt.Errorf("shutdown app-manager: %w", err)
+	}
+	return nil
+}
+
+// Health checks whether app-manager is reachable.
+func (c *Client) Health(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+healthPath, nil)
+	if err != nil {
+		return fmt.Errorf("build health request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("%w: %s", errUnexpectedHealthStatus, resp.Status)
+	}
+
+	return nil
+}
+
+// Status returns the current app-manager status fields.
+func (c *Client) Status(ctx context.Context) (*Status, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, controlBaseURL+statusPath, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build status request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s", errUnexpectedStatusStatus, resp.Status)
+	}
+
+	var status struct {
+		AppManagerVersion string `json:"appManagerVersion"`
+		DotnetVersion     string `json:"dotnetVersion"`
+		StudioctlPath     string `json:"studioctlPath"`
+		Tunnel            struct {
+			URL       string `json:"url"`
+			Enabled   bool   `json:"enabled"`
+			Connected bool   `json:"connected"`
+		} `json:"tunnel"`
+		Apps []struct {
+			ProcessID   *int   `json:"processId"`
+			AppID       string `json:"appId"`
+			BaseURL     string `json:"baseUrl"`
+			Source      string `json:"source"`
+			Description string `json:"description"`
+		} `json:"apps"`
+		ProcessID   int  `json:"processId"`
+		InternalDev bool `json:"internalDev"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
+		return nil, fmt.Errorf("decode status response: %w", err)
+	}
+
+	result := &Status{
+		ProcessID:         status.ProcessID,
+		AppManagerVersion: status.AppManagerVersion,
+		DotnetVersion:     status.DotnetVersion,
+		StudioctlPath:     status.StudioctlPath,
+		InternalDev:       status.InternalDev,
+		Tunnel: TunnelStatus{
+			Enabled:   status.Tunnel.Enabled,
+			Connected: status.Tunnel.Connected,
+			URL:       status.Tunnel.URL,
+		},
+		Apps: make([]DiscoveredApp, 0, len(status.Apps)),
+	}
+	for _, app := range status.Apps {
+		result.Apps = append(result.Apps, DiscoveredApp{
+			AppID:       app.AppID,
+			BaseURL:     app.BaseURL,
+			Source:      app.Source,
+			ProcessID:   app.ProcessID,
+			Description: app.Description,
+		})
+	}
+
+	return result, nil
+}
+
+// RegisterApp registers an app endpoint explicitly with app-manager.
+func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) error {
+	body, err := json.Marshal(registration)
+	if err != nil {
+		return fmt.Errorf("encode app registration: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		controlBaseURL+registerPath,
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return fmt.Errorf("build register app request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("%w: %s", errUnexpectedRegisterStatus, resp.Status)
+	}
+
+	return nil
+}
+
+// UnregisterApp removes an app endpoint explicitly registered with app-manager.
+func (c *Client) UnregisterApp(ctx context.Context, appID, baseURL string) error {
+	values := url.Values{}
+	values.Set("appId", appID)
+	values.Set("baseUrl", baseURL)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		controlBaseURL+registerPath+"?"+values.Encode(),
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("build unregister app request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("%w: %s", errUnexpectedUnregisterStatus, resp.Status)
+	}
+
+	return nil
+}
+
+// shutdown asks app-manager to stop itself.
+func (c *Client) shutdown(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, controlBaseURL+shutdownPath, nil)
+	if err != nil {
+		return fmt.Errorf("build shutdown request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return classifyClientError(err)
+	}
+	defer closeResponseBody(resp)
+
+	if resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("%w: %s", errUnexpectedShutdownStatus, resp.Status)
+	}
+
+	return nil
+}
+
+// EnsureStarted starts or reconciles app-manager for the provided localtest runtime settings.
+func EnsureStarted(ctx context.Context, cfg *config.Config, loadBalancerPort string) error {
+	return EnsureStartedWithStudioctlPath(ctx, cfg, loadBalancerPort, currentExecutablePath())
+}
+
+// EnsureStartedWithStudioctlPath starts or reconciles app-manager with an explicit studioctl path.
+func EnsureStartedWithStudioctlPath(
+	ctx context.Context,
+	cfg *config.Config,
+	loadBalancerPort,
+	studioctlPath string,
+) error {
+	desired := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
+	client := NewClient(cfg)
+
+	status, err := client.Status(ctx)
+	switch {
+	case err == nil:
+		if liveConfig(cfg, status) == desired {
+			return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+		}
+		return restartManagedProcess(ctx, cfg, client, status.ProcessID, desired)
+	case !errors.Is(err, ErrNotRunning):
+		return fmt.Errorf("get app-manager status: %w", err)
+	}
+
+	return ensureStartedFromPersistedState(ctx, cfg, client, desired)
+}
+
+func ensureStartedFromPersistedState(
+	ctx context.Context,
+	cfg *config.Config,
+	client *Client,
+	desired startConfig,
+) error {
+	state, ok, err := readAppManagerState(cfg)
+	if err != nil {
+		return fmt.Errorf("read app-manager pid file: %w", err)
+	}
+	if !ok {
+		return startProcess(ctx, cfg, desired)
+	}
+
+	return reconcilePersistedProcess(ctx, cfg, client, state, desired)
+}
+
+func reconcilePersistedProcess(
+	ctx context.Context,
+	cfg *config.Config,
+	client *Client,
+	state runtimeState,
+	desired startConfig,
+) error {
+	running, err := isProcessRunning(state.PID)
+	if err != nil {
+		return fmt.Errorf("check persisted app-manager pid %d: %w", state.PID, err)
+	}
+
+	if !running {
+		return restartFromPersistedState(ctx, cfg, desired, 0)
+	}
+
+	if state.Start == desired {
+		status, waitErr := waitForHealthy(ctx, cfg, client)
+		if waitErr == nil {
+			return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+		}
+	}
+
+	return restartFromPersistedState(ctx, cfg, desired, state.PID)
+}
+
+func restartFromPersistedState(ctx context.Context, cfg *config.Config, desired startConfig, pid int) error {
+	if pid > 0 {
+		if err := killProcess(pid); err != nil {
+			return fmt.Errorf("stop persisted app-manager pid %d: %w", pid, err)
+		}
+	}
+
+	_, ok, err := readAppManagerState(cfg)
+	if err != nil {
+		return fmt.Errorf("read app-manager pid file: %w", err)
+	}
+	if ok {
+		if err := removeAppManagerState(cfg); err != nil {
+			return fmt.Errorf("remove stale app-manager pid file: %w", err)
+		}
+	}
+
+	return startProcess(ctx, cfg, desired)
+}
+
+// TunnelURL returns the app-manager tunnel URL for a localtest host port.
+func TunnelURL(port string) string {
+	return "ws://127.0.0.1:" + port + appTunnelEndpointPath
+}
+
+func restartManagedProcess(
+	ctx context.Context,
+	cfg *config.Config,
+	client *Client,
+	pid int,
+	desired startConfig,
+) error {
+	if err := client.shutdown(ctx); err != nil {
+		return fmt.Errorf("shutdown app-manager for restart: %w", err)
+	}
+
+	if !waitForShutdown(ctx, client, cfg) {
+		if err := killProcess(pid); err != nil {
+			return fmt.Errorf("kill app-manager after shutdown timeout: %w", err)
+		}
+		if err := removeAppManagerState(cfg); err != nil {
+			return fmt.Errorf("remove stale app-manager pid file: %w", err)
+		}
+	}
+
+	return startProcess(ctx, cfg, desired)
+}
+
+func startProcess(ctx context.Context, cfg *config.Config, startConfig startConfig) error {
+	if _, err := os.Stat(cfg.AppManagerBinaryPath()); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("%w: %s", ErrBinaryMissing, cfg.AppManagerBinaryPath())
+		}
+		return fmt.Errorf("stat app-manager binary: %w", err)
+	}
+
+	if err := removeAppManagerState(cfg); err != nil {
+		return fmt.Errorf("remove stale app-manager pid file: %w", err)
+	}
+
+	//nolint:gosec // G204: binary path comes from resolved studioctl config.
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.AppManagerBinaryPath())
+	cmd.Dir = startConfig.WorkingDir
+	cmd.Env = append(
+		os.Environ(),
+		appManagerUnixSocketEnv+"="+startConfig.UnixSocketPath,
+	)
+	if startConfig.TunnelURL != "" {
+		cmd.Env = append(cmd.Env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
+	}
+	if startConfig.StudioctlPath != "" {
+		cmd.Env = append(cmd.Env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
+	}
+	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
+	if err != nil {
+		return fmt.Errorf("open null device: %w", err)
+	}
+	defer ignoreError(devNull.Close())
+
+	cmd.Stdin = devNull
+	cmd.Stdout = devNull
+	cmd.Stderr = devNull
+	applyProcessAttrs(cmd)
+
+	err = cmd.Start()
+	if err != nil {
+		return fmt.Errorf("start app-manager: %w", err)
+	}
+	err = writeAppManagerState(cfg, runtimeState{PID: cmd.Process.Pid, Start: startConfig})
+	if err != nil {
+		ignoreError(cmd.Process.Kill())
+		return fmt.Errorf("write app-manager pid file: %w", err)
+	}
+	err = cmd.Process.Release()
+	if err != nil {
+		ignoreError(removeAppManagerState(cfg))
+		return fmt.Errorf("release app-manager process handle: %w", err)
+	}
+
+	client := NewClient(cfg)
+	status, err := waitForHealthy(ctx, cfg, client)
+	if err == nil {
+		return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: startConfig})
+	}
+
+	ignoreError(killProcess(cmd.Process.Pid))
+	ignoreError(removeAppManagerState(cfg))
+	return err
+}
+
+func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client) (*Status, error) {
+	deadline := time.Now().Add(appManagerStartTimeout)
+	var lastErr error
+	for time.Now().Before(deadline) {
+		status, err := client.Status(ctx)
+		if err == nil {
+			return status, nil
+		}
+
+		lastErr = err
+		time.Sleep(appManagerPollInterval)
+	}
+
+	if lastErr != nil {
+		return nil, fmt.Errorf(
+			"%w after %s: %w%s",
+			errAppManagerStartTimedOut,
+			appManagerStartTimeout,
+			lastErr,
+			readAppManagerLogTail(cfg.AppManagerLogPath()),
+		)
+	}
+
+	return nil, fmt.Errorf(
+		"%w: %s%s",
+		errAppManagerStartTimedOut,
+		appManagerStartTimeout,
+		readAppManagerLogTail(cfg.AppManagerLogPath()),
+	)
+}
+
+func waitForShutdown(ctx context.Context, client *Client, cfg *config.Config) bool {
+	deadline := time.Now().Add(appManagerStartTimeout)
+	for time.Now().Before(deadline) {
+		if err := client.Health(ctx); errors.Is(err, ErrNotRunning) {
+			ignoreError(removeAppManagerState(cfg))
+			return true
+		}
+		time.Sleep(appManagerPollInterval)
+	}
+
+	return false
+}
+
+func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) (int, error) {
+	status, err := client.Status(ctx)
+	if err == nil {
+		return status.ProcessID, nil
+	}
+	if !errors.Is(err, ErrNotRunning) {
+		state, ok, stateErr := readAppManagerState(cfg)
+		if stateErr != nil {
+			return 0, fmt.Errorf("read persisted app-manager state after status failure: %w", stateErr)
+		}
+		if ok {
+			return state.PID, nil
+		}
+		return 0, fmt.Errorf("get app-manager status before shutdown: %w", err)
+	}
+
+	state, ok, err := readAppManagerState(cfg)
+	if err != nil {
+		return 0, fmt.Errorf("read persisted app-manager state: %w", err)
+	}
+	if !ok {
+		return 0, nil
+	}
+	return state.PID, nil
+}
+
+func waitForManagedShutdown(ctx context.Context, cfg *config.Config, client *Client, pid int) error {
+	deadline := time.Now().Add(appManagerShutdownWait)
+	for time.Now().Before(deadline) {
+		healthStopped := errors.Is(client.Health(ctx), ErrNotRunning)
+		processStopped, err := managedProcessStopped(pid)
+		if err != nil {
+			return err
+		}
+		if healthStopped && processStopped {
+			if err := removeAppManagerState(cfg); err != nil {
+				return fmt.Errorf("remove stale app-manager pid file: %w", err)
+			}
+			return nil
+		}
+		time.Sleep(appManagerPollInterval)
+	}
+
+	return stopPersistedProcess(cfg, pid)
+}
+
+func stopPersistedProcess(cfg *config.Config, pid int) error {
+	if pid <= 0 {
+		return removePersistedAppManagerState(cfg)
+	}
+
+	running, err := isProcessRunning(pid)
+	if err != nil {
+		return fmt.Errorf("check app-manager pid %d: %w", pid, err)
+	}
+	if running {
+		if err := killProcess(pid); err != nil {
+			return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
+		}
+	}
+
+	return removePersistedAppManagerState(cfg)
+}
+
+func removePersistedAppManagerState(cfg *config.Config) error {
+	if err := removeAppManagerState(cfg); err != nil {
+		return fmt.Errorf("remove stale app-manager pid file: %w", err)
+	}
+	return nil
+}
+
+func managedProcessStopped(pid int) (bool, error) {
+	if pid <= 0 {
+		return true, nil
+	}
+	running, err := isProcessRunning(pid)
+	if err != nil {
+		return false, fmt.Errorf("check app-manager pid %d: %w", pid, err)
+	}
+	return !running, nil
+}
+
+func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) startConfig {
+	return startConfig{
+		BinaryPath:     cfg.AppManagerBinaryPath(),
+		WorkingDir:     cfg.Home,
+		UnixSocketPath: cfg.AppManagerSocketPath(),
+		TunnelURL:      TunnelURL(loadBalancerPort),
+		StudioctlPath:  studioctlPath,
+		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
+	}
+}
+
+func liveConfig(cfg *config.Config, status *Status) startConfig {
+	return startConfig{
+		BinaryPath:     cfg.AppManagerBinaryPath(),
+		WorkingDir:     cfg.Home,
+		UnixSocketPath: cfg.AppManagerSocketPath(),
+		TunnelURL:      status.Tunnel.URL,
+		StudioctlPath:  status.StudioctlPath,
+		InternalDev:    status.InternalDev,
+	}
+}
+
+func currentExecutablePath() string {
+	path, err := os.Executable()
+	if err != nil {
+		return osutil.CurrentBin()
+	}
+	return path
+}
+
+func readAppManagerState(cfg *config.Config) (runtimeState, bool, error) {
+	data, err := os.ReadFile(cfg.AppManagerPIDPath())
+	if err != nil {
+		if os.IsNotExist(err) {
+			return zeroRuntimeState(), false, nil
+		}
+		return zeroRuntimeState(), false, fmt.Errorf("read pid file: %w", err)
+	}
+
+	var state runtimeState
+	if err := json.Unmarshal(data, &state); err != nil {
+		return zeroRuntimeState(), false, fmt.Errorf("decode pid file: %w", err)
+	}
+	if state.PID <= 0 {
+		return zeroRuntimeState(), false, errInvalidPIDFile
+	}
+
+	return state, true, nil
+}
+
+func writeAppManagerState(cfg *config.Config, state runtimeState) error {
+	if err := os.MkdirAll(filepath.Dir(cfg.AppManagerPIDPath()), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create pid file parent directory: %w", err)
+	}
+
+	data, err := json.Marshal(state)
+	if err != nil {
+		return fmt.Errorf("encode pid file: %w", err)
+	}
+	if err := os.WriteFile(cfg.AppManagerPIDPath(), append(data, '\n'), osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("write pid file: %w", err)
+	}
+
+	return nil
+}
+
+func removeAppManagerState(cfg *config.Config) error {
+	if err := os.Remove(cfg.AppManagerPIDPath()); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove pid file: %w", err)
+	}
+
+	return nil
+}
+
+func killProcess(pid int) error {
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		return fmt.Errorf("find process: %w", err)
+	}
+	if err := process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+		return fmt.Errorf("kill process: %w", err)
+	}
+
+	return nil
+}
+
+func classifyClientError(err error) error {
+	var opErr *net.OpError
+	if errors.As(err, &opErr) {
+		return fmt.Errorf("%w: %s", ErrNotRunning, err.Error())
+	}
+	var pathErr *os.PathError
+	if errors.As(err, &pathErr) && errors.Is(pathErr.Err, os.ErrNotExist) {
+		return fmt.Errorf("%w: %s", ErrNotRunning, err.Error())
+	}
+	return err
+}
+
+func closeResponseBody(resp *http.Response) {
+	ignoreError(resp.Body.Close())
+}
+
+func ignoreError(error) {
+}
+
+func readAppManagerLogTail(path string) string {
+	//nolint:gosec // G304: log path is derived from resolved STUDIOCTL_HOME and never user-supplied per request.
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	defer ignoreError(file.Close())
+
+	lines := make([]string, 0, appManagerLogTailLines)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if len(lines) == appManagerLogTailLines {
+			copy(lines, lines[1:])
+			lines[appManagerLogTailLines-1] = scanner.Text()
+			continue
+		}
+
+		lines = append(lines, scanner.Text())
+	}
+
+	if len(lines) == 0 {
+		return ""
+	}
+
+	return osutil.LineBreak +
+		"app-manager log tail:" +
+		osutil.LineBreak +
+		strings.Join(lines, osutil.LineBreak)
+}
+
+func zeroRuntimeState() runtimeState {
+	return runtimeState{
+		Start: startConfig{
+			BinaryPath:     "",
+			WorkingDir:     "",
+			UnixSocketPath: "",
+			TunnelURL:      "",
+			StudioctlPath:  "",
+			InternalDev:    false,
+		},
+		PID: 0,
+	}
+}

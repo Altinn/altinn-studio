@@ -172,9 +172,20 @@ internal class WorkflowWriteBuffer : BackgroundService
             return;
         }
 
+        var totalWorkflows = batch.Sum(x => x.Request.Workflows.Count);
+        var totalSteps = batch.Sum(x => x.Request.Workflows.Sum(w => w.Steps.Count));
+        var distinctNamespaces = batch.Select(x => x.Metadata.Namespace).Distinct().Count();
+
         using var activity = Metrics.Source.StartActivity(
             "WorkflowWriteBuffer.FlushBatch",
-            tags: [("batch.size", batch.Count)],
+            tags:
+            [
+                ("batch.size", batch.Count),
+                ("batch.workflows", totalWorkflows),
+                ("batch.steps", totalSteps),
+                ("batch.namespaces", distinctNamespaces),
+                ("db.operation", "batch_enqueue_workflows"),
+            ],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Metadata.TraceContext)).ToActivityLinks()
         );
 

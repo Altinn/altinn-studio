@@ -33,12 +33,12 @@ type DevImageConfig struct {
 
 // LocaltestContextPath returns the build context path for the localtest image.
 func (c DevImageConfig) LocaltestContextPath() string {
-	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src/Runtime/localtest"))
+	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src"))
 }
 
 // LocaltestDockerfile returns the full Dockerfile path for localtest.
 func (c DevImageConfig) LocaltestDockerfile() string {
-	return filepath.ToSlash(filepath.Join(c.LocaltestContextPath(), "Dockerfile"))
+	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src/Runtime/localtest/Dockerfile"))
 }
 
 // PDF3ContextPath returns the build context path for the pdf3 image.
@@ -49,4 +49,15 @@ func (c DevImageConfig) PDF3ContextPath() string {
 // PDF3Dockerfile returns the full Dockerfile path for pdf3.
 func (c DevImageConfig) PDF3Dockerfile() string {
 	return filepath.ToSlash(filepath.Join(c.PDF3ContextPath(), "Dockerfile.worker"))
+}
+
+// WorkflowEngineContextPath returns the build context path for the workflow engine image.
+// The build context is <RepoRoot>/src because the Dockerfile copies from multiple directories.
+func (c DevImageConfig) WorkflowEngineContextPath() string {
+	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src"))
+}
+
+// WorkflowEngineDockerfile returns the full Dockerfile path for the workflow engine.
+func (c DevImageConfig) WorkflowEngineDockerfile() string {
+	return filepath.ToSlash(filepath.Join(c.RepoRoot, "src/Runtime/workflow-engine-app/Dockerfile"))
 }

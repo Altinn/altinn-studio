@@ -13,7 +13,6 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//ping,
       operationId: /ping,
       processingOrder: 0,
       updatedAt: {Scrubbed},

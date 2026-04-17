@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import type { NavigateOptions } from 'react-router';
 
+import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
@@ -10,7 +11,6 @@ import { getUiConfig } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
-import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';

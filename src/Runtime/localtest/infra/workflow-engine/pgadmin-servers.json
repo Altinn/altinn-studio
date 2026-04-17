@@ -1,0 +1,18 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Altinn Studio (local)",
+      "Group": "Servers",
+      "Host": "localtest-workflow-engine-db",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "postgres",
+      "ConnectionParameters": {
+        "passfile": "/var/lib/pgadmin/.pgpass",
+        "sslmode": "prefer"
+      },
+      "SharedWithUsers": true,
+      "Shared": false
+    }
+  }
+}

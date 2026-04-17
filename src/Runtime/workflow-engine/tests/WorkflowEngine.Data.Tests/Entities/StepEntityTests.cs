@@ -15,7 +15,6 @@ public class StepEntityTests
         {
             Id = Guid.Parse("99999999-aaaa-bbbb-cccc-dddddddddddd"),
             OperationId = "send-email",
-            IdempotencyKey = "step-key",
             Status = PersistentItemStatus.Processing,
             ProcessingOrder = 3,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
