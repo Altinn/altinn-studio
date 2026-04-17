@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -279,7 +280,8 @@ func TestEnsurePgpassWritesReadableSourceFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat pgpass: %v", err)
 	}
-	if got := info.Mode().Perm(); got != osutil.FilePermDefault {
+	if runtime.GOOS != "windows" && info.Mode().Perm() != osutil.FilePermDefault {
+		got := info.Mode().Perm()
 		t.Fatalf("pgpass mode = %v, want %v", got, osutil.FilePermDefault)
 	}
 }
