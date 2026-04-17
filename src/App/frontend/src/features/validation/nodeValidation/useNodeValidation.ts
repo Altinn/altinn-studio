@@ -48,18 +48,16 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
     const validations: BaseValidation[] = [];
     for (const [bindingKey, { dataType, field }] of bindings) {
       const dataModel = state.data.models[dataType];
-      if (!dataModel) {
-        continue;
-      }
+      if (dataModel) {
+        const fieldValidations = [
+          ...(dataModel.validations.backend[field] ?? []),
+          ...(dataModel.validations.invalidData[field] ?? []),
+          ...(dataModel.validations.schema[field] ?? []),
+        ];
 
-      const fieldValidations = [
-        ...(dataModel.validations.backend[field] ?? []),
-        ...(dataModel.validations.invalidData[field] ?? []),
-        ...(dataModel.validations.schema[field] ?? []),
-      ];
-
-      if (fieldValidations.length > 0) {
-        validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
+        if (fieldValidations.length > 0) {
+          validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
+        }
       }
     }
 
