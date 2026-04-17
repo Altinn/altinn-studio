@@ -21,6 +21,7 @@ export const BooleanEditor = ({ expression, onChange }: BooleanEditorProps): Rea
     <div className={classes.booleanEditor}>
       <StudioBooleanToggleGroup
         className={classes.toggle}
+        data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
         falseLabel={texts.false}
         onChange={onChange}
         trueLabel={texts.true}

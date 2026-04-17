@@ -53,6 +53,7 @@ export function HeadingBar({
       </div>
       {shouldShowToggleGroup && (
         <StudioToggleGroup
+          data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
           value={selectedToolColumnMode}
           onChange={(value) => onModeChange(value as ToolColumnMode)}
         >
