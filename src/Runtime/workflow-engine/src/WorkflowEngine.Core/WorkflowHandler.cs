@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
@@ -34,6 +35,24 @@ internal sealed class WorkflowHandler(
     /// reflects the final outcome (Completed, Failed, Canceled, or Requeued for retry).
     /// </summary>
     public async Task Handle(Workflow workflow, CancellationToken ct)
+    {
+        try
+        {
+            await HandleInner(workflow, ct);
+        }
+        catch (LeaseLostException)
+        {
+            // Another host reclaimed this workflow while we were processing it. Exit cleanly —
+            // the new owner is already handling it, and our in-memory state mutations never
+            // landed in the database. Do not retry, do not re-enqueue.
+            logger.WorkflowLeaseLost(workflow);
+            Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistorgramTags());
+            workflow.EngineActivity?.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
+            StopActivity(workflow);
+        }
+    }
+
+    private async Task HandleInner(Workflow workflow, CancellationToken ct)
     {
         StartProcessWorkflowActivity(workflow);
 
@@ -451,4 +470,10 @@ internal static partial class WorkflowHandlerLogs
         "Failing step {Step} after {Retries} attempts. The operation produced a critical error which cannot be retried"
     )]
     internal static partial void FailingStepCritical(this ILogger<WorkflowHandler> logger, Step step, int retries);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Lease lost for workflow {Workflow} — another host has reclaimed it; exiting local processing without retry"
+    )]
+    internal static partial void WorkflowLeaseLost(this ILogger<WorkflowHandler> logger, Workflow workflow);
 }

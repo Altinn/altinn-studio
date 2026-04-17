@@ -63,6 +63,10 @@ public static class Metrics
         "engine.workflows.execution.reclaimed",
         description: "Number of stale workflows reclaimed from crashed workers"
     );
+    public static readonly Counter<long> WorkflowsLeaseLost = Meter.CreateCounter<long>(
+        "engine.workflows.execution.lease_lost",
+        description: "Number of in-flight workflows this host abandoned because their lease was reclaimed by another host"
+    );
     public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
         "engine.workflows.time.queue",
         "s",

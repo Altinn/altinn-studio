@@ -73,7 +73,7 @@ internal sealed class HeartbeatService(
                     if (lost.Count > 0)
                     {
                         logger.HeartbeatLeaseLost(lost.Count);
-                        tracker.TryCancel(lost);
+                        tracker.TryAbandonLostLease(lost);
                     }
                 }
                 catch (OperationCanceledException) when (safetyCts.IsCancellationRequested)

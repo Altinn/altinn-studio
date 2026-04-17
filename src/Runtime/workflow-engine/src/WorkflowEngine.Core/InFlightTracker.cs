@@ -69,6 +69,31 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
         }
     }
 
+    /// <summary>
+    /// Abandons an in-flight workflow because its lease was reclaimed by another host.
+    /// Cancels the CTS so the handler stops quickly, but does not stamp
+    /// <see cref="Workflow.CancellationRequestedAt"/> — the workflow itself is not canceled,
+    /// only this host's attempt to process it. The handler is expected to observe the
+    /// resulting <c>LeaseLostException</c> on its next write-back and exit without retry.
+    /// </summary>
+    public void TryAbandonLostLease(IReadOnlyList<Guid> workflowIds)
+    {
+        foreach (var id in workflowIds)
+        {
+            if (!_workflows.TryGetValue(id, out var entry))
+                continue;
+
+            try
+            {
+                entry.Cts.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // CTS was already disposed by the worker finishing — benign race
+            }
+        }
+    }
+
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
 
     /// <summary>
