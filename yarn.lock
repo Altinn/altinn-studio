@@ -1940,7 +1940,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:^1.13.2":
+"@digdir/designsystemet-css@npm:1.13.2":
   version: 1.13.2
   resolution: "@digdir/designsystemet-css@npm:1.13.2"
   dependencies:
@@ -1985,7 +1985,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-react@npm:^1.13.2":
+"@digdir/designsystemet-react@npm:1.13.2":
   version: 1.13.2
   resolution: "@digdir/designsystemet-react@npm:1.13.2"
   dependencies:
@@ -6095,8 +6095,8 @@ __metadata:
   resolution: "@studio/components@workspace:src/Designer/frontend/libs/studio-components"
   dependencies:
     "@chromatic-com/storybook": "npm:^5.0.1"
-    "@digdir/designsystemet-css": "npm:^1.13.2"
-    "@digdir/designsystemet-react": "npm:^1.13.2"
+    "@digdir/designsystemet-css": "npm:1.13.2"
+    "@digdir/designsystemet-react": "npm:1.13.2"
     "@digdir/designsystemet-theme": "npm:1.11.0"
     "@storybook/addon-docs": "npm:10.2.16"
     "@storybook/addon-links": "npm:10.2.16"
