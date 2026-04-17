@@ -33,7 +33,8 @@ public sealed partial class AppCommandIntegrationTests
 
         var callbackBasePath =
             $"/{EngineAppFixture.DefaultOrg}/{EngineAppFixture.DefaultApp}"
-            + $"/instances/{EngineAppFixture.DefaultPartyId}/{EngineAppFixture.DefaultInstanceGuid}";
+            + $"/instances/{EngineAppFixture.DefaultPartyId}/{EngineAppFixture.DefaultInstanceGuid}"
+            + "/workflow-engine-callbacks";
 
         fixture
             .WireMock.Given(Request.Create().WithPath($"{callbackBasePath}/chatter-step-1"))

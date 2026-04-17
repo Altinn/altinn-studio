@@ -162,7 +162,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
     private HttpClient CreateAuthorizedClient(AppWorkflowContext workflowContext)
     {
-        var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext);
+        var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext).TrimEnd('/') + '/';
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
 

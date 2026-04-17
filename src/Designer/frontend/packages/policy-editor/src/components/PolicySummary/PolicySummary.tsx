@@ -1,7 +1,7 @@
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import React from 'react';
 import { StudioTable } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioParagraph, StudioHeading } from '@studio/components';
 import { PolicyRuleSubjectSummary } from './PolicyRuleSummary/PolicyRuleSubjectSummary';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,6 +20,15 @@ export function PolicySummary(): React.ReactElement {
 
   return (
     <div>
+      <StudioHeading spacing level={4}>
+        {t('policy_editor.summary_heading')}
+      </StudioHeading>
+      <StudioAlert title={t('feedback.title')} className={classes.feedbackAlert}>
+        <StudioParagraph spacing>{t('feedback.general_request')}</StudioParagraph>
+        <div className={classes.feedbackFormWrapper}>
+          <FeedbackForm />
+        </div>
+      </StudioAlert>
       <StudioParagraph spacing>{t('policy_editor.summary_info_about')}</StudioParagraph>
       <StudioParagraph spacing>{t('policy_editor.summary_info_edit')}</StudioParagraph>
       <StudioTable>
@@ -29,12 +38,6 @@ export function PolicySummary(): React.ReactElement {
           uniqueActions={extractAllUniqueActions(policyRules)}
         />
       </StudioTable>
-      <StudioAlert title={t('feedback.title')} className={classes.feedbackAlert}>
-        <StudioParagraph spacing>{t('feedback.general_request')}</StudioParagraph>
-        <div className={classes.feedbackFormWrapper}>
-          <FeedbackForm />
-        </div>
-      </StudioAlert>
     </div>
   );
 }
