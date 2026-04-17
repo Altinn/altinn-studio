@@ -128,10 +128,17 @@ describe('PageLayout', () => {
     expect(screen.getByText(organizationsMock[1].username)).toBeInTheDocument();
   });
 
-  it('navigates to user page when clicking user menu item', async () => {
+  it('navigates to user page when clicking user menu item from an org route', async () => {
     const user = userEvent.setup();
-    renderPageLayout();
-    await user.click(screen.getByRole('button', { name: userWithName.full_name }));
+    renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('shared.header_user_for_org', {
+          user: userWithName.full_name,
+          org: organizationsMock[0].full_name,
+        }),
+      }),
+    );
     await user.click(screen.getByRole('menuitemradio', { name: userWithName.full_name }));
     expect(mockNavigate).toHaveBeenCalledWith('/test');
   });
