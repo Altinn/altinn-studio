@@ -15,8 +15,6 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
-var errInvalidPort = errors.New("invalid port")
-
 const runtimeLocaltest = "localtest"
 
 // EnvCommand implements the 'env' subcommand.
@@ -38,28 +36,27 @@ func (c *EnvCommand) Synopsis() string { return "Manage development environment"
 
 // Usage returns the full help text.
 func (c *EnvCommand) Usage() string {
-	defaultPort := envlocaltest.DefaultLoadBalancerPort
-	return fmt.Sprintf(`Usage: %s env <subcommand> [options]
-
-Manage development environments.
-
-Subcommands:
-  up       Start the environment
-  down     Stop the environment
-  status   Show environment status
-  logs     Stream environment logs
-
-Common options:
-  -r, --runtime    Runtime to use (default: localtest)
-
-Options for 'env up':
-  -p, --port       Loadbalancer port (default: %d)
-  -d, --detach     Run in background (default: true)
-  --monitoring     Start monitoring stack
-  --open           Open localtest in browser after starting
-
-Run '%s env <subcommand> --help' for more information.
-`, osutil.CurrentBin(), defaultPort, osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s env <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		"Manage development environments.",
+		"",
+		"Subcommands:",
+		"  up       Start the environment",
+		"  down     Stop the environment",
+		"  status   Show environment status",
+		"  logs     Stream environment logs",
+		"",
+		"Common options:",
+		"  -r, --runtime    Runtime to use (default: localtest)",
+		"",
+		"Options for 'env up':",
+		"  -d, --detach     Run in background (default: true)",
+		"  --monitoring     Start monitoring stack",
+		"  --open           Open localtest in browser after starting",
+		"",
+		fmt.Sprintf("Run '%s env <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -124,7 +121,6 @@ func (c *EnvCommand) withContainerClient(
 // envUpFlags holds parsed flags for the env up command.
 type envUpFlags struct {
 	runtime     string
-	port        int
 	detach      bool
 	monitoring  bool
 	openBrowser bool
@@ -138,9 +134,6 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 	fs.BoolVar(&f.detach, "d", true, "Run in background")
 	fs.BoolVar(&f.detach, "detach", true, "Run in background")
 	fs.BoolVar(&f.monitoring, "monitoring", false, "Start monitoring stack")
-	portHelp := fmt.Sprintf("Loadbalancer port (default: %d)", envlocaltest.DefaultLoadBalancerPort)
-	fs.IntVar(&f.port, "p", 0, portHelp)
-	fs.IntVar(&f.port, "port", 0, portHelp)
 	fs.BoolVar(&f.openBrowser, "open", false, "Open localtest in browser after starting")
 
 	if err := fs.Parse(args); err != nil {
@@ -148,10 +141,6 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 			return f, true, nil // help was shown
 		}
 		return f, false, fmt.Errorf("parsing flags: %w", err)
-	}
-
-	if f.port != 0 && (f.port < 1 || f.port > 65535) {
-		return f, false, fmt.Errorf("%w: %d (must be 1-65535)", errInvalidPort, f.port)
 	}
 
 	return f, false, nil
@@ -193,12 +182,11 @@ func (c *EnvCommand) runLocaltestUp(
 		return fmt.Errorf("get status: %w", err)
 	}
 	if status.Running {
-		c.out.Printf("%s already running.\n", runtimeLocaltest)
+		c.out.Printlnf("%s already running.", runtimeLocaltest)
 		return nil
 	}
 
 	if err := env.Up(ctx, envtypes.UpOptions{
-		Port:        flags.port,
 		Detach:      flags.detach,
 		Monitoring:  flags.monitoring,
 		OpenBrowser: flags.openBrowser,
@@ -245,7 +233,7 @@ func (c *EnvCommand) runDown(ctx context.Context, args []string) error {
 		}
 		if err := env.Down(ctx); err != nil {
 			if errors.Is(err, envtypes.ErrAlreadyStopped) {
-				c.out.Printf("%s is already stopped.\n", flags.runtime)
+				c.out.Printlnf("%s is already stopped.", flags.runtime)
 				return nil
 			}
 			return fmt.Errorf("env down: %w", err)
@@ -312,23 +300,23 @@ func (c *EnvCommand) runLocaltestStatus(
 		if err != nil {
 			return fmt.Errorf("marshal status json: %w", err)
 		}
-		c.out.Printf("%s\n", payload)
+		c.out.Println(string(payload))
 		return nil
 	}
 
 	if !status.AnyRunning {
-		c.out.Printf("%s is not running.\n", runtimeLocaltest)
+		c.out.Printlnf("%s is not running.", runtimeLocaltest)
 		return nil
 	}
 
 	if !status.Running {
-		c.out.Printf("%s is running with issues.\n", runtimeLocaltest)
+		c.out.Printlnf("%s is running with issues.", runtimeLocaltest)
 		c.out.Println("")
 		c.renderLocaltestStatus(status)
 		return nil
 	}
 
-	c.out.Printf("%s is running.\n", runtimeLocaltest)
+	c.out.Printlnf("%s is running.", runtimeLocaltest)
 	c.out.Println("")
 	c.renderLocaltestStatus(status)
 

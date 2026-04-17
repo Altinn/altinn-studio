@@ -1,0 +1,37 @@
+name: "App Stop Local Environment"
+description: "Stops localtest and app containers"
+runs:
+  using: "composite"
+  steps:
+    - name: Log localtest diagnostics
+      if: failure()
+      shell: bash
+      run: |
+        if command -v studioctl > /dev/null 2>&1; then
+          studioctl servers status || true
+          studioctl __app-containers || true
+        fi
+
+        docker ps -a --filter label=altinn.studio/cli=app || true
+
+        for container in $(docker ps -aq --filter label=altinn.studio/cli=app); do
+          echo "::group::docker logs $container"
+          docker logs --tail 200 "$container" || true
+          echo "::endgroup::"
+        done
+
+        if [[ -n "${STUDIOCTL_HOME:-}" && -f "$STUDIOCTL_HOME/logs/app-manager.log" ]]; then
+          echo "::group::app-manager log tail"
+          tail -n 200 "$STUDIOCTL_HOME/logs/app-manager.log" || true
+          echo "::endgroup::"
+        fi
+
+    - name: Stop localtest
+      shell: bash
+      run: |
+        # TODO: "studioctl stop"
+        docker ps -aq --filter label=altinn.studio/cli=app | xargs -r docker rm -f || true
+        if command -v studioctl > /dev/null 2>&1; then
+          studioctl env down || true
+          studioctl servers down || true
+        fi

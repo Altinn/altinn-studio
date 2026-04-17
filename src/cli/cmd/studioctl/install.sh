@@ -10,7 +10,7 @@ Options:
   --repo OWNER/REPO      GitHub repo (default: Altinn/altinn-studio)
   --asset NAME           Override asset name
   --install-dir DIR      Install target directory (passes --path)
-  --skip-resources       Skip downloading localtest resources
+  --skip-resources       Skip localtest resources
   --skip-checksum        Skip SHA256 checksum verification
   -h, --help             Show this help
 
@@ -27,9 +27,10 @@ Examples:
   curl -sSL .../install.sh | sh -s -- --version studioctl/v0.1.0
 
 Notes:
-  - If stdin is not a TTY and --install-dir is not set, installs to ~/.local/bin.
+  - If stdin is not a TTY, --install-dir or STUDIOCTL_INSTALL_DIR is required.
   - Released scripts are pinned to a specific studioctl tag in this monorepo.
   - Binary integrity is verified via SHA256 checksum before execution.
+  - The install step also installs app-manager alongside studioctl.
 USAGE
 }
 
@@ -128,12 +129,8 @@ if [ -z "$ASSET" ]; then
 fi
 
 if [ -z "$INSTALL_DIR" ] && [ ! -t 0 ]; then
-	if [ -n "${HOME:-}" ]; then
-		INSTALL_DIR="$HOME/.local/bin"
-	else
-		echo "error: HOME not set and --install-dir not provided"
-		exit 1
-	fi
+	echo "error: non-interactive install requires --install-dir or STUDIOCTL_INSTALL_DIR"
+	exit 1
 fi
 
 if [ "$VERSION" = "latest" ]; then

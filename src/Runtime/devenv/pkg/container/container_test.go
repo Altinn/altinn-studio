@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"altinn.studio/devenv/pkg/processutil"
 )
 
 const testImage = "alpine:latest@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62"
@@ -36,7 +38,7 @@ func cliName() string {
 }
 
 func removeContainer(ctx context.Context, name string) {
-	if err := exec.CommandContext(ctx, cliName(), "rm", "-f", name).Run(); err != nil {
+	if err := processutil.CommandContext(ctx, cliName(), "rm", "-f", name).Run(); err != nil {
 		return
 	}
 }
@@ -50,7 +52,7 @@ func closeTestClient(t *testing.T, cli ContainerClient) {
 
 func pullImage(ctx context.Context, t *testing.T) {
 	t.Helper()
-	cmd := exec.CommandContext(ctx, cliName(), "pull", testImage)
+	cmd := processutil.CommandContext(ctx, cliName(), "pull", testImage)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("failed to pull test image: %v\n%s", err, output)
 	}

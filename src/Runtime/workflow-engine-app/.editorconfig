@@ -129,13 +129,6 @@ dotnet_diagnostic.CA1031.severity = none
 resharper_explicit_caller_info_argument_highlighting = none
 
 
-## WorkflowEngine.Data ##
-
-[src/WorkflowEngine.Data/Migrations/*.cs]
-# CA1861: Prefer 'static readonly' fields over constant array arguments
-dotnet_diagnostic.CA1861.severity = none
-
-
 ## Test projects ##
 
 [tests/**/*.cs]

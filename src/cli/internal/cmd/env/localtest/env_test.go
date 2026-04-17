@@ -26,16 +26,22 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 	}{
 		"all core containers running": {
 			states: map[string]types.ContainerState{
-				localtest.ContainerLocaltest: {Status: "running", Running: true},
-				localtest.ContainerPDF3:      {Status: "running", Running: true},
+				localtest.ContainerLocaltest:        {Status: "running", Running: true},
+				localtest.ContainerPDF3:             {Status: "running", Running: true},
+				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
+				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
+				localtest.ContainerPgAdmin:          {Status: "running", Running: true},
 			},
 			wantRunning:    true,
 			wantAnyRunning: true,
 		},
 		"one running one exited": {
 			states: map[string]types.ContainerState{
-				localtest.ContainerLocaltest: {Status: "running", Running: true},
-				localtest.ContainerPDF3:      {Status: "exited", Running: false},
+				localtest.ContainerLocaltest:        {Status: "running", Running: true},
+				localtest.ContainerPDF3:             {Status: "exited", Running: false},
+				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
+				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
+				localtest.ContainerPgAdmin:          {Status: "running", Running: true},
 			},
 			wantRunning:    false,
 			wantAnyRunning: true,

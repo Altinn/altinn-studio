@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+const osLinux = "linux"
+
 // ErrUnsupportedPlatform is returned when the current platform is not supported.
 var (
 	ErrUnsupportedPlatform   = errors.New("unsupported platform")
@@ -25,13 +27,13 @@ func OpenBrowser(ctx context.Context, rawURL string) error {
 		return err
 	}
 
-	if runtime.GOOS == "linux" && isWSL() {
+	if runtime.GOOS == osLinux && isWSL() {
 		return openBrowserWSL(ctx, safeURL)
 	}
 
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
-	case "linux":
+	case osLinux:
 		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
 		cmd = exec.CommandContext(ctx, "xdg-open", safeURL)
 	case "darwin":
