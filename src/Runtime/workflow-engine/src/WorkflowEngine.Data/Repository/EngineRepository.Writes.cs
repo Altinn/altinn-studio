@@ -677,6 +677,7 @@ internal sealed partial class EngineRepository
                     SET "Status"       = {PersistentItemStatus.Processing},
                         "UpdatedAt"    = {now},
                         "HeartbeatAt"  = {now},
+                        "LeaseToken"   = gen_random_uuid(),
                         "ReclaimCount" = w."ReclaimCount" + (CASE WHEN c.was_stale THEN 1 ELSE 0 END)
                     FROM candidates c
                     WHERE w."Id" = c."Id"
