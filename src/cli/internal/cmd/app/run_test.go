@@ -1,21 +1,21 @@
-package run_test
+package app_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	runsvc "altinn.studio/studioctl/internal/cmd/run"
+	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	repocontext "altinn.studio/studioctl/internal/context"
 )
 
 func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	t.Parallel()
 
-	spec, err := runsvc.NewService().BuildDockerRunSpec(repocontext.Detection{
+	spec, err := appsvc.NewService("").BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   t.TempDir(),
 		InAppRepo: true,
-	}, nil, runsvc.DockerRunOptions{})
+	}, nil, appsvc.DockerRunOptions{})
 	if err != nil {
 		t.Fatalf("BuildDockerRunSpec() error = %v", err)
 	}
@@ -34,10 +34,10 @@ func TestBuildDockerRunSpec_UsesImageTagOverride(t *testing.T) {
 
 	want := "ghcr.io/altinn/altinn-studio/app:frontend-test"
 
-	spec, err := runsvc.NewService().BuildDockerRunSpec(repocontext.Detection{
+	spec, err := appsvc.NewService("").BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   t.TempDir(),
 		InAppRepo: true,
-	}, nil, runsvc.DockerRunOptions{ImageTag: want})
+	}, nil, appsvc.DockerRunOptions{ImageTag: want})
 	if err != nil {
 		t.Fatalf("BuildDockerRunSpec() error = %v", err)
 	}
@@ -50,7 +50,7 @@ func TestBuildDockerRunSpec_UsesImageTagOverride(t *testing.T) {
 func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 	t.Parallel()
 
-	spec := runsvc.NewService().BuildDotnetRunSpec(t.Context(), t.TempDir(), nil, nil)
+	spec := appsvc.NewService("").BuildDotnetRunSpec(t.Context(), t.TempDir(), nil, nil)
 
 	assertEnvContainsAll(t, spec.Env, []string{
 		"Kestrel__EndPoints__Http__Url=http://127.0.0.1:5005",
@@ -60,15 +60,15 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 	}
 }
 
-func TestResolveApp_ReadsAppID(t *testing.T) {
+func TestResolveRunTarget_ReadsAppID(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	target, err := runsvc.NewService().ResolveApp(t.Context(), appPath)
+	target, err := appsvc.NewService("").ResolveRunTarget(t.Context(), appPath)
 	if err != nil {
-		t.Fatalf("ResolveApp() error = %v", err)
+		t.Fatalf("ResolveRunTarget() error = %v", err)
 	}
 	if target.AppID != "ttd/test-app" {
 		t.Fatalf("AppID = %q, want %q", target.AppID, "ttd/test-app")
@@ -78,14 +78,14 @@ func TestResolveApp_ReadsAppID(t *testing.T) {
 	}
 }
 
-func TestResolveApp_RejectsInvalidAppID(t *testing.T) {
+func TestResolveRunTarget_RejectsInvalidAppID(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"invalid"}`)
 
-	if _, err := runsvc.NewService().ResolveApp(t.Context(), appPath); err == nil {
-		t.Fatal("ResolveApp() error = nil, want error")
+	if _, err := appsvc.NewService("").ResolveRunTarget(t.Context(), appPath); err == nil {
+		t.Fatal("ResolveRunTarget() error = nil, want error")
 	}
 }
 

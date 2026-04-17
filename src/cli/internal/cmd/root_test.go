@@ -198,8 +198,13 @@ func TestCLI_Run(t *testing.T) {
 			wantCode: 1,
 		},
 		{
-			name:     "run command exists",
+			name:     "run alias exists",
 			args:     []string{"run", "--help"},
+			wantCode: 0,
+		},
+		{
+			name:     "app run command exists",
+			args:     []string{"app", "run", "--help"},
 			wantCode: 0,
 		},
 	}

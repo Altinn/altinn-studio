@@ -1,5 +1,4 @@
-// Package run contains command-specific run application logic.
-package run
+package app
 
 import (
 	"context"
@@ -69,14 +68,6 @@ func dockerLocaltestEnvDefaults() map[string]string {
 	)
 }
 
-// Service contains run command logic.
-type Service struct{}
-
-// NewService creates a new run command service.
-func NewService() *Service {
-	return &Service{}
-}
-
 // DotnetRunSpec contains subprocess execution details for `dotnet run`.
 type DotnetRunSpec struct {
 	Dir     string
@@ -85,7 +76,7 @@ type DotnetRunSpec struct {
 	Env     []string
 }
 
-// DockerRunSpec contains container execution details for `studioctl run --mode container`.
+// DockerRunSpec contains container execution details for `studioctl app run --mode container`.
 type DockerRunSpec struct {
 	Config types.ContainerConfig
 }
@@ -96,8 +87,8 @@ type DockerRunOptions struct {
 	RandomHostPort bool
 }
 
-// Target describes the app resolved for a run command.
-type Target struct {
+// RunTarget describes the app resolved for the app run command.
+type RunTarget struct {
 	AppID     string
 	Detection repocontext.Detection
 }
@@ -106,22 +97,22 @@ type appMetadata struct {
 	ID string `json:"id"`
 }
 
-// ResolveApp detects the target app directory.
-func (s *Service) ResolveApp(ctx context.Context, appPath string) (Target, error) {
+// ResolveRunTarget detects the target app directory.
+func (s *Service) ResolveRunTarget(ctx context.Context, appPath string) (RunTarget, error) {
 	result, err := repocontext.DetectFromCwd(ctx, appPath)
 	if err != nil {
-		return Target{}, fmt.Errorf("detect app: %w", err)
+		return RunTarget{}, fmt.Errorf("detect app: %w", err)
 	}
 	if !result.InAppRepo {
-		return Target{}, repocontext.ErrAppNotFound
+		return RunTarget{}, repocontext.ErrAppNotFound
 	}
 
 	appID, err := readAppID(result.AppRoot)
 	if err != nil {
-		return Target{}, fmt.Errorf("read app id: %w", err)
+		return RunTarget{}, fmt.Errorf("read app id: %w", err)
 	}
 
-	return Target{
+	return RunTarget{
 		AppID:     appID,
 		Detection: result,
 	}, nil

@@ -17,8 +17,8 @@ import (
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/appmanager"
+	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
-	runsvc "altinn.studio/studioctl/internal/cmd/run"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/networking"
@@ -47,32 +47,38 @@ var (
 	errStudioctlConfigRequired         = errors.New("studioctl config is required")
 )
 
-// RunCommand implements the 'run' subcommand.
 type RunCommand struct {
 	out     *ui.Output
 	cfg     *config.Config
-	service *runsvc.Service
+	service *appsvc.Service
 }
 
-// NewRunCommand creates a new run command.
+// NewRunCommand creates a new top-level run alias command.
 func NewRunCommand(cfg *config.Config, out *ui.Output) *RunCommand {
+	return newRunCommand(cfg, out, appsvc.NewService(cfg.Home))
+}
+
+func newRunCommand(cfg *config.Config, out *ui.Output, service *appsvc.Service) *RunCommand {
 	return &RunCommand{
 		out:     out,
 		cfg:     cfg,
-		service: runsvc.NewService(),
+		service: service,
 	}
+}
+
+func (c *RunCommand) Usage() string {
+	return c.UsageFor("run")
 }
 
 // Name returns the command name.
 func (c *RunCommand) Name() string { return "run" }
 
 // Synopsis returns a short description.
-func (c *RunCommand) Synopsis() string { return "Run app natively (wraps 'dotnet run')" }
+func (c *RunCommand) Synopsis() string { return "Run app (alias for 'app run')" }
 
-// Usage returns the full help text.
-func (c *RunCommand) Usage() string {
+func (c *RunCommand) UsageFor(commandPath string) string {
 	return joinLines(
-		fmt.Sprintf("Usage: %s run [-p PATH] [-- dotnet args]", osutil.CurrentBin()),
+		fmt.Sprintf("Usage: %s %s [-p PATH] [-- dotnet args]", osutil.CurrentBin(), commandPath),
 		"",
 		"Runs the Altinn app using 'dotnet run'. The app is auto-detected from the",
 		"current directory, or can be specified with -p.",
@@ -101,9 +107,12 @@ type runFlags struct {
 	skipBuild      bool
 }
 
-// Run executes the command.
 func (c *RunCommand) Run(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("run", flag.ContinueOnError)
+	return c.RunWithCommandPath(ctx, args, "run")
+}
+
+func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, commandPath string) error {
+	fs := flag.NewFlagSet(commandPath, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	var flags runFlags
 	fs.StringVar(&flags.appPath, "p", "", "App directory path")
@@ -131,7 +140,7 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 
 	if err := fs.Parse(cmdArgs); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
-			c.out.Print(c.Usage())
+			c.out.Print(c.UsageFor(commandPath))
 			return nil
 		}
 		return fmt.Errorf("parsing flags: %w", err)
@@ -140,7 +149,7 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
 
-	target, err := c.service.ResolveApp(ctx, flags.appPath)
+	target, err := c.service.ResolveRunTarget(ctx, flags.appPath)
 	if err != nil {
 		if errors.Is(err, repocontext.ErrAppNotFound) {
 			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
@@ -172,7 +181,7 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 	return runErr
 }
 
-func (c *RunCommand) runDotnet(ctx context.Context, target runsvc.Target, args []string) error {
+func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, args []string) error {
 	appPath := target.Detection.AppRoot
 	spec := c.service.BuildDotnetRunSpec(ctx, appPath, args, os.Environ())
 
@@ -464,9 +473,9 @@ func probeLocaltestApp(ctx context.Context, client *http.Client, appID, url stri
 	return resp.Status, true
 }
 
-func (c *RunCommand) runDocker(ctx context.Context, target runsvc.Target, args []string, flags runFlags) error {
+func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, args []string, flags runFlags) error {
 	result := target.Detection
-	spec, specErr := c.service.BuildDockerRunSpec(result, args, runsvc.DockerRunOptions{
+	spec, specErr := c.service.BuildDockerRunSpec(result, args, appsvc.DockerRunOptions{
 		ImageTag:       flags.imageTag,
 		RandomHostPort: flags.randomHostPort,
 	})

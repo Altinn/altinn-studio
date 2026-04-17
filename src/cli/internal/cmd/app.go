@@ -2,11 +2,16 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"strings"
 
+	containerruntime "altinn.studio/devenv/pkg/container"
+	"altinn.studio/studioctl/internal/appcontainers"
+	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/auth"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
@@ -19,14 +24,17 @@ import (
 // AppCommand implements the 'app' subcommand.
 type AppCommand struct {
 	out     *ui.Output
+	run     *RunCommand
 	service *appsvc.Service
 }
 
 // NewAppCommand creates a new app command.
 func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
+	service := appsvc.NewService(cfg.Home)
 	return &AppCommand{
 		out:     out,
-		service: appsvc.NewService(cfg.Home),
+		run:     newRunCommand(cfg, out, service),
+		service: service,
 	}
 }
 
@@ -46,6 +54,7 @@ func (c *AppCommand) Usage() string {
 		"Subcommands:",
 		"  build     Build an app container image",
 		"  clone     Clone an app repository from Altinn Studio",
+		"  run       Run app locally",
 		"  update    Update Altinn.App NuGet packages and frontend",
 		"",
 		fmt.Sprintf("Run '%s app <subcommand> --help' for more information.", osutil.CurrentBin()),
@@ -67,6 +76,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.runBuild(ctx, subArgs)
 	case "clone":
 		return c.runClone(ctx, subArgs)
+	case "run":
+		return c.run.RunWithCommandPath(ctx, subArgs, "app run")
 	case "update":
 		return c.runUpdate(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
@@ -75,6 +86,94 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 	default:
 		return fmt.Errorf("%w: %s", ErrUnknownSubcommand, subCmd)
 	}
+}
+
+func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("app build", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	var appPath string
+	var mode string
+	var imageTag string
+	var push bool
+	fs.StringVar(&appPath, "p", "", "App directory path")
+	fs.StringVar(&appPath, "path", "", "App directory path")
+	fs.StringVar(&mode, "m", runModeContainer, "Build mode")
+	fs.StringVar(&mode, "mode", runModeContainer, "Build mode")
+	fs.StringVar(&imageTag, "image-tag", "", "App container image tag")
+	fs.BoolVar(&push, "push", false, "Push app container image after build")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			c.out.Print(c.appBuildUsage())
+			return nil
+		}
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+	if mode != runModeContainer {
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, mode)
+	}
+	if push && imageTag == "" {
+		return fmt.Errorf("%w: --push requires --image-tag", ErrInvalidFlagValue)
+	}
+
+	result, err := c.service.ResolveTarget(ctx, appPath)
+	if err != nil {
+		if errors.Is(err, repocontext.ErrAppNotFound) {
+			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
+		}
+		return fmt.Errorf("detect app: %w", err)
+	}
+
+	spec, err := appimage.BuildSpecForApp(result, imageTag)
+	if err != nil {
+		return fmt.Errorf("build docker image spec: %w", err)
+	}
+	cleanupDockerfile, err := appimage.MaterializeDockerfile(&spec)
+	if err != nil {
+		return fmt.Errorf("materialize dockerfile: %w", err)
+	}
+	defer cleanupGeneratedDockerfile(c.out, cleanupDockerfile)
+
+	client, err := containerruntime.Detect(ctx)
+	if err != nil {
+		return fmt.Errorf("connect to container runtime: %w", err)
+	}
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			c.out.Verbosef("failed to close container client: %v", cerr)
+		}
+	}()
+
+	c.out.Verbosef("Building app image %s", spec.ImageTag)
+	if err := client.Build(ctx, spec.ContextPath, spec.Dockerfile, spec.ImageTag, spec.Build); err != nil {
+		return fmt.Errorf("build app image: %w", err)
+	}
+	c.out.Printlnf("Image: %s", spec.ImageTag)
+
+	if push {
+		c.out.Verbosef("Pushing app image %s", spec.ImageTag)
+		if err := client.Push(ctx, spec.ImageTag); err != nil {
+			return fmt.Errorf("push app image: %w", err)
+		}
+		c.out.Printlnf("Pushed: %s", spec.ImageTag)
+	}
+
+	return nil
+}
+
+func (c *AppCommand) appBuildUsage() string {
+	return joinLines(
+		fmt.Sprintf("Usage: %s app build [-p PATH] [--image-tag IMAGE] [--push]", osutil.CurrentBin()),
+		"",
+		"Builds an Altinn app container image.",
+		"",
+		"Options:",
+		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
+		"  -m, --mode MODE       Build mode: container (default: container)",
+		"  --image-tag IMAGE     App container image tag",
+		"  --push                Push app container image after build",
+		"  -h, --help            Show this help",
+	)
 }
 
 func (c *AppCommand) runUpdate(ctx context.Context, args []string) error {
@@ -194,4 +293,48 @@ func parseOrgRepo(s string) (org, repo string, err error) {
 		return "", "", fmt.Errorf("%w: %q (expected org/repo)", ErrInvalidRepoFormat, s)
 	}
 	return parts[0], parts[1], nil
+}
+
+// AppContainersCommand is a hidden command used by app-manager for container runtime discovery.
+type AppContainersCommand struct {
+	out *ui.Output
+}
+
+// NewAppContainersCommand creates a hidden app-container discovery command.
+func NewAppContainersCommand(_ *config.Config, out *ui.Output) *AppContainersCommand {
+	return &AppContainersCommand{out: out}
+}
+
+// Name returns the command name.
+func (c *AppContainersCommand) Name() string { return "__app-containers" }
+
+// Synopsis returns a short description.
+func (c *AppContainersCommand) Synopsis() string { return "List app containers" }
+
+// Usage returns the full help text.
+func (c *AppContainersCommand) Usage() string { return "" }
+
+// Run executes the command.
+func (c *AppContainersCommand) Run(ctx context.Context, _ []string) error {
+	client, err := containerruntime.Detect(ctx)
+	if err != nil {
+		return fmt.Errorf("connect to container runtime: %w", err)
+	}
+	defer func() {
+		if cerr := client.Close(); cerr != nil {
+			c.out.Verbosef("failed to close container client: %v", cerr)
+		}
+	}()
+
+	candidates, err := appcontainers.Discover(ctx, client)
+	if err != nil {
+		return fmt.Errorf("discover app containers: %w", err)
+	}
+
+	data, err := json.Marshal(candidates)
+	if err != nil {
+		return fmt.Errorf("encode app-container candidates: %w", err)
+	}
+	c.out.Println(string(data))
+	return nil
 }
