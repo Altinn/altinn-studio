@@ -1,15 +1,12 @@
 using System.Reflection;
 using Altinn.Studio.AppManager.Discovery;
 using Altinn.Studio.AppManager.Platform;
-using Altinn.Studio.AppManager.Platform.PortListeners;
 using Altinn.Studio.AppManager.Tunnel;
 
 namespace Altinn.Studio.AppManager.Studioctl;
 
 internal static class Endpoints
 {
-    private static readonly TimeSpan _registerPollInterval = TimeSpan.FromMilliseconds(500);
-
     public static RouteGroupBuilder MapStudioctlEndpoints(this RouteGroupBuilder api)
     {
         var studioctl = api.MapGroup("/studioctl");
@@ -48,9 +45,7 @@ internal static class Endpoints
     }
 
     private static async Task<IResult> RegisterApp(
-        AppRegistry registry,
-        PortListeners portListeners,
-        AppMetadataProbe probe,
+        RegisterApp registerApp,
         RegisterAppRequest? request,
         CancellationToken cancellationToken
     )
@@ -58,59 +53,30 @@ internal static class Endpoints
         if (request is null)
             return Results.BadRequest(new CommandResponse("request body is required"));
 
-        if (string.IsNullOrWhiteSpace(request.AppId))
-            return Results.BadRequest(new CommandResponse("appId is required"));
-
-        if (request.GracePeriodSeconds <= 0)
-            return Results.BadRequest(new CommandResponse("gracePeriodSeconds must be positive"));
-
-        var appId = request.AppId.Trim();
-        var description = string.IsNullOrWhiteSpace(request.Description)
-            ? $"studioctl app {appId}"
-            : request.Description;
-
-        var hasPort = request.Port.HasValue;
-        var hasProcessId = request.ProcessId.HasValue;
-        if (hasPort == hasProcessId)
-            return Results.BadRequest(new CommandResponse("exactly one of port or processId is required"));
-
-        if (request.Port is { } port)
-        {
-            if (!AppEndpointUri.TryLoopbackHttp(port, out var baseUri) || baseUri is null)
-                return Results.BadRequest(new CommandResponse("port must be in range 1-65535"));
-
-            var result = await WaitForMatchingApp(
-                registry,
-                probe,
-                appId,
-                _ => Task.FromResult<IReadOnlyList<Uri>>([baseUri]),
-                description,
-                TimeSpan.FromSeconds(request.GracePeriodSeconds),
-                cancellationToken
-            );
-            return result ?? Results.NotFound(new CommandResponse("matching app endpoint not found"));
-        }
-
-        if (request.ProcessId is not { } processId || processId <= 0)
-            return Results.BadRequest(new CommandResponse("processId must be positive"));
-
-        var processResult = await WaitForMatchingApp(
-            registry,
-            probe,
-            appId,
-            token => ProcessListenerUris(portListeners, processId, token),
-            description,
-            TimeSpan.FromSeconds(request.GracePeriodSeconds),
+        var result = await registerApp.Handle(
+            new RegisterAppCommand(
+                request.AppId,
+                request.Port,
+                request.ProcessId,
+                request.Description,
+                TimeSpan.FromSeconds(request.GracePeriodSeconds)
+            ),
             cancellationToken
         );
-        return processResult ?? Results.NotFound(new CommandResponse("matching app endpoint not found"));
+
+        return result.Kind switch
+        {
+            RegisterAppResultKind.Registered when result.BaseUri is { } baseUri => Results.Accepted(
+                value: new RegisterAppResponse(result.Message, baseUri.ToString())
+            ),
+            RegisterAppResultKind.InvalidRequest => Results.BadRequest(new CommandResponse(result.Message)),
+            RegisterAppResultKind.NotFound => Results.NotFound(new CommandResponse(result.Message)),
+            _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
+        };
     }
 
-    private static IResult UnregisterApp(AppRegistry registry, string? appId, string? baseUrl)
+    private static IResult UnregisterApp(UnregisterApp unregisterApp, string? appId, string? baseUrl)
     {
-        if (string.IsNullOrWhiteSpace(appId))
-            return Results.BadRequest(new CommandResponse("appId is required"));
-
         if (
             string.IsNullOrWhiteSpace(baseUrl)
             || !Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
@@ -120,8 +86,13 @@ internal static class Endpoints
             return Results.BadRequest(new CommandResponse("baseUrl must be an absolute http or https URL"));
         }
 
-        registry.Unregister(appId.Trim(), baseUri);
-        return Results.Accepted(value: new CommandResponse("app unregistered"));
+        var result = unregisterApp.Handle(appId, baseUri);
+        return result.Kind switch
+        {
+            UnregisterAppResultKind.Unregistered => Results.Accepted(value: new CommandResponse(result.Message)),
+            UnregisterAppResultKind.InvalidRequest => Results.BadRequest(new CommandResponse(result.Message)),
+            _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
+        };
     }
 
     private static async Task<IResult> Shutdown(IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
@@ -141,55 +112,6 @@ internal static class Endpoints
     private static IResult NotImplemented()
     {
         return Results.StatusCode(StatusCodes.Status501NotImplemented);
-    }
-
-    private static async Task<IResult?> WaitForMatchingApp(
-        AppRegistry registry,
-        AppMetadataProbe probe,
-        string appId,
-        Func<CancellationToken, Task<IReadOnlyList<Uri>>> candidateUris,
-        string description,
-        TimeSpan gracePeriod,
-        CancellationToken cancellationToken
-    )
-    {
-        var deadline = TimeProvider.System.GetUtcNow() + gracePeriod;
-        while (true)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            foreach (var baseUri in await candidateUris(cancellationToken))
-            {
-                var resolvedAppId = await probe.Probe(baseUri, cancellationToken);
-                if (!string.Equals(resolvedAppId, appId, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                registry.Register(appId, baseUri, description, gracePeriod);
-                return Results.Accepted(value: new RegisterAppResponse("app registered", baseUri.ToString()));
-            }
-
-            var delay = deadline - TimeProvider.System.GetUtcNow();
-            if (delay <= TimeSpan.Zero)
-                return null;
-
-            await Task.Delay(delay < _registerPollInterval ? delay : _registerPollInterval, cancellationToken);
-        }
-    }
-
-    private static async Task<IReadOnlyList<Uri>> ProcessListenerUris(
-        PortListeners portListeners,
-        int processId,
-        CancellationToken cancellationToken
-    )
-    {
-        var listeners = await portListeners.Get(cancellationToken);
-        var uris = new List<Uri>();
-        foreach (var listener in listeners.Where(listener => listener.ProcessId == processId))
-        {
-            if (AppEndpointUri.TryFromListener(listener, out var baseUri) && baseUri is not null)
-                uris.Add(baseUri);
-        }
-
-        return uris;
     }
 
     private sealed record StatusResponse(

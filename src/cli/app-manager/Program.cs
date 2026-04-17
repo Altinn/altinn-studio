@@ -29,6 +29,7 @@ internal static class Program
         builder.Logging.SetMinimumLevel(internalDevMode ? LogLevel.Debug : LogLevel.Information);
 
         builder.Services.AddDiscoveryServices(builder.Configuration);
+        builder.Services.AddStudioctlServices();
         builder.Services.AddTunnelServices(builder.Configuration);
 
         builder.WebHost.ConfigureKestrel((context, options) => IpcListener.Configure(context.Configuration, options));
