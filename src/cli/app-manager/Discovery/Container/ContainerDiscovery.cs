@@ -111,15 +111,10 @@ internal sealed class ContainerDiscovery : IAppDiscovery
 
     private static IEnumerable<AppDiscoveryCandidate> ToDiscoveryCandidate(ContainerCandidate candidate)
     {
-        if (candidate.HostPort <= 0 || candidate.HostPort > 65535)
+        if (!AppEndpointUri.TryLoopbackHttp(candidate.HostPort, out var baseUri) || baseUri is null)
             yield break;
 
-        yield return new AppDiscoveryCandidate(
-            candidate.Source,
-            new Uri($"http://127.0.0.1:{candidate.HostPort}", UriKind.Absolute),
-            null,
-            candidate.Description
-        );
+        yield return new AppDiscoveryCandidate(candidate.Source, baseUri, null, candidate.Description);
     }
 
     private sealed record ContainerCandidate(

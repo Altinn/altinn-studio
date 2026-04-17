@@ -1,4 +1,5 @@
 using System.Net;
+using Altinn.Studio.AppManager.Platform.PortListeners;
 
 namespace Altinn.Studio.AppManager.Discovery;
 
@@ -22,6 +23,31 @@ internal static class AppEndpointUri
             UriFormat.SafeUnescaped,
             StringComparison.OrdinalIgnoreCase
         ) == 0;
+
+    public static bool TryLoopbackHttp(int port, out Uri? uri)
+    {
+        if (port is <= 0 or > 65535)
+        {
+            uri = default;
+            return false;
+        }
+
+        uri = new UriBuilder(Uri.UriSchemeHttp, CanonicalLoopbackHost, port).Uri;
+        return true;
+    }
+
+    public static bool TryFromListener(PortListener listener, out Uri? uri)
+    {
+        switch (listener.BindScope)
+        {
+            case ListenerBindScope.Loopback:
+            case ListenerBindScope.Any:
+                return TryLoopbackHttp(listener.Port, out uri);
+            default:
+                uri = default;
+                return false;
+        }
+    }
 
     private static bool IsLoopbackHost(string host)
     {

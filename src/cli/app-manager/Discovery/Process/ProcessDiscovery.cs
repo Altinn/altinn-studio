@@ -17,7 +17,7 @@ internal sealed class ProcessDiscovery : IAppDiscovery
         var listeners = await _portListeners.Get(cancellationToken);
         foreach (var listener in listeners)
         {
-            if (!TryBuildProbeUri(listener, out var baseUri) || baseUri is null)
+            if (!AppEndpointUri.TryFromListener(listener, out var baseUri) || baseUri is null)
                 continue;
 
             if (string.IsNullOrWhiteSpace(listener.ProcessName))
@@ -33,20 +33,4 @@ internal sealed class ProcessDiscovery : IAppDiscovery
 
         return candidates;
     }
-
-    private static bool TryBuildProbeUri(PortListener listener, out Uri? baseUri)
-    {
-        switch (listener.BindScope)
-        {
-            case ListenerBindScope.Loopback:
-            case ListenerBindScope.Any:
-                baseUri = BuildLoopbackUri(listener.Port);
-                return true;
-            default:
-                baseUri = default;
-                return false;
-        }
-    }
-
-    private static Uri BuildLoopbackUri(int port) => new($"http://127.0.0.1:{port}", UriKind.Absolute);
 }

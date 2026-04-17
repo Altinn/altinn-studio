@@ -74,10 +74,9 @@ internal static class Endpoints
 
         if (request.Port is { } port)
         {
-            if (port is <= 0 or > 65535)
+            if (!AppEndpointUri.TryLoopbackHttp(port, out var baseUri) || baseUri is null)
                 return Results.BadRequest(new CommandResponse("port must be in range 1-65535"));
 
-            var baseUri = BuildLoopbackUri(port);
             var result = await RegisterIfAppMatches(
                 registry,
                 probe,
@@ -96,7 +95,7 @@ internal static class Endpoints
         var listeners = await portListeners.Get(cancellationToken);
         foreach (var listener in listeners.Where(listener => listener.ProcessId == processId))
         {
-            if (!TryBuildProbeUri(listener, out var baseUri) || baseUri is null)
+            if (!AppEndpointUri.TryFromListener(listener, out var baseUri) || baseUri is null)
                 continue;
 
             var result = await RegisterIfAppMatches(
@@ -152,20 +151,6 @@ internal static class Endpoints
         return Results.StatusCode(StatusCodes.Status501NotImplemented);
     }
 
-    private static bool TryBuildProbeUri(PortListener listener, out Uri? baseUri)
-    {
-        switch (listener.BindScope)
-        {
-            case ListenerBindScope.Loopback:
-            case ListenerBindScope.Any:
-                baseUri = BuildLoopbackUri(listener.Port);
-                return true;
-            default:
-                baseUri = default;
-                return false;
-        }
-    }
-
     private static async Task<IResult?> RegisterIfAppMatches(
         AppRegistry registry,
         AppMetadataProbe probe,
@@ -183,8 +168,6 @@ internal static class Endpoints
         registry.Register(appId, baseUri, description, gracePeriod);
         return Results.Accepted(value: new RegisterAppResponse("app registered", baseUri.ToString()));
     }
-
-    private static Uri BuildLoopbackUri(int port) => new($"http://127.0.0.1:{port}", UriKind.Absolute);
 
     private sealed record StatusResponse(
         string Status,
