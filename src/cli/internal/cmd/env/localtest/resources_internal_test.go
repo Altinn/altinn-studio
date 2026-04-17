@@ -112,6 +112,9 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	}
 
 	pdf3 := containers[1]
+	if got := pdf3.Ports; len(got) != 1 || got[0] != newPort("5300", "5031") {
+		t.Fatalf("pdf3.Ports = %v, want [5300:5031]", got)
+	}
 	for _, host := range pdf3.ExtraHosts {
 		if strings.HasPrefix(host, "local.altinn.cloud:") {
 			t.Fatalf("pdf3.ExtraHosts unexpectedly contains local.altinn.cloud host override: %v", pdf3.ExtraHosts)
@@ -126,29 +129,14 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 		)
 	}
 
+	workflowEngineDb := containers[2]
+	if got := workflowEngineDb.Ports; got != nil {
+		t.Fatalf("workflowEngineDb.Ports = %v, want nil", got)
+	}
+
 	workflowEngine := containers[3]
-	wantPorts := []struct {
-		hostPort      string
-		containerPort string
-	}{
-		{hostPort: "9080", containerPort: "8080"},
-		{hostPort: "9081", containerPort: "8081"},
-	}
-	gotPorts := make([]struct {
-		hostPort      string
-		containerPort string
-	}, 0, len(workflowEngine.Ports))
-	for _, port := range workflowEngine.Ports {
-		gotPorts = append(gotPorts, struct {
-			hostPort      string
-			containerPort string
-		}{
-			hostPort:      port.HostPort,
-			containerPort: port.ContainerPort,
-		})
-	}
-	if !slices.Equal(gotPorts, wantPorts) {
-		t.Fatalf("workflowEngine.Ports = %v, want %v", gotPorts, wantPorts)
+	if got := workflowEngine.Ports; got != nil {
+		t.Fatalf("workflowEngine.Ports = %v, want nil", got)
 	}
 	if got := workflowEngine.ExtraHosts; got != nil {
 		t.Fatalf("workflowEngine.ExtraHosts = %v, want nil", got)
@@ -262,6 +250,9 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 	}
 
 	pgAdmin := containers[index]
+	if got := pgAdmin.Ports; got != nil {
+		t.Fatalf("pgAdmin.Ports = %v, want nil", got)
+	}
 	if got := pgAdmin.Environment["PGPASS_FILE"]; got != pgAdminConnectionSource {
 		t.Fatalf("pgAdmin.Environment[PGPASS_FILE] = %q, want %q", got, pgAdminConnectionSource)
 	}

@@ -32,21 +32,23 @@ const (
 	appMetadataFile                 = "App/config/applicationmetadata.json"
 )
 
-func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint, workflowEngineEndpoint string) map[string]string {
+func localtestEnvDefaults(
+	platformEndpoint, otelEndpoint, pdfEndpoint, workflowEngineEndpoint string,
+) map[string]string {
 	return map[string]string{
-		"AppSettings__OpenIdWellKnownEndpoint":          "http://" + host + ":5101/authentication/api/v1/openid/",
+		"AppSettings__OpenIdWellKnownEndpoint":          platformEndpoint + "/authentication/api/v1/openid/",
 		"GeneralSettings__ExternalAppBaseUrl":           localtestExternalAppBaseURL(),
 		"OTEL_EXPORTER_OTLP_ENDPOINT":                   otelEndpoint,
-		"PlatformSettings__ApiStorageEndpoint":          "http://" + host + ":5101/storage/api/v1/",
-		"PlatformSettings__ApiRegisterEndpoint":         "http://" + host + ":5101/register/api/v1/",
-		"PlatformSettings__ApiProfileEndpoint":          "http://" + host + ":5101/profile/api/v1/",
-		"PlatformSettings__ApiAuthenticationEndpoint":   "http://" + host + ":5101/authentication/api/v1/",
-		"PlatformSettings__ApiAuthorizationEndpoint":    "http://" + host + ":5101/authorization/api/v1/",
-		"PlatformSettings__ApiEventsEndpoint":           "http://" + host + ":5101/events/api/v1/",
+		"PlatformSettings__ApiStorageEndpoint":          platformEndpoint + "/storage/api/v1/",
+		"PlatformSettings__ApiRegisterEndpoint":         platformEndpoint + "/register/api/v1/",
+		"PlatformSettings__ApiProfileEndpoint":          platformEndpoint + "/profile/api/v1/",
+		"PlatformSettings__ApiAuthenticationEndpoint":   platformEndpoint + "/authentication/api/v1/",
+		"PlatformSettings__ApiAuthorizationEndpoint":    platformEndpoint + "/authorization/api/v1/",
+		"PlatformSettings__ApiEventsEndpoint":           platformEndpoint + "/events/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint":             pdfEndpoint,
-		"PlatformSettings__ApiNotificationEndpoint":     "http://" + host + ":5101/notifications/api/v1/",
-		"PlatformSettings__ApiCorrespondenceEndpoint":   "http://" + host + ":5101/correspondence/api/v1/",
-		"PlatformSettings__ApiAccessManagementEndpoint": "http://" + host + ":5101/accessmanagement/api/v1/",
+		"PlatformSettings__ApiNotificationEndpoint":     platformEndpoint + "/notifications/api/v1/",
+		"PlatformSettings__ApiCorrespondenceEndpoint":   platformEndpoint + "/correspondence/api/v1/",
+		"PlatformSettings__ApiAccessManagementEndpoint": platformEndpoint + "/accessmanagement/api/v1/",
 		"PlatformSettings__ApiWorkflowEngineEndpoint":   workflowEngineEndpoint,
 	}
 }
@@ -57,16 +59,16 @@ func localtestExternalAppBaseURL() string {
 
 func nativeLocaltestEnvDefaults() map[string]string {
 	return localtestEnvDefaults(
-		localtestLoopbackHost,
+		"http://"+localtestLoopbackHost+":5101",
 		"http://"+localtestLoopbackHost+":4317",
 		"http://"+localtestLoopbackHost+":5300/pdf",
-		"http://"+localtestLoopbackHost+":8080/api/v1/",
+		"http://workflow-engine."+networking.LocalDomain+":"+envlocaltest.DefaultLoadBalancerPortString()+"/api/v1/",
 	)
 }
 
 func dockerLocaltestEnvDefaults() map[string]string {
 	return localtestEnvDefaults(
-		envlocaltest.ContainerLocaltest,
+		"http://"+envlocaltest.ContainerLocaltest+":5101",
 		"http://"+envlocaltest.ContainerMonitoringOtelCollector+":4317",
 		"http://"+envlocaltest.ContainerPDF3+":5031/pdf",
 		"http://"+envlocaltest.ContainerWorkflowEngine+":8080/api/v1/",

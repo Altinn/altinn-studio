@@ -26,6 +26,7 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 		"OTEL_EXPORTER_OTLP_ENDPOINT=http://monitoring_otel_collector:4317",
 		"PlatformSettings__ApiStorageEndpoint=http://localtest:5101/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://localtest-pdf3:5031/pdf",
+		"PlatformSettings__ApiWorkflowEngineEndpoint=http://localtest-workflow-engine:8080/api/v1/",
 	})
 }
 
@@ -59,6 +60,9 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 
 	assertEnvContainsAll(t, spec.Env, []string{
 		"Kestrel__EndPoints__Http__Url=http://127.0.0.1:5005",
+		"PlatformSettings__ApiStorageEndpoint=http://127.0.0.1:5101/storage/api/v1/",
+		"PlatformSettings__ApiPdf2Endpoint=http://127.0.0.1:5300/pdf",
+		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
 	})
 	if spec.ProjectPath != projectPath {
 		t.Fatalf("ProjectPath = %q, want %q", spec.ProjectPath, projectPath)

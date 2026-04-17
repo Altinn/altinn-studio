@@ -213,7 +213,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
 		ContainerWorkflowEngineDb,
-		[]types.PortMapping{newPort("5433", postgresPort)},
+		nil,
 		map[string]string{
 			"POSTGRES_DB":       postgresDB,
 			"POSTGRES_USER":     postgresUser,
@@ -245,10 +245,7 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 func workflowEngineContainerSpec() ContainerSpec {
 	return newContainerSpec(
 		ContainerWorkflowEngine,
-		[]types.PortMapping{
-			newPort("9080", "8080"),
-			newPort("9081", "8081"),
-		},
+		nil,
 		map[string]string{
 			"ASPNETCORE_ENVIRONMENT":              "Docker",
 			"ConnectionStrings__WorkflowEngine":   "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
@@ -269,7 +266,7 @@ func localtestInternalBaseURL() string {
 func pgAdminContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
 		ContainerPgAdmin,
-		[]types.PortMapping{newPort("5050", pgAdminContainerPort)},
+		nil,
 		map[string]string{
 			"PGADMIN_DEFAULT_EMAIL":                   pgAdminEmail,
 			"PGADMIN_DEFAULT_PASSWORD":                pgAdminPassword,
