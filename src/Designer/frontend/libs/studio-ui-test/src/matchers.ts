@@ -1,27 +1,52 @@
-import { screen } from '@testing-library/react';
-import type { MatcherFunction } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import type { queries, BoundFunctions, MatcherFunction } from '@testing-library/react';
 
-export function getFieldsetByLegend(legend: string): HTMLElement {
-  return screen.getByRole('group', { name: (accessibleName) => accessibleName.startsWith(legend) });
+export const studioScreen: StudioMatchers = extendMatcherObject(screen);
+
+export function studioWithin(element: HTMLElement): StudioMatchers {
+  return extendMatcherObject(within(element));
 }
 
-/**
- * Since the summary element does not have a role, we need to traverse up the DOM to get the details element. This is a helper function to do that.
- * https://github.com/testing-library/dom-testing-library/issues/1252
- */
-export function getDetailsBySummary(summary: string): HTMLDetailsElement {
-  const { parentElement } = getSummaryByText(summary);
-  /* istanbul ignore else */
-  if (parentElement instanceof HTMLDetailsElement) return parentElement;
-  else throw new Error('Could not find details element.');
-}
+export type StudioMatchers = BoundFunctions<typeof queries> & {
+  getDetailsBySummary: (summary: string) => HTMLElement;
+  getFieldsetByLegend: (legend: string) => HTMLElement;
+  getSummaryByText: (summary: string) => HTMLElement;
+  queryDetailsBySummary: (summary: string) => HTMLElement | null;
+  querySummaryByText: (summary: string) => HTMLElement | null;
+};
 
-export function getSummaryByText(summary: string): HTMLElement {
-  return screen.getByText(summaryByTextMatcher(summary));
-}
-
-export function querySummaryByText(summary: string): HTMLElement | null {
-  return screen.queryByText(summaryByTextMatcher(summary));
+function extendMatcherObject(matcherObject: Screen | ReturnType<typeof within>): StudioMatchers {
+  return {
+    ...matcherObject,
+    getDetailsBySummary(summary: string): HTMLDetailsElement {
+      // See https://github.com/testing-library/dom-testing-library/issues/1252
+      const { parentElement } = this.getSummaryByText(summary);
+      /* istanbul ignore else */
+      if (parentElement instanceof HTMLDetailsElement) return parentElement;
+      else throw new Error('Could not find details element.');
+    },
+    getFieldsetByLegend(legend: string): HTMLElement {
+      return this.getByRole('group', {
+        name: (accessibleName) => accessibleName.startsWith(legend),
+      });
+    },
+    getSummaryByText(summary: string): HTMLElement {
+      return this.getByText(summaryByTextMatcher(summary));
+    },
+    queryDetailsBySummary(summary: string): HTMLDetailsElement | null {
+      const summaryElement = this.querySummaryByText(summary);
+      /* istanbul ignore else */
+      if (!summaryElement) {
+        return null;
+      } else {
+        const { parentElement } = summaryElement;
+        return parentElement instanceof HTMLDetailsElement ? parentElement : null;
+      }
+    },
+    querySummaryByText(summary: string): HTMLElement | null {
+      return this.queryByText(summaryByTextMatcher(summary));
+    },
+  };
 }
 
 const summaryByTextMatcher =
