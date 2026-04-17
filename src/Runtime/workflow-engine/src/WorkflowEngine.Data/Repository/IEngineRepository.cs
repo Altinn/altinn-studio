@@ -171,13 +171,16 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Batch-updates HeartbeatAt for all specified workflow IDs in a single statement.
+    /// Batch-updates HeartbeatAt for all specified workflow leases in a single statement.
     /// Used by the processor to prove liveness of in-flight workers.
     /// Skips workflows whose <c>UpdatedAt</c> is newer than <paramref name="staleThreshold"/> —
     /// a recent status write already proves liveness.
+    /// Rows are only updated when the caller's <c>LeaseToken</c> matches the current value on the row.
+    /// Returns the subset of input ids whose lease was lost (another host has reclaimed them);
+    /// the caller should treat these workflows as no longer owned and cancel their in-flight work.
     /// </summary>
-    Task BatchUpdateHeartbeats(
-        IReadOnlyList<Guid> workflowIds,
+    Task<IReadOnlyList<Guid>> BatchUpdateHeartbeats(
+        IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> leases,
         TimeSpan staleThreshold,
         CancellationToken cancellationToken
     );

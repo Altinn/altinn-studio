@@ -72,6 +72,15 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
 
     /// <summary>
+    /// Snapshot of (workflowId, leaseToken) pairs for every in-flight workflow.
+    /// Used by <see cref="HeartbeatService"/> to issue lease-checked heartbeats —
+    /// a host that sent heartbeats without its lease token could keep a reclaimed
+    /// workflow "alive" on the row and silently overwrite the new owner's state.
+    /// </summary>
+    public IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> GetSnapshotLeases() =>
+        _workflows.Select(kvp => (kvp.Key, kvp.Value.Workflow.LeaseToken)).ToList();
+
+    /// <summary>
     /// Attempts to retrieve the in-memory <see cref="Workflow"/> object for a tracked workflow.
     /// The returned object is the live reference being mutated by the processing pipeline,
     /// so its <see cref="Workflow.Steps"/> reflect real-time in-memory state (e.g. step status

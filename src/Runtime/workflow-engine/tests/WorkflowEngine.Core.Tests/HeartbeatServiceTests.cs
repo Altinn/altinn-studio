@@ -73,7 +73,7 @@ public class HeartbeatServiceTests
             repo.Verify(
                 r =>
                     r.BatchUpdateHeartbeats(
-                        It.Is<IReadOnlyList<Guid>>(ids => ids.Count == 2),
+                        It.Is<IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)>>(ids => ids.Count == 2),
                         It.IsAny<TimeSpan>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -129,7 +129,7 @@ public class HeartbeatServiceTests
             repo.Verify(
                 r =>
                     r.BatchUpdateHeartbeats(
-                        It.IsAny<IReadOnlyList<Guid>>(),
+                        It.IsAny<IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)>>(),
                         It.IsAny<TimeSpan>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -171,7 +171,7 @@ public class HeartbeatServiceTests
             repo.Verify(
                 r =>
                     r.BatchUpdateHeartbeats(
-                        It.IsAny<IReadOnlyList<Guid>>(),
+                        It.IsAny<IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)>>(),
                         It.IsAny<TimeSpan>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -207,18 +207,18 @@ public class HeartbeatServiceTests
         var callCount = 0;
         repo.Setup(r =>
                 r.BatchUpdateHeartbeats(
-                    It.IsAny<IReadOnlyList<Guid>>(),
+                    It.IsAny<IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)>>(),
                     It.IsAny<TimeSpan>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns<IReadOnlyList<Guid>, TimeSpan, CancellationToken>(
+            .Returns<IReadOnlyList<(Guid, Guid)>, TimeSpan, CancellationToken>(
                 (_, _, _) =>
                 {
                     var count = Interlocked.Increment(ref callCount);
                     if (count == 1)
                         throw new InvalidOperationException("Transient DB error");
-                    return Task.CompletedTask;
+                    return Task.FromResult<IReadOnlyList<Guid>>([]);
                 }
             );
 

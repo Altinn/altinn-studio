@@ -767,14 +767,14 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task BatchUpdateHeartbeats(
-        IReadOnlyList<Guid> workflowIds,
+    public async Task<IReadOnlyList<Guid>> BatchUpdateHeartbeats(
+        IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> leases,
         TimeSpan staleThreshold,
         CancellationToken cancellationToken
     )
     {
-        if (workflowIds.Count == 0)
-            return;
+        if (leases.Count == 0)
+            return [];
 
         using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateHeartbeats");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -782,29 +782,67 @@ internal sealed partial class EngineRepository
         var now = timeProvider.GetUtcNow();
         var updatedBefore = now - staleThreshold;
 
+        var ids = new Guid[leases.Count];
+        var tokens = new Guid[leases.Count];
+        for (int i = 0; i < leases.Count; i++)
+        {
+            ids[i] = leases[i].WorkflowId;
+            tokens[i] = leases[i].LeaseToken;
+        }
+
         try
         {
+            List<Guid> lost = [];
             await ExecuteWithRetry(
                 async ct =>
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    // Pair (id, lease_token) via unnest so the WHERE check matches rows on both columns simultaneously.
+                    // ANY(@ids) + ANY(@tokens) would be wrong — it would accept any id/token cross-product match.
+                    // The CTE runs two operations in one statement:
+                    //   1) UPDATE rows whose (id, lease_token) pair matches — standard heartbeat write.
+                    //   2) SELECT input ids whose lease has been lost (row exists but the token on the row
+                    //      no longer matches the caller's token). PG guarantees the UPDATE in WITH is
+                    //      executed exactly once regardless of whether its output is referenced.
+                    //
+                    // Pairing (id, token) via unnest is intentional — ANY(@ids) + ANY(@tokens) would accept
+                    // any cross-product match, which is not what we want.
                     const string sql = """
-                    UPDATE "engine"."Workflows"
-                    SET "HeartbeatAt" = @now
-                    WHERE "Id" = ANY(@ids)
-                      AND "Status" = @status
-                      AND "UpdatedAt" < @updatedBefore
+                    WITH input AS (
+                        SELECT * FROM unnest(@ids, @lease_tokens) AS t(id, lease_token)
+                    ),
+                    updated AS (
+                        UPDATE "engine"."Workflows" w
+                        SET "HeartbeatAt" = @now
+                        FROM input i
+                        WHERE w."Id" = i.id
+                          AND w."LeaseToken" = i.lease_token
+                          AND w."Status" = @status
+                          AND w."UpdatedAt" < @updatedBefore
+                    )
+                    SELECT i.id FROM input i
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM "engine"."Workflows" w
+                        WHERE w."Id" = i.id AND w."LeaseToken" = i.lease_token
+                    )
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", [.. workflowIds]));
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("lease_tokens", tokens));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Processing));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("updatedBefore", updatedBefore));
-                    await cmd.ExecuteNonQueryAsync(ct);
+
+                    await using var reader = await cmd.ExecuteReaderAsync(ct);
+                    while (await reader.ReadAsync(ct))
+                    {
+                        lost.Add(reader.GetGuid(0));
+                    }
                 },
                 cancellationToken
             );
+            return lost;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -813,7 +851,7 @@ internal sealed partial class EngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.FailedToBatchUpdateHeartbeats(workflowIds.Count, ex.Message, ex);
+            logger.FailedToBatchUpdateHeartbeats(leases.Count, ex.Message, ex);
             throw;
         }
     }

@@ -265,7 +265,11 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         var staleThreshold = TimeSpan.FromSeconds(10);
-        await repo.BatchUpdateHeartbeats([wf.DatabaseId], staleThreshold, TestContext.Current.CancellationToken);
+        await repo.BatchUpdateHeartbeats(
+            [(wf.DatabaseId, wf.LeaseToken)],
+            staleThreshold,
+            TestContext.Current.CancellationToken
+        );
 
         var dbWf = await fixture.GetWorkflow(wf.DatabaseId);
         Assert.NotNull(dbWf);
@@ -295,7 +299,7 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
 
         var staleThreshold = TimeSpan.FromSeconds(10);
         await repo.BatchUpdateHeartbeats(
-            [processing.DatabaseId, completed.DatabaseId],
+            [(processing.DatabaseId, processing.LeaseToken), (completed.DatabaseId, completed.LeaseToken)],
             staleThreshold,
             TestContext.Current.CancellationToken
         );
