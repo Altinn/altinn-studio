@@ -11,7 +11,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import axios from 'axios';
 import userEvent from '@testing-library/user-event';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
-import { OrgContext } from 'admin/layout/PageLayout';
+import { OrgContext } from 'admin/contexts/OrgContext';
 
 const range = 1440;
 const env = 'production';

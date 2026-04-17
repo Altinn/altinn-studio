@@ -1,12 +1,15 @@
 import type { ReactElement } from 'react';
-import { useMatch, useNavigate } from 'react-router-dom';
+import { useMatch, useNavigate, useParams } from 'react-router-dom';
 import { StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import './PageLayout.css';
 import { DISPLAY_NAME, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useMediaQuery } from '@studio/hooks';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
-import { StudioProfileMenuComponent } from 'app-shared/components';
+import { ProfileMenu } from 'app-shared/components';
+import { useUserQuery } from 'app-shared/hooks/queries';
+import { RoutePaths as OrgRoutePaths } from '../../features/orgs/routes/RoutePaths';
+import { RoutePaths as UserRoutePaths } from '../../features/user/routes/RoutePaths';
 
 export const PageHeader = () => {
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
@@ -15,10 +18,10 @@ export const PageHeader = () => {
     <div data-color-scheme='dark'>
       <StudioPageHeader>
         <StudioPageHeader.Main>
-          <StudioPageHeader.Left title={DISPLAY_NAME} showTitle={shouldDisplayDesktopMenu} />
+          <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={DISPLAY_NAME} />
           {shouldDisplayDesktopMenu && <CenterContent />}
           <StudioPageHeader.Right>
-            <ProfileMenu />
+            <RightContent />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
       </StudioPageHeader>
@@ -28,9 +31,10 @@ export const PageHeader = () => {
 
 const CenterContent = (): ReactElement => {
   const { t } = useTranslation();
-  const orgMatch = useMatch('/orgs/:org/*');
-  const activeOrgUsername = orgMatch?.params.org ?? null;
-  const dashboardContext = activeOrgUsername ?? 'self';
+  const ownerMatch = useMatch('/:owner/*');
+  const owner = ownerMatch?.params.owner ?? null;
+  const { data: user } = useUserQuery();
+  const dashboardContext = owner && owner !== user?.login ? owner : 'self';
   const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
 
   return (
@@ -66,17 +70,25 @@ const CenterContent = (): ReactElement => {
   );
 };
 
-const ProfileMenu = (): ReactElement => {
+const RightContent = (): ReactElement => {
   const navigate = useNavigate();
-  const orgMatch = useMatch('/orgs/:org/*');
-  const subPath = orgMatch?.params['*'] || '';
-  const orgPath = (username: string) =>
-    subPath ? `/orgs/${username}/${subPath}` : `/orgs/${username}`;
+  const ownerMatch = useMatch('/:owner/*');
+  const subPath = ownerMatch?.params['*'] || '';
+  const { owner } = useParams();
+
+  const orgSubPages = Object.values(OrgRoutePaths) as string[];
+  const userSubPages = Object.values(UserRoutePaths) as string[];
+
+  const buildPath = (username: string, validSubPages: string[]) => {
+    const page = validSubPages.includes(subPath) ? subPath : '';
+    return page ? `/${username}/${page}` : `/${username}`;
+  };
 
   return (
-    <StudioProfileMenuComponent
-      onOrgClick={(org) => navigate(orgPath(org.username))}
-      onUserClick={() => navigate('/user')}
+    <ProfileMenu
+      currentUserOrg={owner}
+      onOrgClick={(org) => navigate(buildPath(org.username, orgSubPages))}
+      onUserClick={(user) => user && navigate(buildPath(user.login, userSubPages))}
     />
   );
 };

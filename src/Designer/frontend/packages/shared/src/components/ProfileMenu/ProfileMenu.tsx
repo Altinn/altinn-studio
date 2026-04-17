@@ -8,7 +8,7 @@ import type { Organization } from 'app-shared/types/Organization';
 import { repositoryOwnerPath } from 'app-shared/api/paths';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
-import { useParams } from 'react-router-dom';
+import type { User } from 'app-shared/types/Repository';
 
 export type OrgOption = {
   username: string;
@@ -17,20 +17,23 @@ export type OrgOption = {
   onClick: () => void;
 };
 
-export type StudioProfileMenuComponentProps = {
+export type ProfileMenuProps = {
+  currentUserOrg: string | undefined;
   onOrgClick: (org: Organization) => void;
-  onUserClick: () => void;
+  onUserClick: (user: User) => void;
 };
 
-export const StudioProfileMenuComponent = ({
+export const ProfileMenu = ({
+  currentUserOrg,
   onOrgClick,
   onUserClick,
-}: StudioProfileMenuComponentProps): ReactElement => {
+}: ProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
   const { mutate: logout } = useLogoutMutation();
-  const { org } = useParams();
+  const isOrgContext = currentUserOrg !== undefined && currentUserOrg !== user?.login;
+  const org = isOrgContext ? currentUserOrg : undefined;
   const { environment } = useEnvironmentConfig();
   const studioOidc = environment?.featureFlags?.studioOidc;
   var username = user?.full_name || user?.login;
@@ -58,7 +61,7 @@ export const StudioProfileMenuComponent = ({
   }));
 
   const userMenuItem = {
-    action: { type: 'button' as const, onClick: onUserClick },
+    action: { type: 'button' as const, onClick: () => onUserClick(user) },
     itemName: username,
     isActive: !org,
   };
@@ -66,7 +69,7 @@ export const StudioProfileMenuComponent = ({
   const settingsMenuItem = {
     action: {
       type: 'link' as const,
-      href: org ? `${SETTINGS_BASENAME}/orgs/${org}` : `${SETTINGS_BASENAME}/user`,
+      href: `${SETTINGS_BASENAME}/${org ?? user?.login}`,
       openInNewTab: false,
     },
     itemName: t('settings'),

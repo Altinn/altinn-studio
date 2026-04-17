@@ -12,7 +12,7 @@ import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
-import { PageRoutes } from './router/PageRoutes';
+import { PageRoutes } from './routes/PageRoutes';
 import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import { ConsentProvider } from 'app-shared/utils/consent';
 import { ConsentBanner } from 'app-shared/components';

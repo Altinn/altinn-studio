@@ -1,5 +1,5 @@
 import classes from './PageLayout.module.css';
-import { matchPath, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router-dom';
 import { StudioAlert, StudioCenter, StudioHeading, StudioPageSpinner } from '@studio/components';
 import { StudioPageError } from 'app-shared/components';
 import { NotFound } from '../../../pages/NotFound/NotFound';
@@ -9,9 +9,7 @@ import { Menu } from '../components/Menu/Menu';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
-  const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
-  const { org } = match?.params ?? {};
+  const { owner: org } = useParams<{ owner: string }>();
   const { data: orgs, isPending: isOrgsPending, isError: isOrgsError } = useOrganizationsQuery();
   const selectedOrg = orgs?.find((o) => o.username === org);
   const {

@@ -29,7 +29,7 @@ import {
 import { useAppErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useAppErrorMetricsQuery';
 import { AppErrorMetric } from './AppErrorMetric';
 import { isAxiosError } from 'axios';
-import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { useCurrentOrg } from 'admin/contexts/OrgContext';
 
 ChartJS.register(LinearScale, BarElement, ArcElement, Title, Tooltip, Filler, TimeScale);
 

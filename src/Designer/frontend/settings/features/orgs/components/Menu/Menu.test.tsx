@@ -18,7 +18,7 @@ jest.mock('@studio/feature-flags', () => ({
   useFeatureFlag: (flag: FeatureFlag) => mockUseFeatureFlag(flag),
 }));
 
-const renderMenu = (initialEntries: string[] = ['/orgs/ttd/bot-accounts']) =>
+const renderMenu = (initialEntries: string[] = ['/ttd/bot-accounts']) =>
   renderWithProviders(<Menu />, { initialEntries });
 
 const getContactPointsTab = () =>

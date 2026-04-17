@@ -78,8 +78,8 @@ export const HeaderContextProvider = ({
       type: 'link',
       href:
         selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
-          ? `${SETTINGS_BASENAME}/user`
-          : `${SETTINGS_BASENAME}/orgs/${selectedContext}`,
+          ? `${SETTINGS_BASENAME}/${user?.login}`
+          : `${SETTINGS_BASENAME}/${selectedContext}`,
       openInNewTab: false,
     },
     itemName: t('settings'),

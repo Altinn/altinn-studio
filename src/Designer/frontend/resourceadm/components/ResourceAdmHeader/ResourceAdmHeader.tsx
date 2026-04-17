@@ -87,7 +87,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: org ? `${SETTINGS_BASENAME}/orgs/${org}` : `${SETTINGS_BASENAME}/user`,
+      href: `${SETTINGS_BASENAME}/${org}`,
       openInNewTab: false,
     },
     itemName: t('settings'),

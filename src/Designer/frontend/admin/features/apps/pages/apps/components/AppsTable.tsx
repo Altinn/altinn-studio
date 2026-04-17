@@ -18,7 +18,7 @@ import { useErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useError
 import { TimeRangeSelect } from 'admin/features/apps/components/TimeRangeSelect/TimeRangeSelect';
 import { Alert } from 'admin/features/apps/components/Alert/Alert';
 import { isAxiosError } from 'axios';
-import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { createSearchParams, DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
 
 export type AppsTableProps = {

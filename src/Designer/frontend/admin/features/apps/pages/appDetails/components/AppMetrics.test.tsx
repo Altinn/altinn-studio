@@ -10,7 +10,7 @@ import axios from 'axios';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import userEvent from '@testing-library/user-event';
-import { OrgContext } from 'admin/layout/PageLayout';
+import { OrgContext } from 'admin/contexts/OrgContext';
 
 const env = 'test';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${env.toUpperCase()}`;

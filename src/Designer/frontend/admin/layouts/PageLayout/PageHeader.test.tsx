@@ -6,7 +6,7 @@ import { PageHeader } from './PageHeader';
 import { useMediaQuery } from '@studio/hooks';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
-import { OrgContext } from './PageLayout';
+import { DISPLAY_NAME } from 'app-shared/constants';
 
 const mockEnvironment: {
   environment: AltinnStudioEnvironment | null;
@@ -21,7 +21,6 @@ const organizationsMock = [
   { username: 'skd', full_name: 'Skatteetaten', avatar_url: '', id: 2 },
 ];
 
-const orgMock = { username: 'ttd', full_name: 'Testdepartementet', avatar_url: '', id: 1 };
 const mockUser = {
   avatar_url: '',
   email: 'test@test.no',
@@ -30,6 +29,8 @@ const mockUser = {
   login: 'test',
   userType: 1,
 };
+
+const mockParams: { org: string | undefined } = { org: undefined };
 
 jest.mock('@studio/hooks', () => ({
   ...jest.requireActual('@studio/hooks'),
@@ -52,19 +53,29 @@ jest.mock('app-shared/hooks/queries', () => ({
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org: 'ttd' }),
+  useParams: () => mockParams,
   useNavigate: () => mockNavigate,
 }));
+
+const triggerButtonName = textMock('shared.header_user_for_org', {
+  user: mockUser.full_name,
+  org: organizationsMock[0].full_name,
+});
 
 describe('PageHeader', () => {
   beforeEach(() => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     mockEnvironment.environment = null;
-    window.history.pushState({}, '', '/ttd/apps');
+    mockParams.org = 'ttd';
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('renders the app title in the header', () => {
+    renderPageHeader();
+    expect(screen.getByText(DISPLAY_NAME)).toBeInTheDocument();
   });
 
   it('includes the user settings link in the profile menu when studioOidc is enabled', async () => {
@@ -73,11 +84,11 @@ describe('PageHeader', () => {
 
     renderPageHeader();
 
-    await user.click(screen.getByRole('button', { name: 'Test Testersen' }));
+    await user.click(screen.getByRole('button', { name: triggerButtonName }));
 
     const settingsLink = screen.getByRole('menuitem', { name: textMock('settings') });
 
-    expect(settingsLink).toHaveAttribute('href', '/settings/user');
+    expect(settingsLink).toHaveAttribute('href', '/settings/ttd');
     expect(
       screen.getByRole('menuitemradio', { name: textMock('shared.header_logout') }),
     ).toBeInTheDocument();
@@ -89,7 +100,7 @@ describe('PageHeader', () => {
 
     renderPageHeader();
 
-    await user.click(screen.getByRole('button', { name: 'Test Testersen' }));
+    await user.click(screen.getByRole('button', { name: triggerButtonName }));
 
     expect(screen.queryByRole('menuitem', { name: textMock('settings') })).not.toBeInTheDocument();
   });
@@ -98,7 +109,7 @@ describe('PageHeader', () => {
     const user = userEvent.setup();
     renderPageHeader();
 
-    await user.click(screen.getByRole('button', { name: 'Test Testersen' }));
+    await user.click(screen.getByRole('button', { name: triggerButtonName }));
 
     expect(screen.getByRole('menuitemradio', { name: 'Testdepartementet' })).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Skatteetaten' })).toBeInTheDocument();
@@ -108,7 +119,7 @@ describe('PageHeader', () => {
     const user = userEvent.setup();
     renderPageHeader();
 
-    await user.click(screen.getByRole('button', { name: 'Test Testersen' }));
+    await user.click(screen.getByRole('button', { name: triggerButtonName }));
 
     await user.click(screen.getByRole('menuitemradio', { name: 'Skatteetaten' }));
     expect(mockNavigate).toHaveBeenCalledWith('/skd/apps');
@@ -116,11 +127,12 @@ describe('PageHeader', () => {
 
   it('navigates to root when clicking user menu item', async () => {
     const user = userEvent.setup();
+    mockParams.org = undefined;
     renderPageHeader();
 
-    await user.click(screen.getByRole('button', { name: 'Test Testersen' }));
+    await user.click(screen.getByRole('button', { name: mockUser.full_name }));
 
-    await user.click(screen.getByRole('menuitemradio', { name: 'Test Testersen' }));
+    await user.click(screen.getByRole('menuitemradio', { name: mockUser.full_name }));
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 
@@ -129,14 +141,12 @@ describe('PageHeader', () => {
     render(
       <MemoryRouter initialEntries={['/ttd/apps/at22/my-app']}>
         <FeatureFlagsProvider>
-          <OrgContext.Provider value={orgMock}>
-            <PageHeader />
-          </OrgContext.Provider>
+          <PageHeader />
         </FeatureFlagsProvider>
       </MemoryRouter>,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Test Testersen' }));
+    await user.click(screen.getByRole('button', { name: triggerButtonName }));
 
     await user.click(screen.getByRole('menuitemradio', { name: 'Skatteetaten' }));
     expect(mockNavigate).toHaveBeenCalledWith('/skd/apps/at22/my-app');
@@ -147,9 +157,7 @@ const renderPageHeader = () =>
   render(
     <MemoryRouter>
       <FeatureFlagsProvider>
-        <OrgContext.Provider value={orgMock}>
-          <PageHeader />
-        </OrgContext.Provider>
+        <PageHeader />
       </FeatureFlagsProvider>
     </MemoryRouter>,
   );

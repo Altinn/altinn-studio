@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import './App.css';
+import './PageLayout.css';
 import { Outlet, useLocation } from 'react-router-dom';
-import classes from './App.module.css';
+import classes from './PageLayout.module.css';
 import { appContentWrapperId } from '@studio/testing/testids';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
+import { PageHeader } from './PageHeader';
 
-export function App() {
+export const PageLayout = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -16,9 +17,10 @@ export function App() {
     <div className={classes.container}>
       <div data-testid={appContentWrapperId} className={classes.appContainer}>
         <WebSocketSyncWrapper>
+          <PageHeader />
           <Outlet />
         </WebSocketSyncWrapper>
       </div>
     </div>
   );
-}
+};

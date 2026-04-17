@@ -1,32 +1,25 @@
 import classes from './PageHeader.module.css';
-import { OrgContext } from './PageLayout';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { DISPLAY_NAME, MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { StudioPageHeader } from '@studio/components';
 import { useMediaQuery } from '@studio/hooks';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { useContext } from 'react';
 import { RoutePaths } from 'admin/enums/RoutePaths';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
-import { StudioProfileMenuComponent } from 'app-shared/components';
+import { ProfileMenu } from 'app-shared/components';
 
 export const PageHeader = (): ReactElement => {
-  const org = useContext(OrgContext);
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { t } = useTranslation();
 
   return (
     <div data-color-scheme='dark'>
       <StudioPageHeader>
         <StudioPageHeader.Main>
-          <StudioPageHeader.Left
-            showTitle={shouldDisplayDesktopMenu}
-            title={org ? org.full_name || org.username : t('general.title')}
-          />
+          <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={DISPLAY_NAME} />
           {shouldDisplayDesktopMenu && <CenterContent />}
           <StudioPageHeader.Right>
-            <ProfileMenu />
+            <RightContent />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
       </StudioPageHeader>
@@ -69,14 +62,16 @@ export const CenterContent = (): ReactElement => {
   );
 };
 
-const ProfileMenu = (): ReactElement => {
+const RightContent = (): ReactElement => {
+  const { org } = useParams();
   const navigate = useNavigate();
   const orgMatch = useMatch('/:org/*');
   const subPath = orgMatch?.params['*'] || RoutePaths.Apps;
 
   return (
-    <StudioProfileMenuComponent
-      onOrgClick={(org) => navigate(`/${org.username}/${subPath}`)}
+    <ProfileMenu
+      currentUserOrg={org}
+      onOrgClick={(organization) => navigate(`/${organization.username}/${subPath}`)}
       onUserClick={() => navigate('/')}
     />
   );

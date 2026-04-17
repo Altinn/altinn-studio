@@ -15,7 +15,7 @@ import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
 import { Skeleton } from '@digdir/designsystemet-react';
-import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { Link } from 'react-router-dom';
 
 type InstancesTableProps = {

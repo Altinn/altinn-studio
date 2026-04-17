@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioError, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
-import { matchPath, useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import type { BotAccount } from 'app-shared/types/BotAccount';
 import { useGetBotAccountsQuery } from './hooks/useGetBotAccountsQuery';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
@@ -16,9 +16,7 @@ type DialogState = { form: BotAccountForm; editingId: string | null } | null;
 
 export const BotAccounts = (): ReactElement => {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
-  const match = matchPath({ path: 'orgs/:org', caseSensitive: true, end: false }, pathname);
-  const { org } = match?.params ?? {};
+  const { owner: org } = useParams<{ owner: string }>();
 
   const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org!);
   const { data: orgs } = useOrgListQuery();
