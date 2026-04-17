@@ -45,7 +45,7 @@ internal sealed class AppRegistry : BackgroundService
         baseUri = AppEndpointUri.Canonicalize(baseUri);
         var app = new DiscoveredApp(appId, baseUri, "studioctl", null, description, now);
         lock (_lock)
-            _apps[appId] = new AppEntry(app, now + gracePeriod);
+            _apps[appId] = new AppEntry(app, gracePeriod, now + gracePeriod);
 
         if (_logger.IsEnabled(LogLevel.Information))
             _logger.LogInformation("Registered app {AppId} on {BaseUri} via studioctl", appId, baseUri);
@@ -148,7 +148,8 @@ internal sealed class AppRegistry : BackgroundService
                         candidate.Description,
                         now
                     ),
-                    PreviousGraceDeadline(previous, appId, now)
+                    PreviousGracePeriod(previous, appId),
+                    GraceDeadlineForSeenApp(now, previous, appId)
                 );
             }
         }
@@ -170,7 +171,13 @@ internal sealed class AppRegistry : BackgroundService
 
             var resolvedAppId = await _probe.Probe(entry.Metadata.BaseUri, cancellationToken);
             if (string.Equals(resolvedAppId, appId, StringComparison.OrdinalIgnoreCase))
-                next[appId] = entry with { Metadata = entry.Metadata with { LastSeen = now } };
+            {
+                next[appId] = entry with
+                {
+                    Metadata = entry.Metadata with { LastSeen = now },
+                    GraceDeadline = now + entry.GracePeriod,
+                };
+            }
         }
     }
 
@@ -207,6 +214,7 @@ internal sealed class AppRegistry : BackgroundService
     private static bool NewerEntry(AppEntry entry, AppEntry previousEntry) =>
         !AppEndpointUri.Same(entry.Metadata.BaseUri, previousEntry.Metadata.BaseUri)
         || entry.Metadata.LastSeen > previousEntry.Metadata.LastSeen
+        || entry.GracePeriod > previousEntry.GracePeriod
         || entry.GraceDeadline > previousEntry.GraceDeadline;
 
     private void LogRefresh(
@@ -247,13 +255,18 @@ internal sealed class AppRegistry : BackgroundService
         _logger.LogInformation("Discovery refresh completed with {AppCount} apps", appCount);
     }
 
-    private static DateTimeOffset PreviousGraceDeadline(
+    private static DateTimeOffset GraceDeadlineForSeenApp(
+        DateTimeOffset now,
         IReadOnlyDictionary<string, AppEntry> previous,
-        string appId,
-        DateTimeOffset fallback
+        string appId
     )
     {
-        return previous.TryGetValue(appId, out var entry) ? entry.GraceDeadline : fallback;
+        return previous.TryGetValue(appId, out var entry) ? now + entry.GracePeriod : now;
+    }
+
+    private static TimeSpan PreviousGracePeriod(IReadOnlyDictionary<string, AppEntry> previous, string appId)
+    {
+        return previous.TryGetValue(appId, out var entry) ? entry.GracePeriod : TimeSpan.Zero;
     }
 
     private static Dictionary<string, DiscoveredApp> VisibleApps(Dictionary<string, AppEntry> entries) =>
@@ -263,5 +276,5 @@ internal sealed class AppRegistry : BackgroundService
             StringComparer.OrdinalIgnoreCase
         );
 
-    private sealed record AppEntry(DiscoveredApp Metadata, DateTimeOffset GraceDeadline);
+    private sealed record AppEntry(DiscoveredApp Metadata, TimeSpan GracePeriod, DateTimeOffset GraceDeadline);
 }

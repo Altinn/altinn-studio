@@ -4,6 +4,7 @@ package types
 import (
 	"errors"
 	"strings"
+	"time"
 )
 
 // ErrContainerNotFound is returned when a container does not exist.
@@ -213,9 +214,19 @@ type VolumeMount struct {
 	ReadOnly      bool
 }
 
+// HealthCheck defines a container health check configuration.
+type HealthCheck struct {
+	Test        []string      // Command to run (e.g., ["CMD-SHELL", "pg_isready -U postgres"])
+	Interval    time.Duration // Time between checks (default: 30s)
+	Timeout     time.Duration // Max time for a single check (default: 30s)
+	Retries     int           // Consecutive failures before unhealthy (default: 3)
+	StartPeriod time.Duration // Grace period before checks count (default: 0s)
+}
+
 // ContainerConfig defines options for creating a container.
 type ContainerConfig struct {
 	Labels         map[string]string
+	HealthCheck    *HealthCheck
 	Name           string
 	Image          string
 	User           string

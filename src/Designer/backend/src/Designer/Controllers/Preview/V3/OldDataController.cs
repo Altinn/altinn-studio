@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using Altinn.Platform.Storage.Interface.Models;
@@ -29,7 +28,7 @@ public class OldDataController() : Controller
     public ActionResult<DataElement> Post(
         [FromRoute] int partyId,
         [FromRoute] Guid instanceGuid,
-        [FromQuery] string dataType
+        [FromQuery] string? dataType
     )
     {
         return Created("link-to-app-placeholder", "{}");

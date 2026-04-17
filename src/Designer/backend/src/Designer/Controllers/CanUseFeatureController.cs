@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
@@ -23,7 +22,7 @@ public class CanUseFeatureController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> CanUseFeature([FromQuery] string featureName)
+    public async Task<IActionResult> CanUseFeature([FromQuery] string? featureName)
     {
         if (!Enum.TryParse<CanUseFeatureEnum>(featureName, true, out var parsedFeatureName))
         {
