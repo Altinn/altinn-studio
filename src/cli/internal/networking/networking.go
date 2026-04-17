@@ -188,6 +188,7 @@ func (n *Networking) RefreshNetworkMetadata(ctx context.Context) (NetworkMetadat
 		RestartPolicy:  "",
 		Detach:         false,
 		Labels:         nil,
+		HealthCheck:    nil,
 		NetworkAliases: nil,
 		User:           "",
 		CapAdd:         nil,

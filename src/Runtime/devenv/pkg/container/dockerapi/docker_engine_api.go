@@ -234,52 +234,43 @@ func runtimeCLI(platform types.ContainerPlatform) (string, error) {
 }
 
 // CreateContainer creates and optionally starts a container.
-//
-//nolint:funlen,nestif,gocognit,gocyclo // The Docker container create flow mirrors the underlying API shape.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
-	// Ensure image exists locally, pull if missing
-	_, err := c.cli.ImageInspect(ctx, cfg.Image)
+	if err := c.ensureImageExists(ctx, cfg.Image); err != nil {
+		return "", err
+	}
+
+	containerCfg, hostCfg, networkingConfig := buildDockerConfigs(cfg, c.toolchain.Platform)
+
+	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, networkingConfig, nil, cfg.Name)
 	if err != nil {
-		if cerrdefs.IsNotFound(err) {
-			if pullErr := c.ImagePull(ctx, cfg.Image); pullErr != nil {
-				return "", fmt.Errorf("failed to pull image %s: %w", cfg.Image, pullErr)
-			}
-		} else {
-			return "", fmt.Errorf("failed to inspect image %s: %w", cfg.Image, err)
+		return "", fmt.Errorf("failed to create container: %w", err)
+	}
+
+	// Connect to additional networks before starting
+	for _, net := range cfg.Networks[min(1, len(cfg.Networks)):] {
+		if err := c.cli.NetworkConnect(ctx, net, resp.ID, nil); err != nil {
+			removeContainerBestEffort(ctx, c.cli, resp.ID)
+			return "", fmt.Errorf("failed to connect to network %s: %w", net, err)
 		}
 	}
 
-	// Build port bindings
-	portBindings := nat.PortMap{}
-	exposedPorts := nat.PortSet{}
-
-	for _, p := range cfg.Ports {
-		proto := p.Protocol
-		if proto == "" {
-			proto = "tcp"
+	if cfg.Detach {
+		if err := c.cli.ContainerStart(ctx, resp.ID, dockercontainer.StartOptions{}); err != nil {
+			removeContainerBestEffort(ctx, c.cli, resp.ID)
+			return "", fmt.Errorf("failed to start container: %w", err)
 		}
-		containerPort := nat.Port(fmt.Sprintf("%s/%s", p.ContainerPort, proto))
-		exposedPorts[containerPort] = struct{}{}
-		portBindings[containerPort] = append(portBindings[containerPort], nat.PortBinding{
-			HostIP:   p.HostIP,
-			HostPort: p.HostPort,
-		})
 	}
 
-	// Build restart policy
-	restartPolicy := dockercontainer.RestartPolicy{}
-	switch cfg.RestartPolicy {
-	case "always":
-		restartPolicy.Name = dockercontainer.RestartPolicyAlways
-	case "on-failure":
-		restartPolicy.Name = dockercontainer.RestartPolicyOnFailure
-	case "unless-stopped":
-		restartPolicy.Name = dockercontainer.RestartPolicyUnlessStopped
-	default:
-		restartPolicy.Name = dockercontainer.RestartPolicyDisabled
-	}
+	return resp.ID, nil
+}
 
-	// Container config
+// buildDockerConfigs assembles the Docker container and host configs from a ContainerConfig.
+func buildDockerConfigs(
+	cfg types.ContainerConfig,
+	platform types.ContainerPlatform,
+) (*dockercontainer.Config, *dockercontainer.HostConfig, *network.NetworkingConfig) {
+	portBindings, exposedPorts := buildPortMappings(cfg.Ports)
+
 	containerCfg := &dockercontainer.Config{
 		Image:        cfg.Image,
 		Cmd:          cfg.Command,
@@ -289,28 +280,31 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		User:         cfg.User,
 	}
 
-	// Determine primary network and additional networks
-	var primaryNetwork string
-	var additionalNetworks []string
-	if len(cfg.Networks) > 0 {
-		primaryNetwork = cfg.Networks[0]
-		additionalNetworks = cfg.Networks[1:]
+	if cfg.HealthCheck != nil {
+		containerCfg.Healthcheck = &dockercontainer.HealthConfig{
+			Test:        cfg.HealthCheck.Test,
+			Interval:    cfg.HealthCheck.Interval,
+			Timeout:     cfg.HealthCheck.Timeout,
+			Retries:     cfg.HealthCheck.Retries,
+			StartPeriod: cfg.HealthCheck.StartPeriod,
+		}
 	}
 
-	// Build capability list
+	var primaryNetwork string
+	if len(cfg.Networks) > 0 {
+		primaryNetwork = cfg.Networks[0]
+	}
+
 	capAdd := cfg.CapAdd
-	if c.toolchain.Platform == types.PlatformPodman {
-		// Podman has a more restrictive default capability set than Docker.
-		// Add Docker's defaults to ensure consistent behavior.
+	if platform == types.PlatformPodman {
 		capAdd = types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
 	}
 
-	// Host config
 	hostCfg := &dockercontainer.HostConfig{
 		PortBindings:  portBindings,
 		Mounts:        buildBindMounts(cfg.Volumes),
 		ExtraHosts:    cfg.ExtraHosts,
-		RestartPolicy: restartPolicy,
+		RestartPolicy: buildRestartPolicy(cfg.RestartPolicy),
 		NetworkMode:   dockercontainer.NetworkMode(primaryNetwork),
 		CapAdd:        capAdd,
 	}
@@ -326,31 +320,42 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		}
 	}
 
-	// Create the container
-	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, networkingConfig, nil, cfg.Name)
-	if err != nil {
-		return "", fmt.Errorf("failed to create container: %w", err)
-	}
+	return containerCfg, hostCfg, networkingConfig
+}
 
-	// Connect to additional networks before starting
-	for _, net := range additionalNetworks {
-		if err := c.cli.NetworkConnect(ctx, net, resp.ID, nil); err != nil {
-			// Clean up on failure
-			removeContainerBestEffort(ctx, c.cli, resp.ID)
-			return "", fmt.Errorf("failed to connect to network %s: %w", net, err)
+func buildPortMappings(ports []types.PortMapping) (nat.PortMap, nat.PortSet) {
+	portBindings := nat.PortMap{}
+	exposedPorts := nat.PortSet{}
+
+	for _, p := range ports {
+		proto := p.Protocol
+		if proto == "" {
+			proto = "tcp"
 		}
+		containerPort := nat.Port(fmt.Sprintf("%s/%s", p.ContainerPort, proto))
+		exposedPorts[containerPort] = struct{}{}
+		portBindings[containerPort] = append(portBindings[containerPort], nat.PortBinding{
+			HostIP:   p.HostIP,
+			HostPort: p.HostPort,
+		})
 	}
 
-	// Start the container if detached
-	if cfg.Detach {
-		if err := c.cli.ContainerStart(ctx, resp.ID, dockercontainer.StartOptions{}); err != nil {
-			// Clean up created container on start failure
-			removeContainerBestEffort(ctx, c.cli, resp.ID)
-			return "", fmt.Errorf("failed to start container: %w", err)
-		}
-	}
+	return portBindings, exposedPorts
+}
 
-	return resp.ID, nil
+func buildRestartPolicy(policy string) dockercontainer.RestartPolicy {
+	rp := dockercontainer.RestartPolicy{}
+	switch policy {
+	case "always":
+		rp.Name = dockercontainer.RestartPolicyAlways
+	case "on-failure":
+		rp.Name = dockercontainer.RestartPolicyOnFailure
+	case "unless-stopped":
+		rp.Name = dockercontainer.RestartPolicyUnlessStopped
+	default:
+		rp.Name = dockercontainer.RestartPolicyDisabled
+	}
+	return rp
 }
 
 func buildBindMounts(volumes []types.VolumeMount) []dockermount.Mount {
@@ -955,6 +960,21 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 	case <-ctx.Done():
 		return -1, fmt.Errorf("%w: %w", errContextCancelled, ctx.Err())
 	}
+}
+
+// ensureImageExists checks that the image is available locally, pulling it if missing.
+func (c *Client) ensureImageExists(ctx context.Context, imageRef string) error {
+	_, err := c.cli.ImageInspect(ctx, imageRef)
+	if err == nil {
+		return nil
+	}
+	if !cerrdefs.IsNotFound(err) {
+		return fmt.Errorf("failed to inspect image %s: %w", imageRef, err)
+	}
+	if pullErr := c.ImagePull(ctx, imageRef); pullErr != nil {
+		return fmt.Errorf("failed to pull image %s: %w", imageRef, pullErr)
+	}
+	return nil
 }
 
 //nolint:errcheck,gosec // Client and stream cleanup is best-effort during setup and teardown paths.
