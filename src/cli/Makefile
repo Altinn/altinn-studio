@@ -81,7 +81,7 @@ user-install-winhost: ## From WSL, install studioctl onto the Windows host
 
 .PHONY: dev-run
 dev-run: dev-install ## Run studioctl with dev config (use CMD="env up" etc)
-	STUDIOCTL_HOME=$(abspath $(DEV_HOME)) $(DEV_HOME)/bin/studioctl $(CMD)
+	STUDIOCTL_HOME="$(abspath $(DEV_HOME))" STUDIOCTL_RESOURCES_TARBALL="$(abspath $(BUILD_DIR)/localtest-resources.tar.gz)" "$(DEV_HOME)/bin/studioctl" $(CMD)
 
 .PHONY: clean
 clean: ## Clean build artifacts (cross-platform)
