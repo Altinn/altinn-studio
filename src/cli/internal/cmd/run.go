@@ -21,9 +21,9 @@ import (
 	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -244,23 +244,31 @@ func (c *RunCommand) runTarget(
 	dotnetArgs []string,
 	flags runFlags,
 ) error {
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 	switch flags.mode {
 	case runModeProcess:
-		return c.runDotnet(ctx, target, dotnetArgs, flags)
+		return c.runDotnet(ctx, target, dotnetArgs, topology, flags)
 	case runModeContainer:
-		return c.runDocker(ctx, target, dotnetArgs, flags)
+		return c.runDocker(ctx, target, dotnetArgs, topology, flags)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
 }
 
-func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, args []string, flags runFlags) error {
+func (c *RunCommand) runDotnet(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	args []string,
+	topology envtopology.Local,
+	flags runFlags,
+) error {
 	appPath := target.Detection.AppRoot
 	spec, specErr := c.service.BuildDotnetRunSpec(
 		ctx,
 		appPath,
 		args,
 		os.Environ(),
+		topology,
 		appsvc.DotnetRunOptions{RandomHostPort: flags.randomHostPort},
 	)
 	if specErr != nil {
@@ -298,7 +306,7 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 		return metadataErr
 	}
 
-	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, flags)
+	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, topology, flags)
 	if err != nil {
 		return err
 	}
@@ -374,11 +382,12 @@ func (c *RunCommand) registerStartedDotnetApp(
 	spec appsvc.DotnetRunSpec,
 	cmd *exec.Cmd,
 	waitErr chan error,
+	topology envtopology.Local,
 	flags runFlags,
 ) (string, error) {
 	monitor := processReadinessMonitor(waitErr)
 	runInfo := nativeAppRunInfo(cmd.Process.Pid)
-	return c.registerStartedDotnetAppWithRunInfo(ctx, target, spec, cmd, waitErr, monitor, runInfo, flags)
+	return c.registerStartedDotnetAppWithRunInfo(ctx, target, spec, cmd, waitErr, topology, monitor, runInfo, flags)
 }
 
 func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
@@ -387,6 +396,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 	spec appsvc.DotnetRunSpec,
 	cmd *exec.Cmd,
 	waitErr chan error,
+	topology envtopology.Local,
 	monitor readinessMonitor,
 	runInfo appmanager.AppRegistration,
 	flags runFlags,
@@ -398,6 +408,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 			ctx,
 			target.AppID,
 			cmd.Process.Pid,
+			topology,
 			runInfo,
 			monitor,
 			flags.jsonOutput,
@@ -407,6 +418,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 			ctx,
 			target.AppID,
 			spec.Port,
+			topology,
 			runInfo,
 			monitor,
 			flags.jsonOutput,
@@ -606,6 +618,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	port int,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
@@ -613,7 +626,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString()); err != nil {
+	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
 		return "", startupOperationError(ctx, "start app-manager", err)
 	}
 
@@ -668,6 +681,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	hostPort int,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
@@ -675,7 +689,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString()); err != nil {
+	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
 		return "", startupOperationError(ctx, "start app-manager", err)
 	}
 
@@ -695,6 +709,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	processID int,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
@@ -702,7 +717,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString()); err != nil {
+	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
 		return "", startupOperationError(ctx, "start app-manager", err)
 	}
 
@@ -862,9 +877,15 @@ func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID string) 
 	}
 }
 
-func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, args []string, flags runFlags) error {
+func (c *RunCommand) runDocker(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	args []string,
+	topology envtopology.Local,
+	flags runFlags,
+) error {
 	result := target.Detection
-	spec, specErr := c.service.BuildDockerRunSpec(result, args, appsvc.DockerRunOptions{
+	spec, specErr := c.service.BuildDockerRunSpec(result, args, topology, appsvc.DockerRunOptions{
 		ImageTag:       flags.imageTag,
 		RandomHostPort: flags.randomHostPort,
 	})
@@ -914,7 +935,7 @@ func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, arg
 	}
 
 	runInfo := containerAppRunInfo(containerID, info)
-	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID, runInfo, flags.jsonOutput)
+	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID, topology, runInfo, flags.jsonOutput)
 	if err != nil {
 		return c.withAppContainerCleanup(ctx, client, containerID, err)
 	}
@@ -957,6 +978,7 @@ func (c *RunCommand) waitForDockerAppReady(
 	containerID string,
 	info containerruntime.ContainerInfo,
 	appID string,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	jsonOutput bool,
 ) (string, error) {
@@ -969,6 +991,7 @@ func (c *RunCommand) waitForDockerAppReady(
 		ctx,
 		appID,
 		candidate.HostPort,
+		topology,
 		runInfo,
 		containerReadinessMonitor(client, containerID),
 		jsonOutput,

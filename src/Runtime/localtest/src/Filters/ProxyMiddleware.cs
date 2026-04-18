@@ -24,6 +24,7 @@ public class ProxyMiddleware
 
     // Cookie name for frontend version override (URL-encoded URL)
     private const string FrontendVersionCookie = "frontendVersion";
+    private const string PdfServiceHost = "pdf.local.altinn.cloud";
     private const string PgAdminHost = "pgadmin.local.altinn.cloud";
     private const string WorkflowEngineHost = "workflow-engine.local.altinn.cloud";
 
@@ -141,6 +142,11 @@ public class ProxyMiddleware
             return await TryProxyToConfiguredService(context, _settings.LocalWorkflowEngineUrl);
         }
 
+        if (IsHost(host, PdfServiceHost))
+        {
+            return await TryProxyToConfiguredService(context, _settings.LocalPdfServiceUrl);
+        }
+
         if (IsHost(host, PgAdminHost))
         {
             return await TryProxyToConfiguredService(context, _settings.LocalPgAdminUrl);
@@ -151,18 +157,6 @@ public class ProxyMiddleware
 
     private async Task<bool> TryProxyToExternalService(HttpContext context, string path)
     {
-        if (path.StartsWith("/pdfservice/", StringComparison.OrdinalIgnoreCase))
-        {
-            if (string.IsNullOrEmpty(_settings.LocalPdfServiceUrl))
-            {
-                return false;
-            }
-
-            context.Request.Path = path["/pdfservice".Length..];
-            await ProxyRequest(context, _settings.LocalPdfServiceUrl);
-            return true;
-        }
-
         if (path.StartsWith("/grafana/", StringComparison.OrdinalIgnoreCase) || path == "/grafana")
         {
             return await TryProxyToConfiguredService(context, _settings.LocalGrafanaUrl);

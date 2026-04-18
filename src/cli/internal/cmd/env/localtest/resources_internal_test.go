@@ -12,6 +12,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -100,11 +101,8 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 	t.Parallel()
 
 	containers := coreContainers(t.TempDir(), RuntimeConfig{
-		HostGateway:      "127.0.0.1",
-		LoadBalancerPort: "8000",
-		LocalAppURL:      "http://host.docker.internal:5005",
-		Platform:         container.PlatformColima,
-	}, false)
+		Platform: container.PlatformColima,
+	}, testTopology(), false)
 
 	if got := containers[0].Environment["DOTNET_ENVIRONMENT"]; got != "Docker" {
 		t.Fatalf("DOTNET_ENVIRONMENT = %q, want %q", got, "Docker")
@@ -115,11 +113,8 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	containers := coreContainers(t.TempDir(), RuntimeConfig{
-		HostGateway:      "10.88.0.1",
-		LoadBalancerPort: "8000",
-		LocalAppURL:      "http://host.docker.internal:5005",
-		Platform:         container.PlatformPodman,
-	}, true)
+		Platform: container.PlatformPodman,
+	}, testTopology(), true)
 
 	if len(containers) != len(coreContainerNames(true)) {
 		t.Fatalf("coreContainers() len = %d, want %d", len(containers), len(coreContainerNames(true)))
@@ -133,8 +128,13 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	}
 
 	localtest := containers[0]
-	if got := localtest.NetworkAliases; len(got) != 1 || got[0] != "local.altinn.cloud" {
-		t.Fatalf("localtest.NetworkAliases = %v, want [local.altinn.cloud]", got)
+	topology := testTopology()
+	wantAliases := topology.LocaltestIngressHosts()
+	if got := localtest.NetworkAliases; !slices.Equal(got, wantAliases) {
+		t.Fatalf("localtest.NetworkAliases = %v, want %v", got, wantAliases)
+	}
+	if got := localtest.Environment["ASPNETCORE_URLS"]; got != "http://*:5101/;http://*:8000/" {
+		t.Fatalf("localtest.Environment[ASPNETCORE_URLS] = %q, want dual listen URLs", got)
 	}
 
 	pdf3 := containers[1]
@@ -147,11 +147,11 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 		}
 	}
 
-	if got := pdf3.Environment["PDF3_LOCALTEST_PUBLIC_BASE_URL"]; got != "http://local.altinn.cloud:5101" {
+	if got := pdf3.Environment["PDF3_LOCALTEST_PUBLIC_BASE_URL"]; got != "http://local.altinn.cloud:8000" {
 		t.Fatalf(
 			"pdf3.Environment[PDF3_LOCALTEST_PUBLIC_BASE_URL] = %q, want %q",
 			got,
-			"http://local.altinn.cloud:5101",
+			"http://local.altinn.cloud:8000",
 		)
 	}
 
@@ -184,7 +184,7 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 			ContainerLocaltest,
 		)
 	}
-	if got := workflowEngine.Environment["AppCommandSettings__CommandEndpoint"]; got != "http://local.altinn.cloud:5101/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/" {
+	if got := workflowEngine.Environment["AppCommandSettings__CommandEndpoint"]; got != "http://local.altinn.cloud:8000/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/" {
 		t.Fatalf(
 			"workflowEngine.Environment[AppCommandSettings__CommandEndpoint] = %q, want localtest network callback URL",
 			got,
@@ -237,13 +237,28 @@ func TestBuildResourcesForDestroy_IncludesPgAdmin(t *testing.T) {
 	}
 }
 
+func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
+	containers := monitoringContainers(t.TempDir(), testTopology())
+
+	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
+		return spec.Name == ContainerMonitoringOtelCollector
+	})
+	if index < 0 {
+		t.Fatalf("monitoringContainers() missing %q", ContainerMonitoringOtelCollector)
+	}
+
+	want := []string{testTopology().OTelHost()}
+	if got := containers[index].NetworkAliases; !slices.Equal(got, want) {
+		t.Fatalf("otel.NetworkAliases = %v, want %v", got, want)
+	}
+}
+
 func TestBuildResources_FailsForUnknownContainerDependency(t *testing.T) {
 	t.Setenv(config.EnvCI, "true")
 
 	specs := []ContainerSpec{
 		newContainerSpec(
 			"localtest-dependent",
-			nil,
 			nil,
 			nil,
 			nil,
@@ -287,11 +302,8 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 
 	dataDir := t.TempDir()
 	containers := coreContainers(dataDir, RuntimeConfig{
-		HostGateway:      "10.88.0.1",
-		LoadBalancerPort: "8000",
-		LocalAppURL:      "http://host.docker.internal:5005",
-		Platform:         container.PlatformPodman,
-	}, true)
+		Platform: container.PlatformPodman,
+	}, testTopology(), true)
 
 	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
 		return spec.Name == ContainerPgAdmin
@@ -374,14 +386,16 @@ func newResourceBuildOptions(dataDir string, includeMonitoring bool, includePgAd
 	return ResourceBuildOptions{
 		DataDir: dataDir,
 		RuntimeConfig: RuntimeConfig{
-			HostGateway:      "127.0.0.1",
-			LoadBalancerPort: "8000",
-			LocalAppURL:      "http://host.docker.internal:5005",
-			Platform:         container.PlatformDocker,
+			Platform: container.PlatformDocker,
 		},
+		Topology:          testTopology(),
 		IncludeMonitoring: includeMonitoring,
 		IncludePgAdmin:    pgAdmin,
 	}
+}
+
+func testTopology() envtopology.Local {
+	return envtopology.NewLocal("8000")
 }
 
 func createCoreLayout(t *testing.T, dataDir string) {

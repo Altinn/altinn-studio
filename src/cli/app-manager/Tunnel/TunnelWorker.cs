@@ -12,7 +12,6 @@ namespace Altinn.Studio.AppManager.Tunnel;
 
 internal sealed class TunnelWorker : BackgroundService
 {
-    private const HttpStatusCode UndiscoveredAppStatusCode = (HttpStatusCode)418;
     private const string LocalFallbackHost = "127.0.0.1";
     private const int LocalFallbackPort = 5005;
     internal static readonly Uri LocalFallbackUpstreamUri = new UriBuilder(
@@ -296,8 +295,6 @@ internal sealed class TunnelWorker : BackgroundService
     private async Task<HttpResponseMessage> SendUpstreamRequest(PendingRequest pendingRequest)
     {
         var upstreamUri = ResolveUpstreamUri(pendingRequest);
-        if (upstreamUri is null)
-            return CreateUndiscoveredAppResponse(pendingRequest);
 
         var request = pendingRequest.BuildHttpRequest(upstreamUri);
         try
@@ -314,14 +311,6 @@ internal sealed class TunnelWorker : BackgroundService
             request.Dispose();
             throw;
         }
-    }
-
-    private HttpResponseMessage CreateUndiscoveredAppResponse(PendingRequest pendingRequest)
-    {
-        var message = $"app '{pendingRequest.AppId}' is not discovered";
-        _logger.LogWarning("Tunnel request for undiscovered app {AppId}", pendingRequest.AppId);
-
-        return new HttpResponseMessage(UndiscoveredAppStatusCode) { Content = new StringContent(message) };
     }
 
     private HttpResponseMessage CreateDiscoveryResponse()
@@ -452,7 +441,7 @@ internal sealed class TunnelWorker : BackgroundService
         return headers;
     }
 
-    private Uri? ResolveUpstreamUri(PendingRequest pendingRequest)
+    private Uri ResolveUpstreamUri(PendingRequest pendingRequest)
     {
         if (string.IsNullOrWhiteSpace(pendingRequest.AppId))
             return LocalFallbackUpstreamUri;
@@ -461,7 +450,12 @@ internal sealed class TunnelWorker : BackgroundService
         if (_loadBalancer.Next(pendingRequest.AppId, apps) is { } app)
             return app.BaseUri.Value;
 
-        return null;
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug(
+                "App {AppId} is not discovered yet, falling back to default local app",
+                pendingRequest.AppId
+            );
+        return LocalFallbackUpstreamUri;
     }
 
     private static void CopyHeaders(
