@@ -32,7 +32,10 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
     )
     {
         List<Team> teams = ResolveDeployTeams(environments, deployTeams);
-        await Task.WhenAll(teams.Select(t => giteaClient.AddTeamMemberAsync(t.Id, username, cancellationToken)));
+        foreach (Team team in teams)
+        {
+            await giteaClient.AddTeamMemberAsync(team.Id, username, cancellationToken);
+        }
     }
 
     public async Task RevokeAccessAsync(
@@ -54,7 +57,10 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
     )
     {
         List<Team> teams = ResolveDeployTeams(environments, deployTeams);
-        await Task.WhenAll(teams.Select(t => giteaClient.RemoveTeamMemberAsync(t.Id, username, cancellationToken)));
+        foreach (Team team in teams)
+        {
+            await giteaClient.RemoveTeamMemberAsync(team.Id, username, cancellationToken);
+        }
     }
 
     public async Task<List<Team>> GetDeployTeamsAsync(string org, CancellationToken cancellationToken = default)

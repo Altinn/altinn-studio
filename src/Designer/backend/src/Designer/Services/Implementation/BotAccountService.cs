@@ -217,15 +217,8 @@ public class BotAccountService(
 
         IEnumerable<string> toAdd = desired.Except(current, StringComparer.OrdinalIgnoreCase);
         IEnumerable<string> toRemove = current.Except(desired, StringComparer.OrdinalIgnoreCase);
-        await Task.WhenAll(
-            deployEnvironmentAccessService.GrantAccessAsync(botAccount.Username, toAdd, deployTeams, cancellationToken),
-            deployEnvironmentAccessService.RevokeAccessAsync(
-                botAccount.Username,
-                toRemove,
-                deployTeams,
-                cancellationToken
-            )
-        );
+        await deployEnvironmentAccessService.GrantAccessAsync(botAccount.Username, toAdd, deployTeams, cancellationToken);
+        await deployEnvironmentAccessService.RevokeAccessAsync(botAccount.Username, toRemove, deployTeams, cancellationToken);
     }
 
     private async Task<UserAccountDbModel> GetBotAccountModelAsync(
