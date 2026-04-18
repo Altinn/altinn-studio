@@ -13,15 +13,32 @@ public interface IDeployEnvironmentAccessService
         IEnumerable<string> environments,
         CancellationToken cancellationToken = default
     );
+    Task GrantAccessAsync(
+        string username,
+        IEnumerable<string> environments,
+        List<Team> deployTeams,
+        CancellationToken cancellationToken = default
+    );
     Task RevokeAccessAsync(
         string org,
         string username,
         IEnumerable<string> environments,
         CancellationToken cancellationToken = default
     );
+    Task RevokeAccessAsync(
+        string username,
+        IEnumerable<string> environments,
+        List<Team> deployTeams,
+        CancellationToken cancellationToken = default
+    );
     Task<List<string>> GetDeployEnvironmentsAsync(
         string username,
         string org,
+        CancellationToken cancellationToken = default
+    );
+    Task<List<string>> GetDeployEnvironmentsAsync(
+        string username,
+        List<Team> deployTeams,
         CancellationToken cancellationToken = default
     );
     List<string> GetDeployEnvironments(

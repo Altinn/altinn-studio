@@ -20,11 +20,19 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
         CancellationToken cancellationToken = default
     )
     {
-        List<Team> teams = await ResolveDeployTeamsAsync(org, environments, cancellationToken);
-        foreach (Team team in teams)
-        {
-            await giteaClient.AddTeamMemberAsync(team.Id, username, cancellationToken);
-        }
+        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
+        await GrantAccessAsync(username, environments, deployTeams, cancellationToken);
+    }
+
+    public async Task GrantAccessAsync(
+        string username,
+        IEnumerable<string> environments,
+        List<Team> deployTeams,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<Team> teams = ResolveDeployTeams(environments, deployTeams);
+        await Task.WhenAll(teams.Select(t => giteaClient.AddTeamMemberAsync(t.Id, username, cancellationToken)));
     }
 
     public async Task RevokeAccessAsync(
@@ -34,11 +42,19 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
         CancellationToken cancellationToken = default
     )
     {
-        List<Team> teams = await ResolveDeployTeamsAsync(org, environments, cancellationToken);
-        foreach (Team team in teams)
-        {
-            await giteaClient.RemoveTeamMemberAsync(team.Id, username, cancellationToken);
-        }
+        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
+        await RevokeAccessAsync(username, environments, deployTeams, cancellationToken);
+    }
+
+    public async Task RevokeAccessAsync(
+        string username,
+        IEnumerable<string> environments,
+        List<Team> deployTeams,
+        CancellationToken cancellationToken = default
+    )
+    {
+        List<Team> teams = ResolveDeployTeams(environments, deployTeams);
+        await Task.WhenAll(teams.Select(t => giteaClient.RemoveTeamMemberAsync(t.Id, username, cancellationToken)));
     }
 
     public async Task<List<Team>> GetDeployTeamsAsync(string org, CancellationToken cancellationToken = default)
@@ -55,6 +71,15 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
     )
     {
         List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
+        return await GetDeployEnvironmentsAsync(username, deployTeams, cancellationToken);
+    }
+
+    public async Task<List<string>> GetDeployEnvironmentsAsync(
+        string username,
+        List<Team> deployTeams,
+        CancellationToken cancellationToken = default
+    )
+    {
         bool[] memberships = await Task.WhenAll(
             deployTeams.Select(t => giteaClient.IsTeamMemberAsync(t.Id, username, cancellationToken))
         );
@@ -91,14 +116,7 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
         return deployTeams.Zip(memberLists).ToDictionary(x => x.First.Id, x => x.Second);
     }
 
-    private async Task<List<Team>> ResolveDeployTeamsAsync(
-        string org,
-        IEnumerable<string> environments,
-        CancellationToken cancellationToken
-    )
-    {
-        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
-        return
+    private static List<Team> ResolveDeployTeams(IEnumerable<string> environments, List<Team> deployTeams) =>
         [
             .. environments
                 .Select(env =>
@@ -108,5 +126,4 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
                 })
                 .OfType<Team>(),
         ];
-    }
 }

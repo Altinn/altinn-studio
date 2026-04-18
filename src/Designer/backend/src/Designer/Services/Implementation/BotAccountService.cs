@@ -118,16 +118,16 @@ public class BotAccountService(
                 )
             ?? throw new InvalidOperationException($"Bot account '{botAccountId}' not found in org '{org}'.");
 
+        List<Team> deployTeams = await deployEnvironmentAccessService.GetDeployTeamsAsync(org, cancellationToken);
         List<string> deployEnvironments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
             model.Username,
-            org,
+            deployTeams,
             cancellationToken
         );
-
         await deployEnvironmentAccessService.RevokeAccessAsync(
-            org,
             model.Username,
             deployEnvironments,
+            deployTeams,
             cancellationToken
         );
 
@@ -200,11 +200,15 @@ public class BotAccountService(
         CancellationToken cancellationToken = default
     )
     {
-        var botAccount = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
+        Task<UserAccountDbModel> botAccountTask = GetBotAccountModelAsync(botAccountId, org, cancellationToken);
+        Task<List<Team>> deployTeamsTask = deployEnvironmentAccessService.GetDeployTeamsAsync(org, cancellationToken);
+        await Task.WhenAll(botAccountTask, deployTeamsTask);
+        UserAccountDbModel botAccount = botAccountTask.Result;
+        List<Team> deployTeams = deployTeamsTask.Result;
 
         List<string> currentEnvironments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
             botAccount.Username,
-            org,
+            deployTeams,
             cancellationToken
         );
 
@@ -214,8 +218,13 @@ public class BotAccountService(
         IEnumerable<string> toAdd = desired.Except(current, StringComparer.OrdinalIgnoreCase);
         IEnumerable<string> toRemove = current.Except(desired, StringComparer.OrdinalIgnoreCase);
         await Task.WhenAll(
-            deployEnvironmentAccessService.GrantAccessAsync(org, botAccount.Username, toAdd, cancellationToken),
-            deployEnvironmentAccessService.RevokeAccessAsync(org, botAccount.Username, toRemove, cancellationToken)
+            deployEnvironmentAccessService.GrantAccessAsync(botAccount.Username, toAdd, deployTeams, cancellationToken),
+            deployEnvironmentAccessService.RevokeAccessAsync(
+                botAccount.Username,
+                toRemove,
+                deployTeams,
+                cancellationToken
+            )
         );
     }
 
