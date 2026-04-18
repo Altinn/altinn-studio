@@ -8,32 +8,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IDeployEnvironmentAccessService
 {
     Task GrantAccessAsync(
-        string org,
-        string username,
-        IEnumerable<string> environments,
-        CancellationToken cancellationToken = default
-    );
-    Task GrantAccessAsync(
         string username,
         IEnumerable<string> environments,
         List<Team> deployTeams,
         CancellationToken cancellationToken = default
     );
     Task RevokeAccessAsync(
-        string org,
-        string username,
-        IEnumerable<string> environments,
-        CancellationToken cancellationToken = default
-    );
-    Task RevokeAccessAsync(
         string username,
         IEnumerable<string> environments,
         List<Team> deployTeams,
-        CancellationToken cancellationToken = default
-    );
-    Task<List<string>> GetDeployEnvironmentsAsync(
-        string username,
-        string org,
         CancellationToken cancellationToken = default
     );
     Task<List<string>> GetDeployEnvironmentsAsync(

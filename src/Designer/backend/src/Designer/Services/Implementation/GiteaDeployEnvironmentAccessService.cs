@@ -14,17 +14,6 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
     private const string DeployTeamPrefix = "Deploy-";
 
     public async Task GrantAccessAsync(
-        string org,
-        string username,
-        IEnumerable<string> environments,
-        CancellationToken cancellationToken = default
-    )
-    {
-        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
-        await GrantAccessAsync(username, environments, deployTeams, cancellationToken);
-    }
-
-    public async Task GrantAccessAsync(
         string username,
         IEnumerable<string> environments,
         List<Team> deployTeams,
@@ -36,17 +25,6 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
         {
             await giteaClient.AddTeamMemberAsync(team.Id, username, cancellationToken);
         }
-    }
-
-    public async Task RevokeAccessAsync(
-        string org,
-        string username,
-        IEnumerable<string> environments,
-        CancellationToken cancellationToken = default
-    )
-    {
-        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
-        await RevokeAccessAsync(username, environments, deployTeams, cancellationToken);
     }
 
     public async Task RevokeAccessAsync(
@@ -68,16 +46,6 @@ public class GiteaDeployEnvironmentAccessService(IGiteaClient giteaClient) : IDe
         List<Team> orgTeams = await giteaClient.GetOrgTeamsAsync(org, cancellationToken);
 
         return [.. orgTeams.Where(t => t.Name.StartsWith(DeployTeamPrefix, StringComparison.OrdinalIgnoreCase))];
-    }
-
-    public async Task<List<string>> GetDeployEnvironmentsAsync(
-        string username,
-        string org,
-        CancellationToken cancellationToken = default
-    )
-    {
-        List<Team> deployTeams = await GetDeployTeamsAsync(org, cancellationToken);
-        return await GetDeployEnvironmentsAsync(username, deployTeams, cancellationToken);
     }
 
     public async Task<List<string>> GetDeployEnvironmentsAsync(

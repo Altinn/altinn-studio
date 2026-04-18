@@ -52,7 +52,13 @@ public class BotAccountService(
 
         if (deployEnvironments != null)
         {
-            await deployEnvironmentAccessService.GrantAccessAsync(org, username, deployEnvironments, cancellationToken);
+            List<Team> deployTeams = await deployEnvironmentAccessService.GetDeployTeamsAsync(org, cancellationToken);
+            await deployEnvironmentAccessService.GrantAccessAsync(
+                username,
+                deployEnvironments,
+                deployTeams,
+                cancellationToken
+            );
         }
 
         return MapToDomain(model, createdByUsername, [.. deployEnvironments ?? []]);
@@ -98,10 +104,14 @@ public class BotAccountService(
 
     public async Task<BotAccount> GetAsync(Guid botAccountId, string org, CancellationToken cancellationToken = default)
     {
-        var model = await GetBotAccountModelAsync(botAccountId, org, cancellationToken);
+        Task<UserAccountDbModel> modelTask = GetBotAccountModelAsync(botAccountId, org, cancellationToken);
+        Task<List<Team>> deployTeamsTask = deployEnvironmentAccessService.GetDeployTeamsAsync(org, cancellationToken);
+        await Task.WhenAll(modelTask, deployTeamsTask);
+        UserAccountDbModel model = modelTask.Result;
+        List<Team> deployTeams = deployTeamsTask.Result;
         List<string> environments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
             model.Username,
-            org,
+            deployTeams,
             cancellationToken
         );
         return MapToDomain(model, model.CreatedByUserAccount?.Username, environments);
@@ -109,16 +119,18 @@ public class BotAccountService(
 
     public async Task DeactivateAsync(Guid botAccountId, string org, CancellationToken cancellationToken = default)
     {
-        var model =
-            await dbContext
-                .UserAccounts.Include(u => u.CreatedByUserAccount)
-                .FirstOrDefaultAsync(
-                    u => u.Id == botAccountId && u.OrganizationName == org && u.AccountType == AccountType.Bot,
-                    cancellationToken
-                )
+        Task<UserAccountDbModel?> modelTask = dbContext
+            .UserAccounts.Include(u => u.CreatedByUserAccount)
+            .FirstOrDefaultAsync(
+                u => u.Id == botAccountId && u.OrganizationName == org && u.AccountType == AccountType.Bot,
+                cancellationToken
+            );
+        Task<List<Team>> deployTeamsTask = deployEnvironmentAccessService.GetDeployTeamsAsync(org, cancellationToken);
+        await Task.WhenAll(modelTask, deployTeamsTask);
+        UserAccountDbModel model =
+            modelTask.Result
             ?? throw new InvalidOperationException($"Bot account '{botAccountId}' not found in org '{org}'.");
-
-        List<Team> deployTeams = await deployEnvironmentAccessService.GetDeployTeamsAsync(org, cancellationToken);
+        List<Team> deployTeams = deployTeamsTask.Result;
         List<string> deployEnvironments = await deployEnvironmentAccessService.GetDeployEnvironmentsAsync(
             model.Username,
             deployTeams,
@@ -217,8 +229,18 @@ public class BotAccountService(
 
         IEnumerable<string> toAdd = desired.Except(current, StringComparer.OrdinalIgnoreCase);
         IEnumerable<string> toRemove = current.Except(desired, StringComparer.OrdinalIgnoreCase);
-        await deployEnvironmentAccessService.GrantAccessAsync(botAccount.Username, toAdd, deployTeams, cancellationToken);
-        await deployEnvironmentAccessService.RevokeAccessAsync(botAccount.Username, toRemove, deployTeams, cancellationToken);
+        await deployEnvironmentAccessService.GrantAccessAsync(
+            botAccount.Username,
+            toAdd,
+            deployTeams,
+            cancellationToken
+        );
+        await deployEnvironmentAccessService.RevokeAccessAsync(
+            botAccount.Username,
+            toRemove,
+            deployTeams,
+            cancellationToken
+        );
     }
 
     private async Task<UserAccountDbModel> GetBotAccountModelAsync(
