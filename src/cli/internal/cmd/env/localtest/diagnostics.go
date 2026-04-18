@@ -14,6 +14,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
@@ -39,6 +40,7 @@ type DiagnosticOptions struct {
 	ResolveHost     func(ctx context.Context, host string) ([]string, error)
 	HTTPGet         func(ctx context.Context, url string) (DiagnosticHTTPResponse, error)
 	DialTCP         func(ctx context.Context, network, address string) error
+	IPv6Enabled     func() bool
 	Debugf          func(format string, args ...any)
 	Topology        envtopology.Local
 }
@@ -93,6 +95,7 @@ type diagnosticTCPProbe struct {
 // Diagnose checks the externally visible localtest environment.
 func Diagnose(ctx context.Context, opts DiagnosticOptions) *DiagnosticReport {
 	opts = normalizeDiagnosticOptions(opts)
+	ipv6Enabled := opts.IPv6Enabled()
 	serviceDefs := diagnosticServiceDefinitions(opts.Topology)
 	services := make([]DiagnosticService, 0, len(serviceDefs))
 
@@ -110,11 +113,18 @@ func Diagnose(ctx context.Context, opts DiagnosticOptions) *DiagnosticReport {
 		if state.Check != nil {
 			service.Checks = append(service.Checks, *state.Check)
 		}
+		hostHasLoopbackIPv6 := false
 		if def.Host != "" {
-			service.Checks = append(service.Checks, checkDiagnosticDNS(ctx, opts, def.Host))
+			dnsCheck, hasLoopbackIPv6 := checkDiagnosticDNS(ctx, opts, def.Host)
+			service.Checks = append(service.Checks, dnsCheck)
+			hostHasLoopbackIPv6 = hasLoopbackIPv6
 		}
 		if localtestRunning && state.Running {
-			service.Checks = append(service.Checks, checkDiagnosticTCP(ctx, opts, def.TCPProbes)...)
+			tcpProbes := def.TCPProbes
+			if def.Container == ContainerLocaltest && ipv6Enabled && hostHasLoopbackIPv6 {
+				tcpProbes = append(tcpProbes, localtestIPv6TCPProbes(opts.Topology)...)
+			}
+			service.Checks = append(service.Checks, checkDiagnosticTCP(ctx, opts, tcpProbes)...)
 			service.Checks = append(service.Checks, checkDiagnosticHTTP(ctx, opts, def)...)
 		}
 		services = append(services, service)
@@ -207,18 +217,23 @@ func localtestTCPProbes(topology envtopology.Local) []diagnosticTCPProbe {
 			topology.IngressPort(),
 		),
 		newDiagnosticTCPProbe(
-			"tcp_"+topology.IngressPort()+"_ipv6",
-			"TCP: "+topology.IngressPort()+" IPv6",
-			"tcp6",
-			"::1",
-			topology.IngressPort(),
-		),
-		newDiagnosticTCPProbe(
 			"tcp_"+localtestServicePort+"_ipv4",
 			"TCP: "+localtestServicePort+" IPv4",
 			"tcp4",
 			"127.0.0.1",
 			localtestServicePort,
+		),
+	}
+}
+
+func localtestIPv6TCPProbes(topology envtopology.Local) []diagnosticTCPProbe {
+	return []diagnosticTCPProbe{
+		newDiagnosticTCPProbe(
+			"tcp_"+topology.IngressPort()+"_ipv6",
+			"TCP: "+topology.IngressPort()+" IPv6",
+			"tcp6",
+			"::1",
+			topology.IngressPort(),
 		),
 		newDiagnosticTCPProbe(
 			"tcp_"+localtestServicePort+"_ipv6",
@@ -254,6 +269,9 @@ func normalizeDiagnosticOptions(opts DiagnosticOptions) DiagnosticOptions {
 	}
 	if opts.DialTCP == nil {
 		opts.DialTCP = defaultDiagnosticDialTCP
+	}
+	if opts.IPv6Enabled == nil {
+		opts.IPv6Enabled = osutil.IPv6Enabled
 	}
 	if opts.Debugf == nil {
 		opts.Debugf = func(string, ...any) {}
@@ -329,24 +347,25 @@ func checkDiagnosticContainerStates(
 	return states
 }
 
-func checkDiagnosticDNS(ctx context.Context, opts DiagnosticOptions, host string) DiagnosticCheck {
+func checkDiagnosticDNS(ctx context.Context, opts DiagnosticOptions, host string) (DiagnosticCheck, bool) {
 	lookupCtx, cancel := context.WithTimeout(ctx, diagnosticProbeTimeout)
 	addresses, err := opts.ResolveHost(lookupCtx, host)
 	cancel()
 	if err != nil {
-		return newDiagnosticCheck("dns", "DNS:", DiagnosticLevelError, "resolve failed: "+err.Error())
+		return newDiagnosticCheck("dns", "DNS:", DiagnosticLevelError, "resolve failed: "+err.Error()), false
 	}
 	slices.Sort(addresses)
 	message := host + " -> " + summarizeDNSAddresses(addresses)
+	hasLoopbackIPv6 := anyLoopbackIPv6(addresses)
 	if !allLoopback(addresses) {
 		return newDiagnosticCheck(
 			"dns",
 			"DNS:",
 			DiagnosticLevelError,
 			"does not resolve to loopback: "+message,
-		)
+		), false
 	}
-	return newDiagnosticCheck("dns", "DNS:", DiagnosticLevelOK, message)
+	return newDiagnosticCheck("dns", "DNS:", DiagnosticLevelOK, message), hasLoopbackIPv6
 }
 
 func checkDiagnosticTCP(
@@ -535,6 +554,16 @@ func allLoopback(addresses []string) bool {
 		}
 	}
 	return true
+}
+
+func anyLoopbackIPv6(addresses []string) bool {
+	for _, address := range addresses {
+		ip := net.ParseIP(address)
+		if ip != nil && ip.To4() == nil && ip.IsLoopback() {
+			return true
+		}
+	}
+	return false
 }
 
 func summarizeDNSAddresses(addresses []string) string {

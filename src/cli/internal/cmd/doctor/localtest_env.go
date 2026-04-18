@@ -15,6 +15,7 @@ func (s *Service) buildLocaltestEnv(ctx context.Context) *envlocaltest.Diagnosti
 		ResolveHost:     nil,
 		HTTPGet:         nil,
 		DialTCP:         nil,
+		IPv6Enabled:     nil,
 		Topology:        topology,
 	})
 }

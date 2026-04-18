@@ -60,7 +60,7 @@ func TestDiagnoseRunsDNSWhenLocaltestIsStopped(t *testing.T) {
 
 func TestDiagnoseChecksHealthWhenLocaltestIsRunning(t *testing.T) {
 	requested := make(map[string]bool)
-	report := localtest.Diagnose(t.Context(), newDiagnosticTestOptions(
+	opts := newDiagnosticTestOptions(
 		t,
 		func(_ context.Context, url string) (localtest.DiagnosticHTTPResponse, error) {
 			requested[url] = true
@@ -75,7 +75,11 @@ func TestDiagnoseChecksHealthWhenLocaltestIsRunning(t *testing.T) {
 			}, nil
 		},
 		nil,
-	))
+	)
+	opts.ResolveHost = func(context.Context, string) ([]string, error) {
+		return []string{"::1", "127.0.0.1"}, nil
+	}
+	report := localtest.Diagnose(t.Context(), opts)
 
 	if !report.Running {
 		t.Fatal("Diagnose() Running = false, want true")
@@ -103,6 +107,56 @@ func TestDiagnoseChecksHealthWhenLocaltestIsRunning(t *testing.T) {
 	assertDiagnosticCheck(t, report, "localtest", "localtest_health_8000", localtest.DiagnosticLevelOK)
 	assertDiagnosticCheck(t, report, "localtest", "localtest_health_5101", localtest.DiagnosticLevelOK)
 	assertDiagnosticCheck(t, report, "workflow-engine", "workflow_health", localtest.DiagnosticLevelOK)
+}
+
+func TestDiagnoseSkipsIPv6TCPChecksWhenIPv6IsDisabled(t *testing.T) {
+	dialedNetworks := make(map[string]bool)
+	opts := newDiagnosticTestOptions(t, nil, nil)
+	opts.ResolveHost = func(context.Context, string) ([]string, error) {
+		return []string{"::1", "127.0.0.1"}, nil
+	}
+	opts.IPv6Enabled = func() bool {
+		return false
+	}
+	opts.DialTCP = func(_ context.Context, network, _ string) error {
+		dialedNetworks[network] = true
+		return nil
+	}
+
+	report := localtest.Diagnose(t.Context(), opts)
+
+	if dialedNetworks["tcp6"] {
+		t.Fatal("Diagnose() dialed tcp6 with IPv6 disabled")
+	}
+	assertDiagnosticCheck(t, report, "localtest", "tcp_8000_ipv4", localtest.DiagnosticLevelOK)
+	assertDiagnosticCheck(t, report, "localtest", "tcp_5101_ipv4", localtest.DiagnosticLevelOK)
+	assertDiagnosticCheckMissing(t, report, "localtest", "tcp_8000_ipv6")
+	assertDiagnosticCheckMissing(t, report, "localtest", "tcp_5101_ipv6")
+}
+
+func TestDiagnoseSkipsIPv6TCPChecksWhenDNSHasNoIPv6(t *testing.T) {
+	dialedNetworks := make(map[string]bool)
+	opts := newDiagnosticTestOptions(t, nil, nil)
+	opts.ResolveHost = func(context.Context, string) ([]string, error) {
+		return []string{"127.0.0.1"}, nil
+	}
+	opts.IPv6Enabled = func() bool {
+		return true
+	}
+	opts.DialTCP = func(_ context.Context, network, _ string) error {
+		dialedNetworks[network] = true
+		return nil
+	}
+
+	report := localtest.Diagnose(t.Context(), opts)
+
+	if dialedNetworks["tcp6"] {
+		t.Fatal("Diagnose() dialed tcp6 without localtest AAAA DNS")
+	}
+	assertDiagnosticCheck(t, report, "localtest", "tcp_8000_ipv4", localtest.DiagnosticLevelOK)
+	assertDiagnosticCheck(t, report, "localtest", "tcp_5101_ipv4", localtest.DiagnosticLevelOK)
+	assertDiagnosticCheckMissing(t, report, "localtest", "tcp_8000_ipv6")
+	assertDiagnosticCheckMissing(t, report, "localtest", "tcp_5101_ipv6")
 }
 
 func TestDiagnoseSkipsHTTPForStoppedServiceContainer(t *testing.T) {
@@ -212,6 +266,9 @@ func newDiagnosticTestOptions(
 		HTTPGet: httpGet,
 		DialTCP: func(context.Context, string, string) error {
 			return nil
+		},
+		IPv6Enabled: func() bool {
+			return true
 		},
 		Debugf:   func(string, ...any) {},
 		Topology: envtopology.NewLocal(envtopology.DefaultIngressPortString()),
