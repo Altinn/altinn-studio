@@ -57,29 +57,29 @@ type runtimeState struct {
 
 // Status describes the current app-manager status.
 type Status struct {
-	AppManagerVersion string
-	DotnetVersion     string
-	StudioctlPath     string
-	Tunnel            TunnelStatus
-	Apps              []DiscoveredApp
-	ProcessID         int
-	InternalDev       bool
+	AppManagerVersion string          `json:"appManagerVersion"`
+	DotnetVersion     string          `json:"dotnetVersion"`
+	StudioctlPath     string          `json:"studioctlPath"`
+	Tunnel            TunnelStatus    `json:"tunnel"`
+	Apps              []DiscoveredApp `json:"apps"`
+	ProcessID         int             `json:"processId"`
+	InternalDev       bool            `json:"internalDev"`
 }
 
 // TunnelStatus describes the configured app tunnel.
 type TunnelStatus struct {
-	URL       string
-	Enabled   bool
-	Connected bool
+	URL       string `json:"url"`
+	Enabled   bool   `json:"enabled"`
+	Connected bool   `json:"connected"`
 }
 
 // DiscoveredApp describes one discovered app endpoint.
 type DiscoveredApp struct {
-	ProcessID   *int
-	AppID       string
-	BaseURL     string
-	Source      string
-	Description string
+	ProcessID   *int   `json:"processId"`
+	AppID       string `json:"appId"`
+	BaseURL     string `json:"baseUrl"`
+	Source      string `json:"source"`
+	Description string `json:"description"`
 }
 
 var (

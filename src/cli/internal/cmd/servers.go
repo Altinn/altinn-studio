@@ -15,17 +15,101 @@ import (
 
 // ServersCommand implements the 'servers' subcommand.
 type ServersCommand struct {
-	cfg    *config.Config
-	out    *ui.Output
-	client *appmanager.Client
+	cfg           *config.Config
+	out           *ui.Output
+	client        serversClient
+	ensureStarted ensureStartedFunc
+	shutdown      shutdownFunc
+}
+
+type serversClient interface {
+	Health(ctx context.Context) error
+	Status(ctx context.Context) (*appmanager.Status, error)
+}
+
+type ensureStartedFunc func(ctx context.Context, cfg *config.Config, loadBalancerPort string) error
+type shutdownFunc func(ctx context.Context, cfg *config.Config) (<-chan error, error)
+
+type serversUpOutput struct {
+	Running    bool `json:"running"`
+	Started    bool `json:"started"`
+	JSONOutput bool `json:"-"`
+}
+
+type serversStatusOutput struct {
+	Status     *appmanager.Status `json:"status,omitempty"`
+	Running    bool               `json:"running"`
+	JSONOutput bool               `json:"-"`
+}
+
+type serversDownOutput struct {
+	ShutdownRequested bool `json:"shutdownRequested"`
+	WasRunning        bool `json:"wasRunning"`
+	JSONOutput        bool `json:"-"`
+}
+
+func (o serversUpOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "servers up", o)
+	}
+	if o.Started {
+		out.Println("app-manager started.")
+		return nil
+	}
+	out.Println("app-manager is already running.")
+	return nil
+}
+
+func (o serversStatusOutput) Print(out *ui.Output) error {
+	if o.Status != nil && o.Status.Apps == nil {
+		o.Status.Apps = make([]appmanager.DiscoveredApp, 0)
+	}
+	if o.JSONOutput {
+		return printJSONOutput(out, "servers status", o)
+	}
+	if !o.Running {
+		out.Println("app-manager is not running.")
+		return nil
+	}
+	// TODO: table output. Should be refactored to be descriptive table subsequently rendered (columns are sometimes messed up)
+	out.Println("app-manager is running.")
+	out.Printlnf("Process ID: %d", o.Status.ProcessID)
+	out.Println("app-manager version: " + o.Status.AppManagerVersion)
+	out.Println(".NET version: " + o.Status.DotnetVersion)
+	if o.Status.Tunnel.Enabled {
+		state := "disconnected"
+		if o.Status.Tunnel.Connected {
+			state = "connected"
+		}
+		out.Println("tunnel: " + state)
+		out.Println("tunnel url: " + o.Status.Tunnel.URL)
+	} else {
+		out.Println("tunnel: disabled")
+	}
+	out.Printlnf("discovered apps: %d", len(o.Status.Apps))
+	return nil
+}
+
+func (o serversDownOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "servers down", o)
+	}
+	if !o.WasRunning {
+		out.Println("app-manager is not running.")
+		return nil
+	}
+	out.Println("app-manager shutdown requested.")
+	return nil
 }
 
 // NewServersCommand creates a new servers command.
 func NewServersCommand(cfg *config.Config, out *ui.Output) *ServersCommand {
 	return &ServersCommand{
-		cfg:    cfg,
-		out:    out,
-		client: appmanager.NewClient(cfg),
+		cfg:           cfg,
+		out:           out,
+		client:        appmanager.NewClient(cfg),
+		ensureStarted: appmanager.EnsureStarted,
+		shutdown:      appmanager.Shutdown,
 	}
 }
 
@@ -80,6 +164,8 @@ func (c *ServersCommand) Run(ctx context.Context, args []string) error {
 
 func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("servers up", flag.ContinueOnError)
+	var jsonOutput bool
+	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
@@ -88,23 +174,18 @@ func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 	}
 
 	if err := c.client.Health(ctx); err == nil {
-		c.out.Println("app-manager is already running.")
-		return nil
+		return serversUpOutput{Running: true, Started: false, JSONOutput: jsonOutput}.Print(c.out)
 	}
-	if err := appmanager.EnsureStarted(
-		ctx,
-		c.cfg,
-		envlocaltest.DefaultLoadBalancerPortString(),
-	); err != nil {
+	if err := c.startAppManager(ctx); err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
-	c.out.Println("app-manager started.")
-
-	return nil
+	return serversUpOutput{Running: true, Started: true, JSONOutput: jsonOutput}.Print(c.out)
 }
 
 func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("servers status", flag.ContinueOnError)
+	var jsonOutput bool
+	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
@@ -115,33 +196,17 @@ func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {
 	status, err := c.client.Status(ctx)
 	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
-			c.out.Println("app-manager is not running.")
-			return nil
+			return serversStatusOutput{Status: nil, Running: false, JSONOutput: jsonOutput}.Print(c.out)
 		}
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
-	// TODO: table output. Should be refactored to be descriptive table subsequently rendered (columns are sometimes messed up)
-	c.out.Println("app-manager is running.")
-	c.out.Printlnf("Process ID: %d", status.ProcessID)
-	c.out.Println("app-manager version: " + status.AppManagerVersion)
-	c.out.Println(".NET version: " + status.DotnetVersion)
-	if status.Tunnel.Enabled {
-		state := "disconnected"
-		if status.Tunnel.Connected {
-			state = "connected"
-		}
-		c.out.Println("tunnel: " + state)
-		c.out.Println("tunnel url: " + status.Tunnel.URL)
-	} else {
-		c.out.Println("tunnel: disabled")
-	}
-	c.out.Printlnf("discovered apps: %d", len(status.Apps))
-
-	return nil
+	return serversStatusOutput{Running: true, Status: status, JSONOutput: jsonOutput}.Print(c.out)
 }
 
 func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("servers down", flag.ContinueOnError)
+	var jsonOutput bool
+	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
@@ -149,16 +214,46 @@ func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	done, err := appmanager.Shutdown(ctx, c.cfg)
+	done, err := c.stopAppManager(ctx)
 	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
-			c.out.Println("app-manager is not running.")
-			return nil
+			return serversDownOutput{
+				WasRunning:        false,
+				ShutdownRequested: false,
+				JSONOutput:        jsonOutput,
+			}.Print(c.out)
 		}
 		return fmt.Errorf("shutdown app-manager: %w", err)
 	}
-	_ = done
-	c.out.Println("app-manager shutdown requested.")
 
-	return nil
+	select {
+	case err := <-done:
+		if err != nil {
+			return fmt.Errorf("shutdown app-manager: %w", err)
+		}
+	case <-ctx.Done():
+		return fmt.Errorf("shutdown app-manager: %w", ctx.Err())
+	}
+
+	return serversDownOutput{
+		WasRunning:        true,
+		ShutdownRequested: true,
+		JSONOutput:        jsonOutput,
+	}.Print(c.out)
+}
+
+func (c *ServersCommand) startAppManager(ctx context.Context) error {
+	ensureStarted := c.ensureStarted
+	if ensureStarted == nil {
+		ensureStarted = appmanager.EnsureStarted
+	}
+	return ensureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString())
+}
+
+func (c *ServersCommand) stopAppManager(ctx context.Context) (<-chan error, error) {
+	shutdown := c.shutdown
+	if shutdown == nil {
+		shutdown = appmanager.Shutdown
+	}
+	return shutdown(ctx, c.cfg)
 }

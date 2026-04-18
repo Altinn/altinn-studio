@@ -191,13 +191,13 @@ func (o *Output) Infolnf(format string, args ...any) {
 	o.Info(fmt.Sprintf(format, args...))
 }
 
-// Verbose writes a message only if verbose mode is enabled.
+// Verbose writes a message to stderr only if verbose mode is enabled.
 func (o *Output) Verbose(msg string) {
 	if o.verbose {
 		if Colors() {
 			msg = dimStyle().Render(msg)
 		}
-		err := o.write(o.out, msg, true)
+		err := o.write(o.err, msg, true)
 		if err != nil {
 			o.logWriteErr(err)
 		}
