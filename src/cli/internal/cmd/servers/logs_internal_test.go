@@ -3,10 +3,12 @@ package servers
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -74,7 +76,7 @@ func TestTailThenPrintAppended_EmitsEachCompleteLineOnce(t *testing.T) {
 	}
 }
 
-func TestReadTailSnapshot_UsesRingBufferForLastLines(t *testing.T) {
+func TestReadTailSnapshot_ReturnsLastLines(t *testing.T) {
 	t.Parallel()
 
 	path := writeLog(t, t.TempDir(), "one\ntwo\nthree\nfour\n")
@@ -88,6 +90,41 @@ func TestReadTailSnapshot_UsesRingBufferForLastLines(t *testing.T) {
 	}
 	if snapshot.nextOffsetByPath[path] != int64(len("one\ntwo\nthree\nfour\n")) {
 		t.Fatalf("offset = %d, want end of complete log", snapshot.nextOffsetByPath[path])
+	}
+}
+
+func TestReadTailSnapshot_ReadsOlderFilesOnlyWhenNeeded(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	oldPath := writeNamedLog(t, dir, "2026-04-18-100.log", "one\n")
+	newPath := writeNamedLog(t, dir, "2026-04-19-100.log", "two\n")
+
+	snapshot, err := readTailSnapshot([]string{oldPath, newPath}, 2)
+	if err != nil {
+		t.Fatalf("readTailSnapshot() error = %v", err)
+	}
+	if strings.Join(snapshot.lines, "\n") != "one\ntwo" {
+		t.Fatalf("lines = %v, want one and two", snapshot.lines)
+	}
+}
+
+func TestReadTailSnapshot_DoesNotReadOldFilesWhenNewerFileSatisfiesTail(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	oldPath := writeNamedLog(t, dir, "2026-04-18-100.log", strings.Repeat("x", logScannerMaxSize+1))
+	newPath := writeNamedLog(t, dir, "2026-04-19-100.log", "new\n")
+
+	snapshot, err := readTailSnapshot([]string{oldPath, newPath}, 1)
+	if err != nil {
+		t.Fatalf("readTailSnapshot() error = %v", err)
+	}
+	if strings.Join(snapshot.lines, "\n") != "new" {
+		t.Fatalf("lines = %v, want new", snapshot.lines)
+	}
+	if _, ok := snapshot.nextOffsetByPath[oldPath]; ok {
+		t.Fatalf("old log offset recorded, want old file left unread")
 	}
 }
 
@@ -146,6 +183,59 @@ func TestStreamLogs_WithoutPIDReadsLatestLog(t *testing.T) {
 	}
 }
 
+func TestPrintChangedFiles_ReadsNewFilesFromBeginning(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	oldPath := writeNamedLog(t, dir, "2026-04-18-100.log", "old\n")
+	offsets := map[string]int64{oldPath: int64(len("old\n"))}
+	newPath := writeNamedLog(t, dir, "2026-04-19-200.log", "new\n")
+	setLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
+	setLogModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
+
+	var out bytes.Buffer
+	streamer := logStreamer{
+		logDir: dir,
+		out:    ui.NewOutput(&out, io.Discard, false),
+	}
+
+	if err := streamer.printChangedFiles(offsets, false); err != nil {
+		t.Fatalf("printChangedFiles() error = %v", err)
+	}
+	if out.String() != "new\n" {
+		t.Fatalf("output = %q, want new file contents", out.String())
+	}
+	if offsets[newPath] != int64(len("new\n")) {
+		t.Fatalf("new offset = %d, want %d", offsets[newPath], len("new\n"))
+	}
+}
+
+func TestFollowDiscoversNewLogFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var out lockedBuffer
+	streamer := logStreamer{
+		logDir: dir,
+		out:    ui.NewOutput(&out, io.Discard, false),
+	}
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- streamer.follow(ctx, map[string]int64{}, false)
+	}()
+
+	writeNamedLog(t, dir, "2026-04-19-200.log", "new\n")
+	waitForOutput(t, &out, "new\n")
+	cancel()
+
+	if err := <-errCh; err != nil {
+		t.Fatalf("StreamLogs() error = %v, want nil", err)
+	}
+}
+
 func writeLog(t *testing.T, dir, content string) string {
 	t.Helper()
 
@@ -197,11 +287,44 @@ func TestStreamLogs_ContextCanceledFollowReturnsNil(t *testing.T) {
 	cancel()
 
 	err := StreamLogs(ctx, dir, ui.NewOutput(io.Discard, io.Discard, false), LogOptions{
-		PID:    100,
 		Tail:   0,
 		Follow: true,
 	})
 	if err != nil {
 		t.Fatalf("StreamLogs() error = %v, want nil", err)
 	}
+}
+
+type lockedBuffer struct {
+	buf bytes.Buffer
+	mu  sync.Mutex
+}
+
+func (b *lockedBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	n, err := b.buf.Write(p)
+	if err != nil {
+		return n, fmt.Errorf("write locked buffer: %w", err)
+	}
+	return n, nil
+}
+
+func (b *lockedBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
+}
+
+func waitForOutput(t *testing.T, out *lockedBuffer, want string) {
+	t.Helper()
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if out.String() == want {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("output = %q, want %q", out.String(), want)
 }

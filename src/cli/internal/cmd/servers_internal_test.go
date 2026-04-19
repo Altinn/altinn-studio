@@ -243,15 +243,17 @@ func TestServersLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
 
 	logDir := t.TempDir()
 	appManagerLogDir := filepath.Join(logDir, "app-manager")
-	writeServerLog(t, appManagerLogDir, "2026-04-18-100.log", "one\n")
-	writeServerLog(t, appManagerLogDir, "2026-04-19-100.log", "two\nthree\n")
-	writeServerLog(t, appManagerLogDir, "2026-04-19-200.log", "other\n")
+	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-100.log", "one\n")
+	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-100.log", "two\nthree\n")
+	otherPath := writeServerLog(t, appManagerLogDir, "2026-04-19-200.log", "other\n")
+	setServerLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
+	setServerLogModTime(t, newPath, time.Date(2026, 4, 19, 2, 0, 0, 0, time.UTC))
+	setServerLogModTime(t, otherPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
 	var out bytes.Buffer
 	command := &ServersCommand{
-		cfg:    &config.Config{LogDir: logDir},
-		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{status: &appmanager.Status{ProcessID: 100}},
+		cfg: &config.Config{LogDir: logDir},
+		out: ui.NewOutput(&out, io.Discard, false),
 	}
 
 	if err := command.Run(
@@ -288,9 +290,8 @@ func TestServersLogs_MissingLogFile(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &ServersCommand{
-		cfg:    &config.Config{LogDir: t.TempDir()},
-		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{status: &appmanager.Status{ProcessID: 100}},
+		cfg: &config.Config{LogDir: t.TempDir()},
+		out: ui.NewOutput(&out, io.Discard, false),
 	}
 
 	err := command.Run(context.Background(), []string{"logs", "--follow=false"})
@@ -328,7 +329,7 @@ func TestServersLogs_InvalidTail(t *testing.T) {
 	}
 }
 
-func TestServersLogs_NotRunning(t *testing.T) {
+func TestServersLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 	t.Parallel()
 
 	logDir := t.TempDir()
@@ -340,12 +341,11 @@ func TestServersLogs_NotRunning(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &ServersCommand{
-		cfg:    &config.Config{LogDir: logDir},
-		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{statusErr: appmanager.ErrNotRunning},
+		cfg: &config.Config{LogDir: logDir},
+		out: ui.NewOutput(&out, io.Discard, false),
 	}
 
-	if err := command.Run(context.Background(), []string{"logs"}); err != nil {
+	if err := command.Run(context.Background(), []string{"logs", "--follow=false", "--tail", "1"}); err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
 	if strings.TrimSpace(out.String()) != "new" {

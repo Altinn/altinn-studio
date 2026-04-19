@@ -67,6 +67,24 @@ func TestReadLatestAppManagerLogTail_LimitsOutput(t *testing.T) {
 	}
 }
 
+func TestReadAppManagerLogTailForPID_IgnoresOtherProcessLogs(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	targetPath := writeTestLog(t, dir, "2026-04-19-100.log", "target\n")
+	stalePath := writeTestLog(t, dir, "2026-04-19-200.log", "stale\n")
+	setModTime(t, targetPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
+	setModTime(t, stalePath, time.Date(2026, 4, 19, 2, 0, 0, 0, time.UTC))
+
+	got := readAppManagerLogTailForPID(dir, 100)
+	if !strings.Contains(got, "target") {
+		t.Fatalf("readAppManagerLogTailForPID() = %q, want target log", got)
+	}
+	if strings.Contains(got, "stale") {
+		t.Fatalf("readAppManagerLogTailForPID() = %q, want no stale log", got)
+	}
+}
+
 func TestLogPathsForPID_ReturnsOnlyMatchingPIDInOrder(t *testing.T) {
 	t.Parallel()
 
@@ -93,6 +111,30 @@ func TestLogPathsForPID_ReturnsOnlyMatchingPIDInOrder(t *testing.T) {
 	}
 	if len(got) != 1 || got[0] != singleDigit {
 		t.Fatalf("LogPathsForPID(single digit) = %v, want %v", got, []string{singleDigit})
+	}
+}
+
+func TestLogFiles_ReturnsMatchingFilesByModTime(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	first := writeTestLog(t, dir, "2026-04-19-200.log", "first\n")
+	second := writeTestLog(t, dir, "2026-04-18-100.log", "second\n")
+	_ = writeTestLog(t, dir, "legacy.log", "legacy\n")
+	setModTime(t, first, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
+	setModTime(t, second, time.Date(2026, 4, 19, 2, 0, 0, 0, time.UTC))
+
+	files, err := LogFiles(dir)
+	if err != nil {
+		t.Fatalf("LogFiles() error = %v", err)
+	}
+	got := make([]string, 0, len(files))
+	for _, file := range files {
+		got = append(got, file.Path)
+	}
+	want := []string{first, second}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("LogFiles() = %v, want %v", got, want)
 	}
 }
 

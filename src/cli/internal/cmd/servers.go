@@ -286,29 +286,16 @@ func (c *ServersCommand) runLogs(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: --tail must be less than or equal to %d", ErrInvalidFlagValue, maxServersLogTailLines)
 	}
 
-	status, err := c.client.Status(ctx)
-	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
-			return c.streamAppManagerLogs(ctx, 0, tail, false, jsonOutput)
-		}
-		return fmt.Errorf("get app-manager status: %w", err)
-	}
-	if status.ProcessID <= 0 {
-		return fmt.Errorf("%w: app-manager status has invalid process id %d", ErrInvalidFlagValue, status.ProcessID)
-	}
-
-	return c.streamAppManagerLogs(ctx, status.ProcessID, tail, follow, jsonOutput)
+	return c.streamAppManagerLogs(ctx, tail, follow, jsonOutput)
 }
 
 func (c *ServersCommand) streamAppManagerLogs(
 	ctx context.Context,
-	pid int,
 	tail int,
 	follow bool,
 	jsonOutput bool,
 ) error {
 	if err := serverspkg.StreamLogs(ctx, c.cfg.AppManagerLogDir(), c.out, serverspkg.LogOptions{
-		PID:    pid,
 		Tail:   tail,
 		Follow: follow,
 		JSON:   jsonOutput,
