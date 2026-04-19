@@ -155,7 +155,7 @@ func newContainerStatus(name, status string) ContainerStatus {
 	}
 }
 
-func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
+func coreContainers(dataDir string, cfg RuntimeConfig, includePgAdmin bool) []ContainerSpec {
 	hostExtraHosts := []string{
 		"host.docker.internal:" + cfg.HostGateway,
 		"host.containers.internal:" + cfg.HostGateway,
@@ -204,7 +204,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 		workflowEngineDbContainerSpec(dataDir),
 		workflowEngineContainerSpec(),
 	}
-	if !config.IsCI() {
+	if includePgAdmin {
 		containers = append(containers, pgAdminContainerSpec(dataDir))
 	}
 	return containers
@@ -426,6 +426,7 @@ type ResourceBuildOptions struct {
 	RuntimeConfig     RuntimeConfig
 	ImageMode         ImageMode
 	IncludeMonitoring bool
+	IncludePgAdmin    bool
 }
 
 // ResourceDestroyOptions holds minimal options for destroying resources.
@@ -450,6 +451,7 @@ func BuildResources(opts ResourceBuildOptions) []resource.Resource {
 		opts.DataDir,
 		opts.RuntimeConfig,
 		opts.IncludeMonitoring,
+		opts.IncludePgAdmin,
 		buildCoreImages(opts),
 		monitoringImageRefs(opts.Images.Monitoring),
 		containerModeApply,
@@ -470,6 +472,7 @@ func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
 		opts.DataDir,
 		runtimeCfg,
 		opts.IncludeMonitoring,
+		true,
 		buildRemoteCoreImages(opts.Images.Core),
 		monitoringImageRefs(opts.Images.Monitoring),
 		containerModeDestroy,
@@ -555,11 +558,12 @@ func buildResourcesWithMode(
 	dataDir string,
 	runtimeCfg RuntimeConfig,
 	includeMonitoring bool,
+	includePgAdmin bool,
 	coreImages map[string]resource.ImageResource,
 	monImages map[string]string,
 	mode containerResourceMode,
 ) []resource.Resource {
-	core := coreContainers(dataDir, runtimeCfg)
+	core := coreContainers(dataDir, runtimeCfg, includePgAdmin)
 	mon := monitoringContainers(dataDir, runtimeCfg)
 	labels := map[string]string{LabelKey: LabelValue}
 
@@ -714,7 +718,7 @@ type hostPathExpectation struct {
 }
 
 func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
-	core := coreContainers(opts.DataDir, opts.RuntimeConfig)
+	core := coreContainers(opts.DataDir, opts.RuntimeConfig, opts.IncludePgAdmin)
 	all := core
 	if opts.IncludeMonitoring {
 		all = append(all, monitoringContainers(opts.DataDir, opts.RuntimeConfig)...)

@@ -34,7 +34,17 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 				localtest.ContainerPDF3:             {Status: "running", Running: true},
 				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
 				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
-				localtest.ContainerPgAdmin:          {Status: "running", Running: true},
+			},
+			wantRunning:    true,
+			wantAnyRunning: true,
+		},
+		"all core containers running without pgadmin": {
+			states: map[string]types.ContainerState{
+				localtest.ContainerLocaltest:        {Status: "running", Running: true},
+				localtest.ContainerPDF3:             {Status: "running", Running: true},
+				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
+				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
+				localtest.ContainerPgAdmin:          {Status: "exited", Running: false},
 			},
 			wantRunning:    true,
 			wantAnyRunning: true,
@@ -45,7 +55,6 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 				localtest.ContainerPDF3:             {Status: "exited", Running: false},
 				localtest.ContainerWorkflowEngineDb: {Status: "running", Running: true},
 				localtest.ContainerWorkflowEngine:   {Status: "running", Running: true},
-				localtest.ContainerPgAdmin:          {Status: "running", Running: true},
 			},
 			wantRunning:    false,
 			wantAnyRunning: true,
@@ -107,6 +116,27 @@ func TestStatus_ReturnsErrorForNonNotFoundStateError(t *testing.T) {
 	_, err := env.Status(context.Background())
 	if !errors.Is(err, errStateUnavailable) {
 		t.Fatalf("Status() error = %v, want wrapped %v", err, errStateUnavailable)
+	}
+}
+
+func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
+	t.Parallel()
+
+	client := mock.New()
+	client.ContainerStateFunc = func(_ context.Context, nameOrID string) (types.ContainerState, error) {
+		if nameOrID == localtest.ContainerPgAdmin {
+			return types.ContainerState{}, types.ErrContainerNotFound
+		}
+		return types.ContainerState{Status: "running", Running: true}, nil
+	}
+
+	env := newTestEnv(client)
+	status, err := env.StatusForUp(context.Background(), envtypes.UpOptions{PgAdmin: true})
+	if err != nil {
+		t.Fatalf("StatusForUp() error = %v", err)
+	}
+	if status.Running {
+		t.Fatal("StatusForUp().Running = true, want false when pgadmin is requested but missing")
 	}
 }
 

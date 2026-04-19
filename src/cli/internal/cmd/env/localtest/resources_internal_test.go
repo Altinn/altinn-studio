@@ -29,6 +29,32 @@ func TestValidateResourceHostPaths(t *testing.T) {
 		}
 	})
 
+	t.Run("valid pgadmin layout when requested", func(t *testing.T) {
+		t.Parallel()
+		dataDir := t.TempDir()
+		createCoreLayout(t, dataDir)
+		createPgAdminLayout(t, dataDir)
+
+		err := ValidateResourceHostPaths(newResourceBuildOptions(dataDir, false, true))
+		if err != nil {
+			t.Fatalf("ValidateResourceHostPaths() error = %v, want nil", err)
+		}
+	})
+
+	t.Run("missing pgadmin config when requested", func(t *testing.T) {
+		t.Parallel()
+		dataDir := t.TempDir()
+		createCoreLayout(t, dataDir)
+
+		err := ValidateResourceHostPaths(newResourceBuildOptions(dataDir, false, true))
+		if !errors.Is(err, ErrInvalidResourceLayout) {
+			t.Fatalf("ValidateResourceHostPaths() error = %v, want ErrInvalidResourceLayout", err)
+		}
+		if !strings.Contains(err.Error(), filepath.Join(dataDir, "infra", "workflow-engine", "pgadmin-servers.json")) {
+			t.Fatalf("error %q does not contain missing pgadmin path", err.Error())
+		}
+	})
+
 	t.Run("missing monitoring config file", func(t *testing.T) {
 		t.Parallel()
 		dataDir := t.TempDir()
@@ -78,7 +104,7 @@ func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
 		LoadBalancerPort: "8000",
 		LocalAppURL:      "http://host.docker.internal:5005",
 		Platform:         container.PlatformColima,
-	})
+	}, false)
 
 	if got := containers[0].Environment["DOTNET_ENVIRONMENT"]; got != "Docker" {
 		t.Fatalf("DOTNET_ENVIRONMENT = %q, want %q", got, "Docker")
@@ -93,10 +119,10 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 		LoadBalancerPort: "8000",
 		LocalAppURL:      "http://host.docker.internal:5005",
 		Platform:         container.PlatformPodman,
-	})
+	}, true)
 
-	if len(containers) != len(coreContainerNames()) {
-		t.Fatalf("coreContainers() len = %d, want %d", len(containers), len(coreContainerNames()))
+	if len(containers) != len(coreContainerNames(true)) {
+		t.Fatalf("coreContainers() len = %d, want %d", len(containers), len(coreContainerNames(true)))
 	}
 
 	if got := []string{containers[2].Name, containers[3].Name, containers[4].Name}; !slices.Equal(
@@ -166,23 +192,48 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	}
 }
 
-func TestCoreContainers_SkipsPgAdminInCI(t *testing.T) {
+func TestBuildResources_AddsPgAdminOnlyWhenRequested(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	tests := map[string]struct {
+		includePgAdmin bool
+		wantPgAdmin    bool
+	}{
+		"default": {
+			includePgAdmin: false,
+			wantPgAdmin:    false,
+		},
+		"requested": {
+			includePgAdmin: true,
+			wantPgAdmin:    true,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			resources := BuildResources(newResourceBuildOptions(t.TempDir(), false, tt.includePgAdmin))
+			if got := hasResource(resources, resource.ContainerID(ContainerPgAdmin)); got != tt.wantPgAdmin {
+				t.Fatalf("BuildResources() has pgadmin = %v, want %v", got, tt.wantPgAdmin)
+			}
+		})
+	}
+}
+
+func TestBuildResources_IncludesPgAdminInCIWhenRequested(t *testing.T) {
 	t.Setenv(config.EnvCI, "true")
 
-	containers := coreContainers(t.TempDir(), RuntimeConfig{
-		HostGateway:      "10.88.0.1",
-		LoadBalancerPort: "8000",
-		LocalAppURL:      "http://host.docker.internal:5005",
-		Platform:         container.PlatformPodman,
-	})
-
-	if slices.Contains(coreContainerNames(), ContainerPgAdmin) {
-		t.Fatalf("coreContainerNames() contains %q in CI", ContainerPgAdmin)
+	resources := BuildResources(newResourceBuildOptions(t.TempDir(), false, true))
+	if !hasResource(resources, resource.ContainerID(ContainerPgAdmin)) {
+		t.Fatalf("BuildResources() missing %q in CI", ContainerPgAdmin)
 	}
-	if slices.ContainsFunc(containers, func(spec ContainerSpec) bool {
-		return spec.Name == ContainerPgAdmin
-	}) {
-		t.Fatalf("coreContainers() contains %q in CI", ContainerPgAdmin)
+}
+
+func TestBuildResourcesForDestroy_IncludesPgAdmin(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	resources := BuildResourcesForDestroy(ResourceDestroyOptions{DataDir: t.TempDir()})
+	if !hasResource(resources, resource.ContainerID(ContainerPgAdmin)) {
+		t.Fatalf("BuildResourcesForDestroy() missing %q", ContainerPgAdmin)
 	}
 }
 
@@ -240,7 +291,7 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 		LoadBalancerPort: "8000",
 		LocalAppURL:      "http://host.docker.internal:5005",
 		Platform:         container.PlatformPodman,
-	})
+	}, true)
 
 	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
 		return spec.Name == ContainerPgAdmin
@@ -315,7 +366,11 @@ func TestLocaltestEnvironment(t *testing.T) {
 	}
 }
 
-func newResourceBuildOptions(dataDir string, includeMonitoring bool) ResourceBuildOptions {
+func newResourceBuildOptions(dataDir string, includeMonitoring bool, includePgAdmin ...bool) ResourceBuildOptions {
+	pgAdmin := false
+	if len(includePgAdmin) > 0 {
+		pgAdmin = includePgAdmin[0]
+	}
 	return ResourceBuildOptions{
 		DataDir: dataDir,
 		RuntimeConfig: RuntimeConfig{
@@ -325,6 +380,7 @@ func newResourceBuildOptions(dataDir string, includeMonitoring bool) ResourceBui
 			Platform:         container.PlatformDocker,
 		},
 		IncludeMonitoring: includeMonitoring,
+		IncludePgAdmin:    pgAdmin,
 	}
 }
 
@@ -341,9 +397,19 @@ func createCoreLayout(t *testing.T, dataDir string) {
 		}
 	}
 
-	// Infrastructure config files needed by core containers
 	for _, file := range []string{
 		"postgres-init.sql",
+	} {
+		path := filepath.Join(dataDir, "infra", "workflow-engine", file)
+		if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
+			t.Fatalf("write %q: %v", path, err)
+		}
+	}
+}
+
+func createPgAdminLayout(t *testing.T, dataDir string) {
+	t.Helper()
+	for _, file := range []string{
 		"pgadmin-servers.json",
 		"pgpass",
 	} {
@@ -378,4 +444,10 @@ func createMonitoringLayout(t *testing.T, dataDir string) {
 	if err := os.MkdirAll(filepath.Join(infraDir, "grafana-dashboards"), 0o755); err != nil {
 		t.Fatalf("create grafana dashboards directory: %v", err)
 	}
+}
+
+func hasResource(resources []resource.Resource, id resource.ResourceID) bool {
+	return slices.ContainsFunc(resources, func(res resource.Resource) bool {
+		return res.ID() == id
+	})
 }

@@ -114,6 +114,7 @@ func (c *EnvCommand) Usage() string {
 		"Options for 'env up':",
 		"  -d, --detach     Run in background (default: true)",
 		"  --monitoring     Start monitoring stack",
+		"  --pgadmin        Start pgAdmin for the workflow-engine database",
 		"  --open           Open localtest in browser after starting",
 		"",
 		fmt.Sprintf("Run '%s env <subcommand> --help' for more information.", osutil.CurrentBin()),
@@ -193,6 +194,7 @@ type envUpFlags struct {
 	runtime     string
 	detach      bool
 	monitoring  bool
+	pgAdmin     bool
 	openBrowser bool
 	jsonOutput  bool
 }
@@ -205,6 +207,7 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 	fs.BoolVar(&f.detach, "d", true, "Run in background")
 	fs.BoolVar(&f.detach, "detach", true, "Run in background")
 	fs.BoolVar(&f.monitoring, "monitoring", false, "Start monitoring stack")
+	fs.BoolVar(&f.pgAdmin, "pgadmin", false, "Start pgAdmin for the workflow-engine database")
 	fs.BoolVar(&f.openBrowser, "open", false, "Open localtest in browser after starting")
 	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
 
@@ -247,12 +250,19 @@ func (c *EnvCommand) runLocaltestUp(
 ) error {
 	env := envlocaltest.NewEnv(c.cfg, commandOutput(c.out, flags.jsonOutput), client)
 
-	preflightErr := env.Preflight(ctx)
+	upOpts := envtypes.UpOptions{
+		Detach:      flags.detach,
+		Monitoring:  flags.monitoring,
+		OpenBrowser: flags.openBrowser,
+		PgAdmin:     flags.pgAdmin,
+	}
+
+	preflightErr := env.Preflight(ctx, upOpts)
 	if preflightErr != nil {
 		return fmt.Errorf("preflight check: %w", preflightErr)
 	}
 
-	status, err := env.Status(ctx)
+	status, err := env.StatusForUp(ctx, upOpts)
 	if err != nil {
 		return fmt.Errorf("get status: %w", err)
 	}
@@ -266,11 +276,7 @@ func (c *EnvCommand) runLocaltestUp(
 		}.Print(c.out)
 	}
 
-	if err := env.Up(ctx, envtypes.UpOptions{
-		Detach:      flags.detach,
-		Monitoring:  flags.monitoring,
-		OpenBrowser: flags.openBrowser,
-	}); err != nil {
+	if err := env.Up(ctx, upOpts); err != nil {
 		return fmt.Errorf("env up: %w", err)
 	}
 	return envUpOutput{
