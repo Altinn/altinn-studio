@@ -9,12 +9,17 @@ import (
 
 	"altinn.studio/studioctl/internal/appmanager"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	serverspkg "altinn.studio/studioctl/internal/cmd/servers"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
-const serverStatusKeyWidth = 19
+const (
+	serverStatusKeyWidth       = 19
+	defaultServersLogTailLines = 100
+	maxServersLogTailLines     = 10000
+)
 
 // ServersCommand implements the 'servers' subcommand.
 type ServersCommand struct {
@@ -141,6 +146,12 @@ func (c *ServersCommand) Usage() string {
 		"  up      Start all servers (app-manager)",
 		"  status  Show server status (app-manager)",
 		"  down    Stop all servers (app-manager)",
+		"  logs    Stream server logs (app-manager)",
+		"",
+		"Options for 'servers logs':",
+		"  -f, --follow  Follow log output (default: true)",
+		"  --tail        Number of log lines to show (default: 100)",
+		"  --json        Output as newline-delimited JSON",
 		"",
 		fmt.Sprintf("Run '%s servers <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)
@@ -163,6 +174,8 @@ func (c *ServersCommand) Run(ctx context.Context, args []string) error {
 		return c.runStatus(ctx, subArgs)
 	case "down":
 		return c.runDown(ctx, subArgs)
+	case "logs":
+		return c.runLogs(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -249,6 +262,60 @@ func (c *ServersCommand) runDown(ctx context.Context, args []string) error {
 		ShutdownRequested: true,
 		JSONOutput:        jsonOutput,
 	}.Print(c.out)
+}
+
+func (c *ServersCommand) runLogs(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("servers logs", flag.ContinueOnError)
+	var follow bool
+	var jsonOutput bool
+	var tail int
+	fs.BoolVar(&follow, "f", true, "Follow log output")
+	fs.BoolVar(&follow, "follow", true, "Follow log output")
+	fs.BoolVar(&jsonOutput, "json", false, "Output as newline-delimited JSON")
+	fs.IntVar(&tail, "tail", defaultServersLogTailLines, "Number of log lines to show")
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+	if tail < 0 {
+		return fmt.Errorf("%w: --tail must be greater than or equal to 0", ErrInvalidFlagValue)
+	}
+	if tail > maxServersLogTailLines {
+		return fmt.Errorf("%w: --tail must be less than or equal to %d", ErrInvalidFlagValue, maxServersLogTailLines)
+	}
+
+	status, err := c.client.Status(ctx)
+	if err != nil {
+		if errors.Is(err, appmanager.ErrNotRunning) {
+			return c.streamAppManagerLogs(ctx, 0, tail, false, jsonOutput)
+		}
+		return fmt.Errorf("get app-manager status: %w", err)
+	}
+	if status.ProcessID <= 0 {
+		return fmt.Errorf("%w: app-manager status has invalid process id %d", ErrInvalidFlagValue, status.ProcessID)
+	}
+
+	return c.streamAppManagerLogs(ctx, status.ProcessID, tail, follow, jsonOutput)
+}
+
+func (c *ServersCommand) streamAppManagerLogs(
+	ctx context.Context,
+	pid int,
+	tail int,
+	follow bool,
+	jsonOutput bool,
+) error {
+	if err := serverspkg.StreamLogs(ctx, c.cfg.AppManagerLogDir(), c.out, serverspkg.LogOptions{
+		PID:    pid,
+		Tail:   tail,
+		Follow: follow,
+		JSON:   jsonOutput,
+	}); err != nil {
+		return fmt.Errorf("servers logs: %w", err)
+	}
+	return nil
 }
 
 func (c *ServersCommand) startAppManager(ctx context.Context) error {

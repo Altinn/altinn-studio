@@ -6,8 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"altinn.studio/studioctl/internal/appmanager"
 	"altinn.studio/studioctl/internal/config"
@@ -235,6 +238,121 @@ func TestServersDownJSON_ContextCancelledWhileWaiting(t *testing.T) {
 	}
 }
 
+func TestServersLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
+	t.Parallel()
+
+	logDir := t.TempDir()
+	appManagerLogDir := filepath.Join(logDir, "app-manager")
+	writeServerLog(t, appManagerLogDir, "2026-04-18-100.log", "one\n")
+	writeServerLog(t, appManagerLogDir, "2026-04-19-100.log", "two\nthree\n")
+	writeServerLog(t, appManagerLogDir, "2026-04-19-200.log", "other\n")
+
+	var out bytes.Buffer
+	command := &ServersCommand{
+		cfg:    &config.Config{LogDir: logDir},
+		out:    ui.NewOutput(&out, io.Discard, false),
+		client: fakeServersClient{status: &appmanager.Status{ProcessID: 100}},
+	}
+
+	if err := command.Run(
+		context.Background(),
+		[]string{"logs", "--follow=false", "--tail", "2", "--json"},
+	); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("output lines = %d, want 2: %q", len(lines), out.String())
+	}
+	want := []string{"two", "three"}
+	for i, line := range lines {
+		var got struct {
+			Server string `json:"server"`
+			Line   string `json:"line"`
+		}
+		if err := json.Unmarshal([]byte(line), &got); err != nil {
+			t.Fatalf("json.Unmarshal(line %d) error = %v", i, err)
+		}
+		if got.Server != "app-manager" {
+			t.Fatalf("line %d server = %q, want app-manager", i, got.Server)
+		}
+		if got.Line != want[i] {
+			t.Fatalf("line %d = %q, want %q", i, got.Line, want[i])
+		}
+	}
+}
+
+func TestServersLogs_MissingLogFile(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	command := &ServersCommand{
+		cfg:    &config.Config{LogDir: t.TempDir()},
+		out:    ui.NewOutput(&out, io.Discard, false),
+		client: fakeServersClient{status: &appmanager.Status{ProcessID: 100}},
+	}
+
+	err := command.Run(context.Background(), []string{"logs", "--follow=false"})
+	if err == nil || !strings.Contains(err.Error(), "app-manager logs not found") {
+		t.Fatalf("Run() error = %v, want app-manager logs not found", err)
+	}
+	if out.String() != "" {
+		t.Fatalf("output = %q, want empty", out.String())
+	}
+}
+
+func TestServersLogs_InvalidTail(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string][]string{
+		"negative":  {"logs", "--tail", "-1"},
+		"too large": {"logs", "--tail", "10001"},
+	}
+
+	for name, args := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var out bytes.Buffer
+			command := &ServersCommand{
+				cfg: &config.Config{LogDir: t.TempDir()},
+				out: ui.NewOutput(&out, io.Discard, false),
+			}
+
+			err := command.Run(context.Background(), args)
+			if !errors.Is(err, ErrInvalidFlagValue) {
+				t.Fatalf("Run() error = %v, want %v", err, ErrInvalidFlagValue)
+			}
+		})
+	}
+}
+
+func TestServersLogs_NotRunning(t *testing.T) {
+	t.Parallel()
+
+	logDir := t.TempDir()
+	appManagerLogDir := filepath.Join(logDir, "app-manager")
+	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-100.log", "old\n")
+	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-200.log", "new\n")
+	setServerLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
+	setServerLogModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
+
+	var out bytes.Buffer
+	command := &ServersCommand{
+		cfg:    &config.Config{LogDir: logDir},
+		out:    ui.NewOutput(&out, io.Discard, false),
+		client: fakeServersClient{statusErr: appmanager.ErrNotRunning},
+	}
+
+	if err := command.Run(context.Background(), []string{"logs"}); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if strings.TrimSpace(out.String()) != "new" {
+		t.Fatalf("output = %q, want latest log line", out.String())
+	}
+}
+
 type fakeServersClient struct {
 	status    *appmanager.Status
 	statusErr error
@@ -247,4 +365,25 @@ func (f fakeServersClient) Health(context.Context) error {
 
 func (f fakeServersClient) Status(context.Context) (*appmanager.Status, error) {
 	return f.status, f.statusErr
+}
+
+func writeServerLog(t *testing.T, dir, name, content string) string {
+	t.Helper()
+
+	path := filepath.Join(dir, name)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		t.Fatalf("create server log dir %q: %v", dir, err)
+	}
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write server log %q: %v", path, err)
+	}
+	return path
+}
+
+func setServerLogModTime(t *testing.T, path string, modTime time.Time) {
+	t.Helper()
+
+	if err := os.Chtimes(path, modTime, modTime); err != nil {
+		t.Fatalf("set server log modtime %q: %v", path, err)
+	}
 }
