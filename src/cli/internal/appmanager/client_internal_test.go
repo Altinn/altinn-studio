@@ -141,7 +141,7 @@ func TestLogFiles_ReturnsMatchingFilesByModTime(t *testing.T) {
 func TestLogLookup_HandlesDirectoryWithGlobMetacharacters(t *testing.T) {
 	t.Parallel()
 
-	dir := filepath.Join(t.TempDir(), "logs[?]")
+	dir := filepath.Join(t.TempDir(), "logs[abc]")
 	if err := os.Mkdir(dir, 0o700); err != nil {
 		t.Fatalf("create log dir: %v", err)
 	}

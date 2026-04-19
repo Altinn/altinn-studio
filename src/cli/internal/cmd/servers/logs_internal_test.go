@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -59,7 +60,7 @@ func TestTailThenPrintAppended_EmitsEachCompleteLineOnce(t *testing.T) {
 	if err != nil {
 		t.Fatalf("printAppended() error = %v", err)
 	}
-	if out.String() != "one\ntwo\n" {
+	if out.String() != "one"+osutil.LineBreak+"two"+osutil.LineBreak {
 		t.Fatalf("output = %q, want one and two once", out.String())
 	}
 	if offset != int64(len("one\ntwo\n")) {
@@ -154,7 +155,7 @@ func TestPrintAppended_HoldsPartialLineUntilNewline(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second printAppended() error = %v", err)
 	}
-	if out.String() != "partial rest\n" {
+	if out.String() != "partial rest"+osutil.LineBreak {
 		t.Fatalf("output = %q, want completed line", out.String())
 	}
 	if offset != int64(len("one\npartial rest\n")) {
@@ -178,7 +179,7 @@ func TestStreamLogs_WithoutPIDReadsLatestLog(t *testing.T) {
 	if err != nil {
 		t.Fatalf("StreamLogs() error = %v", err)
 	}
-	if out.String() != "new\n" {
+	if out.String() != "new"+osutil.LineBreak {
 		t.Fatalf("output = %q, want latest log", out.String())
 	}
 }
@@ -202,7 +203,7 @@ func TestPrintChangedFiles_ReadsNewFilesFromBeginning(t *testing.T) {
 	if err := streamer.printChangedFiles(offsets, false); err != nil {
 		t.Fatalf("printChangedFiles() error = %v", err)
 	}
-	if out.String() != "new\n" {
+	if out.String() != "new"+osutil.LineBreak {
 		t.Fatalf("output = %q, want new file contents", out.String())
 	}
 	if offsets[newPath] != int64(len("new\n")) {
@@ -228,7 +229,7 @@ func TestFollowDiscoversNewLogFile(t *testing.T) {
 	}()
 
 	writeNamedLog(t, dir, "2026-04-19-200.log", "new\n")
-	waitForOutput(t, &out, "new\n")
+	waitForOutput(t, &out, "new"+osutil.LineBreak)
 	cancel()
 
 	if err := <-errCh; err != nil {
