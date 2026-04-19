@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"strconv"
 
 	"altinn.studio/studioctl/internal/appmanager"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
@@ -12,6 +13,8 @@ import (
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
+
+const serverStatusKeyWidth = 19
 
 // ServersCommand implements the 'servers' subcommand.
 type ServersCommand struct {
@@ -71,22 +74,28 @@ func (o serversStatusOutput) Print(out *ui.Output) error {
 		out.Println("app-manager is not running.")
 		return nil
 	}
-	// TODO: table output. Should be refactored to be descriptive table subsequently rendered (columns are sometimes messed up)
 	out.Println("app-manager is running.")
-	out.Printlnf("Process ID: %d", o.Status.ProcessID)
-	out.Println("app-manager version: " + o.Status.AppManagerVersion)
-	out.Println(".NET version: " + o.Status.DotnetVersion)
+	out.Println("")
+
+	table := ui.NewTable(
+		ui.NewColumn("").WithMinWidth(serverStatusKeyWidth).WithStyle(ui.CellStyleDim),
+		ui.NewColumn(""),
+	).Indent(2)
+	table.Row(ui.Text("Process ID"), ui.Text(strconv.Itoa(o.Status.ProcessID)))
+	table.Row(ui.Text("app-manager version"), ui.Text(o.Status.AppManagerVersion))
+	table.Row(ui.Text(".NET version"), ui.Text(o.Status.DotnetVersion))
 	if o.Status.Tunnel.Enabled {
 		state := "disconnected"
 		if o.Status.Tunnel.Connected {
 			state = "connected"
 		}
-		out.Println("tunnel: " + state)
-		out.Println("tunnel url: " + o.Status.Tunnel.URL)
+		table.Row(ui.Text("tunnel"), ui.Text(state))
+		table.Row(ui.Text("tunnel url"), ui.Text(o.Status.Tunnel.URL))
 	} else {
-		out.Println("tunnel: disabled")
+		table.Row(ui.Text("tunnel"), ui.Text("disabled"))
 	}
-	out.Printlnf("discovered apps: %d", len(o.Status.Apps))
+	table.Row(ui.Text("discovered apps"), ui.Text(strconv.Itoa(len(o.Status.Apps))))
+	out.RenderTable(table)
 	return nil
 }
 
