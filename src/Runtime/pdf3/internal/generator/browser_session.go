@@ -58,7 +58,7 @@ const (
 
 type cleanupNavigationWaiter struct {
 	loaded    chan struct{}
-	committed bool
+	committed atomic.Bool
 }
 
 var (
@@ -192,12 +192,12 @@ func (w *browserSession) trySignalCleanupBlankCommitted(params any) {
 		return
 	}
 
-	waiter.committed = true
+	waiter.committed.Store(true)
 }
 
 func (w *browserSession) trySignalCleanupBlankLoaded() {
 	waiter := w.cleanupNavigationWaiter.Load()
-	if waiter == nil || !waiter.committed {
+	if waiter == nil || !waiter.committed.Load() {
 		return
 	}
 
@@ -470,23 +470,30 @@ func (w *browserSession) navigateToBlankForCleanup() error {
 	for range 3 {
 		waiter := &cleanupNavigationWaiter{loaded: make(chan struct{}, 1)}
 		err = func() error {
+			ctx, cancel := context.WithTimeout(w.ctx, 2*time.Second)
+			defer cancel()
+
 			w.cleanupNavigationWaiter.Store(waiter)
 			defer w.cleanupNavigationWaiter.Store(nil)
 
 			// Not using the request context here: the client may already be gone, but
 			// the browser session must still reset itself before the next request.
-			_, navigateErr := w.conn.SendCommand(w.ctx, "Page.navigate", map[string]any{"url": cleanupBlankURL})
+			_, navigateErr := w.conn.SendCommand(ctx, "Page.navigate", map[string]any{"url": cleanupBlankURL})
 			if navigateErr != nil {
+				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+					return errBlankNavigationLoadTimedOut
+				}
 				return fmt.Errorf("send about:blank navigation: %w", navigateErr)
 			}
 
 			select {
 			case <-waiter.loaded:
 				return nil
-			case <-w.ctx.Done():
-				return fmt.Errorf("wait for about:blank load event: %w", w.ctx.Err())
-			case <-time.After(2 * time.Second):
-				return errBlankNavigationLoadTimedOut
+			case <-ctx.Done():
+				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+					return errBlankNavigationLoadTimedOut
+				}
+				return fmt.Errorf("wait for about:blank load event: %w", ctx.Err())
 			}
 		}()
 		if err == nil {
