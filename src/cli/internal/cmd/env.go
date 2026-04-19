@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
@@ -21,6 +21,67 @@ const runtimeLocaltest = "localtest"
 type EnvCommand struct {
 	cfg *config.Config
 	out *ui.Output
+}
+
+type envUpOutput struct {
+	Runtime        string `json:"runtime"`
+	Running        bool   `json:"running"`
+	Started        bool   `json:"started"`
+	AlreadyRunning bool   `json:"alreadyRunning"`
+	JSONOutput     bool   `json:"-"`
+}
+
+func (o envUpOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "env up", o)
+	}
+	if o.AlreadyRunning {
+		out.Printlnf("%s already running.", o.Runtime)
+	}
+	return nil
+}
+
+type envDownOutput struct {
+	Runtime        string `json:"runtime"`
+	Stopped        bool   `json:"stopped"`
+	AlreadyStopped bool   `json:"alreadyStopped"`
+	JSONOutput     bool   `json:"-"`
+}
+
+func (o envDownOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "env down", o)
+	}
+	if o.AlreadyStopped {
+		out.Printlnf("%s is already stopped.", o.Runtime)
+	}
+	return nil
+}
+
+type envStatusOutput struct {
+	Status     *envlocaltest.Status `json:"-"`
+	Runtime    string               `json:"-"`
+	JSONOutput bool                 `json:"-"`
+}
+
+func (o envStatusOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "env status", o.Status)
+	}
+	if !o.Status.AnyRunning {
+		out.Printlnf("%s is not running.", o.Runtime)
+		return nil
+	}
+	if !o.Status.Running {
+		out.Printlnf("%s is running with issues.", o.Runtime)
+		out.Println("")
+		renderLocaltestStatus(out, o.Status)
+		return nil
+	}
+	out.Printlnf("%s is running.", o.Runtime)
+	out.Println("")
+	renderLocaltestStatus(out, o.Status)
+	return nil
 }
 
 // NewEnvCommand creates a new env command.
@@ -93,9 +154,18 @@ func (c *EnvCommand) getEnv(
 	runtime string,
 	client container.ContainerClient,
 ) (envtypes.Env, error) {
+	return c.getEnvWithOutput(runtime, client, c.out)
+}
+
+//nolint:ireturn // factory helper returns interface by design
+func (c *EnvCommand) getEnvWithOutput(
+	runtime string,
+	client container.ContainerClient,
+	out *ui.Output,
+) (envtypes.Env, error) {
 	switch runtime {
 	case runtimeLocaltest:
-		return envlocaltest.NewEnv(c.cfg, c.out, client), nil
+		return envlocaltest.NewEnv(c.cfg, out, client), nil
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedRuntime, runtime)
 	}
@@ -124,6 +194,7 @@ type envUpFlags struct {
 	detach      bool
 	monitoring  bool
 	openBrowser bool
+	jsonOutput  bool
 }
 
 func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
@@ -135,6 +206,7 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 	fs.BoolVar(&f.detach, "detach", true, "Run in background")
 	fs.BoolVar(&f.monitoring, "monitoring", false, "Start monitoring stack")
 	fs.BoolVar(&f.openBrowser, "open", false, "Open localtest in browser after starting")
+	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -154,6 +226,9 @@ func (c *EnvCommand) runUp(ctx context.Context, args []string) error {
 	if helpShown {
 		return nil
 	}
+	if flags.jsonOutput && !flags.detach {
+		return fmt.Errorf("%w: --json requires --detach=true", ErrInvalidFlagValue)
+	}
 
 	return c.withContainerClient(ctx, func(client container.ContainerClient) error {
 		switch flags.runtime {
@@ -170,7 +245,7 @@ func (c *EnvCommand) runLocaltestUp(
 	client container.ContainerClient,
 	flags envUpFlags,
 ) error {
-	env := envlocaltest.NewEnv(c.cfg, c.out, client)
+	env := envlocaltest.NewEnv(c.cfg, commandOutput(c.out, flags.jsonOutput), client)
 
 	preflightErr := env.Preflight(ctx)
 	if preflightErr != nil {
@@ -182,8 +257,13 @@ func (c *EnvCommand) runLocaltestUp(
 		return fmt.Errorf("get status: %w", err)
 	}
 	if status.Running {
-		c.out.Printlnf("%s already running.", runtimeLocaltest)
-		return nil
+		return envUpOutput{
+			Runtime:        runtimeLocaltest,
+			Running:        true,
+			Started:        false,
+			AlreadyRunning: true,
+			JSONOutput:     flags.jsonOutput,
+		}.Print(c.out)
 	}
 
 	if err := env.Up(ctx, envtypes.UpOptions{
@@ -193,12 +273,19 @@ func (c *EnvCommand) runLocaltestUp(
 	}); err != nil {
 		return fmt.Errorf("env up: %w", err)
 	}
-	return nil
+	return envUpOutput{
+		Runtime:        runtimeLocaltest,
+		Running:        true,
+		Started:        true,
+		AlreadyRunning: false,
+		JSONOutput:     flags.jsonOutput,
+	}.Print(c.out)
 }
 
 // envDownFlags holds parsed flags for the env down command.
 type envDownFlags struct {
-	runtime string
+	runtime    string
+	jsonOutput bool
 }
 
 func (c *EnvCommand) parseDownFlags(args []string) (envDownFlags, bool, error) {
@@ -206,6 +293,7 @@ func (c *EnvCommand) parseDownFlags(args []string) (envDownFlags, bool, error) {
 	var f envDownFlags
 	fs.StringVar(&f.runtime, "r", runtimeLocaltest, "Runtime to use")
 	fs.StringVar(&f.runtime, "runtime", runtimeLocaltest, "Runtime to use")
+	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -227,18 +315,27 @@ func (c *EnvCommand) runDown(ctx context.Context, args []string) error {
 	}
 
 	return c.withContainerClient(ctx, func(client container.ContainerClient) error {
-		env, err := c.getEnv(flags.runtime, client)
+		env, err := c.getEnvWithOutput(flags.runtime, client, commandOutput(c.out, flags.jsonOutput))
 		if err != nil {
 			return err
 		}
 		if err := env.Down(ctx); err != nil {
 			if errors.Is(err, envtypes.ErrAlreadyStopped) {
-				c.out.Printlnf("%s is already stopped.", flags.runtime)
-				return nil
+				return envDownOutput{
+					Runtime:        flags.runtime,
+					Stopped:        false,
+					AlreadyStopped: true,
+					JSONOutput:     flags.jsonOutput,
+				}.Print(c.out)
 			}
 			return fmt.Errorf("env down: %w", err)
 		}
-		return nil
+		return envDownOutput{
+			Runtime:        flags.runtime,
+			Stopped:        true,
+			AlreadyStopped: false,
+			JSONOutput:     flags.jsonOutput,
+		}.Print(c.out)
 	})
 }
 
@@ -295,49 +392,29 @@ func (c *EnvCommand) runLocaltestStatus(
 		return fmt.Errorf("get status: %w", err)
 	}
 
-	if jsonOutput {
-		payload, err := json.Marshal(status)
-		if err != nil {
-			return fmt.Errorf("marshal status json: %w", err)
-		}
-		c.out.Println(string(payload))
-		return nil
-	}
-
-	if !status.AnyRunning {
-		c.out.Printlnf("%s is not running.", runtimeLocaltest)
-		return nil
-	}
-
-	if !status.Running {
-		c.out.Printlnf("%s is running with issues.", runtimeLocaltest)
-		c.out.Println("")
-		c.renderLocaltestStatus(status)
-		return nil
-	}
-
-	c.out.Printlnf("%s is running.", runtimeLocaltest)
-	c.out.Println("")
-	c.renderLocaltestStatus(status)
-
-	return nil
+	return envStatusOutput{
+		Runtime:    runtimeLocaltest,
+		Status:     status,
+		JSONOutput: jsonOutput,
+	}.Print(c.out)
 }
 
-func (c *EnvCommand) renderLocaltestStatus(status *envlocaltest.Status) {
+func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
 	rows := make([][]string, 1, len(status.Containers)+1)
 	rows[0] = []string{"Container", "Status"}
 
 	for _, ctr := range status.Containers {
 		rows = append(rows, []string{ctr.Name, ctr.Status})
 	}
-	c.out.Table(rows)
+	out.Table(rows)
 }
 
 // envLogsFlags holds parsed flags for the env logs command.
 type envLogsFlags struct {
-	runtime   string
-	component string
-	follow    bool
+	runtime    string
+	component  string
+	follow     bool
+	jsonOutput bool
 }
 
 func (c *EnvCommand) parseLogsFlags(args []string) (envLogsFlags, bool, error) {
@@ -349,6 +426,7 @@ func (c *EnvCommand) parseLogsFlags(args []string) (envLogsFlags, bool, error) {
 	fs.StringVar(&f.component, "component", "", "Filter by component")
 	fs.BoolVar(&f.follow, "f", true, "Follow log output")
 	fs.BoolVar(&f.follow, "follow", true, "Follow log output")
+	fs.BoolVar(&f.jsonOutput, "json", false, "Output as newline-delimited JSON")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -378,9 +456,21 @@ func (c *EnvCommand) runLogs(ctx context.Context, args []string) error {
 		if err := env.Logs(ctx, envtypes.LogsOptions{
 			Component: flags.component,
 			Follow:    flags.follow,
+			JSON:      flags.jsonOutput,
 		}); err != nil {
 			return fmt.Errorf("env logs: %w", err)
 		}
 		return nil
 	})
+}
+
+func silentOutput() *ui.Output {
+	return ui.NewOutput(io.Discard, io.Discard, false)
+}
+
+func commandOutput(out *ui.Output, jsonOutput bool) *ui.Output {
+	if jsonOutput {
+		return silentOutput()
+	}
+	return out
 }

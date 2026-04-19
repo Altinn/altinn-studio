@@ -28,4 +28,5 @@ type UpOptions struct {
 type LogsOptions struct {
 	Component string
 	Follow    bool
+	JSON      bool
 }

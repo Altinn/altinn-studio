@@ -3,6 +3,7 @@ package localtest
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"sync"
@@ -21,6 +22,27 @@ type logStreamer struct {
 	out    *ui.Output
 }
 
+type logLine struct {
+	Component string `json:"component"`
+	Line      string `json:"line"`
+	Prefix    string `json:"-"`
+	JSON      bool   `json:"-"`
+}
+
+func (l logLine) Print(out *ui.Output) error {
+	if !l.JSON {
+		out.Println(l.Prefix + l.Line)
+		return nil
+	}
+
+	payload, err := json.Marshal(l)
+	if err != nil {
+		return fmt.Errorf("marshal log line json: %w", err)
+	}
+	out.Println(string(payload))
+	return nil
+}
+
 func newLogStreamer(client container.ContainerClient, out *ui.Output) *logStreamer {
 	return &logStreamer{
 		client: client,
@@ -28,7 +50,7 @@ func newLogStreamer(client container.ContainerClient, out *ui.Output) *logStream
 	}
 }
 
-func (s *logStreamer) Stream(ctx context.Context, component string, follow bool) error {
+func (s *logStreamer) Stream(ctx context.Context, component string, follow, jsonOutput bool) error {
 	allContainers := AllContainerNames(true)
 
 	var containers []string
@@ -78,7 +100,7 @@ func (s *logStreamer) Stream(ctx context.Context, component string, follow bool)
 		}
 
 		wg.Add(1)
-		go s.streamContainerLogs(ctx, &wg, logs, name, i)
+		go s.streamContainerLogs(ctx, &wg, logs, name, i, jsonOutput)
 	}
 
 	wg.Wait()
@@ -91,6 +113,7 @@ func (s *logStreamer) streamContainerLogs(
 	logs io.ReadCloser,
 	name string,
 	colorIdx int,
+	jsonOutput bool,
 ) {
 	defer wg.Done()
 	defer func() {
@@ -110,7 +133,14 @@ func (s *logStreamer) streamContainerLogs(
 		case <-ctx.Done():
 			return
 		default:
-			s.out.Println(prefix + scanner.Text())
+			if err := (logLine{
+				Component: name,
+				Line:      scanner.Text(),
+				Prefix:    prefix,
+				JSON:      jsonOutput,
+			}).Print(s.out); err != nil {
+				s.out.Warningf("Failed to print log line for %s: %v", name, err)
+			}
 		}
 	}
 }

@@ -167,7 +167,7 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 
 // Logs streams localtest environment logs.
 func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
-	return e.logs.Stream(ctx, opts.Component, opts.Follow)
+	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
 }
 
 func (e *Env) ensureAppManager(ctx context.Context, runtimeCfg RuntimeConfig) error {
@@ -217,7 +217,7 @@ func (e *Env) runForeground(
 	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
 	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	if err := e.logs.Stream(ctx, "", true); err != nil {
+	if err := e.logs.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
