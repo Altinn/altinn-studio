@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
+	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -101,13 +102,26 @@ func TestAppRunJSONRequiresDetach(t *testing.T) {
 	}
 }
 
+func TestParseRunFlagsUsesProcessMode(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--mode", "process"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if flags.mode != runModeProcess {
+		t.Fatalf("mode = %q, want %q", flags.mode, runModeProcess)
+	}
+}
+
 func TestRunDetachedOutputPrintJSON(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
 	result := runDetachedOutput{
 		AppID:      "ttd/app",
-		Mode:       runModeNative,
+		Mode:       runModeProcess,
 		URL:        "http://localtest.localhost/app",
 		LogPath:    "/tmp/app.log",
 		ProcessID:  123,
@@ -124,5 +138,25 @@ func TestRunDetachedOutputPrintJSON(t *testing.T) {
 	if got.AppID != result.AppID || got.Mode != result.Mode || got.URL != result.URL ||
 		got.LogPath != result.LogPath || got.ProcessID != result.ProcessID {
 		t.Fatalf("output = %+v, want %+v", got, result)
+	}
+}
+
+func TestContainerAppRunInfoIncludesContainerHandle(t *testing.T) {
+	t.Parallel()
+
+	got := containerAppRunInfo("container-id", types.ContainerInfo{
+		ID:    "container-id",
+		Name:  "container-name",
+		State: types.ContainerState{Running: true},
+		Ports: []types.PublishedPort{
+			{
+				ContainerPort: "5005",
+				HostPort:      "5006",
+			},
+		},
+	})
+
+	if got.ContainerID != "container-id" || got.HostPort != 5006 {
+		t.Fatalf("containerAppRunInfo() = %+v, want container handle and host port", got)
 	}
 }

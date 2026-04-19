@@ -1,10 +1,11 @@
 //go:build windows
 
-package appmanager
+package osutil
 
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"golang.org/x/sys/windows"
 )
@@ -13,7 +14,18 @@ const stillActiveExitCode = 259
 
 var errPIDExceedsWindowsLimit = errors.New("pid exceeds windows limit")
 
-func isProcessRunning(pid int) (bool, error) {
+func interruptProcess(_ *os.Process, pid int) error {
+	if pid > int(^uint32(0)) {
+		return fmt.Errorf("%w: %d", errPIDExceedsWindowsLimit, pid)
+	}
+	if err := windows.GenerateConsoleCtrlEvent(windows.CTRL_BREAK_EVENT, uint32(pid)); err != nil {
+		return fmt.Errorf("send ctrl-break: %w", err)
+	}
+	return nil
+}
+
+// ProcessRunning reports whether pid is still running.
+func ProcessRunning(pid int) (bool, error) {
 	if pid <= 0 {
 		return false, nil
 	}

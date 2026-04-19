@@ -24,7 +24,9 @@ import (
 // AppCommand implements the 'app' subcommand.
 type AppCommand struct {
 	out     *ui.Output
+	ps      *AppPsCommand
 	run     *RunCommand
+	stop    *StopCommand
 	service *appsvc.Service
 }
 
@@ -65,7 +67,9 @@ func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
 	service := appsvc.NewService(cfg.Home)
 	return &AppCommand{
 		out:     out,
+		ps:      newAppPsCommand(cfg, out, service),
 		run:     newRunCommand(cfg, out, service),
+		stop:    newStopCommand(cfg, out, service),
 		service: service,
 	}
 }
@@ -86,7 +90,9 @@ func (c *AppCommand) Usage() string {
 		"Subcommands:",
 		"  build     Build an app container image",
 		"  clone     Clone an app repository from Altinn Studio",
+		"  ps        List running apps",
 		"  run       Run app locally",
+		"  stop      Stop running apps",
 		"  update    Update Altinn.App NuGet packages and frontend",
 		"",
 		fmt.Sprintf("Run '%s app <subcommand> --help' for more information.", osutil.CurrentBin()),
@@ -108,8 +114,12 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.runBuild(ctx, subArgs)
 	case "clone":
 		return c.runClone(ctx, subArgs)
+	case "ps":
+		return c.ps.RunWithCommandPath(ctx, subArgs, "app ps")
 	case "run":
 		return c.run.RunWithCommandPath(ctx, subArgs, "app run")
+	case "stop":
+		return c.stop.RunWithCommandPath(ctx, subArgs, "app stop")
 	case "update":
 		return c.runUpdate(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:

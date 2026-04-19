@@ -203,8 +203,23 @@ func TestCLI_Run(t *testing.T) {
 			wantCode: 0,
 		},
 		{
+			name:     "stop alias exists",
+			args:     []string{"stop", "--help"},
+			wantCode: 0,
+		},
+		{
 			name:     "app run command exists",
 			args:     []string{"app", "run", "--help"},
+			wantCode: 0,
+		},
+		{
+			name:     "app ps command exists",
+			args:     []string{"app", "ps", "--help"},
+			wantCode: 0,
+		},
+		{
+			name:     "app stop command exists",
+			args:     []string{"app", "stop", "--help"},
 			wantCode: 0,
 		},
 	}

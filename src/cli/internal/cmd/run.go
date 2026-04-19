@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	runModeNative                     = "native"
+	runModeProcess                    = "process"
 	runModeContainer                  = "container"
 	foregroundContainerCleanupTimeout = 15 * time.Second
 	dotnetShutdownTimeout             = 10 * time.Second
@@ -90,7 +90,7 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"",
 		"Options:",
 		"  -p, --path PATH       Specify app directory (overrides auto-detect)",
-		"  -m, --mode MODE       Run mode: native or container (default: native)",
+		"  -m, --mode MODE       Run mode: process or container (default: process)",
 		"  -d, --detach          Run app in background",
 		"  --random-host-port    Use a random host port",
 		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
@@ -113,22 +113,22 @@ type runFlags struct {
 }
 
 type runDetachedOutput struct {
-	AppID         string `json:"appId"`
-	Mode          string `json:"mode"`
-	URL           string `json:"url"`
-	LogPath       string `json:"logPath,omitempty"`
-	ContainerID   string `json:"containerId,omitempty"`
-	ContainerName string `json:"containerName,omitempty"`
-	ProcessID     int    `json:"processId,omitempty"`
-	HostPort      int    `json:"hostPort,omitempty"`
-	JSONOutput    bool   `json:"-"`
+	AppID       string `json:"appId"`
+	Mode        string `json:"mode"`
+	URL         string `json:"url"`
+	LogPath     string `json:"logPath,omitempty"`
+	ContainerID string `json:"containerId,omitempty"`
+	Name        string `json:"name,omitempty"`
+	ProcessID   int    `json:"processId,omitempty"`
+	HostPort    int    `json:"hostPort,omitempty"`
+	JSONOutput  bool   `json:"-"`
 }
 
 func (o runDetachedOutput) Print(out *ui.Output) error {
 	if o.JSONOutput {
 		return printJSONOutput(out, "run", o)
 	}
-	if o.Mode != runModeNative {
+	if o.Mode != runModeProcess {
 		return nil
 	}
 	out.Printlnf("App running in background.")
@@ -179,8 +179,8 @@ func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags,
 	var flags runFlags
 	fs.StringVar(&flags.appPath, "p", "", "App directory path")
 	fs.StringVar(&flags.appPath, "path", "", "App directory path")
-	fs.StringVar(&flags.mode, "m", runModeNative, "Run mode")
-	fs.StringVar(&flags.mode, "mode", runModeNative, "Run mode")
+	fs.StringVar(&flags.mode, "m", runModeProcess, "Run mode")
+	fs.StringVar(&flags.mode, "mode", runModeProcess, "Run mode")
 	fs.StringVar(&flags.imageTag, "image-tag", "", "App container image tag")
 	fs.BoolVar(&flags.detach, "d", false, "Run app in background")
 	fs.BoolVar(&flags.detach, "detach", false, "Run app in background")
@@ -214,7 +214,7 @@ func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags,
 }
 
 func validateRunFlags(flags runFlags) error {
-	if flags.mode != runModeNative && flags.mode != runModeContainer {
+	if flags.mode != runModeProcess && flags.mode != runModeContainer {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
 	if flags.jsonOutput && !flags.detach {
@@ -241,7 +241,7 @@ func (c *RunCommand) runTarget(
 	flags runFlags,
 ) error {
 	switch flags.mode {
-	case runModeNative:
+	case runModeProcess:
 		return c.runDotnet(ctx, target, dotnetArgs, flags)
 	case runModeContainer:
 		return c.runDocker(ctx, target, dotnetArgs, flags)
@@ -260,7 +260,7 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 		appsvc.DotnetRunOptions{RandomHostPort: flags.randomHostPort},
 	)
 	if specErr != nil {
-		return fmt.Errorf("build native run spec: %w", specErr)
+		return fmt.Errorf("build process run spec: %w", specErr)
 	}
 
 	if err := c.buildDotnetApp(ctx, spec, flags.jsonOutput); err != nil {
@@ -292,24 +292,25 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 		waitErr <- cmd.Wait()
 	}()
 
-	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, flags)
+	processName := filepath.Base(targetPath)
+	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, processName, logPath, flags)
 	if err != nil {
 		return err
 	}
 	if flags.detach {
 		return runDetachedOutput{
-			AppID:         target.AppID,
-			Mode:          runModeNative,
-			URL:           baseURL,
-			LogPath:       logPath,
-			ContainerID:   "",
-			ContainerName: "",
-			ProcessID:     cmd.Process.Pid,
-			HostPort:      0,
-			JSONOutput:    flags.jsonOutput,
+			AppID:       target.AppID,
+			Mode:        runModeProcess,
+			URL:         baseURL,
+			LogPath:     logPath,
+			ContainerID: "",
+			Name:        processName,
+			ProcessID:   cmd.Process.Pid,
+			HostPort:    0,
+			JSONOutput:  flags.jsonOutput,
 		}.Print(c.out)
 	}
-	defer c.unregisterAppBestEffort(ctx, target.AppID, baseURL)
+	defer c.unregisterAppBestEffort(ctx, target.AppID)
 
 	select {
 	case err := <-waitErr:
@@ -360,9 +361,25 @@ func (c *RunCommand) registerStartedDotnetApp(
 	spec appsvc.DotnetRunSpec,
 	cmd *exec.Cmd,
 	waitErr chan error,
+	processName string,
+	logPath string,
 	flags runFlags,
 ) (string, error) {
 	monitor := processReadinessMonitor(waitErr)
+	runInfo := nativeAppRunInfo(cmd.Process.Pid)
+	return c.registerStartedDotnetAppWithRunInfo(ctx, target, spec, cmd, waitErr, monitor, runInfo, flags)
+}
+
+func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	spec appsvc.DotnetRunSpec,
+	cmd *exec.Cmd,
+	waitErr chan error,
+	monitor readinessMonitor,
+	runInfo appmanager.AppRegistration,
+	flags runFlags,
+) (string, error) {
 	var baseURL string
 	var registerErr error
 	if flags.randomHostPort {
@@ -370,11 +387,19 @@ func (c *RunCommand) registerStartedDotnetApp(
 			ctx,
 			target.AppID,
 			cmd.Process.Pid,
+			runInfo,
 			monitor,
 			flags.jsonOutput,
 		)
 	} else {
-		baseURL, registerErr = c.registerPortAndWaitForApp(ctx, target.AppID, spec.Port, monitor, flags.jsonOutput)
+		baseURL, registerErr = c.registerPortAndWaitForApp(
+			ctx,
+			target.AppID,
+			spec.Port,
+			runInfo,
+			monitor,
+			flags.jsonOutput,
+		)
 	}
 	if registerErr != nil {
 		stopDotnetProcess(cmd.Process, waitErr)
@@ -472,6 +497,16 @@ func closeDetachedAppLog(out *ui.Output, logFile *os.File) {
 	}
 }
 
+func nativeAppRunInfo(processID int) appmanager.AppRegistration {
+	return appmanager.AppRegistration{
+		AppID:          "",
+		ContainerID:    "",
+		HostPort:       0,
+		ProcessID:      processID,
+		TimeoutSeconds: 0,
+	}
+}
+
 func stopDotnetProcess(process *os.Process, waitErr <-chan error) {
 	signalProcessBestEffort(process, os.Interrupt)
 	select {
@@ -538,6 +573,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	port int,
+	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
 ) (string, error) {
@@ -549,7 +585,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	}
 
 	client := appmanager.NewClient(c.cfg)
-	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, port, monitor)
+	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, port, runInfo, monitor)
 	if err != nil {
 		return "", err
 	}
@@ -565,18 +601,21 @@ func registerPortAppWithStartupMonitor(
 	client *appmanager.Client,
 	appID string,
 	port int,
+	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 ) (string, error) {
+	registration := appmanager.AppRegistration{
+		AppID:          appID,
+		ContainerID:    "",
+		HostPort:       port,
+		ProcessID:      0,
+		TimeoutSeconds: int(appStartupTimeout.Seconds()),
+	}
+	applyAppRunInfo(&registration, runInfo)
 	return registerAppWithStartupMonitor(
 		ctx,
 		client,
-		appmanager.AppRegistration{
-			AppID:              appID,
-			Port:               port,
-			ProcessID:          0,
-			GracePeriodSeconds: int(appStartupTimeout.Seconds()),
-			Description:        "studioctl run " + appID,
-		},
+		registration,
 		monitor,
 		portAppRegistrationTimeoutError(appID, port),
 	)
@@ -596,6 +635,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	hostPort int,
+	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
 ) (string, error) {
@@ -607,7 +647,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	}
 
 	client := appmanager.NewClient(c.cfg)
-	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, hostPort, monitor)
+	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, hostPort, runInfo, monitor)
 	if err != nil {
 		return "", err
 	}
@@ -622,6 +662,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	processID int,
+	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
 ) (string, error) {
@@ -633,7 +674,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	}
 
 	client := appmanager.NewClient(c.cfg)
-	baseURL, err := registerProcessAppWithStartupMonitor(ctx, client, appID, processID, monitor)
+	baseURL, err := registerProcessAppWithStartupMonitor(ctx, client, appID, processID, runInfo, monitor)
 	if err != nil {
 		return "", err
 	}
@@ -649,21 +690,34 @@ func registerProcessAppWithStartupMonitor(
 	client *appmanager.Client,
 	appID string,
 	processID int,
+	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 ) (string, error) {
+	registration := appmanager.AppRegistration{
+		AppID:          appID,
+		ContainerID:    "",
+		HostPort:       0,
+		ProcessID:      processID,
+		TimeoutSeconds: int(appStartupTimeout.Seconds()),
+	}
+	applyAppRunInfo(&registration, runInfo)
 	return registerAppWithStartupMonitor(
 		ctx,
 		client,
-		appmanager.AppRegistration{
-			AppID:              appID,
-			Port:               0,
-			ProcessID:          processID,
-			GracePeriodSeconds: int(appStartupTimeout.Seconds()),
-			Description:        "studioctl run " + appID,
-		},
+		registration,
 		monitor,
 		processAppRegistrationTimeoutError(appID, processID),
 	)
+}
+
+func applyAppRunInfo(registration *appmanager.AppRegistration, runInfo appmanager.AppRegistration) {
+	if runInfo.ProcessID > 0 {
+		registration.ProcessID = runInfo.ProcessID
+	}
+	registration.ContainerID = runInfo.ContainerID
+	if runInfo.HostPort > 0 {
+		registration.HostPort = runInfo.HostPort
+	}
 }
 
 func registerAppWithStartupMonitor(
@@ -762,7 +816,7 @@ func startupOperationError(ctx context.Context, operation string, err error) err
 	return fmt.Errorf("%s: %w", operation, err)
 }
 
-func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID, baseURL string) {
+func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID string) {
 	if c.cfg == nil {
 		return
 	}
@@ -770,7 +824,7 @@ func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID, baseURL
 	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), appManagerCleanupTimeout)
 	defer cancel()
 
-	if err := appmanager.NewClient(c.cfg).UnregisterApp(cleanupCtx, appID, baseURL); err != nil {
+	if err := appmanager.NewClient(c.cfg).UnregisterApp(cleanupCtx, appID); err != nil {
 		c.out.Verbosef("failed to unregister app %s from app-manager: %v", appID, err)
 	}
 }
@@ -826,7 +880,8 @@ func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, arg
 		c.printDockerRunInfo(info)
 	}
 
-	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID, flags.jsonOutput)
+	runInfo := containerAppRunInfo(containerID, info)
+	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID, runInfo, flags.jsonOutput)
 	if err != nil {
 		return c.withAppContainerCleanup(ctx, client, containerID, err)
 	}
@@ -834,7 +889,7 @@ func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, arg
 	if flags.detach {
 		return c.detachedDockerOutput(target.AppID, containerID, info, baseURL, flags).Print(c.out)
 	}
-	defer c.unregisterAppBestEffort(ctx, target.AppID, baseURL)
+	defer c.unregisterAppBestEffort(ctx, target.AppID)
 
 	runErr := c.followContainer(ctx, client, containerID)
 	removeErr := c.removeForegroundContainer(ctx, client, containerID)
@@ -869,6 +924,7 @@ func (c *RunCommand) waitForDockerAppReady(
 	containerID string,
 	info containerruntime.ContainerInfo,
 	appID string,
+	runInfo appmanager.AppRegistration,
 	jsonOutput bool,
 ) (string, error) {
 	candidate, ok := appcontainers.CandidateFromContainer(info)
@@ -880,6 +936,7 @@ func (c *RunCommand) waitForDockerAppReady(
 		ctx,
 		appID,
 		candidate.HostPort,
+		runInfo,
 		containerReadinessMonitor(client, containerID),
 		jsonOutput,
 	)
@@ -897,20 +954,34 @@ func (c *RunCommand) detachedDockerOutput(
 	flags runFlags,
 ) runDetachedOutput {
 	output := runDetachedOutput{
-		AppID:         appID,
-		Mode:          runModeContainer,
-		URL:           baseURL,
-		LogPath:       "",
-		ContainerID:   containerID,
-		ContainerName: info.Name,
-		ProcessID:     0,
-		HostPort:      0,
-		JSONOutput:    flags.jsonOutput,
+		AppID:       appID,
+		Mode:        runModeContainer,
+		URL:         baseURL,
+		LogPath:     "",
+		ContainerID: containerID,
+		Name:        info.Name,
+		ProcessID:   0,
+		HostPort:    0,
+		JSONOutput:  flags.jsonOutput,
 	}
 	if candidate, ok := appcontainers.CandidateFromContainer(info); ok {
 		output.HostPort = candidate.HostPort
 	}
 	return output
+}
+
+func containerAppRunInfo(containerID string, info containerruntime.ContainerInfo) appmanager.AppRegistration {
+	runInfo := appmanager.AppRegistration{
+		AppID:          "",
+		ContainerID:    containerID,
+		HostPort:       0,
+		ProcessID:      0,
+		TimeoutSeconds: 0,
+	}
+	if candidate, ok := appcontainers.CandidateFromContainer(info); ok {
+		runInfo.HostPort = candidate.HostPort
+	}
+	return runInfo
 }
 
 func (c *RunCommand) removeForegroundContainer(

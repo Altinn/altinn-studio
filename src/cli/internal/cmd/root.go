@@ -55,8 +55,8 @@ func NewCLI(cfg *config.Config) *CLI {
 		commands: make(map[string]Command),
 	}
 
-	// TODO: stop command as well?
 	cli.Register(NewRunCommand(cfg, out))
+	cli.Register(NewStopCommand(cfg, out))
 	cli.Register(NewEnvCommand(cfg, out))
 	cli.Register(NewAuthCommand(cfg, out))
 	cli.Register(NewDoctorCommand(cfg, out))
@@ -123,7 +123,7 @@ func (c *CLI) printUsage() {
 		}
 	}
 
-	order := []string{"run", "env", "auth", "app", "install", "doctor", "self", "servers", "shell"}
+	order := []string{"run", "stop", "env", "auth", "app", "install", "doctor", "self", "servers", "shell"}
 	for _, name := range order {
 		if cmd, ok := c.commands[name]; ok {
 			c.out.Printlnf("  %-*s  %s", maxLen+2, name, cmd.Synopsis())

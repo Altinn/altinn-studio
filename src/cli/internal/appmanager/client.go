@@ -76,10 +76,13 @@ type TunnelStatus struct {
 // DiscoveredApp describes one discovered app endpoint.
 type DiscoveredApp struct {
 	ProcessID   *int   `json:"processId"`
+	HostPort    *int   `json:"hostPort,omitempty"`
 	AppID       string `json:"appId"`
 	BaseURL     string `json:"baseUrl"`
 	Source      string `json:"source"`
 	Description string `json:"description"`
+	Name        string `json:"name,omitempty"`
+	ContainerID string `json:"containerId,omitempty"`
 }
 
 var (
@@ -106,11 +109,11 @@ type Client struct {
 
 // AppRegistration describes an app endpoint registered explicitly by studioctl.
 type AppRegistration struct {
-	AppID              string `json:"appId"`
-	Description        string `json:"description,omitempty"`
-	Port               int    `json:"port,omitempty"`
-	ProcessID          int    `json:"processId,omitempty"`
-	GracePeriodSeconds int    `json:"gracePeriodSeconds"`
+	AppID          string `json:"appId"`
+	ContainerID    string `json:"containerId,omitempty"`
+	HostPort       int    `json:"hostPort,omitempty"`
+	ProcessID      int    `json:"processId,omitempty"`
+	TimeoutSeconds int    `json:"timeoutSeconds"`
 }
 
 // NewClient constructs an app-manager control-plane client.
@@ -125,10 +128,10 @@ func NewClient(cfg *config.Config) *Client {
 }
 
 func appRegistrationTimeout(registration AppRegistration) time.Duration {
-	if registration.GracePeriodSeconds <= 0 {
+	if registration.TimeoutSeconds <= 0 {
 		return appManagerRegisterTimeoutMargin
 	}
-	return time.Duration(registration.GracePeriodSeconds)*time.Second + appManagerRegisterTimeoutMargin
+	return time.Duration(registration.TimeoutSeconds)*time.Second + appManagerRegisterTimeoutMargin
 }
 
 // Shutdown stops app-manager and returns a completion channel that resolves when shutdown is fully complete.
@@ -216,10 +219,13 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		} `json:"tunnel"`
 		Apps []struct {
 			ProcessID   *int   `json:"processId"`
+			HostPort    *int   `json:"hostPort"`
 			AppID       string `json:"appId"`
 			BaseURL     string `json:"baseUrl"`
 			Source      string `json:"source"`
 			Description string `json:"description"`
+			Name        string `json:"name"`
+			ContainerID string `json:"containerId"`
 		} `json:"apps"`
 		ProcessID   int  `json:"processId"`
 		InternalDev bool `json:"internalDev"`
@@ -247,7 +253,10 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 			BaseURL:     app.BaseURL,
 			Source:      app.Source,
 			ProcessID:   app.ProcessID,
+			HostPort:    app.HostPort,
 			Description: app.Description,
+			Name:        app.Name,
+			ContainerID: app.ContainerID,
 		})
 	}
 
@@ -302,15 +311,12 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 	return result.BaseURL, nil
 }
 
-// UnregisterApp removes an app endpoint explicitly registered with app-manager.
-func (c *Client) UnregisterApp(ctx context.Context, appID, baseURL string) error {
-	values := url.Values{}
-	values.Set("appId", appID)
-	values.Set("baseUrl", baseURL)
+// UnregisterApp notifies app-manager that studioctl stopped an app.
+func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
-		controlBaseURL+registerPath+"?"+values.Encode(),
+		controlBaseURL+registerPath+"?appId="+url.QueryEscape(appID),
 		nil,
 	)
 	if err != nil {
@@ -403,7 +409,7 @@ func reconcilePersistedProcess(
 	state runtimeState,
 	desired startConfig,
 ) error {
-	running, err := isProcessRunning(state.PID)
+	running, err := osutil.ProcessRunning(state.PID)
 	if err != nil {
 		return fmt.Errorf("check persisted app-manager pid %d: %w", state.PID, err)
 	}
@@ -424,7 +430,7 @@ func reconcilePersistedProcess(
 
 func restartFromPersistedState(ctx context.Context, cfg *config.Config, desired startConfig, pid int) error {
 	if pid > 0 {
-		if err := killProcess(pid); err != nil {
+		if err := osutil.KillProcess(pid); err != nil {
 			return fmt.Errorf("stop persisted app-manager pid %d: %w", pid, err)
 		}
 	}
@@ -459,7 +465,7 @@ func restartManagedProcess(
 	}
 
 	if !waitForShutdown(ctx, client, cfg) {
-		if err := killProcess(pid); err != nil {
+		if err := osutil.KillProcess(pid); err != nil {
 			return fmt.Errorf("kill app-manager after shutdown timeout: %w", err)
 		}
 		if err := removeAppManagerState(cfg); err != nil {
@@ -527,7 +533,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 		return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: startConfig})
 	}
 
-	ignoreError(killProcess(cmd.Process.Pid))
+	ignoreError(osutil.KillProcess(cmd.Process.Pid))
 	ignoreError(removeAppManagerState(cfg))
 	return err
 }
@@ -627,12 +633,12 @@ func stopPersistedProcess(cfg *config.Config, pid int) error {
 		return removePersistedAppManagerState(cfg)
 	}
 
-	running, err := isProcessRunning(pid)
+	running, err := osutil.ProcessRunning(pid)
 	if err != nil {
 		return fmt.Errorf("check app-manager pid %d: %w", pid, err)
 	}
 	if running {
-		if err := killProcess(pid); err != nil {
+		if err := osutil.KillProcess(pid); err != nil {
 			return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
 		}
 	}
@@ -651,7 +657,7 @@ func managedProcessStopped(pid int) (bool, error) {
 	if pid <= 0 {
 		return true, nil
 	}
-	running, err := isProcessRunning(pid)
+	running, err := osutil.ProcessRunning(pid)
 	if err != nil {
 		return false, fmt.Errorf("check app-manager pid %d: %w", pid, err)
 	}
@@ -727,18 +733,6 @@ func writeAppManagerState(cfg *config.Config, state runtimeState) error {
 func removeAppManagerState(cfg *config.Config) error {
 	if err := os.Remove(cfg.AppManagerPIDPath()); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("remove pid file: %w", err)
-	}
-
-	return nil
-}
-
-func killProcess(pid int) error {
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return fmt.Errorf("find process: %w", err)
-	}
-	if err := process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
-		return fmt.Errorf("kill process: %w", err)
 	}
 
 	return nil
