@@ -400,13 +400,14 @@ func (c *EnvCommand) runLocaltestStatus(
 }
 
 func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
-	rows := make([][]string, 1, len(status.Containers)+1)
-	rows[0] = []string{"Container", "Status"}
-
+	table := ui.NewTable(
+		ui.NewColumn("Container"),
+		ui.NewColumn("Status"),
+	)
 	for _, ctr := range status.Containers {
-		rows = append(rows, []string{ctr.Name, ctr.Status})
+		table.Row(ui.Text(ctr.Name), ui.Text(ctr.Status))
 	}
-	out.Table(rows)
+	out.RenderTable(table)
 }
 
 // envLogsFlags holds parsed flags for the env logs command.
