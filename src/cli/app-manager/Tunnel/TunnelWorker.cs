@@ -443,6 +443,9 @@ internal sealed class TunnelWorker : BackgroundService
 
     private Uri ResolveUpstreamUri(PendingRequest pendingRequest)
     {
+        if (!string.IsNullOrWhiteSpace(pendingRequest.Target))
+            return ResolveTargetUri(pendingRequest);
+
         if (string.IsNullOrWhiteSpace(pendingRequest.AppId))
             return LocalFallbackUpstreamUri;
 
@@ -456,6 +459,20 @@ internal sealed class TunnelWorker : BackgroundService
                 pendingRequest.AppId
             );
         return LocalFallbackUpstreamUri;
+    }
+
+    private static Uri ResolveTargetUri(PendingRequest pendingRequest)
+    {
+        if (
+            string.Equals(pendingRequest.Target, TunnelDefaults.FrontendDevServerTarget, StringComparison.Ordinal)
+            && pendingRequest.TargetPort is { } port
+            && port == TunnelDefaults.FrontendDevServerPort
+        )
+        {
+            return new UriBuilder(Uri.UriSchemeHttp, LocalFallbackHost, port).Uri;
+        }
+
+        throw new InvalidDataException("unsupported app tunnel target");
     }
 
     private static void CopyHeaders(
@@ -492,8 +509,11 @@ internal sealed class TunnelWorker : BackgroundService
 
         public long RequestId => _start.RequestId;
         public string? AppId => _start.AppId;
+        public string? Target => _start.Target;
+        public int? TargetPort => _start.TargetPort;
         public bool IsStarted => Volatile.Read(ref _started) != 0;
         public CancellationTokenSource CancellationTokenSource { get; }
+        private bool _isTargetRequest => !string.IsNullOrWhiteSpace(_start.Target);
         public bool IsDiscoveryRequest =>
             string.Equals(_start.Method, HttpMethod.Get.Method, StringComparison.OrdinalIgnoreCase)
             && string.Equals(_start.PathAndQuery, TunnelDefaults.DiscoveredAppsPath, StringComparison.Ordinal);
@@ -553,6 +573,9 @@ internal sealed class TunnelWorker : BackgroundService
             {
                 if (string.Equals(header.Key, HeaderNames.Host, StringComparison.OrdinalIgnoreCase))
                 {
+                    if (_isTargetRequest)
+                        continue;
+
                     request.Headers.Host = header.Value.FirstOrDefault();
                     continue;
                 }

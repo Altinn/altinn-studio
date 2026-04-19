@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
@@ -34,9 +33,6 @@ const (
 	buildCacheRefPDF3         = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
 	infraDir                  = "infra"
 	workflowEngineInfraDir    = "workflow-engine"
-	flavorDocker              = "Docker"
-	flavorPodman              = "Podman"
-	flavorUnknown             = "Unknown"
 	localtestServicePort      = "5101"
 
 	postgresHealthInterval    = 10 * time.Second
@@ -60,8 +56,7 @@ var ErrInvalidResourceLayout = errors.New("invalid localtest resource layout")
 
 // RuntimeConfig holds runtime-specific configuration for localtest.
 type RuntimeConfig struct {
-	User     string                      // "uid:gid" to run containers as (prevents root-owned bind mount files)
-	Platform container.ContainerPlatform // selected container platform
+	User string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 }
 
 // ContainerSpec defines a container to run.
@@ -95,7 +90,7 @@ func newPort(hostPort, containerPort string) types.PortMapping {
 	return types.PortMapping{
 		HostPort:      hostPort,
 		ContainerPort: containerPort,
-		HostIP:        "",
+		HostIP:        "127.0.0.1",
 		Protocol:      "",
 	}
 }
@@ -159,8 +154,7 @@ func localtestListenURLs(loadBalancerPort string) string {
 	return "http://*:" + localtestServicePort + "/;http://*:" + loadBalancerPort + "/"
 }
 
-func coreContainers(dataDir string, cfg RuntimeConfig, topology envtopology.Local, includePgAdmin bool) []ContainerSpec {
-	dotnetEnv := localtestEnvironment(cfg.Platform)
+func coreContainers(dataDir string, topology envtopology.Local, includePgAdmin bool) []ContainerSpec {
 	ingressPort := topology.IngressPort()
 
 	containers := []ContainerSpec{
@@ -176,10 +170,18 @@ func coreContainers(dataDir string, cfg RuntimeConfig, topology envtopology.Loca
 				newPort(localtestServicePort, localtestServicePort), // Internal port
 			},
 			map[string]string{
-				"ASPNETCORE_URLS":           localtestListenURLs(ingressPort),
-				"DOTNET_ENVIRONMENT":        dotnetEnv,
-				"GeneralSettings__BaseUrl":  topology.LocaltestBaseURL(),
-				"GeneralSettings__HostName": topology.AppHostName(),
+				"ASPNETCORE_URLS":                                       localtestListenURLs(ingressPort),
+				"DOTNET_ENVIRONMENT":                                    "Development",
+				"GeneralSettings__BaseUrl":                              topology.LocaltestBaseURL(),
+				"GeneralSettings__HostName":                             topology.AppHostName(),
+				"LocalPlatformSettings__LocalAppMode":                   "http",
+				"LocalPlatformSettings__LocalAppUrl":                    "",
+				"LocalPlatformSettings__LocalTestingStorageBasePath":    "/AltinnPlatformLocal/",
+				"LocalPlatformSettings__LocalTestingStaticTestDataPath": "/testdata/",
+				"LocalPlatformSettings__LocalGrafanaUrl":                "http://monitoring_grafana:3000",
+				"LocalPlatformSettings__LocalPdfServiceUrl":             "http://" + ContainerPDF3 + ":5031",
+				"LocalPlatformSettings__LocalWorkflowEngineUrl":         "http://" + ContainerWorkflowEngine + ":8080",
+				"LocalPlatformSettings__LocalPgAdminUrl":                "http://" + ContainerPgAdmin + ":80",
 			},
 			[]types.VolumeMount{
 				newVolume(filepath.Join(dataDir, "testdata"), "/testdata"),
@@ -298,17 +300,6 @@ func workflowEngineInfraPath(dataDir string) string {
 	return filepath.Join(dataDir, infraDir, workflowEngineInfraDir)
 }
 
-func localtestEnvironment(platform container.ContainerPlatform) string {
-	switch platform {
-	case container.PlatformDocker, container.PlatformColima:
-		return flavorDocker
-	case container.PlatformPodman:
-		return flavorPodman
-	default:
-		return flavorUnknown
-	}
-}
-
 func monitoringContainers(dataDir string, topology envtopology.Local) []ContainerSpec {
 	infraPath := filepath.Join(dataDir, infraDir)
 
@@ -419,7 +410,6 @@ type ResourceDestroyOptions struct {
 	DataDir           string
 	Images            config.ImagesConfig
 	IncludeMonitoring bool
-	Platform          container.ContainerPlatform
 }
 
 type containerResourceMode int
@@ -447,8 +437,7 @@ func BuildResources(opts ResourceBuildOptions) []resource.Resource {
 // BuildResourcesForDestroy creates the list of resources need to shutdown localtest.
 func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
 	runtimeCfg := RuntimeConfig{
-		Platform: opts.Platform,
-		User:     "", // not used for destroy
+		User: "", // not used for destroy
 	}
 
 	return buildResourcesWithMode(
@@ -548,7 +537,7 @@ func buildResourcesWithMode(
 	monImages map[string]string,
 	mode containerResourceMode,
 ) []resource.Resource {
-	core := coreContainers(dataDir, runtimeCfg, topology, includePgAdmin)
+	core := coreContainers(dataDir, topology, includePgAdmin)
 	mon := monitoringContainers(dataDir, topology)
 	labels := map[string]string{LabelKey: LabelValue}
 
@@ -703,7 +692,7 @@ type hostPathExpectation struct {
 }
 
 func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
-	core := coreContainers(opts.DataDir, opts.RuntimeConfig, opts.Topology, opts.IncludePgAdmin)
+	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludePgAdmin)
 	all := core
 	if opts.IncludeMonitoring {
 		all = append(all, monitoringContainers(opts.DataDir, opts.Topology)...)

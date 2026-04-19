@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -97,24 +96,10 @@ func TestValidateResourceHostPaths(t *testing.T) {
 	})
 }
 
-func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
-	t.Parallel()
-
-	containers := coreContainers(t.TempDir(), RuntimeConfig{
-		Platform: container.PlatformColima,
-	}, testTopology(), false)
-
-	if got := containers[0].Environment["DOTNET_ENVIRONMENT"]; got != "Docker" {
-		t.Fatalf("DOTNET_ENVIRONMENT = %q, want %q", got, "Docker")
-	}
-}
-
 func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
-	containers := coreContainers(t.TempDir(), RuntimeConfig{
-		Platform: container.PlatformPodman,
-	}, testTopology(), true)
+	containers := coreContainers(t.TempDir(), testTopology(), true)
 
 	if len(containers) != len(coreContainerNames(true)) {
 		t.Fatalf("coreContainers() len = %d, want %d", len(containers), len(coreContainerNames(true)))
@@ -133,9 +118,11 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	if got := localtest.NetworkAliases; !slices.Equal(got, wantAliases) {
 		t.Fatalf("localtest.NetworkAliases = %v, want %v", got, wantAliases)
 	}
-	if got := localtest.Environment["ASPNETCORE_URLS"]; got != "http://*:5101/;http://*:8000/" {
-		t.Fatalf("localtest.Environment[ASPNETCORE_URLS] = %q, want dual listen URLs", got)
-	}
+	assertEnvValue(t, localtest.Environment, "ASPNETCORE_URLS", "http://*:5101/;http://*:8000/")
+	assertEnvValue(t, localtest.Environment, "DOTNET_ENVIRONMENT", "Development")
+	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalAppMode", "http")
+	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalAppUrl", "")
+	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalPdfServiceUrl", "http://localtest-pdf3:5031")
 
 	pdf3 := containers[1]
 	if got := pdf3.Ports; len(got) != 1 || got[0] != newPort("5300", "5031") {
@@ -301,9 +288,7 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	dataDir := t.TempDir()
-	containers := coreContainers(dataDir, RuntimeConfig{
-		Platform: container.PlatformPodman,
-	}, testTopology(), true)
+	containers := coreContainers(dataDir, testTopology(), true)
 
 	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
 		return spec.Name == ContainerPgAdmin
@@ -363,31 +348,14 @@ func TestEnsurePgpassWritesReadableSourceFile(t *testing.T) {
 	}
 }
 
-func TestLocaltestEnvironment(t *testing.T) {
-	tests := map[container.ContainerPlatform]string{
-		container.PlatformDocker:  "Docker",
-		container.PlatformColima:  "Docker",
-		container.PlatformPodman:  "Podman",
-		container.PlatformUnknown: "Unknown",
-	}
-
-	for platform, want := range tests {
-		if got := localtestEnvironment(platform); got != want {
-			t.Fatalf("localtestEnvironment(%v) = %q, want %q", platform, got, want)
-		}
-	}
-}
-
 func newResourceBuildOptions(dataDir string, includeMonitoring bool, includePgAdmin ...bool) ResourceBuildOptions {
 	pgAdmin := false
 	if len(includePgAdmin) > 0 {
 		pgAdmin = includePgAdmin[0]
 	}
 	return ResourceBuildOptions{
-		DataDir: dataDir,
-		RuntimeConfig: RuntimeConfig{
-			Platform: container.PlatformDocker,
-		},
+		DataDir:           dataDir,
+		RuntimeConfig:     RuntimeConfig{},
 		Topology:          testTopology(),
 		IncludeMonitoring: includeMonitoring,
 		IncludePgAdmin:    pgAdmin,
@@ -396,6 +364,13 @@ func newResourceBuildOptions(dataDir string, includeMonitoring bool, includePgAd
 
 func testTopology() envtopology.Local {
 	return envtopology.NewLocal("8000")
+}
+
+func assertEnvValue(t *testing.T, env map[string]string, key, want string) {
+	t.Helper()
+	if got := env[key]; got != want {
+		t.Fatalf("env[%s] = %q, want %q", key, got, want)
+	}
 }
 
 func createCoreLayout(t *testing.T, dataDir string) {

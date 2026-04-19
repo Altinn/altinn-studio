@@ -27,6 +27,7 @@ public class ProxyMiddleware
     private const string PdfServiceHost = "pdf.local.altinn.cloud";
     private const string PgAdminHost = "pgadmin.local.altinn.cloud";
     private const string WorkflowEngineHost = "workflow-engine.local.altinn.cloud";
+    private const string FrontendHost = "app-frontend.local.altinn.cloud";
 
     public ProxyMiddleware(
         RequestDelegate nextMiddleware,
@@ -142,6 +143,17 @@ public class ProxyMiddleware
             return await TryProxyToConfiguredService(context, _settings.LocalWorkflowEngineUrl);
         }
 
+        if (IsHost(host, FrontendHost))
+        {
+            await ProxyTunnelTarget(
+                context,
+                Altinn.Studio.AppTunnel.TunnelDefaults.FrontendDevServerTarget,
+                Altinn.Studio.AppTunnel.TunnelDefaults.FrontendDevServerPort,
+                $"frontend dev server on port {Altinn.Studio.AppTunnel.TunnelDefaults.FrontendDevServerPort}"
+            );
+            return true;
+        }
+
         if (IsHost(host, PdfServiceHost))
         {
             return await TryProxyToConfiguredService(context, _settings.LocalPdfServiceUrl);
@@ -160,11 +172,6 @@ public class ProxyMiddleware
         if (path.StartsWith("/grafana/", StringComparison.OrdinalIgnoreCase) || path == "/grafana")
         {
             return await TryProxyToConfiguredService(context, _settings.LocalGrafanaUrl);
-        }
-
-        if (path.StartsWith("/receipt/", StringComparison.OrdinalIgnoreCase))
-        {
-            return await TryProxyToConfiguredService(context, _settings.LocalReceiptUrl);
         }
 
         return false;
@@ -274,6 +281,23 @@ public class ProxyMiddleware
         await ProxyTunneledRequestWithBufferedResponse(context, appId, frontendVersionUrl);
     }
 
+    private async Task ProxyTunnelTarget(
+        HttpContext context,
+        string target,
+        int targetPort,
+        string description
+    )
+    {
+        try
+        {
+            await _appTunnelProxy.ProxyToTargetAsync(context, target, targetPort, context.RequestAborted);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
+        {
+            await HandleTunnelProxyError(context, ex, description);
+        }
+    }
+
     private async Task ProxyTunneledRequestWithBufferedResponse(
         HttpContext context,
         string? appId,
@@ -364,9 +388,9 @@ public class ProxyMiddleware
         await context.Response.WriteAsync(errorPage);
     }
 
-    private async Task HandleTunnelProxyError(HttpContext context, Exception exception, string appId)
+    private async Task HandleTunnelProxyError(HttpContext context, Exception exception, string targetDescription)
     {
-        _logger.LogWarning(exception, "Tunnel proxy failed for app {AppId}", appId);
+        _logger.LogWarning(exception, "Tunnel proxy failed for {TargetDescription}", targetDescription);
 
         if (context.Response.HasStarted)
         {
@@ -377,7 +401,7 @@ public class ProxyMiddleware
         context.Response.StatusCode = 502;
         context.Response.ContentType = "text/html; charset=utf-8";
 
-        await context.Response.WriteAsync(GetErrorPage($"app tunnel for {appId}"));
+        await context.Response.WriteAsync(GetErrorPage($"app tunnel for {targetDescription}"));
     }
 
     /// <summary>
@@ -385,7 +409,7 @@ public class ProxyMiddleware
     /// </summary>
     private static string GetErrorPage(string targetHost)
     {
-        var isAppTarget = targetHost.Contains(":5005") || targetHost.Contains("host.docker.internal");
+        var isAppTarget = targetHost.Contains(":5005");
 
         if (isAppTarget)
         {

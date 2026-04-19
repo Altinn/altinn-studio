@@ -112,10 +112,23 @@
     @if(!string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
     {
       <div class="alert alert-primary" role="alert">
-        You are using frontend js and css from @(Model.LocalFrontendUrl). @Html.ActionLink("Use a different frontend version", "Index", "FrontendVersion")
+        Using @(LocalFrontendDescription(Model.LocalFrontendUrl)). @Html.ActionLink("Use a different frontend version", "Index", "FrontendVersion")
       </div>
     }
   </div>
+  }
+}
+
+@functions {
+  private static string LocalFrontendDescription(string frontendUrl)
+  {
+    if (Uri.TryCreate(frontendUrl, UriKind.Absolute, out var uri) &&
+      uri.Host.Equals("app-frontend.local.altinn.cloud", StringComparison.OrdinalIgnoreCase))
+    {
+      return "local app frontend dev server";
+    }
+
+    return $"frontend js and css from {frontendUrl}";
   }
 }
 

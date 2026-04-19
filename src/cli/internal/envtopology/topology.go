@@ -15,6 +15,7 @@ const (
 	pdfHost            = "pdf." + localDomain
 	pgAdminHost        = "pgadmin." + localDomain
 	workflowEngineHost = "workflow-engine." + localDomain
+	frontendHost       = "app-frontend." + localDomain
 	otelPort           = "4317"
 )
 
@@ -61,6 +62,11 @@ func (l Local) PgAdminHostName() string {
 	return pgAdminHost
 }
 
+// FrontendDevServerHostName returns the local frontend dev server host name.
+func (l Local) FrontendDevServerHostName() string {
+	return frontendHost
+}
+
 // LocaltestBaseURL returns the localtest ingress URL.
 func (l Local) LocaltestBaseURL() string {
 	return l.url(appHost)
@@ -101,12 +107,14 @@ func (l Local) WorkflowEngineURL() string {
 
 // LocaltestIngressHosts returns the hostnames routed through localtest.
 func (l Local) LocaltestIngressHosts() []string {
-	return []string{
+	hosts := []string{
 		appHost,
 		pdfHost,
 		workflowEngineHost,
 		pgAdminHost,
+		frontendHost,
 	}
+	return hosts
 }
 
 // OTelHost returns the local OpenTelemetry collector host name.

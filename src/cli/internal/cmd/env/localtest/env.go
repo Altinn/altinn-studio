@@ -40,21 +40,19 @@ const stoppingEnvironmentMessage = "Stopping localtest environment..."
 
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
-	cfg           *config.Config
-	out           *ui.Output
-	client        container.ContainerClient
-	runtimeConfig *runtimeConfigResolver
-	logs          *logStreamer
+	cfg    *config.Config
+	out    *ui.Output
+	client container.ContainerClient
+	logs   *logStreamer
 }
 
 // NewEnv creates a new localtest environment manager.
 func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient) *Env {
 	return &Env{
-		cfg:           cfg,
-		out:           out,
-		client:        client,
-		runtimeConfig: newRuntimeConfigResolver(client),
-		logs:          newLogStreamer(client, out),
+		cfg:    cfg,
+		out:    out,
+		client: client,
+		logs:   newLogStreamer(client, out),
 	}
 }
 
@@ -68,10 +66,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg, err := e.runtimeConfig.Build(ctx)
-	if err != nil {
-		return err
-	}
+	runtimeCfg := newRuntimeConfig()
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
 	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
@@ -358,7 +353,6 @@ func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
 		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
 		IncludeMonitoring: true, // include all for cleanup
-		Platform:          e.client.Toolchain().Platform,
 	}
 }
 
