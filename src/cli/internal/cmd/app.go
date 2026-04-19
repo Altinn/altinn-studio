@@ -28,6 +28,38 @@ type AppCommand struct {
 	service *appsvc.Service
 }
 
+type appBuildOutput struct {
+	ImageTag   string `json:"imageTag"`
+	Pushed     bool   `json:"pushed"`
+	JSONOutput bool   `json:"-"`
+}
+
+type appBuildFlags struct {
+	appPath    string
+	mode       string
+	imageTag   string
+	push       bool
+	jsonOutput bool
+}
+
+func (o appBuildOutput) PrintImage(out *ui.Output) error {
+	if o.JSONOutput {
+		return nil
+	}
+	out.Printlnf("Image: %s", o.ImageTag)
+	return nil
+}
+
+func (o appBuildOutput) PrintFinal(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "app build", o)
+	}
+	if o.Pushed {
+		out.Printlnf("Pushed: %s", o.ImageTag)
+	}
+	return nil
+}
+
 // NewAppCommand creates a new app command.
 func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
 	service := appsvc.NewService(cfg.Home)
@@ -89,34 +121,16 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 }
 
 func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("app build", flag.ContinueOnError)
-	fs.SetOutput(io.Discard)
-	var appPath string
-	var mode string
-	var imageTag string
-	var push bool
-	fs.StringVar(&appPath, "p", "", "App directory path")
-	fs.StringVar(&appPath, "path", "", "App directory path")
-	fs.StringVar(&mode, "m", runModeContainer, "Build mode")
-	fs.StringVar(&mode, "mode", runModeContainer, "Build mode")
-	fs.StringVar(&imageTag, "image-tag", "", "App container image tag")
-	fs.BoolVar(&push, "push", false, "Push app container image after build")
-
-	if err := fs.Parse(args); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			c.out.Print(c.appBuildUsage())
-			return nil
-		}
-		return fmt.Errorf("parsing flags: %w", err)
+	flags, help, err := c.parseAppBuildFlags(args)
+	if err != nil {
+		return err
 	}
-	if mode != runModeContainer {
-		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, mode)
-	}
-	if push && imageTag == "" {
-		return fmt.Errorf("%w: --push requires --image-tag", ErrInvalidFlagValue)
+	if help {
+		c.out.Print(c.appBuildUsage())
+		return nil
 	}
 
-	result, err := c.service.ResolveTarget(ctx, appPath)
+	result, err := c.service.ResolveTarget(ctx, flags.appPath)
 	if err != nil {
 		if errors.Is(err, repocontext.ErrAppNotFound) {
 			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
@@ -124,7 +138,7 @@ func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
 		return fmt.Errorf("detect app: %w", err)
 	}
 
-	spec, err := appimage.BuildSpecForApp(result, imageTag)
+	spec, err := appimage.BuildSpecForApp(result, flags.imageTag)
 	if err != nil {
 		return fmt.Errorf("build docker image spec: %w", err)
 	}
@@ -148,17 +162,48 @@ func (c *AppCommand) runBuild(ctx context.Context, args []string) error {
 	if err := client.Build(ctx, spec.ContextPath, spec.Dockerfile, spec.ImageTag, spec.Build); err != nil {
 		return fmt.Errorf("build app image: %w", err)
 	}
-	c.out.Printlnf("Image: %s", spec.ImageTag)
+	output := appBuildOutput{ImageTag: spec.ImageTag, Pushed: false, JSONOutput: flags.jsonOutput}
+	if err := output.PrintImage(c.out); err != nil {
+		return err
+	}
 
-	if push {
+	if flags.push {
 		c.out.Verbosef("Pushing app image %s", spec.ImageTag)
 		if err := client.Push(ctx, spec.ImageTag); err != nil {
 			return fmt.Errorf("push app image: %w", err)
 		}
-		c.out.Printlnf("Pushed: %s", spec.ImageTag)
+		output.Pushed = true
 	}
 
-	return nil
+	return output.PrintFinal(c.out)
+}
+
+func (c *AppCommand) parseAppBuildFlags(args []string) (appBuildFlags, bool, error) {
+	fs := flag.NewFlagSet("app build", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	var flags appBuildFlags
+	fs.StringVar(&flags.appPath, "p", "", "App directory path")
+	fs.StringVar(&flags.appPath, "path", "", "App directory path")
+	fs.StringVar(&flags.mode, "m", runModeContainer, "Build mode")
+	fs.StringVar(&flags.mode, "mode", runModeContainer, "Build mode")
+	fs.StringVar(&flags.imageTag, "image-tag", "", "App container image tag")
+	fs.BoolVar(&flags.push, "push", false, "Push app container image after build")
+	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return flags, true, nil
+		}
+		return flags, false, fmt.Errorf("parsing flags: %w", err)
+	}
+	if flags.mode != runModeContainer {
+		return flags, false, fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
+	}
+	if flags.push && flags.imageTag == "" {
+		return flags, false, fmt.Errorf("%w: --push requires --image-tag", ErrInvalidFlagValue)
+	}
+
+	return flags, false, nil
 }
 
 func (c *AppCommand) appBuildUsage() string {
@@ -172,6 +217,7 @@ func (c *AppCommand) appBuildUsage() string {
 		"  -m, --mode MODE       Build mode: container (default: container)",
 		"  --image-tag IMAGE     App container image tag",
 		"  --push                Push app container image after build",
+		"  --json                Output as JSON",
 		"  -h, --help            Show this help",
 	)
 }
