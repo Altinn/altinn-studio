@@ -225,9 +225,9 @@ func (c *Config) AppManagerPIDPath() string {
 	return filepath.Join(c.Home, "app-manager.pid")
 }
 
-// AppManagerLogPath returns the path to the app-manager log file.
-func (c *Config) AppManagerLogPath() string {
-	return filepath.Join(c.LogDir, "app-manager.log")
+// AppManagerLogDir returns the directory containing app-manager log files.
+func (c *Config) AppManagerLogDir() string {
+	return filepath.Join(c.LogDir, "app-manager")
 }
 
 // AppManagerBinaryPath returns the path to the app-manager binary.

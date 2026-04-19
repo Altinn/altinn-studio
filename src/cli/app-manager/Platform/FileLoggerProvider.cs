@@ -9,21 +9,21 @@ internal sealed class FileLoggerProvider : ILoggerProvider
     // Keep the queue bounded so a noisy process cannot grow log buffering without limit.
     private const int Capacity = 1024;
     private readonly Channel<LogEntry> _channel;
-    private readonly StreamWriter _writer;
+    private readonly string _directory;
     private readonly Task _writerTask;
+    private StreamWriter _writer;
+    private string _currentDate;
     private volatile bool _failed;
 
-    public FileLoggerProvider(string path)
+    public FileLoggerProvider(string directory)
     {
-        var parent = Path.GetDirectoryName(path);
-        if (string.IsNullOrWhiteSpace(parent))
-            throw new InvalidOperationException($"app-manager log path must include a parent directory: {path}");
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new InvalidOperationException("app-manager log directory is required");
 
-        Directory.CreateDirectory(parent);
-        _writer = new StreamWriter(new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-        {
-            AutoFlush = true,
-        };
+        Directory.CreateDirectory(directory);
+        _directory = directory;
+        _currentDate = UtcDate();
+        _writer = OpenWriter(_currentDate);
         _channel = Channel.CreateBounded<LogEntry>(
             new BoundedChannelOptions(Capacity)
             {
@@ -51,6 +51,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         {
             await foreach (var entry in _channel.Reader.ReadAllAsync())
             {
+                RotateIfNeeded(entry.Date);
                 await _writer.WriteAsync(entry.Prefix);
                 await _writer.WriteLineAsync(entry.Message);
 
@@ -75,7 +76,30 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         }
     }
 
-    private readonly record struct LogEntry(string Prefix, string Message, Exception? Exception);
+    private void RotateIfNeeded(string date)
+    {
+        if (date == _currentDate)
+            return;
+
+        _writer.Dispose();
+        _currentDate = date;
+        _writer = OpenWriter(date);
+    }
+
+    private StreamWriter OpenWriter(string date)
+    {
+        return new StreamWriter(new FileStream(LogPath(date), FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+        {
+            AutoFlush = true,
+        };
+    }
+
+    private string LogPath(string date) =>
+        Path.Combine(_directory, string.Create(CultureInfo.InvariantCulture, $"{date}-{Environment.ProcessId}.log"));
+
+    private static string UtcDate() => DateTimeOffset.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private readonly record struct LogEntry(string Date, string Prefix, string Message, Exception? Exception);
 
     private sealed class FileLogger(string categoryName, ChannelWriter<LogEntry> writer, FileLoggerProvider provider)
         : ILogger
@@ -103,10 +127,13 @@ internal sealed class FileLoggerProvider : ILoggerProvider
             if (provider._failed)
                 return;
 
+            var utcNow = DateTimeOffset.UtcNow;
+            var localNow = utcNow.ToLocalTime();
             var entry = new LogEntry(
+                utcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 string.Create(
                     CultureInfo.InvariantCulture,
-                    $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss.fff} {GetLevelName(logLevel)}: {categoryName}[{eventId.Id}] "
+                    $"{localNow:yyyy-MM-dd HH:mm:ss.fff} {GetLevelName(logLevel)}: {categoryName}[{eventId.Id}] "
                 ),
                 message,
                 exception
