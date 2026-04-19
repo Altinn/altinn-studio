@@ -16,6 +16,7 @@ internal sealed class AppRegistry : BackgroundService
     private readonly List<AppStartWaiter> _pendingStarts = [];
 
     private DiscoveredApp[] _apps = [];
+    private bool _lastRefreshFailed;
 
     public AppRegistry(IEnumerable<IAppDiscovery> discoveries, AppMetadataProbe probe, ILogger<AppRegistry> logger)
     {
@@ -140,9 +141,13 @@ internal sealed class AppRegistry : BackgroundService
     )
     {
         var now = DateTimeOffset.UtcNow;
-        var shouldRefresh = message is not TimerTick || _pendingStarts.Count > 0 || now >= nextPoll;
+        var shouldRefresh =
+            message is not TimerTick || (_pendingStarts.Count > 0 && !_lastRefreshFailed) || now >= nextPoll;
         if (!shouldRefresh)
+        {
+            PrunePendingStarts(now);
             return nextPoll;
+        }
 
         switch (message)
         {
@@ -159,23 +164,35 @@ internal sealed class AppRegistry : BackgroundService
                 break;
         }
 
-        await Refresh(cancellationToken);
+        try
+        {
+            await Refresh(cancellationToken);
+            _lastRefreshFailed = false;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            _lastRefreshFailed = true;
+            _logger.LogError(ex, "App discovery refresh failed");
+        }
+        finally
+        {
+            PrunePendingStarts(DateTimeOffset.UtcNow);
+        }
 
         return now >= nextPoll ? now + _pollInterval : nextPoll;
     }
 
     private async Task Refresh(CancellationToken cancellationToken)
     {
-        var now = DateTimeOffset.UtcNow;
         var previous = Volatile.Read(ref _apps);
 
-        var apps = await DiscoverApps(now, cancellationToken);
+        var apps = await DiscoverApps(cancellationToken);
         Volatile.Write(ref _apps, apps);
 
         LogRefresh(previous, apps);
     }
 
-    private async Task<DiscoveredApp[]> DiscoverApps(DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task<DiscoveredApp[]> DiscoverApps(CancellationToken cancellationToken)
     {
         var probeResults = new ConcurrentBag<ProbeResult>();
         var discoveryItems = _discoveries.Select(static (discovery, index) => new DiscoveryItem(index, discovery));
@@ -220,7 +237,6 @@ internal sealed class AppRegistry : BackgroundService
             CompleteMatchingStarts(result.App);
         }
 
-        PrunePendingStarts(now);
         return [.. apps.Values];
     }
 

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -36,15 +35,6 @@ func newAppManagerAccess(cfg *config.Config) appManagerAccess {
 }
 
 func (a appManagerAccess) ensure(ctx context.Context) error {
-	if a.client != nil {
-		_, err := a.client.Status(ctx)
-		if err == nil {
-			return nil
-		}
-		if !errors.Is(err, appmanager.ErrNotRunning) {
-			return fmt.Errorf("get app-manager status: %w", err)
-		}
-	}
 	if a.ensureStarted == nil {
 		return nil
 	}

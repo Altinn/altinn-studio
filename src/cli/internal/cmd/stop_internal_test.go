@@ -157,7 +157,7 @@ func TestAppPsStartsAppManagerBeforeStatus(t *testing.T) {
 	}
 }
 
-func TestAppPsDoesNotRestartRunningAppManager(t *testing.T) {
+func TestAppPsReconcilesRunningAppManager(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
@@ -178,8 +178,8 @@ func TestAppPsDoesNotRestartRunningAppManager(t *testing.T) {
 	if err := command.RunWithCommandPath(t.Context(), []string{"--json"}, "app ps"); err != nil {
 		t.Fatalf("RunWithCommandPath() error = %v", err)
 	}
-	if started {
-		t.Fatal("ensureStarted was called")
+	if !started {
+		t.Fatal("ensureStarted was not called")
 	}
 }
 
