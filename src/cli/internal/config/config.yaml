@@ -36,8 +36,3 @@ images:
     grafana:
       image: grafana/grafana
       tag: "10.4.2"
-
-  utility:
-    busybox:
-      image: busybox
-      tag: "1.37"
