@@ -26,13 +26,15 @@ internal sealed class TunnelWorker : BackgroundService
     private readonly TunnelOptions _options;
     private readonly TunnelState _state;
     private readonly ILogger<TunnelWorker> _logger;
+    private readonly LoadBalancer _loadBalancer;
 
     public TunnelWorker(
         IHttpClientFactory httpClientFactory,
         Discovery.AppRegistry appRegistry,
         IOptions<TunnelOptions> options,
         TunnelState state,
-        ILogger<TunnelWorker> logger
+        ILogger<TunnelWorker> logger,
+        LoadBalancer loadBalancer
     )
     {
         _httpClientFactory = httpClientFactory;
@@ -40,6 +42,7 @@ internal sealed class TunnelWorker : BackgroundService
         _options = options.Value;
         _state = state;
         _logger = logger;
+        _loadBalancer = loadBalancer;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -454,8 +457,9 @@ internal sealed class TunnelWorker : BackgroundService
         if (string.IsNullOrWhiteSpace(pendingRequest.AppId))
             return LocalFallbackUpstreamUri;
 
-        if (_appRegistry.TryGet(pendingRequest.AppId, out var app) && app is not null)
-            return app.BaseUri;
+        var apps = _appRegistry.GetByAppId(pendingRequest.AppId);
+        if (_loadBalancer.Next(pendingRequest.AppId, apps) is { } app)
+            return app.BaseUri.Value;
 
         return null;
     }

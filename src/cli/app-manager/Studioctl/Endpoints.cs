@@ -37,7 +37,10 @@ internal static class Endpoints
                             app.BaseUri.ToString(),
                             app.Source,
                             app.ProcessId,
-                            app.Description
+                            app.Description,
+                            app.ContainerId,
+                            app.Name,
+                            app.HostPort
                         )),
                 ]
             )
@@ -56,10 +59,10 @@ internal static class Endpoints
         var result = await registerApp.Handle(
             new RegisterAppCommand(
                 request.AppId,
-                request.Port,
                 request.ProcessId,
-                request.Description,
-                TimeSpan.FromSeconds(request.GracePeriodSeconds)
+                TimeSpan.FromSeconds(request.TimeoutSeconds),
+                request.ContainerId,
+                request.HostPort
             ),
             cancellationToken
         );
@@ -75,22 +78,12 @@ internal static class Endpoints
         };
     }
 
-    private static IResult UnregisterApp(UnregisterApp unregisterApp, string? appId, string? baseUrl)
+    private static IResult UnregisterApp(UnregisterApp unregisterApp, string? appId)
     {
-        if (
-            string.IsNullOrWhiteSpace(baseUrl)
-            || !Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
-            || (baseUri.Scheme != Uri.UriSchemeHttp && baseUri.Scheme != Uri.UriSchemeHttps)
-        )
-        {
-            return Results.BadRequest(new CommandResponse("baseUrl must be an absolute http or https URL"));
-        }
-
-        var result = unregisterApp.Handle(appId, baseUri);
+        var result = unregisterApp.Handle(appId);
         return result.Kind switch
         {
             UnregisterAppResultKind.Unregistered => Results.Accepted(value: new CommandResponse(result.Message)),
-            UnregisterAppResultKind.InvalidRequest => Results.BadRequest(new CommandResponse(result.Message)),
             _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
         };
     }
@@ -129,10 +122,10 @@ internal static class Endpoints
 
     private sealed record RegisterAppRequest(
         string AppId,
-        int? Port,
         int? ProcessId,
-        string? Description,
-        int GracePeriodSeconds
+        int TimeoutSeconds,
+        string? ContainerId,
+        int? HostPort
     );
 
     private sealed record RegisterAppResponse(string Message, string BaseUrl);
@@ -142,7 +135,10 @@ internal static class Endpoints
         string BaseUrl,
         string Source,
         int? ProcessId,
-        string Description
+        string Description,
+        string? ContainerId,
+        string? Name,
+        int? HostPort
     );
 
     private sealed record CommandResponse(string Message);

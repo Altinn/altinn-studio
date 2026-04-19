@@ -11,12 +11,9 @@ internal sealed class UnregisterApp
         _registry = registry;
     }
 
-    public UnregisterAppResult Handle(string? appId, Uri baseUri)
+    public UnregisterAppResult Handle(string? appId)
     {
-        if (string.IsNullOrWhiteSpace(appId))
-            return UnregisterAppResult.InvalidRequest("appId is required");
-
-        _registry.Unregister(appId.Trim(), baseUri);
+        _registry.AppStopped(appId);
         return UnregisterAppResult.Unregistered();
     }
 }
@@ -24,13 +21,9 @@ internal sealed class UnregisterApp
 internal sealed record UnregisterAppResult(UnregisterAppResultKind Kind, string Message)
 {
     public static UnregisterAppResult Unregistered() => new(UnregisterAppResultKind.Unregistered, "app unregistered");
-
-    public static UnregisterAppResult InvalidRequest(string message) =>
-        new(UnregisterAppResultKind.InvalidRequest, message);
 }
 
 internal enum UnregisterAppResultKind
 {
     Unregistered,
-    InvalidRequest,
 }

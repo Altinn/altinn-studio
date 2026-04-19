@@ -114,10 +114,20 @@ internal sealed class ContainerDiscovery : IAppDiscovery
         if (!AppEndpointUri.TryLoopbackHttp(candidate.HostPort, out var baseUri) || baseUri is null)
             yield break;
 
-        yield return new AppDiscoveryCandidate(candidate.Source, baseUri, null, candidate.Description);
+        yield return new AppDiscoveryCandidate(
+            candidate.Source,
+            baseUri,
+            null,
+            candidate.Description,
+            candidate.ContainerId,
+            candidate.Name,
+            candidate.HostPort
+        );
     }
 
     private sealed record ContainerCandidate(
+        [property: JsonPropertyName("containerId")] string ContainerId,
+        [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("hostPort")] int HostPort,
         [property: JsonPropertyName("source")] string Source,
         [property: JsonPropertyName("description")] string Description

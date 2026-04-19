@@ -37,6 +37,7 @@ internal static class ServiceCollectionExtensions
             });
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<TunnelOptions>>().Value);
         services.AddSingleton<TunnelState>();
+        services.AddSingleton<LoadBalancer>();
         services.AddHostedService<TunnelWorker>();
         return services;
     }

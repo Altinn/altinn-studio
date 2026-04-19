@@ -71,6 +71,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
     )
     {
         var output = await RunCommand("lsof", "-Fpcn -nP -iTCP -sTCP:LISTEN", cancellationToken);
+        var commandLines = new Dictionary<int, string?>();
         var processName = string.Empty;
         var processId = 0;
         foreach (var line in output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
@@ -98,11 +99,13 @@ internal sealed partial class MacPortListeners : IPortListenerSource
                     if (!currentListeners.Contains(listenerKey))
                         continue;
 
+                    var commandLine = await ReadCommandLine(processId, commandLines, cancellationToken);
                     knownListeners[listenerKey] = new PortListener(
                         processId,
                         listenerKey.Port,
                         listenerKey.BindScope,
-                        processName
+                        processName,
+                        commandLine
                     );
                     break;
             }
@@ -170,6 +173,32 @@ internal sealed partial class MacPortListeners : IPortListenerSource
     {
         var result = Kill(processId, SignalZero);
         return result == 0 || Marshal.GetLastPInvokeError() == ErrorPermissionDenied;
+    }
+
+    private static async Task<string?> ReadCommandLine(
+        int processId,
+        Dictionary<int, string?> commandLines,
+        CancellationToken cancellationToken
+    )
+    {
+        if (commandLines.TryGetValue(processId, out var cached))
+            return cached;
+
+        string? commandLine = null;
+        try
+        {
+            commandLine = (await RunCommand("ps", $"-p {processId} -o command=", cancellationToken)).Trim();
+            if (commandLine.Length == 0)
+                commandLine = null;
+        }
+        catch (InvalidOperationException)
+        {
+            commandLines[processId] = null;
+            return null;
+        }
+
+        commandLines[processId] = commandLine;
+        return commandLine;
     }
 
     private static async Task<string> RunCommand(string fileName, string arguments, CancellationToken cancellationToken)

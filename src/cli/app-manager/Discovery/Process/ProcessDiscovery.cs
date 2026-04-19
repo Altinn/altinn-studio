@@ -20,17 +20,52 @@ internal sealed class ProcessDiscovery : IAppDiscovery
             if (!AppEndpointUri.TryFromListener(listener, out var baseUri) || baseUri is null)
                 continue;
 
-            if (string.IsNullOrWhiteSpace(listener.ProcessName))
+            var name = StudioAppName(listener);
+            if (name is null)
                 continue;
 
-            // Process names for .NET apps comes from the assembly names, these are either
-            // "Altinn.App" or "Altinn.Application". This is seemingly true for both "dotnet run" and "studioctl run"
-            if (!listener.ProcessName.Contains("Altinn.App", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            candidates.Add(new AppDiscoveryCandidate("process", baseUri, listener.ProcessId, listener.ProcessName));
+            candidates.Add(
+                new AppDiscoveryCandidate(
+                    "process",
+                    baseUri,
+                    listener.ProcessId,
+                    name,
+                    Name: name,
+                    HostPort: listener.Port
+                )
+            );
         }
 
         return candidates;
     }
+
+    private static string? StudioAppName(PortListener listener)
+    {
+        if (IsStudioAppName(listener.ProcessName))
+            return listener.ProcessName;
+
+        if (string.IsNullOrWhiteSpace(listener.CommandLine))
+            return null;
+
+        foreach (
+            var part in listener.CommandLine.Split(
+                ' ',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+            )
+        )
+        {
+            var name = Path.GetFileName(part.Trim('"'));
+            if (IsStudioAppName(name))
+                return name;
+        }
+
+        return null;
+    }
+
+    private static bool IsStudioAppName(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && (
+            value.Contains("Altinn.App", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("Altinn.Application", StringComparison.OrdinalIgnoreCase)
+        );
 }
