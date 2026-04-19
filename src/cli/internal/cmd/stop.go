@@ -178,16 +178,21 @@ func (c *StopCommand) stopApps(ctx context.Context, appID string, flags appStopF
 	}()
 
 	var stopped []stoppedAppOutput
+	var stopErrors []error
 	for _, app := range apps {
 		output, err := c.stopApp(ctx, app, &containerClient)
 		if err != nil {
-			return err
+			stopErrors = append(stopErrors, fmt.Errorf("%s: %w", app.AppID, err))
+			continue
 		}
 		c.unregisterBestEffort(ctx, app)
 		stopped = append(stopped, output)
 	}
 
-	return appStopOutput{Running: true, Stopped: stopped, JSONOutput: flags.jsonOutput}.Print(c.out)
+	if err := (appStopOutput{Running: true, Stopped: stopped, JSONOutput: flags.jsonOutput}).Print(c.out); err != nil {
+		return err
+	}
+	return errors.Join(stopErrors...)
 }
 
 func (c *StopCommand) stopApp(

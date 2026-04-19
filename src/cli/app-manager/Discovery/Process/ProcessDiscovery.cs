@@ -44,22 +44,7 @@ internal sealed class ProcessDiscovery : IAppDiscovery
         if (IsStudioAppName(listener.ProcessName))
             return listener.ProcessName;
 
-        if (string.IsNullOrWhiteSpace(listener.CommandLine))
-            return null;
-
-        foreach (
-            var part in listener.CommandLine.Split(
-                ' ',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-            )
-        )
-        {
-            var name = Path.GetFileName(part.Trim('"'));
-            if (IsStudioAppName(name))
-                return name;
-        }
-
-        return null;
+        return IsStudioAppName(listener.CommandLine) ? listener.CommandLine : null;
     }
 
     private static bool IsStudioAppName(string? value) =>

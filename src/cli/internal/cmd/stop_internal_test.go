@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -16,6 +17,8 @@ import (
 )
 
 const testAppID = "ttd/app"
+
+var errStopFailed = errors.New("stop failed")
 
 func TestAppPsJSONListsApps(t *testing.T) {
 	t.Parallel()
@@ -234,6 +237,63 @@ func TestAppStopJSONStopsNativeAppsWithProcessID(t *testing.T) {
 	}
 	if len(client.unregistered) != 1 || client.unregistered[0] != testAppID {
 		t.Fatalf("unregistered = %+v, want %s", client.unregistered, testAppID)
+	}
+}
+
+func TestAppStopContinuesAfterStopError(t *testing.T) {
+	t.Parallel()
+
+	firstProcessID := 123
+	secondProcessID := 456
+	var stoppedPIDs []int
+	var out bytes.Buffer
+	client := &fakeAppRuntimeClient{
+		status: &appmanager.Status{
+			Apps: []appmanager.DiscoveredApp{
+				{
+					ProcessID: &firstProcessID,
+					AppID:     "ttd/fails",
+					BaseURL:   "http://localhost:5005",
+				},
+				{
+					ProcessID: &secondProcessID,
+					AppID:     "ttd/stops",
+					BaseURL:   "http://localhost:5006",
+				},
+			},
+		},
+	}
+	command := &StopCommand{
+		out: ui.NewOutput(&out, io.Discard, false),
+		manager: appManagerAccess{
+			client: client,
+		},
+		stopProcess: func(_ context.Context, pid int) error {
+			stoppedPIDs = append(stoppedPIDs, pid)
+			if pid == firstProcessID {
+				return errStopFailed
+			}
+			return nil
+		},
+	}
+
+	err := command.RunWithCommandPath(t.Context(), []string{"--all", "--json"}, "app stop")
+	if err == nil || !strings.Contains(err.Error(), "ttd/fails") {
+		t.Fatalf("RunWithCommandPath() error = %v, want failed app id", err)
+	}
+
+	var got appStopOutput
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); jsonErr != nil {
+		t.Fatalf("json.Unmarshal() error = %v", jsonErr)
+	}
+	if len(stoppedPIDs) != 2 {
+		t.Fatalf("stopped pids = %+v, want both apps attempted", stoppedPIDs)
+	}
+	if len(got.Stopped) != 1 || got.Stopped[0].AppID != "ttd/stops" {
+		t.Fatalf("stopped = %+v, want successful app output", got.Stopped)
+	}
+	if len(client.unregistered) != 1 || client.unregistered[0] != "ttd/stops" {
+		t.Fatalf("unregistered = %+v, want successful app only", client.unregistered)
 	}
 }
 
