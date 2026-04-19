@@ -293,7 +293,7 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 	}()
 
 	processName := filepath.Base(targetPath)
-	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, processName, logPath, flags)
+	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, flags)
 	if err != nil {
 		return err
 	}
@@ -361,8 +361,6 @@ func (c *RunCommand) registerStartedDotnetApp(
 	spec appsvc.DotnetRunSpec,
 	cmd *exec.Cmd,
 	waitErr chan error,
-	processName string,
-	logPath string,
 	flags runFlags,
 ) (string, error) {
 	monitor := processReadinessMonitor(waitErr)

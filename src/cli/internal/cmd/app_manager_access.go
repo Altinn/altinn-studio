@@ -124,13 +124,6 @@ func shortContainerID(containerID string) string {
 	return containerID[:shortContainerIDLength]
 }
 
-func appName(app appmanager.DiscoveredApp) string {
-	if app.Name != "" {
-		return app.Name
-	}
-	return "-"
-}
-
 func appPortNumber(app appmanager.DiscoveredApp) int {
 	if app.HostPort != nil && *app.HostPort > 0 {
 		return *app.HostPort

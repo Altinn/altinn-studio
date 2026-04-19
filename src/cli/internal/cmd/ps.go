@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"strconv"
 
 	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
@@ -79,7 +80,7 @@ func (c *AppPsCommand) RunWithCommandPath(ctx context.Context, args []string, co
 	status, err := c.manager.client.Status(ctx)
 	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
-			return appPsOutput{Running: false, JSONOutput: flags.jsonOutput}.Print(c.out)
+			return appPsOutput{Apps: nil, Running: false, JSONOutput: flags.jsonOutput}.Print(c.out)
 		}
 		return fmt.Errorf("get app-manager status: %w", err)
 	}
@@ -184,5 +185,5 @@ func tablePort(port int) string {
 	if port <= 0 {
 		return "-"
 	}
-	return fmt.Sprint(port)
+	return strconv.Itoa(port)
 }
