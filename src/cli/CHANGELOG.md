@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `--json` output for `app build`.
+- Add `--json` output for `env up`, `env down`, `env status`, and `env logs`.
+- Add `--json` output for `servers up`, `servers status`, and `servers down`.
+- Add `--json` output for detached `run` and `app run`.
+
 ## [0.1.0-preview.5] - 2026-04-16
 
 ### Added
