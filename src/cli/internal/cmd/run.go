@@ -96,6 +96,7 @@ func (c *RunCommand) UsageFor(commandPath string) string {
 		"  --image-tag IMAGE     Use a specific app container image tag (container mode)",
 		"  --pull                Pull app container image before start (container mode)",
 		"  --skip-build          Skip building the app container image (container mode)",
+		"  --json                Output as JSON (requires --detach)",
 		"  -h, --help            Show this help",
 	)
 }
@@ -108,6 +109,32 @@ type runFlags struct {
 	pullImage      bool
 	randomHostPort bool
 	skipBuild      bool
+	jsonOutput     bool
+}
+
+type runDetachedOutput struct {
+	AppID         string `json:"appId"`
+	Mode          string `json:"mode"`
+	URL           string `json:"url"`
+	LogPath       string `json:"logPath,omitempty"`
+	ContainerID   string `json:"containerId,omitempty"`
+	ContainerName string `json:"containerName,omitempty"`
+	ProcessID     int    `json:"processId,omitempty"`
+	HostPort      int    `json:"hostPort,omitempty"`
+	JSONOutput    bool   `json:"-"`
+}
+
+func (o runDetachedOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "run", o)
+	}
+	if o.Mode != runModeNative {
+		return nil
+	}
+	out.Printlnf("App running in background.")
+	out.Printlnf("Process: %d", o.ProcessID)
+	out.Printlnf("URL: %s", o.URL)
+	return nil
 }
 
 // Run executes the top-level run alias.
@@ -117,6 +144,36 @@ func (c *RunCommand) Run(ctx context.Context, args []string) error {
 
 // RunWithCommandPath executes run with usage text bound to commandPath.
 func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, commandPath string) error {
+	flags, dotnetArgs, help, err := c.parseRunFlags(args, commandPath)
+	if err != nil {
+		return err
+	}
+	if help {
+		c.out.Print(c.UsageFor(commandPath))
+		return nil
+	}
+
+	target, err := c.service.ResolveRunTarget(ctx, flags.appPath)
+	if err != nil {
+		if errors.Is(err, repocontext.ErrAppNotFound) {
+			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
+		}
+		return fmt.Errorf("resolve app: %w", err)
+	}
+
+	if err := c.printResolvedRunTarget(target); err != nil {
+		return err
+	}
+
+	runErr := c.runTarget(ctx, target, dotnetArgs, flags)
+	if errors.Is(runErr, errAppRunStopped) {
+		c.out.Println("App stopped.")
+		return nil
+	}
+	return runErr
+}
+
+func (c *RunCommand) parseRunFlags(args []string, commandPath string) (runFlags, []string, bool, error) {
 	fs := flag.NewFlagSet(commandPath, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	var flags runFlags
@@ -130,6 +187,7 @@ func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, comm
 	fs.BoolVar(&flags.pullImage, "pull", false, "Pull app container image before start")
 	fs.BoolVar(&flags.randomHostPort, "random-host-port", false, "Use a random host port")
 	fs.BoolVar(&flags.skipBuild, "skip-build", false, "Skip building the app container image")
+	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
 	var cmdArgs, dotnetArgs []string
 	for i, arg := range args {
@@ -145,23 +203,27 @@ func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, comm
 
 	if err := fs.Parse(cmdArgs); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
-			c.out.Print(c.UsageFor(commandPath))
-			return nil
+			return flags, nil, true, nil
 		}
-		return fmt.Errorf("parsing flags: %w", err)
+		return flags, nil, false, fmt.Errorf("parsing flags: %w", err)
 	}
+	if err := validateRunFlags(flags); err != nil {
+		return flags, nil, false, err
+	}
+	return flags, dotnetArgs, false, nil
+}
+
+func validateRunFlags(flags runFlags) error {
 	if flags.mode != runModeNative && flags.mode != runModeContainer {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
-
-	target, err := c.service.ResolveRunTarget(ctx, flags.appPath)
-	if err != nil {
-		if errors.Is(err, repocontext.ErrAppNotFound) {
-			return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
-		}
-		return fmt.Errorf("resolve app: %w", err)
+	if flags.jsonOutput && !flags.detach {
+		return fmt.Errorf("%w: --json requires --detach", ErrInvalidFlagValue)
 	}
+	return nil
+}
 
+func (c *RunCommand) printResolvedRunTarget(target appsvc.RunTarget) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("get working directory: %w", err)
@@ -169,21 +231,23 @@ func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, comm
 	if target.Detection.AppRoot != cwd {
 		c.out.Verbosef("Using app at %s (detected via %s)", target.Detection.AppRoot, target.Detection.AppDetectedFrom)
 	}
+	return nil
+}
 
-	var runErr error
+func (c *RunCommand) runTarget(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	dotnetArgs []string,
+	flags runFlags,
+) error {
 	switch flags.mode {
 	case runModeNative:
-		runErr = c.runDotnet(ctx, target, dotnetArgs, flags)
+		return c.runDotnet(ctx, target, dotnetArgs, flags)
 	case runModeContainer:
-		runErr = c.runDocker(ctx, target, dotnetArgs, flags)
+		return c.runDocker(ctx, target, dotnetArgs, flags)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
-	if errors.Is(runErr, errAppRunStopped) {
-		c.out.Println("App stopped.")
-		return nil
-	}
-	return runErr
 }
 
 func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, args []string, flags runFlags) error {
@@ -199,7 +263,7 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 		return fmt.Errorf("build native run spec: %w", specErr)
 	}
 
-	if err := c.buildDotnetApp(ctx, spec); err != nil {
+	if err := c.buildDotnetApp(ctx, spec, flags.jsonOutput); err != nil {
 		return err
 	}
 
@@ -211,23 +275,13 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 	c.out.Verbosef("Running: %s %v", command, commandArgs)
 
 	cmd := processutil.CommandContext(context.WithoutCancel(ctx), command, commandArgs...)
-	cmd.Dir = spec.Dir
-	if flags.detach {
-		logFile, logErr := c.openDetachedAppLog(target.AppID)
-		if logErr != nil {
-			return logErr
-		}
-		defer closeDetachedAppLog(c.out, logFile)
-		cmd.Stdout = logFile
-		cmd.Stderr = logFile
-		osutil.ApplyDetachedAttrs(cmd)
-	} else {
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+	logPath, cleanupLog, err := c.configureDotnetRunCommand(cmd, target, spec, flags)
+	if err != nil {
+		return err
 	}
-
-	cmd.Env = spec.Env
+	if cleanupLog != nil {
+		defer cleanupLog()
+	}
 
 	if startErr := cmd.Start(); startErr != nil {
 		return fmt.Errorf("start dotnet: %w", startErr)
@@ -243,10 +297,17 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 		return err
 	}
 	if flags.detach {
-		c.out.Printlnf("App running in background.")
-		c.out.Printlnf("Process: %d", cmd.Process.Pid)
-		c.out.Printlnf("URL: %s", baseURL)
-		return nil
+		return runDetachedOutput{
+			AppID:         target.AppID,
+			Mode:          runModeNative,
+			URL:           baseURL,
+			LogPath:       logPath,
+			ContainerID:   "",
+			ContainerName: "",
+			ProcessID:     cmd.Process.Pid,
+			HostPort:      0,
+			JSONOutput:    flags.jsonOutput,
+		}.Print(c.out)
 	}
 	defer c.unregisterAppBestEffort(ctx, target.AppID, baseURL)
 
@@ -268,6 +329,31 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 	}
 }
 
+func (c *RunCommand) configureDotnetRunCommand(
+	cmd *exec.Cmd,
+	target appsvc.RunTarget,
+	spec appsvc.DotnetRunSpec,
+	flags runFlags,
+) (string, func(), error) {
+	cmd.Dir = spec.Dir
+	cmd.Env = spec.Env
+	if !flags.detach {
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return "", nil, nil
+	}
+
+	logFile, logPath, err := c.openDetachedAppLog(target.AppID, flags.jsonOutput)
+	if err != nil {
+		return "", nil, err
+	}
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+	osutil.ApplyDetachedAttrs(cmd)
+	return logPath, func() { closeDetachedAppLog(c.out, logFile) }, nil
+}
+
 func (c *RunCommand) registerStartedDotnetApp(
 	ctx context.Context,
 	target appsvc.RunTarget,
@@ -280,9 +366,15 @@ func (c *RunCommand) registerStartedDotnetApp(
 	var baseURL string
 	var registerErr error
 	if flags.randomHostPort {
-		baseURL, registerErr = c.registerProcessAndWaitForApp(ctx, target.AppID, cmd.Process.Pid, monitor)
+		baseURL, registerErr = c.registerProcessAndWaitForApp(
+			ctx,
+			target.AppID,
+			cmd.Process.Pid,
+			monitor,
+			flags.jsonOutput,
+		)
 	} else {
-		baseURL, registerErr = c.registerPortAndWaitForApp(ctx, target.AppID, spec.Port, monitor)
+		baseURL, registerErr = c.registerPortAndWaitForApp(ctx, target.AppID, spec.Port, monitor, flags.jsonOutput)
 	}
 	if registerErr != nil {
 		stopDotnetProcess(cmd.Process, waitErr)
@@ -291,13 +383,25 @@ func (c *RunCommand) registerStartedDotnetApp(
 	return baseURL, nil
 }
 
-func (c *RunCommand) buildDotnetApp(ctx context.Context, spec appsvc.DotnetRunSpec) error {
+func (c *RunCommand) buildDotnetApp(ctx context.Context, spec appsvc.DotnetRunSpec, quiet bool) error {
 	c.out.Verbosef("Running: dotnet %v", spec.BuildArgs)
 	cmd := processutil.CommandContext(ctx, "dotnet", spec.BuildArgs...)
 	cmd.Dir = spec.Dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	var stderr bytes.Buffer
+	if quiet {
+		cmd.Stdout = io.Discard
+		cmd.Stderr = &stderr
+	} else {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 	if err := cmd.Run(); err != nil {
+		if quiet {
+			stderrText := strings.TrimSpace(stderr.String())
+			if stderrText != "" {
+				return fmt.Errorf("build dotnet app: %w: %s", err, stderrText)
+			}
+		}
 		return fmt.Errorf("build dotnet app: %w", err)
 	}
 	return nil
@@ -338,21 +442,23 @@ func lastNonEmptyLine(output []byte) string {
 	return ""
 }
 
-func (c *RunCommand) openDetachedAppLog(appID string) (*os.File, error) {
+func (c *RunCommand) openDetachedAppLog(appID string, jsonOutput bool) (*os.File, string, error) {
 	if c.cfg == nil {
-		return nil, errStudioctlConfigRequired
+		return nil, "", errStudioctlConfigRequired
 	}
 	if err := os.MkdirAll(c.cfg.LogDir, osutil.DirPermOwnerOnly); err != nil {
-		return nil, fmt.Errorf("create log directory: %w", err)
+		return nil, "", fmt.Errorf("create log directory: %w", err)
 	}
 	logPath := filepath.Join(c.cfg.LogDir, "app-"+sanitizeAppIDForPath(appID)+".log")
 	//nolint:gosec // G304: log path stays under the configured studioctl log directory; app ID is path-sanitized.
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, osutil.FilePermOwnerOnly)
 	if err != nil {
-		return nil, fmt.Errorf("open app log: %w", err)
+		return nil, "", fmt.Errorf("open app log: %w", err)
 	}
-	c.out.Printlnf("Log: %s", logPath)
-	return logFile, nil
+	if !jsonOutput {
+		c.out.Printlnf("Log: %s", logPath)
+	}
+	return logFile, logPath, nil
 }
 
 func sanitizeAppIDForPath(appID string) string {
@@ -433,6 +539,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	appID string,
 	port int,
 	monitor readinessMonitor,
+	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
@@ -447,7 +554,9 @@ func (c *RunCommand) registerPortAndWaitForApp(
 		return "", err
 	}
 
-	c.out.Printlnf("App ready: %s", baseURL)
+	if !jsonOutput {
+		c.out.Printlnf("App ready: %s", baseURL)
+	}
 	return baseURL, nil
 }
 
@@ -488,6 +597,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	appID string,
 	hostPort int,
 	monitor readinessMonitor,
+	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
@@ -502,7 +612,9 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 		return "", err
 	}
 
-	c.out.Printlnf("App ready: %s", baseURL)
+	if !jsonOutput {
+		c.out.Printlnf("App ready: %s", baseURL)
+	}
 	return baseURL, nil
 }
 
@@ -511,6 +623,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	appID string,
 	processID int,
 	monitor readinessMonitor,
+	jsonOutput bool,
 ) (string, error) {
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
@@ -525,7 +638,9 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 		return "", err
 	}
 
-	c.out.Printlnf("App ready: %s", baseURL)
+	if !jsonOutput {
+		c.out.Printlnf("App ready: %s", baseURL)
+	}
 	return baseURL, nil
 }
 
@@ -707,15 +822,17 @@ func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, arg
 			fmt.Errorf("inspect app container: %w", err),
 		)
 	}
-	c.printDockerRunInfo(info)
+	if !flags.jsonOutput {
+		c.printDockerRunInfo(info)
+	}
 
-	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID)
+	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID, flags.jsonOutput)
 	if err != nil {
 		return c.withAppContainerCleanup(ctx, client, containerID, err)
 	}
 
 	if flags.detach {
-		return nil
+		return c.detachedDockerOutput(target.AppID, containerID, info, baseURL, flags).Print(c.out)
 	}
 	defer c.unregisterAppBestEffort(ctx, target.AppID, baseURL)
 
@@ -752,6 +869,7 @@ func (c *RunCommand) waitForDockerAppReady(
 	containerID string,
 	info containerruntime.ContainerInfo,
 	appID string,
+	jsonOutput bool,
 ) (string, error) {
 	candidate, ok := appcontainers.CandidateFromContainer(info)
 	if !ok {
@@ -763,11 +881,36 @@ func (c *RunCommand) waitForDockerAppReady(
 		appID,
 		candidate.HostPort,
 		containerReadinessMonitor(client, containerID),
+		jsonOutput,
 	)
 	if err != nil {
 		return "", err
 	}
 	return baseURL, nil
+}
+
+func (c *RunCommand) detachedDockerOutput(
+	appID string,
+	containerID string,
+	info containerruntime.ContainerInfo,
+	baseURL string,
+	flags runFlags,
+) runDetachedOutput {
+	output := runDetachedOutput{
+		AppID:         appID,
+		Mode:          runModeContainer,
+		URL:           baseURL,
+		LogPath:       "",
+		ContainerID:   containerID,
+		ContainerName: info.Name,
+		ProcessID:     0,
+		HostPort:      0,
+		JSONOutput:    flags.jsonOutput,
+	}
+	if candidate, ok := appcontainers.CandidateFromContainer(info); ok {
+		output.HostPort = candidate.HostPort
+	}
+	return output
 }
 
 func (c *RunCommand) removeForegroundContainer(
