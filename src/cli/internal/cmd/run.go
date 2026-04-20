@@ -342,21 +342,21 @@ func (c *RunCommand) configureDotnetRunCommand(
 ) (string, func(), error) {
 	cmd.Dir = spec.Dir
 	cmd.Env = spec.Env
-	if !flags.detach {
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		return "", nil, nil
-	}
-
-	logFile, logPath, err := c.openDetachedAppLog(target.AppID, flags.jsonOutput)
+	logFile, logPath, err := c.openAppLog(target.AppID, flags.jsonOutput)
 	if err != nil {
 		return "", nil, err
 	}
+	if !flags.detach {
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
+		cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
+		return logPath, func() { closeAppLog(c.out, logFile) }, nil
+	}
+
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
 	osutil.ApplyDetachedAttrs(cmd)
-	return logPath, func() { closeDetachedAppLog(c.out, logFile) }, nil
+	return logPath, func() { closeAppLog(c.out, logFile) }, nil
 }
 
 func (c *RunCommand) registerStartedDotnetApp(
@@ -469,7 +469,7 @@ func lastNonEmptyLine(output []byte) string {
 	return ""
 }
 
-func (c *RunCommand) openDetachedAppLog(appID string, jsonOutput bool) (*os.File, string, error) {
+func (c *RunCommand) openAppLog(appID string, jsonOutput bool) (*os.File, string, error) {
 	if c.cfg == nil {
 		return nil, "", errStudioctlConfigRequired
 	}
@@ -538,7 +538,7 @@ func sanitizeAppIDForPath(appID string) string {
 	return replacer.Replace(strings.Trim(appID, "/"))
 }
 
-func closeDetachedAppLog(out *ui.Output, logFile *os.File) {
+func closeAppLog(out *ui.Output, logFile *os.File) {
 	if err := logFile.Close(); err != nil {
 		out.Verbosef("failed to close app log: %v", err)
 	}
