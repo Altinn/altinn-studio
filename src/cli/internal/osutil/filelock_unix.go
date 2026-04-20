@@ -71,16 +71,16 @@ func (l *FileLock) Close() error {
 		return errors.Join(fdErr, closeErr)
 	}
 
-	err := unix.Flock(fd, unix.LOCK_UN)
+	unlockErr := unix.Flock(fd, unix.LOCK_UN)
 	closeErr := l.file.Close()
 	l.file = nil
-	if err != nil {
-		return fmt.Errorf("unlock file: %w", err)
+	if unlockErr != nil {
+		unlockErr = fmt.Errorf("unlock file: %w", unlockErr)
 	}
 	if closeErr != nil {
-		return fmt.Errorf("close lock file: %w", closeErr)
+		closeErr = fmt.Errorf("close lock file: %w", closeErr)
 	}
-	return nil
+	return errors.Join(unlockErr, closeErr)
 }
 
 func fileDescriptor(file *os.File) (int, error) {
