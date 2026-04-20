@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-preview.6] - 2026-04-20
+
 ### Added
 
 - Add `--json` output for `app build`.
