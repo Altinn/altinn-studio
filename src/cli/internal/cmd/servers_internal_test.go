@@ -26,8 +26,8 @@ func TestServersStatusJSON_Running(t *testing.T) {
 	var out bytes.Buffer
 	command := &ServersCommand{
 		out: ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{
-			status: &appmanager.Status{
+		client: fakeServersClientWithStatus(
+			&appmanager.Status{
 				ProcessID:         42,
 				AppManagerVersion: "1.2.3",
 				DotnetVersion:     "10.0.0",
@@ -48,7 +48,8 @@ func TestServersStatusJSON_Running(t *testing.T) {
 					},
 				},
 			},
-		},
+			nil,
+		),
 	}
 
 	if err := command.Run(context.Background(), []string{"status", "--json"}); err != nil {
@@ -80,7 +81,7 @@ func TestServersUpJSON_AlreadyRunning(t *testing.T) {
 	var out bytes.Buffer
 	command := &ServersCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{},
+		client: fakeServersClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			return nil
 		},
@@ -106,7 +107,7 @@ func TestServersUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
 	var out bytes.Buffer
 	command := &ServersCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{},
+		client: fakeServersClientWithStatus(&appmanager.Status{ProcessID: 1}, nil),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			ensured = true
 			return nil
@@ -126,8 +127,39 @@ func TestServersUpJSON_Started(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &ServersCommand{
-		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{healthErr: appmanager.ErrNotRunning},
+		out: ui.NewOutput(&out, io.Discard, false),
+		client: fakeServersClientWithStatusSequence(
+			fakeStatusResult{err: appmanager.ErrNotRunning},
+			fakeStatusResult{status: &appmanager.Status{ProcessID: 2}},
+		),
+		ensureStarted: func(context.Context, *config.Config, string) error {
+			return nil
+		},
+	}
+
+	if err := command.Run(context.Background(), []string{"up", "--json"}); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+
+	var got serversUpOutput
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+	if !got.Running || !got.Started {
+		t.Fatalf("output = %+v, want running true and started true", got)
+	}
+}
+
+func TestServersUpJSON_Restarted(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	command := &ServersCommand{
+		out: ui.NewOutput(&out, io.Discard, false),
+		client: fakeServersClientWithStatusSequence(
+			fakeStatusResult{status: &appmanager.Status{ProcessID: 1}},
+			fakeStatusResult{status: &appmanager.Status{ProcessID: 2}},
+		),
 		ensureStarted: func(context.Context, *config.Config, string) error {
 			return nil
 		},
@@ -152,7 +184,7 @@ func TestServersStatusJSON_NotRunning(t *testing.T) {
 	var out bytes.Buffer
 	command := &ServersCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
-		client: fakeServersClient{statusErr: appmanager.ErrNotRunning},
+		client: fakeServersClientWithStatus(nil, appmanager.ErrNotRunning),
 	}
 
 	if err := command.Run(context.Background(), []string{"status", "--json"}); err != nil {
@@ -379,17 +411,51 @@ func TestServersLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 }
 
 type fakeServersClient struct {
-	status    *appmanager.Status
-	statusErr error
-	healthErr error
+	status func(context.Context) (*appmanager.Status, error)
+	health func(context.Context) error
 }
 
-func (f fakeServersClient) Health(context.Context) error {
-	return f.healthErr
+type fakeStatusResult struct {
+	status *appmanager.Status
+	err    error
 }
 
-func (f fakeServersClient) Status(context.Context) (*appmanager.Status, error) {
-	return f.status, f.statusErr
+func (f *fakeServersClient) Health(ctx context.Context) error {
+	if f.health == nil {
+		return nil
+	}
+	return f.health(ctx)
+}
+
+func (f *fakeServersClient) Status(ctx context.Context) (*appmanager.Status, error) {
+	if f.status == nil {
+		return new(appmanager.Status), nil
+	}
+	return f.status(ctx)
+}
+
+func fakeServersClientWithStatus(status *appmanager.Status, err error) *fakeServersClient {
+	return &fakeServersClient{
+		status: func(context.Context) (*appmanager.Status, error) {
+			return status, err
+		},
+		health: nil,
+	}
+}
+
+func fakeServersClientWithStatusSequence(results ...fakeStatusResult) *fakeServersClient {
+	index := 0
+	return &fakeServersClient{
+		status: func(context.Context) (*appmanager.Status, error) {
+			if index >= len(results) {
+				return new(appmanager.Status), nil
+			}
+			result := results[index]
+			index++
+			return result.status, result.err
+		},
+		health: nil,
+	}
 }
 
 func writeServerLog(t *testing.T, dir, name, content string) string {
