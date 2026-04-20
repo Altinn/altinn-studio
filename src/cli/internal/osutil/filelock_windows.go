@@ -27,12 +27,14 @@ func AcquireFileLock(ctx context.Context, path string) (*FileLock, error) {
 		return nil, fmt.Errorf("create lock directory: %w", err)
 	}
 
+	//nolint:gosec // G304: lock path is provided by resolved studioctl config, not user content.
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, FilePermDefault)
 	if err != nil {
 		return nil, fmt.Errorf("open lock file: %w", err)
 	}
 
-	lock := &FileLock{file: file}
+	lock := new(FileLock)
+	lock.file = file
 	handle := windows.Handle(file.Fd())
 	flags := uint32(windows.LOCKFILE_EXCLUSIVE_LOCK | windows.LOCKFILE_FAIL_IMMEDIATELY)
 	for {
@@ -41,16 +43,14 @@ func AcquireFileLock(ctx context.Context, path string) (*FileLock, error) {
 			return lock, nil
 		}
 		if !errors.Is(err, windows.ERROR_LOCK_VIOLATION) {
-			_ = file.Close()
-			return nil, fmt.Errorf("lock file: %w", err)
+			return nil, errors.Join(fmt.Errorf("lock file: %w", err), closeLockFile(file))
 		}
 
 		timer := time.NewTimer(fileLockPollInterval)
 		select {
 		case <-ctx.Done():
 			timer.Stop()
-			_ = file.Close()
-			return nil, fmt.Errorf("lock file: %w", ctx.Err())
+			return nil, errors.Join(fmt.Errorf("lock file: %w", ctx.Err()), closeLockFile(file))
 		case <-timer.C:
 		}
 	}

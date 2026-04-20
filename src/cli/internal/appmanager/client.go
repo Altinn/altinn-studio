@@ -110,6 +110,9 @@ var (
 	errUnexpectedShutdownStatus   = errors.New("unexpected app-manager shutdown response")
 	errAppManagerStartTimedOut    = errors.New("app-manager start timed out")
 	errInvalidPIDFile             = errors.New("pid file does not contain a positive pid")
+	errAppManagerSocketDir        = errors.New("app-manager socket path is a directory")
+	errAppManagerSocketInUse      = errors.New("app-manager socket is already in use")
+	errAppManagerForceStopTimeout = errors.New("app-manager did not stop after kill")
 	// ErrAppEndpointNotFound is returned when app-manager cannot find a matching app endpoint.
 	ErrAppEndpointNotFound = errors.New("matching app endpoint not found")
 )
@@ -608,14 +611,14 @@ func removeStaleAppManagerSocket(ctx context.Context, cfg *config.Config) error 
 		return fmt.Errorf("stat app-manager socket: %w", err)
 	}
 	if info.IsDir() {
-		return fmt.Errorf("app-manager socket path is a directory: %s", socketPath)
+		return fmt.Errorf("%w: %s", errAppManagerSocketDir, socketPath)
 	}
 
 	client := NewClient(cfg)
 	err = client.Health(ctx)
 	switch {
 	case err == nil:
-		return fmt.Errorf("app-manager socket is already in use: %s", socketPath)
+		return fmt.Errorf("%w: %s", errAppManagerSocketInUse, socketPath)
 	case !errors.Is(err, ErrNotRunning):
 		return fmt.Errorf("probe existing app-manager socket: %w", err)
 	}
@@ -683,7 +686,7 @@ func forceStopAppManager(ctx context.Context, client *Client, pid int) error {
 		time.Sleep(appManagerPollInterval)
 	}
 
-	return fmt.Errorf("app-manager pid %d did not stop after kill", pid)
+	return fmt.Errorf("%w: pid %d", errAppManagerForceStopTimeout, pid)
 }
 
 func appManagerStopped(ctx context.Context, client *Client, pid int) bool {
@@ -725,10 +728,7 @@ func waitForManagedShutdown(ctx context.Context, cfg *config.Config, client *Cli
 			if err := removeAppManagerState(cfg); err != nil {
 				return fmt.Errorf("remove stale app-manager pid file: %w", err)
 			}
-			if err := removeStaleAppManagerSocket(ctx, cfg); err != nil {
-				return err
-			}
-			return nil
+			return removeStaleAppManagerSocket(ctx, cfg)
 		}
 		time.Sleep(appManagerPollInterval)
 	}
@@ -758,10 +758,7 @@ func removePersistedAppManagerState(ctx context.Context, cfg *config.Config) err
 	if err := removeAppManagerState(cfg); err != nil {
 		return fmt.Errorf("remove stale app-manager pid file: %w", err)
 	}
-	if err := removeStaleAppManagerSocket(ctx, cfg); err != nil {
-		return err
-	}
-	return nil
+	return removeStaleAppManagerSocket(ctx, cfg)
 }
 
 func managedProcessStopped(pid int) (bool, error) {
@@ -1020,6 +1017,7 @@ func zeroRuntimeState() runtimeState {
 			WorkingDir:     "",
 			UnixSocketPath: "",
 			TunnelURL:      "",
+			LocaltestURL:   "",
 			StudioctlPath:  "",
 			InternalDev:    false,
 		},
