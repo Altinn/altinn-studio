@@ -23,6 +23,21 @@ public interface ISharedContentClient
     );
 
     /// <summary>
+    /// Gets a published code list for an organisation.
+    /// </summary>
+    /// <param name="orgName">Organisation name.</param>
+    /// <param name="codeListId">The code list id.</param>
+    /// <param name="version">The code list version.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The published code list.</returns>
+    Task<CodeList?> GetPublishedCodeListForOrg(
+        string orgName,
+        string codeListId,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets all the published library elements for the organisation.
     /// </summary>
     /// <param name="orgName">Organisation.</param>

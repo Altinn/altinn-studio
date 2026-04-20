@@ -20,7 +20,6 @@ public class CorrespondenceRequestTests
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             RequestedPublishTime = DateTimeOffset.UtcNow.AddDays(1),
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddDays(2),
             DueDateTime = DateTimeOffset.UtcNow.AddDays(2),
             IgnoreReservation = true,
             IsConfirmationNeeded = true,
@@ -101,7 +100,6 @@ public class CorrespondenceRequestTests
                 NotificationChannel = CorrespondenceNotificationChannel.EmailPreferred,
                 ReminderNotificationChannel = CorrespondenceNotificationChannel.SmsPreferred,
                 SendersReference = "senders-reference",
-                RequestedSendTime = DateTimeOffset.UtcNow,
                 CustomRecipient = new CorrespondenceNotificationRecipient
                 {
                     EmailAddress = "email-address-1",
@@ -124,7 +122,6 @@ public class CorrespondenceRequestTests
             ["Correspondence.Sender"] = correspondence.Sender.ToUrnFormattedString(),
             ["Correspondence.SendersReference"] = correspondence.SendersReference,
             ["Correspondence.RequestedPublishTime"] = correspondence.RequestedPublishTime,
-            ["Correspondence.AllowSystemDeleteAfter"] = correspondence.AllowSystemDeleteAfter,
             ["Correspondence.DueDateTime"] = correspondence.DueDateTime,
             ["Correspondence.MessageSender"] = correspondence.MessageSender,
             ["Correspondence.IgnoreReservation"] = correspondence.IgnoreReservation,
@@ -167,7 +164,6 @@ public class CorrespondenceRequestTests
             ["Correspondence.Notification.NotificationChannel"] = correspondence.Notification.NotificationChannel,
             ["Correspondence.Notification.ReminderNotificationChannel"] = correspondence.Notification.ReminderNotificationChannel,
             ["Correspondence.Notification.SendersReference"] = correspondence.Notification.SendersReference,
-            ["Correspondence.Notification.RequestedSendTime"] = correspondence.Notification.RequestedSendTime,
             ["Correspondence.Notification.CustomRecipient.EmailAddress"] = correspondence.Notification.CustomRecipient.EmailAddress,
             ["Correspondence.Notification.CustomRecipient.OrganizationNumber"] = correspondence.Notification.CustomRecipient.OrganizationNumber,
         };
@@ -189,7 +185,6 @@ public class CorrespondenceRequestTests
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             RequestedPublishTime = DateTimeOffset.UtcNow.AddDays(1),
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddDays(2),
             DueDateTime = DateTimeOffset.UtcNow.AddDays(2),
             // Setting IgnoreReservation to false, but IsReserved will override this
             IgnoreReservation = false,
@@ -271,7 +266,6 @@ public class CorrespondenceRequestTests
                 NotificationChannel = CorrespondenceNotificationChannel.EmailPreferred,
                 ReminderNotificationChannel = CorrespondenceNotificationChannel.SmsPreferred,
                 SendersReference = "senders-reference",
-                RequestedSendTime = DateTimeOffset.UtcNow,
                 CustomRecipient = new CorrespondenceNotificationRecipient
                 {
                     EmailAddress = "email-address-1",
@@ -296,7 +290,6 @@ public class CorrespondenceRequestTests
             ["Correspondence.Sender"] = correspondence.Sender.ToUrnFormattedString(),
             ["Correspondence.SendersReference"] = correspondence.SendersReference,
             ["Correspondence.RequestedPublishTime"] = correspondence.RequestedPublishTime,
-            ["Correspondence.AllowSystemDeleteAfter"] = correspondence.AllowSystemDeleteAfter,
             ["Correspondence.DueDateTime"] = correspondence.DueDateTime,
             ["Correspondence.MessageSender"] = correspondence.MessageSender,
             ["Correspondence.IsConfirmationNeeded"] = correspondence.IsConfirmationNeeded,
@@ -338,7 +331,6 @@ public class CorrespondenceRequestTests
             ["Correspondence.Notification.NotificationChannel"] = correspondence.Notification.NotificationChannel,
             ["Correspondence.Notification.ReminderNotificationChannel"] = correspondence.Notification.ReminderNotificationChannel,
             ["Correspondence.Notification.SendersReference"] = correspondence.Notification.SendersReference,
-            ["Correspondence.Notification.RequestedSendTime"] = correspondence.Notification.RequestedSendTime,
             ["Correspondence.Notification.CustomRecipient.EmailAddress"] = correspondence.Notification.CustomRecipient.EmailAddress,
             ["Correspondence.Notification.CustomRecipient.OrganizationNumber"] = correspondence.Notification.CustomRecipient.OrganizationNumber,
             ["Correspondence.IgnoreReservation"] = correspondence.Notification.CustomRecipient.IsReserved,
@@ -361,7 +353,6 @@ public class CorrespondenceRequestTests
             ResourceId = "resource-id",
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddDays(2),
             DueDateTime = DateTimeOffset.UtcNow.AddDays(2),
             Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
             Content = new CorrespondenceContent
@@ -444,7 +435,6 @@ public class CorrespondenceRequestTests
             ResourceId = "resource-id",
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddYears(1),
             Recipients =
             [
                 OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1)),
@@ -475,7 +465,6 @@ public class CorrespondenceRequestTests
             ResourceId = "resource-id",
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddYears(1),
             IsConfirmationNeeded = true,
             Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
             Content = new CorrespondenceContent
@@ -503,7 +492,6 @@ public class CorrespondenceRequestTests
             ResourceId = "resource-id",
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddYears(1),
             Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
             Content = new CorrespondenceContent
             {
@@ -520,15 +508,9 @@ public class CorrespondenceRequestTests
             var correspondence = baseCorrespondence with { DueDateTime = DateTimeOffset.Now.AddSeconds(-1) };
             correspondence.Serialise();
         };
-        var act2 = () =>
-        {
-            var correspondence = baseCorrespondence with { AllowSystemDeleteAfter = DateTimeOffset.Now.AddSeconds(-1) };
-            correspondence.Serialise();
-        };
 
         // Assert
         act1.Should().Throw<CorrespondenceArgumentException>().WithMessage("*not be*in the past");
-        act2.Should().Throw<CorrespondenceArgumentException>().WithMessage("*not be*in the past");
     }
 
     [Fact]
@@ -541,7 +523,6 @@ public class CorrespondenceRequestTests
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             RequestedPublishTime = DateTimeOffset.Now.AddDays(2),
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddYears(1),
             Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
             Content = new CorrespondenceContent
             {
@@ -558,43 +539,8 @@ public class CorrespondenceRequestTests
             var correspondence = baseCorrespondence with { DueDateTime = DateTimeOffset.Now.AddDays(1) };
             correspondence.Serialise();
         };
-        var act2 = () =>
-        {
-            var correspondence = baseCorrespondence with { AllowSystemDeleteAfter = DateTimeOffset.Now.AddDays(1) };
-            correspondence.Serialise();
-        };
-
         // Assert
         act1.Should().Throw<CorrespondenceArgumentException>().WithMessage("*not be prior to*");
-        act2.Should().Throw<CorrespondenceArgumentException>().WithMessage("*not be prior to*");
-    }
-
-    [Fact]
-    public void Serialise_ValidatesDeleteDateAfterDueDate()
-    {
-        // Arrange
-        var correspondence = new CorrespondenceRequest
-        {
-            ResourceId = "resource-id",
-            Sender = TestHelpers.GetOrganisationNumber(0),
-            SendersReference = "senders-reference",
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddDays(2),
-            DueDateTime = DateTimeOffset.UtcNow.AddDays(3),
-            Recipients = [OrganisationOrPersonIdentifier.Create(TestHelpers.GetOrganisationNumber(1))],
-            Content = new CorrespondenceContent
-            {
-                Title = "title",
-                Body = "body",
-                Summary = "summary",
-                Language = LanguageCode<Iso6391>.Parse("no"),
-            },
-        };
-
-        // Act
-        var act = () => correspondence.Serialise();
-
-        // Assert
-        act.Should().Throw<CorrespondenceArgumentException>().WithMessage("*not be prior to*");
     }
 
     private static async Task AssertContent(MultipartFormDataContent content, string dispositionName, object? value)

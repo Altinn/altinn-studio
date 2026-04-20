@@ -197,7 +197,7 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
     }
 
     [Fact]
-    public async Task ContainerConnectivity_Pdf()
+    public async Task AppConnectivity_Pdf()
     {
         await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
         var fixture = fixtureScope.Fixture;
@@ -210,7 +210,7 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
     }
 
     [Fact]
-    public async Task ContainerConnectivity_Localtest()
+    public async Task AppConnectivity_Localtest()
     {
         await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
         var fixture = fixtureScope.Fixture;

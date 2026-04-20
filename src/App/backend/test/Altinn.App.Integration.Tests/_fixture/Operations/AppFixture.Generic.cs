@@ -24,7 +24,7 @@ public partial class AppFixture : IAsyncDisposable
         public async Task<ApiResponse> Get(string endpoint, string token)
         {
             var client = _fixture.GetAppClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            using var request = new HttpRequestMessage(HttpMethod.Get, _fixture.ResolveAppEndpoint(endpoint));
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await client.SendAsync(request);
             return new ApiResponse(_fixture, response);
@@ -33,7 +33,7 @@ public partial class AppFixture : IAsyncDisposable
         public async Task<ApiResponse> Post(string endpoint, string token, HttpContent content)
         {
             var client = _fixture.GetAppClient();
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            using var request = new HttpRequestMessage(HttpMethod.Post, _fixture.ResolveAppEndpoint(endpoint));
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Content = content;
             var response = await client.SendAsync(request);

@@ -88,7 +88,7 @@ internal sealed class ScopedVerifier
         await Verify(snapshotLogs, snapshotName: "Logs", sourceFile: sourceFile);
 
         var appLogs = _fixture.GetAppLogs();
-        var localtestLogs = _fixture.GetLocaltestLogs();
+        var localtestLogs = await _fixture.GetLocaltestLogs();
         await Verify(appLogs, snapshotName: "AppLogs", sourceFile: sourceFile)
             .UseDirectory("_snapshots/_local")
             .AutoVerify(includeBuildServer: true);
