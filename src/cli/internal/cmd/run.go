@@ -279,32 +279,11 @@ func (c *RunCommand) runDotnet(
 		return err
 	}
 
-	targetPath, targetPathErr := c.resolveDotnetTargetPath(ctx, spec)
-	if targetPathErr != nil {
-		return targetPathErr
-	}
-	command, commandArgs := appsvc.DotnetAppRunCommand(targetPath, spec.AppArgs)
-	c.out.Verbosef("Running: %s %v", command, commandArgs)
-
-	cmd := processutil.CommandContext(context.WithoutCancel(ctx), command, commandArgs...)
-	logPath, cleanupLog, err := c.configureDotnetRunCommand(cmd, target, spec, flags)
+	cmd, waitErr, processName, logPath, cleanupLog, err := c.startDotnetRun(ctx, target, spec, flags)
 	if err != nil {
 		return err
 	}
 	defer cleanupLog()
-
-	if startErr := cmd.Start(); startErr != nil {
-		return fmt.Errorf("start dotnet: %w", startErr)
-	}
-
-	waitErr := waitForCommand(cmd)
-
-	processName := filepath.Base(targetPath)
-	metadataErr := c.writeProcessLogMetadata(target.AppID, cmd.Process.Pid, processName, logPath)
-	if metadataErr != nil {
-		stopDotnetProcess(cmd.Process, waitErr)
-		return metadataErr
-	}
 
 	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, topology, flags)
 	if err != nil {
@@ -341,6 +320,41 @@ func (c *RunCommand) runDotnet(
 		stopDotnetProcess(cmd.Process, waitErr)
 		return errAppRunStopped
 	}
+}
+
+func (c *RunCommand) startDotnetRun(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	spec appsvc.DotnetRunSpec,
+	flags runFlags,
+) (*exec.Cmd, chan error, string, string, func(), error) {
+	targetPath, err := c.resolveDotnetTargetPath(ctx, spec)
+	if err != nil {
+		return nil, nil, "", "", nil, err
+	}
+	command, commandArgs := appsvc.DotnetAppRunCommand(targetPath, spec.AppArgs)
+	c.out.Verbosef("Running: %s %v", command, commandArgs)
+
+	cmd := processutil.CommandContext(context.WithoutCancel(ctx), command, commandArgs...)
+	logPath, cleanupLog, err := c.configureDotnetRunCommand(cmd, target, spec, flags)
+	if err != nil {
+		return nil, nil, "", "", nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		cleanupLog()
+		return nil, nil, "", "", nil, fmt.Errorf("start dotnet: %w", err)
+	}
+
+	waitErr := waitForCommand(cmd)
+	processName := filepath.Base(targetPath)
+	if err := c.writeProcessLogMetadata(target.AppID, cmd.Process.Pid, processName, logPath); err != nil {
+		stopDotnetProcess(cmd.Process, waitErr)
+		cleanupLog()
+		return nil, nil, "", "", nil, err
+	}
+
+	return cmd, waitErr, processName, logPath, cleanupLog, nil
 }
 
 func (c *RunCommand) configureDotnetRunCommand(
@@ -911,31 +925,22 @@ func (c *RunCommand) runDocker(
 		return prepareErr
 	}
 
-	if removeErr := client.ContainerRemove(ctx, spec.Config.Name, true); removeErr != nil &&
-		!errors.Is(removeErr, containerruntime.ErrContainerNotFound) {
-		return fmt.Errorf("remove existing app container: %w", removeErr)
-	}
-
-	containerID, err := client.CreateContainer(ctx, spec.Config)
+	containerID, info, err := c.createDockerAppContainer(ctx, client, spec, flags.jsonOutput)
 	if err != nil {
-		return fmt.Errorf("create app container: %w", err)
-	}
-
-	info, err := client.ContainerInspect(ctx, containerID)
-	if err != nil {
-		return c.withAppContainerCleanup(
-			ctx,
-			client,
-			containerID,
-			fmt.Errorf("inspect app container: %w", err),
-		)
-	}
-	if !flags.jsonOutput {
-		c.printDockerRunInfo(info)
+		return err
 	}
 
 	runInfo := containerAppRunInfo(containerID, info)
-	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID, topology, runInfo, flags.jsonOutput)
+	baseURL, err := c.waitForDockerAppReady(
+		ctx,
+		client,
+		containerID,
+		info,
+		target.AppID,
+		topology,
+		runInfo,
+		flags.jsonOutput,
+	)
 	if err != nil {
 		return c.withAppContainerCleanup(ctx, client, containerID, err)
 	}
@@ -955,6 +960,38 @@ func (c *RunCommand) runDocker(
 		return errors.Join(runErr, removeErr)
 	}
 	return runErr
+}
+
+func (c *RunCommand) createDockerAppContainer(
+	ctx context.Context,
+	client containerruntime.ContainerClient,
+	spec appsvc.DockerRunSpec,
+	jsonOutput bool,
+) (string, containerruntime.ContainerInfo, error) {
+	if removeErr := client.ContainerRemove(ctx, spec.Config.Name, true); removeErr != nil &&
+		!errors.Is(removeErr, containerruntime.ErrContainerNotFound) {
+		return "", containerruntime.ContainerInfo{}, fmt.Errorf("remove existing app container: %w", removeErr)
+	}
+
+	containerID, err := client.CreateContainer(ctx, spec.Config)
+	if err != nil {
+		return "", containerruntime.ContainerInfo{}, fmt.Errorf("create app container: %w", err)
+	}
+
+	info, err := client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return "", containerruntime.ContainerInfo{}, c.withAppContainerCleanup(
+			ctx,
+			client,
+			containerID,
+			fmt.Errorf("inspect app container: %w", err),
+		)
+	}
+	if !jsonOutput {
+		c.printDockerRunInfo(info)
+	}
+
+	return containerID, info, nil
 }
 
 func (c *RunCommand) withAppContainerCleanup(
