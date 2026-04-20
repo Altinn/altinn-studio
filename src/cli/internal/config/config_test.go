@@ -152,6 +152,9 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 	if cfg.SocketDir != socketDir {
 		t.Errorf("SocketDir = %q, want %q", cfg.SocketDir, socketDir)
 	}
+	if cfg.AppManagerLockPath() != filepath.Join(socketDir, "app-manager.lock") {
+		t.Errorf("AppManagerLockPath() = %q, want lock in socket dir", cfg.AppManagerLockPath())
+	}
 }
 
 func TestNewDoctorFallback(t *testing.T) {

@@ -12,7 +12,7 @@ RUN dotnet restore ./src/Altinn.Studio.KubernetesWrapper.csproj
 
 # Copy everything else and build
 COPY src/. ./src/
-RUN dotnet publish ./src/Altinn.Studio.KubernetesWrapper.csproj -c Release -o /app/out --no-restore
+RUN dotnet publish ./src/Altinn.Studio.KubernetesWrapper.csproj -c Release -o /app/out --no-restore /p:CSharpier_Bypass=true
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:8c7671a6f0f984d0c102ee70d61e8010857de032b320561dea97cc5781aea5f8 AS final

@@ -1,10 +1,12 @@
 //go:build windows
 
-package appmanager
+package osutil
 
 import (
 	"errors"
 	"fmt"
+	"math"
+	"os"
 
 	"golang.org/x/sys/windows"
 )
@@ -13,15 +15,28 @@ const stillActiveExitCode = 259
 
 var errPIDExceedsWindowsLimit = errors.New("pid exceeds windows limit")
 
-func isProcessRunning(pid int) (bool, error) {
+func interruptProcess(_ *os.Process, pid int) error {
+	processID, err := windowsProcessID(pid)
+	if err != nil {
+		return err
+	}
+	if err := windows.GenerateConsoleCtrlEvent(windows.CTRL_BREAK_EVENT, processID); err != nil {
+		return fmt.Errorf("send ctrl-break: %w", err)
+	}
+	return nil
+}
+
+// ProcessRunning reports whether pid is still running.
+func ProcessRunning(pid int) (bool, error) {
 	if pid <= 0 {
 		return false, nil
 	}
-	if pid > int(^uint32(0)) {
-		return false, fmt.Errorf("%w: %d", errPIDExceedsWindowsLimit, pid)
+	processID, err := windowsProcessID(pid)
+	if err != nil {
+		return false, err
 	}
 
-	handle, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, uint32(pid))
+	handle, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, processID)
 	switch {
 	case err == nil:
 	case errors.Is(err, windows.ERROR_INVALID_PARAMETER):
@@ -48,4 +63,11 @@ func isProcessRunning(pid int) (bool, error) {
 	}
 
 	return exitCode == stillActiveExitCode, nil
+}
+
+func windowsProcessID(pid int) (uint32, error) {
+	if pid < 0 || uint64(pid) > math.MaxUint32 {
+		return 0, fmt.Errorf("%w: %d", errPIDExceedsWindowsLimit, pid)
+	}
+	return uint32(pid), nil
 }

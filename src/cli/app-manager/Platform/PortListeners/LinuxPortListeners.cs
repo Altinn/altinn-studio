@@ -19,6 +19,7 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
         if (listenerPorts.Count == 0)
         {
             _knownListeners.Clear();
+            _processNames.Clear();
             return [];
         }
 
@@ -44,7 +45,17 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
         foreach (var (inode, listener) in nextKnownListeners)
             _knownListeners[inode] = listener;
 
+        PruneProcessNames(nextKnownListeners.Values);
+
         return [.. listeners.Distinct()];
+    }
+
+    private void PruneProcessNames(IEnumerable<PortListener> listeners)
+    {
+        var activeProcessIds = listeners.Select(static listener => listener.ProcessId).ToHashSet();
+        foreach (var processId in _processNames.Keys.ToArray())
+            if (!activeProcessIds.Contains(processId))
+                _processNames.Remove(processId);
     }
 
     private async Task AddProcessListeners(
@@ -87,6 +98,7 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
             return;
 
         var processName = await ReadProcessName(procDir, processId, cancellationToken);
+        var commandLine = await ReadCommandLine(procDir, cancellationToken);
 
         foreach (var fdPath in EnumerateFdEntries(fdDir))
         {
@@ -111,7 +123,7 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
             if (!pendingInodes.Remove(inode, out var binding))
                 continue;
 
-            var listener = new PortListener(processId, binding.Port, binding.BindScope, processName);
+            var listener = new PortListener(processId, binding.Port, binding.BindScope, processName, commandLine);
             listeners.Add(listener);
             knownListeners[inode] = listener;
         }
@@ -159,6 +171,23 @@ internal sealed partial class LinuxPortListeners : IPortListenerSource
 
             _processNames[processId] = processName;
             return processName;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<string?> ReadCommandLine(string procDir, CancellationToken cancellationToken)
+    {
+        var cmdlinePath = Path.Join(procDir, "cmdline");
+        if (!File.Exists(cmdlinePath))
+            return null;
+
+        try
+        {
+            var commandLine = (await File.ReadAllTextAsync(cmdlinePath, cancellationToken)).Replace('\0', ' ').Trim();
+            return commandLine.Length == 0 ? null : commandLine;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

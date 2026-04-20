@@ -59,6 +59,7 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             using var response = await Send(request, appId, cancellationToken);
+            response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync(cancellationToken);
         }
 
@@ -143,8 +144,12 @@ namespace LocalTest.Services.LocalApp.Implementation
                     timeoutCancellationTokenSource.Token
                 );
             });
+            if (content is null)
+            {
+                throw new InvalidOperationException("application metadata response is missing");
+            }
 
-            return JsonSerializer.Deserialize<Application>(content!, JSON_OPTIONS);
+            return JsonSerializer.Deserialize<Application>(content, JSON_OPTIONS);
         }
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language, CancellationToken cancellationToken = default)

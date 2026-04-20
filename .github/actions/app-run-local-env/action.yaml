@@ -106,8 +106,6 @@ runs:
         STUDIOCTL_REGISTRY_CACHE_WRITE: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       with:
         script: |
-          const fs = require('fs/promises');
-          const nodePath = require('path');
           const workspace = process.env.GITHUB_WORKSPACE;
           const maxParallelStarts = 4;
 
@@ -122,19 +120,6 @@ runs:
             throw new Error('app-run-targets-json must be a JSON array.');
           }
 
-          async function assertDirectory(path) {
-            const resolved = nodePath.isAbsolute(path) ? path : nodePath.join(workspace, path);
-            let stat;
-            try {
-              stat = await fs.stat(resolved);
-            } catch (error) {
-              throw new Error(`App path does not exist: ${path}`);
-            }
-            if (!stat.isDirectory()) {
-              throw new Error(`App path is not a directory: ${path}`);
-            }
-          }
-
           function targetRunArgs(path, image) {
             const args = ['run', '--mode', 'container', '--detach', '--random-host-port', '--path', path];
             if (image) {
@@ -143,7 +128,7 @@ runs:
             return args;
           }
 
-          async function validateTarget(target) {
+          function validateTarget(target) {
             if (!target || typeof target !== 'object' || Array.isArray(target)) {
               throw new Error('Each app run target must be an object.');
             }
@@ -153,15 +138,10 @@ runs:
             if (target.image !== undefined && (typeof target.image !== 'string' || target.image === '')) {
               throw new Error('App run target image must be a non-empty string when set.');
             }
-            if (target.path.includes('*')) {
-              throw new Error(`App run target path must be concrete, got: ${target.path}`);
-            }
-
-            await assertDirectory(target.path);
             return target;
           }
 
-          const validTargets = await Promise.all(targets.map(validateTarget));
+          const validTargets = targets.map(validateTarget);
           if (validTargets.length === 0) {
             throw new Error('No app containers were started.');
           }

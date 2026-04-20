@@ -195,7 +195,9 @@ jobs:
         if: failure()
         with:
           name: app-frontend-logs
-          path: src/App/frontend/test/logs/*
+          path: |
+            src/App/frontend/test/logs/*
+            ${{ env.STUDIOCTL_HOME }}/logs/**
 
       - name: Stop localtest
         if: always()
@@ -275,6 +277,7 @@ jobs:
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/*
             src/App/frontend/test/videos/*
+            ${{ env.STUDIOCTL_HOME }}/logs/**
 
       - name: Stop localtest
         if: always()

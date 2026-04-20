@@ -18,7 +18,7 @@ internal static class Endpoints
         return studioctl;
     }
 
-    private static IResult GetStatus(AppRegistry registry, TunnelState tunnelState)
+    private static IResult GetStatus(AppRegistry registry, TunnelState tunnelState, IConfiguration configuration)
     {
         return Results.Ok(
             new StatusResponse(
@@ -28,6 +28,7 @@ internal static class Endpoints
                 Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown",
                 EnvironmentValues.IsTruthy(Environment.GetEnvironmentVariable("STUDIOCTL_INTERNAL_DEV")),
                 Environment.GetEnvironmentVariable("Studioctl__Path") ?? "",
+                configuration["Localtest:Url"] ?? "",
                 new TunnelStatusResponse(tunnelState.Enabled, tunnelState.IsConnected, tunnelState.Url),
                 [
                     .. registry
@@ -37,56 +38,55 @@ internal static class Endpoints
                             app.BaseUri.ToString(),
                             app.Source,
                             app.ProcessId,
-                            app.Description
+                            app.Description,
+                            app.ContainerId,
+                            app.Name,
+                            app.HostPort
                         )),
                 ]
             )
         );
     }
 
-    private static IResult RegisterApp(AppRegistry registry, RegisterAppRequest? request)
+    private static async Task<IResult> RegisterApp(
+        RegisterApp registerApp,
+        RegisterAppRequest? request,
+        CancellationToken cancellationToken
+    )
     {
         if (request is null)
             return Results.BadRequest(new CommandResponse("request body is required"));
 
-        if (string.IsNullOrWhiteSpace(request.AppId))
-            return Results.BadRequest(new CommandResponse("appId is required"));
+        var result = await registerApp.Handle(
+            new RegisterAppCommand(
+                request.AppId,
+                request.ProcessId,
+                TimeSpan.FromSeconds(request.TimeoutSeconds),
+                request.ContainerId,
+                request.HostPort
+            ),
+            cancellationToken
+        );
 
-        if (
-            string.IsNullOrWhiteSpace(request.BaseUrl)
-            || !Uri.TryCreate(request.BaseUrl, UriKind.Absolute, out var baseUri)
-            || (baseUri.Scheme != Uri.UriSchemeHttp && baseUri.Scheme != Uri.UriSchemeHttps)
-        )
+        return result.Kind switch
         {
-            return Results.BadRequest(new CommandResponse("baseUrl must be an absolute http or https URL"));
-        }
-
-        var description = string.IsNullOrWhiteSpace(request.Description)
-            ? $"studioctl app {request.AppId}"
-            : request.Description;
-        if (request.GracePeriodSeconds <= 0)
-            return Results.BadRequest(new CommandResponse("gracePeriodSeconds must be positive"));
-
-        registry.Register(request.AppId.Trim(), baseUri, description, TimeSpan.FromSeconds(request.GracePeriodSeconds));
-        return Results.Accepted(value: new CommandResponse("app registered"));
+            RegisterAppResultKind.Registered when result.BaseUri is { } baseUri => Results.Accepted(
+                value: new RegisterAppResponse(result.Message, baseUri.ToString())
+            ),
+            RegisterAppResultKind.InvalidRequest => Results.BadRequest(new CommandResponse(result.Message)),
+            RegisterAppResultKind.NotFound => Results.NotFound(new CommandResponse(result.Message)),
+            _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
+        };
     }
 
-    private static IResult UnregisterApp(AppRegistry registry, string? appId, string? baseUrl)
+    private static IResult UnregisterApp(UnregisterApp unregisterApp, string? appId)
     {
-        if (string.IsNullOrWhiteSpace(appId))
-            return Results.BadRequest(new CommandResponse("appId is required"));
-
-        if (
-            string.IsNullOrWhiteSpace(baseUrl)
-            || !Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri)
-            || (baseUri.Scheme != Uri.UriSchemeHttp && baseUri.Scheme != Uri.UriSchemeHttps)
-        )
+        var result = unregisterApp.Handle(appId);
+        return result.Kind switch
         {
-            return Results.BadRequest(new CommandResponse("baseUrl must be an absolute http or https URL"));
-        }
-
-        registry.Unregister(appId.Trim(), baseUri);
-        return Results.Accepted(value: new CommandResponse("app unregistered"));
+            UnregisterAppResultKind.Unregistered => Results.Accepted(value: new CommandResponse(result.Message)),
+            _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
+        };
     }
 
     private static async Task<IResult> Shutdown(IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
@@ -115,20 +115,32 @@ internal static class Endpoints
         string AppManagerVersion,
         bool InternalDev,
         string StudioctlPath,
+        string LocaltestUrl,
         TunnelStatusResponse Tunnel,
         IReadOnlyList<DiscoveredAppResponse> Apps
     );
 
     private sealed record TunnelStatusResponse(bool Enabled, bool Connected, string? Url);
 
-    private sealed record RegisterAppRequest(string AppId, string BaseUrl, string? Description, int GracePeriodSeconds);
+    private sealed record RegisterAppRequest(
+        string AppId,
+        int? ProcessId,
+        int TimeoutSeconds,
+        string? ContainerId,
+        int? HostPort
+    );
+
+    private sealed record RegisterAppResponse(string Message, string BaseUrl);
 
     private sealed record DiscoveredAppResponse(
         string AppId,
         string BaseUrl,
         string Source,
         int? ProcessId,
-        string Description
+        string Description,
+        string? ContainerId,
+        string? Name,
+        int? HostPort
     );
 
     private sealed record CommandResponse(string Message);
