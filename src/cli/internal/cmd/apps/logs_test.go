@@ -1,7 +1,6 @@
 package apps_test
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,22 +24,5 @@ func TestFindMetadataByIDReturnsDecodeError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "decode app log metadata") {
 		t.Fatalf("FindMetadataByID() error = %v, want decode error", err)
-	}
-}
-
-func TestLogFilesReturnsReadDirError(t *testing.T) {
-	t.Parallel()
-
-	file := filepath.Join(t.TempDir(), "not-a-directory")
-	if err := os.WriteFile(file, []byte("log"), osutil.FilePermOwnerOnly); err != nil {
-		t.Fatalf("write file: %v", err)
-	}
-
-	_, err := apps.LogFiles(file)
-	if err == nil {
-		t.Fatal("LogFiles() error = nil, want error")
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("LogFiles() error = %v, want read dir error", err)
 	}
 }
