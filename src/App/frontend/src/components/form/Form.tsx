@@ -60,7 +60,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
           nextParams.delete(SearchParams.Validate);
           return nextParams;
         },
-        { replace: true },
+        { replace: true, preventScrollReset: true },
       );
     }
   }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage, shouldNavigateToStart]);

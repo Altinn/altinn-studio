@@ -263,7 +263,7 @@ function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSear
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete(SearchParams.FocusComponentId);
     newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, { replace: true });
+    setSearchParams(newSearchParams, { replace: true, preventScrollReset: true });
   }
 }
 

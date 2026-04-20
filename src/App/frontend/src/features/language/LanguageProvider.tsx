@@ -27,7 +27,7 @@ export function useSetCurrentLanguage() {
 
     if (searchParams.has(SearchParams.Language)) {
       searchParams.delete(SearchParams.Language);
-      setSearchParams(searchParams);
+      setSearchParams(searchParams, { preventScrollReset: true });
     }
   };
 }

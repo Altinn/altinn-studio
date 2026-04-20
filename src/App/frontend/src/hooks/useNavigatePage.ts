@@ -41,7 +41,12 @@ const useOurNavigate = () => {
   const navigate = useNavigate();
 
   return useCallback(
-    (path: string, ourOptions?: NavigateToPageOptions, theirOptions?: NavigateOptions, effect?: NavigationEffect) => {
+    (
+      path: string,
+      ourOptions?: Pick<NavigateToPageOptions, 'resetReturnToView'>,
+      theirOptions?: NavigateOptions,
+      effect?: NavigationEffect,
+    ) => {
       const resetReturnToView = ourOptions?.resetReturnToView ?? true;
       if (resetReturnToView) {
         setReturnToView?.(undefined);
@@ -212,7 +217,7 @@ export function useNavigatePage() {
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
     if (isStateless && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
-      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, { replace: true });
+      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, undefined, { replace: true });
     }
   }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
@@ -223,6 +228,7 @@ export function useNavigatePage() {
 
   const navigateToPage = useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
+      const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
       const shouldExitSubform = options?.searchParams?.has(SearchParams.ExitSubform, 'true') ?? false;
       const replace = options?.replace ?? false;
       if (!page) {
@@ -244,7 +250,7 @@ export function useNavigatePage() {
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStateless) {
         const url = `/${page}${searchParams}`;
-        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+        return navigate(url, options, { replace, preventScrollReset });
       }
 
       const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
@@ -252,11 +258,11 @@ export function useNavigatePage() {
       // Subform
       if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
         const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`;
-        return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+        return navigate(url, options, { replace, preventScrollReset });
       }
 
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
-      navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
+      navigate(url, options, { replace, preventScrollReset });
     },
     [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
   );
