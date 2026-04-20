@@ -5,6 +5,7 @@ import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
+import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
@@ -16,7 +17,6 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 interface RepeatingGroupPaginationProps {
@@ -188,7 +188,7 @@ function PaginationComponent({
  */
 function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: string): number[] {
   const rows = RepGroupHooks.useAllRowsWithHidden(baseComponentId);
-  const deepValidations = NodesInternal.useVisibleValidationsDeep(
+  const deepValidations = FormStore.nodes.useVisibleValidationsDeep(
     baseComponentId,
     'visible',
     false,

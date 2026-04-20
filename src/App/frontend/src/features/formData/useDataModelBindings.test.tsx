@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
 import { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -21,7 +21,7 @@ describe('useDataModelBindings', () => {
   });
 
   function DummyComponent() {
-    const debounce = FD.useDebounceImmediately();
+    const debounce = FormStore.data.useDebounceImmediately();
     const { formData, setValue, setValues, isValid } = useDataModelBindings({
       stringy: { field: 'stringyField', dataType: defaultDataTypeMock },
       decimal: { field: 'decimalField', dataType: defaultDataTypeMock },

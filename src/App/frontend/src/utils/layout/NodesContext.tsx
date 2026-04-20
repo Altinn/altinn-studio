@@ -2,23 +2,16 @@ import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import type { PropsWithChildren, RefObject } from 'react';
 
 import deepEqual from 'fast-deep-equal';
-import { produce } from 'immer';
-import { createStore } from 'zustand';
+import { current } from 'immer';
 import type { UnionToIntersection } from 'utility-types';
-import type { StoreApi } from 'zustand';
 
-import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
+import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
-import {
-  LoadingBlockerWaitForValidation,
-  ProvideWaitForValidation,
-  Validation,
-} from 'src/features/validation/validationContext';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
@@ -27,10 +20,10 @@ import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';
 import { LayoutSetGenerator } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { GeneratorValidationProvider } from 'src/utils/layout/generator/validation/GenerationValidationContext';
+import { nodesProduce } from 'src/utils/layout/nodesProduce';
 import type { AttachmentsStorePluginConfig } from 'src/features/attachments/AttachmentsStorePlugin';
-import type { ValidationsProcessedLast } from 'src/features/validation';
+import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { ValidationStorePluginConfig } from 'src/features/validation/ValidationStorePlugin';
-import type { ObjectOrArray } from 'src/hooks/useShallowMemo';
 import type { CompTypes, ILayouts } from 'src/layout/layout';
 import type { Registry } from 'src/utils/layout/generator/GeneratorStages';
 import type { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
@@ -83,7 +76,7 @@ export interface SetNodePropRequest {
   value: unknown;
 }
 
-export type NodesContext = {
+export type NodesSliceState = {
   hasErrors: boolean;
   pagesData: PagesData;
   nodeData: { [key: string]: NodeData };
@@ -95,52 +88,38 @@ export type NodesContext = {
 
   addPage: (pageKey: string) => void;
 
-  reset: (layouts: ILayouts, validationsProcessedLast: ValidationsProcessedLast) => void;
-} & NodesProviderProps &
+  reset: (layouts: ILayouts) => void;
+} & NodesSliceProps &
   ExtraFunctions;
 
-/**
- * Using the inferred types in the immer produce() function here introduces a lot of typescript overhead, which slows
- * down development. Using this instead short-circuits the type-checking to make it fast again.
- */
-export function nodesProduce(fn: (draft: NodesContext) => void) {
-  return produce(fn) as unknown as Partial<NodesContext>;
-}
+const defaultState = {
+  hasErrors: false,
+  pagesData: {
+    type: 'pages' as const,
+    pages: {},
+  },
+  nodeData: {},
+};
 
-interface CreateStoreProps extends NodesProviderProps {
-  validationsProcessedLast: ValidationsProcessedLast;
-}
-
-export type NodesContextStore = StoreApi<NodesContext>;
-export function createNodesDataStore({ validationsProcessedLast, ...props }: CreateStoreProps) {
-  const defaultState = {
-    hasErrors: false,
-    pagesData: {
-      type: 'pages' as const,
-      pages: {},
-    },
-    nodeData: {},
-    validationsProcessedLast,
-  };
-
-  return createStore<NodesContext>((set) => ({
-    ...defaultState,
+export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): FormStoreState['nodes'] {
+  return {
+    ...structuredClone(defaultState),
     ...props,
 
     layouts: undefined,
 
     addNodes: (requests) =>
       set((state) => {
-        const nodeData = { ...state.nodeData };
+        const nodeData = { ...state.nodes.nodeData };
         for (const { nodeId, targetState } of requests) {
           nodeData[nodeId] = targetState;
         }
 
-        return { nodeData };
+        return { nodes: { ...state.nodes, nodeData } };
       }),
     removeNodes: (requests) =>
       set((state) => {
-        const nodeData = { ...state.nodeData };
+        const nodeData = { ...state.nodes.nodeData };
 
         let count = 0;
         for (const { nodeId, layouts } of requests) {
@@ -148,7 +127,7 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
             continue;
           }
 
-          if (layouts !== state.layouts) {
+          if (layouts !== current(state.nodes.layouts)) {
             // The layouts have changed since the request was added, so there's no need to remove the node (it was
             // automatically removed when resetting the NodesContext state upon the layout change)
             continue;
@@ -162,12 +141,12 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
           return {};
         }
 
-        return { nodeData };
+        return { nodes: { ...state.nodes, nodeData } };
       }),
     setNodeProps: (requests) =>
       set((state) => {
         let changes = false;
-        const nodeData = { ...state.nodeData };
+        const nodeData = { ...state.nodes.nodeData };
         for (const { nodeId, prop, value } of requests) {
           if (!nodeData[nodeId]) {
             continue;
@@ -183,7 +162,7 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
             nodeData[nodeId] = thisNode;
           }
         }
-        return changes ? { nodeData } : {};
+        return changes ? { nodes: { ...state.nodes, nodeData } } : {};
       }),
     addError: (error, id, type) =>
       set(
@@ -215,65 +194,55 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
         }),
       ),
 
-    reset: (layouts, validationsProcessedLast: ValidationsProcessedLast) =>
-      set(() => ({ ...structuredClone(defaultState), layouts, validationsProcessedLast })),
+    reset: (layouts) =>
+      set((state) => ({
+        nodes: {
+          ...state.nodes,
+          ...structuredClone(defaultState),
+          ...props,
+          layouts,
+        },
+      })),
 
     ...(Object.values(StorePlugins)
       .map((plugin) => plugin.extraFunctions(set))
       .reduce((acc, val) => ({ ...acc, ...val }), {}) as ExtraFunctions),
-  }));
+  };
 }
 
-const Store = createZustandContext<NodesContextStore, NodesContext>({
-  name: 'Nodes',
-  required: true,
-  initialCreateStore: createNodesDataStore,
-});
-
-export const NodesStore = Store; // Should be considered internal, do not use unless you know what you're doing
-export type NodesStoreFull = typeof Store;
-
-interface NodesProviderProps extends PropsWithChildren {
+export interface NodesSliceProps {
   readOnly: boolean;
   isEmbedded: boolean;
 }
 
-export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
+export const NodesProvider = ({ children }: PropsWithChildren) => {
   const registry = useRegistry();
-  const getProcessedLast = Validation.useGetProcessedLast();
 
   return (
-    <Store.Provider
-      {...props}
-      validationsProcessedLast={getProcessedLast()}
-    >
-      <ProvideGlobalContext registry={registry}>
-        <GeneratorValidationProvider>
-          <GeneratorData.Provider>
-            <LayoutSetGenerator />
-          </GeneratorData.Provider>
-        </GeneratorValidationProvider>
-        {window.Cypress && <UpdateAttachmentsForCypress />}
-        <ProvideWaitForValidation />
-        <ExpressionValidation />
-        <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>
-      </ProvideGlobalContext>
-    </Store.Provider>
+    <ProvideGlobalContext registry={registry}>
+      <GeneratorValidationProvider>
+        <GeneratorData.Provider>
+          <LayoutSetGenerator />
+        </GeneratorData.Provider>
+      </GeneratorValidationProvider>
+      {window.Cypress && <UpdateAttachmentsForCypress />}
+      <ExpressionValidation />
+      {children}
+    </ProvideGlobalContext>
   );
 };
 
 function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ registry: RefObject<Registry> }>) {
   const isInTaskTransition = useIsInTaskTransition();
   const latestLayouts = FormBootstrap.useLayouts();
-  const layouts = Store.useSelector((s) => s.layouts);
-  const reset = Store.useSelector((s) => s.reset);
-  const getProcessedLast = Validation.useGetProcessedLast();
+  const layouts = FormStore.raw.useSelector((state) => state.nodes.layouts);
+  const reset = FormStore.raw.useSelector((state) => state.nodes.reset);
 
   useEffect(() => {
     if (layouts !== latestLayouts) {
-      reset(latestLayouts, getProcessedLast());
+      reset(latestLayouts);
     }
-  }, [latestLayouts, layouts, reset, getProcessedLast]);
+  }, [latestLayouts, layouts, reset]);
 
   const addNode = useCallback(
     (req: AddNodeRequest) => {
@@ -335,9 +304,9 @@ function useIsInTaskTransition() {
 }
 
 function AutoCommit({ registry }: { registry: RefObject<Registry> }) {
-  const addNodes = Store.useStaticSelector((s) => s.addNodes);
-  const removeNodes = Store.useStaticSelector((s) => s.removeNodes);
-  const setNodeProps = Store.useStaticSelector((s) => s.setNodeProps);
+  const addNodes = FormStore.raw.useStaticSelector((state) => state.nodes.addNodes);
+  const removeNodes = FormStore.raw.useStaticSelector((state) => state.nodes.removeNodes);
+  const setNodeProps = FormStore.raw.useStaticSelector((state) => state.nodes.setNodeProps);
   const [renderCount, forceRender] = useState(0);
 
   const reg = registry.current;
@@ -372,26 +341,26 @@ function NodesLoader() {
 /**
  * A set of tools, selectors and functions to use internally in node generator components.
  */
-export const NodesInternal = {
+export const nodesHooks = {
   useIsReadOnly() {
-    return Store.useSelector((s) => s.readOnly);
+    return FormStore.raw.useSelector((state) => state.nodes.readOnly);
   },
   useIsEmbedded() {
-    return Store.useSelector((s) => s.isEmbedded);
+    return FormStore.raw.useSelector((state) => state.nodes.isEmbedded);
   },
   useFullErrorList() {
-    return Store.useMemoSelector((s) => {
+    return FormStore.raw.useMemoSelector((s) => {
       const errors: { [pageOrNode: string]: string[] } = {};
 
-      for (const pageKey in s.pagesData.pages) {
-        const page = s.pagesData.pages[pageKey];
+      for (const pageKey in s.nodes.pagesData.pages) {
+        const page = s.nodes.pagesData.pages[pageKey];
         if (page.errors) {
           errors[`page/${pageKey}`] = Object.keys(page.errors);
         }
       }
 
-      for (const nodeId in s.nodeData) {
-        const node = s.nodeData[nodeId];
+      for (const nodeId in s.nodes.nodeData) {
+        const node = s.nodes.nodeData[nodeId];
         if (node.errors) {
           errors[`node/${nodeId}`] = Object.keys(node.errors);
         }
@@ -419,11 +388,11 @@ export const NodesInternal = {
   },
 
   useNodeErrors(nodeId: string | undefined) {
-    return Store.useSelector((s) => {
+    return FormStore.raw.useSelector((s) => {
       if (!nodeId) {
         return undefined;
       }
-      return s.nodeData[nodeId]?.errors;
+      return s.nodes.nodeData[nodeId]?.errors;
     });
   },
   useNodeData<Id extends string | undefined, Type extends CompTypes, Out>(
@@ -431,12 +400,12 @@ export const NodesInternal = {
     type: Type | undefined,
     selector: (nodeData: NodeData<Type>) => Out,
   ) {
-    return Store.useMemoSelector((s) => {
+    return FormStore.raw.useMemoSelector((s) => {
       if (!nodeId) {
         return undefined;
       }
 
-      const data = s.nodeData[nodeId];
+      const data = s.nodes.nodeData[nodeId];
       if (data && type && data.nodeType !== type) {
         throw new Error(`Expected id ${nodeId} to be of type ${type}, but it is of type ${data.nodeType}`);
       }
@@ -445,7 +414,7 @@ export const NodesInternal = {
     }) as Id extends undefined ? Out | undefined : Out;
   },
   useIsAdded: (id: string | undefined, type: 'node' | 'page' | undefined) =>
-    Store.useSelector((s) => {
+    FormStore.raw.useSelector((s) => {
       if (!id) {
         return false;
       }
@@ -453,24 +422,16 @@ export const NodesInternal = {
         throw new Error('useIsAdded() requires an id and a type. When id is given, type has to be given too.');
       }
       if (type === 'page') {
-        return s.pagesData.pages[id] !== undefined;
+        return s.nodes.pagesData.pages[id] !== undefined;
       }
-      return s.nodeData[id] !== undefined;
+      return s.nodes.nodeData[id] !== undefined;
     }),
-  useHasErrors: () => Store.useSelector((s) => s.hasErrors),
+  useHasErrors: () => FormStore.raw.useSelector((state) => state.nodes.hasErrors),
 
-  // Raw selectors, used when there are no other hooks that match your needs
-  useSelector: <T,>(selector: (state: NodesContext) => T) => Store.useSelector(selector),
-  useShallowSelector: <T extends ObjectOrArray>(selector: (state: NodesContext) => T) =>
-    Store.useShallowSelector(selector),
-  useMemoSelector: <T,>(selector: (state: NodesContext) => T) => Store.useMemoSelector(selector),
-  useLaxMemoSelector: <T,>(selector: (state: NodesContext) => T) => Store.useLaxMemoSelector(selector),
-
-  useStore: () => Store.useStore(),
-  useAddPage: () => Store.useStaticSelector((s) => s.addPage),
-  useAddError: () => Store.useStaticSelector((s) => s.addError),
+  useAddPage: () => FormStore.raw.useStaticSelector((state) => state.nodes.addPage),
+  useAddError: () => FormStore.raw.useStaticSelector((state) => state.nodes.addError),
 
   ...(Object.values(StorePlugins)
-    .map((plugin) => plugin.extraHooks(Store))
+    .map((plugin) => plugin.extraHooks())
     .reduce((acc, val) => ({ ...acc, ...val }), {}) as ExtraHooks),
 };

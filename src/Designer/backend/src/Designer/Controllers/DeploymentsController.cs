@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,7 +58,7 @@ public class DeploymentsController : ControllerBase
     public async Task<DeploymentsResponse> Get(
         string org,
         string app,
-        [FromQuery] DocumentQueryModel query,
+        [FromQuery] DocumentQueryModel? query,
         CancellationToken cancellationToken
     )
     {

@@ -14,7 +14,6 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1//retry-target,
       operationId: /retry-target,
       processingOrder: 0,
       updatedAt: {Scrubbed},

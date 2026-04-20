@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +49,7 @@ public class ReleasesController : ControllerBase
 
         List<ReleaseEntity> laggingReleases = releases
             .Results.Where(d =>
-                d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(2) < DateTime.UtcNow
+                d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started!.Value.AddMinutes(2) < DateTime.UtcNow
             )
             .ToList();
 

@@ -13,6 +13,7 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
+      - '.github/actions/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
   workflow_dispatch:
 
@@ -31,25 +32,12 @@ jobs:
       - name: Build frontend
         uses: ./.github/actions/app-build-frontend
 
-  build-localtest:
-    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
-    name: Build Localtest
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - name: Build localtest
-        uses: ./.github/actions/app-build-localtest
-        with:
-          docker-profile: 'test-apps'
-
   k6-browser:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: K6 Browser
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    needs: [build-frontend, build-localtest]
+    needs: [build-frontend]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -58,7 +46,8 @@ jobs:
         with:
           run-frontend: true
           run-localtest: true
-          docker-profile: 'test-apps'
+          app-run-targets-json: |
+            [{ "path": "src/test/apps/frontend-test" }]
 
       - name: Create screenshots directory
         run: sudo mkdir -p k6-browser-screenshots && sudo chmod 777 k6-browser-screenshots
@@ -84,3 +73,7 @@ jobs:
           name: k6-browser-screenshots
           path: k6-browser-screenshots
           retention-days: 30
+
+      - name: Stop localtest
+        if: always()
+        uses: ./.github/actions/app-stop-local-env

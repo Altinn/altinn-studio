@@ -41,6 +41,7 @@ export function AppVisibilityAndDelegationCard({
   const descriptionSectionRef = useRef<HTMLDivElement | null>(null);
 
   const cardTitle = t('app_settings.about_tab_visibility_and_delegation_title');
+  const cardDescription = t('app_settings.about_tab_visibility_and_delegation_description');
   const visibleLabel = t('app_settings.about_tab_visibility_and_delegation_visible_label');
   const delegableLabel = t('app_settings.about_tab_visibility_and_delegation_delegable_label');
   const descriptionLabel = t('app_settings.about_tab_visibility_and_delegation_description_label');
@@ -77,21 +78,29 @@ export function AppVisibilityAndDelegationCard({
   });
 
   return (
-    <StudioCard>
+    <StudioCard id='access'>
       <StudioParagraph className={classes.title}>{cardTitle}</StudioParagraph>
+      <StudioParagraph data-size='md' className={classes.headerDescription}>
+        {cardDescription}
+      </StudioParagraph>
 
       <div className={classes.switchRow}>
-        <StudioParagraph>{visibleLabel}</StudioParagraph>
-        <StudioSwitch checked={visible} onChange={onChangeVisible} aria-label={visibleLabel} />
-      </div>
-
-      <div className={cn(classes.switchRow, { [classes.switchRowDisabled]: visible })}>
         <StudioParagraph className={classes.switchLabel}>{delegableLabel}</StudioParagraph>
         <StudioSwitch
           checked={delegable}
           onChange={onChangeDelegable}
           aria-label={delegableLabel}
-          disabled={visible}
+          id='access-delegable'
+        />
+      </div>
+
+      <div className={cn(classes.switchRow, { [classes.switchRowDisabled]: !delegable })}>
+        <StudioParagraph className={classes.switchLabel}>{visibleLabel}</StudioParagraph>
+        <StudioSwitch
+          checked={visible}
+          onChange={onChangeVisible}
+          aria-label={visibleLabel}
+          disabled={!delegable}
         />
       </div>
 

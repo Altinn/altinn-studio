@@ -4,6 +4,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
@@ -110,6 +111,7 @@ describe('AppNavigation', () => {
                 severity: BackendValidationSeverity.Error,
                 source: 'SomeCustomValidator',
                 field: `field-${page}`,
+                dataElementId: defaultMockDataElementId,
               })) ?? [];
             obj.dataModels[defaultDataTypeMock].initialData = Object.fromEntries(
               rawOrder.map((page) => [`field-${page}`, 'some value']),

@@ -82,9 +82,9 @@
             ]
           },
           "color": {
-            "mode": "thresholds"
-          },
-          "noValue": "No data"
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
         },
         "overrides": []
       },
@@ -117,8 +117,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "engine_health_status",
-          "legendFormat": "Health",
+          "expr": "engine_health_status * probe_success{instance=~\".*live.*\"} or on() (1 - probe_success{instance=~\".*live.*\"}) * 2",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -2511,8 +2511,8 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
+        "h": 9,
+        "w": 6,
         "x": 0,
         "y": 36
       },
@@ -2625,9 +2625,9 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
+        "h": 9,
+        "w": 6,
+        "x": 6,
         "y": 36
       },
       "id": 42,
@@ -2764,9 +2764,9 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
+        "h": 9,
+        "w": 6,
+        "x": 12,
         "y": 36
       },
       "id": 43,
@@ -2819,12 +2819,173 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "ops",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Submitted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Flushed to DB"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Deduplicated"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 36
+      },
+      "id": 65,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_update_buffer_deduplicated_total[5m])) + sum(rate(engine_update_buffer_flushed_total[5m]))",
+          "legendFormat": "Submitted",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_update_buffer_flushed_total[5m]))",
+          "legendFormat": "Flushed to DB",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_update_buffer_deduplicated_total[5m]))",
+          "legendFormat": "Deduplicated",
+          "refId": "C"
+        }
+      ],
+      "title": "Update Buffer Throughput",
+      "description": "Update buffer throughput: total submitted (deduped + flushed), items flushed to DB, and items eliminated by deduplication (5m avg)",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 46
       },
       "id": 50,
       "title": "Steps & Errors",
@@ -2941,7 +3102,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 45
+        "y": 47
       },
       "id": 51,
       "options": {
@@ -3082,7 +3243,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 45
+        "y": 47
       },
       "id": 52,
       "options": {
@@ -3206,7 +3367,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 45
+        "y": 47
       },
       "id": 53,
       "options": {
@@ -3254,7 +3415,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 55
       },
       "id": 60,
       "panels": [],
@@ -3341,15 +3502,16 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 54
+        "y": 56
       },
       "id": 61,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "mean",
+            "max"
           ],
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
@@ -3423,15 +3585,16 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 54
+        "y": 56
       },
       "id": 62,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "mean",
+            "max"
           ],
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
@@ -3590,15 +3753,16 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 54
+        "y": 56
       },
       "id": 63,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "mean",
+            "max"
           ],
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },

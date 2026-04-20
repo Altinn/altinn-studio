@@ -11,7 +11,12 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddTelemetry(bool emitQueryParameters = false)
+        public IServiceCollection AddTelemetry(
+            bool emitQueryParameters = false,
+            bool enableDatabaseInstrumentation = false,
+            bool enableDatabaseMetrics = true,
+            double traceSamplingRate = 1.0
+        )
         {
             services
                 .AddOpenTelemetry()
@@ -24,6 +29,15 @@ public static class ServiceCollectionExtensions
                 )
                 .WithTracing(builder =>
                 {
+                    if (traceSamplingRate < 1.0)
+                    {
+                        builder.SetSampler(
+                            new ParentBasedSampler(
+                                new TraceIdRatioBasedSampler(Math.Clamp(traceSamplingRate, 0.0, 1.0))
+                            )
+                        );
+                    }
+
                     builder
                         .AddSource(Metrics.ServiceName)
                         .AddHttpClientInstrumentation(opts =>
@@ -39,8 +53,12 @@ public static class ServiceCollectionExtensions
                                 string[] excludedPaths = ["/health", "/dashboard"];
                                 return !excludedPaths.Any(p => path.Contains(p, StringComparison.OrdinalIgnoreCase));
                             };
-                        })
-                        .AddEntityFrameworkCoreInstrumentation(opts =>
+                        });
+
+                    if (enableDatabaseInstrumentation)
+                    {
+                        builder.AddSource("Npgsql");
+                        builder.AddEntityFrameworkCoreInstrumentation(opts =>
                         {
                             opts.EnrichWithIDbCommand = (activity, command) =>
                             {
@@ -71,13 +89,16 @@ public static class ServiceCollectionExtensions
                                     );
                                 }
                             };
-                        })
-                        .AddOtlpExporter(opts =>
-                        {
-                            opts.BatchExportProcessorOptions.MaxQueueSize = 8192;
-                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 1024;
-                            opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
                         });
+                    }
+
+                    builder.AddOtlpExporter(opts =>
+                    {
+                        opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                        opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                        opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                        opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
+                    });
                 })
                 .WithMetrics(builder =>
                 {
@@ -104,10 +125,19 @@ public static class ServiceCollectionExtensions
                     ];
                     var durationView = new ExplicitBucketHistogramConfiguration { Boundaries = durationBuckets };
 
+                    builder.AddMeter(Metrics.ServiceName);
+
+                    if (enableDatabaseInstrumentation)
+                    {
+                        builder.AddMeter("Microsoft.EntityFrameworkCore");
+                    }
+
+                    if (enableDatabaseMetrics)
+                    {
+                        builder.AddMeter("Npgsql");
+                    }
+
                     builder
-                        .AddMeter(Metrics.ServiceName)
-                        .AddMeter("Microsoft.EntityFrameworkCore")
-                        .AddMeter("Npgsql")
                         .AddView("engine.workflows.time.queue", durationView)
                         .AddView("engine.workflows.time.service", durationView)
                         .AddView("engine.workflows.time.total", durationView)

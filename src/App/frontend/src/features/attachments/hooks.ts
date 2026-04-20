@@ -1,22 +1,22 @@
+import { FormStore } from 'src/features/form/FormContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
-export const useAttachmentsUploader = () => NodesInternal.useAttachmentsUpload();
-export const useAttachmentsUpdater = () => NodesInternal.useAttachmentsUpdate();
-export const useAttachmentsRemover = () => NodesInternal.useAttachmentsRemove();
-export const useAttachmentsAwaiter = () => NodesInternal.useWaitUntilUploaded();
-export const useAddRejectedAttachments = () => NodesInternal.useAddRejectedAttachments();
-export const useDeleteFailedAttachment = () => NodesInternal.useDeleteFailedAttachment();
+export const useAttachmentsUploader = () => FormStore.nodes.useAttachmentsUpload();
+export const useAttachmentsUpdater = () => FormStore.nodes.useAttachmentsUpdate();
+export const useAttachmentsRemover = () => FormStore.nodes.useAttachmentsRemove();
+export const useAttachmentsAwaiter = () => FormStore.nodes.useWaitUntilUploaded();
+export const useAddRejectedAttachments = () => FormStore.nodes.useAddRejectedAttachments();
+export const useDeleteFailedAttachment = () => FormStore.nodes.useDeleteFailedAttachment();
 
 export const useAttachmentsFor = (baseComponentId: string) => {
   const indexedId = useIndexedId(baseComponentId);
-  return NodesInternal.useAttachments(indexedId);
+  return FormStore.nodes.useAttachments(indexedId);
 };
 export const useFailedAttachmentsFor = (baseComponentId: string) => {
   const indexedId = useIndexedId(baseComponentId);
-  return NodesInternal.useFailedAttachments(indexedId);
+  return FormStore.nodes.useFailedAttachments(indexedId);
 };
 
-export const useHasPendingAttachments = () => NodesInternal.useHasPendingAttachments();
-export const useAttachmentState = () => NodesInternal.useAttachmentState();
-export const useAllAttachments = () => NodesInternal.useAllAttachments();
+export const useHasPendingAttachments = () => FormStore.nodes.useHasPendingAttachments();
+export const useAttachmentState = () => FormStore.nodes.useAttachmentState();
+export const useAllAttachments = () => FormStore.nodes.useAllAttachments();

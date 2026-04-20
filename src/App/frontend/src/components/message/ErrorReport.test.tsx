@@ -82,7 +82,8 @@ describe('ErrorReport', () => {
               customTextKey: 'some unmapped error',
               source: 'taskValidator',
               severity: BackendValidationSeverity.Error,
-            } as BackendValidationIssue,
+              dataElementId: defaultMockDataElementId,
+            } satisfies BackendValidationIssue,
           ],
         },
       };

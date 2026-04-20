@@ -9,12 +9,12 @@ import type { JSONSchema7 } from 'json-schema';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { FormStore } from 'src/features/form/FormContext';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
 jest.mock('src/features/applicationMetadata');
@@ -42,7 +42,7 @@ const ignoreLogAndErrors = [
 ];
 
 function TestApp() {
-  const errors = NodesInternal.useFullErrorList();
+  const errors = FormStore.nodes.useFullErrorList();
   const filteredErrors: Record<string, string[]> = {};
 
   for (const key in errors) {
@@ -59,8 +59,8 @@ function TestApp() {
 }
 
 function RenderAllComponents() {
-  const state = NodesInternal.useStore().getState();
-  const all = Object.values(state.nodeData)
+  const state = FormStore.raw.useStore().getState();
+  const all = Object.values(state.nodes.nodeData)
     .filter((nodeData) => nodeData.isValid && nodeData.parentId === undefined)
     .map((nodeData) => nodeData.id);
 

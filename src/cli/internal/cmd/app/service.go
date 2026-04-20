@@ -32,15 +32,24 @@ type UpdateResult struct {
 
 // ResolveUpdateTarget resolves the app path for the update command.
 func (s *Service) ResolveUpdateTarget(ctx context.Context, appPath string) (UpdateResult, error) {
-	detection, err := repocontext.DetectFromCwd(ctx, appPath)
+	detection, err := s.ResolveTarget(ctx, appPath)
 	if err != nil {
-		return UpdateResult{}, fmt.Errorf("detect app: %w", err)
-	}
-	if !detection.InAppRepo {
-		return UpdateResult{}, repocontext.ErrAppNotFound
+		return UpdateResult{}, err
 	}
 
 	return UpdateResult{AppPath: detection.AppRoot}, nil
+}
+
+// ResolveTarget detects a target app directory.
+func (s *Service) ResolveTarget(ctx context.Context, appPath string) (repocontext.Detection, error) {
+	detection, err := repocontext.DetectFromCwd(ctx, appPath)
+	if err != nil {
+		return repocontext.Detection{}, fmt.Errorf("detect app: %w", err)
+	}
+	if !detection.InAppRepo {
+		return repocontext.Detection{}, repocontext.ErrAppNotFound
+	}
+	return detection, nil
 }
 
 // CloneRequest contains clone inputs.

@@ -2,12 +2,8 @@ import classes from './PageLayout.module.css';
 import { Outlet } from 'react-router-dom';
 import { Menu } from '../components/Menu/Menu';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import {
-  StudioCenter,
-  StudioHeading,
-  StudioPageError,
-  StudioPageSpinner,
-} from '@studio/components';
+import { StudioCenter, StudioHeading, StudioPageSpinner } from '@studio/components';
+import { StudioPageError } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 
 export const PageLayout = () => {

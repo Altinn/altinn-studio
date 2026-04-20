@@ -6,8 +6,8 @@ import { createStore } from 'zustand';
 
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
+import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
@@ -502,8 +502,8 @@ export const RepGroupContext = {
 
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const autoSaving = usePageSettings().autoSaveBehavior !== 'onChangePage';
-    const waitUntilSaved = FD.useWaitForSave();
-    const appendToList = FD.useAppendToList();
+    const waitUntilSaved = FormStore.data.useWaitForSave();
+    const appendToList = FormStore.data.useAppendToList();
     const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
     const getState = () => produceStateFromRows(getRows() ?? []);
 
@@ -553,7 +553,7 @@ export const RepGroupContext = {
     const rawEndDeletingRow = ZStore.useStaticSelector((state) => state.endDeletingRow);
 
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
-    const removeFromList = FD.useRemoveFromListCallback();
+    const removeFromList = FormStore.data.useRemoveFromListCallback();
     const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
     const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
     const getState = () => produceStateFromRows(getRows() ?? []);

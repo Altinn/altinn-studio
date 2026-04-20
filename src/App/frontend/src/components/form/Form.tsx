@@ -12,6 +12,7 @@ import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
+import { FormStore } from 'src/features/form/FormContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
@@ -26,7 +27,6 @@ import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 interface FormState {
@@ -47,23 +47,28 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
+  const { isValidPageId } = useNavigatePage();
+  const shouldNavigateToStart = !currentPageId || !isValidPageId(currentPageId);
 
   useEffect(() => {
-    if (shouldValidateFormPage) {
+    if (shouldValidateFormPage && !shouldNavigateToStart) {
       onFormSubmitValidation();
-      setSearchParams((params) => {
-        params.delete(SearchParams.Validate);
-        return searchParams;
-      });
+      setSearchParams(
+        (params) => {
+          const nextParams = new URLSearchParams(params);
+          nextParams.delete(SearchParams.Validate);
+          return nextParams;
+        },
+        { replace: true },
+      );
     }
-  }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage]);
+  }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage, shouldNavigateToStart]);
 
-  const { isValidPageId } = useNavigatePage();
   const appName = useAppName();
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
-  const requiredFieldsMissing = NodesInternal.usePageHasVisibleRequiredValidations(currentPageId);
+  const requiredFieldsMissing = FormStore.nodes.usePageHasVisibleRequiredValidations(currentPageId);
   const allAttachments = useAllAttachments();
   const textResources = useTextResources();
 
@@ -76,7 +81,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useRedirectToStoredPage();
   useSetExpandedWidth();
 
-  if (!currentPageId || !isValidPageId(currentPageId)) {
+  if (shouldNavigateToStart) {
     return <NavigateToStartUrl forceCurrentTask={false} />;
   }
 

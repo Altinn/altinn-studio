@@ -1,8 +1,5 @@
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Xml;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
@@ -10,7 +7,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using LocalTest.Models;
-using LocalTest.Services.AppRegistry;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.Profile.Interface;
@@ -37,7 +33,6 @@ namespace LocalTest.Controllers
 
         private readonly ILocalApp _localApp;
         private readonly TestDataService _testDataService;
-        private readonly AppRegistryService _appRegistryService;
         private readonly ILogger<HomeController> _logger;
 
         public HomeController(
@@ -49,8 +44,7 @@ namespace LocalTest.Controllers
             IParties partiesService,
             ILocalApp localApp,
             TestDataService testDataService,
-            ILogger<HomeController> logger,
-            AppRegistryService appRegistryService
+            ILogger<HomeController> logger
         )
         {
             _generalSettings = generalSettings.Value;
@@ -61,7 +55,6 @@ namespace LocalTest.Controllers
             _partiesService = partiesService;
             _localApp = localApp;
             _testDataService = testDataService;
-            _appRegistryService = appRegistryService;
             _logger = logger;
         }
 
@@ -84,7 +77,6 @@ namespace LocalTest.Controllers
                 LocalFrontendUrl = HttpContext.Request.Cookies[
                     FrontendVersionController.FRONTEND_URL_COOKIE_NAME
                 ],
-                HasRegisteredApps = _appRegistryService.GetAll().Any(),
             };
 
             try
@@ -129,82 +121,6 @@ namespace LocalTest.Controllers
             return Ok("4");
         }
 
-        /// <summary>
-        /// Register an app running on a dynamic port
-        /// </summary>
-        [AllowAnonymous]
-        [HttpPost("/Home/Localtest/Register")]
-        public IActionResult RegisterApp([FromBody] AppRegistrationRequest request)
-        {
-            if (string.IsNullOrWhiteSpace(request.AppId))
-            {
-                return BadRequest("AppId is required");
-            }
-
-            if (request.Port <= 0 || request.Port > 65535)
-            {
-                return BadRequest("Invalid port number");
-            }
-
-            var sourceIp = HttpContext.Connection.RemoteIpAddress;
-            if (sourceIp == null)
-            {
-                return BadRequest("Could not determine source IP address");
-            }
-
-            var hostname = sourceIp.ToString();
-            var parsedSourceIp = sourceIp.IsIPv4MappedToIPv6 ? sourceIp.MapToIPv4() : sourceIp;
-
-            // Reach the host machine when apps are running outside of container runtime
-            if (ShouldUseDockerHostInternal(parsedSourceIp))
-            {
-                // TODO: This does not work with all container runtimes. Make sure it does.
-                hostname = "host.docker.internal";
-            }
-
-            _appRegistryService.Register(request.AppId, request.Port, hostname);
-            return Ok(
-                new
-                {
-                    message = "App registered successfully",
-                    appId = request.AppId,
-                    port = request.Port,
-                    hostname
-                }
-            );
-        }
-
-        /// <summary>
-        /// Unregister an app
-        /// </summary>
-        [AllowAnonymous]
-        [HttpDelete("/Home/Localtest/Register")]
-        public IActionResult UnregisterApp([FromQuery] string appId)
-        {
-            if (string.IsNullOrWhiteSpace(appId))
-            {
-                return BadRequest("AppId is required");
-            }
-
-            var removed = _appRegistryService.Unregister(appId);
-            if (removed)
-            {
-                return Ok(new { message = "App unregistered successfully", appId });
-            }
-            return NotFound(new { message = "App not found", appId });
-        }
-
-        /// <summary>
-        /// Get all registered apps
-        /// </summary>
-        [AllowAnonymous]
-        [HttpGet("/Home/Localtest/Register")]
-        public IActionResult GetRegisteredApps()
-        {
-            var apps = _appRegistryService.GetAll();
-            return Ok(apps);
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
@@ -227,7 +143,7 @@ namespace LocalTest.Controllers
         {
             if (startAppModel.AuthenticationLevel != "-1")
             {
-                UserProfile? profile = await _userProfileService.GetUser(startAppModel.UserId);
+                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
                 if (profile == null)
                 {
                     return BadRequest("User not found");
@@ -677,92 +593,5 @@ namespace LocalTest.Controllers
             );
         }
 
-        /// <summary>
-        /// Determines whether to use host.docker.internal based on the source IP address.
-        /// Returns true if host.docker.internal should be used, false if the actual IP should be used.
-        /// </summary>
-        private bool ShouldUseDockerHostInternal(IPAddress? address)
-        {
-            if (address == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                var interfaces = NetworkInterface
-                    .GetAllNetworkInterfaces()
-                    .Where(n => n.OperationalStatus == OperationalStatus.Up)
-                    .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
-
-                var myIp = interfaces
-                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
-                    .Select(a => a.Address)
-                    .FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
-
-                var defaultGateway = interfaces
-                    .SelectMany(n => n.GetIPProperties().GatewayAddresses)
-                    .Select(g => g.Address)
-                    .FirstOrDefault(a => a?.AddressFamily == AddressFamily.InterNetwork);
-
-                // Request comes from default gateway (typically using docker)
-                if (Equals(address, defaultGateway))
-                {
-                    return true;
-                }
-
-                // Request comes from the containers own IP (typical quick in podman on linux)
-                if (Equals(address, myIp))
-                {
-                    return true;
-                }
-
-                // Request comes from same subnet as container's assigned interface (typically goes to test-apps container)
-                var myUnicastAddress = interfaces
-                    .SelectMany(n => n.GetIPProperties().UnicastAddresses)
-                    .FirstOrDefault(a => a.Address.AddressFamily == AddressFamily.InterNetwork);
-
-                if (myUnicastAddress != null)
-                {
-                    var subnetMask = myUnicastAddress.IPv4Mask;
-                    if (subnetMask != null)
-                    {
-                        // Check if addresses are in the same subnet
-                        var ip1Bytes = address.GetAddressBytes();
-                        var ip2Bytes = myUnicastAddress.Address.GetAddressBytes();
-                        var maskBytes = subnetMask.GetAddressBytes();
-
-                        if (
-                            ip1Bytes.Length == ip2Bytes.Length
-                            && ip1Bytes.Length == maskBytes.Length
-                        )
-                        {
-                            bool sameSubnet = true;
-                            for (int i = 0; i < ip1Bytes.Length; i++)
-                            {
-                                if ((ip1Bytes[i] & maskBytes[i]) != (ip2Bytes[i] & maskBytes[i]))
-                                {
-                                    sameSubnet = false;
-                                    break;
-                                }
-                            }
-
-                            if (sameSubnet)
-                            {
-                                return false; // Use the actual IP we received
-                            }
-                        }
-                    }
-                }
-
-                // Otherwise, the request came from outside our inner network, so we assume it came from the container
-                // host. This makes it impossible to run an app on an entirely different machine, but that's OK.
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
     }
 }

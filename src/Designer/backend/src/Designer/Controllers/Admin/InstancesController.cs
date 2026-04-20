@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,9 +39,11 @@ public class InstancesController : ControllerBase
         [FromQuery] bool? isArchived,
         [FromQuery] string? archiveReference,
         [FromQuery] bool? confirmed,
+        [FromQuery] bool? isProcessComplete,
         [FromQuery] bool? isSoftDeleted,
         [FromQuery] bool? isHardDeleted,
         [FromQuery] DateOnly? createdBefore,
+        [FromQuery] int? size,
         CancellationToken ct
     )
     {
@@ -68,9 +68,11 @@ public class InstancesController : ControllerBase
                 isArchived,
                 archiveReference,
                 confirmed,
+                isProcessComplete,
                 isSoftDeleted,
                 isHardDeleted,
                 createdBefore,
+                size,
                 ct
             );
             return new InstancesResponse()

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Core.Constants;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
@@ -48,8 +49,32 @@ public static class WorkflowEngineBuilderExtensions
             // Built-in commands
             builder.Services.AddCommand<WebhookCommand>();
 
-            // Telemetry
-            builder.Services.AddTelemetry(emitQueryParameters: isDev);
+            // Telemetry (can be disabled via EngineSettings:EnableTelemetry = false)
+            bool enableTelemetry = builder.Configuration.GetValue(
+                $"EngineSettings:{nameof(EngineSettings.EnableTelemetry)}",
+                defaultValue: Defaults.EngineSettings.EnableTelemetry
+            );
+            if (enableTelemetry)
+            {
+                bool enableDatabaseInstrumentation = builder.Configuration.GetValue(
+                    $"EngineSettings:{nameof(EngineSettings.EnableDatabaseInstrumentation)}",
+                    defaultValue: Defaults.EngineSettings.EnableDatabaseInstrumentation
+                );
+                bool enableDatabaseMetrics = builder.Configuration.GetValue(
+                    $"EngineSettings:{nameof(EngineSettings.EnableDatabaseMetrics)}",
+                    defaultValue: Defaults.EngineSettings.EnableDatabaseMetrics
+                );
+                double traceSamplingRate = builder.Configuration.GetValue(
+                    $"EngineSettings:{nameof(EngineSettings.TraceSamplingRate)}",
+                    defaultValue: Defaults.EngineSettings.TraceSamplingRate
+                );
+                builder.Services.AddTelemetry(
+                    emitQueryParameters: isDev,
+                    enableDatabaseInstrumentation: enableDatabaseInstrumentation,
+                    enableDatabaseMetrics: enableDatabaseMetrics,
+                    traceSamplingRate: traceSamplingRate
+                );
+            }
 
             // OpenAPI
             builder.Services.AddOpenApi(options =>

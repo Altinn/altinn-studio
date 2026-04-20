@@ -10,6 +10,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/appmanager"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
@@ -58,8 +59,8 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 }
 
 // Preflight validates prerequisites before startup.
-func (e *Env) Preflight(ctx context.Context) error {
-	return CheckForLegacyLocaltest(ctx, e.client)
+func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
+	return CheckForLegacyLocaltest(ctx, e.client, opts.PgAdmin)
 }
 
 // Up starts the localtest environment.
@@ -67,13 +68,17 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg, err := e.runtimeConfig.Build(ctx, opts.Port)
+	runtimeCfg, err := e.runtimeConfig.Build(ctx)
 	if err != nil {
 		return err
 	}
 	e.out.Verbosef("Host gateway IP: %s", runtimeCfg.HostGateway)
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, opts.Monitoring)
+	if ensureErr := e.ensureAppManager(ctx, runtimeCfg); ensureErr != nil {
+		return ensureErr
+	}
+
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
@@ -90,7 +95,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	localtestURL := FormatLocaltestURL(runtimeCfg.LoadBalancerPort)
 
 	if opts.OpenBrowser {
-		e.out.Verbosef("Opening browser to: %s\n", localtestURL)
+		e.out.Verbosef("Opening browser to: %s", localtestURL)
 		if err := osutil.OpenContext(ctx, localtestURL); err != nil {
 			e.out.Warningf("Failed to open browser: %v", err)
 		}
@@ -100,10 +105,11 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return e.runForeground(ctx, localtestURL)
 	}
 
-	e.out.Println("\nLocaltest started in background.")
-	e.out.Printf("Access the platform at: %s\n", localtestURL)
-	e.out.Printf("Use '%s env logs' to view logs.\n", osutil.CurrentBin())
-	e.out.Printf("Use '%s env down' to stop.\n", osutil.CurrentBin())
+	e.out.Println("")
+	e.out.Println("Localtest started in background.")
+	e.out.Printlnf("Access the platform at: %s", localtestURL)
+	e.out.Printlnf("Use '%s env logs' to view logs.", osutil.CurrentBin())
+	e.out.Printlnf("Use '%s env down' to stop.", osutil.CurrentBin())
 
 	return nil
 }
@@ -131,10 +137,24 @@ func (e *Env) Down(ctx context.Context) error {
 
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
+	return e.status(ctx, false)
+}
+
+// StatusForUp returns status for the containers requested by env up.
+func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
+	return e.status(ctx, opts.PgAdmin)
+}
+
+// Logs streams localtest environment logs.
+func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
+	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
+}
+
+func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) {
 	// TODO: graph resource model package should handle this (retrieving the current state of a graph of resources).
 	status := newStatus()
 
-	containers := coreContainerNames()
+	containers := coreContainerNames(includePgAdmin)
 	runningCoreContainers := 0
 	for _, name := range containers {
 		state, err := e.client.ContainerState(ctx, name)
@@ -159,9 +179,15 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 	return &status, nil
 }
 
-// Logs streams localtest environment logs.
-func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
-	return e.logs.Stream(ctx, opts.Component, opts.Follow)
+func (e *Env) ensureAppManager(ctx context.Context, runtimeCfg RuntimeConfig) error {
+	if err := appmanager.EnsureStarted(
+		ctx,
+		e.cfg,
+		runtimeCfg.LoadBalancerPort,
+	); err != nil {
+		return fmt.Errorf("ensure app-manager: %w", err)
+	}
+	return nil
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
@@ -196,14 +222,16 @@ func (e *Env) runForeground(
 	ctx context.Context,
 	localtestURL string,
 ) error {
-	e.out.Println("\nLocaltest is running. Press Ctrl+C to stop.")
-	e.out.Printf("Access the platform at: %s\n", localtestURL)
+	e.out.Println("")
+	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
+	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	if err := e.logs.Stream(ctx, "", true); err != nil {
+	if err := e.logs.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
-	e.out.Println("\n" + stoppingEnvironmentMessage)
+	e.out.Println("")
+	e.out.Println(stoppingEnvironmentMessage)
 
 	teardownCtx, cancel := context.WithTimeout(context.Background(), teardownTimeout)
 	defer cancel()
@@ -339,10 +367,10 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		if err := e.installResources(ctx, false); err != nil {
 			return err
 		}
-		if err := ValidateResourceHostPaths(buildOpts); err != nil {
-			return fmt.Errorf("validate resources: %w", err)
-		}
-		return nil
+	}
+
+	if err := ensurePgpass(e.cfg.DataDir); err != nil {
+		return err
 	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
@@ -350,11 +378,37 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		if installErr := e.installResources(ctx, true); installErr != nil {
 			return installErr
 		}
+		if err := ensurePgpass(e.cfg.DataDir); err != nil {
+			return err
+		}
 		if err := ValidateResourceHostPaths(buildOpts); err != nil {
 			return fmt.Errorf("validate resources after reinstall: %w", err)
 		}
 	}
 
+	return nil
+}
+
+func ensurePgpass(dataDir string) error {
+	content := fmt.Sprintf(
+		"%s:%s:*:%s:%s\n",
+		ContainerWorkflowEngineDb,
+		postgresPort,
+		postgresUser,
+		postgresPassword,
+	)
+	if err := os.MkdirAll(workflowEngineInfraPath(dataDir), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create workflow-engine infra directory: %w", err)
+	}
+
+	path := workflowEngineInfraFilePath(dataDir, "pgpass")
+	// PgAdmin's entrypoint runs as the image user and must read this bind mount before it copies it to a private 0600 file.
+	if err := os.WriteFile(path, []byte(content), osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("write pgpass: %w", err)
+	}
+	if err := os.Chmod(path, osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("chmod pgpass: %w", err)
+	}
 	return nil
 }
 
@@ -389,41 +443,58 @@ func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeCfg RuntimeConfig,
 	monitoring bool,
+	pgAdmin bool,
 ) (ResourceBuildOptions, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return ResourceBuildOptions{}, fmt.Errorf("get working directory: %w", err)
 	}
 
-	imageMode, devConfig := detectImageMode(ctx, cwd)
+	imageMode, devConfig, note := detectImageMode(ctx, cwd)
+	if note != "" {
+		if imageMode == DevMode {
+			e.out.Verbosef("%s", note)
+		} else {
+			e.out.Warning(note)
+		}
+	}
 
 	return ResourceBuildOptions{
 		DataDir:           e.cfg.DataDir,
 		RuntimeConfig:     runtimeCfg,
 		IncludeMonitoring: monitoring,
+		IncludePgAdmin:    pgAdmin,
 		ImageMode:         imageMode,
 		Images:            e.cfg.Images,
 		DevConfig:         devConfig,
 	}, nil
 }
 
-func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig) {
-	devModeEnv := os.Getenv(config.EnvInternalDevMode)
-	if devModeEnv != "true" && devModeEnv != "1" {
-		return ReleaseMode, nil
+func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig, string) {
+	if !config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)) {
+		return ReleaseMode, nil, ""
 	}
 
 	detection, err := repocontext.Detect(ctx, cwd, "")
-	if err != nil || !detection.InStudioRepo {
-		return ReleaseMode, nil
+	if err == nil && detection.InStudioRepo {
+		return resolveDevImageMode(detection.StudioRoot)
 	}
 
-	devCfg := DevImageConfig{RepoRoot: detection.StudioRoot}
+	return ReleaseMode, nil,
+		"STUDIOCTL_INTERNAL_DEV is set, but studioctl could not detect a Studio repo from the current directory; using release images"
+}
+
+func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string) {
+	devCfg := DevImageConfig{RepoRoot: studioRoot}
 	if _, err := os.Stat(devCfg.LocaltestDockerfile()); err != nil {
-		return ReleaseMode, nil
+		return ReleaseMode, nil,
+			fmt.Sprintf(
+				"STUDIOCTL_INTERNAL_DEV is set, but %s was not found; using release images",
+				devCfg.LocaltestDockerfile(),
+			)
 	}
 
-	return DevMode, &devCfg
+	return DevMode, &devCfg, ""
 }
 
 // FormatLocaltestURL returns the localtest URL, omitting port 80 since browsers default to it.

@@ -6,7 +6,7 @@ import http from 'k6/http';
 import { Trend } from 'k6/metrics';
 import { Options } from 'k6/options';
 
-const BASE_URL = __ENV.BASE_URL || 'http://local.altinn.cloud';
+const BASE_URL = __ENV.BASE_URL || 'http://local.altinn.cloud:8000';
 const SCREENSHOTS_DIR = 'k6-browser-screenshots';
 
 // Test data constants

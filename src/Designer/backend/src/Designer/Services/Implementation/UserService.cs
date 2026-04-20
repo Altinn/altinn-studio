@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,8 +22,12 @@ public class UserService : IUserService
 
     public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext)
     {
-        bool canCreateOrgRepo = await HasPermissionToCreateOrgRepo(altinnOrgEditingContext);
-        return new UserOrgPermission() { CanCreateOrgRepo = canCreateOrgRepo };
+        List<Team> teams = await _giteaClient.GetTeams();
+        bool canCreateOrgRepo =
+            IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org)
+            || teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
+        bool isOrgOwner = teams.Any(team => IsOwnerTeamForOrg(team, altinnOrgEditingContext.Org));
+        return new UserOrgPermission { CanCreateOrgRepo = canCreateOrgRepo, IsOrgOwner = isOrgOwner };
     }
 
     private bool IsUserSelfOrg(string developerName, string org)
@@ -30,15 +35,14 @@ public class UserService : IUserService
         return developerName == org;
     }
 
-    private async Task<bool> HasPermissionToCreateOrgRepo(AltinnOrgEditingContext altinnOrgEditingContext)
-    {
-        List<Team> teams = await _giteaClient.GetTeams();
-        return IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org)
-            || teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
-    }
-
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)
     {
-        return team.CanCreateOrgRepo && team.Organization.Username == org;
+        return team?.CanCreateOrgRepo == true && team.Organization?.Username == org;
+    }
+
+    private static bool IsOwnerTeamForOrg(Team team, string org)
+    {
+        return string.Equals(team?.Organization?.Username, org, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(team?.Name, "Owners", StringComparison.OrdinalIgnoreCase);
     }
 }
