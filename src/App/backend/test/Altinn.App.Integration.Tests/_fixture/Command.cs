@@ -1,35 +1,21 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Integration.Tests;
 
-internal sealed record CommandResult(int? ExitCode, string StdOut, string StdErr, string AllOutput)
-{
-    [MemberNotNullWhen(true, nameof(ExitCode))]
-    public bool IsSuccess => ExitCode is 0;
-
-    public override string ToString() => $"ExitCode: {ExitCode}, AllOutput: {AllOutput}";
-}
+internal sealed record CommandResult(string StdOut);
 
 internal sealed record Command(
     string Cmd,
     string Arguments,
     string WorkingDirectory,
     ILogger? Logger = null,
-    bool ThrowOnNonZero = true,
     CancellationToken CancellationToken = default
 )
 {
     public TaskAwaiter<CommandResult> GetAwaiter() => Run().GetAwaiter();
-
-    public async Task<T> Select<T>(Func<CommandResult, T> selector)
-    {
-        var result = await this;
-        return selector(result);
-    }
 
     private async Task<CommandResult> Run()
     {
@@ -66,6 +52,9 @@ internal sealed record Command(
                 var allOutput = new StringBuilder();
                 proc.OutputDataReceived += (_, args) =>
                 {
+                    if (args.Data is null)
+                        return;
+
                     Logger?.LogInformation("'{Command}' stdout: {Line}", cmd, args.Data);
                     lock (@lock)
                     {
@@ -75,6 +64,9 @@ internal sealed record Command(
                 };
                 proc.ErrorDataReceived += (_, args) =>
                 {
+                    if (args.Data is null)
+                        return;
+
                     Logger?.LogError("'{Command}' stderr: {Line}", cmd, args.Data);
                     lock (@lock)
                     {
@@ -95,7 +87,11 @@ internal sealed record Command(
                         exited = proc.WaitForExit(TimeSpan.FromSeconds(0.5));
                     } while (!exited);
 
-                    if (ThrowOnNonZero && proc.ExitCode != 0)
+                    // WaitForExit() can hang indefinitely while draining redirected output from dotnet pack.
+                    // The command has exited at this point, so only give output handlers a bounded grace period.
+                    proc.WaitForExit(TimeSpan.FromSeconds(5));
+
+                    if (proc.ExitCode != 0)
                     {
                         string outputMessage;
                         lock (@lock)
@@ -109,12 +105,7 @@ internal sealed record Command(
                     CommandResult result;
                     lock (@lock)
                     {
-                        result = new CommandResult(
-                            proc.ExitCode,
-                            stdout.ToString(),
-                            stderr.ToString(),
-                            allOutput.ToString()
-                        );
+                        result = new CommandResult(stdout.ToString());
                     }
 
                     tcs.SetResult(result);
@@ -124,12 +115,10 @@ internal sealed record Command(
                 {
                     try
                     {
-                        proc.Kill();
+                        proc.Kill(entireProcessTree: true);
                     }
                     catch { }
-                    tcs.SetResult(
-                        new CommandResult(proc.ExitCode, stdout.ToString(), stderr.ToString(), allOutput.ToString())
-                    );
+                    tcs.SetException(new OperationCanceledException(CancellationToken));
                     return;
                 }
             }

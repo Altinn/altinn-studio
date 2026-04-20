@@ -16,6 +16,7 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
+import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
@@ -99,48 +100,38 @@ export const useStartUrl = (forcedTaskId?: string) => {
   // so it does not make a difference here.
   const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } =
     useAllNavigationParams();
-  const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
   const isStateless = useIsStateless();
 
-  return useMemo(() => {
-    const firstPage = order?.[0];
-    if (isStateless && firstPage) {
-      return `/${firstPage}${queryKeys}`;
-    }
-    if (typeof forcedTaskId === 'string') {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${forcedTaskId}${queryKeys}`;
-    }
-    if (taskType === ProcessTaskType.Archived) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${TaskKeys.ProcessEnd}${queryKeys}`;
-    }
-    if (taskType !== ProcessTaskType.Data && taskId !== undefined) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}${queryKeys}`;
-    }
-    if (isSubformPage && taskId && mainPageKey && componentId && dataElementId && firstPage) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${firstPage}${queryKeys}`;
-    }
-    if (taskId && firstPage) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${firstPage}${queryKeys}`;
-    }
-    if (taskId) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}${queryKeys}`;
-    }
-    return `/instance/${instanceOwnerPartyId}/${instanceGuid}${queryKeys}`;
-  }, [
-    componentId,
-    dataElementId,
-    forcedTaskId,
-    instanceGuid,
-    isStateless,
-    isSubformPage,
-    mainPageKey,
-    order,
-    instanceOwnerPartyId,
-    queryKeys,
-    taskId,
-    taskType,
-  ]);
+  return useMemo(
+    () =>
+      computeStartUrl({
+        instanceOwnerPartyId,
+        instanceGuid,
+        taskId,
+        mainPageKey,
+        componentId,
+        dataElementId,
+        queryKeys,
+        firstPage: order?.[0],
+        forcedTaskId,
+        taskType,
+        isStateless,
+      }),
+    [
+      componentId,
+      dataElementId,
+      forcedTaskId,
+      instanceGuid,
+      isStateless,
+      mainPageKey,
+      order,
+      instanceOwnerPartyId,
+      queryKeys,
+      taskId,
+      taskType,
+    ],
+  );
 };
 
 export function useNavigateToTask() {
