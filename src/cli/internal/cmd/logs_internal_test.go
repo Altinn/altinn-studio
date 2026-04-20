@@ -229,6 +229,23 @@ func TestAppLogsStoredLatestFileWithoutRunningApp(t *testing.T) {
 	}
 }
 
+func TestAppLogsSelectedMissingFileReturnsNotFound(t *testing.T) {
+	t.Parallel()
+
+	command := &appLogsCommand{
+		out: ioDiscardOutput(),
+		cfg: testConfig(t),
+	}
+
+	err := command.streamLogFile(t.Context(), appLogLine{AppID: testAppID}, "/does/not/exist.log", appLogsFlags{
+		tail:   1,
+		follow: true,
+	})
+	if !errors.Is(err, errAppLogsNotFound) {
+		t.Fatalf("streamLogFile() error = %v, want errAppLogsNotFound", err)
+	}
+}
+
 func TestAppLogsStoredIDUsesCurrentAppDirectory(t *testing.T) {
 	cfg := testConfig(t)
 	appRoot := t.TempDir()

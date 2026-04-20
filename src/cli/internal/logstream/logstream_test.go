@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
@@ -53,26 +52,28 @@ func TestStreamFollowsAppendedCompleteLines(t *testing.T) {
 	defer cancel()
 
 	lines := make(chan string, 1)
-	listed := make(chan struct{})
-	var listedOnce sync.Once
 	errCh := make(chan error, 1)
 	go func() {
 		errCh <- logstream.Streamer{
-			ListFiles: func() ([]logstream.File, error) {
-				listedOnce.Do(func() { close(listed) })
-				return listFiles(dir)()
-			},
+			ListFiles: listFiles(dir),
 			Emit: func(_ string, line string) error {
 				lines <- line
 				return nil
 			},
 		}.Stream(ctx, logstream.Options{
-			Tail:   0,
+			Tail:   1,
 			Follow: true,
 		})
 	}()
 
-	<-listed
+	select {
+	case got := <-lines:
+		if got != "one" {
+			t.Fatalf("initial line = %q, want one", got)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for initial log line")
+	}
 	appendLog(t, path, "two\n")
 	select {
 	case got := <-lines:

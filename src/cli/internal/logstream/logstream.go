@@ -178,7 +178,14 @@ func (s Streamer) printChangedFiles(offsetByPath map[string]int64) error {
 }
 
 func (s Streamer) printAppended(path string, offset int64) (int64, error) {
-	if size := fileSize(path); size < offset {
+	size, ok, err := fileSize(path)
+	if err != nil {
+		return offset, err
+	}
+	if !ok {
+		return offset, nil
+	}
+	if size < offset {
 		offset = 0
 	} else if size == offset {
 		return offset, nil
@@ -379,12 +386,18 @@ func scanCompleteLines(file *os.File, offset int64, emit func(string) error) (in
 	}
 }
 
-func fileSize(path string) int64 {
+func fileSize(path string) (int64, bool, error) {
 	info, err := os.Stat(path)
-	if err != nil || info.IsDir() {
-		return 0
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, false, nil
+		}
+		return 0, false, fmt.Errorf("stat log: %w", err)
 	}
-	return info.Size()
+	if info.IsDir() {
+		return 0, false, nil
+	}
+	return info.Size(), true, nil
 }
 
 func ignoreError(error) {

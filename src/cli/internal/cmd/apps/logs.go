@@ -92,7 +92,7 @@ func LogFiles(dir string) ([]logstream.File, error) {
 		}
 		info, err := entry.Info()
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("stat app log %s: %w", entry.Name(), err)
 		}
 		files = append(files, logstream.File{
 			Path:    filepath.Join(dir, entry.Name()),
@@ -128,12 +128,15 @@ func FindMetadataByID(dir string, id string) (RunMetadata, bool, error) {
 		}
 		path := filepath.Join(dir, entry.Name())
 		metadata, err := readMetadata(path)
-		if err != nil || !metadataMatchesID(metadata, id) {
+		if err != nil {
+			return zeroRunMetadata(), false, err
+		}
+		if !metadataMatchesID(metadata, id) {
 			continue
 		}
 		info, err := entry.Info()
 		if err != nil {
-			continue
+			return zeroRunMetadata(), false, fmt.Errorf("stat app log metadata %s: %w", entry.Name(), err)
 		}
 		if found.LogPath == "" || info.ModTime().After(foundModTime) {
 			found = metadata

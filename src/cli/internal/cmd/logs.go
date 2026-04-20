@@ -306,8 +306,11 @@ func (c *appLogsCommand) streamLogFile(
 	streamer := logstream.Streamer{
 		ListFiles: func() ([]logstream.File, error) {
 			file, ok, err := logFile(logPath)
-			if err != nil || !ok {
+			if err != nil {
 				return nil, err
+			}
+			if !ok {
+				return nil, logstream.ErrNoLogFiles
 			}
 			return []logstream.File{file}, nil
 		},
