@@ -63,7 +63,7 @@ func TestCandidateFromContainer(t *testing.T) {
 		appcontainers.Candidate{
 			ContainerID: "id",
 			Name:        "app",
-			BaseURL:     "http://127.0.0.1:5005",
+			HostPort:    5005,
 			Description: "container app",
 			Source:      "container",
 		},
@@ -77,7 +77,7 @@ func TestCandidateFromContainer(t *testing.T) {
 		appcontainers.Candidate{
 			ContainerID: "id",
 			Name:        "app",
-			BaseURL:     "http://127.0.0.1:5005",
+			HostPort:    5005,
 			Description: "container app",
 			Source:      "container",
 		},
@@ -89,7 +89,7 @@ func TestCandidateFromContainer(t *testing.T) {
 		appcontainers.Candidate{
 			ContainerID: "id",
 			Name:        "id",
-			BaseURL:     "http://127.0.0.1:5005",
+			HostPort:    5005,
 			Description: "container id",
 			Source:      "container",
 		},

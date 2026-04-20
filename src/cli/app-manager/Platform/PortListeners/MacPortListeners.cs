@@ -7,6 +7,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
 {
     private const int SignalZero = 0;
     private const int ErrorPermissionDenied = 1;
+    private const int NetstatLocalAddressFieldIndex = 3;
     private readonly Dictionary<MacListenerKey, PortListener> _knownListeners = [];
 
     public bool SupportsCurrentPlatform() => OperatingSystem.IsMacOS();
@@ -71,6 +72,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
     )
     {
         var output = await RunCommand("lsof", "-Fpcn -nP -iTCP -sTCP:LISTEN", cancellationToken);
+        var commandLines = new Dictionary<int, string?>();
         var processName = string.Empty;
         var processId = 0;
         foreach (var line in output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
@@ -98,11 +100,13 @@ internal sealed partial class MacPortListeners : IPortListenerSource
                     if (!currentListeners.Contains(listenerKey))
                         continue;
 
+                    var commandLine = await ReadCommandLine(processId, commandLines, cancellationToken);
                     knownListeners[listenerKey] = new PortListener(
                         processId,
                         listenerKey.Port,
                         listenerKey.BindScope,
-                        processName
+                        processName,
+                        commandLine
                     );
                     break;
             }
@@ -116,7 +120,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
             return false;
 
         var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (fields.Length < 4)
+        if (fields.Length <= NetstatLocalAddressFieldIndex)
             return false;
 
         if (!fields[0].StartsWith("tcp", StringComparison.OrdinalIgnoreCase))
@@ -125,7 +129,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
         if (!fields[^1].Equals("LISTEN", StringComparison.Ordinal))
             return false;
 
-        return TryParseListener(fields[^2].AsSpan(), out listener);
+        return TryParseListener(fields[NetstatLocalAddressFieldIndex].AsSpan(), out listener);
     }
 
     private static bool TryParseListener(ReadOnlySpan<char> addressField, out MacListenerKey listener)
@@ -170,6 +174,32 @@ internal sealed partial class MacPortListeners : IPortListenerSource
     {
         var result = Kill(processId, SignalZero);
         return result == 0 || Marshal.GetLastPInvokeError() == ErrorPermissionDenied;
+    }
+
+    private static async Task<string?> ReadCommandLine(
+        int processId,
+        Dictionary<int, string?> commandLines,
+        CancellationToken cancellationToken
+    )
+    {
+        if (commandLines.TryGetValue(processId, out var cached))
+            return cached;
+
+        string? commandLine = null;
+        try
+        {
+            commandLine = (await RunCommand("ps", $"-p {processId} -o command=", cancellationToken)).Trim();
+            if (commandLine.Length == 0)
+                commandLine = null;
+        }
+        catch (InvalidOperationException)
+        {
+            commandLines[processId] = null;
+            return null;
+        }
+
+        commandLines[processId] = commandLine;
+        return commandLine;
     }
 
     private static async Task<string> RunCommand(string fileName, string arguments, CancellationToken cancellationToken)

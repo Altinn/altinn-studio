@@ -41,21 +41,23 @@ studioctl auth login --env dev
 studioctl app clone --env dev <org>/<repo>
 cd <repo>
 studioctl env up
-studioctl run
+studioctl app run
 ```
 
 `studioctl auth login` uses a PAT with `read:user` and `repo` scopes.
-`studioctl run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
+`studioctl app run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
+`studioctl run` is a short alias for the same operation.
 
 ## Core commands
 
 - `studioctl auth login`: login with PAT for `prod`, `dev`, or `staging`
 - `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
+- `studioctl app run`: run app locally
 - `studioctl env up`: start localtest
 - `studioctl env down`: stop localtest
 - `studioctl env status`: show runtime/container status
 - `studioctl env logs`: stream logs from localtest containers
-- `studioctl run`: run app natively using `dotnet run`
+- `studioctl run`: alias for `studioctl app run`
 - `studioctl doctor --checks`: diagnose prerequisites and environment issues
 
 ## Install from source (for contributors)

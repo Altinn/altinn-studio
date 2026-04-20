@@ -105,65 +105,82 @@ func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
 	c.out.Printlnf("%s doctor", osutil.CurrentBin())
 	c.out.Println("")
 
-	sec := c.out.NewSection(doctorKeyWidth)
-	c.renderDoctorCLISection(sec, report.CLI)
-	c.renderDoctorSystemSection(sec, report.System)
-	c.renderDoctorPrerequisitesSection(sec, report.Prerequisites)
-	c.renderDoctorNetworkSection(sec, report.Network)
-	c.renderDoctorAuthSection(sec, report.Auth)
-	c.renderDoctorDiskSection(sec, report.Disk)
-	c.renderDoctorAppSection(sec, report.App)
+	table := newDoctorTable(doctorKeyWidth)
+	c.renderDoctorCLISection(table, report.CLI)
+	c.renderDoctorSystemSection(table, report.System)
+	c.renderDoctorPrerequisitesSection(table, report.Prerequisites)
+	c.renderDoctorNetworkSection(table, report.Network)
+	c.renderDoctorAuthSection(table, report.Auth)
+	c.renderDoctorDiskSection(table, report.Disk)
+	c.renderDoctorAppSection(table, report.App)
+	c.out.RenderTable(table)
 }
 
-func (c *DoctorCommand) renderDoctorCLISection(sec *ui.Section, cli *doctorsvc.CLI) {
-	sec.Header(osutil.CurrentBin())
-	defer c.out.Println("")
+func newDoctorTable(keyWidth int) *ui.Table {
+	return ui.NewTable(
+		ui.NewColumn("").WithWidth(1),
+		ui.NewColumn("").WithMinWidth(keyWidth).WithStyle(ui.CellStyleDim),
+		ui.NewColumn(""),
+	).Indent(2).Gaps(1, 2)
+}
+
+func doctorKeyValue(table *ui.Table, key, value string) {
+	table.Row(ui.Empty(), ui.Text(key), ui.Text(value))
+}
+
+func doctorKeyValueStatus(table *ui.Table, ok bool, key, value string) {
+	table.Row(ui.Status(ok), ui.Text(key), ui.Text(value))
+}
+
+func (c *DoctorCommand) renderDoctorCLISection(table *ui.Table, cli *doctorsvc.CLI) {
+	table.Section(osutil.CurrentBin())
+	defer table.Spacer()
 
 	if cli == nil {
-		sec.KeyValue("Version", unknownValue)
+		doctorKeyValue(table, "Version", unknownValue)
 	} else {
-		sec.KeyValue("Version", cli.Version)
+		doctorKeyValue(table, "Version", cli.Version)
 	}
 }
 
-func (c *DoctorCommand) renderDoctorSystemSection(sec *ui.Section, system *doctorsvc.System) {
-	sec.Header("System")
-	defer c.out.Println("")
+func (c *DoctorCommand) renderDoctorSystemSection(table *ui.Table, system *doctorsvc.System) {
+	table.Section("System")
+	defer table.Spacer()
 
 	if system == nil {
-		sec.KeyValue("Status", unknownValue)
+		doctorKeyValue(table, "Status", unknownValue)
 		return
 	}
 
-	sec.KeyValue("OS", system.OS)
-	sec.KeyValue("Architecture", system.Architecture)
+	doctorKeyValue(table, "OS", system.OS)
+	doctorKeyValue(table, "Architecture", system.Architecture)
 	if system.OSName != "" {
-		sec.KeyValue("OS Name", system.OSName)
+		doctorKeyValue(table, "OS Name", system.OSName)
 	}
 	if system.OSVersion != "" {
-		sec.KeyValue("OS Version", system.OSVersion)
+		doctorKeyValue(table, "OS Version", system.OSVersion)
 	}
-	sec.KeyValue("Terminal", system.Terminal)
+	doctorKeyValue(table, "Terminal", system.Terminal)
 
 	colorStatus := "disabled"
 	if system.ColorEnabled {
 		colorStatus = "enabled"
 	}
-	sec.KeyValue("Color", colorStatus)
+	doctorKeyValue(table, "Color", colorStatus)
 
 	ttyStatus := "no"
 	if system.TTY {
 		ttyStatus = "yes"
 	}
-	sec.KeyValue("TTY", ttyStatus)
+	doctorKeyValue(table, "TTY", ttyStatus)
 }
 
-func (c *DoctorCommand) renderDoctorPrerequisitesSection(sec *ui.Section, prerequisites *doctorsvc.Prerequisites) {
-	sec.Header("Prerequisites")
-	defer c.out.Println("")
+func (c *DoctorCommand) renderDoctorPrerequisitesSection(table *ui.Table, prerequisites *doctorsvc.Prerequisites) {
+	table.Section("Prerequisites")
+	defer table.Spacer()
 
 	if prerequisites == nil {
-		sec.KeyValueStatus(false, "Status", "unknown")
+		doctorKeyValueStatus(table, false, "Status", "unknown")
 		return
 	}
 
@@ -172,13 +189,13 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(sec *ui.Section, prereq
 		dotnetValue = unknownValue
 	}
 	if prerequisites.Dotnet.OK {
-		sec.KeyValueStatus(true, ".NET SDK", dotnetValue)
+		doctorKeyValueStatus(table, true, ".NET SDK", dotnetValue)
 	} else {
 		msg := "not found"
 		if dotnetValue != unknownValue {
 			msg = dotnetValue + " (8.0+ required)"
 		}
-		sec.KeyValueStatus(false, ".NET SDK", msg)
+		doctorKeyValueStatus(table, false, ".NET SDK", msg)
 	}
 
 	containerValue := prerequisites.ContainerValue
@@ -186,21 +203,21 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(sec *ui.Section, prereq
 		containerValue = unknownValue
 	}
 	if prerequisites.Container.OK {
-		sec.KeyValueStatus(true, "Container", containerValue)
+		doctorKeyValueStatus(table, true, "Container", containerValue)
 	} else {
-		sec.KeyValueStatus(false, "Container", "not found")
+		doctorKeyValueStatus(table, false, "Container", "not found")
 	}
 	if prerequisites.ContainerResolved != "" {
-		sec.KeyValue("Resolved", prerequisites.ContainerResolved)
+		doctorKeyValue(table, "Resolved", prerequisites.ContainerResolved)
 	}
 	if tools := doctorContainerToolsLabel(prerequisites.ContainerTools); tools != "" {
-		sec.KeyValue("Tools", tools)
+		doctorKeyValue(table, "Tools", tools)
 	}
 	if prerequisites.ContainerHost != "" {
-		sec.KeyValue("DOCKER_HOST", prerequisites.ContainerHost)
+		doctorKeyValue(table, "DOCKER_HOST", prerequisites.ContainerHost)
 	}
 
-	c.renderDoctorWindowsPrerequisite(sec, prerequisites)
+	c.renderDoctorWindowsPrerequisite(table, prerequisites)
 }
 
 func doctorContainerToolsLabel(tools []doctorsvc.ContainerTool) string {
@@ -219,7 +236,7 @@ func doctorContainerToolsLabel(tools []doctorsvc.ContainerTool) string {
 	return strings.Join(parts, ", ")
 }
 
-func (c *DoctorCommand) renderDoctorWindowsPrerequisite(sec *ui.Section, prerequisites *doctorsvc.Prerequisites) {
+func (c *DoctorCommand) renderDoctorWindowsPrerequisite(table *ui.Table, prerequisites *doctorsvc.Prerequisites) {
 	if prerequisites.Windows == nil {
 		return
 	}
@@ -229,7 +246,7 @@ func (c *DoctorCommand) renderDoctorWindowsPrerequisite(sec *ui.Section, prerequ
 		windowsValue = unknownValue
 	}
 	if prerequisites.Windows.OK {
-		sec.KeyValueStatus(true, "Windows", windowsValue)
+		doctorKeyValueStatus(table, true, "Windows", windowsValue)
 		return
 	}
 
@@ -237,45 +254,45 @@ func (c *DoctorCommand) renderDoctorWindowsPrerequisite(sec *ui.Section, prerequ
 	if windowsValue != unknownValue {
 		msg += " (1803+ required for Unix Domain Sockets)"
 	}
-	sec.KeyValueStatus(false, "Windows", msg)
+	doctorKeyValueStatus(table, false, "Windows", msg)
 }
 
-func (c *DoctorCommand) renderDoctorNetworkSection(sec *ui.Section, network *doctorsvc.Network) {
-	sec.Header("Network")
-	defer c.out.Println("")
+func (c *DoctorCommand) renderDoctorNetworkSection(table *ui.Table, network *doctorsvc.Network) {
+	table.Section("Network")
+	defer table.Spacer()
 
 	if network == nil {
-		sec.KeyValue("Status", unknownValue)
+		doctorKeyValue(table, "Status", unknownValue)
 		return
 	}
 
 	if network.Mode == "cached" {
-		c.renderDoctorCachedNetworkSection(sec, network)
+		c.renderDoctorCachedNetworkSection(table, network)
 		return
 	}
 
-	c.renderDoctorActiveNetworkSection(sec, network)
+	c.renderDoctorActiveNetworkSection(table, network)
 }
 
-func (c *DoctorCommand) renderDoctorCachedNetworkSection(sec *ui.Section, network *doctorsvc.Network) {
+func (c *DoctorCommand) renderDoctorCachedNetworkSection(table *ui.Table, network *doctorsvc.Network) {
 	switch {
 	case network.CacheExists != nil && !*network.CacheExists:
-		sec.KeyValue("Host Gateway", "not cached")
-		sec.KeyValue("Cache", fmt.Sprintf("missing (run '%s env up' to probe)", osutil.CurrentBin()))
+		doctorKeyValue(table, "Host Gateway", "not cached")
+		doctorKeyValue(table, "Cache", fmt.Sprintf("missing (run '%s env up' to probe)", osutil.CurrentBin()))
 	case network.HostGateway == "":
-		sec.KeyValue("Host Gateway", "invalid")
-		sec.KeyValue("Cache", "corrupted")
+		doctorKeyValue(table, "Host Gateway", "invalid")
+		doctorKeyValue(table, "Cache", "corrupted")
 	default:
-		sec.KeyValue("Host Gateway", network.HostGateway)
+		doctorKeyValue(table, "Host Gateway", network.HostGateway)
 		if network.HostDNS != "" {
-			sec.KeyValue("Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
+			doctorKeyValue(table, "Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
 		} else {
-			sec.KeyValue("Host DNS", networking.LocalDomain+" unresolvable")
+			doctorKeyValue(table, "Host DNS", networking.LocalDomain+" unresolvable")
 		}
-		sec.KeyValue("Cache", doctorCacheStateLabel(network))
+		doctorKeyValue(table, "Cache", doctorCacheStateLabel(network))
 	}
 
-	c.renderDoctorLocalhostSection(sec, network)
+	c.renderDoctorLocalhostSection(table, network)
 }
 
 func doctorCacheStateLabel(network *doctorsvc.Network) string {
@@ -294,103 +311,94 @@ func doctorCacheStateLabel(network *doctorsvc.Network) string {
 	return cacheState + " (" + network.CacheAge + " ago)"
 }
 
-func (c *DoctorCommand) renderDoctorActiveNetworkSection(sec *ui.Section, network *doctorsvc.Network) {
+func (c *DoctorCommand) renderDoctorActiveNetworkSection(table *ui.Table, network *doctorsvc.Network) {
 	if network.Error != "" {
-		sec.KeyValueStatus(false, "Host Gateway", network.Error)
-		c.renderDoctorLocalhostSection(sec, network)
-		c.renderDoctorLoopbackSection(sec, network)
+		doctorKeyValueStatus(table, false, "Host Gateway", network.Error)
+		c.renderDoctorLocalhostSection(table, network)
+		c.renderDoctorLoopbackSection(table, network)
 		return
 	}
 
-	sec.KeyValueStatus(true, "Host Gateway", network.HostGateway)
+	doctorKeyValueStatus(table, true, "Host Gateway", network.HostGateway)
 	if network.PingOK != nil && *network.PingOK {
-		sec.KeyValueStatus(true, "Connectivity", "ping ok")
+		doctorKeyValueStatus(table, true, "Connectivity", "ping ok")
 	} else {
-		sec.KeyValueStatus(false, "Connectivity", "ping failed")
+		doctorKeyValueStatus(table, false, "Connectivity", "ping failed")
 	}
 
 	if network.HostDNS != "" {
-		sec.KeyValueStatus(true, "Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
+		doctorKeyValueStatus(table, true, "Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
 	} else {
-		sec.KeyValueStatus(false, "Host DNS", networking.LocalDomain+" unresolvable")
+		doctorKeyValueStatus(table, false, "Host DNS", networking.LocalDomain+" unresolvable")
 	}
 
 	if network.ContainerDNS != "" {
-		sec.KeyValueStatus(true, "Container DNS", networking.LocalDomain+" -> "+network.ContainerDNS)
+		doctorKeyValueStatus(table, true, "Container DNS", networking.LocalDomain+" -> "+network.ContainerDNS)
 	} else {
-		sec.KeyValueStatus(false, "Container DNS", networking.LocalDomain+" unresolvable")
+		doctorKeyValueStatus(table, false, "Container DNS", networking.LocalDomain+" unresolvable")
 	}
 
-	c.renderDoctorLocalhostSection(sec, network)
-	c.renderDoctorLoopbackSection(sec, network)
+	c.renderDoctorLocalhostSection(table, network)
+	c.renderDoctorLoopbackSection(table, network)
 }
 
-func (c *DoctorCommand) renderDoctorLocalhostSection(sec *ui.Section, network *doctorsvc.Network) {
+func (c *DoctorCommand) renderDoctorLocalhostSection(table *ui.Table, network *doctorsvc.Network) {
 	switch {
 	case network.LocalhostError != "":
-		sec.KeyValueStatus(false, "Localhost", network.LocalhostError)
+		doctorKeyValueStatus(table, false, "Localhost", network.LocalhostError)
 	case len(network.LocalhostAddrs) == 0:
-		sec.KeyValueStatus(false, "Localhost", "unresolvable")
+		doctorKeyValueStatus(table, false, "Localhost", "unresolvable")
 	default:
-		sec.KeyValueStatus(true, "Localhost", "localhost -> "+strings.Join(network.LocalhostAddrs, ", "))
+		doctorKeyValueStatus(table, true, "Localhost", "localhost -> "+strings.Join(network.LocalhostAddrs, ", "))
 	}
 }
 
-func (c *DoctorCommand) renderDoctorLoopbackSection(sec *ui.Section, network *doctorsvc.Network) {
+func (c *DoctorCommand) renderDoctorLoopbackSection(table *ui.Table, network *doctorsvc.Network) {
 	for _, probe := range network.LoopbackEndpoints {
 		label := "Loopback " + strings.ToUpper(probe.Family)
 		if probe.Reachable {
-			sec.KeyValueStatus(true, label, probe.Endpoint+" reachable")
+			doctorKeyValueStatus(table, true, label, probe.Endpoint+" reachable")
 			continue
 		}
 		msg := probe.Endpoint + " unreachable"
 		if probe.Error != "" {
 			msg += " (" + probe.Error + ")"
 		}
-		sec.KeyValueStatus(false, label, msg)
+		doctorKeyValueStatus(table, false, label, msg)
 	}
 }
 
-func (c *DoctorCommand) renderDoctorAuthSection(sec *ui.Section, authJSON *doctorsvc.Auth) {
-	sec.Header("Auth")
-	defer c.out.Println("")
+func (c *DoctorCommand) renderDoctorAuthSection(table *ui.Table, authJSON *doctorsvc.Auth) {
+	table.Section("Auth")
+	defer table.Spacer()
 
 	if authJSON == nil {
-		sec.KeyValue("Status", unknownValue)
+		doctorKeyValue(table, "Status", unknownValue)
 		return
 	}
 	if authJSON.Error != "" {
-		sec.KeyValue("Status", authJSON.Error)
+		doctorKeyValue(table, "Status", authJSON.Error)
 		return
 	}
 	if !authJSON.LoggedIn {
-		sec.KeyValue("Status", "not logged in")
+		doctorKeyValue(table, "Status", "not logged in")
 		return
 	}
 
-	sec.KeyValue("Status", "logged in ("+strconv.Itoa(len(authJSON.Environments))+" env)")
+	doctorKeyValue(table, "Status", "logged in ("+strconv.Itoa(len(authJSON.Environments))+" env)")
 	for _, env := range authJSON.Environments {
-		sec.KeyValue(env.Env, env.Username+" @ "+env.Host+" (PAT)")
+		doctorKeyValue(table, env.Env, env.Username+" @ "+env.Host+" (PAT)")
 	}
 }
 
-func (c *DoctorCommand) renderDoctorDiskSection(sec *ui.Section, disk *doctorsvc.Disk) {
-	sec.Header("Disk")
-	defer c.out.Println("")
+func (c *DoctorCommand) renderDoctorDiskSection(table *ui.Table, disk *doctorsvc.Disk) {
+	table.Section("Disk")
+	defer table.Spacer()
 
 	if disk == nil {
-		sec.KeyValue("Status", unknownValue)
+		doctorKeyValue(table, "Status", unknownValue)
 		return
 	}
-
-	diskKeyWidth := doctorKeyWidth
-	for _, check := range disk.Checks {
-		if idLen := len(check.ID); idLen > diskKeyWidth {
-			diskKeyWidth = idLen
-		}
-	}
-	diskSec := c.out.NewSection(diskKeyWidth)
-	diskInfoSec := c.out.NewSection(diskKeyWidth + 2)
 
 	for _, check := range disk.Checks {
 		value := check.Message
@@ -400,36 +408,36 @@ func (c *DoctorCommand) renderDoctorDiskSection(sec *ui.Section, disk *doctorsvc
 
 		switch check.Level {
 		case "ok":
-			diskSec.KeyValueStatus(true, check.ID, value)
+			doctorKeyValueStatus(table, true, check.ID, value)
 		case "info":
-			diskInfoSec.KeyValue(check.ID, value)
+			doctorKeyValue(table, check.ID, value)
 		case "warn":
-			diskSec.KeyValueStatus(false, check.ID, "WARN: "+value)
+			doctorKeyValueStatus(table, false, check.ID, "WARN: "+value)
 		case "error":
-			diskSec.KeyValueStatus(false, check.ID, "ERROR: "+value)
+			doctorKeyValueStatus(table, false, check.ID, "ERROR: "+value)
 		default:
-			diskSec.KeyValue(check.ID, value)
+			doctorKeyValue(table, check.ID, value)
 		}
 	}
 }
 
-func (c *DoctorCommand) renderDoctorAppSection(sec *ui.Section, app *doctorsvc.App) {
-	sec.Header("App")
-	defer c.out.Println("")
+func (c *DoctorCommand) renderDoctorAppSection(table *ui.Table, app *doctorsvc.App) {
+	table.Section("App")
+	defer table.Spacer()
 
 	if app == nil {
-		sec.KeyValueStatus(false, "App", unknownValue)
+		doctorKeyValueStatus(table, false, "App", unknownValue)
 		return
 	}
 	if app.Error != "" {
-		sec.KeyValueStatus(false, "App", "error: "+app.Error)
+		doctorKeyValueStatus(table, false, "App", "error: "+app.Error)
 		return
 	}
 	if !app.Found {
-		sec.KeyValue("App", "not detected in current directory")
+		doctorKeyValue(table, "App", "not detected in current directory")
 		return
 	}
 
-	sec.KeyValue("App found", app.Path)
-	sec.KeyValue("Detected via", app.DetectedVia)
+	doctorKeyValue(table, "App found", app.Path)
+	doctorKeyValue(table, "Detected via", app.DetectedVia)
 }

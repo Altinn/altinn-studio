@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,10 +77,10 @@ public class RepositoryController : ControllerBase
     [HttpGet]
     [Route("search")]
     public async Task<SearchResults> Search(
-        [FromQuery] string keyword,
+        [FromQuery] string? keyword,
         [FromQuery] int uId,
-        [FromQuery] string sortBy,
-        [FromQuery] string order,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? order,
         [FromQuery] int page,
         [FromQuery] int limit
     )
@@ -114,12 +113,12 @@ public class RepositoryController : ControllerBase
     [Route("repo/{org}/copy-app")]
     public async Task<IActionResult> CopyApp(
         string org,
-        [FromQuery] string sourceRepository,
-        [FromQuery] string targetRepository,
-        [FromQuery] string targetOrg = null
+        [FromQuery] string? sourceRepository,
+        [FromQuery] string? targetRepository,
+        [FromQuery] string? targetOrg
     )
     {
-        (bool isValid, IActionResult errorResponse) = await IsValidCopyAppRequestAsync(
+        (bool isValid, IActionResult? errorResponse) = await IsValidCopyAppRequestAsync(
             org,
             sourceRepository,
             targetRepository,
@@ -127,7 +126,7 @@ public class RepositoryController : ControllerBase
         );
         if (!isValid)
         {
-            return errorResponse;
+            return errorResponse!;
         }
 
         targetOrg ??= org;
@@ -159,11 +158,11 @@ public class RepositoryController : ControllerBase
         }
     }
 
-    private async Task<(bool IsValid, IActionResult ErrorResponse)> IsValidCopyAppRequestAsync(
+    private async Task<(bool IsValid, IActionResult? ErrorResponse)> IsValidCopyAppRequestAsync(
         string org,
-        string sourceRepository,
-        string targetRepository,
-        string targetOrg
+        string? sourceRepository,
+        string? targetRepository,
+        string? targetOrg
     )
     {
         if (!string.IsNullOrWhiteSpace(targetOrg) && !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(targetOrg))
@@ -385,7 +384,7 @@ public class RepositoryController : ControllerBase
         {
             RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
             _sourceControl.Push(authenticatedContext);
-            foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
+            foreach (RepositoryContent repoContent in repoStatus.ContentStatus)
             {
                 Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
                 SyncSuccess syncSuccess = new(source);
@@ -468,7 +467,7 @@ public class RepositoryController : ControllerBase
     /// <returns>The branch info</returns>
     [HttpGet]
     [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
-    public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch) =>
+    public async Task<Branch> Branch(string org, string repository, [FromQuery] string? branch) =>
         await _giteaClient.GetBranch(org, repository, branch);
 
     /// <summary>

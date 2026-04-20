@@ -2,7 +2,13 @@ using System.Net;
 
 namespace Altinn.Studio.AppManager.Platform.PortListeners;
 
-internal sealed record PortListener(int ProcessId, int Port, ListenerBindScope BindScope, string? ProcessName = null)
+internal sealed record PortListener(
+    int ProcessId,
+    int Port,
+    ListenerBindScope BindScope,
+    string? ProcessName = null,
+    string? CommandLine = null
+)
 {
     public static PortListener FromAddress(int processId, int port, IPAddress address, string? processName = null) =>
         new(processId, port, ClassifyAddress(address), processName);

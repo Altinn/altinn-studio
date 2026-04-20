@@ -14,6 +14,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,15 +31,18 @@ const (
 	registerPath = "/api/v1/studioctl/apps"
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
-	appManagerUnixSocketEnv = "APP_MANAGER_UNIX_SOCKET_PATH"
-	appManagerTunnelURLEnv  = "Tunnel__Url"
-	appManagerStudioctlEnv  = "Studioctl__Path"
+	appManagerUnixSocketEnv   = "APP_MANAGER_UNIX_SOCKET_PATH"
+	appManagerTunnelURLEnv    = "Tunnel__Url"
+	appManagerLocaltestURLEnv = "Localtest__Url"
+	appManagerStudioctlEnv    = "Studioctl__Path"
 
-	appManagerStartTimeout = 10 * time.Second
-	appManagerShutdownWait = 3 * time.Second
-	appManagerPollInterval = 100 * time.Millisecond
-	appTunnelEndpointPath  = "/internal/tunnel/app"
-	appManagerLogTailLines = 40
+	appManagerStartTimeout          = 10 * time.Second
+	appManagerRegisterTimeoutMargin = 2 * time.Second
+	appManagerShutdownWait          = 3 * time.Second
+	appManagerPollInterval          = 100 * time.Millisecond
+	appTunnelEndpointPath           = "/internal/tunnel/app"
+	appManagerLogTailLines          = 40
+	appManagerLogSuffix             = ".log"
 )
 
 type startConfig struct {
@@ -45,6 +50,7 @@ type startConfig struct {
 	WorkingDir     string `json:"workingDir"`
 	UnixSocketPath string `json:"unixSocketPath,omitempty"`
 	TunnelURL      string `json:"tunnelUrl"`
+	LocaltestURL   string `json:"localtestUrl"`
 	StudioctlPath  string `json:"studioctlPath"`
 	InternalDev    bool   `json:"internalDev"`
 }
@@ -56,29 +62,40 @@ type runtimeState struct {
 
 // Status describes the current app-manager status.
 type Status struct {
-	AppManagerVersion string
-	DotnetVersion     string
-	StudioctlPath     string
-	Tunnel            TunnelStatus
-	Apps              []DiscoveredApp
-	ProcessID         int
-	InternalDev       bool
+	AppManagerVersion string          `json:"appManagerVersion"`
+	DotnetVersion     string          `json:"dotnetVersion"`
+	StudioctlPath     string          `json:"studioctlPath"`
+	LocaltestURL      string          `json:"localtestUrl"`
+	Tunnel            TunnelStatus    `json:"tunnel"`
+	Apps              []DiscoveredApp `json:"apps"`
+	ProcessID         int             `json:"processId"`
+	InternalDev       bool            `json:"internalDev"`
 }
 
 // TunnelStatus describes the configured app tunnel.
 type TunnelStatus struct {
-	URL       string
-	Enabled   bool
-	Connected bool
+	URL       string `json:"url"`
+	Enabled   bool   `json:"enabled"`
+	Connected bool   `json:"connected"`
 }
 
 // DiscoveredApp describes one discovered app endpoint.
 type DiscoveredApp struct {
-	ProcessID   *int
-	AppID       string
-	BaseURL     string
-	Source      string
-	Description string
+	ProcessID   *int   `json:"processId"`
+	HostPort    *int   `json:"hostPort,omitempty"`
+	AppID       string `json:"appId"`
+	BaseURL     string `json:"baseUrl"`
+	Source      string `json:"source"`
+	Description string `json:"description"`
+	Name        string `json:"name,omitempty"`
+	ContainerID string `json:"containerId,omitempty"`
+}
+
+// LogFile describes one app-manager log file.
+type LogFile struct {
+	ModTime time.Time
+	Path    string
+	Size    int64
 }
 
 var (
@@ -93,24 +110,32 @@ var (
 	errUnexpectedShutdownStatus   = errors.New("unexpected app-manager shutdown response")
 	errAppManagerStartTimedOut    = errors.New("app-manager start timed out")
 	errInvalidPIDFile             = errors.New("pid file does not contain a positive pid")
+	errAppManagerSocketDir        = errors.New("app-manager socket path is a directory")
+	errAppManagerSocketInUse      = errors.New("app-manager socket is already in use")
+	errAppManagerForceStopTimeout = errors.New("app-manager did not stop after kill")
+	// ErrAppEndpointNotFound is returned when app-manager cannot find a matching app endpoint.
+	ErrAppEndpointNotFound = errors.New("matching app endpoint not found")
 )
 
 // Client talks to the local app-manager control plane.
 type Client struct {
 	http *http.Client
+	cfg  *config.Config
 }
 
 // AppRegistration describes an app endpoint registered explicitly by studioctl.
 type AppRegistration struct {
-	AppID              string `json:"appId"`
-	BaseURL            string `json:"baseUrl"`
-	Description        string `json:"description,omitempty"`
-	GracePeriodSeconds int    `json:"gracePeriodSeconds"`
+	AppID          string `json:"appId"`
+	ContainerID    string `json:"containerId,omitempty"`
+	HostPort       int    `json:"hostPort,omitempty"`
+	ProcessID      int    `json:"processId,omitempty"`
+	TimeoutSeconds int    `json:"timeoutSeconds"`
 }
 
 // NewClient constructs an app-manager control-plane client.
 func NewClient(cfg *config.Config) *Client {
 	return &Client{
+		cfg: cfg,
 		http: &http.Client{
 			Transport: transportForConfig(cfg),
 			Timeout:   2 * time.Second,
@@ -118,25 +143,44 @@ func NewClient(cfg *config.Config) *Client {
 	}
 }
 
+func appRegistrationTimeout(registration AppRegistration) time.Duration {
+	if registration.TimeoutSeconds <= 0 {
+		return appManagerRegisterTimeoutMargin
+	}
+	return time.Duration(registration.TimeoutSeconds)*time.Second + appManagerRegisterTimeoutMargin
+}
+
 // Shutdown stops app-manager and returns a completion channel that resolves when shutdown is fully complete.
 func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
+	lock, err := osutil.AcquireFileLock(ctx, cfg.AppManagerLockPath())
+	if err != nil {
+		return nil, fmt.Errorf("lock app-manager lifecycle: %w", err)
+	}
+
 	client := NewClient(cfg)
 	pid, err := currentManagedPID(ctx, client, cfg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(err, closeAppManagerLifecycleLock(lock))
 	}
 
 	if err := shutdownError(client.shutdown(ctx), pid); err != nil {
-		return nil, err
+		return nil, errors.Join(err, closeAppManagerLifecycleLock(lock))
 	}
 
 	done := make(chan error, 1)
 	go func() {
-		done <- waitForManagedShutdown(ctx, cfg, client, pid)
-		close(done)
+		defer close(done)
+		done <- errors.Join(waitForManagedShutdown(ctx, cfg, client, pid), closeAppManagerLifecycleLock(lock))
 	}()
 
 	return done, nil
+}
+
+func closeAppManagerLifecycleLock(lock *osutil.FileLock) error {
+	if err := lock.Close(); err != nil {
+		return fmt.Errorf("close app-manager lifecycle lock: %w", err)
+	}
+	return nil
 }
 
 func shutdownError(err error, pid int) error {
@@ -196,6 +240,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		AppManagerVersion string `json:"appManagerVersion"`
 		DotnetVersion     string `json:"dotnetVersion"`
 		StudioctlPath     string `json:"studioctlPath"`
+		LocaltestURL      string `json:"localtestUrl"`
 		Tunnel            struct {
 			URL       string `json:"url"`
 			Enabled   bool   `json:"enabled"`
@@ -203,10 +248,13 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		} `json:"tunnel"`
 		Apps []struct {
 			ProcessID   *int   `json:"processId"`
+			HostPort    *int   `json:"hostPort"`
 			AppID       string `json:"appId"`
 			BaseURL     string `json:"baseUrl"`
 			Source      string `json:"source"`
 			Description string `json:"description"`
+			Name        string `json:"name"`
+			ContainerID string `json:"containerId"`
 		} `json:"apps"`
 		ProcessID   int  `json:"processId"`
 		InternalDev bool `json:"internalDev"`
@@ -220,6 +268,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		AppManagerVersion: status.AppManagerVersion,
 		DotnetVersion:     status.DotnetVersion,
 		StudioctlPath:     status.StudioctlPath,
+		LocaltestURL:      status.LocaltestURL,
 		InternalDev:       status.InternalDev,
 		Tunnel: TunnelStatus{
 			Enabled:   status.Tunnel.Enabled,
@@ -234,18 +283,21 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 			BaseURL:     app.BaseURL,
 			Source:      app.Source,
 			ProcessID:   app.ProcessID,
+			HostPort:    app.HostPort,
 			Description: app.Description,
+			Name:        app.Name,
+			ContainerID: app.ContainerID,
 		})
 	}
 
 	return result, nil
 }
 
-// RegisterApp registers an app endpoint explicitly with app-manager.
-func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) error {
+// RegisterApp registers an app endpoint with app-manager and returns the resolved base URL.
+func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) (string, error) {
 	body, err := json.Marshal(registration)
 	if err != nil {
-		return fmt.Errorf("encode app registration: %w", err)
+		return "", fmt.Errorf("encode app registration: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(
@@ -255,32 +307,46 @@ func (c *Client) RegisterApp(ctx context.Context, registration AppRegistration) 
 		bytes.NewReader(body),
 	)
 	if err != nil {
-		return fmt.Errorf("build register app request: %w", err)
+		return "", fmt.Errorf("build register app request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.http.Do(req)
+	client := &http.Client{
+		Transport: transportForConfig(c.cfg),
+		Timeout:   appRegistrationTimeout(registration),
+	}
+	resp, err := client.Do(req)
 	if err != nil {
-		return classifyClientError(err)
+		return "", classifyClientError(err)
 	}
 	defer closeResponseBody(resp)
 
+	if resp.StatusCode == http.StatusNotFound {
+		return "", ErrAppEndpointNotFound
+	}
 	if resp.StatusCode != http.StatusAccepted {
-		return fmt.Errorf("%w: %s", errUnexpectedRegisterStatus, resp.Status)
+		return "", fmt.Errorf("%w: %s", errUnexpectedRegisterStatus, resp.Status)
 	}
 
-	return nil
+	var result struct {
+		BaseURL string `json:"baseUrl"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("decode app registration response: %w", err)
+	}
+	if result.BaseURL == "" {
+		return "", fmt.Errorf("%w: missing baseUrl", errUnexpectedRegisterStatus)
+	}
+
+	return result.BaseURL, nil
 }
 
-// UnregisterApp removes an app endpoint explicitly registered with app-manager.
-func (c *Client) UnregisterApp(ctx context.Context, appID, baseURL string) error {
-	values := url.Values{}
-	values.Set("appId", appID)
-	values.Set("baseUrl", baseURL)
+// UnregisterApp notifies app-manager that studioctl stopped an app.
+func (c *Client) UnregisterApp(ctx context.Context, appID string) error {
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodDelete,
-		controlBaseURL+registerPath+"?"+values.Encode(),
+		controlBaseURL+registerPath+"?appId="+url.QueryEscape(appID),
 		nil,
 	)
 	if err != nil {
@@ -331,7 +397,15 @@ func EnsureStartedWithStudioctlPath(
 	cfg *config.Config,
 	loadBalancerPort,
 	studioctlPath string,
-) error {
+) (err error) {
+	lock, err := osutil.AcquireFileLock(ctx, cfg.AppManagerLockPath())
+	if err != nil {
+		return fmt.Errorf("lock app-manager lifecycle: %w", err)
+	}
+	defer func() {
+		err = errors.Join(err, closeAppManagerLifecycleLock(lock))
+	}()
+
 	desired := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
 	client := NewClient(cfg)
 
@@ -339,7 +413,10 @@ func EnsureStartedWithStudioctlPath(
 	switch {
 	case err == nil:
 		if liveConfig(cfg, status) == desired {
-			return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+			return writeAppManagerState(cfg, runtimeState{
+				PID:   status.ProcessID,
+				Start: desired,
+			})
 		}
 		return restartManagedProcess(ctx, cfg, client, status.ProcessID, desired)
 	case !errors.Is(err, ErrNotRunning):
@@ -373,28 +450,37 @@ func reconcilePersistedProcess(
 	state runtimeState,
 	desired startConfig,
 ) error {
-	running, err := isProcessRunning(state.PID)
+	running, err := osutil.ProcessRunning(state.PID)
 	if err != nil {
 		return fmt.Errorf("check persisted app-manager pid %d: %w", state.PID, err)
 	}
 
 	if !running {
-		return restartFromPersistedState(ctx, cfg, desired, 0)
+		return restartFromPersistedState(ctx, cfg, client, desired, 0)
 	}
 
 	if state.Start == desired {
-		status, waitErr := waitForHealthy(ctx, cfg, client)
+		status, waitErr := waitForHealthy(ctx, cfg, client, time.Now())
 		if waitErr == nil {
-			return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+			return writeAppManagerState(cfg, runtimeState{
+				PID:   status.ProcessID,
+				Start: desired,
+			})
 		}
 	}
 
-	return restartFromPersistedState(ctx, cfg, desired, state.PID)
+	return restartFromPersistedState(ctx, cfg, client, desired, state.PID)
 }
 
-func restartFromPersistedState(ctx context.Context, cfg *config.Config, desired startConfig, pid int) error {
+func restartFromPersistedState(
+	ctx context.Context,
+	cfg *config.Config,
+	client *Client,
+	desired startConfig,
+	pid int,
+) error {
 	if pid > 0 {
-		if err := killProcess(pid); err != nil {
+		if err := forceStopAppManager(ctx, client, pid); err != nil {
 			return fmt.Errorf("stop persisted app-manager pid %d: %w", pid, err)
 		}
 	}
@@ -417,6 +503,11 @@ func TunnelURL(port string) string {
 	return "ws://127.0.0.1:" + port + appTunnelEndpointPath
 }
 
+// LocaltestURL returns the localtest HTTP URL for a host port.
+func LocaltestURL(port string) string {
+	return "http://127.0.0.1:" + port
+}
+
 func restartManagedProcess(
 	ctx context.Context,
 	cfg *config.Config,
@@ -428,13 +519,13 @@ func restartManagedProcess(
 		return fmt.Errorf("shutdown app-manager for restart: %w", err)
 	}
 
-	if !waitForShutdown(ctx, client, cfg) {
-		if err := killProcess(pid); err != nil {
-			return fmt.Errorf("kill app-manager after shutdown timeout: %w", err)
+	if !waitForShutdown(ctx, client, cfg, pid) {
+		if err := forceStopAppManager(ctx, client, pid); err != nil {
+			return fmt.Errorf("force stop app-manager after shutdown timeout: %w", err)
 		}
-		if err := removeAppManagerState(cfg); err != nil {
-			return fmt.Errorf("remove stale app-manager pid file: %w", err)
-		}
+	}
+	if err := removeAppManagerState(cfg); err != nil {
+		return fmt.Errorf("remove stale app-manager pid file: %w", err)
 	}
 
 	return startProcess(ctx, cfg, desired)
@@ -451,6 +542,10 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	if err := removeAppManagerState(cfg); err != nil {
 		return fmt.Errorf("remove stale app-manager pid file: %w", err)
 	}
+	if err := prepareAppManagerSocketForStart(ctx, cfg); err != nil {
+		return err
+	}
+	startedAt := time.Now()
 
 	//nolint:gosec // G204: binary path comes from resolved studioctl config.
 	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.AppManagerBinaryPath())
@@ -461,6 +556,9 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	)
 	if startConfig.TunnelURL != "" {
 		cmd.Env = append(cmd.Env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
+	}
+	if startConfig.LocaltestURL != "" {
+		cmd.Env = append(cmd.Env, appManagerLocaltestURLEnv+"="+startConfig.LocaltestURL)
 	}
 	if startConfig.StudioctlPath != "" {
 		cmd.Env = append(cmd.Env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
@@ -474,13 +572,17 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	cmd.Stdin = devNull
 	cmd.Stdout = devNull
 	cmd.Stderr = devNull
-	applyProcessAttrs(cmd)
+	osutil.ApplyDetachedAttrs(cmd)
 
 	err = cmd.Start()
 	if err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
-	err = writeAppManagerState(cfg, runtimeState{PID: cmd.Process.Pid, Start: startConfig})
+	startedPID := cmd.Process.Pid
+	err = writeAppManagerState(cfg, runtimeState{
+		PID:   startedPID,
+		Start: startConfig,
+	})
 	if err != nil {
 		ignoreError(cmd.Process.Kill())
 		return fmt.Errorf("write app-manager pid file: %w", err)
@@ -492,17 +594,55 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	}
 
 	client := NewClient(cfg)
-	status, err := waitForHealthy(ctx, cfg, client)
+	status, err := waitForHealthy(ctx, cfg, client, startedAt)
 	if err == nil {
-		return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: startConfig})
+		return writeAppManagerState(cfg, runtimeState{
+			PID:   status.ProcessID,
+			Start: startConfig,
+		})
 	}
 
-	ignoreError(killProcess(cmd.Process.Pid))
+	ignoreError(osutil.KillProcess(startedPID))
 	ignoreError(removeAppManagerState(cfg))
 	return err
 }
 
-func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client) (*Status, error) {
+func prepareAppManagerSocketForStart(ctx context.Context, cfg *config.Config) error {
+	if err := removeStaleAppManagerSocket(ctx, cfg); err != nil {
+		return fmt.Errorf("prepare app-manager socket: %w", err)
+	}
+	return nil
+}
+
+func removeStaleAppManagerSocket(ctx context.Context, cfg *config.Config) error {
+	socketPath := cfg.AppManagerSocketPath()
+	info, err := os.Lstat(socketPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("stat app-manager socket: %w", err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("%w: %s", errAppManagerSocketDir, socketPath)
+	}
+
+	client := NewClient(cfg)
+	err = client.Health(ctx)
+	switch {
+	case err == nil:
+		return fmt.Errorf("%w: %s", errAppManagerSocketInUse, socketPath)
+	case !errors.Is(err, ErrNotRunning):
+		return fmt.Errorf("probe existing app-manager socket: %w", err)
+	}
+
+	if err := os.Remove(socketPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove stale app-manager socket: %w", err)
+	}
+	return nil
+}
+
+func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client, logSince time.Time) (*Status, error) {
 	deadline := time.Now().Add(appManagerStartTimeout)
 	var lastErr error
 	for time.Now().Before(deadline) {
@@ -521,7 +661,7 @@ func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client) (*S
 			errAppManagerStartTimedOut,
 			appManagerStartTimeout,
 			lastErr,
-			readAppManagerLogTail(cfg.AppManagerLogPath()),
+			readLatestAppManagerLogTailSince(cfg.AppManagerLogDir(), logSince),
 		)
 	}
 
@@ -529,14 +669,14 @@ func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client) (*S
 		"%w: %s%s",
 		errAppManagerStartTimedOut,
 		appManagerStartTimeout,
-		readAppManagerLogTail(cfg.AppManagerLogPath()),
+		readLatestAppManagerLogTailSince(cfg.AppManagerLogDir(), logSince),
 	)
 }
 
-func waitForShutdown(ctx context.Context, client *Client, cfg *config.Config) bool {
+func waitForShutdown(ctx context.Context, client *Client, cfg *config.Config, pid int) bool {
 	deadline := time.Now().Add(appManagerStartTimeout)
 	for time.Now().Before(deadline) {
-		if err := client.Health(ctx); errors.Is(err, ErrNotRunning) {
+		if appManagerStopped(ctx, client, pid) {
 			ignoreError(removeAppManagerState(cfg))
 			return true
 		}
@@ -544,6 +684,28 @@ func waitForShutdown(ctx context.Context, client *Client, cfg *config.Config) bo
 	}
 
 	return false
+}
+
+func forceStopAppManager(ctx context.Context, client *Client, pid int) error {
+	if err := osutil.KillProcess(pid); err != nil {
+		return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
+	}
+
+	deadline := time.Now().Add(appManagerShutdownWait)
+	for time.Now().Before(deadline) {
+		if appManagerStopped(ctx, client, pid) {
+			return nil
+		}
+		time.Sleep(appManagerPollInterval)
+	}
+
+	return fmt.Errorf("%w: pid %d", errAppManagerForceStopTimeout, pid)
+}
+
+func appManagerStopped(ctx context.Context, client *Client, pid int) bool {
+	healthStopped := errors.Is(client.Health(ctx), ErrNotRunning)
+	processStopped, err := managedProcessStopped(pid)
+	return err == nil && healthStopped && processStopped
 }
 
 func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) (int, error) {
@@ -575,53 +737,48 @@ func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) 
 func waitForManagedShutdown(ctx context.Context, cfg *config.Config, client *Client, pid int) error {
 	deadline := time.Now().Add(appManagerShutdownWait)
 	for time.Now().Before(deadline) {
-		healthStopped := errors.Is(client.Health(ctx), ErrNotRunning)
-		processStopped, err := managedProcessStopped(pid)
-		if err != nil {
-			return err
-		}
-		if healthStopped && processStopped {
+		if appManagerStopped(ctx, client, pid) {
 			if err := removeAppManagerState(cfg); err != nil {
 				return fmt.Errorf("remove stale app-manager pid file: %w", err)
 			}
-			return nil
+			return removeStaleAppManagerSocket(ctx, cfg)
 		}
 		time.Sleep(appManagerPollInterval)
 	}
 
-	return stopPersistedProcess(cfg, pid)
+	return stopPersistedProcess(ctx, cfg, client, pid)
 }
 
-func stopPersistedProcess(cfg *config.Config, pid int) error {
+func stopPersistedProcess(ctx context.Context, cfg *config.Config, client *Client, pid int) error {
 	if pid <= 0 {
-		return removePersistedAppManagerState(cfg)
+		return removePersistedAppManagerState(ctx, cfg)
 	}
 
-	running, err := isProcessRunning(pid)
+	running, err := osutil.ProcessRunning(pid)
 	if err != nil {
 		return fmt.Errorf("check app-manager pid %d: %w", pid, err)
 	}
 	if running {
-		if err := killProcess(pid); err != nil {
-			return fmt.Errorf("kill app-manager pid %d: %w", pid, err)
+		if err := forceStopAppManager(ctx, client, pid); err != nil {
+			return err
 		}
 	}
 
-	return removePersistedAppManagerState(cfg)
+	return removePersistedAppManagerState(ctx, cfg)
 }
 
-func removePersistedAppManagerState(cfg *config.Config) error {
+func removePersistedAppManagerState(ctx context.Context, cfg *config.Config) error {
 	if err := removeAppManagerState(cfg); err != nil {
 		return fmt.Errorf("remove stale app-manager pid file: %w", err)
 	}
-	return nil
+	return removeStaleAppManagerSocket(ctx, cfg)
 }
 
 func managedProcessStopped(pid int) (bool, error) {
 	if pid <= 0 {
 		return true, nil
 	}
-	running, err := isProcessRunning(pid)
+	running, err := osutil.ProcessRunning(pid)
 	if err != nil {
 		return false, fmt.Errorf("check app-manager pid %d: %w", pid, err)
 	}
@@ -634,6 +791,7 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 		WorkingDir:     cfg.Home,
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      TunnelURL(loadBalancerPort),
+		LocaltestURL:   LocaltestURL(loadBalancerPort),
 		StudioctlPath:  studioctlPath,
 		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}
@@ -645,6 +803,7 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		WorkingDir:     cfg.Home,
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      status.Tunnel.URL,
+		LocaltestURL:   status.LocaltestURL,
 		StudioctlPath:  status.StudioctlPath,
 		InternalDev:    status.InternalDev,
 	}
@@ -702,18 +861,6 @@ func removeAppManagerState(cfg *config.Config) error {
 	return nil
 }
 
-func killProcess(pid int) error {
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return fmt.Errorf("find process: %w", err)
-	}
-	if err := process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
-		return fmt.Errorf("kill process: %w", err)
-	}
-
-	return nil
-}
-
 func classifyClientError(err error) error {
 	var opErr *net.OpError
 	if errors.As(err, &opErr) {
@@ -733,13 +880,37 @@ func closeResponseBody(resp *http.Response) {
 func ignoreError(error) {
 }
 
+func readLatestAppManagerLogTail(dir string) string {
+	path, ok := latestAppManagerLogPath(dir)
+	if !ok {
+		return ""
+	}
+
+	return readAppManagerLogTail(path)
+}
+
+func readLatestAppManagerLogTailSince(dir string, since time.Time) string {
+	files, err := LogFiles(dir)
+	if err != nil {
+		return ""
+	}
+	for i := len(files) - 1; i >= 0; i-- {
+		if !files[i].ModTime.Before(since) {
+			return readAppManagerLogTail(files[i].Path)
+		}
+	}
+	return ""
+}
+
 func readAppManagerLogTail(path string) string {
-	//nolint:gosec // G304: log path is derived from resolved STUDIOCTL_HOME and never user-supplied per request.
+	//nolint:gosec // G304: log path is derived from resolved STUDIOCTL_HOME and a fixed filename pattern.
 	file, err := os.Open(path)
 	if err != nil {
 		return ""
 	}
-	defer ignoreError(file.Close())
+	defer func() {
+		ignoreError(file.Close())
+	}()
 
 	lines := make([]string, 0, appManagerLogTailLines)
 	scanner := bufio.NewScanner(file)
@@ -763,6 +934,95 @@ func readAppManagerLogTail(path string) string {
 		strings.Join(lines, osutil.LineBreak)
 }
 
+func latestAppManagerLogPath(dir string) (string, bool) {
+	return LatestLogPath(dir)
+}
+
+// LatestLogPath returns the most recently modified app-manager log path.
+func LatestLogPath(dir string) (string, bool) {
+	files, err := LogFiles(dir)
+	if err != nil || len(files) == 0 {
+		return "", false
+	}
+	return files[len(files)-1].Path, true
+}
+
+// LogFiles returns app-manager log files ordered by modification time.
+func LogFiles(dir string) ([]LogFile, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("read app-manager log directory: %w", err)
+	}
+
+	files := make([]LogFile, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || !isAppManagerLogName(entry.Name()) {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		files = append(files, LogFile{
+			Path:    filepath.Join(dir, entry.Name()),
+			ModTime: info.ModTime(),
+			Size:    info.Size(),
+		})
+	}
+	sort.Slice(files, func(i, j int) bool {
+		if files[i].ModTime.Equal(files[j].ModTime) {
+			return files[i].Path < files[j].Path
+		}
+		return files[i].ModTime.Before(files[j].ModTime)
+	})
+
+	return files, nil
+}
+
+func isAppManagerLogName(name string) bool {
+	return logIDFromName(name) != ""
+}
+
+func logIDFromName(name string) string {
+	const dateLength = len("2006-01-02")
+	if len(name) <= dateLength+len("-")+len(appManagerLogSuffix) {
+		return ""
+	}
+	if !strings.HasSuffix(name, appManagerLogSuffix) {
+		return ""
+	}
+	if !isUTCDatePrefix(name[:dateLength]) {
+		return ""
+	}
+	if name[dateLength] != '-' {
+		return ""
+	}
+	id := name[dateLength+1 : len(name)-len(appManagerLogSuffix)]
+	value, err := strconv.Atoi(id)
+	if err != nil || value <= 0 {
+		return ""
+	}
+	return id
+}
+
+func isUTCDatePrefix(value string) bool {
+	if len(value) != len("2006-01-02") || value[4] != '-' || value[7] != '-' {
+		return false
+	}
+	for i, r := range value {
+		if i == 4 || i == 7 {
+			continue
+		}
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
+}
+
 func zeroRuntimeState() runtimeState {
 	return runtimeState{
 		Start: startConfig{
@@ -770,6 +1030,7 @@ func zeroRuntimeState() runtimeState {
 			WorkingDir:     "",
 			UnixSocketPath: "",
 			TunnelURL:      "",
+			LocaltestURL:   "",
 			StudioctlPath:  "",
 			InternalDev:    false,
 		},

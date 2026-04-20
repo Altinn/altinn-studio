@@ -10,8 +10,8 @@ import (
 
 // CheckForLegacyLocaltest checks if legacy localtest containers are running.
 // Returns an error if containers exist without the studioctl management label.
-func CheckForLegacyLocaltest(ctx context.Context, client container.ContainerClient) error {
-	containers := coreContainerNames()
+func CheckForLegacyLocaltest(ctx context.Context, client container.ContainerClient, includePgAdmin bool) error {
+	containers := coreContainerNames(includePgAdmin)
 	var legacyContainers []string
 
 	for _, name := range containers {

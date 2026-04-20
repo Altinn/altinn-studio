@@ -75,6 +75,9 @@ jobs:
         working-directory: ${{ matrix.os.workingDir }}
         run: |
           dotnet test solutions/All.sln -v m --no-restore --no-build --filter "Category!=Integration"
+      - name: Setup studioctl
+        if: matrix.os.id == 'ubuntu-latest'
+        uses: ./.github/actions/setup-studioctl
       - name: Test (integration tests)
         if: matrix.os.id == 'ubuntu-latest'
         working-directory: ${{ matrix.os.workingDir }}

@@ -1,6 +1,8 @@
 using System.Buffers.Binary;
+using System.Globalization;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace Altinn.Studio.AppManager.Platform.PortListeners;
 
@@ -12,6 +14,7 @@ internal sealed partial class WindowsPortListeners : IPortListenerSource
     private const uint MaxTableSize = 10u << 20;
     private const uint TcpStateListen = 2;
     private readonly Dictionary<int, string> _processNames = [];
+    private readonly Dictionary<int, string?> _commandLines = [];
 
     public bool SupportsCurrentPlatform() => OperatingSystem.IsWindows();
 
@@ -29,10 +32,25 @@ internal sealed partial class WindowsPortListeners : IPortListenerSource
             cancellationToken
         );
 
+        await ResolveMissingCommandLines(listeners, cancellationToken);
+
         var resolvedListeners = new List<PortListener>(listeners.Count);
         foreach (var listener in listeners)
-            resolvedListeners.Add(ResolveProcessName(listener));
+            resolvedListeners.Add(ResolveProcessMetadata(listener));
+
+        PruneProcessCaches(resolvedListeners);
         return resolvedListeners;
+    }
+
+    private void PruneProcessCaches(IEnumerable<PortListener> listeners)
+    {
+        var activeProcessIds = listeners.Select(static listener => listener.ProcessId).ToHashSet();
+        foreach (var processId in _processNames.Keys.ToArray())
+            if (!activeProcessIds.Contains(processId))
+                _processNames.Remove(processId);
+        foreach (var processId in _commandLines.Keys.ToArray())
+            if (!activeProcessIds.Contains(processId))
+                _commandLines.Remove(processId);
     }
 
     private static IReadOnlyList<PortListener> ReadTcp4Listeners() =>
@@ -147,22 +165,127 @@ internal sealed partial class WindowsPortListeners : IPortListenerSource
         return new IPAddress(addressBytes);
     }
 
-    private PortListener ResolveProcessName(PortListener listener)
+    private PortListener ResolveProcessMetadata(PortListener listener)
     {
-        if (_processNames.TryGetValue(listener.ProcessId, out var processName))
-            return listener with { ProcessName = processName };
+        var processName = ResolveProcessName(listener.ProcessId);
+        _commandLines.TryGetValue(listener.ProcessId, out var commandLine);
+        return listener with { ProcessName = processName, CommandLine = commandLine };
+    }
+
+    private string? ResolveProcessName(int processId)
+    {
+        if (_processNames.TryGetValue(processId, out var processName))
+            return processName;
 
         try
         {
-            using var process = System.Diagnostics.Process.GetProcessById(listener.ProcessId);
+            using var process = System.Diagnostics.Process.GetProcessById(processId);
             processName = process.ProcessName;
-            _processNames[listener.ProcessId] = processName;
-            return listener with { ProcessName = processName };
+            _processNames[processId] = processName;
+            return processName;
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
         {
-            return listener;
+            return null;
         }
+    }
+
+    private async Task ResolveMissingCommandLines(
+        IReadOnlyList<PortListener> listeners,
+        CancellationToken cancellationToken
+    )
+    {
+        var processIds = listeners
+            .Select(static listener => listener.ProcessId)
+            .Distinct()
+            .Where(processId => !_commandLines.ContainsKey(processId))
+            .ToArray();
+        if (processIds.Length == 0)
+            return;
+
+        foreach (var processId in processIds)
+            _commandLines[processId] = null;
+
+        try
+        {
+            var command = CimCommandLineQuery(processIds);
+            var output = await RunPowerShell(command, cancellationToken);
+            if (string.IsNullOrWhiteSpace(output))
+                return;
+
+            using var document = JsonDocument.Parse(output);
+            if (document.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var element in document.RootElement.EnumerateArray())
+                    AddCommandLine(element);
+            }
+            else
+            {
+                AddCommandLine(document.RootElement);
+            }
+        }
+        catch (Exception ex) when (CommandLineLookupFailed(ex, cancellationToken))
+        {
+            MarkCommandLinesUnavailable(processIds);
+        }
+    }
+
+    private void MarkCommandLinesUnavailable(IEnumerable<int> processIds)
+    {
+        foreach (var processId in processIds)
+            _commandLines[processId] = null;
+    }
+
+    private void AddCommandLine(JsonElement element)
+    {
+        if (
+            element.ValueKind != JsonValueKind.Object
+            || !element.TryGetProperty("ProcessId", out var processIdProperty)
+            || !processIdProperty.TryGetInt32(out var processId)
+            || !element.TryGetProperty("CommandLine", out var commandLineProperty)
+        )
+            return;
+
+        var commandLine =
+            commandLineProperty.ValueKind == JsonValueKind.String ? commandLineProperty.GetString() : null;
+        _commandLines[processId] = string.IsNullOrWhiteSpace(commandLine) ? null : commandLine;
+    }
+
+    private static string CimCommandLineQuery(int[] processIds)
+    {
+        var filter = string.Join(
+            " OR ",
+            processIds.Select(static processId => $"ProcessId = {processId.ToString(CultureInfo.InvariantCulture)}")
+        );
+        return $"Get-CimInstance Win32_Process -Filter \"{filter}\" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress";
+    }
+
+    private static bool CommandLineLookupFailed(Exception exception, CancellationToken cancellationToken) =>
+        exception is InvalidOperationException or JsonException or System.ComponentModel.Win32Exception
+        || (exception is OperationCanceledException && !cancellationToken.IsCancellationRequested);
+
+    private static async Task<string> RunPowerShell(string command, CancellationToken cancellationToken)
+    {
+        using var process = new System.Diagnostics.Process
+        {
+            StartInfo = ProcessUtil.CreateStartInfo("powershell.exe"),
+        };
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.ArgumentList.Add("-NoProfile");
+        process.StartInfo.ArgumentList.Add("-NonInteractive");
+        process.StartInfo.ArgumentList.Add("-Command");
+        process.StartInfo.ArgumentList.Add(command);
+
+        process.Start();
+        var stdout = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var stderr = process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
+
+        if (process.ExitCode != 0)
+            throw new InvalidOperationException($"command 'powershell.exe' failed: {await stderr}");
+
+        return await stdout;
     }
 
     [LibraryImport("iphlpapi.dll", SetLastError = true)]

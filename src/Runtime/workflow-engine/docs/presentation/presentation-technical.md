@@ -152,7 +152,7 @@ Every failure path ends in either **successful retry** or **explicit, visible fa
 | Component        | Technology                                                   |
 | ---------------- | ------------------------------------------------------------ |
 | Runtime          | .NET 10, C# 14                                               |
-| Database         | PostgreSQL (EF Core + raw SQL for hot paths)                  |
+| Database         | PostgreSQL (EF Core + raw SQL for hot paths)                 |
 | Telemetry        | OpenTelemetry &rarr; OTLP &rarr; Grafana (Tempo, Prometheus) |
 | Testing          | xUnit v3, Testcontainers (PostgreSQL), WireMock, Verify.Net  |
 | Dashboard        | Vanilla JS ES modules (no build step), embedded in Core      |
@@ -198,11 +198,11 @@ Database is the single source of truth. No in-memory queue. Enqueue and status-u
 
 ### How failures are classified
 
-| HTTP response  | Classification | Action                     |
-| -------------- | -------------- | -------------------------- |
-| 2xx            | Success        | Next step                  |
-| 408, 429, 5xx  | Retryable      | Requeue with backoff       |
-| Other 4xx      | Critical       | Fail immediately, no retry |
+| HTTP response | Classification | Action                     |
+| ------------- | -------------- | -------------------------- |
+| 2xx           | Success        | Next step                  |
+| 408, 429, 5xx | Retryable      | Requeue with backoff       |
+| Other 4xx     | Critical       | Fail immediately, no retry |
 
 Retries are per-step with configurable backoff (exponential, linear, constant), delay caps, and total deadline.
 

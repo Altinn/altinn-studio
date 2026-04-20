@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Altinn.Studio.Designer.Services.Models;
 
 public enum StudioctlInstallScriptStatus

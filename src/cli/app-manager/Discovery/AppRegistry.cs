@@ -1,267 +1,436 @@
+using System.Collections.Concurrent;
+using System.Threading.Channels;
+
 namespace Altinn.Studio.AppManager.Discovery;
 
 internal sealed class AppRegistry : BackgroundService
 {
+    private const int MaxConcurrentProbes = 8;
     private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan _startupPollInterval = TimeSpan.FromMilliseconds(500);
 
     private readonly IReadOnlyList<IAppDiscovery> _discoveries;
     private readonly AppMetadataProbe _probe;
+    private readonly LocaltestStorageProbe _storageProbe;
     private readonly ILogger<AppRegistry> _logger;
-    private readonly object _lock = new();
+    private readonly Channel<AppRegistryMessage> _messages = Channel.CreateUnbounded<AppRegistryMessage>();
+    private readonly List<AppStartWaiter> _pendingStarts = [];
 
-    private Dictionary<string, AppEntry> _apps = new(StringComparer.OrdinalIgnoreCase);
+    private DiscoveredApp[] _apps = [];
+    private bool _lastRefreshFailed;
 
-    public AppRegistry(IEnumerable<IAppDiscovery> discoveries, AppMetadataProbe probe, ILogger<AppRegistry> logger)
+    public AppRegistry(
+        IEnumerable<IAppDiscovery> discoveries,
+        AppMetadataProbe probe,
+        LocaltestStorageProbe storageProbe,
+        ILogger<AppRegistry> logger
+    )
     {
         _discoveries = [.. discoveries];
         _probe = probe;
+        _storageProbe = storageProbe;
         _logger = logger;
     }
 
     public IReadOnlyList<DiscoveredApp> GetAll()
     {
-        lock (_lock)
-            return [.. _apps.Values.Select(static entry => entry.Metadata)];
+        return [.. Volatile.Read(ref _apps)];
     }
 
-    public bool TryGet(string appId, out DiscoveredApp? app)
+    public IReadOnlyList<DiscoveredApp> GetByAppId(string appId)
     {
-        lock (_lock)
+        List<DiscoveredApp>? apps = null;
+        foreach (var candidate in Volatile.Read(ref _apps))
         {
-            if (_apps.TryGetValue(appId, out var entry))
-            {
-                app = entry.Metadata;
-                return true;
-            }
+            if (!string.Equals(candidate.AppId, appId, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            apps ??= [];
+            apps.Add(candidate);
         }
 
-        app = null;
-        return false;
+        return apps ?? [];
     }
 
-    public void Register(string appId, Uri baseUri, string description, TimeSpan gracePeriod)
+    public async Task<Uri> AppStarted(
+        string appId,
+        int? processId,
+        string? containerId,
+        int? hostPort,
+        TimeSpan timeout,
+        CancellationToken cancellationToken
+    )
     {
-        var now = DateTimeOffset.UtcNow;
-        baseUri = AppEndpointUri.Canonicalize(baseUri);
-        var app = new DiscoveredApp(appId, baseUri, "studioctl", null, description, now);
-        lock (_lock)
-            _apps[appId] = new AppEntry(app, now + gracePeriod);
-
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Registered app {AppId} on {BaseUri} via studioctl", appId, baseUri);
-    }
-
-    public void Unregister(string appId, Uri baseUri)
-    {
-        DiscoveredApp? removed = null;
-        lock (_lock)
-        {
-            if (_apps.TryGetValue(appId, out var entry) && AppEndpointUri.Same(entry.Metadata.BaseUri, baseUri))
+        var waiter = new AppStartWaiter(appId, processId, containerId, hostPort, DateTimeOffset.UtcNow + timeout);
+        using var cancellation = cancellationToken.Register(
+            static state =>
             {
-                _apps.Remove(appId);
-                removed = entry.Metadata;
-            }
-        }
+                if (state is not AppStartWaiter waiter)
+                    throw new InvalidOperationException("Missing app start waiter");
+                waiter.TrySetCanceled();
+            },
+            waiter
+        );
+        await _messages.Writer.WriteAsync(new AppStartedMessage(waiter), cancellationToken);
+        return await waiter.Task;
+    }
 
-        if (removed is not null && _logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Unregistered app {AppId} from {BaseUri}", removed.AppId, removed.BaseUri);
+    public void AppStopped(string? appId)
+    {
+        _messages.Writer.TryWrite(new AppStoppedMessage(string.IsNullOrWhiteSpace(appId) ? null : appId.Trim()));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        var nextPoll = DateTimeOffset.MinValue;
+        var readTask = _messages.Reader.ReadAsync(stoppingToken).AsTask();
+        var timerTask = Task.Delay(_startupPollInterval, stoppingToken);
+        AppRegistryMessage? currentMessage = null;
+
+        try
         {
             try
             {
-                await Refresh(stoppingToken);
+                nextPoll = await HandleMessage(new TimerTick(), nextPoll, stoppingToken);
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException || !stoppingToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "App discovery refresh failed");
             }
 
-            await Task.Delay(_pollInterval, stoppingToken);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var completed = await Task.WhenAny(readTask, timerTask);
+
+                AppRegistryMessage message;
+                if (completed == readTask)
+                {
+                    message = await readTask;
+                    readTask = _messages.Reader.ReadAsync(stoppingToken).AsTask();
+                }
+                else
+                {
+                    await timerTask;
+                    message = new TimerTick();
+                    timerTask = Task.Delay(_startupPollInterval, stoppingToken);
+                }
+
+                currentMessage = message;
+                try
+                {
+                    nextPoll = await HandleMessage(message, nextPoll, stoppingToken);
+                    currentMessage = null;
+                }
+                catch (Exception ex)
+                    when (ex is not OperationCanceledException || !stoppingToken.IsCancellationRequested)
+                {
+                    currentMessage = null;
+                    _logger.LogError(ex, "App discovery refresh failed");
+                }
+            }
         }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+            if (currentMessage is AppStartedMessage started)
+                started.Waiter.TrySetCanceled();
+        }
+        finally
+        {
+            CancelQueuedMessages();
+            CancelPendingStarts();
+        }
+    }
+
+    private async Task<DateTimeOffset> HandleMessage(
+        AppRegistryMessage message,
+        DateTimeOffset nextPoll,
+        CancellationToken cancellationToken
+    )
+    {
+        var now = DateTimeOffset.UtcNow;
+        var shouldRefresh =
+            message is not TimerTick || (_pendingStarts.Count > 0 && !_lastRefreshFailed) || now >= nextPoll;
+        if (!shouldRefresh)
+        {
+            PrunePendingStarts(now);
+            return nextPoll;
+        }
+
+        switch (message)
+        {
+            case AppStartedMessage started:
+                _pendingStarts.Add(started.Waiter);
+                break;
+            case AppStoppedMessage stopped when stopped.AppId is { } appId:
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("App stopped notification received for {AppId}", appId);
+                break;
+            case AppStoppedMessage:
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("App stopped notification received");
+                break;
+        }
+
+        try
+        {
+            await Refresh(cancellationToken);
+            _lastRefreshFailed = false;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            _lastRefreshFailed = true;
+            _logger.LogError(ex, "App discovery refresh failed");
+        }
+        finally
+        {
+            PrunePendingStarts(DateTimeOffset.UtcNow);
+        }
+
+        return now >= nextPoll ? now + _pollInterval : nextPoll;
     }
 
     private async Task Refresh(CancellationToken cancellationToken)
     {
-        var now = DateTimeOffset.UtcNow;
-        Dictionary<string, AppEntry> previous;
-        lock (_lock)
-            previous = new(_apps, StringComparer.OrdinalIgnoreCase);
+        var previous = Volatile.Read(ref _apps);
 
-        var previousApps = VisibleApps(previous);
-        var next = await DiscoverApps(now, previous, cancellationToken);
-        await ProbePreviousApps(now, previous, next, cancellationToken);
-        KeepAppsInGrace(now, previous, next);
+        var apps = await DiscoverApps(cancellationToken);
+        Volatile.Write(ref _apps, apps);
 
-        Dictionary<string, DiscoveredApp> apps;
-        lock (_lock)
-        {
-            ReconcileConcurrentChanges(previous, _apps, next);
-            _apps = next;
-            apps = VisibleApps(next);
-        }
-
-        LogRefresh(previousApps, apps, next.Count);
+        LogRefresh(previous, apps);
+        await CompleteReadyStarts(apps, cancellationToken);
     }
 
-    private async Task<Dictionary<string, AppEntry>> DiscoverApps(
-        DateTimeOffset now,
-        IReadOnlyDictionary<string, AppEntry> previous,
-        CancellationToken cancellationToken
-    )
+    private async Task<DiscoveredApp[]> DiscoverApps(CancellationToken cancellationToken)
     {
-        var apps = new Dictionary<string, AppEntry>(StringComparer.OrdinalIgnoreCase);
+        var probeResults = new ConcurrentBag<ProbeResult>();
+        var discoveryItems = _discoveries.Select(static (discovery, index) => new DiscoveryItem(index, discovery));
+        var discoveryOptions = new ParallelOptions { CancellationToken = cancellationToken };
 
-        foreach (var discovery in _discoveries)
-        {
-            var candidates = await discovery.Discover(cancellationToken);
-            foreach (var candidate in candidates)
+        await Parallel.ForEachAsync(
+            discoveryItems,
+            discoveryOptions,
+            async (discoveryItem, discoveryCancellationToken) =>
             {
-                if (_logger.IsEnabled(LogLevel.Debug))
+                var candidates = await discoveryItem.Discovery.Discover(discoveryCancellationToken);
+                var candidateItems = candidates.Select(
+                    static (candidate, index) => new CandidateItem(index, candidate)
+                );
+                var candidateOptions = new ParallelOptions
                 {
-                    _logger.LogDebug(
-                        "Probing discovery candidate {Source} {BaseUri} {Description}",
-                        candidate.Source,
-                        candidate.BaseUri,
-                        candidate.Description
-                    );
-                }
+                    CancellationToken = discoveryCancellationToken,
+                    MaxDegreeOfParallelism = MaxConcurrentProbes,
+                };
 
-                var appId = await _probe.Probe(candidate.BaseUri, cancellationToken);
-                if (string.IsNullOrWhiteSpace(appId))
-                    continue;
-
-                var baseUri = AppEndpointUri.Canonicalize(candidate.BaseUri);
-                apps[appId] = new AppEntry(
-                    new DiscoveredApp(
-                        appId,
-                        baseUri,
-                        candidate.Source,
-                        candidate.ProcessId,
-                        candidate.Description,
-                        now
-                    ),
-                    PreviousGraceDeadline(previous, appId, now)
+                await Parallel.ForEachAsync(
+                    candidateItems,
+                    candidateOptions,
+                    async (candidateItem, probeCancellationToken) =>
+                    {
+                        var app = await ProbeCandidate(candidateItem.Candidate, probeCancellationToken);
+                        if (app is not null)
+                            probeResults.Add(new ProbeResult(discoveryItem.Index, candidateItem.Index, app));
+                    }
                 );
             }
+        );
+
+        var apps = new Dictionary<AppKey, DiscoveredApp>();
+        foreach (
+            var result in probeResults
+                .OrderBy(static result => result.DiscoveryIndex)
+                .ThenBy(static result => result.CandidateIndex)
+        )
+        {
+            apps[AppKey.From(result.App)] = result.App;
         }
 
-        return apps;
+        return [.. apps.Values];
     }
 
-    private async Task ProbePreviousApps(
-        DateTimeOffset now,
-        IReadOnlyDictionary<string, AppEntry> previous,
-        Dictionary<string, AppEntry> next,
+    private async Task<DiscoveredApp?> ProbeCandidate(
+        AppDiscoveryCandidate candidate,
         CancellationToken cancellationToken
     )
     {
-        foreach (var (appId, entry) in previous)
+        if (_logger.IsEnabled(LogLevel.Debug))
         {
-            if (next.ContainsKey(appId))
+            _logger.LogDebug(
+                "Probing discovery candidate {Source} {BaseUri} {Description}",
+                candidate.Source,
+                candidate.BaseUri,
+                candidate.Description
+            );
+        }
+
+        var appId = await _probe.Probe(candidate.BaseUri, cancellationToken);
+        if (string.IsNullOrWhiteSpace(appId))
+            return null;
+
+        var baseUri = AppEndpointUri.From(candidate.BaseUri);
+        return new DiscoveredApp(
+            appId,
+            baseUri,
+            candidate.Source,
+            candidate.ProcessId,
+            candidate.Description,
+            candidate.ContainerId,
+            candidate.Name,
+            candidate.HostPort ?? baseUri.Port
+        );
+    }
+
+    private async Task CompleteReadyStarts(IReadOnlyList<DiscoveredApp> apps, CancellationToken cancellationToken)
+    {
+        for (var i = _pendingStarts.Count - 1; i >= 0; i--)
+        {
+            var waiter = _pendingStarts[i];
+            if (waiter.IsCompleted)
+            {
+                _pendingStarts.RemoveAt(i);
+                continue;
+            }
+
+            var app = apps.FirstOrDefault(waiter.Matches);
+            if (app is null)
                 continue;
 
-            var resolvedAppId = await _probe.Probe(entry.Metadata.BaseUri, cancellationToken);
-            if (string.Equals(resolvedAppId, appId, StringComparison.OrdinalIgnoreCase))
-                next[appId] = entry with { Metadata = entry.Metadata with { LastSeen = now } };
+            if (
+                await _storageProbe.ProbeApplicationMetadata(app.AppId, cancellationToken)
+                is LocaltestStorageProbeResult.NotReady
+            )
+                continue;
+
+            waiter.TrySetResult(app.BaseUri.Value);
+            _pendingStarts.RemoveAt(i);
         }
     }
 
-    private static void KeepAppsInGrace(
-        DateTimeOffset now,
-        Dictionary<string, AppEntry> previous,
-        Dictionary<string, AppEntry> next
-    )
+    private void PrunePendingStarts(DateTimeOffset now)
     {
-        foreach (var (appId, entry) in previous)
+        for (var i = _pendingStarts.Count - 1; i >= 0; i--)
         {
-            if (!next.ContainsKey(appId) && now <= entry.GraceDeadline)
-                next[appId] = entry;
+            var waiter = _pendingStarts[i];
+            if (waiter.IsCompleted)
+            {
+                _pendingStarts.RemoveAt(i);
+                continue;
+            }
+
+            if (now < waiter.Deadline)
+                continue;
+
+            waiter.TrySetException(
+                new TimeoutException("matching app endpoint not found or not reachable through localtest storage")
+            );
+            _pendingStarts.RemoveAt(i);
         }
     }
 
-    private static void ReconcileConcurrentChanges(
-        IReadOnlyDictionary<string, AppEntry> previous,
-        IReadOnlyDictionary<string, AppEntry> current,
-        Dictionary<string, AppEntry> next
-    )
+    private void CancelPendingStarts()
     {
-        foreach (var appId in previous.Keys)
-            if (!current.ContainsKey(appId))
-                next.Remove(appId);
-
-        foreach (var (appId, entry) in current)
-        {
-            if (!previous.TryGetValue(appId, out var previousEntry) || NewerEntry(entry, previousEntry))
-                next[appId] = entry;
-        }
+        foreach (var waiter in _pendingStarts)
+            waiter.TrySetCanceled();
+        _pendingStarts.Clear();
     }
 
-    private static bool NewerEntry(AppEntry entry, AppEntry previousEntry) =>
-        !AppEndpointUri.Same(entry.Metadata.BaseUri, previousEntry.Metadata.BaseUri)
-        || entry.Metadata.LastSeen > previousEntry.Metadata.LastSeen
-        || entry.GraceDeadline > previousEntry.GraceDeadline;
+    private void CancelQueuedMessages()
+    {
+        while (_messages.Reader.TryRead(out var message))
+            if (message is AppStartedMessage started)
+                started.Waiter.TrySetCanceled();
+    }
 
-    private void LogRefresh(
-        IReadOnlyDictionary<string, DiscoveredApp> previousApps,
-        IReadOnlyDictionary<string, DiscoveredApp> apps,
-        int appCount
-    )
+    private void LogRefresh(IReadOnlyList<DiscoveredApp> previousApps, IReadOnlyList<DiscoveredApp> apps)
     {
         if (!_logger.IsEnabled(LogLevel.Information))
             return;
 
-        foreach (var (appId, app) in apps)
+        foreach (var app in apps)
         {
-            if (!previousApps.TryGetValue(appId, out var previous))
+            var appKey = AppKey.From(app);
+            var previous = previousApps.FirstOrDefault(previousApp => AppKey.From(previousApp) == appKey);
+            if (previous is null)
             {
                 _logger.LogInformation(
                     "Discovered app {AppId} on {BaseUri} via {Source}",
-                    appId,
+                    app.AppId,
                     app.BaseUri,
                     app.Source
                 );
-                continue;
             }
-
-            if (!AppEndpointUri.Same(previous.BaseUri, app.BaseUri))
-                _logger.LogInformation(
-                    "Updated app {AppId} from {PreviousBaseUri} to {BaseUri}",
-                    appId,
-                    previous.BaseUri,
-                    app.BaseUri
-                );
         }
 
-        foreach (var (appId, previous) in previousApps)
-            if (!apps.ContainsKey(appId))
-                _logger.LogInformation("Removed app {AppId} from {BaseUri}", appId, previous.BaseUri);
+        foreach (var previous in previousApps)
+        {
+            var previousKey = AppKey.From(previous);
+            if (apps.Any(app => AppKey.From(app) == previousKey))
+                continue;
 
-        _logger.LogInformation("Discovery refresh completed with {AppCount} apps", appCount);
+            _logger.LogInformation("Removed app {AppId} from {BaseUri}", previous.AppId, previous.BaseUri);
+        }
     }
 
-    private static DateTimeOffset PreviousGraceDeadline(
-        IReadOnlyDictionary<string, AppEntry> previous,
-        string appId,
-        DateTimeOffset fallback
-    )
+    private readonly record struct AppKey(string AppId, AppEndpointUri BaseUri)
     {
-        return previous.TryGetValue(appId, out var entry) ? entry.GraceDeadline : fallback;
+        public static AppKey From(DiscoveredApp app) => new(app.AppId.ToUpperInvariant(), app.BaseUri);
     }
 
-    private static Dictionary<string, DiscoveredApp> VisibleApps(Dictionary<string, AppEntry> entries) =>
-        entries.ToDictionary(
-            static pair => pair.Key,
-            static pair => pair.Value.Metadata,
-            StringComparer.OrdinalIgnoreCase
-        );
+    private abstract record AppRegistryMessage;
 
-    private sealed record AppEntry(DiscoveredApp Metadata, DateTimeOffset GraceDeadline);
+    private sealed record TimerTick : AppRegistryMessage;
+
+    private sealed record AppStartedMessage(AppStartWaiter Waiter) : AppRegistryMessage;
+
+    private sealed record DiscoveryItem(int Index, IAppDiscovery Discovery);
+
+    private sealed record CandidateItem(int Index, AppDiscoveryCandidate Candidate);
+
+    private sealed record ProbeResult(int DiscoveryIndex, int CandidateIndex, DiscoveredApp App);
+
+    private sealed record AppStoppedMessage(string? AppId) : AppRegistryMessage;
+
+    private sealed class AppStartWaiter
+    {
+        private readonly TaskCompletionSource<Uri> _result = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public AppStartWaiter(string appId, int? processId, string? containerId, int? hostPort, DateTimeOffset deadline)
+        {
+            AppId = appId;
+            ProcessId = processId;
+            ContainerId = string.IsNullOrWhiteSpace(containerId) ? null : containerId.Trim();
+            HostPort = hostPort;
+            Deadline = deadline;
+        }
+
+        public string AppId { get; }
+        public int? ProcessId { get; }
+        public string? ContainerId { get; }
+        public int? HostPort { get; }
+        public DateTimeOffset Deadline { get; }
+        public Task<Uri> Task => _result.Task;
+        public bool IsCompleted => _result.Task.IsCompleted;
+
+        public bool Matches(DiscoveredApp app)
+        {
+            if (!string.Equals(app.AppId, AppId, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (ProcessId.HasValue && app.ProcessId != ProcessId)
+                return false;
+
+            if (
+                !string.IsNullOrWhiteSpace(ContainerId)
+                && !string.Equals(app.ContainerId, ContainerId, StringComparison.Ordinal)
+            )
+                return false;
+
+            return !HostPort.HasValue || app.HostPort == HostPort || app.BaseUri.Port == HostPort;
+        }
+
+        public void TrySetResult(Uri baseUri) => _result.TrySetResult(baseUri);
+
+        public void TrySetException(Exception exception) => _result.TrySetException(exception);
+
+        public void TrySetCanceled() => _result.TrySetCanceled();
+    }
 }

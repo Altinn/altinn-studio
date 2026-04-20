@@ -15,7 +15,6 @@ internal static class RuntimeFiles
         }
 
         EnsureParentDirectory(unixSocketPath, UnixSocketPathKey);
-        TryDelete(unixSocketPath);
     }
 
     public static void RegisterCleanup(IConfiguration configuration, IHostApplicationLifetime lifetime)
