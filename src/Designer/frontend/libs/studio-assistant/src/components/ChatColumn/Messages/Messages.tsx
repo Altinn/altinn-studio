@@ -1,16 +1,9 @@
 import type { ReactElement } from 'react';
-import {
-  StudioCard,
-  StudioParagraph,
-  StudioAvatar,
-  StudioTag,
-  StudioSpinner,
-} from '@studio/components';
+import { StudioCard, StudioParagraph, StudioTag, StudioSpinner } from '@studio/components';
 import { PaperclipIcon } from '@studio/icons';
 import type { User } from '../../../types/User';
 import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
-import assistantLogo from '../../../../../../app-development/features/aiAssistant/altinity-logo.png';
 import type { Message, UserAttachment, UserMessage, Source } from '../../../types/ChatThread';
 import type { WorkflowStatus } from '../../../types/WorkflowStatus';
 import {
@@ -18,6 +11,10 @@ import {
   formatFileSize,
   isUrlSafe,
 } from '../../../utils/messageUtils';
+import { ChatAvatar } from '../ChatAvatar';
+
+const ASSISTANT_LABEL = 'Altinity';
+const DEFAULT_USER_LABEL = 'Deg';
 
 export type MessagesProps = {
   messages: Message[];
@@ -66,34 +63,14 @@ function AssistantLoadingBubble({
 }: AssistantLoadingBubbleProps): ReactElement {
   return (
     <div className={`${classes.messageRow} ${classes.assistantRow}`}>
-      <AssistantAvatar avatarUrl={assistantAvatarUrl} />
+      <ChatAvatar src={assistantAvatarUrl} label={ASSISTANT_LABEL} variant='assistant' />
       <div className={classes.assistantMessage}>
-        <div className={classes.messageMeta}>Altinity</div>
+        <div className={classes.messageMeta}>{ASSISTANT_LABEL}</div>
         <div className={classes.assistantBody}>
           <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
           <div className={`${classes.assistantContent} ${classes.loadingText}`}>{content}</div>
         </div>
       </div>
-    </div>
-  );
-}
-
-type AssistantAvatarProps = {
-  avatarUrl?: string;
-};
-
-function AssistantAvatar({ avatarUrl }: AssistantAvatarProps): ReactElement {
-  return (
-    <div
-      className={`${classes.avatar} ${classes.assistantAvatarWrapper}`}
-      aria-label='Altinity'
-      title='Altinity'
-    >
-      <img
-        src={avatarUrl ?? assistantLogo}
-        alt='Altinity'
-        className={classes.assistantAvatarImage}
-      />
     </div>
   );
 }
@@ -106,6 +83,7 @@ type MessageItemProps = {
 
 function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemProps): ReactElement {
   const isUser = message.author === MessageAuthor.User;
+  const userLabel = currentUser?.full_name ?? DEFAULT_USER_LABEL;
 
   const renderUserAttachments = (attachments: UserAttachment[]): ReactElement | null => {
     if (!attachments || attachments.length === 0) {
@@ -139,28 +117,12 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     );
   };
 
-  const renderAvatar = (type: 'user' | 'assistant'): ReactElement => {
-    if (type === 'assistant') {
-      return <AssistantAvatar avatarUrl={assistantAvatarUrl} />;
-    }
-
-    const label = currentUser?.full_name ?? 'Deg';
-    return (
-      <StudioAvatar
-        src={currentUser?.avatar_url}
-        className={`${classes.avatar} ${classes.avatarUser}`}
-        aria-label={label}
-        title={label}
-      />
-    );
-  };
-
   if (isUser) {
     const userMessage = message as UserMessage;
     return (
       <div className={`${classes.messageRow} ${classes.userRow}`}>
         <div className={classes.messageWrapper}>
-          <div className={classes.messageMeta}>{currentUser?.full_name ?? 'Deg'}</div>
+          <div className={classes.messageMeta}>{userLabel}</div>
           <StudioCard className={classes.userMessage}>
             {userMessage.content && (
               <StudioParagraph className={classes.messageBody}>
@@ -172,7 +134,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
               renderUserAttachments(userMessage.attachments)}
           </StudioCard>
         </div>
-        {renderAvatar('user')}
+        <ChatAvatar src={currentUser?.avatar_url} label={userLabel} variant='user' />
       </div>
     );
   }
@@ -296,9 +258,9 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
 
   return (
     <div className={`${classes.messageRow} ${classes.assistantRow}`}>
-      {renderAvatar('assistant')}
+      <ChatAvatar src={assistantAvatarUrl} label={ASSISTANT_LABEL} variant='assistant' />
       <div className={classes.assistantMessage}>
-        <div className={classes.messageMeta}>Altinity</div>
+        <div className={classes.messageMeta}>{ASSISTANT_LABEL}</div>
         <div className={classes.assistantBody}>
           <div
             className={classes.assistantContent}
