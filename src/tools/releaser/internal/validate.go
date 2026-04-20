@@ -17,6 +17,9 @@ var (
 	ErrChangelogNotModified = errors.New("changelog was not modified")
 	// ErrNoNewUnreleasedEntries indicates [Unreleased] has no entries added compared to base.
 	ErrNoNewUnreleasedEntries = errors.New("unreleased section has no new entries compared to base")
+	// ErrBaseChangelogOutdated indicates that the base branch changelog changed
+	// after the PR branch diverged.
+	ErrBaseChangelogOutdated = errors.New("base branch contains newer changelog changes")
 )
 
 // ValidationRequest describes inputs for changelog validation.
@@ -69,6 +72,11 @@ func RunValidationWithDeps(ctx context.Context, req ValidationRequest, git *GitC
 		return fmt.Errorf("get repo root: %w", err)
 	}
 
+	err = validateBaseChangelogCurrent(ctx, git, req.Base, req.Head, clPath)
+	if err != nil {
+		return err
+	}
+
 	diffOutput, err := git.Run(ctx, "diff", "--name-only", req.Base, req.Head)
 	if err != nil {
 		return fmt.Errorf("git diff: %w", err)
@@ -104,6 +112,30 @@ func ChangelogWasModified(diffOutput, changelogPath string) bool {
 		}
 	}
 	return false
+}
+
+func validateBaseChangelogCurrent(ctx context.Context, git *GitCLI, base, head, changelogPath string) error {
+	mergeBase, err := git.Run(ctx, "merge-base", base, head)
+	if err != nil {
+		return fmt.Errorf("git merge-base: %w", err)
+	}
+	if mergeBase == base {
+		return nil
+	}
+
+	diffOutput, err := git.Run(ctx, "diff", "--name-only", mergeBase, base, "--", changelogPath)
+	if err != nil {
+		return fmt.Errorf("git diff base changelog: %w", err)
+	}
+	if !ChangelogWasModified(diffOutput, changelogPath) {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"%w: %s changed on the base branch after this branch diverged; rebase or merge the base branch before validating changelog",
+		ErrBaseChangelogOutdated,
+		changelogPath,
+	)
 }
 
 // ValidateUnreleasedOrReleasePromotion validates that Unreleased has content,

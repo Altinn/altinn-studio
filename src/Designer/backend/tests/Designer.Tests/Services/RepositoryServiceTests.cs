@@ -295,7 +295,7 @@ public class RepositoryServiceTests
                 """
             );
 
-            Assert.True(File.Exists(configPath), $"Før kopiering: config.json mangler i root: {configPath}");
+            Assert.True(File.Exists(configPath), $"Before copying: config.json missing in source root: {configPath}");
 
             RepositoryService sut = GetServiceForTest(developer);
 
@@ -306,7 +306,7 @@ public class RepositoryServiceTests
             string destConfigPath = Path.Combine(destRepoPath, "config.json");
             Assert.True(
                 File.Exists(destConfigPath),
-                $"Etter kopiering: config.json ble ikke funnet i target root: {destConfigPath}"
+                $"After copying: config.json not found in target root: {destConfigPath}"
             );
 
             string configJson = File.ReadAllText(destConfigPath);
