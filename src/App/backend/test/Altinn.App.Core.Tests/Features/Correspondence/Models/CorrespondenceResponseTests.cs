@@ -144,7 +144,6 @@ public class CorrespondenceResponseTests
                     {
                         "id": "598e8044-5ec4-43f9-8ce2-6a37c24cc7df",
                         "sendersReference": "1234",
-                        "requestedSendTime": "2024-11-14T12:10:57.031351Z",
                         "creator": "digdir",
                         "created": "2024-11-14T11:05:57.237047Z",
                         "isReminder": true,
@@ -164,7 +163,6 @@ public class CorrespondenceResponseTests
                     {
                         "id": "7ab0ff62-8c5d-4a2e-8ad2-7e7236e847a4",
                         "sendersReference": "1234",
-                        "requestedSendTime": "2024-11-14T11:10:57.031351Z",
                         "creator": "digdir",
                         "created": "2024-11-14T11:05:57.054356Z",
                         "isReminder": false,
@@ -232,7 +230,6 @@ public class CorrespondenceResponseTests
                 "sendersReference": "1234",
                 "messageSender": "Test Testesen",
                 "requestedPublishTime": "2024-05-29T13:31:28.290518+00:00",
-                "allowSystemDeleteAfter": "2025-05-29T13:31:28.290518+00:00",
                 "dueDateTime": "2025-05-29T13:31:28.290518+00:00",
                 "externalReferences": [
                     {
@@ -258,7 +255,8 @@ public class CorrespondenceResponseTests
                 "notification": null,
                 "ignoreReservation": true,
                 "published": "2024-11-14T11:06:56.208705+00:00",
-                "isConfirmationNeeded": false
+                "isConfirmationNeeded": false,
+                "isConfidential": false
             }
             """;
 
@@ -288,7 +286,6 @@ public class CorrespondenceResponseTests
                 {
                     Id = "7ab0ff62-8c5d-4a2e-8ad2-7e7236e847a4",
                     SendersReference = "1234",
-                    RequestedSendTime = DateTimeOffset.Parse("2024-11-14T11:10:57.031351Z"),
                     Creator = "digdir",
                     Created = DateTimeOffset.Parse("2024-11-14T11:05:57.054356Z"),
                     NotificationChannel = CorrespondenceNotificationChannel.EmailPreferred,
@@ -359,7 +356,6 @@ public class CorrespondenceResponseTests
         parsedResponse.SendersReference.Should().Be("1234");
         parsedResponse.MessageSender.Should().Be("Test Testesen");
         parsedResponse.RequestedPublishTime.Should().Be(DateTimeOffset.Parse("2024-05-29T13:31:28.290518+00:00"));
-        parsedResponse.AllowSystemDeleteAfter.Should().Be(DateTimeOffset.Parse("2025-05-29T13:31:28.290518+00:00"));
         parsedResponse.DueDateTime.Should().Be(DateTimeOffset.Parse("2025-05-29T13:31:28.290518+00:00"));
         parsedResponse.ExternalReferences.Should().HaveCount(2);
         parsedResponse
@@ -390,5 +386,6 @@ public class CorrespondenceResponseTests
         parsedResponse.IgnoreReservation.Should().BeTrue();
         parsedResponse.Published.Should().Be(DateTimeOffset.Parse("2024-11-14T11:06:56.208705+00:00"));
         parsedResponse.IsConfirmationNeeded.Should().BeFalse();
+        parsedResponse.IsConfidential.Should().BeFalse();
     }
 }

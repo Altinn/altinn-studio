@@ -288,12 +288,22 @@ func (c *AuthCommand) runStatus(ctx context.Context, args []string) error {
 		return c.printAuthStatusJSON(status)
 	}
 
-	rows := [][]string{{"ENV", "HOST", "USERNAME", "STATUS"}}
+	table := ui.NewTable(
+		ui.NewColumn("ENV"),
+		ui.NewColumn("HOST"),
+		ui.NewColumn("USERNAME"),
+		ui.NewColumn("STATUS"),
+	)
 	for _, envStatus := range status.Environments {
-		rows = append(rows, []string{envStatus.Env, envStatus.Host, envStatus.Username, envStatus.Status})
+		table.Row(
+			ui.Text(envStatus.Env),
+			ui.Text(envStatus.Host),
+			ui.Text(envStatus.Username),
+			ui.Text(envStatus.Status),
+		)
 	}
 
-	c.out.Table(rows)
+	c.out.RenderTable(table)
 	return nil
 }
 

@@ -1,7 +1,5 @@
 package localtest
 
-import "altinn.studio/studioctl/internal/config"
-
 // Container name constants - single source of truth for all container names.
 const (
 	// ContainerLocaltest is the main localtest container.
@@ -28,14 +26,14 @@ const (
 )
 
 // coreContainerNames returns the core container names in order.
-func coreContainerNames() []string {
+func coreContainerNames(includePgAdmin bool) []string {
 	names := []string{
 		ContainerLocaltest,
 		ContainerPDF3,
 		ContainerWorkflowEngineDb,
 		ContainerWorkflowEngine,
 	}
-	if !config.IsCI() {
+	if includePgAdmin {
 		names = append(names, ContainerPgAdmin)
 	}
 	return names
@@ -55,7 +53,7 @@ func monitoringContainerNames() []string {
 // AllContainerNames returns all container names in order (for log streaming).
 // If includeMonitoring is true, monitoring containers are included.
 func AllContainerNames(includeMonitoring bool) []string {
-	core := coreContainerNames()
+	core := coreContainerNames(true)
 	if !includeMonitoring {
 		return core
 	}

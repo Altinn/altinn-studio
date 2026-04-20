@@ -6,8 +6,9 @@ import classes from 'src/components/form/Form.module.css';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport, ErrorReportList } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
+import { Loader } from 'src/core/loading/Loader';
 import { SearchParams } from 'src/core/routing/types';
+import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useAllAttachments } from 'src/features/attachments/hooks';
@@ -23,7 +24,7 @@ import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onF
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -82,7 +83,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   useSetExpandedWidth();
 
   if (shouldNavigateToStart) {
-    return <NavigateToStartUrl forceCurrentTask={false} />;
+    return <NavigateToStartUrl />;
   }
 
   const hasSetCurrentPageId = currentPageId in textResources;
@@ -264,4 +265,29 @@ function HandleNavigationFocusComponent() {
   }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);
 
   return null;
+}
+
+/**
+ * TODO: Move to route loader.
+ * This can't move to a route loader yet because it depends on hidden page filtering, which requires
+ * React context (layout data, form data, expression evaluation).
+ *
+ * To remove this: move hidden-page awareness into the page route loader so it can redirect
+ * before rendering, then replace the Form.tsx usage with a loader-level redirect.
+ */
+function NavigateToStartUrl() {
+  const navigate = useNavigate();
+  const startUrl = useStartUrl();
+  const location = useLocation();
+  const isNavigating = useIsNavigating();
+
+  const currentLocation = location.pathname + location.search;
+
+  useEffect(() => {
+    if (currentLocation !== startUrl && !isNavigating) {
+      navigate(startUrl, { replace: true });
+    }
+  }, [currentLocation, navigate, startUrl, isNavigating]);
+
+  return <Loader reason='navigate-to-start' />;
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"sync"
 
 	"altinn.studio/studioctl/internal/osutil"
@@ -191,13 +190,13 @@ func (o *Output) Infolnf(format string, args ...any) {
 	o.Info(fmt.Sprintf(format, args...))
 }
 
-// Verbose writes a message only if verbose mode is enabled.
+// Verbose writes a message to stderr only if verbose mode is enabled.
 func (o *Output) Verbose(msg string) {
 	if o.verbose {
 		if Colors() {
 			msg = dimStyle().Render(msg)
 		}
-		err := o.write(o.out, msg, true)
+		err := o.write(o.err, msg, true)
 		if err != nil {
 			o.logWriteErr(err)
 		}
@@ -224,94 +223,6 @@ func (o *Output) ContainerPrefix(name string, colorIndex int) string {
 	color := colors[colorIndex%len(colors)]
 	style := lipgloss.NewStyle().Foreground(color)
 	return style.Render(fmt.Sprintf("%-20s", name)) + " | "
-}
-
-// Table renders a simple key-value table.
-func (o *Output) Table(rows [][]string) {
-	if len(rows) == 0 {
-		return
-	}
-
-	// Find max width for each column
-	maxWidths := make([]int, len(rows[0]))
-	for _, row := range rows {
-		for i, cell := range row {
-			if i < len(maxWidths) && len(cell) > maxWidths[i] {
-				maxWidths[i] = len(cell)
-			}
-		}
-	}
-
-	// Print rows
-	for _, row := range rows {
-		var parts []string
-		for i, cell := range row {
-			if i < len(maxWidths) {
-				parts = append(parts, fmt.Sprintf("%-*s", maxWidths[i], cell))
-			}
-		}
-		err := o.write(o.out, strings.Join(parts, "  "), true)
-		if err != nil {
-			o.logWriteErr(err)
-		}
-	}
-}
-
-// Section provides formatted section output with configurable layout.
-type Section struct {
-	out      *Output
-	keyWidth int
-}
-
-// NewSection creates a Section with the specified key column width.
-func (o *Output) NewSection(keyWidth int) *Section {
-	return &Section{out: o, keyWidth: keyWidth}
-}
-
-// Header prints a styled section header.
-func (s *Section) Header(title string) {
-	if Colors() {
-		title = lipgloss.NewStyle().Bold(true).Render(title)
-	}
-	err := s.out.write(s.out.out, title, true)
-	if err != nil {
-		s.out.logWriteErr(err)
-	}
-}
-
-// KeyValue prints a key-value pair with consistent column width.
-func (s *Section) KeyValue(key, value string) {
-	// Pad before styling so ANSI codes don't affect alignment
-	paddedKey := fmt.Sprintf("%-*s", s.keyWidth, key)
-	if Colors() {
-		paddedKey = dimStyle().Render(paddedKey)
-	}
-	err := s.out.write(s.out.out, fmt.Sprintf("  %s  %s", paddedKey, value), true)
-	if err != nil {
-		s.out.logWriteErr(err)
-	}
-}
-
-// KeyValueStatus prints a key-value pair with a status icon prefix.
-func (s *Section) KeyValueStatus(ok bool, key, value string) {
-	icon := "✓"
-	if !ok {
-		icon = "✗"
-	}
-	// Pad before styling so ANSI codes don't affect alignment
-	paddedKey := fmt.Sprintf("%-*s", s.keyWidth, key)
-	if Colors() {
-		if ok {
-			icon = successStyle().Render(icon)
-		} else {
-			icon = errorStyle().Render(icon)
-		}
-		paddedKey = dimStyle().Render(paddedKey)
-	}
-	err := s.out.write(s.out.out, fmt.Sprintf("  %s %s  %s", icon, paddedKey, value), true)
-	if err != nil {
-		s.out.logWriteErr(err)
-	}
 }
 
 func (o *Output) write(target io.Writer, msg string, newline bool) error {

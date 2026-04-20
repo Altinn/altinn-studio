@@ -25,10 +25,11 @@ internal static class Program
             options.SingleLine = true;
             options.TimestampFormat = "HH:mm:ss ";
         });
-        builder.Logging.AddProvider(new FileLoggerProvider(GetLogPath()));
+        builder.Logging.AddProvider(new FileLoggerProvider(GetLogDirectory()));
         builder.Logging.SetMinimumLevel(internalDevMode ? LogLevel.Debug : LogLevel.Information);
 
         builder.Services.AddDiscoveryServices(builder.Configuration);
+        builder.Services.AddStudioctlServices();
         builder.Services.AddTunnelServices(builder.Configuration);
 
         builder.WebHost.ConfigureKestrel((context, options) => IpcListener.Configure(context.Configuration, options));
@@ -63,11 +64,11 @@ internal static class Program
         return app.RunAsync();
     }
 
-    private static string GetLogPath()
+    private static string GetLogDirectory()
     {
         // studioctl launches app-manager with its working directory set to STUDIOCTL_HOME.
-        // Keeping the file log path relative lets app-manager own its logging without a second log-path contract.
-        return Path.Combine(Environment.CurrentDirectory, "logs", "app-manager.log");
+        // Keeping the log directory relative lets app-manager own its logging without a second log-path contract.
+        return Path.Combine(Environment.CurrentDirectory, "logs", "app-manager");
     }
 
     private sealed record HealthResponse(string Status);

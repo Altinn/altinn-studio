@@ -17,36 +17,40 @@ internal sealed class ProcessDiscovery : IAppDiscovery
         var listeners = await _portListeners.Get(cancellationToken);
         foreach (var listener in listeners)
         {
-            if (!TryBuildProbeUri(listener, out var baseUri) || baseUri is null)
+            if (!AppEndpointUri.TryFromListener(listener, out var baseUri) || baseUri is null)
                 continue;
 
-            if (string.IsNullOrWhiteSpace(listener.ProcessName))
+            var name = StudioAppName(listener);
+            if (name is null)
                 continue;
 
-            // Process names for .NET apps comes from the assembly names, these are either
-            // "Altinn.App" or "Altinn.Application". This is seemingly true for both "dotnet run" and "studioctl run"
-            if (!listener.ProcessName.Contains("Altinn.App", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            candidates.Add(new AppDiscoveryCandidate("process", baseUri, listener.ProcessId, listener.ProcessName));
+            candidates.Add(
+                new AppDiscoveryCandidate(
+                    "process",
+                    baseUri,
+                    listener.ProcessId,
+                    name,
+                    Name: name,
+                    HostPort: listener.Port
+                )
+            );
         }
 
         return candidates;
     }
 
-    private static bool TryBuildProbeUri(PortListener listener, out Uri? baseUri)
+    private static string? StudioAppName(PortListener listener)
     {
-        switch (listener.BindScope)
-        {
-            case ListenerBindScope.Loopback:
-            case ListenerBindScope.Any:
-                baseUri = BuildLoopbackUri(listener.Port);
-                return true;
-            default:
-                baseUri = default;
-                return false;
-        }
+        if (IsStudioAppName(listener.ProcessName))
+            return listener.ProcessName;
+
+        return IsStudioAppName(listener.CommandLine) ? listener.CommandLine : null;
     }
 
-    private static Uri BuildLoopbackUri(int port) => new($"http://127.0.0.1:{port}", UriKind.Absolute);
+    private static bool IsStudioAppName(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && (
+            value.Contains("Altinn.App", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("Altinn.Application", StringComparison.OrdinalIgnoreCase)
+        );
 }
