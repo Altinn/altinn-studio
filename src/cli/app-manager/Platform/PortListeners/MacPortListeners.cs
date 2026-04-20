@@ -7,6 +7,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
 {
     private const int SignalZero = 0;
     private const int ErrorPermissionDenied = 1;
+    private const int NetstatLocalAddressFieldIndex = 3;
     private readonly Dictionary<MacListenerKey, PortListener> _knownListeners = [];
 
     public bool SupportsCurrentPlatform() => OperatingSystem.IsMacOS();
@@ -119,7 +120,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
             return false;
 
         var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (fields.Length < 4)
+        if (fields.Length <= NetstatLocalAddressFieldIndex)
             return false;
 
         if (!fields[0].StartsWith("tcp", StringComparison.OrdinalIgnoreCase))
@@ -128,7 +129,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
         if (!fields[^1].Equals("LISTEN", StringComparison.Ordinal))
             return false;
 
-        return TryParseListener(fields[^2].AsSpan(), out listener);
+        return TryParseListener(fields[NetstatLocalAddressFieldIndex].AsSpan(), out listener);
     }
 
     private static bool TryParseListener(ReadOnlySpan<char> addressField, out MacListenerKey listener)
