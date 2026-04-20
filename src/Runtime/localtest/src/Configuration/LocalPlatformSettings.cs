@@ -89,6 +89,10 @@ namespace LocalTest.Configuration
 
         public string LocalPdfServiceUrl { get; set; }
 
+        public string LocalWorkflowEngineUrl { get; set; }
+
+        public string LocalPgAdminUrl { get; set; }
+
         public string LocalReceiptUrl { get; set; }
     }
 }

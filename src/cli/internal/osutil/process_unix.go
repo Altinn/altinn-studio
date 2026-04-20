@@ -1,6 +1,6 @@
 //go:build !windows
 
-package appmanager
+package osutil
 
 import (
 	"errors"
@@ -9,7 +9,15 @@ import (
 	"syscall"
 )
 
-func isProcessRunning(pid int) (bool, error) {
+func interruptProcess(process *os.Process, _ int) error {
+	if err := process.Signal(os.Interrupt); err != nil {
+		return fmt.Errorf("interrupt process: %w", err)
+	}
+	return nil
+}
+
+// ProcessRunning reports whether pid is still running.
+func ProcessRunning(pid int) (bool, error) {
 	if pid <= 0 {
 		return false, nil
 	}

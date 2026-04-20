@@ -110,9 +110,35 @@ func (c *Client) Push(ctx context.Context, image string) error {
 }
 
 // CreateContainer creates and optionally starts a container.
-//
-//nolint:gocyclo,gocognit // The Podman CLI argument assembly is easiest to review inline.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
+	args := buildCreateArgs(cfg)
+
+	cmd := processutil.CommandContext(ctx, "podman", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("podman create failed: %w\nOutput: %s", err, string(output))
+	}
+
+	// Return container ID (first line of output)
+	containerID := strings.TrimSpace(string(output))
+	if idx := strings.Index(containerID, "\n"); idx != -1 {
+		containerID = containerID[:idx]
+	}
+
+	// If caller requested immediate start, start now
+	if cfg.Detach {
+		if err := c.ContainerStart(ctx, containerID); err != nil {
+			// Cleanup on failure
+			removePodmanContainerBestEffort(ctx, c, containerID)
+			return "", fmt.Errorf("failed to start container: %w", err)
+		}
+	}
+
+	return containerID, nil
+}
+
+// buildCreateArgs assembles the podman create CLI arguments from a ContainerConfig.
+func buildCreateArgs(cfg types.ContainerConfig) []string {
 	args := []string{"create"}
 
 	if cfg.Name != "" {
@@ -123,7 +149,6 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		args = append(args, "--restart="+cfg.RestartPolicy)
 	}
 
-	// Handle networks
 	for _, net := range cfg.Networks {
 		args = append(args, "--network", net)
 	}
@@ -164,37 +189,38 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		args = append(args, "--user", cfg.User)
 	}
 
-	// Add capabilities (merge defaults with any explicit ones)
 	caps := types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
 	for _, cap := range caps {
 		args = append(args, "--cap-add", cap)
 	}
 
+	args = appendHealthCheckArgs(args, cfg.HealthCheck)
+
 	args = append(args, cfg.Image)
 	args = append(args, cfg.Command...)
 
-	cmd := processutil.CommandContext(ctx, "podman", args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("podman create failed: %w\nOutput: %s", err, string(output))
-	}
+	return args
+}
 
-	// Return container ID (first line of output)
-	containerID := strings.TrimSpace(string(output))
-	if idx := strings.Index(containerID, "\n"); idx != -1 {
-		containerID = containerID[:idx]
+// appendHealthCheckArgs appends health check CLI flags if configured.
+func appendHealthCheckArgs(args []string, hc *types.HealthCheck) []string {
+	if hc == nil || len(hc.Test) == 0 {
+		return args
 	}
-
-	// If caller requested immediate start, start now
-	if cfg.Detach {
-		if err := c.ContainerStart(ctx, containerID); err != nil {
-			// Cleanup on failure
-			removePodmanContainerBestEffort(ctx, c, containerID)
-			return "", fmt.Errorf("failed to start container: %w", err)
-		}
+	args = append(args, "--health-cmd", podmanHealthCmd(hc.Test))
+	if hc.Interval > 0 {
+		args = append(args, "--health-interval", hc.Interval.String())
 	}
-
-	return containerID, nil
+	if hc.Timeout > 0 {
+		args = append(args, "--health-timeout", hc.Timeout.String())
+	}
+	if hc.Retries > 0 {
+		args = append(args, "--health-retries", strconv.Itoa(hc.Retries))
+	}
+	if hc.StartPeriod > 0 {
+		args = append(args, "--health-start-period", hc.StartPeriod.String())
+	}
+	return args
 }
 
 // ContainerState returns the state of a container.
@@ -367,13 +393,13 @@ func (c *Client) ImagePullWithProgress(
 }
 
 type containerInspectInfo struct {
-	ID          string `json:"Id"`
-	Name        string `json:"Name"`
-	Image       string `json:"Image"`
-	ImageDigest string `json:"ImageDigest"`
-	Config      struct {
+	Config struct {
 		Labels map[string]string `json:"Labels"`
 	} `json:"Config"`
+	ID              string `json:"Id"`
+	Name            string `json:"Name"`
+	Image           string `json:"Image"`
+	ImageDigest     string `json:"ImageDigest"`
 	NetworkSettings struct {
 		Ports map[string][]struct {
 			HostIP   string `json:"HostIp"`
@@ -405,8 +431,6 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 		return types.ContainerInfo{}, types.ErrContainerNotFound
 	}
 
-	// Docker reports a resolved image ID here; Podman exposes it as `.Image`.
-	// `.ImageDigest` is a manifest digest and does not match `ImageInspect().ID`.
 	return types.ContainerInfo{
 		ID:      info[0].ID,
 		Name:    info[0].Name,
@@ -852,4 +876,24 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 	}
 
 	return exitCode, nil
+}
+
+// podmanHealthCmd converts a Docker-style health check test to a podman --health-cmd string.
+// Docker format: ["CMD-SHELL", "command"] or ["CMD", "arg1", "arg2"]
+// Podman expects a single shell string for --health-cmd.
+func podmanHealthCmd(test []string) string {
+	if len(test) == 0 {
+		return ""
+	}
+	switch test[0] {
+	case "CMD-SHELL":
+		if len(test) > 1 {
+			return test[1]
+		}
+		return ""
+	case "CMD":
+		return strings.Join(test[1:], " ")
+	default:
+		return strings.Join(test, " ")
+	}
 }

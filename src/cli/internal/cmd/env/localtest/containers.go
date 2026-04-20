@@ -6,6 +6,12 @@ const (
 	ContainerLocaltest = "localtest"
 	// ContainerPDF3 is the PDF service container.
 	ContainerPDF3 = "localtest-pdf3"
+	// ContainerWorkflowEngineDb is the workflow-engine PostgreSQL database container.
+	ContainerWorkflowEngineDb = "localtest-workflow-engine-db"
+	// ContainerWorkflowEngine is the workflow engine app container.
+	ContainerWorkflowEngine = "localtest-workflow-engine"
+	// ContainerPgAdmin is the pgAdmin web UI container.
+	ContainerPgAdmin = "localtest-pgadmin"
 
 	// ContainerMonitoringTempo is the Tempo tracing container.
 	ContainerMonitoringTempo = "monitoring_tempo"
@@ -20,11 +26,17 @@ const (
 )
 
 // coreContainerNames returns the core container names in order.
-func coreContainerNames() []string {
-	return []string{
+func coreContainerNames(includePgAdmin bool) []string {
+	names := []string{
 		ContainerLocaltest,
 		ContainerPDF3,
+		ContainerWorkflowEngineDb,
+		ContainerWorkflowEngine,
 	}
+	if includePgAdmin {
+		names = append(names, ContainerPgAdmin)
+	}
+	return names
 }
 
 // monitoringContainerNames returns monitoring container names in order.
@@ -41,7 +53,7 @@ func monitoringContainerNames() []string {
 // AllContainerNames returns all container names in order (for log streaming).
 // If includeMonitoring is true, monitoring containers are included.
 func AllContainerNames(includeMonitoring bool) []string {
-	core := coreContainerNames()
+	core := coreContainerNames(true)
 	if !includeMonitoring {
 		return core
 	}

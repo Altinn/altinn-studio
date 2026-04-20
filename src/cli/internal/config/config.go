@@ -21,10 +21,18 @@ func IsTruthyEnv(value string) bool {
 	return value == "1" || strings.EqualFold(value, "true")
 }
 
+// IsCI reports whether the process is running in CI.
+func IsCI() bool {
+	return IsTruthyEnv(os.Getenv(EnvCI))
+}
+
 //go:embed config.yaml
 var embeddedConfig []byte
 
 const (
+	// EnvCI is the common CI marker used by GitHub Actions and other CI systems.
+	EnvCI = "CI"
+
 	// AppName is the application name used for platform-specific directories.
 	AppName = "altinn-studio"
 
@@ -217,9 +225,24 @@ func (c *Config) AppManagerPIDPath() string {
 	return filepath.Join(c.Home, "app-manager.pid")
 }
 
-// AppManagerLogPath returns the path to the app-manager log file.
-func (c *Config) AppManagerLogPath() string {
-	return filepath.Join(c.LogDir, "app-manager.log")
+// AppManagerLockPath returns the path to the app-manager lifecycle lock file.
+func (c *Config) AppManagerLockPath() string {
+	return filepath.Join(c.SocketDir, "app-manager.lock")
+}
+
+// AppManagerLogDir returns the directory containing app-manager log files.
+func (c *Config) AppManagerLogDir() string {
+	return filepath.Join(c.LogDir, "app-manager")
+}
+
+// AppLogsDir returns the directory containing app log directories.
+func (c *Config) AppLogsDir() string {
+	return filepath.Join(c.LogDir, "apps")
+}
+
+// AppLogDir returns the directory containing logs for one app.
+func (c *Config) AppLogDir(appID string) string {
+	return filepath.Join(c.AppLogsDir(), appID)
 }
 
 // AppManagerBinaryPath returns the path to the app-manager binary.
@@ -287,8 +310,11 @@ func (s ImageSpec) Ref() string {
 
 // CoreImages holds image configuration for core studioctl containers.
 type CoreImages struct {
-	Localtest ImageSpec `yaml:"localtest"`
-	PDF3      ImageSpec `yaml:"pdf3"`
+	Localtest        ImageSpec `yaml:"localtest"`
+	PDF3             ImageSpec `yaml:"pdf3"`
+	WorkflowEngineDb ImageSpec `yaml:"workflow-engine-db"` //nolint:tagliatelle // kebab-case for YAML consistency
+	WorkflowEngine   ImageSpec `yaml:"workflow-engine"`    //nolint:tagliatelle // kebab-case for YAML consistency
+	PgAdmin          ImageSpec `yaml:"pgadmin"`
 }
 
 // MonitoringImages holds image configuration for monitoring stack containers.
@@ -386,6 +412,15 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 	// Core images
 	result.Images.Core.Localtest = mergeImageSpec(defaults.Images.Core.Localtest, user.Images.Core.Localtest)
 	result.Images.Core.PDF3 = mergeImageSpec(defaults.Images.Core.PDF3, user.Images.Core.PDF3)
+	result.Images.Core.WorkflowEngineDb = mergeImageSpec(
+		defaults.Images.Core.WorkflowEngineDb,
+		user.Images.Core.WorkflowEngineDb,
+	)
+	result.Images.Core.WorkflowEngine = mergeImageSpec(
+		defaults.Images.Core.WorkflowEngine,
+		user.Images.Core.WorkflowEngine,
+	)
+	result.Images.Core.PgAdmin = mergeImageSpec(defaults.Images.Core.PgAdmin, user.Images.Core.PgAdmin)
 
 	// Monitoring images
 	result.Images.Monitoring.Tempo = mergeImageSpec(defaults.Images.Monitoring.Tempo, user.Images.Monitoring.Tempo)

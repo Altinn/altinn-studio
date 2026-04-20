@@ -44,6 +44,14 @@ func TestIsTruthyEnv(t *testing.T) {
 	}
 }
 
+func TestIsCI(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	if !config.IsCI() {
+		t.Fatalf("IsCI() = false, want true")
+	}
+}
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 
@@ -143,6 +151,9 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 
 	if cfg.SocketDir != socketDir {
 		t.Errorf("SocketDir = %q, want %q", cfg.SocketDir, socketDir)
+	}
+	if cfg.AppManagerLockPath() != filepath.Join(socketDir, "app-manager.lock") {
+		t.Errorf("AppManagerLockPath() = %q, want lock in socket dir", cfg.AppManagerLockPath())
 	}
 }
 

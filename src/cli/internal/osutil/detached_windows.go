@@ -1,6 +1,6 @@
 //go:build windows
 
-package appmanager
+package osutil
 
 import (
 	"os/exec"
@@ -9,9 +9,10 @@ import (
 	"altinn.studio/devenv/pkg/processutil"
 )
 
-func applyProcessAttrs(cmd *exec.Cmd) {
+const detachedProcess = 0x00000008
+
+// ApplyDetachedAttrs configures cmd to run independently from the parent console.
+func ApplyDetachedAttrs(cmd *exec.Cmd) {
 	processutil.ApplyNoWindow(cmd)
 	cmd.SysProcAttr.CreationFlags |= detachedProcess | syscall.CREATE_NEW_PROCESS_GROUP
 }
-
-const detachedProcess = 0x00000008

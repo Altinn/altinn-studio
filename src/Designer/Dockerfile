@@ -53,7 +53,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:3ea83f1463983ba8b51babffebb8
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/Designer/backend .
-RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
+RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version

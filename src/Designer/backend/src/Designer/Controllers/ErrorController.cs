@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Net;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
@@ -30,8 +29,8 @@ public class ErrorController : ControllerBase
             throw new InvalidOperationException("This shouldn't be invoked in non-development environments.");
         }
 
-        IExceptionHandlerPathFeature feature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
-        Exception ex = feature?.Error;
+        IExceptionHandlerPathFeature? feature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+        Exception? ex = feature?.Error;
 
         ProblemDetails problemDetails = new ProblemDetails
         {
@@ -53,8 +52,8 @@ public class ErrorController : ControllerBase
     [ApiExplorerSettings(IgnoreApi = true)]
     public ActionResult Error([FromServices] IWebHostEnvironment webHostEnvironment)
     {
-        IExceptionHandlerPathFeature feature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
-        Exception ex = feature?.Error;
+        IExceptionHandlerPathFeature? feature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+        Exception? ex = feature?.Error;
         bool isDev = webHostEnvironment.IsDevelopment();
         ProblemDetails problemDetails = new ProblemDetails
         {
@@ -67,7 +66,7 @@ public class ErrorController : ControllerBase
         return StatusCode(problemDetails.Status.Value, problemDetails);
     }
 
-    private static HttpStatusCode FindStatusCode(Exception ex)
+    private static HttpStatusCode FindStatusCode(Exception? ex)
     {
         if (ex is HttpRequestWithStatusException httpException)
         {

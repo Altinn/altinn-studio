@@ -2,9 +2,11 @@ namespace Altinn.Studio.AppManager.Discovery;
 
 internal sealed record DiscoveredApp(
     string AppId,
-    Uri BaseUri,
+    AppEndpointUri BaseUri,
     string Source,
     int? ProcessId,
     string Description,
-    DateTimeOffset LastSeen
+    string? ContainerId,
+    string? Name,
+    int? HostPort
 );

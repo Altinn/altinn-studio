@@ -1,5 +1,4 @@
-// Package run contains command-specific run application logic.
-package run
+package app
 
 import (
 	"context"
@@ -8,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"altinn.studio/devenv/pkg/container/types"
@@ -19,7 +19,11 @@ import (
 	"altinn.studio/studioctl/internal/networking"
 )
 
-var errInvalidAppMetadataID = errors.New("application metadata id must be on the form org/app")
+var (
+	errAppProjectNotFound   = errors.New("app project not found")
+	errInvalidAppMetadataID = errors.New("application metadata id must be on the form org/app")
+	errMultipleAppProjects  = errors.New("multiple app projects found")
+)
 
 // TODO: this should come from the "current env".
 const (
@@ -28,21 +32,24 @@ const (
 	appMetadataFile                 = "App/config/applicationmetadata.json"
 )
 
-func localtestEnvDefaults(host, otelEndpoint, pdfEndpoint string) map[string]string {
+func localtestEnvDefaults(
+	platformEndpoint, otelEndpoint, pdfEndpoint, workflowEngineEndpoint string,
+) map[string]string {
 	return map[string]string{
-		"AppSettings__OpenIdWellKnownEndpoint":          "http://" + host + ":5101/authentication/api/v1/openid/",
+		"AppSettings__OpenIdWellKnownEndpoint":          platformEndpoint + "/authentication/api/v1/openid/",
 		"GeneralSettings__ExternalAppBaseUrl":           localtestExternalAppBaseURL(),
 		"OTEL_EXPORTER_OTLP_ENDPOINT":                   otelEndpoint,
-		"PlatformSettings__ApiStorageEndpoint":          "http://" + host + ":5101/storage/api/v1/",
-		"PlatformSettings__ApiRegisterEndpoint":         "http://" + host + ":5101/register/api/v1/",
-		"PlatformSettings__ApiProfileEndpoint":          "http://" + host + ":5101/profile/api/v1/",
-		"PlatformSettings__ApiAuthenticationEndpoint":   "http://" + host + ":5101/authentication/api/v1/",
-		"PlatformSettings__ApiAuthorizationEndpoint":    "http://" + host + ":5101/authorization/api/v1/",
-		"PlatformSettings__ApiEventsEndpoint":           "http://" + host + ":5101/events/api/v1/",
+		"PlatformSettings__ApiStorageEndpoint":          platformEndpoint + "/storage/api/v1/",
+		"PlatformSettings__ApiRegisterEndpoint":         platformEndpoint + "/register/api/v1/",
+		"PlatformSettings__ApiProfileEndpoint":          platformEndpoint + "/profile/api/v1/",
+		"PlatformSettings__ApiAuthenticationEndpoint":   platformEndpoint + "/authentication/api/v1/",
+		"PlatformSettings__ApiAuthorizationEndpoint":    platformEndpoint + "/authorization/api/v1/",
+		"PlatformSettings__ApiEventsEndpoint":           platformEndpoint + "/events/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint":             pdfEndpoint,
-		"PlatformSettings__ApiNotificationEndpoint":     "http://" + host + ":5101/notifications/api/v1/",
-		"PlatformSettings__ApiCorrespondenceEndpoint":   "http://" + host + ":5101/correspondence/api/v1/",
-		"PlatformSettings__ApiAccessManagementEndpoint": "http://" + host + ":5101/accessmanagement/api/v1/",
+		"PlatformSettings__ApiNotificationEndpoint":     platformEndpoint + "/notifications/api/v1/",
+		"PlatformSettings__ApiCorrespondenceEndpoint":   platformEndpoint + "/correspondence/api/v1/",
+		"PlatformSettings__ApiAccessManagementEndpoint": platformEndpoint + "/accessmanagement/api/v1/",
+		"PlatformSettings__ApiWorkflowEngineEndpoint":   workflowEngineEndpoint,
 	}
 }
 
@@ -52,37 +59,40 @@ func localtestExternalAppBaseURL() string {
 
 func nativeLocaltestEnvDefaults() map[string]string {
 	return localtestEnvDefaults(
-		localtestLoopbackHost,
+		"http://"+localtestLoopbackHost+":5101",
 		"http://"+localtestLoopbackHost+":4317",
 		"http://"+localtestLoopbackHost+":5300/pdf",
+		"http://workflow-engine."+networking.LocalDomain+":"+envlocaltest.DefaultLoadBalancerPortString()+"/api/v1/",
 	)
 }
 
 func dockerLocaltestEnvDefaults() map[string]string {
 	return localtestEnvDefaults(
-		envlocaltest.ContainerLocaltest,
+		"http://"+envlocaltest.ContainerLocaltest+":5101",
 		"http://"+envlocaltest.ContainerMonitoringOtelCollector+":4317",
 		"http://"+envlocaltest.ContainerPDF3+":5031/pdf",
+		"http://"+envlocaltest.ContainerWorkflowEngine+":8080/api/v1/",
 	)
 }
 
-// Service contains run command logic.
-type Service struct{}
-
-// NewService creates a new run command service.
-func NewService() *Service {
-	return &Service{}
-}
-
-// DotnetRunSpec contains subprocess execution details for `dotnet run`.
+// DotnetRunSpec contains build and subprocess execution details for native app run.
 type DotnetRunSpec struct {
-	Dir     string
-	BaseURL string
-	Args    []string
-	Env     []string
+	Dir            string
+	ProjectPath    string
+	BaseURL        string
+	AppArgs        []string
+	BuildArgs      []string
+	TargetPathArgs []string
+	Env            []string
+	Port           int
 }
 
-// DockerRunSpec contains container execution details for `studioctl run --mode container`.
+// DotnetRunOptions contains native run-specific app options.
+type DotnetRunOptions struct {
+	RandomHostPort bool
+}
+
+// DockerRunSpec contains container execution details for `studioctl app run --mode container`.
 type DockerRunSpec struct {
 	Config types.ContainerConfig
 }
@@ -93,8 +103,8 @@ type DockerRunOptions struct {
 	RandomHostPort bool
 }
 
-// Target describes the app resolved for a run command.
-type Target struct {
+// RunTarget describes the app resolved for the app run command.
+type RunTarget struct {
 	AppID     string
 	Detection repocontext.Detection
 }
@@ -103,47 +113,62 @@ type appMetadata struct {
 	ID string `json:"id"`
 }
 
-// ResolveApp detects the target app directory.
-func (s *Service) ResolveApp(ctx context.Context, appPath string) (Target, error) {
+// ResolveRunTarget detects the target app directory.
+func (s *Service) ResolveRunTarget(ctx context.Context, appPath string) (RunTarget, error) {
 	result, err := repocontext.DetectFromCwd(ctx, appPath)
 	if err != nil {
-		return Target{}, fmt.Errorf("detect app: %w", err)
+		return RunTarget{}, fmt.Errorf("detect app: %w", err)
 	}
 	if !result.InAppRepo {
-		return Target{}, repocontext.ErrAppNotFound
+		return RunTarget{}, repocontext.ErrAppNotFound
 	}
 
 	appID, err := readAppID(result.AppRoot)
 	if err != nil {
-		return Target{}, fmt.Errorf("read app id: %w", err)
+		return RunTarget{}, fmt.Errorf("read app id: %w", err)
 	}
 
-	return Target{
+	return RunTarget{
 		AppID:     appID,
 		Detection: result,
 	}, nil
 }
 
-// BuildDotnetRunSpec builds arguments/environment for `dotnet run`.
-func (s *Service) BuildDotnetRunSpec(_ context.Context, appPath string, args, env []string) DotnetRunSpec {
-	dotnetArgs := make([]string, 0, 3+len(args))
-	dotnetArgs = append(dotnetArgs, "run", "--project", filepath.Join(appPath, "App"))
-	dotnetArgs = append(dotnetArgs, args...)
+// BuildDotnetRunSpec builds arguments/environment for native app run.
+func (s *Service) BuildDotnetRunSpec(
+	_ context.Context,
+	appPath string,
+	args, env []string,
+	opts DotnetRunOptions,
+) (DotnetRunSpec, error) {
+	projectPath, err := appProjectPath(appPath)
+	if err != nil {
+		return DotnetRunSpec{}, err
+	}
+	port := appcontainers.DefaultContainerPort
+	if opts.RandomHostPort {
+		port = "0"
+	}
+	baseURL := nativeAppBaseURL(port)
 
 	resolvedEnv := appendEnvIfUnset(env, "ASPNETCORE_ENVIRONMENT", "Development")
 	resolvedEnv = appendEnvIfUnset(
 		resolvedEnv,
 		"Kestrel__EndPoints__Http__Url",
-		"http://"+localtestLoopbackHost+":"+appcontainers.DefaultContainerPort,
+		baseURL,
 	)
 	resolvedEnv = appendLocaltestEnvIfUnset(resolvedEnv)
 
 	return DotnetRunSpec{
-		Dir:     appPath,
-		BaseURL: nativeAppBaseURL(),
-		Args:    dotnetArgs,
-		Env:     resolvedEnv,
-	}
+		Dir:            filepath.Dir(projectPath),
+		ProjectPath:    projectPath,
+		BaseURL:        baseURL,
+		Port:           nativeAppPort(port),
+		AppArgs:        args,
+		BuildArgs:      []string{"build", projectPath},
+		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
+		Env:            resolvedEnv,
+	}, nil
 }
 
 func readAppID(appPath string) (string, error) {
@@ -165,8 +190,44 @@ func readAppID(appPath string) (string, error) {
 	return appID, nil
 }
 
-func nativeAppBaseURL() string {
-	return "http://" + localtestLoopbackHost + ":" + appcontainers.DefaultContainerPort
+func nativeAppBaseURL(port string) string {
+	return "http://" + localtestLoopbackHost + ":" + port
+}
+
+func nativeAppPort(port string) int {
+	value, err := strconv.Atoi(port)
+	if err != nil {
+		return 0
+	}
+	return value
+}
+
+// DotnetAppRunCommand returns the executable and args for a built .NET app target.
+func DotnetAppRunCommand(targetPath string, args []string) (string, []string) {
+	if strings.EqualFold(filepath.Ext(targetPath), ".dll") {
+		dotnetArgs := make([]string, 0, 1+len(args))
+		dotnetArgs = append(dotnetArgs, targetPath)
+		dotnetArgs = append(dotnetArgs, args...)
+		return "dotnet", dotnetArgs
+	}
+
+	runArgs := make([]string, 0, len(args))
+	runArgs = append(runArgs, args...)
+	return targetPath, runArgs
+}
+
+func appProjectPath(appPath string) (string, error) {
+	projectPaths, err := filepath.Glob(filepath.Join(appPath, "App", "*.csproj"))
+	if err != nil {
+		return "", fmt.Errorf("find app project: %w", err)
+	}
+	if len(projectPaths) == 0 {
+		return "", fmt.Errorf("%w: %s", errAppProjectNotFound, filepath.Join(appPath, "App"))
+	}
+	if len(projectPaths) > 1 {
+		return "", fmt.Errorf("%w: %s", errMultipleAppProjects, filepath.Join(appPath, "App"))
+	}
+	return projectPaths[0], nil
 }
 
 func validAppID(appID string) bool {
@@ -199,6 +260,7 @@ func (s *Service) BuildDockerRunSpec(
 	return DockerRunSpec{
 		Config: types.ContainerConfig{
 			Labels:         appcontainers.Labels(appPath),
+			HealthCheck:    nil,
 			Name:           localtestAppContainerNamePrefix + appName,
 			Image:          imageTag,
 			User:           "",

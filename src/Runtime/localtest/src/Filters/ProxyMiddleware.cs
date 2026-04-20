@@ -24,6 +24,8 @@ public class ProxyMiddleware
 
     // Cookie name for frontend version override (URL-encoded URL)
     private const string FrontendVersionCookie = "frontendVersion";
+    private const string PgAdminHost = "pgadmin.local.altinn.cloud";
+    private const string WorkflowEngineHost = "workflow-engine.local.altinn.cloud";
 
     public ProxyMiddleware(
         RequestDelegate nextMiddleware,
@@ -65,6 +67,11 @@ public class ProxyMiddleware
         if (path == null)
         {
             await _nextMiddleware(context);
+            return;
+        }
+
+        if (await TryProxyToHostService(context))
+        {
             return;
         }
 
@@ -121,41 +128,67 @@ public class ProxyMiddleware
         await _nextMiddleware(context);
     }
 
-    private async Task<bool> TryProxyToExternalService(HttpContext context, string path)
+    private async Task<bool> TryProxyToHostService(HttpContext context)
     {
-        if (path.StartsWith("/pdfservice/", StringComparison.OrdinalIgnoreCase))
+        var host = context.Request.Host.Host;
+        if (string.IsNullOrWhiteSpace(host))
         {
-            if (!string.IsNullOrEmpty(_settings.LocalPdfServiceUrl))
-            {
-                context.Request.Path = path["/pdfservice".Length..];
-                await ProxyRequest(context, _settings.LocalPdfServiceUrl);
-                return true;
-            }
             return false;
         }
 
-        if (path.StartsWith("/grafana/", StringComparison.OrdinalIgnoreCase) || path == "/grafana")
+        if (IsHost(host, WorkflowEngineHost))
         {
-            if (!string.IsNullOrEmpty(_settings.LocalGrafanaUrl))
-            {
-                await ProxyRequest(context, _settings.LocalGrafanaUrl);
-                return true;
-            }
-            return false;
+            return await TryProxyToConfiguredService(context, _settings.LocalWorkflowEngineUrl);
         }
 
-        if (path.StartsWith("/receipt/", StringComparison.OrdinalIgnoreCase))
+        if (IsHost(host, PgAdminHost))
         {
-            if (!string.IsNullOrEmpty(_settings.LocalReceiptUrl))
-            {
-                await ProxyRequest(context, _settings.LocalReceiptUrl);
-                return true;
-            }
-            return false;
+            return await TryProxyToConfiguredService(context, _settings.LocalPgAdminUrl);
         }
 
         return false;
     }
+
+    private async Task<bool> TryProxyToExternalService(HttpContext context, string path)
+    {
+        if (path.StartsWith("/pdfservice/", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrEmpty(_settings.LocalPdfServiceUrl))
+            {
+                return false;
+            }
+
+            context.Request.Path = path["/pdfservice".Length..];
+            await ProxyRequest(context, _settings.LocalPdfServiceUrl);
+            return true;
+        }
+
+        if (path.StartsWith("/grafana/", StringComparison.OrdinalIgnoreCase) || path == "/grafana")
+        {
+            return await TryProxyToConfiguredService(context, _settings.LocalGrafanaUrl);
+        }
+
+        if (path.StartsWith("/receipt/", StringComparison.OrdinalIgnoreCase))
+        {
+            return await TryProxyToConfiguredService(context, _settings.LocalReceiptUrl);
+        }
+
+        return false;
+    }
+
+    private async Task<bool> TryProxyToConfiguredService(HttpContext context, string? targetUrl)
+    {
+        if (string.IsNullOrEmpty(targetUrl))
+        {
+            return false;
+        }
+
+        await ProxyRequest(context, targetUrl);
+        return true;
+    }
+
+    private static bool IsHost(string host, string expected) =>
+        string.Equals(host, expected, StringComparison.OrdinalIgnoreCase);
 
     private static bool IsLocaltestPath(string path)
     {

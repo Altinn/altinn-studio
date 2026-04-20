@@ -1,16 +1,22 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
-	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
+	"altinn.studio/devenv/pkg/container/types"
+	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -63,61 +69,125 @@ func TestStartupOperationError_ContextCancelledReturnsRunStopped(t *testing.T) {
 	}
 }
 
-func TestWaitForLocaltestApp_ContextCancelledReturnsRunStopped(t *testing.T) {
+func TestStartupMonitorError_ContextCancelledReturnsRunStopped(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	monitorCalled := false
-	err := waitForLocaltestApp(
-		ctx,
-		"ttd/test-app",
-		"http://local.altinn.cloud:8000/ttd/test-app/api/v1/applicationmetadata",
-		func(context.Context) error {
-			monitorCalled = true
-			return nil
-		},
-	)
+	err := startupMonitorError(ctx, t.Context(), context.Canceled, errAppStartupTimedOut)
 	if !errors.Is(err, errAppRunStopped) {
-		t.Fatalf("waitForLocaltestApp() error = %v, want errAppRunStopped", err)
-	}
-	if monitorCalled {
-		t.Fatal("waitForLocaltestApp() called monitor after context cancellation")
+		t.Fatalf("startupMonitorError() error = %v, want errAppRunStopped", err)
 	}
 }
 
-func TestProbeLocaltestApp_Ready(t *testing.T) {
+func TestRunJSONRequiresDetach(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		if _, err := w.Write([]byte(`{"id":"ttd/test-app"}`)); err != nil {
-			t.Errorf("Write() error = %v", err)
-		}
-	}))
-	defer server.Close()
-
-	status, ready := probeLocaltestApp(t.Context(), server.Client(), "ttd/test-app", server.URL)
-	if !ready {
-		t.Fatalf("probeLocaltestApp() ready = false, status = %q", status)
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	err := cmd.RunWithCommandPath(t.Context(), []string{"--json"}, "run")
+	if err == nil {
+		t.Fatal("RunWithCommandPath() error = nil, want error")
+	}
+	if !strings.Contains(err.Error(), "--json requires --detach") {
+		t.Fatalf("RunWithCommandPath() error = %v, want detach/json error", err)
 	}
 }
 
-func TestProbeLocaltestApp_WrongAppID(t *testing.T) {
+func TestAppRunJSONRequiresDetach(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		if _, err := w.Write([]byte(`{"id":"ttd/other-app"}`)); err != nil {
-			t.Errorf("Write() error = %v", err)
-		}
-	}))
-	defer server.Close()
-
-	status, ready := probeLocaltestApp(t.Context(), server.Client(), "ttd/test-app", server.URL)
-	if ready {
-		t.Fatal("probeLocaltestApp() ready = true, want false")
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	err := cmd.RunWithCommandPath(t.Context(), []string{"--json"}, "app run")
+	if err == nil {
+		t.Fatal("RunWithCommandPath() error = nil, want error")
 	}
-	if !strings.Contains(status, "ttd/other-app") {
-		t.Fatalf("probeLocaltestApp() status = %q, want wrong app id", status)
+	if !strings.Contains(err.Error(), "--json requires --detach") {
+		t.Fatalf("RunWithCommandPath() error = %v, want detach/json error", err)
+	}
+}
+
+func TestParseRunFlagsUsesProcessMode(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--mode", "process"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if flags.mode != runModeProcess {
+		t.Fatalf("mode = %q, want %q", flags.mode, runModeProcess)
+	}
+}
+
+func TestRunDetachedOutputPrintJSON(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	result := runDetachedOutput{
+		AppID:      "ttd/app",
+		Mode:       runModeProcess,
+		URL:        "http://localtest.localhost/app",
+		LogPath:    "/tmp/app.log",
+		ProcessID:  123,
+		JSONOutput: true,
+	}
+	if err := result.Print(ui.NewOutput(&out, io.Discard, false)); err != nil {
+		t.Fatalf("Print() error = %v", err)
+	}
+
+	var got runDetachedOutput
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+	if got.AppID != result.AppID || got.Mode != result.Mode || got.URL != result.URL ||
+		got.LogPath != result.LogPath || got.ProcessID != result.ProcessID {
+		t.Fatalf("output = %+v, want %+v", got, result)
+	}
+}
+
+func TestNextAppLogPathUsesNextRunIDForDate(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	for _, name := range []string{
+		"2026-04-20-1.log",
+		"2026-04-20-3.log",
+		"2026-04-19-10.log",
+		"2026-04-20-not-a-number.log",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, name), nil, osutil.FilePermOwnerOnly); err != nil {
+			t.Fatalf("write log file: %v", err)
+		}
+	}
+
+	got, err := appsupport.NextLogPath(dir, time.Date(2026, 4, 20, 12, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatalf("NextLogPath() error = %v", err)
+	}
+
+	want := filepath.Join(dir, "2026-04-20-4.log")
+	if got != want {
+		t.Fatalf("NextLogPath() = %q, want %q", got, want)
+	}
+}
+
+func TestContainerAppRunInfoIncludesContainerHandle(t *testing.T) {
+	t.Parallel()
+
+	got := containerAppRunInfo("container-id", types.ContainerInfo{
+		ID:    "container-id",
+		Name:  "container-name",
+		State: types.ContainerState{Running: true},
+		Ports: []types.PublishedPort{
+			{
+				ContainerPort: "5005",
+				HostPort:      "5006",
+			},
+		},
+	})
+
+	if got.ContainerID != "container-id" || got.HostPort != 5006 {
+		t.Fatalf("containerAppRunInfo() = %+v, want container handle and host port", got)
 	}
 }
