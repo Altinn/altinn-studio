@@ -385,7 +385,10 @@ func EnsureStartedWithStudioctlPath(
 	switch {
 	case err == nil:
 		if liveConfig(cfg, status) == desired {
-			return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+			return writeAppManagerState(cfg, runtimeState{
+				PID:   status.ProcessID,
+				Start: desired,
+			})
 		}
 		return restartManagedProcess(ctx, cfg, client, status.ProcessID, desired)
 	case !errors.Is(err, ErrNotRunning):
@@ -429,9 +432,12 @@ func reconcilePersistedProcess(
 	}
 
 	if state.Start == desired {
-		status, waitErr := waitForHealthy(ctx, cfg, client, state.PID)
+		status, waitErr := waitForHealthy(ctx, cfg, client, time.Now())
 		if waitErr == nil {
-			return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: desired})
+			return writeAppManagerState(cfg, runtimeState{
+				PID:   status.ProcessID,
+				Start: desired,
+			})
 		}
 	}
 
@@ -497,6 +503,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	if err := removeAppManagerState(cfg); err != nil {
 		return fmt.Errorf("remove stale app-manager pid file: %w", err)
 	}
+	startedAt := time.Now()
 
 	//nolint:gosec // G204: binary path comes from resolved studioctl config.
 	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.AppManagerBinaryPath())
@@ -526,7 +533,10 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	if err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
-	err = writeAppManagerState(cfg, runtimeState{PID: cmd.Process.Pid, Start: startConfig})
+	err = writeAppManagerState(cfg, runtimeState{
+		PID:   cmd.Process.Pid,
+		Start: startConfig,
+	})
 	if err != nil {
 		ignoreError(cmd.Process.Kill())
 		return fmt.Errorf("write app-manager pid file: %w", err)
@@ -538,9 +548,12 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	}
 
 	client := NewClient(cfg)
-	status, err := waitForHealthy(ctx, cfg, client, cmd.Process.Pid)
+	status, err := waitForHealthy(ctx, cfg, client, startedAt)
 	if err == nil {
-		return writeAppManagerState(cfg, runtimeState{PID: status.ProcessID, Start: startConfig})
+		return writeAppManagerState(cfg, runtimeState{
+			PID:   status.ProcessID,
+			Start: startConfig,
+		})
 	}
 
 	ignoreError(osutil.KillProcess(cmd.Process.Pid))
@@ -548,7 +561,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	return err
 }
 
-func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client, logPID int) (*Status, error) {
+func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client, logSince time.Time) (*Status, error) {
 	deadline := time.Now().Add(appManagerStartTimeout)
 	var lastErr error
 	for time.Now().Before(deadline) {
@@ -567,7 +580,7 @@ func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client, log
 			errAppManagerStartTimedOut,
 			appManagerStartTimeout,
 			lastErr,
-			readAppManagerLogTailForPID(cfg.AppManagerLogDir(), logPID),
+			readLatestAppManagerLogTailSince(cfg.AppManagerLogDir(), logSince),
 		)
 	}
 
@@ -575,7 +588,7 @@ func waitForHealthy(ctx context.Context, cfg *config.Config, client *Client, log
 		"%w: %s%s",
 		errAppManagerStartTimedOut,
 		appManagerStartTimeout,
-		readAppManagerLogTailForPID(cfg.AppManagerLogDir(), logPID),
+		readLatestAppManagerLogTailSince(cfg.AppManagerLogDir(), logSince),
 	)
 }
 
@@ -776,16 +789,17 @@ func readLatestAppManagerLogTail(dir string) string {
 	return readAppManagerLogTail(path)
 }
 
-func readAppManagerLogTailForPID(dir string, pid int) string {
-	if pid <= 0 {
-		return readLatestAppManagerLogTail(dir)
-	}
-
-	paths, err := LogPathsForPID(dir, pid)
-	if err != nil || len(paths) == 0 {
+func readLatestAppManagerLogTailSince(dir string, since time.Time) string {
+	files, err := LogFiles(dir)
+	if err != nil {
 		return ""
 	}
-	return readAppManagerLogTail(paths[len(paths)-1])
+	for i := len(files) - 1; i >= 0; i-- {
+		if !files[i].ModTime.Before(since) {
+			return readAppManagerLogTail(files[i].Path)
+		}
+	}
+	return ""
 }
 
 func readAppManagerLogTail(path string) string {
@@ -868,61 +882,30 @@ func LogFiles(dir string) ([]LogFile, error) {
 	return files, nil
 }
 
-// LogPathsForPID returns app-manager logs for a process id in filename order.
-func LogPathsForPID(dir string, pid int) ([]string, error) {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("read app-manager log directory: %w", err)
-	}
-
-	paths := make([]string, 0, len(entries))
-	for _, entry := range entries {
-		if entry.IsDir() || !isAppManagerLogNameForPID(entry.Name(), pid) {
-			continue
-		}
-		paths = append(paths, filepath.Join(dir, entry.Name()))
-	}
-	sort.Strings(paths)
-
-	return paths, nil
-}
-
 func isAppManagerLogName(name string) bool {
-	_, ok := logPIDFromName(name)
-	return ok
+	return logIDFromName(name) != ""
 }
 
-func logPIDFromName(name string) (int, bool) {
+func logIDFromName(name string) string {
 	const dateLength = len("2006-01-02")
 	if len(name) <= dateLength+len("-")+len(appManagerLogSuffix) {
-		return 0, false
-	}
-	if !isUTCDatePrefix(name[:dateLength]) {
-		return 0, false
-	}
-	if name[dateLength] != '-' {
-		return 0, false
+		return ""
 	}
 	if !strings.HasSuffix(name, appManagerLogSuffix) {
-		return 0, false
+		return ""
 	}
-
-	value, err := strconv.Atoi(name[dateLength+1 : len(name)-len(appManagerLogSuffix)])
+	if !isUTCDatePrefix(name[:dateLength]) {
+		return ""
+	}
+	if name[dateLength] != '-' {
+		return ""
+	}
+	id := name[dateLength+1 : len(name)-len(appManagerLogSuffix)]
+	value, err := strconv.Atoi(id)
 	if err != nil || value <= 0 {
-		return 0, false
+		return ""
 	}
-	return value, true
-}
-
-func isAppManagerLogNameForPID(name string, pid int) bool {
-	if pid <= 0 {
-		return false
-	}
-	logPID, ok := logPIDFromName(name)
-	return ok && logPID == pid
+	return id
 }
 
 func isUTCDatePrefix(value string) bool {

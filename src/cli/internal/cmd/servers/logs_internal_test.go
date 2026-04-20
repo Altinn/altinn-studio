@@ -98,8 +98,8 @@ func TestReadTailSnapshot_ReadsOlderFilesOnlyWhenNeeded(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	oldPath := writeNamedLog(t, dir, "2026-04-18-100.log", "one\n")
-	newPath := writeNamedLog(t, dir, "2026-04-19-100.log", "two\n")
+	oldPath := writeNamedLog(t, dir, "2026-04-18-1.log", "one\n")
+	newPath := writeNamedLog(t, dir, "2026-04-19-1.log", "two\n")
 
 	snapshot, err := readTailSnapshot([]string{oldPath, newPath}, 2)
 	if err != nil {
@@ -114,8 +114,8 @@ func TestReadTailSnapshot_DoesNotReadOldFilesWhenNewerFileSatisfiesTail(t *testi
 	t.Parallel()
 
 	dir := t.TempDir()
-	oldPath := writeNamedLog(t, dir, "2026-04-18-100.log", strings.Repeat("x", logScannerMaxSize+1))
-	newPath := writeNamedLog(t, dir, "2026-04-19-100.log", "new\n")
+	oldPath := writeNamedLog(t, dir, "2026-04-18-1.log", strings.Repeat("x", logScannerMaxSize+1))
+	newPath := writeNamedLog(t, dir, "2026-04-19-1.log", "new\n")
 
 	snapshot, err := readTailSnapshot([]string{oldPath, newPath}, 1)
 	if err != nil {
@@ -167,8 +167,8 @@ func TestStreamLogs_WithoutPIDReadsLatestLog(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	oldPath := writeNamedLog(t, dir, "2026-04-18-100.log", "old\n")
-	newPath := writeNamedLog(t, dir, "2026-04-19-200.log", "new\n")
+	oldPath := writeNamedLog(t, dir, "2026-04-18-1.log", "old\n")
+	newPath := writeNamedLog(t, dir, "2026-04-19-2.log", "new\n")
 	setLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
 	setLogModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
@@ -188,9 +188,9 @@ func TestPrintChangedFiles_ReadsNewFilesFromBeginning(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	oldPath := writeNamedLog(t, dir, "2026-04-18-100.log", "old\n")
+	oldPath := writeNamedLog(t, dir, "2026-04-18-1.log", "old\n")
 	offsets := map[string]int64{oldPath: int64(len("old\n"))}
-	newPath := writeNamedLog(t, dir, "2026-04-19-200.log", "new\n")
+	newPath := writeNamedLog(t, dir, "2026-04-19-2.log", "new\n")
 	setLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
 	setLogModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 
@@ -228,7 +228,7 @@ func TestFollowDiscoversNewLogFile(t *testing.T) {
 		errCh <- streamer.follow(ctx, map[string]int64{}, false)
 	}()
 
-	writeNamedLog(t, dir, "2026-04-19-200.log", "new\n")
+	writeNamedLog(t, dir, "2026-04-19-2.log", "new\n")
 	waitForOutput(t, &out, "new"+osutil.LineBreak)
 	cancel()
 
@@ -240,7 +240,7 @@ func TestFollowDiscoversNewLogFile(t *testing.T) {
 func writeLog(t *testing.T, dir, content string) string {
 	t.Helper()
 
-	return writeNamedLog(t, dir, "2026-04-19-100.log", content)
+	return writeNamedLog(t, dir, "2026-04-19-1.log", content)
 }
 
 func writeNamedLog(t *testing.T, dir, name, content string) string {

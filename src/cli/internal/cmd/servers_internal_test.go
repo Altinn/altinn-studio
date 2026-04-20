@@ -243,9 +243,9 @@ func TestServersLogsJSON_TailsMatchingPIDAcrossFiles(t *testing.T) {
 
 	logDir := t.TempDir()
 	appManagerLogDir := filepath.Join(logDir, "app-manager")
-	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-100.log", "one\n")
-	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-100.log", "two\nthree\n")
-	otherPath := writeServerLog(t, appManagerLogDir, "2026-04-19-200.log", "other\n")
+	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-1.log", "one\n")
+	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-1.log", "two\nthree\n")
+	otherPath := writeServerLog(t, appManagerLogDir, "2026-04-19-2.log", "other\n")
 	setServerLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
 	setServerLogModTime(t, newPath, time.Date(2026, 4, 19, 2, 0, 0, 0, time.UTC))
 	setServerLogModTime(t, otherPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
@@ -334,8 +334,8 @@ func TestServersLogs_ReadsLatestLogWithoutStatus(t *testing.T) {
 
 	logDir := t.TempDir()
 	appManagerLogDir := filepath.Join(logDir, "app-manager")
-	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-100.log", "old\n")
-	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-200.log", "new\n")
+	oldPath := writeServerLog(t, appManagerLogDir, "2026-04-18-1.log", "old\n")
+	newPath := writeServerLog(t, appManagerLogDir, "2026-04-19-2.log", "new\n")
 	setServerLogModTime(t, oldPath, time.Date(2026, 4, 18, 1, 0, 0, 0, time.UTC))
 	setServerLogModTime(t, newPath, time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC))
 

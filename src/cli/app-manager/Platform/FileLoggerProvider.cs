@@ -10,6 +10,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
     private const int Capacity = 1024;
     private readonly Channel<LogEntry> _channel;
     private readonly string _directory;
+    private readonly string _logId;
     private readonly Task _writerTask;
     private StreamWriter _writer;
     private string _currentDate;
@@ -22,6 +23,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
 
         Directory.CreateDirectory(directory);
         _directory = directory;
+        _logId = NextLogId(directory);
         _currentDate = UtcDate();
         _writer = OpenWriter(_currentDate);
         _channel = Channel.CreateBounded<LogEntry>(
@@ -95,7 +97,50 @@ internal sealed class FileLoggerProvider : ILoggerProvider
     }
 
     private string LogPath(string date) =>
-        Path.Combine(_directory, string.Create(CultureInfo.InvariantCulture, $"{date}-{Environment.ProcessId}.log"));
+        Path.Combine(_directory, string.Create(CultureInfo.InvariantCulture, $"{date}-{_logId}.log"));
+
+    private static string NextLogId(string directory)
+    {
+        var maxId = 0;
+        foreach (var path in Directory.EnumerateFiles(directory, "*" + ".log"))
+        {
+            if (TryParseLogId(Path.GetFileName(path), out var id) && id > maxId)
+                maxId = id;
+        }
+
+        return (maxId + 1).ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static bool TryParseLogId(string? fileName, out int id)
+    {
+        id = 0;
+        const int dateLength = 10;
+        if (
+            string.IsNullOrWhiteSpace(fileName)
+            || !fileName.EndsWith(".log", StringComparison.Ordinal)
+            || fileName.Length < dateLength + "-1.log".Length
+            || fileName[dateLength] != '-'
+        )
+        {
+            return false;
+        }
+
+        if (
+            !DateTime.TryParseExact(
+                fileName[..dateLength],
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out _
+            )
+        )
+        {
+            return false;
+        }
+
+        var idValue = fileName[(dateLength + 1)..^".log".Length];
+        return int.TryParse(idValue, NumberStyles.None, CultureInfo.InvariantCulture, out id) && id > 0;
+    }
 
     private static string UtcDate() => DateTimeOffset.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
