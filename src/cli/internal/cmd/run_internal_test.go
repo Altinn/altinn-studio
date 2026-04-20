@@ -15,6 +15,7 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	appsupport "altinn.studio/studioctl/internal/cmd/apps"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -160,14 +161,14 @@ func TestNextAppLogPathUsesNextRunIDForDate(t *testing.T) {
 		}
 	}
 
-	got, err := nextAppLogPath(dir, time.Date(2026, 4, 20, 12, 0, 0, 0, time.UTC))
+	got, err := appsupport.NextLogPath(dir, time.Date(2026, 4, 20, 12, 0, 0, 0, time.UTC))
 	if err != nil {
-		t.Fatalf("nextAppLogPath() error = %v", err)
+		t.Fatalf("NextLogPath() error = %v", err)
 	}
 
 	want := filepath.Join(dir, "2026-04-20-4.log")
 	if got != want {
-		t.Fatalf("nextAppLogPath() = %q, want %q", got, want)
+		t.Fatalf("NextLogPath() = %q, want %q", got, want)
 	}
 }
 

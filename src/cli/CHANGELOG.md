@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `--json` output for detached `run` and `app run`.
 - Add `app ps` for listing running app processes and containers.
 - Add `app stop` and top-level `stop` for stopping discovered app processes and containers.
-- Support for multiple instances of the same app and round robin loadbalancing similar to deployed environments.
+- Add `app logs` for reading app process and container logs.
+- Support for multiple instances of the same app and roundrobin loadbalancing similar to deployed environments.
 
 ### Changed
 

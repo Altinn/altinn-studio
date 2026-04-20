@@ -24,11 +24,14 @@ import (
 // AppCommand implements the 'app' subcommand.
 type AppCommand struct {
 	out     *ui.Output
+	logs    *appLogsCommand
 	ps      *AppPsCommand
 	run     *RunCommand
 	stop    *StopCommand
 	service *appsvc.Service
 }
+
+const appLogsSubcommand = "logs"
 
 type appBuildOutput struct {
 	ImageTag   string `json:"imageTag"`
@@ -67,6 +70,7 @@ func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
 	service := appsvc.NewService(cfg.Home)
 	return &AppCommand{
 		out:     out,
+		logs:    newAppLogsCommand(cfg, out, service),
 		ps:      newAppPsCommand(cfg, out, service),
 		run:     newRunCommand(cfg, out, service),
 		stop:    newStopCommand(cfg, out, service),
@@ -90,6 +94,7 @@ func (c *AppCommand) Usage() string {
 		"Subcommands:",
 		"  build     Build an app container image",
 		"  clone     Clone an app repository from Altinn Studio",
+		"  logs      Stream app logs",
 		"  ps        List running apps",
 		"  run       Run app locally",
 		"  stop      Stop running apps",
@@ -114,6 +119,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.runBuild(ctx, subArgs)
 	case "clone":
 		return c.runClone(ctx, subArgs)
+	case appLogsSubcommand:
+		return c.logs.run(ctx, subArgs)
 	case "ps":
 		return c.ps.RunWithCommandPath(ctx, subArgs, "app ps")
 	case "run":

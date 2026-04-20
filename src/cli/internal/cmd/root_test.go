@@ -213,6 +213,11 @@ func TestCLI_Run(t *testing.T) {
 			wantCode: 0,
 		},
 		{
+			name:     "app logs command exists",
+			args:     []string{"app", "logs", "--help"},
+			wantCode: 0,
+		},
+		{
 			name:     "app ps command exists",
 			args:     []string{"app", "ps", "--help"},
 			wantCode: 0,
