@@ -141,8 +141,7 @@ export function useNavigateToTask() {
   const uiFolders = getUiConfig().folders;
 
   return useCallback(
-    (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
-      const { runEffect = true } = options ?? {};
+    (newTaskId: string, options?: NavigateOptions) => {
       const { instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
       if (newTaskId === taskId) {
         return;
@@ -153,12 +152,7 @@ export function useNavigateToTask() {
         realTaskId = TaskKeys.CustomReceipt in uiFolders ? TaskKeys.CustomReceipt : TaskKeys.ProcessEnd;
       }
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`;
-      navigate(
-        url,
-        undefined,
-        options,
-        runEffect ? { callback: () => focusMainContent(options), targetLocation: url, matchStart: true } : undefined,
-      );
+      navigate(url, undefined, options);
     },
     [navParams, navigate, queryKeysRef, uiFolders],
   );
@@ -367,7 +361,7 @@ export function useNavigatePage() {
   };
 }
 
-export function focusMainContent(options?: NavigateToPageOptions) {
+export function focusMainContent(options?: Pick<NavigateToPageOptions, 'searchParams'>) {
   if (!options?.searchParams?.has(SearchParams.FocusComponentId)) {
     document.getElementById('main-content')?.focus();
     window.scrollTo(0, 0);
