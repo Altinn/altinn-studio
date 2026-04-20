@@ -31,9 +31,10 @@ const (
 	registerPath = "/api/v1/studioctl/apps"
 	shutdownPath = "/api/v1/studioctl/shutdown"
 
-	appManagerUnixSocketEnv = "APP_MANAGER_UNIX_SOCKET_PATH"
-	appManagerTunnelURLEnv  = "Tunnel__Url"
-	appManagerStudioctlEnv  = "Studioctl__Path"
+	appManagerUnixSocketEnv   = "APP_MANAGER_UNIX_SOCKET_PATH"
+	appManagerTunnelURLEnv    = "Tunnel__Url"
+	appManagerLocaltestURLEnv = "Localtest__Url"
+	appManagerStudioctlEnv    = "Studioctl__Path"
 
 	appManagerStartTimeout          = 10 * time.Second
 	appManagerRegisterTimeoutMargin = 2 * time.Second
@@ -49,6 +50,7 @@ type startConfig struct {
 	WorkingDir     string `json:"workingDir"`
 	UnixSocketPath string `json:"unixSocketPath,omitempty"`
 	TunnelURL      string `json:"tunnelUrl"`
+	LocaltestURL   string `json:"localtestUrl"`
 	StudioctlPath  string `json:"studioctlPath"`
 	InternalDev    bool   `json:"internalDev"`
 }
@@ -63,6 +65,7 @@ type Status struct {
 	AppManagerVersion string          `json:"appManagerVersion"`
 	DotnetVersion     string          `json:"dotnetVersion"`
 	StudioctlPath     string          `json:"studioctlPath"`
+	LocaltestURL      string          `json:"localtestUrl"`
 	Tunnel            TunnelStatus    `json:"tunnel"`
 	Apps              []DiscoveredApp `json:"apps"`
 	ProcessID         int             `json:"processId"`
@@ -222,6 +225,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		AppManagerVersion string `json:"appManagerVersion"`
 		DotnetVersion     string `json:"dotnetVersion"`
 		StudioctlPath     string `json:"studioctlPath"`
+		LocaltestURL      string `json:"localtestUrl"`
 		Tunnel            struct {
 			URL       string `json:"url"`
 			Enabled   bool   `json:"enabled"`
@@ -249,6 +253,7 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 		AppManagerVersion: status.AppManagerVersion,
 		DotnetVersion:     status.DotnetVersion,
 		StudioctlPath:     status.StudioctlPath,
+		LocaltestURL:      status.LocaltestURL,
 		InternalDev:       status.InternalDev,
 		Tunnel: TunnelStatus{
 			Enabled:   status.Tunnel.Enabled,
@@ -469,6 +474,11 @@ func TunnelURL(port string) string {
 	return "ws://127.0.0.1:" + port + appTunnelEndpointPath
 }
 
+// LocaltestURL returns the localtest HTTP URL for a host port.
+func LocaltestURL(port string) string {
+	return "http://127.0.0.1:" + port
+}
+
 func restartManagedProcess(
 	ctx context.Context,
 	cfg *config.Config,
@@ -514,6 +524,9 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	)
 	if startConfig.TunnelURL != "" {
 		cmd.Env = append(cmd.Env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
+	}
+	if startConfig.LocaltestURL != "" {
+		cmd.Env = append(cmd.Env, appManagerLocaltestURLEnv+"="+startConfig.LocaltestURL)
 	}
 	if startConfig.StudioctlPath != "" {
 		cmd.Env = append(cmd.Env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
@@ -693,6 +706,7 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 		WorkingDir:     cfg.Home,
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      TunnelURL(loadBalancerPort),
+		LocaltestURL:   LocaltestURL(loadBalancerPort),
 		StudioctlPath:  studioctlPath,
 		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}
@@ -704,6 +718,7 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		WorkingDir:     cfg.Home,
 		UnixSocketPath: cfg.AppManagerSocketPath(),
 		TunnelURL:      status.Tunnel.URL,
+		LocaltestURL:   status.LocaltestURL,
 		StudioctlPath:  status.StudioctlPath,
 		InternalDev:    status.InternalDev,
 	}

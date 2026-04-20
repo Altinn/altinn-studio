@@ -11,6 +11,7 @@ internal sealed class AppRegistry : BackgroundService
 
     private readonly IReadOnlyList<IAppDiscovery> _discoveries;
     private readonly AppMetadataProbe _probe;
+    private readonly LocaltestStorageProbe _storageProbe;
     private readonly ILogger<AppRegistry> _logger;
     private readonly Channel<AppRegistryMessage> _messages = Channel.CreateUnbounded<AppRegistryMessage>();
     private readonly List<AppStartWaiter> _pendingStarts = [];
@@ -18,10 +19,16 @@ internal sealed class AppRegistry : BackgroundService
     private DiscoveredApp[] _apps = [];
     private bool _lastRefreshFailed;
 
-    public AppRegistry(IEnumerable<IAppDiscovery> discoveries, AppMetadataProbe probe, ILogger<AppRegistry> logger)
+    public AppRegistry(
+        IEnumerable<IAppDiscovery> discoveries,
+        AppMetadataProbe probe,
+        LocaltestStorageProbe storageProbe,
+        ILogger<AppRegistry> logger
+    )
     {
         _discoveries = [.. discoveries];
         _probe = probe;
+        _storageProbe = storageProbe;
         _logger = logger;
     }
 
@@ -190,6 +197,7 @@ internal sealed class AppRegistry : BackgroundService
         Volatile.Write(ref _apps, apps);
 
         LogRefresh(previous, apps);
+        await CompleteReadyStarts(apps, cancellationToken);
     }
 
     private async Task<DiscoveredApp[]> DiscoverApps(CancellationToken cancellationToken)
@@ -234,7 +242,6 @@ internal sealed class AppRegistry : BackgroundService
         )
         {
             apps[AppKey.From(result.App)] = result.App;
-            CompleteMatchingStarts(result.App);
         }
 
         return [.. apps.Values];
@@ -272,7 +279,7 @@ internal sealed class AppRegistry : BackgroundService
         );
     }
 
-    private void CompleteMatchingStarts(DiscoveredApp app)
+    private async Task CompleteReadyStarts(IReadOnlyList<DiscoveredApp> apps, CancellationToken cancellationToken)
     {
         for (var i = _pendingStarts.Count - 1; i >= 0; i--)
         {
@@ -283,11 +290,15 @@ internal sealed class AppRegistry : BackgroundService
                 continue;
             }
 
-            if (waiter.Matches(app))
-            {
-                waiter.TrySetResult(app.BaseUri.Value);
-                _pendingStarts.RemoveAt(i);
-            }
+            var app = apps.FirstOrDefault(waiter.Matches);
+            if (app is null)
+                continue;
+
+            if (!await _storageProbe.CanReadApplicationMetadata(app.AppId, cancellationToken))
+                continue;
+
+            waiter.TrySetResult(app.BaseUri.Value);
+            _pendingStarts.RemoveAt(i);
         }
     }
 
@@ -305,7 +316,9 @@ internal sealed class AppRegistry : BackgroundService
             if (now < waiter.Deadline)
                 continue;
 
-            waiter.TrySetException(new TimeoutException("matching app endpoint not found"));
+            waiter.TrySetException(
+                new TimeoutException("matching app endpoint not found or not reachable through localtest storage")
+            );
             _pendingStarts.RemoveAt(i);
         }
     }

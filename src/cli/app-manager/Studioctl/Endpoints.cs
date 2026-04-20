@@ -18,7 +18,7 @@ internal static class Endpoints
         return studioctl;
     }
 
-    private static IResult GetStatus(AppRegistry registry, TunnelState tunnelState)
+    private static IResult GetStatus(AppRegistry registry, TunnelState tunnelState, IConfiguration configuration)
     {
         return Results.Ok(
             new StatusResponse(
@@ -28,6 +28,7 @@ internal static class Endpoints
                 Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown",
                 EnvironmentValues.IsTruthy(Environment.GetEnvironmentVariable("STUDIOCTL_INTERNAL_DEV")),
                 Environment.GetEnvironmentVariable("Studioctl__Path") ?? "",
+                configuration["Localtest:Url"] ?? "",
                 new TunnelStatusResponse(tunnelState.Enabled, tunnelState.IsConnected, tunnelState.Url),
                 [
                     .. registry
@@ -114,6 +115,7 @@ internal static class Endpoints
         string AppManagerVersion,
         bool InternalDev,
         string StudioctlPath,
+        string LocaltestUrl,
         TunnelStatusResponse Tunnel,
         IReadOnlyList<DiscoveredAppResponse> Apps
     );
