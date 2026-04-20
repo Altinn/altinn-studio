@@ -23,14 +23,17 @@ internal sealed class LocaltestStorageProbe
         _logger = logger;
     }
 
-    public async Task<bool> CanReadApplicationMetadata(string appId, CancellationToken cancellationToken)
+    public async Task<LocaltestStorageProbeResult> ProbeApplicationMetadata(
+        string appId,
+        CancellationToken cancellationToken
+    )
     {
         if (_baseUri is null)
-            return true;
+            return LocaltestStorageProbeResult.Unavailable;
 
         var path = BuildApplicationMetadataPath(appId);
         if (path is null)
-            return false;
+            return LocaltestStorageProbeResult.NotReady;
 
         try
         {
@@ -47,7 +50,7 @@ internal sealed class LocaltestStorageProbe
                         (int)response.StatusCode
                     );
                 }
-                return false;
+                return LocaltestStorageProbeResult.NotReady;
             }
 
             await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -67,17 +70,23 @@ internal sealed class LocaltestStorageProbe
                 );
             }
 
-            return reachable;
+            return reachable ? LocaltestStorageProbeResult.Ready : LocaltestStorageProbeResult.NotReady;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
+        catch (JsonException ex)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.LogDebug(ex, "Storage metadata probe for {AppId} failed", appId);
-            return false;
+                _logger.LogDebug(ex, "Storage metadata probe for {AppId} returned invalid JSON", appId);
+            return LocaltestStorageProbeResult.NotReady;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug(ex, "Storage metadata probe for {AppId} could not reach localtest", appId);
+            return LocaltestStorageProbeResult.Unavailable;
         }
     }
 
@@ -110,4 +119,11 @@ internal sealed class LocaltestStorageProbe
     }
 
     private sealed record ApplicationMetadataResponse(string Id);
+}
+
+internal enum LocaltestStorageProbeResult
+{
+    Ready,
+    NotReady,
+    Unavailable,
 }

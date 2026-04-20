@@ -294,7 +294,10 @@ internal sealed class AppRegistry : BackgroundService
             if (app is null)
                 continue;
 
-            if (!await _storageProbe.CanReadApplicationMetadata(app.AppId, cancellationToken))
+            if (
+                await _storageProbe.ProbeApplicationMetadata(app.AppId, cancellationToken)
+                is LocaltestStorageProbeResult.NotReady
+            )
                 continue;
 
             waiter.TrySetResult(app.BaseUri.Value);
