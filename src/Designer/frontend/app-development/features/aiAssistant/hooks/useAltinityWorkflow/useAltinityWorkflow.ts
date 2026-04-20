@@ -55,9 +55,14 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const currentBranch = currentBranchInfo?.branchName;
   const currentBranchRef = useRef<string>('main');
   const backendSessionIdRef = useRef<string | null>(backendSessionId);
-  const lastSubmittedUserContentRef = useRef<string | null>(null);
 
-  const { currentSessionId, currentSessionIdRef, setCurrentSession, persistMessage } = threads;
+  const {
+    currentSessionId,
+    currentSessionIdRef,
+    setCurrentSession,
+    persistMessage,
+    removeLastUserMessage,
+  } = threads;
 
   useEffect(() => {
     backendSessionIdRef.current = backendSessionId;
@@ -230,7 +235,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       persistMessage(threadId, userMessage);
-      lastSubmittedUserContentRef.current = userMessage.content;
 
       try {
         const result = await startAgentWorkflow(
@@ -291,7 +295,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     const threadId = currentSessionIdRef.current;
     if (!threadId) return;
     setWorkflowStatus({ isActive: false });
-    const restoredContent = lastSubmittedUserContentRef.current;
+    const restoredContent = removeLastUserMessage(threadId);
     if (restoredContent) {
       setCancelledMessageContent(restoredContent);
     }
@@ -302,7 +306,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, currentSessionIdRef]);
+  }, [cancelWorkflow, currentSessionIdRef, removeLastUserMessage]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);

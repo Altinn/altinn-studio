@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useScrollIntoView } from './Messages/useScrollIntoView';
+import { useRef, useEffect } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
 import { UserInput } from './UserInput/UserInput';
@@ -34,7 +34,13 @@ export function ChatColumn({
   currentUser,
 }: ChatColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
-  const messagesEndRef = useScrollIntoView([messages, workflowIsActive]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView?.({ behavior: 'smooth' });
+    }
+  }, [messages, workflowIsActive]);
 
   const placeholderContent = (
     <div className={classes.emptyState}>
