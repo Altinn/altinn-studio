@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -53,7 +52,7 @@ func TestStreamFollowsAppendedCompleteLines(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var out bytes.Buffer
+	lines := make(chan string, 1)
 	listed := make(chan struct{})
 	var listedOnce sync.Once
 	errCh := make(chan error, 1)
@@ -64,8 +63,7 @@ func TestStreamFollowsAppendedCompleteLines(t *testing.T) {
 				return listFiles(dir)()
 			},
 			Emit: func(_ string, line string) error {
-				out.WriteString(line)
-				out.WriteString(osutil.LineBreak)
+				lines <- line
 				return nil
 			},
 		}.Stream(ctx, logstream.Options{
@@ -76,7 +74,14 @@ func TestStreamFollowsAppendedCompleteLines(t *testing.T) {
 
 	<-listed
 	appendLog(t, path, "two\n")
-	waitForOutput(t, &out, "two"+osutil.LineBreak)
+	select {
+	case got := <-lines:
+		if got != "two" {
+			t.Fatalf("line = %q, want two", got)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for appended log line")
+	}
 	cancel()
 
 	if err := <-errCh; err != nil {
@@ -181,17 +186,4 @@ func setLogModTime(t *testing.T, path string, modTime time.Time) {
 	if err := os.Chtimes(path, modTime, modTime); err != nil {
 		t.Fatalf("chtimes %q: %v", path, err)
 	}
-}
-
-func waitForOutput(t *testing.T, out *bytes.Buffer, want string) {
-	t.Helper()
-
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
-		if out.String() == want {
-			return
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	t.Fatalf("output = %q, want %q", strings.TrimSpace(out.String()), strings.TrimSpace(want))
 }
