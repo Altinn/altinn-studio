@@ -195,13 +195,11 @@ func (c *ServersCommand) runUp(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
-	if err := c.client.Health(ctx); err == nil {
-		return serversUpOutput{Running: true, Started: false, JSONOutput: jsonOutput}.Print(c.out)
-	}
+	wasRunning := c.client.Health(ctx) == nil
 	if err := c.startAppManager(ctx); err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
-	return serversUpOutput{Running: true, Started: true, JSONOutput: jsonOutput}.Print(c.out)
+	return serversUpOutput{Running: true, Started: !wasRunning, JSONOutput: jsonOutput}.Print(c.out)
 }
 
 func (c *ServersCommand) runStatus(ctx context.Context, args []string) error {

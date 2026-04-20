@@ -1,11 +1,14 @@
 package appmanager
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"altinn.studio/studioctl/internal/config"
 )
 
 func TestLatestAppManagerLogPath_ReturnsNewestMatchingFile(t *testing.T) {
@@ -145,6 +148,36 @@ func TestLogLookup_HandlesDirectoryWithGlobMetacharacters(t *testing.T) {
 	}
 }
 
+func TestPrepareAppManagerSocketForStart_RemovesUnreachableSocket(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := os.WriteFile(cfg.AppManagerSocketPath(), []byte("stale"), 0o600); err != nil {
+		t.Fatalf("write stale socket: %v", err)
+	}
+
+	if err := prepareAppManagerSocketForStart(context.Background(), cfg); err != nil {
+		t.Fatalf("prepareAppManagerSocketForStart() error = %v", err)
+	}
+	if _, err := os.Lstat(cfg.AppManagerSocketPath()); !os.IsNotExist(err) {
+		t.Fatalf("socket still exists or stat failed: %v", err)
+	}
+}
+
+func TestPrepareAppManagerSocketForStart_RejectsDirectory(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := os.Mkdir(cfg.AppManagerSocketPath(), 0o700); err != nil {
+		t.Fatalf("create socket directory: %v", err)
+	}
+
+	err := prepareAppManagerSocketForStart(context.Background(), cfg)
+	if err == nil || !strings.Contains(err.Error(), "socket path is a directory") {
+		t.Fatalf("prepareAppManagerSocketForStart() error = %v, want directory error", err)
+	}
+}
+
 func writeTestLog(t *testing.T, dir, name, content string) string {
 	t.Helper()
 
@@ -153,6 +186,19 @@ func writeTestLog(t *testing.T, dir, name, content string) string {
 		t.Fatalf("write log %q: %v", path, err)
 	}
 	return path
+}
+
+func testConfig(t *testing.T) *config.Config {
+	t.Helper()
+
+	dir := t.TempDir()
+	return &config.Config{
+		Home:      dir,
+		SocketDir: dir,
+		LogDir:    filepath.Join(dir, "logs"),
+		DataDir:   filepath.Join(dir, "data"),
+		BinDir:    filepath.Join(dir, "bin"),
+	}
 }
 
 func assertLatestLogPath(t *testing.T, dir, want string) {

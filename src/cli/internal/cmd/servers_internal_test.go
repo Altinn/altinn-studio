@@ -81,6 +81,9 @@ func TestServersUpJSON_AlreadyRunning(t *testing.T) {
 	command := &ServersCommand{
 		out:    ui.NewOutput(&out, io.Discard, false),
 		client: fakeServersClient{},
+		ensureStarted: func(context.Context, *config.Config, string) error {
+			return nil
+		},
 	}
 
 	if err := command.Run(context.Background(), []string{"up", "--json"}); err != nil {
@@ -93,6 +96,28 @@ func TestServersUpJSON_AlreadyRunning(t *testing.T) {
 	}
 	if !got.Running || got.Started {
 		t.Fatalf("output = %+v, want running true and started false", got)
+	}
+}
+
+func TestServersUpJSON_ReconcilesWhenAlreadyRunning(t *testing.T) {
+	t.Parallel()
+
+	var ensured bool
+	var out bytes.Buffer
+	command := &ServersCommand{
+		out:    ui.NewOutput(&out, io.Discard, false),
+		client: fakeServersClient{},
+		ensureStarted: func(context.Context, *config.Config, string) error {
+			ensured = true
+			return nil
+		},
+	}
+
+	if err := command.Run(context.Background(), []string{"up", "--json"}); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if !ensured {
+		t.Fatal("ensureStarted was not called")
 	}
 }
 
