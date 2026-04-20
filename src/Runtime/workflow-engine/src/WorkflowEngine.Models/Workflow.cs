@@ -34,11 +34,13 @@ public sealed record Workflow : PersistentItem
     public int ReclaimCount { get; set; }
 
     /// <summary>
-    /// Per-fetch lease identifier. A fresh token is issued on every fetch/reclaim by the engine and
-    /// asserted on heartbeat and write-back to prevent a stale worker from writing over a workflow
-    /// that has been reclaimed by another host.
+    /// Per-fetch lease identifier. <c>null</c> until the workflow is first fetched; a fresh token is
+    /// then issued on every fetch/reclaim by the engine and asserted on heartbeat and write-back to
+    /// prevent a stale worker from writing over a workflow that has been reclaimed by another host.
+    /// The token is left in place on terminal writes so retries of the same write-back remain
+    /// idempotent (a network blip between commit and ack would otherwise look like lease loss).
     /// </summary>
-    public Guid LeaseToken { get; set; }
+    public Guid? LeaseToken { get; set; }
 
     public required IReadOnlyList<Step> Steps { get; init; }
     public string? DistributedTraceContext { get; set; }

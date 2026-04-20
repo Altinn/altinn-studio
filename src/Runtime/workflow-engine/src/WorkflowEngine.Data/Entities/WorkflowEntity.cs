@@ -35,7 +35,7 @@ internal sealed class WorkflowEntity
 
     public int ReclaimCount { get; set; }
 
-    public Guid LeaseToken { get; set; }
+    public Guid? LeaseToken { get; set; }
 
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string>? Labels { get; set; }

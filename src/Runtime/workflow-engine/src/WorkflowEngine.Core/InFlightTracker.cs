@@ -102,8 +102,17 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     /// a host that sent heartbeats without its lease token could keep a reclaimed
     /// workflow "alive" on the row and silently overwrite the new owner's state.
     /// </summary>
+    /// <remarks>
+    /// Tracked workflows always originate from <c>FetchAndLockWorkflows</c>, which stamps a
+    /// fresh <c>LeaseToken</c> in the update CTE. The unwrap via <c>.Value</c> asserts that
+    /// invariant; a null here would mean an untracked call path added a workflow without a lease.
+    /// </remarks>
+    // Non-null assertion: tracked workflows always originate from FetchAndLockWorkflows, which
+    // stamps a fresh LeaseToken in the update CTE — so LeaseToken is guaranteed non-null here.
+#pragma warning disable NX0003
     public IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> GetSnapshotLeases() =>
-        _workflows.Select(kvp => (kvp.Key, kvp.Value.Workflow.LeaseToken)).ToList();
+        _workflows.Select(kvp => (kvp.Key, kvp.Value.Workflow.LeaseToken!.Value)).ToList();
+#pragma warning restore NX0003
 
     /// <summary>
     /// Attempts to retrieve the in-memory <see cref="Workflow"/> object for a tracked workflow.

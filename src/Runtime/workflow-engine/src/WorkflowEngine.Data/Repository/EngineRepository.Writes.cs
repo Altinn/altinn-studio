@@ -905,7 +905,10 @@ internal sealed partial class EngineRepository
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
-                        leaseTokens[i] = w.LeaseToken;
+                        // Invariant: workflows reaching write-back were fetched by this host, so LeaseToken is non-null.
+#pragma warning disable NX0003
+                        leaseTokens[i] = w.LeaseToken!.Value;
+#pragma warning restore NX0003
                     }
 
                     // Lease-token compare-and-swap: rows whose LeaseToken no longer matches the

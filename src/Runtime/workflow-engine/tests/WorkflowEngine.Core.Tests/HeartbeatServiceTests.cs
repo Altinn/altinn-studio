@@ -17,6 +17,7 @@ public class HeartbeatServiceTests
             IdempotencyKey = "heartbeat-test-key",
             Namespace = "test-ns",
             Steps = [],
+            LeaseToken = Guid.NewGuid(),
         };
 
     private static EngineSettings DefaultSettings(TimeSpan? heartbeatInterval = null) =>

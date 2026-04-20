@@ -164,10 +164,8 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid>("LeaseToken")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                    b.Property<Guid?>("LeaseToken")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Namespace")
                         .IsRequired()

@@ -24,7 +24,7 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository();
 
         var enqueued = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued);
-        var tokenBeforeFetch = enqueued.LeaseToken;
+        Assert.Null(enqueued.LeaseToken);
 
         var result = await repo.FetchAndLockWorkflows(
             10,
@@ -34,8 +34,7 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         var fetched = Assert.Single(result.Workflows);
-        Assert.NotEqual(Guid.Empty, fetched.LeaseToken);
-        Assert.NotEqual(tokenBeforeFetch, fetched.LeaseToken);
+        Assert.NotNull(fetched.LeaseToken);
 
         var dbWf = await fixture.GetWorkflow(enqueued.DatabaseId);
         Assert.NotNull(dbWf);
@@ -132,7 +131,7 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         var lost = await repo.BatchUpdateHeartbeats(
-            [(wf.DatabaseId, wf.LeaseToken)],
+            [(wf.DatabaseId, wf.LeaseToken!.Value)],
             TimeSpan.FromSeconds(10),
             TestContext.Current.CancellationToken
         );
