@@ -160,23 +160,27 @@ func Shutdown(ctx context.Context, cfg *config.Config) (<-chan error, error) {
 	client := NewClient(cfg)
 	pid, err := currentManagedPID(ctx, client, cfg)
 	if err != nil {
-		ignoreError(lock.Close())
-		return nil, err
+		return nil, errors.Join(err, closeAppManagerLifecycleLock(lock))
 	}
 
 	if err := shutdownError(client.shutdown(ctx), pid); err != nil {
-		ignoreError(lock.Close())
-		return nil, err
+		return nil, errors.Join(err, closeAppManagerLifecycleLock(lock))
 	}
 
 	done := make(chan error, 1)
 	go func() {
 		defer close(done)
-		defer ignoreError(lock.Close())
-		done <- waitForManagedShutdown(ctx, cfg, client, pid)
+		done <- errors.Join(waitForManagedShutdown(ctx, cfg, client, pid), closeAppManagerLifecycleLock(lock))
 	}()
 
 	return done, nil
+}
+
+func closeAppManagerLifecycleLock(lock *osutil.FileLock) error {
+	if err := lock.Close(); err != nil {
+		return fmt.Errorf("close app-manager lifecycle lock: %w", err)
+	}
+	return nil
 }
 
 func shutdownError(err error, pid int) error {
@@ -393,12 +397,14 @@ func EnsureStartedWithStudioctlPath(
 	cfg *config.Config,
 	loadBalancerPort,
 	studioctlPath string,
-) error {
+) (err error) {
 	lock, err := osutil.AcquireFileLock(ctx, cfg.AppManagerLockPath())
 	if err != nil {
 		return fmt.Errorf("lock app-manager lifecycle: %w", err)
 	}
-	defer ignoreError(lock.Close())
+	defer func() {
+		err = errors.Join(err, closeAppManagerLifecycleLock(lock))
+	}()
 
 	desired := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
 	client := NewClient(cfg)
@@ -450,7 +456,7 @@ func reconcilePersistedProcess(
 	}
 
 	if !running {
-		return restartFromPersistedState(ctx, cfg, desired, 0)
+		return restartFromPersistedState(ctx, cfg, client, desired, 0)
 	}
 
 	if state.Start == desired {
@@ -463,12 +469,18 @@ func reconcilePersistedProcess(
 		}
 	}
 
-	return restartFromPersistedState(ctx, cfg, desired, state.PID)
+	return restartFromPersistedState(ctx, cfg, client, desired, state.PID)
 }
 
-func restartFromPersistedState(ctx context.Context, cfg *config.Config, desired startConfig, pid int) error {
+func restartFromPersistedState(
+	ctx context.Context,
+	cfg *config.Config,
+	client *Client,
+	desired startConfig,
+	pid int,
+) error {
 	if pid > 0 {
-		if err := osutil.KillProcess(pid); err != nil {
+		if err := forceStopAppManager(ctx, client, pid); err != nil {
 			return fmt.Errorf("stop persisted app-manager pid %d: %w", pid, err)
 		}
 	}
@@ -566,8 +578,9 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	if err != nil {
 		return fmt.Errorf("start app-manager: %w", err)
 	}
+	startedPID := cmd.Process.Pid
 	err = writeAppManagerState(cfg, runtimeState{
-		PID:   cmd.Process.Pid,
+		PID:   startedPID,
 		Start: startConfig,
 	})
 	if err != nil {
@@ -589,7 +602,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 		})
 	}
 
-	ignoreError(osutil.KillProcess(cmd.Process.Pid))
+	ignoreError(osutil.KillProcess(startedPID))
 	ignoreError(removeAppManagerState(cfg))
 	return err
 }
