@@ -111,4 +111,6 @@ export enum QueryKey {
 
   // Org settings
   ContactPoints = 'ContactPoints',
+  BotAccounts = 'BotAccounts',
+  BotAccountApiKeys = 'BotAccountApiKeys',
 }

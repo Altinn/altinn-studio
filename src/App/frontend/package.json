@@ -6,7 +6,6 @@
   "license": "MIT",
   "exports": "./src/index.tsx",
   "scripts": {
-    "cy:all": "tsx scripts/cypress-run-all.ts",
     "gen": "tsx src/codegen/run.ts",
     "copy-schemas": "tsx scripts/copy-schemas.ts",
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
@@ -138,7 +137,7 @@
     "ajv-errors": "3.0.0",
     "ajv-formats": "3.0.1",
     "ajv-formats-draft2019": "1.6.1",
-    "axios": "1.13.6",
+    "axios": "1.15.0",
     "babel-plugin-react-compiler": "^19.1.0-rc.2",
     "classnames": "2.5.1",
     "cypress-parallel": "0.15.0",

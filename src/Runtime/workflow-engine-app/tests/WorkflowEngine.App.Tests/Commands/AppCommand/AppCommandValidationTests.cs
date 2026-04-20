@@ -161,11 +161,7 @@ public class AppCommandValidationTests
     private static App.Commands.AppCommand.AppCommand CreateCommand()
     {
         var settings = Options.Create(
-            new AppCommandSettings
-            {
-                ApiKey = "test-key",
-                CommandEndpoint = "https://example.com/{Org}/{App}/callbacks",
-            }
+            new AppCommandSettings { CommandEndpoint = "https://example.com/{Org}/{App}/callbacks" }
         );
         var httpFactory = new Mock<IHttpClientFactory>();
         var limiter = new Mock<IConcurrencyLimiter>();

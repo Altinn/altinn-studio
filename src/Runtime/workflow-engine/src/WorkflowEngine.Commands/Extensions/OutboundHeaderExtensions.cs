@@ -14,7 +14,7 @@ public static class OutboundHeaderExtensions
     /// </summary>
     public static void AddWorkflowMetadataHeaders(this HttpRequestMessage request, CommandExecutionContext context)
     {
-        request.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, context.Step.IdempotencyKey);
+        request.Headers.Add(WorkflowMetadataConstants.Headers.IdempotencyKey, context.Step.DatabaseId.ToString());
         request.Headers.Add(WorkflowMetadataConstants.Headers.WorkflowId, context.Workflow.DatabaseId.ToString());
         request.Headers.Add(WorkflowMetadataConstants.Headers.OperationId, context.Step.OperationId);
         request.Headers.Add(WorkflowMetadataConstants.Headers.Namespace, context.Workflow.Namespace);

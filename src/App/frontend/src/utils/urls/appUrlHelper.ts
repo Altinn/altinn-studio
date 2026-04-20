@@ -1,4 +1,5 @@
 import { IgnoredValidators } from 'src/features/validation';
+import { GlobalData } from 'src/GlobalData';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 
 const { org, app } = window;
@@ -15,8 +16,6 @@ export const getInstantiateUrl = (language?: string) => {
 };
 
 export const getSetSelectedPartyUrl = (partyId: string | number) => `${appPath}/api/v1/parties/${partyId}`;
-
-export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
 export const getPaymentInformationUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
@@ -70,14 +69,6 @@ export const getActionsUrl = (partyId: string, instanceId: string, language?: st
 export const getCreateInstancesUrl = (partyId: number, language?: string) => {
   const queryString = getQueryStringFromObject({ instanceOwnerPartyId: partyId.toString(), language });
   return `${appPath}/instances${queryString}`;
-};
-
-export const getValidationUrl = (instanceId: string, language: string, onlyIncrementalValidators?: boolean) => {
-  const queryString = getQueryStringFromObject({
-    language,
-    onlyIncrementalValidators: onlyIncrementalValidators?.toString(),
-  });
-  return `${appPath}/instances/${instanceId}/validate${queryString}`;
 };
 
 export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
@@ -151,8 +142,9 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
-export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';
-export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
+export const getAppFrontendCDNPath = () => GlobalData.platformFrontendSettings.appFrontendCdnBaseUrl;
+export const getFrontendVersionsCDN = () => `${getAppFrontendCDNPath()}/index.json`;
+export const getHelpCircleIllustrationUrl = () => GlobalData.platformFrontendSettings.helpCircleIllustrationUrl;
 
 export type ParamValue = string | number | boolean | null;
 

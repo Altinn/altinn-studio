@@ -7,18 +7,13 @@ import {
   getOptionsUrl,
   getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
-  getValidationUrl,
   redirectToUpgrade,
-  textResourcesUrl,
 } from 'src/utils/urls/appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
   describe('constants', () => {
     it('should return the expected url for getSetSelectedPartyUrl', () => {
       expect(getSetSelectedPartyUrl(12345)).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
-    });
-    it('should return the expected url for textResourcesUrl', () => {
-      expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');
     });
     it('should return the expected url for getInstantiateUrl', () => {
       expect(getInstantiateUrl()).toBe('https://local.altinn.cloud/ttd/test/instances/create');
@@ -34,11 +29,6 @@ describe('Frontend urlHelper.ts', () => {
     it('should return the expected url for getCreateInstancesUrl with language', () => {
       expect(getCreateInstancesUrl(12345, 'en')).toBe(
         'https://local.altinn.cloud/ttd/test/instances?instanceOwnerPartyId=12345&language=en',
-      );
-    });
-    it('should return the expected url for getValidationUrl', () => {
-      expect(getValidationUrl('12345/instanceId-1234', 'nb')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/validate?language=nb',
       );
     });
     it('should return the expected url for getUpgradeAuthLevelUrl', () => {

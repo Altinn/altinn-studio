@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -257,6 +256,7 @@ public class PreviewController(
                 null,
                 cancellationToken
             );
+            AddPdfLayoutNameToPageOrder(layoutSettings);
             byte[] layoutSettingsContent = JsonSerializer.SerializeToUtf8Bytes(layoutSettings);
             return new FileContentResult(layoutSettingsContent, MimeTypeMap.GetMimeType(".json"));
         }
@@ -295,6 +295,7 @@ public class PreviewController(
                 layoutSetName,
                 cancellationToken
             );
+            AddPdfLayoutNameToPageOrder(layoutSettings);
             byte[] layoutSettingsContent = JsonSerializer.SerializeToUtf8Bytes(layoutSettings);
             return new FileContentResult(layoutSettingsContent, MimeTypeMap.GetMimeType(".json"));
         }
@@ -392,7 +393,7 @@ public class PreviewController(
     [HttpGet]
     [Route("api/v1/parties")]
     [UseSystemTextJson]
-    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string allowedToInstantiateFilter)
+    public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string? allowedToInstantiateFilter)
     {
         List<Party> parties = new()
         {
@@ -460,8 +461,8 @@ public class PreviewController(
     public async Task<ActionResult<string>> GetInstanceId(string org, string app, CancellationToken cancellationToken)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        string refererHeader = Request.Headers["Referer"];
-        string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
+        string? refererHeader = Request.Headers["Referer"];
+        string? layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
         Instance mockInstance = await _previewService.GetMockInstance(
             org,
             app,
@@ -874,10 +875,49 @@ public class PreviewController(
         return Ok(lookupResponse);
     }
 
-    private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
+    /// <summary>
+    /// Adds the pdfLayoutName to pages.order in the layout settings for preview purposes.
+    /// The actual Settings.json file is not modified.
+    /// </summary>
+    /// <param name="layoutSettings">The layout settings JsonNode to modify in-place.</param>
+    private static void AddPdfLayoutNameToPageOrder(JsonNode layoutSettings)
     {
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        JsonObject? pagesObject = layoutSettings?["pages"] as JsonObject;
+        string? pdfLayoutName = pagesObject?["pdfLayoutName"]?.GetValue<string>();
+        if (string.IsNullOrEmpty(pdfLayoutName))
+        {
+            return;
+        }
+
+        if (pagesObject?["groups"] is JsonArray groups)
+        {
+            JsonObject? lastGroupWithOrder = groups.OfType<JsonObject>().LastOrDefault(g => g["order"] is JsonArray);
+
+            if (lastGroupWithOrder?["order"] is JsonArray groupOrder)
+            {
+                bool alreadyInOrder = groupOrder.Any(item => item?.GetValue<string>() == pdfLayoutName);
+                if (!alreadyInOrder)
+                {
+                    groupOrder.Add(JsonValue.Create(pdfLayoutName));
+                }
+                return;
+            }
+        }
+
+        if (pagesObject?["order"] is JsonArray order)
+        {
+            bool alreadyInOrder = order.Any(item => item?.GetValue<string>() == pdfLayoutName);
+            if (!alreadyInOrder)
+            {
+                order.Add(JsonValue.Create(pdfLayoutName));
+            }
+        }
+    }
+
+    private static string? GetSelectedLayoutSetInEditorFromRefererHeader(string? refererHeader)
+    {
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
         return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
     }

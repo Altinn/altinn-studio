@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -50,7 +49,7 @@ public class UserController : ControllerBase
         var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
         HttpContext.Response.Cookies.Append(
             "XSRF-TOKEN",
-            tokens.RequestToken,
+            tokens.RequestToken!,
             new CookieOptions
             {
                 HttpOnly = false, // Make this cookie readable by Javascript.
@@ -95,7 +94,7 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Route("org-permissions/{org}")]
-    public async Task<IActionResult> HasAccessToCreateRepository(string org)
+    public async Task<IActionResult> GetUserOrgPermissions(string org)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnOrgEditingContext editingEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, developer);

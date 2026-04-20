@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/config"
@@ -14,6 +15,8 @@ import (
 
 // DefaultLoadBalancerPort is the default localtest load balancer port.
 const DefaultLoadBalancerPort = 8000
+
+const localAppURLEnv = "LocalPlatformSettings__LocalAppUrl"
 
 type runtimeConfigResolver struct {
 	cfg    *config.Config
@@ -36,7 +39,7 @@ func newRuntimeConfigResolver(
 	}
 }
 
-func (r *runtimeConfigResolver) Build(ctx context.Context, portFlag int) (RuntimeConfig, error) {
+func (r *runtimeConfigResolver) Build(ctx context.Context) (RuntimeConfig, error) {
 	platform := r.client.Toolchain().Platform
 
 	n := networking.NewNetworking(r.client, r.cfg, r.debugf)
@@ -50,17 +53,25 @@ func (r *runtimeConfigResolver) Build(ctx context.Context, portFlag int) (Runtim
 
 	return RuntimeConfig{
 		HostGateway:      metadata.HostGateway,
-		LoadBalancerPort: strconv.Itoa(resolveLoadBalancerPort(portFlag)),
+		LoadBalancerPort: DefaultLoadBalancerPortString(),
+		LocalAppURL:      ResolveLocalAppURL(),
 		User:             runtimeContainerUser(),
 		Platform:         platform,
 	}, nil
 }
 
-func resolveLoadBalancerPort(portFlag int) int {
-	if portFlag == 0 {
-		return DefaultLoadBalancerPort
+// DefaultLoadBalancerPortString returns the default localtest load balancer port as a string.
+func DefaultLoadBalancerPortString() string {
+	return strconv.Itoa(DefaultLoadBalancerPort)
+}
+
+// ResolveLocalAppURL returns the effective local app URL for localtest runtime.
+func ResolveLocalAppURL() string {
+	if value := strings.TrimSpace(os.Getenv(localAppURLEnv)); value != "" {
+		return value
 	}
-	return portFlag
+
+	return "http://host.docker.internal:5005"
 }
 
 func runtimeContainerUser() string {

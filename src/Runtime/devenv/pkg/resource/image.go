@@ -1,6 +1,10 @@
 package resource
 
-import "errors"
+import (
+	"errors"
+
+	"altinn.studio/devenv/pkg/container/types"
+)
 
 var (
 	errImageReferenceRequired = errors.New("image reference is required")
@@ -64,6 +68,7 @@ type LocalImage struct {
 	ContextPath string
 	Dockerfile  string // relative to ContextPath, defaults to "Dockerfile"
 	Tag         string
+	Build       types.BuildOptions
 }
 
 // ID returns the unique identifier for this image.

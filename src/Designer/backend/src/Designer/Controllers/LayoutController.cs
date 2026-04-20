@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -56,7 +55,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
         if (layoutSettings.Pages is PagesWithOrder pages)
         {
-            string existingPage = pages.Order.Find(p => p == page.Id);
+            string? existingPage = pages.Order!.Find(p => p == page.Id);
             if (existingPage != null)
             {
                 return Conflict("Page already exists.");
@@ -82,7 +81,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
         PagesDto pagesDto = PagesDto.From(layoutSettings);
-        PageDto page = pagesDto.Pages.Find(p => p.Id == pageId);
+        PageDto? page = pagesDto.Pages!.Find(p => p.Id == pageId);
         if (page == null)
         {
             return NotFound();
@@ -108,7 +107,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
         PagesDto pagesDto = PagesDto.From(layoutSettings);
 
-        PageDto existingPage =
+        PageDto? existingPage =
             pagesDto.Groups?.Where(g => g?.Pages != null).SelectMany(g => g.Pages).FirstOrDefault(p => p?.Id == pageId)
             ?? pagesDto.Pages?.FirstOrDefault(p => p?.Id == pageId);
 
@@ -137,7 +136,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
         PagesDto pagesDto = PagesDto.From(layoutSettings);
-        PageDto page = pagesDto.Pages.Find(p => p.Id == pageId);
+        PageDto? page = pagesDto.Pages!.Find(p => p.Id == pageId);
         if (page == null)
         {
             return NotFound();
@@ -232,7 +231,7 @@ public class LayoutController(ILayoutService layoutService) : Controller
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        PagesWithGroups pagesWithGroups = pages.ToBusiness() as PagesWithGroups;
+        PagesWithGroups? pagesWithGroups = pages.ToBusiness() as PagesWithGroups;
         await layoutService.UpdatePageGroups(editingContext, layoutSetId, pagesWithGroups);
         return Ok();
     }

@@ -11,7 +11,7 @@ var ErrAlreadyStopped = errors.New("environment already stopped")
 
 // Env manages a development environment lifecycle.
 type Env interface {
-	Preflight(ctx context.Context) error
+	Preflight(ctx context.Context, opts UpOptions) error
 	Up(ctx context.Context, opts UpOptions) error
 	Down(ctx context.Context) error
 	Logs(ctx context.Context, opts LogsOptions) error
@@ -19,14 +19,15 @@ type Env interface {
 
 // UpOptions configures environment startup.
 type UpOptions struct {
-	Port        int
 	Detach      bool
 	Monitoring  bool
 	OpenBrowser bool
+	PgAdmin     bool
 }
 
 // LogsOptions configures log streaming.
 type LogsOptions struct {
 	Component string
 	Follow    bool
+	JSON      bool
 }

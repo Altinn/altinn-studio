@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace PolicyAdmin.Models;
 
 public class AccessPackageArea

@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,11 +65,11 @@ public class DatamodelsController : ControllerBase
     public async Task<ActionResult<string>> Get(
         [FromRoute] string org,
         [FromRoute] string repository,
-        [FromQuery] string modelPath,
+        [FromQuery] string? modelPath,
         CancellationToken cancellationToken
     )
     {
-        var decodedPath = Uri.UnescapeDataString(modelPath);
+        var decodedPath = Uri.UnescapeDataString(modelPath!);
 
         var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
@@ -96,7 +95,7 @@ public class DatamodelsController : ControllerBase
         string org,
         string repository,
         [FromBody] JsonNode payload,
-        [FromQuery] string modelPath,
+        [FromQuery] string? modelPath,
         [FromQuery] bool saveOnly = false,
         CancellationToken cancellationToken = default
     )
@@ -124,7 +123,7 @@ public class DatamodelsController : ControllerBase
     public async Task<IActionResult> Delete(
         string org,
         string repository,
-        [FromQuery] string modelPath,
+        [FromQuery] string? modelPath,
         CancellationToken cancellationToken = default
     )
     {
@@ -188,19 +187,19 @@ public class DatamodelsController : ControllerBase
     public async Task<IActionResult> AddXsd(
         string org,
         string repository,
-        [FromForm(Name = "file")] IFormFile theFile,
+        [FromForm(Name = "file")] IFormFile? theFile,
         CancellationToken cancellationToken
     )
     {
         Request.EnableBuffering();
         Guard.AssertArgumentNotNull(theFile, nameof(theFile));
 
-        string fileNameWithExtension = GetFileNameFromUploadedFile(theFile);
+        string fileNameWithExtension = GetFileNameFromUploadedFile(theFile!);
         Guard.AssertFileExtensionIsOfType(fileNameWithExtension, ".xsd");
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-        var fileStream = theFile.OpenReadStream();
+        var fileStream = theFile!.OpenReadStream();
         await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(
             fileStream,
             fileNameWithExtension,
@@ -337,7 +336,7 @@ public class DatamodelsController : ControllerBase
         return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
     }
 
-    private bool TryValidateSchema(string schema, out ValidationProblemDetails problemDetails)
+    private bool TryValidateSchema(string schema, out ValidationProblemDetails? problemDetails)
     {
         JsonSchemaValidationResult validationResult;
         problemDetails = null;
@@ -363,7 +362,7 @@ public class DatamodelsController : ControllerBase
 
         foreach (var validationIssue in validationResult.ValidationIssues)
         {
-            if (!problemDetails.Errors.TryGetValue(validationIssue.IssuePointer, out string[] errorCodes))
+            if (!problemDetails.Errors.TryGetValue(validationIssue.IssuePointer, out string[]? errorCodes))
             {
                 problemDetails.Errors.Add(validationIssue.IssuePointer, new[] { validationIssue.ErrorCode });
 

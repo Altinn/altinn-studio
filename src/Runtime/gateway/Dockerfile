@@ -21,7 +21,7 @@ COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/ Runtime/gateway/src/Al
 
 # Build and publish native AOT
 WORKDIR /build/Runtime/gateway/src/Altinn.Studio.Gateway.Api/
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish -c Release -o /app/publish /p:CSharpier_Bypass=true
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:48f41b8c5c965a37872d9a2afd7126708d3dc6d058c857403014b67ccd3dc8ba
 WORKDIR /app

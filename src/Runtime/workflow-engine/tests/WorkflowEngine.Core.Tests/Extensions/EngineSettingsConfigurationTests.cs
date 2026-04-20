@@ -64,12 +64,11 @@ public class EngineSettingsConfigurationTests
         // Write buffer
         Assert.Equal(100, settings.WriteBuffer.MaxBatchSize);
         Assert.Equal(10_000, settings.WriteBuffer.MaxQueueSize);
-        Assert.Equal(8, settings.WriteBuffer.FlushConcurrency);
+        Assert.Equal(10, settings.WriteBuffer.FlushConcurrency);
 
         // Update buffer
-        Assert.Equal(50, settings.UpdateBuffer.MaxBatchSize);
+        Assert.Equal(1000, settings.UpdateBuffer.MaxBatchSize);
         Assert.Equal(5_000, settings.UpdateBuffer.MaxQueueSize);
-        Assert.Equal(8, settings.UpdateBuffer.FlushConcurrency);
 
         // Retention
         Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
@@ -100,7 +99,7 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(400, settings.Concurrency.MaxHttpCalls);
         Assert.Equal(TimeSpan.FromSeconds(100), settings.DefaultStepCommandTimeout);
         Assert.Equal(100, settings.WriteBuffer.MaxBatchSize);
-        Assert.Equal(50, settings.UpdateBuffer.MaxBatchSize);
+        Assert.Equal(1000, settings.UpdateBuffer.MaxBatchSize);
     }
 
     [Fact]
@@ -112,7 +111,7 @@ public class EngineSettingsConfigurationTests
               "EngineSettings": {
                 "Concurrency": { "MaxWorkers": 10, "MaxDbOperations": 20, "MaxHttpCalls": 30 },
                 "WriteBuffer": { "MaxBatchSize": 50, "MaxQueueSize": 500, "FlushConcurrency": 4 },
-                "UpdateBuffer": { "MaxBatchSize": 25, "MaxQueueSize": 250, "FlushConcurrency": 2 }
+                "UpdateBuffer": { "MaxBatchSize": 25, "MaxQueueSize": 250 }
               }
             }
             """
@@ -128,7 +127,6 @@ public class EngineSettingsConfigurationTests
 
         Assert.Equal(25, settings.UpdateBuffer.MaxBatchSize);
         Assert.Equal(250, settings.UpdateBuffer.MaxQueueSize);
-        Assert.Equal(2, settings.UpdateBuffer.FlushConcurrency);
     }
 
     [Fact]
@@ -247,11 +245,8 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(100, settings.WriteBuffer.MaxBatchSize);
         Assert.Equal(10_000, settings.WriteBuffer.MaxQueueSize);
 
-        Assert.Equal(50, settings.UpdateBuffer.MaxBatchSize);
+        Assert.Equal(1000, settings.UpdateBuffer.MaxBatchSize);
         Assert.Equal(5_000, settings.UpdateBuffer.MaxQueueSize);
-
-        // FlushConcurrency is the same default for both
-        Assert.Equal(settings.WriteBuffer.FlushConcurrency, settings.UpdateBuffer.FlushConcurrency);
     }
 
     [Fact]

@@ -13,7 +13,6 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { parseInstanceId, useActiveInstances } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
@@ -43,11 +42,8 @@ function getDateDisplayString(timeStamp: string) {
 
 export const InstanceSelectionWrapper = () => {
   const { instances, isLoading } = useActiveInstances(String(useSelectedParty()?.partyId ?? -1));
-  if (isLoading) {
+  if (isLoading || !instances || instances.length === 0) {
     return null;
-  }
-  if (!instances || instances.length === 0) {
-    return <InstantiateContainer />;
   }
   return (
     <PresentationComponent showNavigation={false}>

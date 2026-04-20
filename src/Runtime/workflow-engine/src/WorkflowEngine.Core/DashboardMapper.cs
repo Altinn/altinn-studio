@@ -39,7 +39,7 @@ internal static class DashboardMapper
 {
     internal static DashboardStepDto MapStep(Step step, bool stateChanged) =>
         new(
-            step.IdempotencyKey,
+            step.DatabaseId.ToString(),
             step.OperationId,
             step.Command.Type,
             step.OperationId,

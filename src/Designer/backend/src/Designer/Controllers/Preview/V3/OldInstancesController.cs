@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -44,10 +43,9 @@ public class OldInstancesController(
         CancellationToken cancellationToken
     )
     {
-        string refererHeader = Request.Headers["Referer"];
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
-        layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        string? refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
         Instance instance = await previewService.GetMockInstance(
             org,
             app,
@@ -67,14 +65,13 @@ public class OldInstancesController(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] int instanceOwnerPartyId,
-        [FromQuery] string taskId,
-        [FromQuery] string language = null
+        [FromQuery] string? taskId,
+        [FromQuery] string? language = null
     )
     {
-        string refererHeader = Request.Headers["Referer"];
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
-        layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        string? refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
         Instance instance = await previewService.GetMockInstance(
             org,
             app,
@@ -126,9 +123,9 @@ public class OldInstancesController(
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-        string refererHeader = Request.Headers["Referer"];
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        string? refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
         layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
         Instance instance = await previewService.GetMockInstance(
             org,
@@ -144,7 +141,7 @@ public class OldInstancesController(
             ProcessTasks =
                 tasks != null
                     ? new List<AppProcessTaskTypeInfo>(
-                        tasks?.ConvertAll(task => new AppProcessTaskTypeInfo
+                        tasks.ConvertAll(task => new AppProcessTaskTypeInfo
                         {
                             ElementId = task,
                             AltinnTaskType = "data",
@@ -169,9 +166,9 @@ public class OldInstancesController(
         CancellationToken cancellationToken
     )
     {
-        string refererHeader = Request.Headers["Referer"];
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        string? refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
         layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
         Instance instance = await previewService.GetMockInstance(
             org,
@@ -194,13 +191,13 @@ public class OldInstancesController(
         [FromRoute] string app,
         [FromRoute] int partyId,
         [FromRoute] Guid instanceGuid,
-        [FromQuery] string lang,
+        [FromQuery] string? lang,
         CancellationToken cancellationToken
     )
     {
-        string refererHeader = Request.Headers.Referer;
-        Uri refererUri = new(refererHeader);
-        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        string? refererHeader = Request.Headers.Referer;
+        Uri refererUri = new(refererHeader!);
+        string? layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
         layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
         Instance instance = await previewService.GetMockInstance(
             org,
@@ -221,8 +218,8 @@ public class OldInstancesController(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] string optionListId,
-        [FromQuery] string language,
-        [FromQuery] string source,
+        [FromQuery] string? language,
+        [FromQuery] string? source,
         CancellationToken cancellationToken
     )
     {
@@ -253,8 +250,8 @@ public class OldInstancesController(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] string dataListId,
-        [FromQuery] string language,
-        [FromQuery] string size,
+        [FromQuery] string? language,
+        [FromQuery] string? size,
         CancellationToken cancellationToken
     )
     {
@@ -270,9 +267,9 @@ public class OldInstancesController(
     public IActionResult UpdateAttachmentWithTag(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] string currentPage,
-        [FromQuery] string layoutSetId,
-        [FromQuery] string dataTypeId
+        [FromQuery] string? currentPage,
+        [FromQuery] string? layoutSetId,
+        [FromQuery] string? dataTypeId
     )
     {
         return Ok();

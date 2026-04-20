@@ -13,12 +13,13 @@ import (
 // All methods can be configured with custom behavior via function fields.
 type Client struct {
 	// Method implementations - set these to customize behavior
-	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
+	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error
 	ToolchainFunc         func() types.ContainerToolchain
 	BuildWithProgressFunc func(
 		ctx context.Context,
 		contextPath, dockerfile, tag string,
 		onProgress types.ProgressHandler,
+		opts ...types.BuildOptions,
 	) error
 	PushFunc                  func(ctx context.Context, image string) error
 	CreateContainerFunc       func(ctx context.Context, cfg types.ContainerConfig) (string, error)
@@ -35,6 +36,7 @@ type Client struct {
 		onProgress types.ProgressHandler,
 	) error
 	ContainerInspectFunc func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
+	ListContainersFunc   func(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error)
 	ContainerStartFunc   func(ctx context.Context, nameOrID string) error
 	ContainerStopFunc    func(ctx context.Context, nameOrID string, timeout *int) error
 	ContainerRemoveFunc  func(ctx context.Context, nameOrID string, force bool) error
@@ -68,13 +70,13 @@ func (c *Client) recordCall(method string, args ...any) {
 }
 
 // Build implements ContainerClient.
-func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	c.recordCall("Build", contextPath, dockerfile, tag)
+func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error {
+	c.recordCall("Build", contextPath, dockerfile, tag, opts)
 	if c.BuildFunc != nil {
-		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
+		return c.BuildFunc(ctx, contextPath, dockerfile, tag, opts...)
 	}
 	if c.BuildWithProgressFunc != nil {
-		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, nil)
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, nil, opts...)
 	}
 	return nil
 }
@@ -84,13 +86,14 @@ func (c *Client) BuildWithProgress(
 	ctx context.Context,
 	contextPath, dockerfile, tag string,
 	onProgress types.ProgressHandler,
+	opts ...types.BuildOptions,
 ) error {
-	c.recordCall("BuildWithProgress", contextPath, dockerfile, tag)
+	c.recordCall("BuildWithProgress", contextPath, dockerfile, tag, opts)
 	if c.BuildWithProgressFunc != nil {
-		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, onProgress)
+		return c.BuildWithProgressFunc(ctx, contextPath, dockerfile, tag, onProgress, opts...)
 	}
 	if c.BuildFunc != nil {
-		return c.BuildFunc(ctx, contextPath, dockerfile, tag)
+		return c.BuildFunc(ctx, contextPath, dockerfile, tag, opts...)
 	}
 	return nil
 }
@@ -208,6 +211,15 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 		return c.ContainerInspectFunc(ctx, nameOrID)
 	}
 	return types.ContainerInfo{}, types.ErrContainerNotFound
+}
+
+// ListContainers implements ContainerClient.
+func (c *Client) ListContainers(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+	c.recordCall("ListContainers", filter)
+	if c.ListContainersFunc != nil {
+		return c.ListContainersFunc(ctx, filter)
+	}
+	return nil, nil
 }
 
 // ContainerStart implements ContainerClient.

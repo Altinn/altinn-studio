@@ -8,7 +8,7 @@ using WorkflowEngine.Models.Abstractions;
 namespace WorkflowEngine.App.Tests.Commands.AppCommand;
 
 /// <summary>
-/// Unit tests for <see cref="App.Commands.AppCommand.AppCommand.ExecuteAsync"/>
+/// Unit tests for <see cref="App.Commands.AppCommand.AppCommand.Execute"/>
 /// called directly via <see cref="ICommand"/>, backed by a mocked HTTP handler.
 /// </summary>
 public class AppCommandExecutionTests
@@ -29,7 +29,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.Success, result.Status);
         Assert.Single(fixture.HttpHandler.Requests);
@@ -46,7 +46,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.Success, result.Status);
         Assert.Single(fixture.HttpHandler.Requests);
@@ -63,23 +63,6 @@ public class AppCommandExecutionTests
     }
 
     [Fact]
-    public async Task Execute_SetsApiKeyHeader()
-    {
-        using var fixture = AppCommandTestFixture.Create();
-        var command = GetAppCommand(fixture);
-        var data = CreateCommandData("test-command");
-        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
-        var workflow = AppCommandTestFixture.CreateWorkflow(step);
-        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
-
-        await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
-
-        var captured = fixture.HttpHandler.Requests[0];
-        Assert.True(captured.Headers.ContainsKey("X-Api-Key"));
-        Assert.Contains("test-api-key", captured.Headers["X-Api-Key"]);
-    }
-
-    [Fact]
     public async Task Execute_UsesCommandKeyAsRelativeUri()
     {
         using var fixture = AppCommandTestFixture.Create();
@@ -89,7 +72,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        await command.Execute(context, TestContext.Current.CancellationToken);
 
         var captured = fixture.HttpHandler.Requests[0];
         Assert.Contains("my-callback-path", captured.RequestUri.ToString(), StringComparison.Ordinal);
@@ -105,7 +88,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        await command.Execute(context, TestContext.Current.CancellationToken);
 
         var captured = fixture.HttpHandler.Requests[0];
         var url = captured.RequestUri.ToString();
@@ -130,7 +113,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
         Assert.Contains("InternalServerError", result.Message, StringComparison.Ordinal);
@@ -153,7 +136,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
     }
@@ -177,7 +160,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
         Assert.Contains("client error", result.Message, StringComparison.OrdinalIgnoreCase);
@@ -196,7 +179,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal("next-step-state", step.StateOut);
     }
@@ -212,7 +195,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Null(step.StateOut);
     }
@@ -228,7 +211,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Null(step.StateOut);
     }
@@ -244,7 +227,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
         Assert.Contains("invalid response body", result.Message, StringComparison.OrdinalIgnoreCase);
@@ -262,7 +245,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data, stateIn: "previous-state");
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.Success, result.Status);
         Assert.Single(fixture.HttpHandler.Requests);
@@ -285,7 +268,7 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        var result = await command.ExecuteAsync(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.Success, result.Status);
         var captured = fixture.HttpHandler.Requests[0];

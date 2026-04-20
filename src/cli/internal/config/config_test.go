@@ -18,6 +18,40 @@ func newTestFlagsWithVerbose(home string, verbose bool) config.Flags {
 	return config.Flags{Home: home, SocketDir: "", Verbose: verbose}
 }
 
+func TestIsTruthyEnv(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		value string
+		want  bool
+	}{
+		{value: "", want: false},
+		{value: "0", want: false},
+		{value: "false", want: false},
+		{value: "1", want: true},
+		{value: "true", want: true},
+		{value: "TRUE", want: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			t.Parallel()
+			got := config.IsTruthyEnv(tt.value)
+			if got != tt.want {
+				t.Fatalf("IsTruthyEnv(%q) = %v, want %v", tt.value, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsCI(t *testing.T) {
+	t.Setenv(config.EnvCI, "true")
+
+	if !config.IsCI() {
+		t.Fatalf("IsCI() = false, want true")
+	}
+}
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 
@@ -117,6 +151,9 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 
 	if cfg.SocketDir != socketDir {
 		t.Errorf("SocketDir = %q, want %q", cfg.SocketDir, socketDir)
+	}
+	if cfg.AppManagerLockPath() != filepath.Join(socketDir, "app-manager.lock") {
+		t.Errorf("AppManagerLockPath() = %q, want lock in socket dir", cfg.AppManagerLockPath())
 	}
 }
 
