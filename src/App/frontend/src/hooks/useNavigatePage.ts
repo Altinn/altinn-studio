@@ -424,7 +424,7 @@ export function useNavigateToComponent() {
           !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      setSearchParams(newSearchParams);
+      setSearchParams(newSearchParams, { preventScrollReset: true });
     }
   };
 }

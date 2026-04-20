@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { Slide, ToastContainer } from 'react-toastify';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,31 +16,34 @@ import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 
 export function AppLayout() {
   return (
-    <AppComponentsBridge>
-      <NavigationEffectProvider>
-        <ErrorBoundary>
-          <ViewportWrapper>
-            <UiConfigProvider>
-              <InstantiationUrlReset />
-              <GlobalFormDataReadersProvider>
-                <PartyProvider>
-                  <KeepAliveProvider>
-                    <Outlet />
-                    <ToastContainer
-                      position='top-center'
-                      theme='colored'
-                      transition={Slide}
-                      draggable={false}
-                    />
-                  </KeepAliveProvider>
-                </PartyProvider>
-                <PartyPrefetcher />
-              </GlobalFormDataReadersProvider>
-            </UiConfigProvider>
-          </ViewportWrapper>
-        </ErrorBoundary>
-      </NavigationEffectProvider>
-    </AppComponentsBridge>
+    <>
+      <AppComponentsBridge>
+        <NavigationEffectProvider>
+          <ErrorBoundary>
+            <ViewportWrapper>
+              <UiConfigProvider>
+                <InstantiationUrlReset />
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>
+                    <KeepAliveProvider>
+                      <Outlet />
+                      <ToastContainer
+                        position='top-center'
+                        theme='colored'
+                        transition={Slide}
+                        draggable={false}
+                      />
+                    </KeepAliveProvider>
+                  </PartyProvider>
+                  <PartyPrefetcher />
+                </GlobalFormDataReadersProvider>
+              </UiConfigProvider>
+            </ViewportWrapper>
+          </ErrorBoundary>
+        </NavigationEffectProvider>
+      </AppComponentsBridge>
+      <ScrollRestoration />
+    </>
   );
 }
 
