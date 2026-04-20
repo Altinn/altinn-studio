@@ -10,7 +10,6 @@ import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettin
 import { getUiConfig } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
@@ -18,7 +17,6 @@ import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { useHiddenPages } from 'src/utils/layout/hidden';
-import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {
@@ -35,29 +33,20 @@ export interface NavigateToPageOptions {
  */
 
 const useOurNavigate = () => {
-  const storeCallback = useSetNavigationEffect();
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
   const navigate = useNavigate();
 
   return useCallback(
-    (
-      path: string,
-      ourOptions?: Pick<NavigateToPageOptions, 'resetReturnToView'>,
-      theirOptions?: NavigateOptions,
-      effect?: NavigationEffect,
-    ) => {
+    (path: string, ourOptions?: Pick<NavigateToPageOptions, 'resetReturnToView'>, theirOptions?: NavigateOptions) => {
       const resetReturnToView = ourOptions?.resetReturnToView ?? true;
       if (resetReturnToView) {
         setReturnToView?.(undefined);
         setSummaryNodeOfOrigin?.(undefined);
       }
-      if (effect) {
-        storeCallback(effect);
-      }
       navigate(path, theirOptions);
     },
-    [navigate, setReturnToView, setSummaryNodeOfOrigin, storeCallback],
+    [navigate, setReturnToView, setSummaryNodeOfOrigin],
   );
 };
 
@@ -352,7 +341,7 @@ export function useNavigatePage() {
 
     await maybeSaveOnPageChange();
     refetchInitialValidations();
-    return navigate(url, undefined, undefined, { targetLocation: url, callback: () => focusMainContent() });
+    return navigate(url);
   };
 
   return {
