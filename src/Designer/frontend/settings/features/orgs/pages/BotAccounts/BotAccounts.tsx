@@ -2,7 +2,6 @@ import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioError, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
-import { useParams } from 'react-router-dom';
 import type { BotAccount } from 'app-shared/types/BotAccount';
 import { useGetBotAccountsQuery } from './hooks/useGetBotAccountsQuery';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
@@ -11,12 +10,13 @@ import { BotAccountDialog } from './components/BotAccountDialog/BotAccountDialog
 import type { BotAccountForm } from './components/BotAccountDialog/BotAccountDialog';
 import { AddButton } from '../../../../components/AddButton/AddButton';
 import classes from './BotAccounts.module.css';
+import { useRoutePathsParams } from 'settings/hooks/useRoutePathsParams';
 
 type DialogState = { form: BotAccountForm; editingId: string | null } | null;
 
 export const BotAccounts = (): ReactElement => {
   const { t } = useTranslation();
-  const { owner: org } = useParams<{ owner: string }>();
+  const { owner: org } = useRoutePathsParams();
 
   const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org!);
   const { data: orgs } = useOrgListQuery();

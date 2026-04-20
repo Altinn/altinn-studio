@@ -1,22 +1,25 @@
 import React from 'react';
-import { Outlet, useParams } from 'react-router-dom';
-import { useOrganizationsQuery } from 'app-shared/hooks/queries';
+import { Outlet } from 'react-router-dom';
+import { useOrganizationsQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { NotFoundPage } from '../../pages/NotFoundPage/NotFoundPage';
+import { NotFound } from '../../components/NotFound/NotFound';
 import { OrgContext } from '../../contexts/OrgContext';
 import { StudioPageError } from 'app-shared/components';
+import { NoOrgSelected } from 'admin/components/NoOrgSelected/NoOrgSelected';
+import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
 
 export const OrgPageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
-  const { org: orgParam } = useParams<{ org: string }>();
+  const { owner: org } = useRoutePathsParams();
+  const { data: user, isPending: isUserPending, isError: isUserError } = useUserQuery();
   const {
     data: organizations,
     isPending: isOrgsPending,
     isError: isOrgsError,
   } = useOrganizationsQuery();
 
-  if (isOrgsPending) {
+  if (isUserPending || isOrgsPending) {
     return (
       <StudioCenter>
         <StudioPageSpinner spinnerTitle={t('general.loading')} />
@@ -24,14 +27,18 @@ export const OrgPageLayout = (): React.ReactNode => {
     );
   }
 
-  if (isOrgsError) {
+  if (isUserError || isOrgsError) {
     return <StudioPageError />;
   }
 
-  const currentOrg = (organizations ?? []).find((o) => o.username === orgParam) ?? null;
+  if (user?.login === org) {
+    return <NoOrgSelected />;
+  }
+
+  const currentOrg = (organizations ?? []).find((o) => o.username === org) ?? null;
 
   if (!currentOrg) {
-    return <NotFoundPage />;
+    return <NotFound />;
   }
 
   return (

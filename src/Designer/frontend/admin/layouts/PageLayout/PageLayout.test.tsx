@@ -6,7 +6,7 @@ import { appContentWrapperId } from '@studio/testing/testids';
 jest.mock('./WebSocketSyncWrapper', () => ({
   WebSocketSyncWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-jest.mock('./PageHeader', () => ({
+jest.mock('app-shared/components/PageHeader/PageHeader', () => ({
   PageHeader: () => <div>PageHeader</div>,
 }));
 jest.mock('react-router-dom', () => ({

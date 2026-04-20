@@ -1,6 +1,5 @@
 import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
 import classes from './AppMetrics.module.css';
-import { useParams } from 'react-router-dom';
 import {
   StudioAlert,
   StudioCard,
@@ -30,6 +29,7 @@ import { useAppErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useAp
 import { AppErrorMetric } from './AppErrorMetric';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
+import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
 
 ChartJS.register(LinearScale, BarElement, ArcElement, Title, Tooltip, Filler, TimeScale);
 
@@ -39,11 +39,7 @@ export type AppMetricsProps = {
 };
 
 export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
-  const { org, environment, app } = useParams() as {
-    org: string;
-    environment: string;
-    app: string;
-  };
+  const { owner: org, environment, app } = useRoutePathsParams();
   const { t } = useTranslation();
 
   const envTitle = useEnvironmentTitle(environment);

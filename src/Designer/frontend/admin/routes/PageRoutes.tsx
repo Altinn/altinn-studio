@@ -9,22 +9,20 @@ import { PageLayout } from 'admin/layouts/PageLayout/PageLayout';
 import { OrgPageLayout } from 'admin/layouts/OrgPageLayout/OrgPageLayout';
 import { PageLayout as AppsLayout } from 'admin/features/apps/layout/PageLayout';
 import { ADMIN_BASENAME } from 'app-shared/constants';
-import { NotFoundPage } from 'admin/pages/NotFoundPage/NotFoundPage';
-import { NoOrgSelected } from 'admin/pages/NoOrgSelected/NoOrgSelected';
+import { NotFound } from 'admin/components/NotFound/NotFound';
 import {
   AppRouteErrorBoundary,
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
 } from './PageRouterErrorBoundary';
 import { routerRoutes } from './routes';
-
-const BASE_PATH = '/:org';
+import { IndexRedirect } from 'admin/components/IndexRedirect/IndexRedirect';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
-      <Route index element={<NoOrgSelected />} />
-      <Route path={BASE_PATH} element={<OrgPageLayout />} errorElement={<RouteErrorBoundary />}>
+    <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
+      <Route index element={<IndexRedirect />} />
+      <Route path=':owner' element={<OrgPageLayout />} errorElement={<RouteErrorBoundary />}>
         <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
           {routerRoutes.map((route) => (
             <Route
@@ -35,7 +33,7 @@ const router = createBrowserRouter(
             />
           ))}
         </Route>
-        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
+        <Route path='*' element={<NotFound />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
     </Route>,
   ),

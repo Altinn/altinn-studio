@@ -1,15 +1,16 @@
 import classes from './PageLayout.module.css';
-import { Outlet, useParams } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { StudioAlert, StudioCenter, StudioHeading, StudioPageSpinner } from '@studio/components';
 import { StudioPageError } from 'app-shared/components';
-import { NotFound } from '../../../pages/NotFound/NotFound';
+import { NotFound } from '../../../components/NotFound/NotFound';
 import { useTranslation } from 'react-i18next';
 import { useOrganizationsQuery, useUserOrgPermissionsQuery } from 'app-shared/hooks/queries';
 import { Menu } from '../components/Menu/Menu';
+import { useRoutePathsParams } from 'settings/hooks/useRoutePathsParams';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
-  const { owner: org } = useParams<{ owner: string }>();
+  const { owner: org } = useRoutePathsParams();
   const { data: orgs, isPending: isOrgsPending, isError: isOrgsError } = useOrganizationsQuery();
   const selectedOrg = orgs?.find((o) => o.username === org);
   const {

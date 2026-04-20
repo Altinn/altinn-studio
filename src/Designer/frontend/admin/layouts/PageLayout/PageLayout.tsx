@@ -4,9 +4,11 @@ import { Outlet, useLocation } from 'react-router-dom';
 import classes from './PageLayout.module.css';
 import { appContentWrapperId } from '@studio/testing/testids';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
-import { PageHeader } from './PageHeader';
+import { PageHeader } from 'app-shared/components/PageHeader/PageHeader';
+import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
 
 export const PageLayout = () => {
+  const { owner } = useRoutePathsParams();
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -17,7 +19,7 @@ export const PageLayout = () => {
     <div className={classes.container}>
       <div data-testid={appContentWrapperId} className={classes.appContainer}>
         <WebSocketSyncWrapper>
-          <PageHeader />
+          <PageHeader owner={owner} />
           <Outlet />
         </WebSocketSyncWrapper>
       </div>

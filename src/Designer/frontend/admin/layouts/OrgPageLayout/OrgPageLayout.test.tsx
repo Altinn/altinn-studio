@@ -23,7 +23,7 @@ const orgMock = { username: 'ttd', full_name: 'Test org', avatar_url: '', id: 1 
 
 const RoutedOrgPageLayout = () => (
   <Routes>
-    <Route path=':org/*' element={<OrgPageLayout />} />
+    <Route path=':owner/*' element={<OrgPageLayout />} />
   </Routes>
 );
 

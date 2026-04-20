@@ -189,13 +189,6 @@ describe('PageLayout', () => {
     expect(mockNavigate).toHaveBeenCalledWith(`/${organizationsMock[0].username}`);
   });
 
-  it('renders the dashboard header link using self context when no org is active', () => {
-    renderPageLayout({ initialEntries: ['/test'] });
-    expect(
-      screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
-    ).toHaveAttribute('href', '/dashboard/app-dashboard/self');
-  });
-
   it('renders the dashboard header link using the active org', () => {
     renderPageLayout({ initialEntries: ['/ttd/contact-points'] });
     expect(

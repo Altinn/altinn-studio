@@ -14,7 +14,7 @@ import {
 import { ApiKeys } from '../features/user/pages/ApiKeys/ApiKeys';
 import { BotAccounts } from '../features/orgs/pages/BotAccounts/BotAccounts';
 import { ContactPoints } from '../features/orgs/pages/ContactPoints/ContactPoints';
-import { NotFound } from '../pages/NotFound/NotFound';
+import { NotFound } from '../components/NotFound/NotFound';
 import { PageLayout } from '../layouts/PageLayout/PageLayout';
 import { UserPageLayout } from '../layouts/UserPageLayout/UserPageLayout';
 import { OrgPageLayout } from '../layouts/OrgPageLayout/OrgPageLayout';
@@ -56,5 +56,7 @@ const router = createBrowserRouter(
     basename: SETTINGS_BASENAME,
   },
 );
+
+export type OwnerRouteParams = { owner: string };
 
 export const PageRoutes = (): React.ReactElement => <RouterProvider router={router} />;

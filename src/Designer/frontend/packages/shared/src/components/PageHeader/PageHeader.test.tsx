@@ -30,7 +30,7 @@ const mockUser = {
   userType: 1,
 };
 
-const mockParams: { org: string | undefined } = { org: undefined };
+const mockParams: { owner: string | undefined } = { owner: undefined };
 
 jest.mock('@studio/hooks', () => ({
   ...jest.requireActual('@studio/hooks'),
@@ -66,7 +66,7 @@ describe('PageHeader', () => {
   beforeEach(() => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     mockEnvironment.environment = null;
-    mockParams.org = 'ttd';
+    mockParams.owner = 'ttd';
   });
 
   afterEach(() => {
@@ -127,7 +127,7 @@ describe('PageHeader', () => {
 
   it('navigates to root when clicking user menu item', async () => {
     const user = userEvent.setup();
-    mockParams.org = undefined;
+    mockParams.owner = undefined;
     renderPageHeader();
 
     await user.click(screen.getByRole('button', { name: mockUser.full_name }));
@@ -151,7 +151,7 @@ const renderPageHeader = (initialEntries?: string[]) =>
   render(
     <MemoryRouter initialEntries={initialEntries}>
       <FeatureFlagsProvider>
-        <PageHeader />
+        <PageHeader owner='ttd' />
       </FeatureFlagsProvider>
     </MemoryRouter>,
   );
