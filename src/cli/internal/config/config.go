@@ -230,6 +230,16 @@ func (c *Config) AppManagerLogDir() string {
 	return filepath.Join(c.LogDir, "app-manager")
 }
 
+// AppLogsDir returns the directory containing app log directories.
+func (c *Config) AppLogsDir() string {
+	return filepath.Join(c.LogDir, "apps")
+}
+
+// AppLogDir returns the directory containing logs for one app.
+func (c *Config) AppLogDir(appID string) string {
+	return filepath.Join(c.AppLogsDir(), appID)
+}
+
 // AppManagerBinaryPath returns the path to the app-manager binary.
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) AppManagerBinaryPath() string {

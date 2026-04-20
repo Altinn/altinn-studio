@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,6 +35,8 @@ const (
 	appManagerCleanupTimeout          = 2 * time.Second
 	appStartupTimeout                 = 15 * time.Second
 	appStartupPollInterval            = 500 * time.Millisecond
+	appLogDateFormat                  = "2006-01-02"
+	maxAppLogCreateAttempts           = 3
 )
 
 var (
@@ -41,6 +44,7 @@ var (
 	errAppContainerExited              = errors.New("app container exited")
 	errAppContainerStoppedBeforeReady  = errors.New("app container stopped before becoming reachable through localtest")
 	errAppExitedBeforeReady            = errors.New("app exited before becoming reachable through localtest")
+	errAppLogCreateCollision           = errors.New("too many app log files created concurrently")
 	errAppRunStopped                   = errors.New("app run stopped")
 	errAppStartupTimedOut              = errors.New("app did not become reachable through localtest")
 	errDotnetTargetPathEmpty           = errors.New("dotnet TargetPath is empty")
@@ -469,19 +473,64 @@ func (c *RunCommand) openDetachedAppLog(appID string, jsonOutput bool) (*os.File
 	if c.cfg == nil {
 		return nil, "", errStudioctlConfigRequired
 	}
-	if err := os.MkdirAll(c.cfg.LogDir, osutil.DirPermOwnerOnly); err != nil {
-		return nil, "", fmt.Errorf("create log directory: %w", err)
+	logDir := c.cfg.AppLogDir(sanitizeAppIDForPath(appID))
+	if err := os.MkdirAll(logDir, osutil.DirPermOwnerOnly); err != nil {
+		return nil, "", fmt.Errorf("create app log directory: %w", err)
 	}
-	logPath := filepath.Join(c.cfg.LogDir, "app-"+sanitizeAppIDForPath(appID)+".log")
-	//nolint:gosec // G304: log path stays under the configured studioctl log directory; app ID is path-sanitized.
-	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, osutil.FilePermOwnerOnly)
+	for range maxAppLogCreateAttempts {
+		logPath, err := nextAppLogPath(logDir, time.Now().UTC())
+		if err != nil {
+			return nil, "", err
+		}
+		//nolint:gosec // G304: log path stays under the configured studioctl log directory; app ID is path-sanitized.
+		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, osutil.FilePermOwnerOnly)
+		if errors.Is(err, os.ErrExist) {
+			continue
+		}
+		if err != nil {
+			return nil, "", fmt.Errorf("open app log: %w", err)
+		}
+		if !jsonOutput {
+			c.out.Printlnf("Log: %s", logPath)
+		}
+		return logFile, logPath, nil
+	}
+
+	return nil, "", fmt.Errorf("create app log: %w", errAppLogCreateCollision)
+}
+
+func nextAppLogPath(dir string, now time.Time) (string, error) {
+	date := now.Format(appLogDateFormat)
+	nextRunID, err := nextAppLogRunID(dir, date)
 	if err != nil {
-		return nil, "", fmt.Errorf("open app log: %w", err)
+		return "", err
 	}
-	if !jsonOutput {
-		c.out.Printlnf("Log: %s", logPath)
+	return filepath.Join(dir, date+"-"+strconv.Itoa(nextRunID)+".log"), nil
+}
+
+func nextAppLogRunID(dir string, date string) (int, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return 0, fmt.Errorf("read app log directory: %w", err)
 	}
-	return logFile, logPath, nil
+
+	maxRunID := 0
+	prefix := date + "-"
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasPrefix(name, prefix) || !strings.HasSuffix(name, ".log") {
+			continue
+		}
+		runIDText := strings.TrimSuffix(strings.TrimPrefix(name, prefix), ".log")
+		runID, parseErr := strconv.Atoi(runIDText)
+		if parseErr == nil && runID > maxRunID {
+			maxRunID = runID
+		}
+	}
+	return maxRunID + 1, nil
 }
 
 func sanitizeAppIDForPath(appID string) string {
