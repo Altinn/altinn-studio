@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import DOMPurify from 'dompurify';
 import {
   StudioCard,
   StudioParagraph,
@@ -13,18 +12,29 @@ import { MessageAuthor } from '../../../types/MessageAuthor';
 import classes from './Messages.module.css';
 import assistantLogo from '../../../../../../app-development/features/aiAssistant/altinity-logo.png';
 import type { Message, UserAttachment, UserMessage, Source } from '../../../types/ChatThread';
+import type { WorkflowStatus } from '../../../types/WorkflowStatus';
+import {
+  formatAssistantMessageContent,
+  formatFileSize,
+  isUrlSafe,
+} from '../../../utils/messageUtils';
 
 export type MessagesProps = {
   messages: Message[];
+  workflowStatus?: WorkflowStatus;
   currentUser?: User;
   assistantAvatarUrl?: string;
 };
 
 export function Messages({
   messages,
+  workflowStatus,
   currentUser,
   assistantAvatarUrl,
 }: MessagesProps): ReactElement {
+  const showLoadingBubble = workflowStatus?.isActive === true;
+  const loadingBubbleText = workflowStatus?.message ?? '';
+
   return (
     <div className={classes.messagesContainer}>
       {messages.map((message, index) => (
@@ -35,6 +45,55 @@ export function Messages({
           assistantAvatarUrl={assistantAvatarUrl}
         />
       ))}
+      {showLoadingBubble && (
+        <AssistantLoadingBubble
+          content={loadingBubbleText}
+          assistantAvatarUrl={assistantAvatarUrl}
+        />
+      )}
+    </div>
+  );
+}
+
+type AssistantLoadingBubbleProps = {
+  content: string;
+  assistantAvatarUrl?: string;
+};
+
+function AssistantLoadingBubble({
+  content,
+  assistantAvatarUrl,
+}: AssistantLoadingBubbleProps): ReactElement {
+  return (
+    <div className={`${classes.messageRow} ${classes.assistantRow}`}>
+      <AssistantAvatar avatarUrl={assistantAvatarUrl} />
+      <div className={classes.assistantMessage}>
+        <div className={classes.messageMeta}>Altinity</div>
+        <div className={classes.assistantBody}>
+          <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
+          <div className={`${classes.assistantContent} ${classes.loadingText}`}>{content}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type AssistantAvatarProps = {
+  avatarUrl?: string;
+};
+
+function AssistantAvatar({ avatarUrl }: AssistantAvatarProps): ReactElement {
+  return (
+    <div
+      className={`${classes.avatar} ${classes.assistantAvatarWrapper}`}
+      aria-label='Altinity'
+      title='Altinity'
+    >
+      <img
+        src={avatarUrl ?? assistantLogo}
+        alt='Altinity'
+        className={classes.assistantAvatarImage}
+      />
     </div>
   );
 }
@@ -81,24 +140,11 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
   };
 
   const renderAvatar = (type: 'user' | 'assistant'): ReactElement => {
-    const label = type === 'user' ? (currentUser?.full_name ?? 'Deg') : 'Altinity';
-
     if (type === 'assistant') {
-      return (
-        <div
-          className={`${classes.avatar} ${classes.assistantAvatarWrapper}`}
-          aria-label={label}
-          title={label}
-        >
-          <img
-            src={assistantAvatarUrl ?? assistantLogo}
-            alt={label}
-            className={classes.assistantAvatarImage}
-          />
-        </div>
-      );
+      return <AssistantAvatar avatarUrl={assistantAvatarUrl} />;
     }
 
+    const label = currentUser?.full_name ?? 'Deg';
     return (
       <StudioAvatar
         src={currentUser?.avatar_url}
@@ -131,95 +177,6 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
     );
   }
 
-  // Remove inline sources section from content since we display them separately
-  const cleanSourcesFromContent = (content: string): string => {
-    // Remove "Kilder" or "Sources" section and all [Source: ...] lines
-    let cleaned = content;
-
-    // Remove the "Kilder" header and subsequent [Source: ...] lines
-    cleaned = cleaned.replace(/^Kilder\s*\n(?:\[Source:.*?\]\s*\n?)+/gim, '');
-    cleaned = cleaned.replace(/^Sources:?\s*\n(?:\[Source:.*?\]\s*\n?)+/gim, '');
-
-    // Remove standalone [Source: ...] lines
-    cleaned = cleaned.replace(/^\[Source:.*?\]\s*$/gim, '');
-
-    // Remove inline sources mentions like "Sources:\n- Source1\n- Source2"
-    cleaned = cleaned.replace(/^Sources:?\s*\n(?:[-•]\s*.*?\n?)+/gim, '');
-
-    return cleaned.trim();
-  };
-
-  // Enhanced markdown formatting for assistant messages
-  const formatContent = (content: string): string => {
-    let html = cleanSourcesFromContent(content).trim();
-
-    // Extract and protect code blocks first
-    const codeBlocks: string[] = [];
-    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, language, code) => {
-      const placeholder = `___CODE_BLOCK_${codeBlocks.length}___`;
-      const lang = language ? ` data-language="${language}"` : '';
-      codeBlocks.push(
-        `<pre${lang}><code>${code.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`,
-      );
-      return placeholder;
-    });
-
-    // Convert inline code (but not parts of code blocks)
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // Convert headings
-    html = html
-      .replace(/^###\s+(.*)$/gm, '<h3>$1</h3>')
-      .replace(/^##\s+(.*)$/gm, '<h2>$1</h2>')
-      .replace(/^#\s+(.*)$/gm, '<h1>$1</h1>');
-
-    // Convert bold and italic (avoid conflicts with bullet points)
-    html = html
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/(?<![*\w])\*(?!\*)([^\n*]+?)\*(?![*\w])/g, '<em>$1</em>');
-
-    // Convert numbered lists
-    html = html.replace(/^\s*(\d+)\.\s+(.*)$/gm, '<oli>$2</oli>');
-
-    // Convert bullet points with better handling
-    html = html.replace(/^\s*[•\-*]\s+(.*)$/gm, '<li>$1</li>');
-
-    // Wrap consecutive ordered list items in ol tags
-    html = html.replace(/(<oli>.*?<\/oli>\s*)+/g, (match) => {
-      return `<ol>${match.replace(/<\/?oli>/g, (tag) => tag.replace('oli', 'li'))}</ol>`;
-    });
-
-    // Wrap consecutive list items in ul tags
-    html = html.replace(/(<li>.*?<\/li>\s*)+/g, (match) => {
-      return `<ul>${match}</ul>`;
-    });
-
-    // Split into blocks and handle paragraphs
-    const blocks = html
-      .split(/\n\s*\n/)
-      .map((b) => b.trim())
-      .filter(Boolean);
-
-    html = blocks
-      .map((block) => {
-        // Don't wrap if it's already a block-level element
-        if (/^<(h[1-6]|ul|ol|pre|div|blockquote)/.test(block)) {
-          return block;
-        }
-        // For inline content, convert line breaks to <br> and wrap in <p>
-        const withBreaks = block.replace(/\n/g, '<br>');
-        return `<p>${withBreaks}</p>`;
-      })
-      .join('');
-
-    // Restore code blocks
-    codeBlocks.forEach((block, index) => {
-      html = html.replace(`___CODE_BLOCK_${index}___`, block);
-    });
-
-    return DOMPurify.sanitize(html);
-  };
-
   const renderFilesChanged = (): ReactElement | null => {
     if (message.author !== MessageAuthor.Assistant) return null;
 
@@ -251,21 +208,6 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
         </div>
       </div>
     );
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const isUrlSafe = (url: string): boolean => {
-    try {
-      const parsed = new URL(url);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-      return false;
-    }
   };
 
   const renderSourceItem = (
@@ -358,12 +300,9 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
       <div className={classes.assistantMessage}>
         <div className={classes.messageMeta}>Altinity</div>
         <div className={classes.assistantBody}>
-          {message.isLoading && (
-            <StudioSpinner data-size='sm' className={classes.inlineSpinner} aria-hidden={true} />
-          )}
           <div
-            className={`${classes.assistantContent} ${message.isLoading ? classes.loadingText : ''}`}
-            dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
+            className={classes.assistantContent}
+            dangerouslySetInnerHTML={{ __html: formatAssistantMessageContent(message.content) }}
           />
         </div>
         {renderSources()}
