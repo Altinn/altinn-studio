@@ -12,7 +12,7 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-_JUDGE_PROMPT_NAME = "llm-as-a-judge/intent_match_judge"
+_JUDGE_PROMPT_NAME = "intent_match"
 
 
 def _parse_judge_response(response: str) -> tuple[bool, str]:
@@ -33,7 +33,7 @@ async def run_intent_judge(
     user_goal: str,
     agent_plan: Optional[str],
     trace_id: str,
-) -> None:
+) -> bool:
     """Evaluate intent_match and write a boolean score to Langfuse.
 
     Compares the user's original goal against the agent's step_plan
@@ -42,13 +42,13 @@ async def run_intent_judge(
     """
     if not agent_plan:
         log.warning("intent_match: no agent_plan available — skipping evaluation")
-        return
+        return False
 
     try:
-        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME)
+        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME, local_path="llm-as-a-judge/intent_match")
     except FileNotFoundError:
         log.error("Judge prompt '%s' not found — skipping intent_match", _JUDGE_PROMPT_NAME)
-        return
+        return False
 
     user_message = (
         "## User's original goal\n"
@@ -68,7 +68,7 @@ async def run_intent_judge(
         )
     except Exception as e:
         log.warning("intent_match judge LLM call failed: %s", e)
-        return
+        return False
 
     passed, reasoning = _parse_judge_response(response)
 
@@ -85,3 +85,4 @@ async def run_intent_judge(
         trace_id,
         reasoning,
     )
+    return passed
