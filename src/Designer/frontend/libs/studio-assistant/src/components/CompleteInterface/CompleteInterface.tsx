@@ -4,12 +4,12 @@ import { StudioResizableLayout } from '@studio/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
-import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnCollapsed/ThreadColumnCollapsed';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantProps } from '../../Assistant/Assistant';
+import { createNewChatThread } from '../../utils/threadUtils';
 
 export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
 
@@ -41,7 +41,7 @@ export function CompleteInterface({
 
   const currentThread = useMemo(() => {
     const thread = chatThreads.find((t) => t.id === activeThreadId);
-    return thread ?? createEmptyChatThread(texts.newThread);
+    return thread ?? createNewChatThread(texts.newThread);
   }, [activeThreadId, chatThreads, texts]);
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
@@ -112,9 +112,3 @@ export function CompleteInterface({
     </div>
   );
 }
-
-const createEmptyChatThread = (title: string): ChatThread => ({
-  id: 'new-chat',
-  title,
-  messages: [],
-});
