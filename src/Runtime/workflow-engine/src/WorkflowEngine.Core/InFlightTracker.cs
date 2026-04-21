@@ -116,10 +116,10 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
 
     /// <summary>
-    /// Snapshot of (workflowId, leaseToken) pairs for every in-flight workflow.
-    /// Used by <see cref="HeartbeatService"/> to issue lease-checked heartbeats —
-    /// a host that sent heartbeats without its lease token could keep a reclaimed
-    /// workflow "alive" on the row and silently overwrite the new owner's state.
+    /// Snapshot of (workflowId, leaseToken) pairs for every in-flight workflow whose lease
+    /// is still considered ours. Entries already flagged by <see cref="TryAbandonLostLease"/>
+    /// are excluded — the new owner is processing them, and heartbeating them would only
+    /// re-trigger the lost-id path on every sweep while the handler unwinds.
     /// </summary>
     /// <remarks>
     /// Tracked workflows always originate from <c>FetchAndLockWorkflows</c>, which stamps a
@@ -130,7 +130,10 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     // stamps a fresh LeaseToken in the update CTE — so LeaseToken is guaranteed non-null here.
 #pragma warning disable NX0003
     public IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> GetSnapshotLeases() =>
-        _workflows.Select(kvp => (kvp.Key, kvp.Value.Workflow.LeaseToken!.Value)).ToList();
+        _workflows
+            .Where(kvp => !_abandonedLeases.ContainsKey(kvp.Key))
+            .Select(kvp => (kvp.Key, kvp.Value.Workflow.LeaseToken!.Value))
+            .ToList();
 #pragma warning restore NX0003
 
     /// <summary>

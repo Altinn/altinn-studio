@@ -390,6 +390,35 @@ public class CancellationTests
     }
 
     [Fact]
+    public void GetSnapshotLeases_ExcludesAbandonedEntries()
+    {
+        // Once a lease is abandoned, the handler will unwind over several heartbeat cycles.
+        // We must not re-include it in subsequent sweeps — the DB would re-report it as lost
+        // on every cycle, spamming the log and churning the CTS (already cancelled).
+        var tracker = new InFlightTracker(TimeProvider.System);
+
+        var alive = CreateWorkflow(CreateStep());
+        alive.LeaseToken = Guid.NewGuid();
+        var aliveId = Guid.NewGuid();
+        using var aliveCts = new CancellationTokenSource();
+        tracker.TryAdd(aliveId, aliveCts, alive);
+
+        var abandoned = CreateWorkflow(CreateStep());
+        abandoned.LeaseToken = Guid.NewGuid();
+        var abandonedId = Guid.NewGuid();
+        using var abandonedCts = new CancellationTokenSource();
+        tracker.TryAdd(abandonedId, abandonedCts, abandoned);
+
+        tracker.TryAbandonLostLease([abandonedId]);
+
+        var leases = tracker.GetSnapshotLeases();
+
+        var lease = Assert.Single(leases);
+        Assert.Equal(aliveId, lease.WorkflowId);
+        Assert.Equal(alive.LeaseToken, lease.LeaseToken);
+    }
+
+    [Fact]
     public void TryRemove_ClearsWasLeaseAbandoned()
     {
         var tracker = new InFlightTracker(TimeProvider.System);
