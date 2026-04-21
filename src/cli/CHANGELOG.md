@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `env reset` for localtest to delete persisted localtest and workflow-engine database data, with interactive confirmation.
+
 ## [0.1.0-preview.6] - 2026-04-20
 
 ### Added
