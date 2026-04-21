@@ -21,21 +21,21 @@ export function useTaskErrors(): {
   formErrors: NodeRefValidation<AnyValidation<'error'>>[];
   taskErrors: BaseValidation<'error'>[];
 } {
-  const [dataModels, otherDataElementBackendValidations, taskValidations, showAllBackendErrors] =
+  const [dataModels, otherDataElementBackendValidations, taskValidations, showAllUnboundValidations] =
     FormStore.raw.useShallowSelector((state) => [
       state.data.models,
       state.validation.otherDataElementBackendValidations,
       state.validation.state.task,
-      state.validation.showAllBackendErrors,
+      state.validation.showAllUnboundValidations,
     ]);
 
-  const formErrorVisibility: NodeVisibility = showAllBackendErrors ? 'showAll' : 'visible';
+  const formErrorVisibility: NodeVisibility = showAllUnboundValidations ? 'showAll' : 'visible';
 
   const _formErrors = FormStore.nodes.useAllValidations(formErrorVisibility, 'error');
   const formErrors = !_formErrors.length ? emptyArray : _formErrors;
 
   const taskErrors = useMemo(() => {
-    if (!showAllBackendErrors) {
+    if (!showAllUnboundValidations) {
       return emptyArray;
     }
 
@@ -65,7 +65,7 @@ export function useTaskErrors(): {
     allBackendErrors.push(...validationsOfSeverity(taskValidations, 'error'));
 
     return allBackendErrors?.length ? allBackendErrors : emptyArray;
-  }, [dataModels, formErrors, otherDataElementBackendValidations, showAllBackendErrors, taskValidations]);
+  }, [dataModels, formErrors, otherDataElementBackendValidations, showAllUnboundValidations, taskValidations]);
 
   return {
     formErrors,

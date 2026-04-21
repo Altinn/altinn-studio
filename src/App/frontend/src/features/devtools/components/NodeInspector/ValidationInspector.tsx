@@ -54,7 +54,7 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
 
   // Validations for attachments
   const attachmentValidations: {
-    [key: string]: { attachmentVisibility: number; validations: NodeRefValidation<AttachmentValidation>[] };
+    [key: string]: NodeRefValidation<AttachmentValidation>[];
   } = componentValidations.reduce((obj, val) => {
     const attachmentValidation = 'attachmentId' in val ? val : undefined;
     if (attachmentValidation) {
@@ -62,10 +62,9 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
       const attachment = attachments.find((a) => isAttachmentUploaded(a) && a.data.id === attachmentId);
       const key = `Vedlegg ${attachment?.data.filename ?? attachmentId}`;
       if (!obj[key]) {
-        const attachmentVisibility = nodeVisibility | (attachmentValidation.visibility ?? 0);
-        obj[key] = { attachmentVisibility, validations: [] };
+        obj[key] = [];
       }
-      obj[key].validations.push(val);
+      obj[key].push(val);
     }
     return obj;
   }, {});
@@ -99,12 +98,12 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
           visibility={nodeVisibility}
         />
       ))}
-      {Object.entries(attachmentValidations).map(([attachment, { attachmentVisibility, validations }]) => (
+      {Object.entries(attachmentValidations).map(([attachment, validations]) => (
         <ValidationItems
           key={attachment}
           grouping={attachment}
           validations={validations}
-          visibility={attachmentVisibility}
+          visibility={nodeVisibility}
         />
       ))}
     </div>

@@ -11,7 +11,7 @@ export function useDeepValidationsForNode(
   restriction?: number | undefined,
   skipLastIdMutator = false,
 ): NodeRefValidation[] {
-  const showAll = FormStore.validation.useShowAllBackendErrors();
+  const showAll = FormStore.validation.useShowAllUnboundValidations();
   const mask = showAll ? 'showAll' : 'visible';
   const indexedId = useIndexedId(baseComponentId, skipLastIdMutator);
   return FormStore.nodes.useVisibleValidationsDeep(indexedId, mask, includeSelf, restriction);

@@ -6,6 +6,7 @@ import type {
   ValidationMaskKeys,
   ValidationSeverity,
 } from 'src/features/validation';
+import type { CompExternal } from 'src/layout/layout';
 import type { StateFactoryProps } from 'src/utils/layout/types';
 
 export function mergeFieldValidations(...X: (FieldValidations | undefined)[]): FieldValidations {
@@ -52,11 +53,6 @@ export function isValidationVisible<T extends AnyValidation>(validation: T, mask
     return true;
   }
 
-  if ('visibility' in validation && validation.visibility !== undefined) {
-    const specificMask = mask | validation.visibility;
-    return (specificMask & validation.category) > 0;
-  }
-
   return (mask & validation.category) > 0;
 }
 
@@ -75,9 +71,12 @@ export function selectValidations<T extends BaseValidation>(
  * If the item is undefined, it will return 0.
  */
 export function getInitialMask(props: StateFactoryProps): number {
-  const item = props.layoutMap[props.baseId];
+  return getInitialMaskFromItem(props.layoutMap[props.baseId], props.baseId);
+}
+
+export function getInitialMaskFromItem(item: CompExternal | undefined, baseId?: string): number {
   if (!item) {
-    throw new Error(`Could not find layout for component with id ${props.baseId}`);
+    throw new Error(`Could not find layout for component${baseId ? ` with id ${baseId}` : ''}`);
   }
   const showValidations = 'showValidations' in item ? item.showValidations : null;
   // If not set, null, or undefined, default to all validations except required

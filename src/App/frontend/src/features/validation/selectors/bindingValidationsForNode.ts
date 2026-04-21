@@ -16,7 +16,7 @@ type OutValues = NodeRefValidation<ComponentValidation | FieldValidation>[];
 export function useBindingValidationsFor<T extends CompTypes>(
   baseComponentId: string,
 ): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
-  const showAll = FormStore.validation.useShowAllBackendErrors();
+  const showAll = FormStore.validation.useShowAllUnboundValidations();
   const component = FormStore.nodes.useVisibleValidations(baseComponentId, showAll);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);

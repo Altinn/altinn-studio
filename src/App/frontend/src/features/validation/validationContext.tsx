@@ -23,6 +23,7 @@ import {
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
+import { getRowIdsForNode } from 'src/features/validation/ValidationStorePlugin';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
@@ -59,11 +60,34 @@ export function createValidationSlice(
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
     },
     otherDataElementBackendValidations: {},
-    setShowAllBackendErrors: (newValue) =>
+    formMask: 0,
+    pageMasks: {},
+    rowMasks: {},
+    setFormMask: (mask) =>
       set((state) => {
-        state.validation.showAllBackendErrors = newValue;
+        state.validation.formMask = mask ?? 0;
       }),
-    showAllBackendErrors: false,
+    setPageMask: (pageKey, mask) =>
+      set((state) => {
+        if (!mask) {
+          delete state.validation.pageMasks[pageKey];
+          return;
+        }
+        state.validation.pageMasks[pageKey] = mask;
+      }),
+    setRowMask: (rowId, mask) =>
+      set((state) => {
+        if (!mask) {
+          delete state.validation.rowMasks[rowId];
+          return;
+        }
+        state.validation.rowMasks[rowId] = mask;
+      }),
+    setShowAllUnboundValidations: (newValue) =>
+      set((state) => {
+        state.validation.showAllUnboundValidations = newValue;
+      }),
+    showAllUnboundValidations: false,
 
     // =======
     // Internal state
@@ -149,6 +173,7 @@ export function ValidationEffects() {
   return (
     <>
       <BackendValidation />
+      <ManageBoundaryMasks />
       <ManageShowAllErrors />
     </>
   );
@@ -204,8 +229,85 @@ export function useWaitForValidation(): WaitForValidation {
 }
 
 function ManageShowAllErrors() {
-  const showAllErrors = FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors);
+  const showAllErrors = FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations);
   return showAllErrors ? <UpdateShowAllErrors /> : null;
+}
+
+function ManageBoundaryMasks() {
+  const hasMasks = FormStore.raw.useSelector((state) => {
+    const { formMask, pageMasks, rowMasks } = state.validation;
+    return Boolean(formMask || Object.keys(pageMasks).length || Object.keys(rowMasks).length);
+  });
+
+  return hasMasks ? <UpdateBoundaryMasks /> : null;
+}
+
+function UpdateBoundaryMasks() {
+  const [nodeData, models, formMask, pageMasks, rowMasks, setFormMask, setPageMask, setRowMask] =
+    FormStore.raw.useShallowSelector((state) => [
+      state.nodes.nodeData,
+      state.data.models,
+      state.validation.formMask,
+      state.validation.pageMasks,
+      state.validation.rowMasks,
+      state.validation.setFormMask,
+      state.validation.setPageMask,
+      state.validation.setRowMask,
+    ]);
+
+  useEffect(() => {
+    const pageMatches = new Set<string>();
+    const rowMatches = new Set<string>();
+    let hasFormErrors = formMask === 0;
+
+    for (const node of Object.values(nodeData)) {
+      if (!node || !('validations' in node) || node.hidden || !node.isValid) {
+        continue;
+      }
+
+      if (formMask && !hasFormErrors && selectValidations(node.validations, formMask, 'error').length > 0) {
+        hasFormErrors = true;
+      }
+
+      const pageMask = pageMasks[node.pageKey];
+      if (pageMask && !pageMatches.has(node.pageKey) && selectValidations(node.validations, pageMask, 'error').length > 0) {
+        pageMatches.add(node.pageKey);
+      }
+
+      const nodeRowIds = Object.keys(rowMasks).length > 0 ? getRowIdsForNode({ nodes: { nodeData }, data: { models } } as FormStoreState, node.id) : [];
+      if (nodeRowIds.length === 0) {
+        continue;
+      }
+
+      for (const rowId of nodeRowIds) {
+        const rowMask = rowMasks[rowId];
+        if (!rowMask || rowMatches.has(rowId)) {
+          continue;
+        }
+        if (selectValidations(node.validations, rowMask, 'error').length > 0) {
+          rowMatches.add(rowId);
+        }
+      }
+    }
+
+    if (formMask && !hasFormErrors) {
+      setFormMask(undefined);
+    }
+
+    for (const [pageKey, pageMask] of Object.entries(pageMasks)) {
+      if (pageMask && !pageMatches.has(pageKey)) {
+        setPageMask(pageKey, undefined);
+      }
+    }
+
+    for (const [rowId, rowMask] of Object.entries(rowMasks)) {
+      if (rowMask && !rowMatches.has(rowId)) {
+        setRowMask(rowId, undefined);
+      }
+    }
+  }, [formMask, models, nodeData, pageMasks, rowMasks, setFormMask, setPageMask, setRowMask]);
+
+  return null;
 }
 
 function UpdateShowAllErrors() {
@@ -214,7 +316,7 @@ function UpdateShowAllErrors() {
       state.validation.state.task,
       state.data.models,
       state.validation.otherDataElementBackendValidations,
-      state.validation.setShowAllBackendErrors,
+      state.validation.setShowAllUnboundValidations,
     ]);
 
   const isFirstRender = useRef(true);
@@ -282,10 +384,12 @@ export const validationHooks = {
       return elementsWithErrors;
     }),
 
-  useShowAllBackendErrors: () => FormStore.raw.useSelector((state) => state.validation.showAllBackendErrors),
-  useSetShowAllBackendErrors: () => {
+  useShowAllUnboundValidations: () => FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations),
+  useSetShowAllUnboundValidations: () => {
     const validating = useWaitForValidation();
-    const setShowAllBackendErrors = FormStore.raw.useShallowSelector((s) => s.validation.setShowAllBackendErrors);
+    const setShowAllUnboundValidations = FormStore.raw.useShallowSelector(
+      (s) => s.validation.setShowAllUnboundValidations,
+    );
 
     return useMemo(
       () => async () => {
@@ -293,11 +397,17 @@ export const validationHooks = {
         // This is because we automatically turn off this state as soon as possible.
         // If the validations to show have not finished processing, this could get turned off before they ever became visible.
         await validating();
-        setShowAllBackendErrors(true);
+        setShowAllUnboundValidations(true);
       },
-      [setShowAllBackendErrors, validating],
+      [setShowAllUnboundValidations, validating],
     );
   },
+  useFormValidationMask: () => FormStore.raw.useSelector((state) => state.validation.formMask),
+  usePageValidationMasks: () => FormStore.raw.useSelector((state) => state.validation.pageMasks),
+  useRowValidationMasks: () => FormStore.raw.useSelector((state) => state.validation.rowMasks),
+  useSetFormValidationMask: () => FormStore.raw.useSelector((state) => state.validation.setFormMask),
+  useSetPageValidationMask: () => FormStore.raw.useSelector((state) => state.validation.setPageMask),
+  useSetRowValidationMask: () => FormStore.raw.useSelector((state) => state.validation.setRowMask),
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };

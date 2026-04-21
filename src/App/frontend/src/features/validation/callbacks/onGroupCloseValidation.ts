@@ -13,7 +13,7 @@ import type { AllowedValidationMasks } from 'src/layout/common.generated';
  * If there are errors, the visibility is set, and will return true, indicating that the row should not be closed.
  */
 export function useOnGroupCloseValidation() {
-  const setNodeVisibility = FormStore.nodes.useSetNodeVisibility();
+  const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
   const validating = useWaitForValidation();
   const formStore = FormStore.raw.useStore();
   const lookups = FormBootstrap.useLayoutLookups();
@@ -21,7 +21,7 @@ export function useOnGroupCloseValidation() {
 
   /* Ensures the callback will have the latest state */
   const callback = useOurEffectEvent(
-    (baseComponentId: string, restriction: number | undefined, masks: AllowedValidationMasks): boolean => {
+    (baseComponentId: string, restriction: number | undefined, rowId: string, masks: AllowedValidationMasks): boolean => {
       const mask = getVisibilityMask(masks);
       const state = formStore.getState();
       const errors: NodeRefValidation[] = [];
@@ -41,17 +41,13 @@ export function useOnGroupCloseValidation() {
 
       const nodesWithErrors = errors.map((v) => v.nodeId);
 
-      if (nodesWithErrors.length > 0) {
-        setNodeVisibility(nodesWithErrors, mask);
-        return true;
-      }
-
-      return false;
+      setRowValidationMask(rowId, nodesWithErrors.length > 0 ? mask : undefined);
+      return nodesWithErrors.length > 0;
     },
   );
 
-  return async (baseComponentId: string, restriction: number | undefined, masks: AllowedValidationMasks) => {
+  return async (baseComponentId: string, restriction: number | undefined, rowId: string, masks: AllowedValidationMasks) => {
     await validating();
-    return callback(baseComponentId, restriction, masks);
+    return callback(baseComponentId, restriction, rowId, masks);
   };
 }
