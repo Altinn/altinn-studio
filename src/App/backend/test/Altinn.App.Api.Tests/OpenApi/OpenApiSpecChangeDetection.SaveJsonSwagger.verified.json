@@ -9440,6 +9440,17 @@
         },
         "additionalProperties": false
       },
+      "JsonPointer": {
+        "type": "object",
+        "properties": {
+          "segmentCount": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
       "KeyValueEntry": {
         "type": "object",
         "properties": {
@@ -9892,20 +9903,10 @@
             "$ref": "#/components/schemas/OperationType"
           },
           "from": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true,
-            "readOnly": true
+            "$ref": "#/components/schemas/JsonPointer"
           },
           "path": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true,
-            "readOnly": true
+            "$ref": "#/components/schemas/JsonPointer"
           },
           "value": {
             "$ref": "#/components/schemas/JsonNode"

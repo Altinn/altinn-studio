@@ -34,6 +34,7 @@ public class AzureSharedContentClient : ISharedContentClient
     private const string CodeListsSegment = "code_lists";
     private const string IndexFileName = "_index.json";
     private const string LatestCodeListFileName = "_latest.json";
+    private const string JsonExtension = ".json";
 
     internal string CurrentVersion = InitialVersion;
     internal readonly ConcurrentDictionary<string, string> FileNamesAndContent = [];
@@ -97,6 +98,53 @@ public class AzureSharedContentClient : ISharedContentClient
 
         await UploadBlobs(containerClient, cancellationToken);
         return CurrentVersion;
+    }
+
+    public async Task<CodeList?> GetPublishedCodeListForOrg(
+        string orgName,
+        string codeListId,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        version = string.IsNullOrWhiteSpace(version) ? LatestCodeListFileName : version.Trim();
+        string url = CombineWithDelimiter(
+            _sharedContentBaseUri,
+            orgName,
+            CodeListsSegment,
+            codeListId,
+            version.EndsWith(JsonExtension, StringComparison.OrdinalIgnoreCase) ? version : JsonFileName(version)
+        );
+
+        try
+        {
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new HttpRequestException(
+                    $"Unexpected response from blob storage. Organisation name: {orgName}. CodeListId: {codeListId}. Version: {version}. Status code: {response.StatusCode}"
+                );
+            }
+
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            return !string.IsNullOrWhiteSpace(responseContent)
+                ? JsonSerializer.Deserialize<CodeList>(responseContent, s_jsonOptions)
+                : null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error fetching blobs from Altinn3Library in {Class}",
+                nameof(AzureSharedContentClient)
+            );
+            throw new SharedContentRequestException("Error fetching blobs from Altinn3Library", ex);
+        }
     }
 
     internal async Task PrepareOrganisationIndexFile(string orgName, CancellationToken cancellationToken = default)
@@ -329,7 +377,7 @@ public class AzureSharedContentClient : ISharedContentClient
         return string.Join('/', nonNulls.Select(segment => segment?.Trim('/')));
     }
 
-    internal static string JsonFileName(string filename) => $"{filename}.json";
+    internal static string JsonFileName(string filename) => $"{filename}{JsonExtension}";
 
     internal void SetCurrentVersion(List<string> versionPrefixes)
     {

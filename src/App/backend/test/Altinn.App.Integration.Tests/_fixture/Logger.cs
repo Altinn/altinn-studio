@@ -40,47 +40,20 @@ internal abstract class Logger : ILogger
         where TState : notnull => new NullScope();
 }
 
-internal sealed class FixtureLogger(long _fixtureInstance, string _name, string _scenario, bool _forTestContainers)
-    : Logger
+internal sealed class FixtureLogger(long _fixtureInstance, string _name, string _scenario) : Logger
 {
-    private long _currentFixtureInstance = _fixtureInstance;
     private readonly Stopwatch _timer = Stopwatch.StartNew();
 
     protected override void Log<TState>(TState state, Exception? exception, Func<TState, Exception?, string?> formatter)
     {
         var message = GetMessage(state, exception, formatter);
-        var prefix = $"{_currentFixtureInstance:00}/{_name}/{_scenario}";
-        if (_forTestContainers)
-            Console.Out.WriteLine($"[{prefix}/testcontainers {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
-        else
-            Console.Out.WriteLine($"[{prefix} {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
+        var prefix = $"{_fixtureInstance:00}/{_name}/{_scenario}";
+        Console.Out.WriteLine($"[{prefix} {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
     }
-
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <returns>
-    /// The hash code of the underlying message sink, because <see cref="DotNet.Testcontainers.Clients.DockerApiClient.LogContainerRuntimeInfoAsync" />
-    /// logs the runtime information once per Docker Engine API client and logger.
-    /// </returns>
-    public override int GetHashCode() =>
-        HashCode.Combine(_currentFixtureInstance, _name, _scenario, _forTestContainers);
 }
 
-internal sealed class TestOutputLogger(
-    ITestOutputHelper? output,
-    long _fixtureInstance,
-    string _name,
-    string _scenario,
-    bool _forTestContainers
-) : Logger
+internal sealed class TestOutputLogger(ITestOutputHelper? output, long _fixtureInstance, string _name, string _scenario)
+    : Logger
 {
     private ITestOutputHelper? _output = output;
     private long _currentFixtureInstance = _fixtureInstance;
@@ -107,32 +80,8 @@ internal sealed class TestOutputLogger(
 
         var message = GetMessage(state, exception, formatter);
         var prefix = $"{_currentFixtureInstance:00}/{_name}/{_scenario}";
-        if (_forTestContainers)
-            _output.WriteLine($"[{prefix}/testcontainers {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
-        else
-            _output.WriteLine($"[{prefix} {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
+        _output.WriteLine($"[{prefix} {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
     }
-
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        if (obj is TestOutputLogger other)
-        {
-            return Equals(_output, other._output);
-        }
-
-        return false;
-    }
-
-    /// <returns>
-    /// The hash code of the underlying message sink, because <see cref="DotNet.Testcontainers.Clients.DockerApiClient.LogContainerRuntimeInfoAsync" />
-    /// logs the runtime information once per Docker Engine API client and logger.
-    /// </returns>
-    public override int GetHashCode() => _output?.GetHashCode() ?? 0;
 }
 
 internal sealed class NullScope : IDisposable

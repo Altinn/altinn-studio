@@ -21,7 +21,7 @@ export const PageLayout = (): React.JSX.Element => {
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   const { org, app } = useUrlParams();
-  const { data: repoStatus } = useRepoStatusQuery(org, app);
+  const { data: repoStatus, isLoading } = useRepoStatusQuery(org, app);
 
   const navigate = useNavigate();
 
@@ -59,7 +59,9 @@ export const PageLayout = (): React.JSX.Element => {
 
   return (
     <>
-      {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
+      {organizations && user && !isLoading && (
+        <ResourceAdmHeader organizations={organizations} user={user} />
+      )}
       {hasMergeConflict ? <MergeConflict org={org} repo={app} /> : <Outlet />}
     </>
   );

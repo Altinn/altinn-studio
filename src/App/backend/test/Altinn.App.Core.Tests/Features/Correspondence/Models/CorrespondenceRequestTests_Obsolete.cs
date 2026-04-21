@@ -21,7 +21,6 @@ public class CorrespondenceRequestTests_Obsolete
             Sender = TestHelpers.GetOrganisationNumber(0),
             SendersReference = "senders-reference",
             RequestedPublishTime = DateTimeOffset.UtcNow.AddDays(1),
-            AllowSystemDeleteAfter = DateTimeOffset.UtcNow.AddDays(2),
             DueDateTime = DateTimeOffset.UtcNow.AddDays(2),
             IgnoreReservation = true,
             IsConfirmationNeeded = true,
@@ -102,7 +101,6 @@ public class CorrespondenceRequestTests_Obsolete
                 NotificationChannel = CorrespondenceNotificationChannel.EmailPreferred,
                 ReminderNotificationChannel = CorrespondenceNotificationChannel.SmsPreferred,
                 SendersReference = "senders-reference",
-                RequestedSendTime = DateTimeOffset.UtcNow,
                 CustomNotificationRecipients =
                 [
                     new CorrespondenceNotificationRecipientWrapper()
@@ -155,7 +153,6 @@ public class CorrespondenceRequestTests_Obsolete
             ["Correspondence.Sender"] = correspondence.Sender.ToUrnFormattedString(),
             ["Correspondence.SendersReference"] = correspondence.SendersReference,
             ["Correspondence.RequestedPublishTime"] = correspondence.RequestedPublishTime,
-            ["Correspondence.AllowSystemDeleteAfter"] = correspondence.AllowSystemDeleteAfter,
             ["Correspondence.DueDateTime"] = correspondence.DueDateTime,
             ["Correspondence.MessageSender"] = correspondence.MessageSender,
             ["Correspondence.IgnoreReservation"] = correspondence.IgnoreReservation,
@@ -198,7 +195,6 @@ public class CorrespondenceRequestTests_Obsolete
             ["Correspondence.Notification.NotificationChannel"] = correspondence.Notification.NotificationChannel,
             ["Correspondence.Notification.ReminderNotificationChannel"] = correspondence.Notification.ReminderNotificationChannel,
             ["Correspondence.Notification.SendersReference"] = correspondence.Notification.SendersReference,
-            ["Correspondence.Notification.RequestedSendTime"] = correspondence.Notification.RequestedSendTime,
             ["Correspondence.Notification.CustomRecipient.EmailAddress"] = correspondence.Notification.CustomNotificationRecipients[0].CorrespondenceNotificationRecipients[0].EmailAddress,
             ["Correspondence.Notification.CustomRecipient.OrganizationNumber"] = correspondence.Notification.CustomNotificationRecipients[0].CorrespondenceNotificationRecipients[0].OrganizationNumber,
         };
