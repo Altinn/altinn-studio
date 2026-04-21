@@ -378,6 +378,7 @@ func createCoreLayout(t *testing.T, dataDir string) {
 	for _, dir := range []string{
 		filepath.Join(dataDir, "testdata"),
 		filepath.Join(dataDir, "AltinnPlatformLocal"),
+		workflowEngineDbDataPath(dataDir),
 		filepath.Join(dataDir, "infra"),
 		filepath.Join(dataDir, "infra", "workflow-engine"),
 	} {
