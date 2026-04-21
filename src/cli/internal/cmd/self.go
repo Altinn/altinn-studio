@@ -8,9 +8,9 @@ import (
 	"runtime"
 
 	"altinn.studio/studioctl/internal/appmanager"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	selfsvc "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -356,11 +356,12 @@ func (c *SelfCommand) restartAppManagerIfNeeded(ctx context.Context, wasRunning 
 }
 
 func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath string) error {
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 	if studioctlPath == "" {
 		if err := appmanager.EnsureStarted(
 			ctx,
 			c.cfg,
-			envlocaltest.DefaultLoadBalancerPortString(),
+			topology.IngressPort(),
 		); err != nil {
 			return fmt.Errorf("ensure app-manager started: %w", err)
 		}
@@ -370,7 +371,7 @@ func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath strin
 	if err := appmanager.EnsureStartedWithStudioctlPath(
 		ctx,
 		c.cfg,
-		envlocaltest.DefaultLoadBalancerPortString(),
+		topology.IngressPort(),
 		studioctlPath,
 	); err != nil {
 		return fmt.Errorf("ensure app-manager started with studioctl path: %w", err)

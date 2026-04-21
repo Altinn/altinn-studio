@@ -13,7 +13,6 @@ import (
 	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/install"
-	"altinn.studio/studioctl/internal/networking"
 )
 
 func (s *Service) buildDisk() *Disk {
@@ -25,7 +24,6 @@ func (s *Service) buildDisk() *Disk {
 		s.checkDirState("bin_dir", s.cfg.BinDir, false),
 		s.checkConfigFileState(),
 		s.checkCredentialsFileState(),
-		s.checkNetworkCacheState(),
 		s.checkResourcesState(),
 		s.checkAppManagerBinaryState(),
 		s.checkAppManagerRuntimeState(),
@@ -246,43 +244,6 @@ func (s *Service) checkCredentialsFileState() DiskCheck {
 		}
 	}
 	return summarizeCredentialsState(path, creds)
-}
-
-func (s *Service) checkNetworkCacheState() DiskCheck {
-	path := filepath.Join(s.cfg.Home, doctorNetworkCacheFileName)
-	status := networking.GetCacheStatus(s.cfg.Home)
-	if !status.Exists {
-		return DiskCheck{
-			ID:      "network_cache",
-			Level:   diskLevelInfo,
-			Path:    path,
-			Message: "missing (will be created by probe)",
-		}
-	}
-
-	level := diskLevelOK
-	message := "valid and fresh"
-	if status.IP == "" {
-		level = diskLevelWarn
-		message = "invalid or unreadable content"
-	} else if !status.Fresh {
-		level = diskLevelWarn
-		message = "stale cache (" + formatDuration(status.Age) + " old)"
-	}
-
-	if info, err := os.Stat(path); err == nil {
-		if warning := ownerOnlyPermissionsWarning(info.Mode()); warning != "" {
-			level = worstDiskLevel(level, diskLevelWarn)
-			message = warning
-		}
-	}
-
-	return DiskCheck{
-		ID:      "network_cache",
-		Level:   level,
-		Path:    path,
-		Message: message,
-	}
 }
 
 func (s *Service) checkResourcesState() DiskCheck {
@@ -723,24 +684,4 @@ func ownerOnlyPermissionsWarning(mode os.FileMode) string {
 		return fmt.Sprintf("permissions %03o are broader than owner-only", mode.Perm())
 	}
 	return ""
-}
-
-func worstDiskLevel(current, candidate string) string {
-	if diskLevelPriority(candidate) > diskLevelPriority(current) {
-		return candidate
-	}
-	return current
-}
-
-func diskLevelPriority(level string) diskLevelRank {
-	switch level {
-	case diskLevelOK:
-		return diskRankOK
-	case diskLevelWarn:
-		return diskRankWarn
-	case diskLevelError:
-		return diskRankError
-	default:
-		return diskRankInfo
-	}
 }

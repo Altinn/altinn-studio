@@ -43,10 +43,6 @@ namespace LocalTest.Configuration
             }
         }
 
-        public string LocalFrontendHostname { get; set; } = "localhost";
-
-        public string LocalFrontendProtocol { get; set; } = "http";
-
         /// <summary>
         /// Url for the local app when LocalAppMode == http
         /// <summary>
@@ -89,6 +85,8 @@ namespace LocalTest.Configuration
 
         public string LocalPdfServiceUrl { get; set; }
 
-        public string LocalReceiptUrl { get; set; }
+        public string LocalWorkflowEngineUrl { get; set; }
+
+        public string LocalPgAdminUrl { get; set; }
     }
 }

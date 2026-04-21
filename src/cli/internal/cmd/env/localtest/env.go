@@ -15,8 +15,8 @@ import (
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/install"
-	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -40,27 +40,25 @@ const stoppingEnvironmentMessage = "Stopping localtest environment..."
 
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
-	cfg           *config.Config
-	out           *ui.Output
-	client        container.ContainerClient
-	runtimeConfig *runtimeConfigResolver
-	logs          *logStreamer
+	cfg    *config.Config
+	out    *ui.Output
+	client container.ContainerClient
+	logs   *logStreamer
 }
 
 // NewEnv creates a new localtest environment manager.
 func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient) *Env {
 	return &Env{
-		cfg:           cfg,
-		out:           out,
-		client:        client,
-		runtimeConfig: newRuntimeConfigResolver(cfg, client, out.Verbosef),
-		logs:          newLogStreamer(client, out),
+		cfg:    cfg,
+		out:    out,
+		client: client,
+		logs:   newLogStreamer(client, out),
 	}
 }
 
 // Preflight validates prerequisites before startup.
-func (e *Env) Preflight(ctx context.Context) error {
-	return CheckForLegacyLocaltest(ctx, e.client)
+func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
+	return CheckForLegacyLocaltest(ctx, e.client, opts.PgAdmin)
 }
 
 // Up starts the localtest environment.
@@ -68,17 +66,14 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg, err := e.runtimeConfig.Build(ctx)
-	if err != nil {
-		return err
-	}
-	e.out.Verbosef("Host gateway IP: %s", runtimeCfg.HostGateway)
+	runtimeCfg := newRuntimeConfig()
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	if ensureErr := e.ensureAppManager(ctx, runtimeCfg); ensureErr != nil {
+	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
 		return ensureErr
 	}
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, opts.Monitoring)
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
@@ -92,7 +87,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return err
 	}
 
-	localtestURL := FormatLocaltestURL(runtimeCfg.LoadBalancerPort)
+	localtestURL := topology.LocaltestURL()
 
 	if opts.OpenBrowser {
 		e.out.Verbosef("Opening browser to: %s", localtestURL)
@@ -137,10 +132,24 @@ func (e *Env) Down(ctx context.Context) error {
 
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
+	return e.status(ctx, false)
+}
+
+// StatusForUp returns status for the containers requested by env up.
+func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
+	return e.status(ctx, opts.PgAdmin)
+}
+
+// Logs streams localtest environment logs.
+func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
+	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
+}
+
+func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) {
 	// TODO: graph resource model package should handle this (retrieving the current state of a graph of resources).
 	status := newStatus()
 
-	containers := coreContainerNames()
+	containers := coreContainerNames(includePgAdmin)
 	runningCoreContainers := 0
 	for _, name := range containers {
 		state, err := e.client.ContainerState(ctx, name)
@@ -165,16 +174,11 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 	return &status, nil
 }
 
-// Logs streams localtest environment logs.
-func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
-	return e.logs.Stream(ctx, opts.Component, opts.Follow)
-}
-
-func (e *Env) ensureAppManager(ctx context.Context, runtimeCfg RuntimeConfig) error {
+func (e *Env) ensureAppManager(ctx context.Context, topology envtopology.Local) error {
 	if err := appmanager.EnsureStarted(
 		ctx,
 		e.cfg,
-		runtimeCfg.LoadBalancerPort,
+		topology.IngressPort(),
 	); err != nil {
 		return fmt.Errorf("ensure app-manager: %w", err)
 	}
@@ -217,7 +221,7 @@ func (e *Env) runForeground(
 	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
 	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	if err := e.logs.Stream(ctx, "", true); err != nil {
+	if err := e.logs.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
@@ -349,7 +353,6 @@ func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
 		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
 		IncludeMonitoring: true, // include all for cleanup
-		Platform:          e.client.Toolchain().Platform,
 	}
 }
 
@@ -363,20 +366,42 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 	if err := ensurePgpass(e.cfg.DataDir); err != nil {
 		return err
 	}
-
-	if err := ValidateResourceHostPaths(buildOpts); err != nil {
-		e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", err)
-		if installErr := e.installResources(ctx, true); installErr != nil {
-			return installErr
-		}
-		if err := ensurePgpass(e.cfg.DataDir); err != nil {
-			return err
-		}
-		if err := ValidateResourceHostPaths(buildOpts); err != nil {
-			return fmt.Errorf("validate resources after reinstall: %w", err)
-		}
+	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
+		return err
 	}
 
+	if err := ValidateResourceHostPaths(buildOpts); err != nil {
+		return e.reinstallResourcesAfterValidationFailure(ctx, buildOpts, err)
+	}
+
+	return nil
+}
+
+func (e *Env) reinstallResourcesAfterValidationFailure(
+	ctx context.Context,
+	buildOpts ResourceBuildOptions,
+	cause error,
+) error {
+	e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", cause)
+	if err := e.installResources(ctx, true); err != nil {
+		return err
+	}
+	if err := ensurePgpass(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ValidateResourceHostPaths(buildOpts); err != nil {
+		return fmt.Errorf("validate resources after reinstall: %w", err)
+	}
+	return nil
+}
+
+func ensureWorkflowEngineDbDataDir(dataDir string) error {
+	if err := os.MkdirAll(workflowEngineDbDataPath(dataDir), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create workflow-engine database data directory: %w", err)
+	}
 	return nil
 }
 
@@ -433,7 +458,9 @@ func (e *Env) installResources(ctx context.Context, force bool) error {
 func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeCfg RuntimeConfig,
+	topology envtopology.Local,
 	monitoring bool,
+	pgAdmin bool,
 ) (ResourceBuildOptions, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -452,7 +479,9 @@ func (e *Env) buildResourceOptions(
 	return ResourceBuildOptions{
 		DataDir:           e.cfg.DataDir,
 		RuntimeConfig:     runtimeCfg,
+		Topology:          topology,
 		IncludeMonitoring: monitoring,
+		IncludePgAdmin:    pgAdmin,
 		ImageMode:         imageMode,
 		Images:            e.cfg.Images,
 		DevConfig:         devConfig,
@@ -484,12 +513,4 @@ func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string)
 	}
 
 	return DevMode, &devCfg, ""
-}
-
-// FormatLocaltestURL returns the localtest URL, omitting port 80 since browsers default to it.
-func FormatLocaltestURL(port string) string {
-	if port == "80" {
-		return "http://" + networking.LocalDomain
-	}
-	return "http://" + networking.LocalDomain + ":" + port
 }

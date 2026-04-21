@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,7 +12,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
+import { getProcessNextMutationKey } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -22,7 +21,7 @@ import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTask } from 'src/features/process/service/ServiceTask';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useIsValidTaskId, useNavigateToTask, useStartUrl } from 'src/hooks/useNavigatePage';
+import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { useWaitForQueries } from 'src/hooks/useWaitForQueries';
 import { getComponentDef, implementsSubRouting } from 'src/layout';
 import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
@@ -70,32 +69,6 @@ function NavigationError({ label }: NavigationErrorProps) {
       </Flex>
     </>
   );
-}
-
-export function NavigateToStartUrl({ forceCurrentTask = true }: { forceCurrentTask?: boolean }) {
-  const navigate = useNavigate();
-  const currentTaskId = getTargetTaskFromProcess(useProcessQuery().data);
-  const startUrl = useStartUrl(forceCurrentTask ? currentTaskId : undefined);
-  const location = useLocation();
-
-  const processNextKey = getProcessNextMutationKey();
-  const queryClient = useQueryClient();
-  const isRunningProcessNext = queryClient.isMutating({ mutationKey: processNextKey });
-  const isNavigating = useIsNavigating();
-
-  const currentLocation = location.pathname + location.search;
-
-  useEffect(() => {
-    if (currentLocation !== startUrl && !isRunningProcessNext && !isNavigating) {
-      navigate(startUrl, { replace: true });
-    }
-  }, [currentLocation, isRunningProcessNext, navigate, startUrl, isNavigating]);
-
-  if (isRunningProcessNext) {
-    return <Loader reason='navigate-to-start-process-next' />;
-  }
-
-  return <Loader reason='navigate-to-start' />;
 }
 
 export function ProcessWrapper({ children }: PropsWithChildren) {

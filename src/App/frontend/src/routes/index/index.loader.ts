@@ -6,6 +6,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
+import { isStateless } from 'src/routes/index/isStateless';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
@@ -17,11 +18,6 @@ export type IndexLoaderError =
   | { error: 'instantiation-failed'; cause: Error };
 
 export type IndexLoaderResult = null | IndexLoaderError;
-
-function isStateless(): boolean {
-  const entryType = GlobalData.applicationMetadata.onEntry?.show;
-  return entryType !== 'new-instance' && entryType !== 'select-instance';
-}
 
 export function indexLoader(queryClient: QueryClient, instanceApi: InstanceApi) {
   return async function loader(_: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {

@@ -10,11 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/networking"
+	"altinn.studio/studioctl/internal/envtopology"
 )
 
 const (
@@ -34,9 +33,7 @@ const (
 	buildCacheRefPDF3         = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
 	infraDir                  = "infra"
 	workflowEngineInfraDir    = "workflow-engine"
-	flavorDocker              = "Docker"
-	flavorPodman              = "Podman"
-	flavorUnknown             = "Unknown"
+	workflowEngineDbDataDir   = "workflow-engine-db"
 	localtestServicePort      = "5101"
 
 	postgresHealthInterval    = 10 * time.Second
@@ -60,11 +57,7 @@ var ErrInvalidResourceLayout = errors.New("invalid localtest resource layout")
 
 // RuntimeConfig holds runtime-specific configuration for localtest.
 type RuntimeConfig struct {
-	HostGateway      string                      // resolved host gateway IP (e.g., "172.17.0.1")
-	LoadBalancerPort string                      // port for localtest (default: "8000")
-	LocalAppURL      string                      // localtest-side default app URL
-	User             string                      // "uid:gid" to run containers as (prevents root-owned bind mount files)
-	Platform         container.ContainerPlatform // selected container platform
+	User string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 }
 
 // ContainerSpec defines a container to run.
@@ -98,7 +91,7 @@ func newPort(hostPort, containerPort string) types.PortMapping {
 	return types.PortMapping{
 		HostPort:      hostPort,
 		ContainerPort: containerPort,
-		HostIP:        "",
+		HostIP:        "127.0.0.1",
 		Protocol:      "",
 	}
 }
@@ -124,7 +117,7 @@ func newContainerSpec(
 	ports []types.PortMapping,
 	env map[string]string,
 	volumes []types.VolumeMount,
-	extraHosts, networkAliases, deps, cmd []string,
+	networkAliases, deps, cmd []string,
 ) ContainerSpec {
 	return ContainerSpec{
 		HealthCheck:    nil,
@@ -132,7 +125,7 @@ func newContainerSpec(
 		Ports:          ports,
 		Environment:    env,
 		Volumes:        volumes,
-		ExtraHosts:     extraHosts,
+		ExtraHosts:     nil,
 		NetworkAliases: networkAliases,
 		Dependencies:   deps,
 		Command:        cmd,
@@ -155,56 +148,69 @@ func newContainerStatus(name, status string) ContainerStatus {
 	}
 }
 
-func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
-	hostExtraHosts := []string{
-		"host.docker.internal:" + cfg.HostGateway,
-		"host.containers.internal:" + cfg.HostGateway,
+func localtestListenURLs(loadBalancerPort string) string {
+	if loadBalancerPort == localtestServicePort {
+		return "http://*:" + localtestServicePort + "/"
 	}
+	return "http://*:" + localtestServicePort + "/;http://*:" + loadBalancerPort + "/"
+}
 
-	dotnetEnv := localtestEnvironment(cfg.Platform)
+func coreContainers(dataDir string, topology envtopology.Local, includePgAdmin bool) []ContainerSpec {
+	ingressPort := topology.IngressPort()
 
 	containers := []ContainerSpec{
 		newContainerSpec(
 			ContainerLocaltest,
 			[]types.PortMapping{
-				newPort(cfg.LoadBalancerPort, localtestServicePort), // Main port
+				newPort(ingressPort, localtestServicePort), // Main port
+				// TODO: internal port below is kept to keep compatibility with "dotnet run" apps,
+				// as PlatformSettings default values is what is used when users do "dotnet run --project App"
+				// and similar. We only use the topology ingress port when running through "studioctl [app] run"
+				// Whenever we are comfortable completely relying on studioctl run or v8 is completely unsupported
+				// we can remove this port mapping
 				newPort(localtestServicePort, localtestServicePort), // Internal port
 			},
 			map[string]string{
-				"DOTNET_ENVIRONMENT":                 dotnetEnv,
-				"GeneralSettings__BaseUrl":           "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
-				"GeneralSettings__HostName":          networking.LocalDomain,
-				"LocalPlatformSettings__LocalAppUrl": cfg.LocalAppURL,
+				"ASPNETCORE_URLS":                                       localtestListenURLs(ingressPort),
+				"DOTNET_ENVIRONMENT":                                    "Development",
+				"GeneralSettings__BaseUrl":                              topology.LocaltestBaseURL(),
+				"GeneralSettings__HostName":                             topology.AppHostName(),
+				"LocalPlatformSettings__LocalAppMode":                   "http",
+				"LocalPlatformSettings__LocalAppUrl":                    "",
+				"LocalPlatformSettings__LocalTestingStorageBasePath":    "/AltinnPlatformLocal/",
+				"LocalPlatformSettings__LocalTestingStaticTestDataPath": "/testdata/",
+				"LocalPlatformSettings__LocalGrafanaUrl":                "http://monitoring_grafana:3000",
+				"LocalPlatformSettings__LocalPdfServiceUrl":             "http://" + ContainerPDF3 + ":5031",
+				"LocalPlatformSettings__LocalWorkflowEngineUrl":         "http://" + ContainerWorkflowEngine + ":8080",
+				"LocalPlatformSettings__LocalPgAdminUrl":                "http://" + ContainerPgAdmin + ":80",
 			},
 			[]types.VolumeMount{
 				newVolume(filepath.Join(dataDir, "testdata"), "/testdata"),
 				newVolume(filepath.Join(dataDir, "AltinnPlatformLocal"), "/AltinnPlatformLocal"),
 			},
-			hostExtraHosts,
-			[]string{networking.LocalDomain},
+			topology.LocaltestIngressHosts(),
 			nil,
 			nil,
 		),
 		newContainerSpec(
 			ContainerPDF3,
+			// TODO: same as above, we only need host port mapping here because old
 			[]types.PortMapping{newPort("5300", "5031")},
 			map[string]string{
-				"TZ":               "Europe/Oslo",
-				"PDF3_ENVIRONMENT": "localtest",
-				"PDF3_QUEUE_SIZE":  "3",
-				// pdf3 reaches localtest over the container network, not through the host-published load balancer port.
-				"PDF3_LOCALTEST_PUBLIC_BASE_URL": localtestInternalBaseURL(),
+				"TZ":                             "Europe/Oslo",
+				"PDF3_ENVIRONMENT":               "localtest",
+				"PDF3_QUEUE_SIZE":                "3",
+				"PDF3_LOCALTEST_PUBLIC_BASE_URL": topology.LocaltestBaseURL(),
 			},
 			nil,
-			hostExtraHosts,
 			nil,
 			[]string{ContainerLocaltest},
 			nil,
 		),
 		workflowEngineDbContainerSpec(dataDir),
-		workflowEngineContainerSpec(),
+		workflowEngineContainerSpec(topology),
 	}
-	if !config.IsCI() {
+	if includePgAdmin {
 		containers = append(containers, pgAdminContainerSpec(dataDir))
 	}
 	return containers
@@ -213,7 +219,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
 		ContainerWorkflowEngineDb,
-		[]types.PortMapping{newPort("5433", postgresPort)},
+		nil,
 		map[string]string{
 			"POSTGRES_DB":       postgresDB,
 			"POSTGRES_USER":     postgresUser,
@@ -221,12 +227,15 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 			"TZ":                "Europe/Oslo",
 		},
 		[]types.VolumeMount{
+			newVolume(
+				workflowEngineDbDataPath(dataDir),
+				"/var/lib/postgresql",
+			),
 			newReadOnlyVolume(
 				workflowEngineInfraFilePath(dataDir, "postgres-init.sql"),
 				"/docker-entrypoint-initdb.d/01-tuning.sql",
 			),
 		},
-		nil,
 		nil,
 		nil,
 		[]string{"postgres", "-c", "shared_preload_libraries=pg_stat_statements"},
@@ -242,19 +251,15 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 	return spec
 }
 
-func workflowEngineContainerSpec() ContainerSpec {
+func workflowEngineContainerSpec(topology envtopology.Local) ContainerSpec {
 	return newContainerSpec(
 		ContainerWorkflowEngine,
-		[]types.PortMapping{
-			newPort("9080", "8080"),
-			newPort("9081", "8081"),
-		},
+		nil,
 		map[string]string{
 			"ASPNETCORE_ENVIRONMENT":              "Docker",
 			"ConnectionStrings__WorkflowEngine":   "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
-			"AppCommandSettings__CommandEndpoint": localtestInternalBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
+			"AppCommandSettings__CommandEndpoint": topology.LocaltestBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
 		},
-		nil,
 		nil,
 		nil,
 		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},
@@ -262,14 +267,10 @@ func workflowEngineContainerSpec() ContainerSpec {
 	)
 }
 
-func localtestInternalBaseURL() string {
-	return "http://" + networking.LocalDomain + ":" + localtestServicePort
-}
-
 func pgAdminContainerSpec(dataDir string) ContainerSpec {
 	spec := newContainerSpec(
 		ContainerPgAdmin,
-		[]types.PortMapping{newPort("5050", pgAdminContainerPort)},
+		nil,
 		map[string]string{
 			"PGADMIN_DEFAULT_EMAIL":                   pgAdminEmail,
 			"PGADMIN_DEFAULT_PASSWORD":                pgAdminPassword,
@@ -289,7 +290,6 @@ func pgAdminContainerSpec(dataDir string) ContainerSpec {
 			),
 		},
 		nil,
-		nil,
 		[]string{ContainerWorkflowEngineDb},
 		nil,
 	)
@@ -305,25 +305,11 @@ func workflowEngineInfraPath(dataDir string) string {
 	return filepath.Join(dataDir, infraDir, workflowEngineInfraDir)
 }
 
-func localtestEnvironment(platform container.ContainerPlatform) string {
-	switch platform {
-	case container.PlatformDocker, container.PlatformColima:
-		return flavorDocker
-	case container.PlatformPodman:
-		return flavorPodman
-	default:
-		return flavorUnknown
-	}
+func workflowEngineDbDataPath(dataDir string) string {
+	return filepath.Join(dataDir, workflowEngineDbDataDir)
 }
 
-//nolint:funlen // Container spec list is more readable as a single function
-func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
-	extraHosts := []string{
-		"host.docker.internal:" + cfg.HostGateway,
-		"host.containers.internal:" + cfg.HostGateway,
-		networking.LocalDomain + ":" + cfg.HostGateway,
-	}
-
+func monitoringContainers(dataDir string, topology envtopology.Local) []ContainerSpec {
 	infraPath := filepath.Join(dataDir, infraDir)
 
 	return []ContainerSpec{
@@ -334,7 +320,6 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]types.VolumeMount{
 				newVolume(filepath.Join(infraPath, "tempo.yaml"), "/etc/tempo.yaml"),
 			},
-			nil,
 			nil,
 			nil,
 			[]string{"-config.file=/etc/tempo.yaml", "-log.level=error"},
@@ -348,7 +333,6 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			},
 			nil,
 			nil,
-			nil,
 			[]string{"-config.file=/etc/mimir.yaml", "-target=all", "-log.level=error"},
 		),
 		newContainerSpec(
@@ -360,7 +344,6 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			},
 			nil,
 			nil,
-			nil,
 			[]string{"-config.file=/etc/loki.yaml", "-target=all", "-log.level=error"},
 		),
 		newContainerSpec(
@@ -370,8 +353,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]types.VolumeMount{
 				newVolume(filepath.Join(infraPath, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
 			},
-			nil,
-			nil,
+			[]string{topology.OTelHost()},
 			[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
 			[]string{"--config=/etc/otel-collector.yaml"},
 		),
@@ -383,7 +365,7 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
 				"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
 				"GF_LOG_LEVEL":                  "error",
-				"GF_SERVER_DOMAIN":              networking.LocalDomain,
+				"GF_SERVER_DOMAIN":              topology.AppHostName(),
 				"GF_SERVER_SERVE_FROM_SUB_PATH": "true",
 				"GF_SERVER_ROOT_URL":            "%(protocol)s://%(domain)s:%(http_port)s/grafana/",
 			},
@@ -398,7 +380,6 @@ func monitoringContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 				),
 				newVolume(filepath.Join(infraPath, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
 			},
-			extraHosts,
 			nil,
 			[]string{
 				ContainerMonitoringOtelCollector,
@@ -426,9 +407,11 @@ type ResourceBuildOptions struct {
 	DevConfig         *DevImageConfig
 	Images            config.ImagesConfig
 	DataDir           string
+	Topology          envtopology.Local
 	RuntimeConfig     RuntimeConfig
 	ImageMode         ImageMode
 	IncludeMonitoring bool
+	IncludePgAdmin    bool
 }
 
 // ResourceDestroyOptions holds minimal options for destroying resources.
@@ -436,7 +419,6 @@ type ResourceDestroyOptions struct {
 	DataDir           string
 	Images            config.ImagesConfig
 	IncludeMonitoring bool
-	Platform          container.ContainerPlatform
 }
 
 type containerResourceMode int
@@ -452,7 +434,9 @@ func BuildResources(opts ResourceBuildOptions) []resource.Resource {
 	return buildResourcesWithMode(
 		opts.DataDir,
 		opts.RuntimeConfig,
+		opts.Topology,
 		opts.IncludeMonitoring,
+		opts.IncludePgAdmin,
 		buildCoreImages(opts),
 		monitoringImageRefs(opts.Images.Monitoring),
 		containerModeApply,
@@ -462,17 +446,15 @@ func BuildResources(opts ResourceBuildOptions) []resource.Resource {
 // BuildResourcesForDestroy creates the list of resources need to shutdown localtest.
 func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
 	runtimeCfg := RuntimeConfig{
-		Platform:         opts.Platform,
-		HostGateway:      "", // not used for destroy
-		LoadBalancerPort: "", // not used for destroy
-		LocalAppURL:      "", // not used for destroy
-		User:             "", // not used for destroy
+		User: "", // not used for destroy
 	}
 
 	return buildResourcesWithMode(
 		opts.DataDir,
 		runtimeCfg,
+		envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		opts.IncludeMonitoring,
+		true,
 		buildRemoteCoreImages(opts.Images.Core),
 		monitoringImageRefs(opts.Images.Monitoring),
 		containerModeDestroy,
@@ -557,13 +539,15 @@ func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageReso
 func buildResourcesWithMode(
 	dataDir string,
 	runtimeCfg RuntimeConfig,
+	topology envtopology.Local,
 	includeMonitoring bool,
+	includePgAdmin bool,
 	coreImages map[string]resource.ImageResource,
 	monImages map[string]string,
 	mode containerResourceMode,
 ) []resource.Resource {
-	core := coreContainers(dataDir, runtimeCfg)
-	mon := monitoringContainers(dataDir, runtimeCfg)
+	core := coreContainers(dataDir, topology, includePgAdmin)
+	mon := monitoringContainers(dataDir, topology)
 	labels := map[string]string{LabelKey: LabelValue}
 
 	capacity := 1 + len(core)*2
@@ -717,10 +701,10 @@ type hostPathExpectation struct {
 }
 
 func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
-	core := coreContainers(opts.DataDir, opts.RuntimeConfig)
+	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludePgAdmin)
 	all := core
 	if opts.IncludeMonitoring {
-		all = append(all, monitoringContainers(opts.DataDir, opts.RuntimeConfig)...)
+		all = append(all, monitoringContainers(opts.DataDir, opts.Topology)...)
 	}
 
 	// Dedupe by host path while preserving first expectation.

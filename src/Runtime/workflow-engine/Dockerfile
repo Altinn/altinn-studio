@@ -13,7 +13,7 @@ COPY Runtime/workflow-engine/ Runtime/workflow-engine/
 
 WORKDIR /build/Runtime/workflow-engine/tests/WorkflowEngine.TestApp
 RUN dotnet restore "WorkflowEngine.TestApp.csproj"
-RUN dotnet publish "WorkflowEngine.TestApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "WorkflowEngine.TestApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:CSharpier_Bypass=true
 
 FROM base AS final
 WORKDIR /app

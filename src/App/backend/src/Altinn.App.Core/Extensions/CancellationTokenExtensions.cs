@@ -3,7 +3,7 @@ namespace Altinn.App.Core.Extensions;
 internal static class CancellationTokenExtensions
 {
     /// <summary>
-    /// Creates a linked cancellation token source that will be canceled after the specified timeout or when the original token is canceled.
+    /// Creates a linked cancellation token source that will be cancelled after the specified timeout or when the original token is canceled.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token to link with the timeout.</param>
     /// <param name="timeout">The timeout duration.</param>

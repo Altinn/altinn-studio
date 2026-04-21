@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -50,7 +49,7 @@ public class UserController : ControllerBase
         var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
         HttpContext.Response.Cookies.Append(
             "XSRF-TOKEN",
-            tokens.RequestToken,
+            tokens.RequestToken!,
             new CookieOptions
             {
                 HttpOnly = false, // Make this cookie readable by Javascript.

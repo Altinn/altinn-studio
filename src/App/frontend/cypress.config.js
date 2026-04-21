@@ -68,7 +68,7 @@ module.exports = defineConfig({
         },
       });
 
-      const validEnvironments = ['docker', 'podman', 'tt02'];
+      const validEnvironments = ['localtest', 'tt02'];
       if (validEnvironments.includes(config.env.environment)) {
         return getConfigurationByFile(config.env.environment);
       }

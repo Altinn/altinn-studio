@@ -4,6 +4,7 @@ package appcontainers
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
@@ -22,9 +23,9 @@ const (
 type Candidate struct {
 	ContainerID string `json:"containerId"`
 	Name        string `json:"name"`
-	BaseURL     string `json:"baseUrl"`
 	Description string `json:"description"`
 	Source      string `json:"source"`
+	HostPort    int    `json:"hostPort"`
 }
 
 // Labels returns labels for a studioctl-managed app container.
@@ -72,6 +73,10 @@ func CandidateFromContainer(ctr types.ContainerInfo) (Candidate, bool) {
 	if hostPort == "" {
 		return zeroCandidate(), false
 	}
+	hostPortNumber, err := strconv.Atoi(hostPort)
+	if err != nil || hostPortNumber <= 0 || hostPortNumber > 65535 {
+		return zeroCandidate(), false
+	}
 
 	name := ctr.Name
 	if name == "" {
@@ -80,7 +85,7 @@ func CandidateFromContainer(ctr types.ContainerInfo) (Candidate, bool) {
 	return Candidate{
 		ContainerID: ctr.ID,
 		Name:        name,
-		BaseURL:     "http://127.0.0.1:" + hostPort,
+		HostPort:    hostPortNumber,
 		Source:      "container",
 		Description: "container " + name,
 	}, true
@@ -90,7 +95,7 @@ func zeroCandidate() Candidate {
 	return Candidate{
 		ContainerID: "",
 		Name:        "",
-		BaseURL:     "",
+		HostPort:    0,
 		Description: "",
 		Source:      "",
 	}

@@ -125,15 +125,7 @@ func NewDoctorFallback(flags Flags, version string) (*Config, error) {
 		return nil, fmt.Errorf("load embedded defaults: %w", err)
 	}
 
-	images := defaults.Images
-	if images.Utility.Busybox.Image == "" {
-		images.Utility.Busybox = ImageSpec{
-			Image: "busybox",
-			Tag:   "stable",
-		}
-	}
-
-	return newResolvedConfig(flags, version, home, socketDir, images, false)
+	return newResolvedConfig(flags, version, home, socketDir, defaults.Images, false)
 }
 
 func newResolvedConfig(
@@ -225,9 +217,24 @@ func (c *Config) AppManagerPIDPath() string {
 	return filepath.Join(c.Home, "app-manager.pid")
 }
 
-// AppManagerLogPath returns the path to the app-manager log file.
-func (c *Config) AppManagerLogPath() string {
-	return filepath.Join(c.LogDir, "app-manager.log")
+// AppManagerLockPath returns the path to the app-manager lifecycle lock file.
+func (c *Config) AppManagerLockPath() string {
+	return filepath.Join(c.SocketDir, "app-manager.lock")
+}
+
+// AppManagerLogDir returns the directory containing app-manager log files.
+func (c *Config) AppManagerLogDir() string {
+	return filepath.Join(c.LogDir, "app-manager")
+}
+
+// AppLogsDir returns the directory containing app log directories.
+func (c *Config) AppLogsDir() string {
+	return filepath.Join(c.LogDir, "apps")
+}
+
+// AppLogDir returns the directory containing logs for one app.
+func (c *Config) AppLogDir(appID string) string {
+	return filepath.Join(c.AppLogsDir(), appID)
 }
 
 // AppManagerBinaryPath returns the path to the app-manager binary.
@@ -311,16 +318,10 @@ type MonitoringImages struct {
 	Grafana       ImageSpec `yaml:"grafana"`
 }
 
-// UtilityImages holds image configuration for utility containers.
-type UtilityImages struct {
-	Busybox ImageSpec `yaml:"busybox"`
-}
-
 // ImagesConfig holds all image configuration grouped by purpose.
 type ImagesConfig struct {
 	Core       CoreImages       `yaml:"core"`
 	Monitoring MonitoringImages `yaml:"monitoring"`
-	Utility    UtilityImages    `yaml:"utility"`
 }
 
 // PersistedConfig is the root structure for the optional user override file.
@@ -419,9 +420,6 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 		defaults.Images.Monitoring.Grafana,
 		user.Images.Monitoring.Grafana,
 	)
-
-	// Utility images
-	result.Images.Utility.Busybox = mergeImageSpec(defaults.Images.Utility.Busybox, user.Images.Utility.Busybox)
 
 	return result
 }

@@ -251,7 +251,8 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
     /// <summary>
     /// When can Altinn remove the correspondence from its database?
     /// </summary>
-    public required DateTimeOffset? AllowSystemDeleteAfter { get; init; }
+    [Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
+    public DateTimeOffset? AllowSystemDeleteAfter { get; init; }
 
     /// <summary>
     /// When must the recipient respond by?
@@ -299,6 +300,11 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
     public bool? IsConfirmationNeeded { get; init; }
 
     /// <summary>
+    /// Specifies whether the correspondence is confidential.
+    /// </summary>
+    public bool? IsConfidential { get; init; }
+
+    /// <summary>
     /// Existing attachments that should be added to the correspondence.
     /// </summary>
     public IReadOnlyList<Guid>? ExistingAttachments { get; init; }
@@ -314,12 +320,12 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
         AddRequired(content, ResourceId, "Correspondence.ResourceId");
         AddRequired(content, Sender.ToUrnFormattedString(), "Correspondence.Sender");
         AddRequired(content, SendersReference, "Correspondence.SendersReference");
-        AddIfNotNull(content, AllowSystemDeleteAfter, "Correspondence.AllowSystemDeleteAfter");
         AddIfNotNull(content, MessageSender, "Correspondence.MessageSender");
         AddIfNotNull(content, RequestedPublishTime, "Correspondence.RequestedPublishTime");
         AddIfNotNull(content, DueDateTime, "Correspondence.DueDateTime");
         AddIfNotNull(content, IgnoreReservation?.ToString(), "Correspondence.IgnoreReservation");
         AddIfNotNull(content, IsConfirmationNeeded?.ToString(), "Correspondence.IsConfirmationNeeded");
+        AddIfNotNull(content, IsConfidential?.ToString(), "Correspondence.IsConfidential");
         AddDictionaryItems(content, PropertyList, x => x, key => $"Correspondence.PropertyList.{key}");
         AddListItems(content, ExistingAttachments, x => x.ToString(), i => $"Correspondence.ExistingAttachments[{i}]");
         AddListItems(content, Recipients, x => x.ToUrnFormattedString(), i => $"Recipients[{i}]");
@@ -351,18 +357,6 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
         if (IsConfirmationNeeded is true && DueDateTime is null)
             ValidationError($"When {nameof(IsConfirmationNeeded)} is set, {nameof(DueDateTime)} is also required");
 
-        DateTimeOffset? normalisedAllowSystemDeleteAfter = AllowSystemDeleteAfter is not null
-            ? NormaliseDateTime(AllowSystemDeleteAfter.Value)
-            : null;
-
-        if (normalisedAllowSystemDeleteAfter is not null)
-        {
-            if (normalisedAllowSystemDeleteAfter.Value < DateTimeOffset.UtcNow)
-                ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be a time in the past");
-            if (normalisedAllowSystemDeleteAfter.Value < RequestedPublishTime)
-                ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be prior to {nameof(RequestedPublishTime)}");
-        }
-
         if (DueDateTime is not null)
         {
             var normalisedDueDate = NormaliseDateTime(DueDateTime.Value);
@@ -370,11 +364,6 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
                 ValidationError($"{nameof(DueDateTime)} cannot be a time in the past");
             if (normalisedDueDate < RequestedPublishTime)
                 ValidationError($"{nameof(DueDateTime)} cannot be prior to {nameof(RequestedPublishTime)}");
-            if (
-                normalisedAllowSystemDeleteAfter is not null
-                && normalisedAllowSystemDeleteAfter.Value < normalisedDueDate
-            )
-                ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be prior to {nameof(DueDateTime)}");
         }
     }
 

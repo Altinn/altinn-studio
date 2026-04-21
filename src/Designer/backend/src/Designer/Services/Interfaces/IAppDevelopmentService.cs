@@ -102,7 +102,7 @@ public interface IAppDevelopmentService
     /// Gets an array of names of all layouts in all layoutSets (if app uses sets)
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<string[]> GetLayoutNames(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken = default
@@ -140,7 +140,7 @@ public interface IAppDevelopmentService
     /// Gets an array of all layoutsets for layout-sets.json. If no sets returns null.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<LayoutSets> GetLayoutSets(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken = default
@@ -150,7 +150,7 @@ public interface IAppDevelopmentService
     /// Extended version of layout sets with the intention of adding information not included in the raw layout-sets.json file.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<LayoutSetsModel> GetLayoutSetsExtended(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken = default
@@ -161,7 +161,7 @@ public interface IAppDevelopmentService
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="layoutSetId">The id of the layout set to get config for.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<LayoutSetConfig> GetLayoutSetConfig(
         AltinnRepoEditingContext altinnRepoEditingContext,
         string layoutSetId,
