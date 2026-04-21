@@ -471,6 +471,70 @@ public class WorkflowUpdateBufferTests
     }
 
     [Fact]
+    public async Task Submit_CtCancelsAfterFlushBegins_ObservesOCE_NotLeaseLost()
+    {
+        // Regression guard for the cancel-then-reject race. Once a batch has been handed to
+        // the repo, the Submit's ct.Register(() => tcs.TrySetCanceled(ct)) can still fire. If
+        // the repo then reports this id as rejected, the buffer's tcs.TrySetException(LLE)
+        // must not replace the already-terminal canceled TCS. Submit order documents this as
+        // "register cancellation before writing" — this test pins the observable contract.
+        var (buffer, repo) = CreateBuffer();
+        var workflow = CreateTestWorkflow();
+
+        var mockInvoked = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        repo.Setup(r =>
+                r.BatchUpdateWorkflowsAndSteps(
+                    It.IsAny<IReadOnlyList<BatchWorkflowStatusUpdate>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                async (IReadOnlyList<BatchWorkflowStatusUpdate> _, CancellationToken _) =>
+                {
+                    mockInvoked.TrySetResult();
+                    await releaseGate.Task;
+                    // Reject the id after we're released — this is when the buffer would try to
+                    // set the LeaseLostException on a tcs that the ct.Register has already canceled.
+                    return new BatchUpdateResult([], [workflow.DatabaseId]);
+                }
+            );
+
+        using var serviceCts = new CancellationTokenSource();
+        await buffer.StartAsync(serviceCts.Token);
+        using var cancelSource = new CancellationTokenSource();
+
+        try
+        {
+            var submitTask = buffer.Submit(workflow, cancelSource.Token);
+
+            // Wait until the batch is inside the repo mock — the pre-flush cancellation filter
+            // has already run at this point, so the only remaining way for the tcs to complete
+            // is via ct.Register (cancel) or via the post-flush rejection loop (LeaseLost).
+            await mockInvoked.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+            // Fire the cancellation while the mock is still blocked.
+            await cancelSource.CancelAsync();
+
+            // Now let the mock return with the id in the rejected set. The buffer will try
+            // TrySetException(LeaseLostException), but the tcs is already terminal-canceled.
+            releaseGate.TrySetResult();
+
+            // ThrowsAnyAsync — the actual exception is TaskCanceledException (an OCE subclass)
+            // raised by `await tcs.Task` after the register callback canceled the TCS.
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => submitTask);
+        }
+        finally
+        {
+            // Unblock the mock if the test bailed before releasing.
+            releaseGate.TrySetResult();
+            await serviceCts.CancelAsync();
+            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await buffer.StopAsync(stopCts.Token);
+        }
+    }
+
+    [Fact]
     public async Task Submit_MixedBatch_FaultsOnlyRejectedCallers()
     {
         var (buffer, repo) = CreateBuffer();
