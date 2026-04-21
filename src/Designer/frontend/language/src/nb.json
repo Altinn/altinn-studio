@@ -315,7 +315,7 @@
   "app_settings.about_tab_keywords_description": "Skill hvert nøkkelord med komma \",\".",
   "app_settings.about_tab_keywords_label": "Oppgi søkeord som gjør det enklere å finne appen når sluttbruker skal gi fullmakter",
   "app_settings.about_tab_language_translation_header": "Oversettelse av {{field}}",
-  "app_settings.about_tab_name_description": "Velg et navn som sluttbrukerne lett forstår.",
+  "app_settings.about_tab_name_description": "Velg et navn som sluttbrukerne lett forstår. Det må være lett å kjenne igjen og må beskrive hva tjenesten handler om. Pass på å skille tjenester som har like eller nesten like navn, slik at det blir lettere for sluttbrukerne å forstå forskjellen på dem.",
   "app_settings.about_tab_name_error": "Du må fylle ut App-navn. Du kan endre navnet helt frem til du skal publisere appen.",
   "app_settings.about_tab_name_label": "Navn på appen",
   "app_settings.about_tab_repo_description": "Dette er en unik ID for appen både i URL-er og i API-er.",
