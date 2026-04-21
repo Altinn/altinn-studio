@@ -23,40 +23,6 @@
   justify-content: flex-start;
 }
 
-.avatar {
-  flex-shrink: 0;
-  width: var(--ds-size-12);
-  height: var(--ds-size-12);
-  color: var(--ds-color-text-subtle);
-}
-
-.avatarUser {
-  color: var(--ds-color-accent);
-}
-
-.avatarAssistant {
-  color: var(--ds-color-neutral);
-}
-
-.assistantAvatarWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--ds-size-12);
-  height: var(--ds-size-12);
-  padding: var(--ds-size-1);
-  background-color: var(--ds-color-surface-default);
-  border-radius: 50%;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.assistantAvatarImage {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
 .messageWrapper {
   display: flex;
   flex-direction: column;

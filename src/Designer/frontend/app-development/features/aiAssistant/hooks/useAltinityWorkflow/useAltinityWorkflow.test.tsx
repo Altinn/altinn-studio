@@ -52,7 +52,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(startWorkflow).not.toHaveBeenCalled();
-    expect(threads.addMessageToThread).not.toHaveBeenCalled();
+    expect(threads.persistMessage).not.toHaveBeenCalled();
   });
 
   it('starts workflow with backend session id', async () => {
@@ -87,7 +87,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.setCurrentSession).toHaveBeenCalledWith('backend-session');
-    expect(threads.addMessageToThread).toHaveBeenCalledWith(
+    expect(threads.persistMessage).toHaveBeenCalledWith(
       'backend-session',
       expect.objectContaining({ author: MessageAuthor.User, content: 'Hello' }),
     );
@@ -112,13 +112,8 @@ const createThreadState = (): AltinityThreadState => ({
   selectThread: jest.fn(),
   createNewThread: jest.fn(),
   deleteThread: jest.fn(),
-  addMessageToThread: jest.fn(),
-  removeLoadingMessage: jest.fn(),
-  replaceLoadingWithMessage: jest.fn(),
   removeLastUserMessage: jest.fn(),
-  removeCancelledMessages: jest.fn(),
-  upsertAssistantMessage: jest.fn(),
-  updateWorkflowStatusMessage: jest.fn(),
+  persistMessage: jest.fn(),
 });
 
 const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {
