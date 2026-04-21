@@ -26,6 +26,7 @@ import {
   refreshJwtTokenUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
+import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
@@ -35,10 +36,10 @@ import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
-import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
+import type { IActionType, IData, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
-  httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
+  httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
 
 export const doAttachmentUpload = async (
   instanceId: string,

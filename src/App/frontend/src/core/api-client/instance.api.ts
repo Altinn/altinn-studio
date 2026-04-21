@@ -2,7 +2,7 @@ import { axiosInstance } from 'src/core/axiosInstance';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance, IProcess } from 'src/types/shared';
 
-interface IInstanceWithProcess extends IInstance {
+export interface IInstanceWithProcess extends IInstance {
   process: IProcess;
 }
 

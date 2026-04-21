@@ -79,8 +79,11 @@ export const getPdfPreviewUrl = (instanceId: string, language: string) => {
   return `${appPath}/instances/${instanceId}/pdf/preview${queryString}`;
 };
 
-export const getProcessNextUrl = (instanceId: string, language?: string) => {
-  const queryString = getQueryStringFromObject({ language });
+export const getProcessNextUrl = (instanceId: string, language?: string, returnInstance?: boolean) => {
+  const queryString = getQueryStringFromObject({
+    language,
+    returnInstance: returnInstance ? 'true' : undefined,
+  });
   return `${appPath}/instances/${instanceId}/process/next${queryString}`;
 };
 

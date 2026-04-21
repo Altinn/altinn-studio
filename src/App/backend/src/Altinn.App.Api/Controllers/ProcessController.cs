@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net;
+using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
@@ -7,6 +8,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
@@ -37,6 +39,8 @@ public class ProcessController : ControllerBase
     private readonly IValidationService _validationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly ProcessStateEnricher _processStateEnricher;
+    private readonly IRegisterClient _registerClient;
+    private readonly IDataElementAccessChecker _dataElementAccessChecker;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -62,6 +66,8 @@ public class ProcessController : ControllerBase
         _validationService = validationService;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _processStateEnricher = processStateEnricher;
+        _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
+        _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
     }
 
     /// <summary>
@@ -259,7 +265,7 @@ public class ProcessController : ControllerBase
     /// <summary>
     /// Change the instance's process state to next process element in accordance with process definition.
     /// </summary>
-    /// <returns>new process state</returns>
+    /// <returns>new process state, or the full enriched instance when <paramref name="returnInstance"/> is true</returns>
     /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
@@ -267,12 +273,14 @@ public class ProcessController : ControllerBase
     /// <param name="ct">Cancellation token, populated by the framework</param>
     /// <param name="elementId">obsolete: alias for action</param>
     /// <param name="language">Signal the language to use for pdf generation, error messages...</param>
+    /// <param name="returnInstance">When true, the response body is <see cref="EnrichedInstanceResponse"/> reflecting the post-transition instance state. Defaults to false for backward compatibility.</param>
     /// <param name="processNext">The body of the request containing possible actions to perform before advancing the process</param>
     [HttpPut("next")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<AppProcessState>> NextElement(
+    public async Task<ActionResult> NextElement(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
@@ -280,6 +288,7 @@ public class ProcessController : ControllerBase
         CancellationToken ct,
         [FromQuery] string? elementId = null,
         [FromQuery] string? language = null,
+        [FromQuery] bool returnInstance = false,
         [FromBody] ProcessNext? processNext = null
     )
     {
@@ -308,6 +317,37 @@ public class ProcessController : ControllerBase
             if (!result.Success)
             {
                 return GetResultForError(result);
+            }
+
+            if (returnInstance)
+            {
+                // Reload the instance so data elements, dataValues, presentationTexts etc.
+                // reflect any mutations the process engine made (e.g. generated PDF, locked elements).
+                instance = await _instanceClient.GetInstance(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    authenticationMethod: null,
+                    ct
+                );
+                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+                var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(instanceOwnerPartyId, ct);
+                var processStateTask = _processStateEnricher.Enrich(
+                    instance,
+                    result.ProcessStateChange.NewProcessState,
+                    User
+                );
+                await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
+
+                var dto = EnrichedInstanceResponse.From(
+                    await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
+                    await instanceOwnerPartyTask,
+                    await processStateTask
+                );
+
+                return Ok(dto);
             }
 
             AppProcessState appProcessState = await _processStateEnricher.Enrich(
@@ -497,7 +537,7 @@ public class ProcessController : ControllerBase
         }
     }
 
-    private ActionResult<AppProcessState> GetResultForError(ProcessChangeResult result)
+    private ActionResult GetResultForError(ProcessChangeResult result)
     {
         switch (result.ErrorType)
         {

@@ -28,7 +28,13 @@ export function Feedback() {
     // This avoids updating the shared query cache, which would cause ProcessWrapper
     // to briefly see new process data while the URL still points to the feedback task,
     // resulting in a flash of the NavigationError.
-    const instance = await instanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
+    let instance: Awaited<ReturnType<typeof instanceApi.getInstance>>;
+    try {
+      instance = await instanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
+    } catch (error) {
+      window.logError('Feedback poll failed:\n', error);
+      return;
+    }
     const process = instance.process;
 
     let navigateTo: undefined | string;
