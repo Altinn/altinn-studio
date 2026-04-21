@@ -14,6 +14,11 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
 {
     private readonly ConcurrentDictionary<Guid, (CancellationTokenSource Cts, Workflow Workflow)> _workflows = new();
 
+    // Workflows whose CTS was cancelled by TryAbandonLostLease specifically (not user-cancel
+    // or shutdown). Used by handlers to translate a race-induced OperationCanceledException
+    // into the lease-lost path so metrics and activity tags stay accurate.
+    private readonly ConcurrentDictionary<Guid, byte> _abandonedLeases = new();
+
     public bool IsEmpty => _workflows.IsEmpty;
 
     public bool TryAdd(Guid workflowId, CancellationTokenSource cts, Workflow workflow) =>
@@ -21,6 +26,8 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
 
     public bool TryRemove(Guid workflowId, out CancellationTokenSource? cts)
     {
+        _abandonedLeases.TryRemove(workflowId, out _);
+
         if (_workflows.TryRemove(workflowId, out var entry))
         {
             cts = entry.Cts;
@@ -83,6 +90,10 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
             if (!_workflows.TryGetValue(id, out var entry))
                 continue;
 
+            // Mark before cancelling so WasLeaseAbandoned is observable the moment
+            // the CT registration fires on the awaiting Submit.
+            _abandonedLeases.TryAdd(id, 0);
+
             try
             {
                 entry.Cts.Cancel();
@@ -93,6 +104,14 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
             }
         }
     }
+
+    /// <summary>
+    /// Returns <c>true</c> if the workflow's in-flight processing was abandoned by
+    /// <see cref="TryAbandonLostLease"/>. Used by handlers to distinguish a race-induced
+    /// <see cref="OperationCanceledException"/> (lease reclaimed by another host) from
+    /// user-cancel or shutdown, so it can route the former to the lease-lost branch.
+    /// </summary>
+    public bool WasLeaseAbandoned(Guid workflowId) => _abandonedLeases.ContainsKey(workflowId);
 
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
 

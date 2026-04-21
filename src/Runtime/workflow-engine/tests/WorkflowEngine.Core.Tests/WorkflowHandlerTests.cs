@@ -56,6 +56,7 @@ public class WorkflowHandlerTests
         return new WorkflowHandler(
             executor,
             buffer.Object,
+            new InFlightTracker(FixedTime),
             Options.Create(settings),
             FixedTime,
             NullLogger<WorkflowHandler>.Instance
@@ -155,6 +156,7 @@ public class WorkflowHandlerTests
         var handler = new WorkflowHandler(
             executor.Object,
             buffer.Object,
+            new InFlightTracker(FixedTime),
             settings,
             FixedTime,
             NullLogger<WorkflowHandler>.Instance
@@ -164,6 +166,144 @@ public class WorkflowHandlerTests
         var handleTask = handler.Handle(workflow, CancellationToken.None);
         await handleTask;
         Assert.True(handleTask.IsCompletedSuccessfully);
+    }
+
+    [Fact]
+    public async Task Handle_WhenLeaseAbandonedAndFinalSubmitThrowsOCE_ExitsCleanlyWithoutThrowing()
+    {
+        // Race variant of the LeaseLost path: the heartbeat sweep's TryAbandonLostLease fires
+        // while the final Submit is awaiting flush. The CT registration in Submit cancels the
+        // TCS before the buffer can reject it with LeaseLostException, so the handler observes
+        // an OperationCanceledException instead. Handle must still route to the lease-lost
+        // branch (via the tracker filter) and return cleanly — not rethrow the OCE.
+        var executor = MockExecutor(ExecutionResult.Success());
+        var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
+
+        var tracker = new InFlightTracker(FixedTime);
+        using var workflowCts = new CancellationTokenSource();
+        tracker.TryAdd(workflow.DatabaseId, workflowCts, workflow);
+
+        var buffer = new Mock<IWorkflowUpdateBuffer>();
+        buffer
+            .Setup(b =>
+                b.Submit(
+                    It.IsAny<Workflow>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Activity?>()
+                )
+            )
+            .Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
+                (w, ct, _, _, _) =>
+                {
+                    // Simulate the race: the heartbeat sweep triggers lease abandonment *during*
+                    // the final Submit, and the CT cancellation wins over the buffer's reject.
+                    if (w.Status == PersistentItemStatus.Completed)
+                    {
+                        tracker.TryAbandonLostLease([w.DatabaseId]);
+                        return Task.FromException(new OperationCanceledException(ct));
+                    }
+                    return Task.CompletedTask;
+                }
+            );
+
+        var settings = Options.Create(
+            new EngineSettings
+            {
+                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                DefaultStepRetryStrategy = RetryStrategy.None(),
+                DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
+                DatabaseRetryStrategy = RetryStrategy.None(),
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
+                Concurrency = new ConcurrencySettings
+                {
+                    MaxWorkers = 5,
+                    MaxDbOperations = 5,
+                    MaxHttpCalls = 5,
+                },
+            }
+        );
+        var handler = new WorkflowHandler(
+            executor.Object,
+            buffer.Object,
+            tracker,
+            settings,
+            FixedTime,
+            NullLogger<WorkflowHandler>.Instance
+        );
+
+        var handleTask = handler.Handle(workflow, workflowCts.Token);
+        await handleTask;
+        Assert.True(handleTask.IsCompletedSuccessfully);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOCEAndLeaseNotAbandoned_Rethrows()
+    {
+        // Counterpart to the above: a plain OCE (user-cancel or shutdown) without lease
+        // abandonment must still propagate — the new filter only catches lease-abandoned ones.
+        var executor = MockExecutor(ExecutionResult.Success());
+        var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
+
+        using var cts = new CancellationTokenSource();
+
+        var buffer = new Mock<IWorkflowUpdateBuffer>();
+        buffer
+            .Setup(b =>
+                b.Submit(
+                    It.IsAny<Workflow>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Activity?>()
+                )
+            )
+            .Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
+                (w, ct, _, _, _) =>
+                    w.Status == PersistentItemStatus.Completed
+                        ? Task.FromException(new OperationCanceledException(ct))
+                        : Task.CompletedTask
+            );
+
+        var settings = Options.Create(
+            new EngineSettings
+            {
+                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                DefaultStepRetryStrategy = RetryStrategy.None(),
+                DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
+                DatabaseRetryStrategy = RetryStrategy.None(),
+                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
+                Concurrency = new ConcurrencySettings
+                {
+                    MaxWorkers = 5,
+                    MaxDbOperations = 5,
+                    MaxHttpCalls = 5,
+                },
+            }
+        );
+        var handler = new WorkflowHandler(
+            executor.Object,
+            buffer.Object,
+            new InFlightTracker(FixedTime),
+            settings,
+            FixedTime,
+            NullLogger<WorkflowHandler>.Instance
+        );
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => handler.Handle(workflow, cts.Token));
     }
 
     [Fact]

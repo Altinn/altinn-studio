@@ -35,6 +35,7 @@ public class CancellationTests
         return new WorkflowHandler(
             executor,
             buffer.Object,
+            new InFlightTracker(TimeProvider.System),
             Options.Create(settings),
             TimeProvider.System,
             NullLogger<WorkflowHandler>.Instance
@@ -330,5 +331,78 @@ public class CancellationTests
         var result = tracker.TryCancel(id);
         Assert.True(result);
         Assert.NotNull(workflow.CancellationRequestedAt);
+    }
+
+    // ─── Lease-abandonment tracking ──────────────────────────────────────
+
+    [Fact]
+    public void TryAbandonLostLease_SetsWasLeaseAbandonedAndCancelsCts()
+    {
+        var tracker = new InFlightTracker(TimeProvider.System);
+        var workflow = CreateWorkflow(CreateStep());
+        var id = Guid.NewGuid();
+        using var cts = new CancellationTokenSource();
+
+        tracker.TryAdd(id, cts, workflow);
+
+        Assert.False(tracker.WasLeaseAbandoned(id));
+
+        tracker.TryAbandonLostLease([id]);
+
+        Assert.True(tracker.WasLeaseAbandoned(id));
+        Assert.True(cts.IsCancellationRequested);
+    }
+
+    [Fact]
+    public void TryAbandonLostLease_DoesNotStampCancellationRequestedAt()
+    {
+        // Distinguishes lease-abandonment from user-cancel: the workflow itself isn't being
+        // canceled, only this host's attempt to process it.
+        var tracker = new InFlightTracker(TimeProvider.System);
+        var workflow = CreateWorkflow(CreateStep());
+        var id = Guid.NewGuid();
+        using var cts = new CancellationTokenSource();
+
+        tracker.TryAdd(id, cts, workflow);
+        tracker.TryAbandonLostLease([id]);
+
+        Assert.Null(workflow.CancellationRequestedAt);
+    }
+
+    [Fact]
+    public void WasLeaseAbandoned_NotAbandoned_ReturnsFalse()
+    {
+        var tracker = new InFlightTracker(TimeProvider.System);
+        var workflow = CreateWorkflow(CreateStep());
+        var id = Guid.NewGuid();
+        using var cts = new CancellationTokenSource();
+
+        tracker.TryAdd(id, cts, workflow);
+
+        Assert.False(tracker.WasLeaseAbandoned(id));
+    }
+
+    [Fact]
+    public void WasLeaseAbandoned_WorkflowNotInTracker_ReturnsFalse()
+    {
+        var tracker = new InFlightTracker(TimeProvider.System);
+        Assert.False(tracker.WasLeaseAbandoned(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public void TryRemove_ClearsWasLeaseAbandoned()
+    {
+        var tracker = new InFlightTracker(TimeProvider.System);
+        var workflow = CreateWorkflow(CreateStep());
+        var id = Guid.NewGuid();
+        using var cts = new CancellationTokenSource();
+
+        tracker.TryAdd(id, cts, workflow);
+        tracker.TryAbandonLostLease([id]);
+        Assert.True(tracker.WasLeaseAbandoned(id));
+
+        tracker.TryRemove(id, out _);
+
+        Assert.False(tracker.WasLeaseAbandoned(id));
     }
 }

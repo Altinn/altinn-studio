@@ -23,6 +23,7 @@ namespace WorkflowEngine.Core;
 internal sealed class WorkflowHandler(
     IWorkflowExecutor executor,
     IWorkflowUpdateBuffer statusWriteBuffer,
+    InFlightTracker tracker,
     IOptions<EngineSettings> settings,
     TimeProvider timeProvider,
     ILogger<WorkflowHandler> logger
@@ -45,11 +46,24 @@ internal sealed class WorkflowHandler(
             // Another host reclaimed this workflow while we were processing it. Exit cleanly —
             // the new owner is already handling it, and our in-memory state mutations never
             // landed in the database. Do not retry, do not re-enqueue.
-            logger.WorkflowLeaseLost(workflow);
-            Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistorgramTags());
-            workflow.EngineActivity?.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
-            StopActivity(workflow);
+            HandleLeaseLost(workflow);
         }
+        catch (OperationCanceledException) when (tracker.WasLeaseAbandoned(workflow.DatabaseId))
+        {
+            // Race variant of the above: the heartbeat sweep's TryAbandonLostLease fired while
+            // the final Submit was awaiting flush, so the CT registration cancelled the TCS
+            // before the buffer could reject it with LeaseLostException. Route to the same
+            // lease-lost branch so metrics and activity tags stay accurate.
+            HandleLeaseLost(workflow);
+        }
+    }
+
+    private void HandleLeaseLost(Workflow workflow)
+    {
+        logger.WorkflowLeaseLost(workflow);
+        Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistorgramTags());
+        workflow.EngineActivity?.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
+        StopActivity(workflow);
     }
 
     private async Task HandleInner(Workflow workflow, CancellationToken ct)
