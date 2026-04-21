@@ -84,6 +84,6 @@ function useExpressionValidationForBinding(
   }, [dataElementId, dataSources, reference.field, validationDefs]);
 }
 
-export function removeIndices(field: string) {
+function removeIndices(field: string) {
   return field.replace(/\[\d+]/g, '');
 }

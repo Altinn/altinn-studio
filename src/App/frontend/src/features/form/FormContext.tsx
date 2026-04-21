@@ -76,15 +76,12 @@ export interface FormStoreState {
 
 export type FormStoreApi = StoreApi<FormStoreState>;
 
-export function getTopMostFormStore(store: FormStoreApi): FormStoreApi {
+export function getRootFormStore(store: FormStoreApi): FormStoreApi {
   let current = store;
-  while (true) {
-    const parent = current.getState().parent;
-    if (!parent) {
-      return current;
-    }
-    current = parent;
+  while (current.getState().parent) {
+    current = current.getState().parent!;
   }
+  return current;
 }
 
 export type FormStoreSet = (

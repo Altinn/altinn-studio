@@ -11,7 +11,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { UpdateDataElementIdsForCypress } from 'src/features/form/DataElementIdsForCypress';
-import { FormProviderInternal, FormStore, getTopMostFormStore } from 'src/features/form/FormContext';
+import { FormProviderInternal, FormStore, getRootFormStore } from 'src/features/form/FormContext';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
@@ -88,7 +88,7 @@ export function FormProvider({
     if (parent && bootstrap && props.dataElementIdOverride !== undefined) {
       for (const model of Object.values(bootstrap.dataModels)) {
         if (model.dataElementId === props.dataElementIdOverride && model.initialValidationIssues) {
-          getTopMostFormStore(parent)
+          getRootFormStore(parent)
             .getState()
             .validation.setOtherDataElementBackendValidations(model.dataElementId, model.initialValidationIssues);
         }
