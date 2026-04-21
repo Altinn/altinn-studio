@@ -5,13 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"os/exec"
 	"sort"
 
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/processutil"
 	"altinn.studio/studioctl/internal/auth"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 )
@@ -32,7 +32,6 @@ const (
 
 	// On-disk state file names used by CLI components.
 	doctorConfigFileName       = "config.yaml"
-	doctorNetworkCacheFileName = "network-metadata.yaml"
 	doctorResourcesPlatformDir = "AltinnPlatformLocal"
 
 	// Disk check levels.
@@ -40,8 +39,6 @@ const (
 	diskLevelInfo  = "info"
 	diskLevelWarn  = "warn"
 	diskLevelError = "error"
-
-	networkModeChecks = "checks"
 )
 
 var (
@@ -52,15 +49,6 @@ var (
 	errWindowsVersionUnk   = errors.New("windows version unknown")
 )
 
-type diskLevelRank uint8
-
-const (
-	diskRankInfo diskLevelRank = iota
-	diskRankOK
-	diskRankWarn
-	diskRankError
-)
-
 // Service contains doctor application logic.
 type Service struct {
 	cfg             *config.Config
@@ -68,19 +56,17 @@ type Service struct {
 	lookPath        func(file string) (string, error)
 	versionOutput   func(ctx context.Context, name string) ([]byte, error)
 	containerDetect func(ctx context.Context) (container.ContainerClient, error)
-	lookupIP        func(ctx context.Context, host string) ([]net.IP, error)
-	dialContext     func(ctx context.Context, network, address string) (net.Conn, error)
 }
 
 // Report is the doctor application-layer output model.
 type Report struct {
-	CLI           *CLI           `json:"cli"`
-	Prerequisites *Prerequisites `json:"prerequisites"`
-	Network       *Network       `json:"network"`
-	Auth          *Auth          `json:"auth"`
-	App           *App           `json:"app"`
-	Disk          *Disk          `json:"disk"`
-	System        *System        `json:"system"`
+	CLI           *CLI                           `json:"cli"`
+	Prerequisites *Prerequisites                 `json:"prerequisites"`
+	Auth          *Auth                          `json:"auth"`
+	App           *App                           `json:"app"`
+	Disk          *Disk                          `json:"disk"`
+	LocaltestEnv  *envlocaltest.DiagnosticReport `json:"localtestEnv"`
+	System        *System                        `json:"system"`
 }
 
 // CLI contains CLI version metadata for doctor output.
@@ -122,30 +108,6 @@ type Prerequisites struct {
 type ContainerTool struct {
 	Name    string `json:"name"`
 	Version string `json:"version,omitempty"`
-}
-
-// Network contains network diagnostics and cache/probe data.
-type Network struct {
-	PingOK            *bool           `json:"pingOk,omitempty"`
-	CacheExists       *bool           `json:"cacheExists,omitempty"`
-	CacheFresh        *bool           `json:"cacheFresh,omitempty"`
-	Mode              string          `json:"mode"`
-	HostGateway       string          `json:"hostGateway,omitempty"`
-	HostDNS           string          `json:"hostDns,omitempty"`
-	ContainerDNS      string          `json:"containerDns,omitempty"`
-	LocalhostError    string          `json:"localhostError,omitempty"`
-	CacheAge          string          `json:"cacheAge,omitempty"`
-	Error             string          `json:"error,omitempty"`
-	LocalhostAddrs    []string        `json:"localhostAddrs,omitempty"`
-	LoopbackEndpoints []LoopbackProbe `json:"loopbackEndpoints,omitempty"`
-}
-
-// LoopbackProbe describes reachability for one loopback endpoint.
-type LoopbackProbe struct {
-	Endpoint  string `json:"endpoint"`
-	Family    string `json:"family"`
-	Error     string `json:"error,omitempty"`
-	Reachable bool   `json:"reachable"`
 }
 
 // Auth contains authentication status summary for configured environments.
@@ -195,26 +157,19 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 		lookPath:        exec.LookPath,
 		versionOutput:   commandVersionOutput,
 		containerDetect: container.Detect,
-		lookupIP: func(ctx context.Context, host string) ([]net.IP, error) {
-			return net.DefaultResolver.LookupIP(ctx, "ip", host)
-		},
-		dialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
-			var dialer net.Dialer
-			return dialer.DialContext(ctx, network, address)
-		},
 	}
 }
 
 // BuildReport builds a doctor report from system state.
-func (s *Service) BuildReport(ctx context.Context, runChecks bool) Report {
+func (s *Service) BuildReport(ctx context.Context) Report {
 	return Report{
 		CLI:           &CLI{Version: s.cfg.Version},
 		System:        buildSystem(ctx),
 		Prerequisites: s.collectPrerequisites(ctx),
-		Network:       s.buildNetwork(ctx, runChecks),
 		Auth:          s.buildAuth(),
 		App:           s.buildApp(ctx),
 		Disk:          s.buildDisk(),
+		LocaltestEnv:  s.buildLocaltestEnv(ctx),
 	}
 }
 
@@ -235,7 +190,10 @@ func (s *Service) HasIssues(report Report) bool {
 	if report.App.Error != "" {
 		return true
 	}
-	return report.Disk != nil && report.Disk.HasIssues
+	if report.Disk != nil && report.Disk.HasIssues {
+		return true
+	}
+	return report.LocaltestEnv == nil || report.LocaltestEnv.HasIssues
 }
 
 func (s *Service) lookupPath(file string) (string, error) {

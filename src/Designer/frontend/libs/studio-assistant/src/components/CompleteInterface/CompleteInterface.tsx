@@ -4,12 +4,12 @@ import { StudioResizableLayout } from '@studio/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
-import type { ChatThread } from '../../types/ChatThread';
 import { ThreadColumn } from '../ThreadColumn/ThreadColumn';
 import { ThreadColumnCollapsed } from '../ThreadColumnCollapsed/ThreadColumnCollapsed';
 import { ChatColumn } from '../ChatColumn/ChatColumn';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantProps } from '../../Assistant/Assistant';
+import { createNewChatThread } from '../../utils/threadUtils';
 
 export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterface'>;
 
@@ -18,7 +18,7 @@ export type CompleteInterfaceProps = Omit<AssistantProps, 'enableCompactInterfac
  */
 export function CompleteInterface({
   texts,
-  chatThreads,
+  chatThreads = [],
   onSubmitMessage,
   onCancelWorkflow,
   cancelledMessageContent,
@@ -36,18 +36,12 @@ export function CompleteInterface({
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
 
-  // Get the current thread - prefer activeThreadId, then most recently updated thread
-  const currentThread = useMemo(() => {
-    // First try to find the explicitly requested thread
-    if (activeThreadId && chatThreads) {
-      const thread = chatThreads.find((t) => t.id === activeThreadId);
-      if (thread) {
-        return thread;
-      }
-    }
+  const currentThreadWorkflowStatus =
+    workflowStatus?.sessionId === activeThreadId ? workflowStatus : undefined;
 
-    // If no active thread is selected, return empty chat thread for blank state
-    return createEmptyChatThread(texts.newThread);
+  const currentThread = useMemo(() => {
+    const thread = chatThreads.find((t) => t.id === activeThreadId);
+    return thread ?? createNewChatThread(texts.newThread);
   }, [activeThreadId, chatThreads, texts]);
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
@@ -84,7 +78,7 @@ export function CompleteInterface({
           ) : (
             <ThreadColumn
               texts={texts}
-              chatThreads={chatThreads ?? []}
+              chatThreads={chatThreads}
               selectedThreadId={activeThreadId ? currentThread.id : undefined}
               currentSessionId={activeThreadId}
               onSelectThread={onSelectThread}
@@ -102,7 +96,7 @@ export function CompleteInterface({
             onCancelWorkflow={onCancelWorkflow}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
-            workflowIsActive={workflowStatus?.isActive}
+            workflowStatus={currentThreadWorkflowStatus}
             enableCompactInterface={false}
             currentUser={currentUser}
           />
@@ -118,9 +112,3 @@ export function CompleteInterface({
     </div>
   );
 }
-
-const createEmptyChatThread = (title: string): ChatThread => ({
-  id: 'new-chat',
-  title,
-  messages: [],
-});

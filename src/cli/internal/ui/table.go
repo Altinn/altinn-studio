@@ -2,8 +2,6 @@ package ui
 
 import (
 	"strings"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Align controls horizontal cell alignment.
@@ -365,12 +363,12 @@ func renderStyled(text string, style CellStyle) string {
 	case CellStyleInfo:
 		return infoStyle().Render(text)
 	case CellStyleBold:
-		return lipgloss.NewStyle().Bold(true).Render(text)
+		return BoldStyle().Render(text)
 	default:
 		return text
 	}
 }
 
 func displayWidth(text string) int {
-	return lipgloss.Width(text)
+	return DisplayWidth(text)
 }

@@ -125,15 +125,7 @@ func NewDoctorFallback(flags Flags, version string) (*Config, error) {
 		return nil, fmt.Errorf("load embedded defaults: %w", err)
 	}
 
-	images := defaults.Images
-	if images.Utility.Busybox.Image == "" {
-		images.Utility.Busybox = ImageSpec{
-			Image: "busybox",
-			Tag:   "stable",
-		}
-	}
-
-	return newResolvedConfig(flags, version, home, socketDir, images, false)
+	return newResolvedConfig(flags, version, home, socketDir, defaults.Images, false)
 }
 
 func newResolvedConfig(
@@ -326,16 +318,10 @@ type MonitoringImages struct {
 	Grafana       ImageSpec `yaml:"grafana"`
 }
 
-// UtilityImages holds image configuration for utility containers.
-type UtilityImages struct {
-	Busybox ImageSpec `yaml:"busybox"`
-}
-
 // ImagesConfig holds all image configuration grouped by purpose.
 type ImagesConfig struct {
 	Core       CoreImages       `yaml:"core"`
 	Monitoring MonitoringImages `yaml:"monitoring"`
-	Utility    UtilityImages    `yaml:"utility"`
 }
 
 // PersistedConfig is the root structure for the optional user override file.
@@ -434,9 +420,6 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 		defaults.Images.Monitoring.Grafana,
 		user.Images.Monitoring.Grafana,
 	)
-
-	// Utility images
-	result.Images.Utility.Busybox = mergeImageSpec(defaults.Images.Utility.Busybox, user.Images.Utility.Busybox)
 
 	return result
 }

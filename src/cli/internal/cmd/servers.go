@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"altinn.studio/studioctl/internal/appmanager"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	serverspkg "altinn.studio/studioctl/internal/cmd/servers"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -324,7 +324,8 @@ func (c *ServersCommand) startAppManager(ctx context.Context) error {
 	if ensureStarted == nil {
 		ensureStarted = appmanager.EnsureStarted
 	}
-	return ensureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString())
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	return ensureStarted(ctx, c.cfg, topology.IngressPort())
 }
 
 func (c *ServersCommand) stopAppManager(ctx context.Context) (<-chan error, error) {

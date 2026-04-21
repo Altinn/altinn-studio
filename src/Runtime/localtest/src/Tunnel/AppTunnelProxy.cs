@@ -27,6 +27,17 @@ public sealed class AppTunnelProxy
         await _client.Proxy(request, appId, context, cancellationToken);
     }
 
+    public async Task ProxyToTargetAsync(
+        HttpContext context,
+        string target,
+        int targetPort,
+        CancellationToken cancellationToken
+    )
+    {
+        using var request = CreateRequest(context);
+        await _client.ProxyToTarget(request, target, targetPort, context, cancellationToken);
+    }
+
     private static HttpRequestMessage CreateRequest(HttpContext context)
     {
         if (RequestRequiresUpgrade(context.Request))
