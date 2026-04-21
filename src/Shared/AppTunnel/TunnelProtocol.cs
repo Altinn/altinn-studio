@@ -25,7 +25,9 @@ public sealed record RequestStartFrame(
     string Method,
     string PathAndQuery,
     Dictionary<string, string[]> Headers,
-    bool HasBody
+    bool HasBody,
+    string? Target = null,
+    int? TargetPort = null
 );
 
 public sealed record ResponseStartFrame(
@@ -54,6 +56,8 @@ public static class TunnelDefaults
 {
     public const string EndpointPath = "/internal/tunnel/app";
     public const string DiscoveredAppsPath = "/internal/tunnel/apps";
+    public const string FrontendDevServerTarget = "frontend-dev-server";
+    public const int FrontendDevServerPort = 8080;
 
     // 64 KiB keeps websocket messages reasonably sized while still amortizing framing overhead.
     public const int MaxFramePayloadBytes = 64 * 1024;

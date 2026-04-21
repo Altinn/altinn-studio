@@ -15,8 +15,8 @@ import (
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/install"
-	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -40,21 +40,19 @@ const stoppingEnvironmentMessage = "Stopping localtest environment..."
 
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
-	cfg           *config.Config
-	out           *ui.Output
-	client        container.ContainerClient
-	runtimeConfig *runtimeConfigResolver
-	logs          *logStreamer
+	cfg    *config.Config
+	out    *ui.Output
+	client container.ContainerClient
+	logs   *logStreamer
 }
 
 // NewEnv creates a new localtest environment manager.
 func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient) *Env {
 	return &Env{
-		cfg:           cfg,
-		out:           out,
-		client:        client,
-		runtimeConfig: newRuntimeConfigResolver(cfg, client, out.Verbosef),
-		logs:          newLogStreamer(client, out),
+		cfg:    cfg,
+		out:    out,
+		client: client,
+		logs:   newLogStreamer(client, out),
 	}
 }
 
@@ -68,17 +66,14 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg, err := e.runtimeConfig.Build(ctx)
-	if err != nil {
-		return err
-	}
-	e.out.Verbosef("Host gateway IP: %s", runtimeCfg.HostGateway)
+	runtimeCfg := newRuntimeConfig()
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	if ensureErr := e.ensureAppManager(ctx, runtimeCfg); ensureErr != nil {
+	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
 		return ensureErr
 	}
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, opts.Monitoring, opts.PgAdmin)
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
@@ -92,7 +87,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return err
 	}
 
-	localtestURL := FormatLocaltestURL(runtimeCfg.LoadBalancerPort)
+	localtestURL := topology.LocaltestURL()
 
 	if opts.OpenBrowser {
 		e.out.Verbosef("Opening browser to: %s", localtestURL)
@@ -179,11 +174,11 @@ func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) 
 	return &status, nil
 }
 
-func (e *Env) ensureAppManager(ctx context.Context, runtimeCfg RuntimeConfig) error {
+func (e *Env) ensureAppManager(ctx context.Context, topology envtopology.Local) error {
 	if err := appmanager.EnsureStarted(
 		ctx,
 		e.cfg,
-		runtimeCfg.LoadBalancerPort,
+		topology.IngressPort(),
 	); err != nil {
 		return fmt.Errorf("ensure app-manager: %w", err)
 	}
@@ -358,7 +353,6 @@ func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
 		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
 		IncludeMonitoring: true, // include all for cleanup
-		Platform:          e.client.Toolchain().Platform,
 	}
 }
 
@@ -442,6 +436,7 @@ func (e *Env) installResources(ctx context.Context, force bool) error {
 func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeCfg RuntimeConfig,
+	topology envtopology.Local,
 	monitoring bool,
 	pgAdmin bool,
 ) (ResourceBuildOptions, error) {
@@ -462,6 +457,7 @@ func (e *Env) buildResourceOptions(
 	return ResourceBuildOptions{
 		DataDir:           e.cfg.DataDir,
 		RuntimeConfig:     runtimeCfg,
+		Topology:          topology,
 		IncludeMonitoring: monitoring,
 		IncludePgAdmin:    pgAdmin,
 		ImageMode:         imageMode,
@@ -495,12 +491,4 @@ func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string)
 	}
 
 	return DevMode, &devCfg, ""
-}
-
-// FormatLocaltestURL returns the localtest URL, omitting port 80 since browsers default to it.
-func FormatLocaltestURL(port string) string {
-	if port == "80" {
-		return "http://" + networking.LocalDomain
-	}
-	return "http://" + networking.LocalDomain + ":" + port
 }

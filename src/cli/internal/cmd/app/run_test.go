@@ -3,11 +3,17 @@ package app_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 )
+
+func defaultTopology() envtopology.Local {
+	return envtopology.NewLocal("8000")
+}
 
 func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	t.Parallel()
@@ -15,18 +21,19 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	spec, err := appsvc.NewService("").BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   t.TempDir(),
 		InAppRepo: true,
-	}, nil, appsvc.DockerRunOptions{})
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
 	if err != nil {
 		t.Fatalf("BuildDockerRunSpec() error = %v", err)
 	}
 
 	assertEnvContainsAll(t, spec.Config.Env, []string{
-		"AppSettings__OpenIdWellKnownEndpoint=http://localtest:5101/authentication/api/v1/openid/",
+		"AppSettings__OpenIdWellKnownEndpoint=http://local.altinn.cloud:8000/authentication/api/v1/openid/",
 		"GeneralSettings__ExternalAppBaseUrl=http://local.altinn.cloud:8000/{org}/{app}/",
-		"OTEL_EXPORTER_OTLP_ENDPOINT=http://monitoring_otel_collector:4317",
-		"PlatformSettings__ApiStorageEndpoint=http://localtest:5101/storage/api/v1/",
-		"PlatformSettings__ApiPdf2Endpoint=http://localtest-pdf3:5031/pdf",
-		"PlatformSettings__ApiWorkflowEngineEndpoint=http://localtest-workflow-engine:8080/api/v1/",
+		"GeneralSettings__HostName=local.altinn.cloud",
+		"OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.local.altinn.cloud:4317",
+		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
+		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
+		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
 	})
 }
 
@@ -38,7 +45,7 @@ func TestBuildDockerRunSpec_UsesImageTagOverride(t *testing.T) {
 	spec, err := appsvc.NewService("").BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   t.TempDir(),
 		InAppRepo: true,
-	}, nil, appsvc.DockerRunOptions{ImageTag: want})
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{ImageTag: want})
 	if err != nil {
 		t.Fatalf("BuildDockerRunSpec() error = %v", err)
 	}
@@ -53,15 +60,22 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 
 	appPath := t.TempDir()
 	projectPath := writeAppProject(t, appPath)
-	spec, err := appsvc.NewService("").BuildDotnetRunSpec(t.Context(), appPath, nil, nil, appsvc.DotnetRunOptions{})
+	spec, err := appsvc.NewService("").BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
 	if err != nil {
 		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
 	}
 
 	assertEnvContainsAll(t, spec.Env, []string{
 		"Kestrel__EndPoints__Http__Url=http://127.0.0.1:5005",
-		"PlatformSettings__ApiStorageEndpoint=http://127.0.0.1:5101/storage/api/v1/",
-		"PlatformSettings__ApiPdf2Endpoint=http://127.0.0.1:5300/pdf",
+		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
+		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
 	})
 	if spec.ProjectPath != projectPath {
@@ -84,6 +98,38 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 	}
 }
 
+func TestBuildDotnetRunSpec_PreservesCurrentEnv(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppProject(t, appPath)
+	spec, err := appsvc.NewService("").BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		[]string{
+			"ASPNETCORE_ENVIRONMENT=Custom",
+			"GeneralSettings__HostName=custom.altinn.example",
+			"PlatformSettings__ApiStorageEndpoint=http://example.test/storage",
+		},
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	if got := envValue(t, spec.Env, "ASPNETCORE_ENVIRONMENT"); got != "Custom" {
+		t.Fatalf("ASPNETCORE_ENVIRONMENT = %q, want Custom", got)
+	}
+	if got := envValue(t, spec.Env, "GeneralSettings__HostName"); got != "custom.altinn.example" {
+		t.Fatalf("GeneralSettings__HostName = %q, want current env value", got)
+	}
+	if got := envValue(t, spec.Env, "PlatformSettings__ApiStorageEndpoint"); got != "http://example.test/storage" {
+		t.Fatalf("PlatformSettings__ApiStorageEndpoint = %q, want current env value", got)
+	}
+}
+
 func TestBuildDotnetRunSpec_RandomHostPortAsksKestrelToSelectPort(t *testing.T) {
 	t.Parallel()
 
@@ -94,6 +140,7 @@ func TestBuildDotnetRunSpec_RandomHostPortAsksKestrelToSelectPort(t *testing.T) 
 		appPath,
 		[]string{"--seed", "1"},
 		nil,
+		defaultTopology(),
 		appsvc.DotnetRunOptions{RandomHostPort: true},
 	)
 	if err != nil {
@@ -169,6 +216,19 @@ func assertEnvContainsAll(t *testing.T, env, want []string) {
 			t.Fatalf("env does not contain %q\n%v", expected, env)
 		}
 	}
+}
+
+func envValue(t *testing.T, env []string, key string) string {
+	t.Helper()
+
+	prefix := key + "="
+	for _, entry := range env {
+		if value, ok := strings.CutPrefix(entry, prefix); ok {
+			return value
+		}
+	}
+	t.Fatalf("env missing %q\n%v", key, env)
+	return ""
 }
 
 func assertEqualStrings(t *testing.T, name string, got, want []string) {
