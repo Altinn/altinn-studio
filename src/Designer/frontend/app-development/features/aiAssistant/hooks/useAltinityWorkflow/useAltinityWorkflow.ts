@@ -119,27 +119,22 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(assistantMessage, messageTimestamp);
 
-      const currentSession = currentSessionIdRef.current;
+      if (!event.session_id) return;
 
-      if (currentSession) {
-        const finalAssistantMessage: AssistantMessage = {
-          author: MessageAuthor.Assistant,
-          content: messageContent,
-          timestamp: messageTimestamp,
-          filesChanged: assistantMessage.filesChanged || [],
-          sources: assistantMessage.sources || [],
-        };
-        persistMessage(currentSession, finalAssistantMessage);
-      }
+      const finalAssistantMessage: AssistantMessage = {
+        author: MessageAuthor.Assistant,
+        content: messageContent,
+        timestamp: messageTimestamp,
+        filesChanged: assistantMessage.filesChanged || [],
+        sources: assistantMessage.sources || [],
+      };
+      persistMessage(event.session_id, finalAssistantMessage);
 
       if (!shouldSkipBranchOps(assistantMessage)) {
-        const sessionId = event.session_id || currentSession;
-        if (!sessionId) return;
-
-        resetRepoForSession(sessionId);
+        resetRepoForSession(event.session_id);
       }
     },
-    [currentSessionIdRef, resetRepoForSession, markWorkflowCompleted, persistMessage],
+    [resetRepoForSession, markWorkflowCompleted, persistMessage],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -160,8 +155,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         applyStatusMessage(event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
       } else if (event.type === 'error') {
         setWorkflowStatus({ isActive: false });
-        const currentSession = currentSessionIdRef.current;
-        if (!currentSession) return;
+        if (!event.session_id) return;
         if (event.data?.status === 'cancelled') return;
         const errorMessage: AssistantMessage = {
           author: MessageAuthor.Assistant,
@@ -169,10 +163,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           timestamp: new Date(),
           filesChanged: [],
         };
-        persistMessage(currentSession, errorMessage);
+        persistMessage(event.session_id, errorMessage);
       }
     },
-    [applyStatusMessage, currentSessionIdRef, handleAssistantMessage, persistMessage],
+    [applyStatusMessage, handleAssistantMessage, persistMessage],
   );
 
   useEffect(() => {
