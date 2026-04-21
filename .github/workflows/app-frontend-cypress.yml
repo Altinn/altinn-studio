@@ -165,7 +165,7 @@ jobs:
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
         run: |
-          base_command='npx cypress run --record --parallel --group altinn-app-frontend --tag altinn-app-frontend --browser chrome --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}" --spec test/e2e/integration --env environment=docker'
+          base_command='npx cypress run --record --parallel --group altinn-app-frontend --tag altinn-app-frontend --browser chrome --ci-build-id "${{ github.run_id }}-${{ github.run_attempt }}" --spec test/e2e/integration --env environment=localtest'
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
             container_command="npx percy exec --parallel -- ${base_command}"
@@ -267,7 +267,7 @@ jobs:
             -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
             -w "${GITHUB_WORKSPACE}/src/App/frontend" \
             "${CYPRESS_BROWSER_IMAGE}" \
-            bash -lc 'npx cypress run --browser chrome --spec test/e2e/integration --env environment=docker'
+            bash -lc 'npx cypress run --browser chrome --spec test/e2e/integration --env environment=localtest'
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()

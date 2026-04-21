@@ -3,6 +3,7 @@ import type { Interception } from 'cypress/types/net-stubbing';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
+import { getTargetUrl } from 'test/e2e/support/start-app-instance';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
@@ -31,6 +32,7 @@ describe('PDF', () => {
     const traceparentValue = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
     const tracestateValue = 'altinn';
     const domain = new URL(Cypress.config().baseUrl!).hostname;
+    const appUrl = getTargetUrl(appFrontend.apps.frontendTest);
     const cookieOptions: Partial<Cypress.SetCookieOptions> = { domain, sameSite: 'lax' };
 
     cy.goto('message');
@@ -41,7 +43,7 @@ describe('PDF', () => {
         cy.setCookie('altinn-telemetry-traceparent', traceparentValue, cookieOptions);
         cy.setCookie('altinn-telemetry-tracestate', tracestateValue, cookieOptions);
         cy.intercept({
-          url: new RegExp(domain),
+          url: `${appUrl}/**`,
           headers: {
             cookie: new RegExp('altinn-telemetry-traceparent='),
           },

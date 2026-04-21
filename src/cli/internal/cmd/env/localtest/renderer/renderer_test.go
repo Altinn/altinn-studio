@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -448,7 +449,8 @@ func TestScreenRenderer_StopLeavesCursorAtLineStartForFollowupOutput(t *testing.
 	output.Success("Environment started")
 
 	got := out.String()
-	if !strings.Contains(got, "\rEnvironment started"+osutil.LineBreak) {
+	ansiSGR := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	if !strings.Contains(ansiSGR.ReplaceAllString(got, ""), "\rEnvironment started"+osutil.LineBreak) {
 		t.Fatalf("output %q missing flush-left follow-up success line", got)
 	}
 }

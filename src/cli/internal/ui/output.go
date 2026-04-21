@@ -8,8 +8,6 @@ import (
 	"sync"
 
 	"altinn.studio/studioctl/internal/osutil"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Colors checks if color output is enabled.
@@ -18,23 +16,23 @@ func Colors() bool {
 	return !noColor
 }
 
-// Style functions return lipgloss styles for terminal output.
+// Style functions return ANSI styles for terminal output.
 // Using functions instead of package-level vars to satisfy gochecknoglobals.
-func errorStyle() lipgloss.Style   { return lipgloss.NewStyle().Foreground(lipgloss.Color("9")) }  // red
-func warningStyle() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("11")) } // yellow
-func successStyle() lipgloss.Style { return lipgloss.NewStyle().Foreground(lipgloss.Color("10")) } // green
-func infoStyle() lipgloss.Style    { return lipgloss.NewStyle().Foreground(lipgloss.Color("12")) } // blue
-func dimStyle() lipgloss.Style     { return lipgloss.NewStyle().Foreground(lipgloss.Color("8")) }  // gray
+func errorStyle() Style   { return ColorStyle(ColorRed) }
+func warningStyle() Style { return ColorStyle(ColorYellow) }
+func successStyle() Style { return ColorStyle(ColorGreen) }
+func infoStyle() Style    { return ColorStyle(ColorBlue) }
+func dimStyle() Style     { return ColorStyle(ColorGray) }
 
 // containerColors returns colors for log output prefixes.
-func containerColors() []lipgloss.Color {
-	return []lipgloss.Color{
-		lipgloss.Color("14"), // cyan
-		lipgloss.Color("13"), // magenta
-		lipgloss.Color("11"), // yellow
-		lipgloss.Color("10"), // green
-		lipgloss.Color("12"), // blue
-		lipgloss.Color("9"),  // red
+func containerColors() []Color {
+	return []Color{
+		ColorCyan,
+		ColorMagenta,
+		ColorYellow,
+		ColorGreen,
+		ColorBlue,
+		ColorRed,
 	}
 }
 
@@ -221,7 +219,7 @@ func (o *Output) ContainerPrefix(name string, colorIndex int) string {
 
 	colors := containerColors()
 	color := colors[colorIndex%len(colors)]
-	style := lipgloss.NewStyle().Foreground(color)
+	style := ColorStyle(color)
 	return style.Render(fmt.Sprintf("%-20s", name)) + " | "
 }
 

@@ -16,7 +16,7 @@ import (
 	"altinn.studio/studioctl/internal/appnaming"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	repocontext "altinn.studio/studioctl/internal/context"
-	"altinn.studio/studioctl/internal/networking"
+	"altinn.studio/studioctl/internal/envtopology"
 )
 
 var (
@@ -31,49 +31,6 @@ const (
 	localtestAppContainerNamePrefix = "localtest-app-"
 	appMetadataFile                 = "App/config/applicationmetadata.json"
 )
-
-func localtestEnvDefaults(
-	platformEndpoint, otelEndpoint, pdfEndpoint, workflowEngineEndpoint string,
-) map[string]string {
-	return map[string]string{
-		"AppSettings__OpenIdWellKnownEndpoint":          platformEndpoint + "/authentication/api/v1/openid/",
-		"GeneralSettings__ExternalAppBaseUrl":           localtestExternalAppBaseURL(),
-		"OTEL_EXPORTER_OTLP_ENDPOINT":                   otelEndpoint,
-		"PlatformSettings__ApiStorageEndpoint":          platformEndpoint + "/storage/api/v1/",
-		"PlatformSettings__ApiRegisterEndpoint":         platformEndpoint + "/register/api/v1/",
-		"PlatformSettings__ApiProfileEndpoint":          platformEndpoint + "/profile/api/v1/",
-		"PlatformSettings__ApiAuthenticationEndpoint":   platformEndpoint + "/authentication/api/v1/",
-		"PlatformSettings__ApiAuthorizationEndpoint":    platformEndpoint + "/authorization/api/v1/",
-		"PlatformSettings__ApiEventsEndpoint":           platformEndpoint + "/events/api/v1/",
-		"PlatformSettings__ApiPdf2Endpoint":             pdfEndpoint,
-		"PlatformSettings__ApiNotificationEndpoint":     platformEndpoint + "/notifications/api/v1/",
-		"PlatformSettings__ApiCorrespondenceEndpoint":   platformEndpoint + "/correspondence/api/v1/",
-		"PlatformSettings__ApiAccessManagementEndpoint": platformEndpoint + "/accessmanagement/api/v1/",
-		"PlatformSettings__ApiWorkflowEngineEndpoint":   workflowEngineEndpoint,
-	}
-}
-
-func localtestExternalAppBaseURL() string {
-	return "http://" + networking.LocalDomain + ":" + envlocaltest.DefaultLoadBalancerPortString() + "/{org}/{app}/"
-}
-
-func nativeLocaltestEnvDefaults() map[string]string {
-	return localtestEnvDefaults(
-		"http://"+localtestLoopbackHost+":5101",
-		"http://"+localtestLoopbackHost+":4317",
-		"http://"+localtestLoopbackHost+":5300/pdf",
-		"http://workflow-engine."+networking.LocalDomain+":"+envlocaltest.DefaultLoadBalancerPortString()+"/api/v1/",
-	)
-}
-
-func dockerLocaltestEnvDefaults() map[string]string {
-	return localtestEnvDefaults(
-		"http://"+envlocaltest.ContainerLocaltest+":5101",
-		"http://"+envlocaltest.ContainerMonitoringOtelCollector+":4317",
-		"http://"+envlocaltest.ContainerPDF3+":5031/pdf",
-		"http://"+envlocaltest.ContainerWorkflowEngine+":8080/api/v1/",
-	)
-}
 
 // DotnetRunSpec contains build and subprocess execution details for native app run.
 type DotnetRunSpec struct {
@@ -139,6 +96,7 @@ func (s *Service) BuildDotnetRunSpec(
 	_ context.Context,
 	appPath string,
 	args, env []string,
+	topology envtopology.Local,
 	opts DotnetRunOptions,
 ) (DotnetRunSpec, error) {
 	projectPath, err := appProjectPath(appPath)
@@ -151,14 +109,6 @@ func (s *Service) BuildDotnetRunSpec(
 	}
 	baseURL := nativeAppBaseURL(port)
 
-	resolvedEnv := appendEnvIfUnset(env, "ASPNETCORE_ENVIRONMENT", "Development")
-	resolvedEnv = appendEnvIfUnset(
-		resolvedEnv,
-		"Kestrel__EndPoints__Http__Url",
-		baseURL,
-	)
-	resolvedEnv = appendLocaltestEnvIfUnset(resolvedEnv)
-
 	return DotnetRunSpec{
 		Dir:            filepath.Dir(projectPath),
 		ProjectPath:    projectPath,
@@ -167,7 +117,7 @@ func (s *Service) BuildDotnetRunSpec(
 		AppArgs:        args,
 		BuildArgs:      []string{"build", projectPath},
 		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
-		Env:            resolvedEnv,
+		Env:            newAppRunEnv(env, baseURL, topology),
 	}, nil
 }
 
@@ -239,6 +189,7 @@ func validAppID(appID string) bool {
 func (s *Service) BuildDockerRunSpec(
 	result repocontext.Detection,
 	args []string,
+	topology envtopology.Local,
 	opts DockerRunOptions,
 ) (DockerRunSpec, error) {
 	appPath := result.AppRoot
@@ -247,10 +198,6 @@ func (s *Service) BuildDockerRunSpec(
 	if opts.RandomHostPort {
 		hostPort = ""
 	}
-
-	env := appendEnvIfUnset(nil, "ASPNETCORE_ENVIRONMENT", "Development")
-	env = appendEnvIfUnset(env, "Kestrel__EndPoints__Http__Url", "http://*:"+appcontainers.DefaultContainerPort)
-	env = appendDockerLocaltestEnvIfUnset(env)
 
 	imageTag := opts.ImageTag
 	if imageTag == "" {
@@ -279,36 +226,10 @@ func (s *Service) BuildDockerRunSpec(
 					Protocol:      "tcp",
 				},
 			},
-			Env:     env,
+			Env:     newAppRunEnv(nil, "http://*:"+appcontainers.DefaultContainerPort, topology),
 			Command: args,
 			CapAdd:  nil,
 			Detach:  true,
 		},
 	}, nil
-}
-
-func appendLocaltestEnvIfUnset(env []string) []string {
-	resolved := env
-	for key, value := range nativeLocaltestEnvDefaults() {
-		resolved = appendEnvIfUnset(resolved, key, value)
-	}
-	return resolved
-}
-
-func appendDockerLocaltestEnvIfUnset(env []string) []string {
-	resolved := env
-	for key, value := range dockerLocaltestEnvDefaults() {
-		resolved = appendEnvIfUnset(resolved, key, value)
-	}
-	return resolved
-}
-
-func appendEnvIfUnset(env []string, key, value string) []string {
-	prefix := key + "="
-	for _, e := range env {
-		if len(e) >= len(prefix) && e[:len(prefix)] == prefix {
-			return env
-		}
-	}
-	return append(env, key+"="+value)
 }

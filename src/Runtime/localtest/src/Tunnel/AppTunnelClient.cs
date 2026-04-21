@@ -84,7 +84,18 @@ public sealed class AppTunnelClient
     )
     {
         var session = GetSession();
-        return await session.Send(request, appId, cancellationToken);
+        return await session.Send(request, appId, target: null, targetPort: null, cancellationToken);
+    }
+
+    public async Task<HttpResponseMessage> SendToTarget(
+        HttpRequestMessage request,
+        string target,
+        int targetPort,
+        CancellationToken cancellationToken
+    )
+    {
+        var session = GetSession();
+        return await session.Send(request, appId: null, target, targetPort, cancellationToken);
     }
 
     public async Task Proxy(
@@ -95,7 +106,19 @@ public sealed class AppTunnelClient
     )
     {
         var session = GetSession();
-        await session.Proxy(request, appId, context, cancellationToken);
+        await session.Proxy(request, appId, target: null, targetPort: null, context, cancellationToken);
+    }
+
+    public async Task ProxyToTarget(
+        HttpRequestMessage request,
+        string target,
+        int targetPort,
+        HttpContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        var session = GetSession();
+        await session.Proxy(request, appId: null, target, targetPort, context, cancellationToken);
     }
 
     public async Task<IReadOnlyList<TunnelDiscoveredApp>> GetDiscoveredApps(CancellationToken cancellationToken)
@@ -180,6 +203,8 @@ public sealed class AppTunnelClient
         public async Task<HttpResponseMessage> Send(
             HttpRequestMessage request,
             string? appId,
+            string? target,
+            int? targetPort,
             CancellationToken cancellationToken
         )
         {
@@ -192,7 +217,7 @@ public sealed class AppTunnelClient
 
             try
             {
-                await SendRequest(request, appId, requestId, cancellationToken);
+                await SendRequest(request, appId, target, targetPort, requestId, cancellationToken);
 
                 var start = await pending.Start.WaitAsync(cancellationToken);
                 var body = await ReadBufferedBody(pending, cancellationToken);
@@ -210,6 +235,8 @@ public sealed class AppTunnelClient
         public async Task Proxy(
             HttpRequestMessage request,
             string? appId,
+            string? target,
+            int? targetPort,
             HttpContext context,
             CancellationToken cancellationToken
         )
@@ -223,7 +250,7 @@ public sealed class AppTunnelClient
 
             try
             {
-                await SendRequest(request, appId, requestId, cancellationToken);
+                await SendRequest(request, appId, target, targetPort, requestId, cancellationToken);
 
                 var start = await pending.Start.WaitAsync(cancellationToken);
                 context.Response.StatusCode = start.StatusCode;
@@ -350,6 +377,8 @@ public sealed class AppTunnelClient
         private async Task SendRequest(
             HttpRequestMessage request,
             string? appId,
+            string? target,
+            int? targetPort,
             long requestId,
             CancellationToken cancellationToken
         )
@@ -360,7 +389,9 @@ public sealed class AppTunnelClient
                 request.Method.Method,
                 GetPathAndQuery(request.RequestUri),
                 CollectHeaders(request),
-                request.Content is not null
+                request.Content is not null,
+                target,
+                targetPort
             );
 
             await SendFrame(

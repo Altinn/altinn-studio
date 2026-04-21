@@ -16,13 +16,13 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
   cy.log(`Starting app instance: ${appName}`);
 
   // You can override the host we load css/js from, using multiple methods:
-  //   1. Start Cypress with --env environment=<docker|podman|tt02>,host=<host>
+  //   1. Start Cypress with --env environment=<localtest|tt02>,host=<host>
   //   2. Set CYPRESS_HOST=<host> in your .env file
   // This is useful, for example if you want to run a Cypress test locally in the background while working on
   // other things. Build the app-frontend with `yarn build` and serve it with `yarn serve 8081`, then run
   // Cypress using a command like this:
   //   npx cypress run --env environment=tt02,host=localhost:8081 -s 'test/e2e/integration/*/*.ts'
-  const targetHost = Cypress.env('host') || env.CYPRESS_HOST || 'localhost:8080';
+  const targetHost = Cypress.env('host') || env.CYPRESS_HOST || getConfiguredFrontendHost();
 
   const visitOptions: Partial<Cypress.VisitOptions> = {
     onBeforeLoad: (win) => {
@@ -56,7 +56,7 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
     },
   };
 
-  // Run this using --env environment=<docker|podman|tt02>,responseFuzzing=on to simulate an unreliable network. This might
+  // Run this using --env environment=<localtest|tt02>,responseFuzzing=on to simulate an unreliable network. This might
   // help us find bugs (usually race conditions) that only occur requests/responses arrive out of order.
   if (Cypress.env('responseFuzzing') === 'on') {
     const [min, max] = [10, 1000];
@@ -157,6 +157,11 @@ export function getTargetUrl(appName: string) {
   return Cypress.env('type') === 'localtest'
     ? `${Cypress.config('baseUrl')}/ttd/${appName}`
     : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`;
+}
+
+function getConfiguredFrontendHost() {
+  const config = Cypress.config() as Cypress.ConfigOptions & { frontendUrl?: string };
+  return new URL(config.frontendUrl || 'http://localhost:8080').host;
 }
 
 function generateHtmlToEval(javascript: string) {

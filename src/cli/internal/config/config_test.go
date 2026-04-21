@@ -173,10 +173,6 @@ func TestNewDoctorFallback(t *testing.T) {
 		if cfg.SocketDir != home {
 			t.Errorf("SocketDir = %q, want %q (same as Home)", cfg.SocketDir, home)
 		}
-		if cfg.Images.Utility.Busybox.Image == "" {
-			t.Error("expected fallback Busybox image to be set")
-		}
-
 		if _, err := os.Stat(home); !os.IsNotExist(err) {
 			t.Errorf("home directory should not be created in fallback mode, stat err = %v", err)
 		}
