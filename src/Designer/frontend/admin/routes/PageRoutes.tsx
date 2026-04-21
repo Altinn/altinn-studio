@@ -9,6 +9,7 @@ import { PageLayout } from 'admin/layouts/PageLayout/PageLayout';
 import { OrgPageLayout } from 'admin/layouts/OrgPageLayout/OrgPageLayout';
 import { PageLayout as AppsLayout } from 'admin/features/apps/layout/PageLayout';
 import { ADMIN_BASENAME } from 'app-shared/constants';
+import { RoutePaths } from './RoutePaths';
 import { NotFound } from 'admin/components/NotFound/NotFound';
 import {
   AppRouteErrorBoundary,
@@ -22,7 +23,11 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
       <Route index element={<IndexRedirect />} />
-      <Route path=':owner' element={<OrgPageLayout />} errorElement={<RouteErrorBoundary />}>
+      <Route
+        path={RoutePaths.Owner}
+        element={<OrgPageLayout />}
+        errorElement={<RouteErrorBoundary />}
+      >
         <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
           {routerRoutes.map((route) => (
             <Route

@@ -14,7 +14,8 @@ const mockEnvironment: {
   error: null;
 } = { environment: null, isLoading: false, error: null };
 const mockLogout = jest.fn();
-const mockNavigate = jest.fn();
+const mockOrgSelect = jest.fn();
+const mockUserSelect = jest.fn();
 
 const organizationsMock = [
   { username: 'ttd', full_name: 'Testdepartementet', avatar_url: '', id: 1 },
@@ -29,8 +30,6 @@ const mockUser = {
   login: 'test',
   userType: 1,
 };
-
-const mockParams: { owner: string | undefined } = { owner: undefined };
 
 jest.mock('@studio/hooks', () => ({
   ...jest.requireActual('@studio/hooks'),
@@ -51,12 +50,6 @@ jest.mock('app-shared/hooks/queries', () => ({
   useUserQuery: () => ({ data: mockUser }),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => mockParams,
-  useNavigate: () => mockNavigate,
-}));
-
 const triggerButtonName = textMock('shared.header_user_for_org', {
   user: mockUser.full_name,
   org: organizationsMock[0].full_name,
@@ -66,7 +59,6 @@ describe('PageHeader', () => {
   beforeEach(() => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     mockEnvironment.environment = null;
-    mockParams.owner = 'ttd';
   });
 
   afterEach(() => {
@@ -115,35 +107,24 @@ describe('PageHeader', () => {
     expect(screen.getByRole('menuitemradio', { name: 'Skatteetaten' })).toBeInTheDocument();
   });
 
-  it('navigates to org admin page when clicking org menu item', async () => {
+  it('calls onOrgSelect with the org when clicking an org menu item', async () => {
     const user = userEvent.setup();
     renderPageHeader();
 
     await user.click(screen.getByRole('button', { name: triggerButtonName }));
-
     await user.click(screen.getByRole('menuitemradio', { name: 'Skatteetaten' }));
-    expect(mockNavigate).toHaveBeenCalledWith('/skd/apps');
+
+    expect(mockOrgSelect).toHaveBeenCalledWith(organizationsMock[1]);
   });
 
-  it('navigates to root when clicking user menu item', async () => {
+  it('calls onUserSelect with the user when clicking the user menu item', async () => {
     const user = userEvent.setup();
-    mockParams.owner = undefined;
     renderPageHeader();
 
-    await user.click(screen.getByRole('button', { name: mockUser.full_name }));
-
+    await user.click(screen.getByRole('button', { name: triggerButtonName }));
     await user.click(screen.getByRole('menuitemradio', { name: mockUser.full_name }));
-    expect(mockNavigate).toHaveBeenCalledWith('/');
-  });
 
-  it('preserves the active sub-path when switching org', async () => {
-    const user = userEvent.setup();
-    renderPageHeader(['/ttd/apps/at22/my-app']);
-
-    await user.click(screen.getByRole('button', { name: triggerButtonName }));
-
-    await user.click(screen.getByRole('menuitemradio', { name: 'Skatteetaten' }));
-    expect(mockNavigate).toHaveBeenCalledWith('/skd/apps/at22/my-app');
+    expect(mockUserSelect).toHaveBeenCalledWith(mockUser);
   });
 });
 
@@ -151,7 +132,7 @@ const renderPageHeader = (initialEntries?: string[]) =>
   render(
     <MemoryRouter initialEntries={initialEntries}>
       <FeatureFlagsProvider>
-        <PageHeader owner='ttd' />
+        <PageHeader owner='ttd' onOrgSelect={mockOrgSelect} onUserSelect={mockUserSelect} />
       </FeatureFlagsProvider>
     </MemoryRouter>,
   );

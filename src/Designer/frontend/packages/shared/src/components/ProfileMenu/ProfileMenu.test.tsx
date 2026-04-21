@@ -42,8 +42,8 @@ const org2Mock: Organization = {
 
 const defaultProps: ProfileMenuProps = {
   currentUserOrg: undefined,
-  onOrgClick: jest.fn(),
-  onUserClick: jest.fn(),
+  onOrgSelect: jest.fn(),
+  onUserSelect: jest.fn(),
 };
 
 const renderProfileMenu = (props: Partial<ProfileMenuProps> = {}) => {
@@ -91,22 +91,22 @@ describe('ProfileMenu', () => {
     expect(screen.getByRole('menuitemradio', { name: 'Skatteetaten' })).toBeInTheDocument();
   });
 
-  it('calls onOrgClick when clicking an org menu item', async () => {
-    const onOrgClick = jest.fn();
+  it('calls onOrgSelect when clicking an org menu item', async () => {
+    const onOrgSelect = jest.fn();
     const user = userEvent.setup();
-    renderProfileMenu({ onOrgClick });
+    renderProfileMenu({ onOrgSelect });
     await user.click(screen.getByRole('button', { name: 'Test User' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Test org' }));
-    expect(onOrgClick).toHaveBeenCalledWith(orgMock);
+    expect(onOrgSelect).toHaveBeenCalledWith(orgMock);
   });
 
-  it('calls onUserClick when clicking the user menu item', async () => {
-    const onUserClick = jest.fn();
+  it('calls onUserSelect when clicking the user menu item', async () => {
+    const onUserSelect = jest.fn();
     const user = userEvent.setup();
-    renderProfileMenu({ onUserClick });
+    renderProfileMenu({ onUserSelect });
     await user.click(screen.getByRole('button', { name: 'Test User' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Test User' }));
-    expect(onUserClick).toHaveBeenCalledWith(userMock);
+    expect(onUserSelect).toHaveBeenCalledWith(userMock);
   });
 
   it('does not show the settings link when studioOidc is disabled', async () => {

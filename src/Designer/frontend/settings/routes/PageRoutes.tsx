@@ -20,6 +20,7 @@ import { UserPageLayout } from '../layouts/UserPageLayout/UserPageLayout';
 import { OrgPageLayout } from '../layouts/OrgPageLayout/OrgPageLayout';
 import { IndexRedirect } from '../components/IndexRedirect/IndexRedirect';
 import { OwnerIndexRedirect } from '../components/OwnerIndexRedirect/OwnerIndexRedirect';
+import { RoutePaths } from './RoutePaths';
 import { RoutePaths as OrgsRoutePaths } from '../features/orgs/routes/RoutePaths';
 import { RoutePaths as UserRoutePaths } from '../features/user/routes/RoutePaths';
 
@@ -27,7 +28,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
       <Route index element={<IndexRedirect />} />
-      <Route path=':owner' errorElement={<RouteErrorBoundary />}>
+      <Route path={RoutePaths.Owner} errorElement={<RouteErrorBoundary />}>
         <Route index element={<OwnerIndexRedirect />} />
         <Route element={<UserPageLayout />} errorElement={<RouteErrorBoundary />}>
           <Route

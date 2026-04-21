@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useMatch, useNavigate, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { StudioLink, StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,19 +13,17 @@ import {
 import { useMediaQuery } from '@studio/hooks';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { ProfileMenu } from 'app-shared/components';
+import type { Organization } from 'app-shared/types/Organization';
+import type { User } from 'app-shared/types/Repository';
 import classes from './PageHeader.module.css';
 
 type PageHeaderProps = {
   owner: string;
-  orgRoutePaths?: string[];
-  userRoutePaths?: string[];
+  onOrgSelect: (org: Organization) => void;
+  onUserSelect: (user: User) => void;
 };
 
-export const PageHeader = ({
-  owner,
-  orgRoutePaths,
-  userRoutePaths,
-}: PageHeaderProps): ReactElement => {
+export const PageHeader = ({ owner, onOrgSelect, onUserSelect }: PageHeaderProps): ReactElement => {
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   return (
@@ -35,7 +33,11 @@ export const PageHeader = ({
           <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={DISPLAY_NAME} />
           {shouldDisplayDesktopMenu && <CenterContent owner={owner} />}
           <StudioPageHeader.Right>
-            <RightContent orgRoutePaths={orgRoutePaths} userRoutePaths={userRoutePaths} />
+            <ProfileMenu
+              currentUserOrg={owner}
+              onOrgSelect={onOrgSelect}
+              onUserSelect={onUserSelect}
+            />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
       </StudioPageHeader>
@@ -49,8 +51,9 @@ type CenterContentProps = {
 
 const CenterContent = ({ owner }: CenterContentProps): ReactElement => {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
-  const isAdminPath = window.location.pathname.startsWith(ADMIN_BASENAME);
+  const isAdminPath = pathname.startsWith(ADMIN_BASENAME);
 
   return (
     <StudioPageHeader.Center>
@@ -81,30 +84,5 @@ const CenterContent = ({ owner }: CenterContentProps): ReactElement => {
         )}
       />
     </StudioPageHeader.Center>
-  );
-};
-
-type RightContentProps = {
-  orgRoutePaths: string[];
-  userRoutePaths: string[];
-};
-
-const RightContent = ({ orgRoutePaths, userRoutePaths }: RightContentProps): ReactElement => {
-  const { owner } = useParams();
-  const navigate = useNavigate();
-  const ownerMatch = useMatch('/:owner/*');
-  const subPath = ownerMatch?.params['*'] || '';
-
-  const buildPath = (username: string, validSubPages?: string[]) => {
-    const page = !validSubPages || validSubPages.includes(subPath) ? subPath : '';
-    return page ? `/${username}/${page}` : `/${username}`;
-  };
-
-  return (
-    <ProfileMenu
-      currentUserOrg={owner}
-      onOrgClick={(org) => navigate(buildPath(org.username, orgRoutePaths))}
-      onUserClick={(user) => user && navigate(buildPath(user.login, userRoutePaths))}
-    />
   );
 };

@@ -19,14 +19,14 @@ type OrgOption = {
 
 export type ProfileMenuProps = {
   currentUserOrg: string | undefined;
-  onOrgClick: (org: Organization) => void;
-  onUserClick: (user: User) => void;
+  onOrgSelect: (org: Organization) => void;
+  onUserSelect: (user: User) => void;
 };
 
 export const ProfileMenu = ({
   currentUserOrg,
-  onOrgClick,
-  onUserClick,
+  onOrgSelect,
+  onUserSelect,
 }: ProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
@@ -44,7 +44,7 @@ export const ProfileMenu = ({
       username: organization.username,
       displayName: organization.full_name || organization.username,
       isActive: organization.username === org,
-      onClick: () => onOrgClick(organization),
+      onClick: () => onOrgSelect(organization),
     })) ?? [];
 
   const activeOrg = organizationsOptions.find((organizationOption) => organizationOption.isActive);
@@ -62,7 +62,7 @@ export const ProfileMenu = ({
   }));
 
   const userMenuItem = {
-    action: { type: 'button' as const, onClick: () => onUserClick(user) },
+    action: { type: 'button' as const, onClick: () => onUserSelect(user) },
     itemName: username,
     isActive: !org,
   };
