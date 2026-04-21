@@ -5458,6 +5458,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "returnInstance",
+            "in": "query",
+            "description": "When true, the response body is Altinn.App.Api.Models.EnrichedInstanceResponse reflecting the post-transition instance state. Defaults to false for backward compatibility.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "requestBody": {
@@ -5501,17 +5510,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
+                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
+                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
+                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
                 }
               }
             }
