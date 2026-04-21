@@ -62,6 +62,19 @@ internal sealed class WorkflowHandler(
     {
         logger.WorkflowLeaseLost(workflow);
         Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistorgramTags());
+
+        // A per-step Submit throwing LeaseLostException unwinds past the step's StopActivity
+        // at line 252, so any currently-open step span would hang otherwise. Steps run
+        // sequentially, so at most one is live — but loop defensively in case of refactor.
+        foreach (var step in workflow.Steps)
+        {
+            if (step.EngineActivity is null)
+                continue;
+
+            step.EngineActivity.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
+            StopActivity(step);
+        }
+
         workflow.EngineActivity?.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
         StopActivity(workflow);
     }

@@ -26,9 +26,14 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
 
     public bool TryRemove(Guid workflowId, out CancellationTokenSource? cts)
     {
+        // Clear the abandoned marker after removing the workflow. A concurrent
+        // TryAbandonLostLease that observed this workflow before removal may still
+        // add a marker after this point; the re-check inside TryAbandonLostLease
+        // handles that residual race and removes its own stale marker.
+        var removed = _workflows.TryRemove(workflowId, out var entry);
         _abandonedLeases.TryRemove(workflowId, out _);
 
-        if (_workflows.TryRemove(workflowId, out var entry))
+        if (removed)
         {
             cts = entry.Cts;
             return true;
@@ -93,6 +98,16 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
             // Mark before cancelling so WasLeaseAbandoned is observable the moment
             // the CT registration fires on the awaiting Submit.
             _abandonedLeases.TryAdd(id, 0);
+
+            // Re-check: if the workflow was concurrently removed (or replaced with a
+            // different CTS) between the TryGetValue above and the TryAdd, the marker
+            // we just added would never be cleaned up by TryRemove and would leak.
+            // Drop it ourselves.
+            if (!_workflows.TryGetValue(id, out var current) || !ReferenceEquals(current.Cts, entry.Cts))
+            {
+                _abandonedLeases.TryRemove(id, out _);
+                continue;
+            }
 
             try
             {

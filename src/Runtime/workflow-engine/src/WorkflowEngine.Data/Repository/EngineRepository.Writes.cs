@@ -620,10 +620,15 @@ internal sealed partial class EngineRepository
 
         // 1) Abandon stale workflows that have exceeded the reclaim limit (mark as Failed).
         //    This runs first so they are not picked up by the candidate query below.
+        //    LeaseToken is cleared so a later write-back from the frozen original owner can't
+        //    match by token and overwrite the abandoned row.
         var abandonedCount = await context.Database.ExecuteSqlAsync(
             $"""
             UPDATE "engine"."Workflows"
-            SET "Status" = {PersistentItemStatus.Failed}, "UpdatedAt" = {now}, "HeartbeatAt" = NULL
+            SET "Status" = {PersistentItemStatus.Failed},
+                "UpdatedAt" = {now},
+                "HeartbeatAt" = NULL,
+                "LeaseToken" = NULL
             WHERE "Status" = {PersistentItemStatus.Processing}
               AND "HeartbeatAt" IS NOT NULL
               AND "HeartbeatAt" < {staleDeadline}
@@ -914,12 +919,18 @@ internal sealed partial class EngineRepository
                     // Lease-token compare-and-swap: rows whose LeaseToken no longer matches the
                     // caller's token are silently skipped. RETURNING gives us the accepted ids,
                     // and any input id not in that set is reclaimed/lost.
+                    //
+                    // Writes transitioning out of Processing clear LeaseToken. This upholds the
+                    // invariant "LeaseToken IS NOT NULL iff Status = Processing", which in turn
+                    // ensures later CAS writes from a frozen worker cannot match a row that has
+                    // since moved to a terminal/Requeued/Enqueued state with the same token.
                     const string updateWorkflowsSql = """
                     UPDATE "engine"."Workflows" AS w
                     SET "Status"             = v.status,
                         "UpdatedAt"          = @now,
                         "BackoffUntil"       = v.backoff_until,
-                        "HeartbeatAt"        = CASE WHEN v.status = 1 THEN @now ELSE NULL END,
+                        "HeartbeatAt"        = CASE WHEN v.status = @processing THEN @now ELSE NULL END,
+                        "LeaseToken"         = CASE WHEN v.status = @processing THEN w."LeaseToken" ELSE NULL END,
                         "EngineTraceContext" = v.engine_trace_context
                     FROM (
                         SELECT *
@@ -950,6 +961,9 @@ internal sealed partial class EngineRepository
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("lease_tokens", leaseTokens));
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter<int>("processing", (int)PersistentItemStatus.Processing)
+                        );
 
                         await using var reader = await cmd.ExecuteReaderAsync(ct);
                         while (await reader.ReadAsync(ct))
@@ -1097,13 +1111,16 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // Reset the primary workflow — terminal states + Requeued (skips backoff wait)
+                    // Reset the primary workflow — terminal states + Requeued (skips backoff wait).
+                    // LeaseToken is cleared to preserve the "LeaseToken IS NOT NULL iff Status = Processing"
+                    // invariant and ensure no frozen original owner can match this row on its next write-back.
                     const string resetPrimarySql = """
                     UPDATE engine."Workflows"
                     SET "Status" = @enqueued,
                         "CancellationRequestedAt" = NULL,
                         "BackoffUntil" = NULL,
                         "HeartbeatAt" = NULL,
+                        "LeaseToken" = NULL,
                         "ReclaimCount" = 0,
                         "UpdatedAt" = @now
                     WHERE "Id" = @id
@@ -1157,6 +1174,7 @@ internal sealed partial class EngineRepository
                             "CancellationRequestedAt" = NULL,
                             "BackoffUntil" = NULL,
                             "HeartbeatAt" = NULL,
+                            "LeaseToken" = NULL,
                             "ReclaimCount" = 0,
                             "UpdatedAt" = @now
                         FROM dependents d
