@@ -33,6 +33,7 @@ const (
 	buildCacheRefPDF3         = "ghcr.io/altinn/altinn-studio/localtest-pdf3-cache:latest"
 	infraDir                  = "infra"
 	workflowEngineInfraDir    = "workflow-engine"
+	workflowEngineDbDataDir   = "workflow-engine-db"
 	localtestServicePort      = "5101"
 
 	postgresHealthInterval    = 10 * time.Second
@@ -226,6 +227,10 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 			"TZ":                "Europe/Oslo",
 		},
 		[]types.VolumeMount{
+			newVolume(
+				workflowEngineDbDataPath(dataDir),
+				"/var/lib/postgresql",
+			),
 			newReadOnlyVolume(
 				workflowEngineInfraFilePath(dataDir, "postgres-init.sql"),
 				"/docker-entrypoint-initdb.d/01-tuning.sql",
@@ -298,6 +303,10 @@ func workflowEngineInfraFilePath(dataDir, name string) string {
 
 func workflowEngineInfraPath(dataDir string) string {
 	return filepath.Join(dataDir, infraDir, workflowEngineInfraDir)
+}
+
+func workflowEngineDbDataPath(dataDir string) string {
+	return filepath.Join(dataDir, workflowEngineDbDataDir)
 }
 
 func monitoringContainers(dataDir string, topology envtopology.Local) []ContainerSpec {
