@@ -49,18 +49,29 @@ function cleanSourcesFromContent(content: string): string {
   return cleaned.trim();
 }
 
+// Converts raw text into HTML-safe text so the markdown transforms below can't
+// accidentally inject live tags from user content.
+function escapeUntrustedText(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function formatAssistantMessageContent(content: string): string {
   let html = cleanSourcesFromContent(content).trim();
 
   const codeBlocks: string[] = [];
-  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, language, code) => {
+  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, language, code) => {
     const placeholder = `___CODE_BLOCK_${codeBlocks.length}___`;
-    const lang = language ? ` data-language="${language}"` : '';
-    codeBlocks.push(
-      `<pre${lang}><code>${code.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>`,
-    );
+    const lang = language ? ` data-language="${escapeUntrustedText(language)}"` : '';
+    codeBlocks.push(`<pre${lang}><code>${escapeUntrustedText(code.trim())}</code></pre>`);
     return placeholder;
   });
+
+  html = escapeUntrustedText(html);
 
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 

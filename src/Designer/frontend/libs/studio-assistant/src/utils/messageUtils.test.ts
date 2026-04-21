@@ -138,5 +138,25 @@ describe('messageUtils', () => {
     it('returns an empty string for empty input', () => {
       expect(formatAssistantMessageContent('')).toBe('');
     });
+
+    it('escapes html inside bold markdown', () => {
+      const result = formatAssistantMessageContent('**<img src=x>**');
+      expect(result).toContain('<strong>&lt;img src=x&gt;</strong>');
+    });
+
+    it('escapes html inside headings', () => {
+      const result = formatAssistantMessageContent('# <script>evil</script>');
+      expect(result).toContain('<h1>&lt;script&gt;evil&lt;/script&gt;</h1>');
+    });
+
+    it('escapes html inside inline code', () => {
+      const result = formatAssistantMessageContent('`<b>raw</b>`');
+      expect(result).toContain('<code>&lt;b&gt;raw&lt;/b&gt;</code>');
+    });
+
+    it('escapes html inside list items', () => {
+      const result = formatAssistantMessageContent('- <img src=x>');
+      expect(result).toContain('<li>&lt;img src=x&gt;</li>');
+    });
   });
 });
