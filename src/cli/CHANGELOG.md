@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `env reset` for localtest to delete persisted localtest and workflow-engine database data, with interactive confirmation.
 
+### Removed
+
+- Breaking: remove `--checks` from `studioctl doctor`; `studioctl doctor` now always runs localtest environment diagnostics and reports localtest, PDF, and workflow-engine health in text and JSON output.
+
 ## [0.1.0-preview.6] - 2026-04-20
 
 ### Added
