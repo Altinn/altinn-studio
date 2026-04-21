@@ -235,6 +235,17 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     /// This is safe because the latest entry's dirty steps reflect the most recent mutations,
     /// and the Workflow reference carries the full current state.
     /// </summary>
+    /// <remarks>
+    /// Completing superseded entries with <c>TrySetResult()</c> before the final item is
+    /// flushed cannot mis-signal a real caller: the handler is single-threaded per workflow,
+    /// so an awaited <see cref="Submit"/> never has a concurrent second <see cref="Submit"/>
+    /// in flight for the same workflow id. Only <see cref="SubmitAndForget"/> entries (which
+    /// carry a null <c>Completion</c> and are safe under <c>?.TrySetResult</c>) can precede
+    /// an awaited submission in a single batch. If that invariant ever changes — e.g. a
+    /// second awaited writer enters the mix — this assumption must be revisited, since the
+    /// earlier caller would be told "success" even though the final item may be rejected
+    /// via lease loss.
+    /// </remarks>
     private int DeduplicateBatch(List<WorkflowUpdateRequest> batch)
     {
         if (batch.Count <= 1)
