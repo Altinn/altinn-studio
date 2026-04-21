@@ -371,21 +371,30 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
-		e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", err)
-		if installErr := e.installResources(ctx, true); installErr != nil {
-			return installErr
-		}
-		if err := ensurePgpass(e.cfg.DataDir); err != nil {
-			return err
-		}
-		if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
-			return err
-		}
-		if err := ValidateResourceHostPaths(buildOpts); err != nil {
-			return fmt.Errorf("validate resources after reinstall: %w", err)
-		}
+		return e.reinstallResourcesAfterValidationFailure(ctx, buildOpts, err)
 	}
 
+	return nil
+}
+
+func (e *Env) reinstallResourcesAfterValidationFailure(
+	ctx context.Context,
+	buildOpts ResourceBuildOptions,
+	cause error,
+) error {
+	e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", cause)
+	if err := e.installResources(ctx, true); err != nil {
+		return err
+	}
+	if err := ensurePgpass(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ValidateResourceHostPaths(buildOpts); err != nil {
+		return fmt.Errorf("validate resources after reinstall: %w", err)
+	}
 	return nil
 }
 
