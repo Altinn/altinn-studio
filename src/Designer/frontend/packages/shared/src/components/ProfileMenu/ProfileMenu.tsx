@@ -9,6 +9,9 @@ import { repositoryOwnerPath } from 'app-shared/api/paths';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import type { User } from 'app-shared/types/Repository';
+import type { AxiosError } from 'axios';
+import type { ApiError } from 'app-shared/types/api/ApiError';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 type OrgOption = {
   username: string;
@@ -29,8 +32,14 @@ export const ProfileMenu = ({
   onUserSelect,
 }: ProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
-  const { data: user } = useUserQuery();
-  const { data: organizations } = useOrganizationsQuery();
+  const { data: user } = useUserQuery({
+    hideDefaultError: (error: AxiosError<ApiError>) =>
+      error.response?.status === ServerCodes.Unauthorized,
+  });
+  const { data: organizations } = useOrganizationsQuery({
+    hideDefaultError: (error: AxiosError<ApiError>) =>
+      error.response?.status === ServerCodes.Unauthorized,
+  });
   const { mutate: logout } = useLogoutMutation();
   const isOrgContext = currentUserOrg !== undefined && currentUserOrg !== user?.login;
   const org = isOrgContext ? currentUserOrg : undefined;
@@ -38,6 +47,10 @@ export const ProfileMenu = ({
   const { environment } = useEnvironmentConfig();
   const studioOidc = environment?.featureFlags?.studioOidc;
   const username = user?.full_name || user?.login;
+
+  if (!user) {
+    return null;
+  }
 
   const organizationsOptions: OrgOption[] =
     organizations?.map((organization) => ({

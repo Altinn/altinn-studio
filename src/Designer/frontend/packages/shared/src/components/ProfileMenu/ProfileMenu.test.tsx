@@ -46,9 +46,21 @@ const defaultProps: ProfileMenuProps = {
   onUserSelect: jest.fn(),
 };
 
-const renderProfileMenu = (props: Partial<ProfileMenuProps> = {}) => {
+type RenderProfileMenuOptions = {
+  props?: Partial<ProfileMenuProps>;
+  user?: User | undefined;
+};
+
+const renderProfileMenu = (options: Partial<ProfileMenuProps> | RenderProfileMenuOptions = {}) => {
+  const { props, user } =
+    'props' in options || 'user' in options ? options : { props: options, user: userMock };
+
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.CurrentUser], userMock);
+  if (user !== undefined) {
+    queryClient.setQueryData([QueryKey.CurrentUser], user);
+  } else {
+    queryClient.removeQueries({ queryKey: [QueryKey.CurrentUser] });
+  }
   queryClient.setQueryData([QueryKey.Organizations], [orgMock, org2Mock]);
   return render(
     <MemoryRouter>
@@ -72,6 +84,12 @@ describe('ProfileMenu', () => {
   it('shows the user name as trigger button text when no org is active', () => {
     renderProfileMenu();
     expect(screen.getByRole('button', { name: 'Test User' })).toBeInTheDocument();
+  });
+
+  it('does not render profile menu when user is not authenticated', () => {
+    renderProfileMenu({ user: undefined });
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('shows org context text when an org is active', () => {
