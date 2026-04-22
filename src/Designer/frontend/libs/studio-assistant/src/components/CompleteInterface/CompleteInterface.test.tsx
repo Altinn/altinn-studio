@@ -21,7 +21,6 @@ const mockChatThreads: ChatThread[] = [
         author: MessageAuthor.User,
         content: 'User message',
         timestamp: new Date(),
-        allowAppChanges: false,
       },
     ],
   },

@@ -43,13 +43,12 @@ describe('useAltinityWorkflow', () => {
 
     const message: UserMessage = {
       author: MessageAuthor.User,
-      content: '',
+      content: '   ',
       timestamp: new Date(),
-      allowAppChanges: false,
     };
 
     await act(async () => {
-      await result.current.onSubmitUserMessage(message);
+      await result.current.onSubmitMessage(message);
     });
 
     expect(startWorkflow).not.toHaveBeenCalled();
@@ -79,13 +78,12 @@ describe('useAltinityWorkflow', () => {
 
     const message: UserMessage = {
       author: MessageAuthor.User,
-      content: 'Hello',
+      content: '  Hello  ',
       timestamp: new Date(),
-      allowAppChanges: false,
     };
 
     await act(async () => {
-      await result.current.onSubmitUserMessage(message);
+      await result.current.onSubmitMessage(message);
     });
 
     expect(threads.createThread).toHaveBeenCalledWith('Hello');

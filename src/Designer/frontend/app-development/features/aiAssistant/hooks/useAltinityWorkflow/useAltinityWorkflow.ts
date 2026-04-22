@@ -3,8 +3,6 @@ import type {
   UserMessage,
   AssistantMessage,
   WorkflowEvent,
-  WorkflowStatusEvent,
-  ErrorEvent,
   WorkflowStatus,
   ConnectionStatus,
   AssistantMessageData,
@@ -128,64 +126,43 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [resetRepoForSession, markWorkflowCompleted, upsertAssistantMessage],
   );
 
-  const handleStatusEvent = useCallback(
-    (event: WorkflowStatusEvent) => {
-      const isTerminal =
-        event.data?.status === 'completed' ||
-        event.data?.status === 'failed' ||
-        event.data?.done === true;
-      if (isTerminal) {
-        setWorkflowStatus({ isActive: false });
-        return;
-      }
-
-      const sessionId = currentSessionIdRef.current;
-      if (sessionId) {
-        updateWorkflowStatusMessage(sessionId, event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
-      }
-    },
-    [currentSessionIdRef, updateWorkflowStatusMessage],
-  );
-
-  const handleWorkflowStatusEvent = useCallback(
-    (event: WorkflowStatusEvent) => {
-      const sessionId = currentSessionIdRef.current;
-      if (sessionId) {
-        updateWorkflowStatusMessage(sessionId, event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
-      }
-    },
-    [currentSessionIdRef, updateWorkflowStatusMessage],
-  );
-
-  const handleErrorEvent = useCallback(
-    (event: ErrorEvent) => {
-      setWorkflowStatus({ isActive: false });
-      const sessionId = currentSessionIdRef.current;
-      if (!sessionId) return;
-      if (event.data?.status === 'cancelled') return;
-      addMessageToThread(sessionId, createAssistantErrorMessage());
-    },
-    [currentSessionIdRef, addMessageToThread],
-  );
-
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
-      switch (event.type) {
-        case 'assistant_message':
-          handleAssistantMessage(event);
-          break;
-        case 'status':
-          handleStatusEvent(event);
-          break;
-        case 'workflow_status':
-          handleWorkflowStatusEvent(event);
-          break;
-        case 'error':
-          handleErrorEvent(event);
-          break;
+      if (event.type === 'assistant_message') {
+        handleAssistantMessage(event);
+      } else if (event.type === 'status') {
+        const isTerminal =
+          event.data?.status === 'completed' ||
+          event.data?.status === 'failed' ||
+          event.data?.done === true;
+        if (isTerminal) {
+          setWorkflowStatus({ isActive: false });
+        } else {
+          const sessionId = currentSessionIdRef.current;
+          if (sessionId) {
+            updateWorkflowStatusMessage(
+              sessionId,
+              event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+            );
+          }
+        }
+      } else if (event.type === 'workflow_status') {
+        const sessionId = currentSessionIdRef.current;
+        if (sessionId) {
+          updateWorkflowStatusMessage(
+            sessionId,
+            event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
+          );
+        }
+      } else if (event.type === 'error') {
+        setWorkflowStatus({ isActive: false });
+        const sessionId = currentSessionIdRef.current;
+        if (!sessionId) return;
+        if (event.data?.status === 'cancelled') return;
+        addMessageToThread(sessionId, createAssistantErrorMessage());
       }
     },
-    [handleAssistantMessage, handleErrorEvent, handleStatusEvent, handleWorkflowStatusEvent],
+    [handleAssistantMessage, currentSessionIdRef, updateWorkflowStatusMessage, addMessageToThread],
   );
 
   useEffect(() => {
