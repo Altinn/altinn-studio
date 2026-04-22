@@ -12,7 +12,7 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-_JUDGE_PROMPT_NAME = "llm-as-a-judge/intent_match_judge"
+_JUDGE_PROMPT_NAME = "intent_match"
 
 
 def _parse_judge_response(response: str) -> tuple[bool, str]:
@@ -45,7 +45,7 @@ async def run_intent_judge(
         return
 
     try:
-        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME)
+        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME, local_path="llm-as-a-judge/intent_match")
     except FileNotFoundError:
         log.error("Judge prompt '%s' not found — skipping intent_match", _JUDGE_PROMPT_NAME)
         return

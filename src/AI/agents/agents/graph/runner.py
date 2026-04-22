@@ -172,6 +172,20 @@ async def _evaluate_intent_match(user_goal: str, final_state: dict, trace_id: st
         log.exception("Evaluation pipeline error (intent_match)")
 
 
+async def _evaluate_security(user_goal: str, final_state: dict, trace_id: str) -> None:
+    try:
+        from agents.services.evaluation.security_judge import run_security_judge
+        await run_security_judge(
+            user_goal=user_goal,
+            patch_data=final_state.get("patch_data"),
+            trace_id=trace_id,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        log.exception("Evaluation pipeline error (no_security_issues)")
+
+
 async def _evaluate_no_hallucination(user_goal: str, final_state: dict, trace_id: str) -> None:
     try:
         from agents.services.evaluation.hallucination_judge import run_hallucination_judge
@@ -244,6 +258,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     for coro in (
                         _evaluate_intent_match(state.user_goal, final_state, root_span.trace_id),
                         _evaluate_no_hallucination(state.user_goal, final_state, root_span.trace_id),
+                        _evaluate_security(state.user_goal, final_state, root_span.trace_id),
                     ):
                         task = asyncio.create_task(coro)
                         _active_tasks.add(task)

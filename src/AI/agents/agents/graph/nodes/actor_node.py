@@ -280,6 +280,7 @@ async def handle(state: AgentState) -> AgentState:
         # Store additional pipeline results for potential debugging (only if we ran the pipeline)
         if not state.patch_data:
             log.info("💾 Storing pipeline results for debugging")
+            state.patch_data = normalized_patch_data
             state.general_plan = result.get("general_plan")
             state.tool_plan = result.get("tool_plan")
             state.tool_results = result.get("tool_results")

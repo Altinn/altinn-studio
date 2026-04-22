@@ -1,7 +1,7 @@
 ---
 role: judge
 version: '1.0'
-name: intent_match_judge
+name: intent_match
 ---
 
 You are an expert evaluator assessing whether an AI coding agent correctly understood a user's intent.
