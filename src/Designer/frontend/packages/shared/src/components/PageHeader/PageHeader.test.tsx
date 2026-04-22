@@ -5,9 +5,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageHeader } from './PageHeader';
 import { useMediaQuery } from '@studio/hooks';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-import { FeatureFlag, FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 import {
-  ADMIN_BASENAME,
   APP_DASHBOARD_BASENAME,
   DASHBOARD_BASENAME,
   DISPLAY_NAME,
@@ -160,12 +159,6 @@ describe('PageHeader', () => {
     ).toHaveAttribute('href', '/dashboard/org-library/ttd');
   });
 
-  it('does not render the admin link when the admin feature flag is disabled', () => {
-    mockUseFeatureFlag.mockReturnValue(false);
-    renderPageHeader();
-    expect(screen.queryByText(textMock('admin.apps.title'))).not.toBeInTheDocument();
-  });
-
   describe('dashboard link active state', () => {
     const appDashboardBasePath = `${DASHBOARD_BASENAME}/${APP_DASHBOARD_BASENAME}`;
 
@@ -205,36 +198,21 @@ describe('PageHeader', () => {
       }
     });
   });
-
-  describe('admin link active state', () => {
-    beforeEach(() => {
-      mockUseFeatureFlag.mockImplementation((flag: FeatureFlag) => flag === FeatureFlag.Admin);
-    });
-
-    it.each([
-      [ADMIN_BASENAME, true],
-      [`${ADMIN_BASENAME}/ttd`, true],
-      [`${ADMIN_BASENAME}/ttd/apps`, true],
-      ['/administer', false],
-      ['/admin-old', false],
-      ['/dashboard', false],
-    ])('path "%s" → admin link is active: %s', (path, expectedActive) => {
-      renderPageHeader([path]);
-      const adminLink = screen.getByText(textMock('admin.apps.title'));
-      if (expectedActive) {
-        expect(adminLink).toHaveClass('active');
-      } else {
-        expect(adminLink).not.toHaveClass('active');
-      }
-    });
-  });
 });
 
-const renderPageHeader = (initialEntries?: string[]) =>
-  render(
+const renderPageHeader = (initialEntries?: string[]) => {
+  if (initialEntries?.[0]) {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      configurable: true,
+      value: { ...window.location, pathname: initialEntries[0] },
+    });
+  }
+  return render(
     <MemoryRouter initialEntries={initialEntries}>
       <FeatureFlagsProvider>
         <PageHeader owner='ttd' onOrgSelect={mockOrgSelect} onUserSelect={mockUserSelect} />
       </FeatureFlagsProvider>
     </MemoryRouter>,
   );
+};

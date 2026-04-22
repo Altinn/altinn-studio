@@ -90,7 +90,7 @@ export const HeaderContextProvider = ({
   const studioOidc = environment?.featureFlags?.studioOidc;
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
-    name: t('dashboard.header_menu_all_orgs'),
+    name: t('top_bar.group_organizations'),
     showName: true,
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
