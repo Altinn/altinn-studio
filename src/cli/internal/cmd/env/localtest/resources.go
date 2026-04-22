@@ -71,7 +71,7 @@ type ContainerSpec struct {
 	NetworkAliases []string
 	Dependencies   []string
 	Command        []string
-	UseDefaultUser bool // When true, ignore host user override and use the image's default user
+	UseDefaultUser bool // When true, ignore host user override and use the image's default user.
 }
 
 // ContainerStatus describes one localtest container.

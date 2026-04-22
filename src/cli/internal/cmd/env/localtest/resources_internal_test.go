@@ -342,7 +342,7 @@ func TestEnsurePgpassWritesReadableSourceFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat pgpass: %v", err)
 	}
-	if runtime.GOOS != "windows" && info.Mode().Perm() != osutil.FilePermDefault {
+	if runtime.GOOS != osWindows && info.Mode().Perm() != osutil.FilePermDefault {
 		got := info.Mode().Perm()
 		t.Fatalf("pgpass mode = %v, want %v", got, osutil.FilePermDefault)
 	}

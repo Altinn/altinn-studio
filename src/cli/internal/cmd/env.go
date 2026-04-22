@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
@@ -16,6 +17,8 @@ import (
 )
 
 const runtimeLocaltest = "localtest"
+
+var errResetUnsupported = errors.New("reset is not supported for runtime")
 
 // EnvCommand implements the 'env' subcommand.
 type EnvCommand struct {
@@ -84,6 +87,19 @@ func (o envStatusOutput) Print(out *ui.Output) error {
 	return nil
 }
 
+type envResetOutput struct {
+	Runtime    string `json:"runtime"`
+	Reset      bool   `json:"reset"`
+	JSONOutput bool   `json:"-"`
+}
+
+func (o envResetOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "env reset", o)
+	}
+	return nil
+}
+
 // NewEnvCommand creates a new env command.
 func NewEnvCommand(cfg *config.Config, out *ui.Output) *EnvCommand {
 	return &EnvCommand{cfg: cfg, out: out}
@@ -105,6 +121,7 @@ func (c *EnvCommand) Usage() string {
 		"Subcommands:",
 		"  up       Start the environment",
 		"  down     Stop the environment",
+		"  reset    Delete persisted environment data",
 		"  status   Show environment status",
 		"  logs     Stream environment logs",
 		"",
@@ -116,6 +133,9 @@ func (c *EnvCommand) Usage() string {
 		"  --monitoring     Start monitoring stack",
 		"  --pgadmin        Start pgAdmin for the workflow-engine database",
 		"  --open           Open localtest in browser after starting",
+		"",
+		"Options for 'env reset':",
+		"  -y, --yes        Skip confirmation prompt",
 		"",
 		fmt.Sprintf("Run '%s env <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)
@@ -136,6 +156,8 @@ func (c *EnvCommand) Run(ctx context.Context, args []string) error {
 		return c.runUp(ctx, subArgs)
 	case "down":
 		return c.runDown(ctx, subArgs)
+	case "reset":
+		return c.runReset(ctx, subArgs)
 	case "status":
 		return c.runStatus(ctx, subArgs)
 	case "logs":
@@ -343,6 +365,109 @@ func (c *EnvCommand) runDown(ctx context.Context, args []string) error {
 			JSONOutput:     flags.jsonOutput,
 		}.Print(c.out)
 	})
+}
+
+// envResetFlags holds parsed flags for the env reset command.
+type envResetFlags struct {
+	runtime    string
+	yes        bool
+	jsonOutput bool
+}
+
+func (c *EnvCommand) parseResetFlags(args []string) (envResetFlags, bool, error) {
+	fs := flag.NewFlagSet("env reset", flag.ContinueOnError)
+	var f envResetFlags
+	fs.StringVar(&f.runtime, "r", runtimeLocaltest, "Runtime to use")
+	fs.StringVar(&f.runtime, "runtime", runtimeLocaltest, "Runtime to use")
+	fs.BoolVar(&f.yes, "y", false, "Skip confirmation prompt")
+	fs.BoolVar(&f.yes, "yes", false, "Skip confirmation prompt")
+	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return f, true, nil
+		}
+		return f, false, fmt.Errorf("parsing flags: %w", err)
+	}
+
+	return f, false, nil
+}
+
+func (c *EnvCommand) runReset(ctx context.Context, args []string) error {
+	flags, helpShown, err := c.parseResetFlags(args)
+	if err != nil {
+		return err
+	}
+	if helpShown {
+		return nil
+	}
+	if err := validateResetRuntime(flags.runtime); err != nil {
+		return err
+	}
+	if proceed, err := c.confirmResetIfNeeded(ctx, flags); err != nil {
+		return err
+	} else if !proceed {
+		return nil
+	}
+
+	return c.withContainerClient(ctx, func(client container.ContainerClient) error {
+		env, err := c.getEnvWithOutput(flags.runtime, client, commandOutput(c.out, flags.jsonOutput))
+		if err != nil {
+			return err
+		}
+
+		resetter, ok := env.(envtypes.Resetter)
+		if !ok {
+			return fmt.Errorf("%w: %s", errResetUnsupported, flags.runtime)
+		}
+
+		if err := resetter.Reset(ctx); err != nil {
+			return fmt.Errorf("env reset: %w", err)
+		}
+
+		return envResetOutput{
+			Runtime:    flags.runtime,
+			Reset:      true,
+			JSONOutput: flags.jsonOutput,
+		}.Print(c.out)
+	})
+}
+
+func validateResetRuntime(runtime string) error {
+	switch runtime {
+	case runtimeLocaltest:
+		return nil
+	default:
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, runtime)
+	}
+}
+
+func (c *EnvCommand) confirmResetIfNeeded(ctx context.Context, flags envResetFlags) (bool, error) {
+	if flags.jsonOutput && !flags.yes {
+		return false, fmt.Errorf("%w: --json requires --yes", ErrInvalidFlagValue)
+	}
+	if flags.yes {
+		return true, nil
+	}
+	if !ui.StdinIsTerminal() {
+		return false, fmt.Errorf("%w: --yes is required when stdin is not a terminal", ErrInvalidFlagValue)
+	}
+
+	confirmed, err := ui.Confirm(
+		ctx,
+		c.out,
+		os.Stdin,
+		fmt.Sprintf("Delete persisted %s environment data? [y/N]: ", flags.runtime),
+	)
+	if err != nil {
+		return false, fmt.Errorf("confirm reset: %w", err)
+	}
+	if !confirmed {
+		c.out.Println("Reset cancelled")
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // envStatusFlags holds parsed flags for the env status command.

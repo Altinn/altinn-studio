@@ -10,13 +10,13 @@ import (
 	"os"
 	"time"
 
-	"altinn.studio/studioctl/internal/osutil"
-
 	"golang.org/x/term"
 )
 
 // ErrInterrupted is returned when user aborts with Ctrl+C.
 var ErrInterrupted = errors.New("interrupted")
+
+var errFDOverflow = errors.New("file descriptor overflow")
 
 // Control characters for terminal input.
 const (
@@ -35,25 +35,35 @@ const (
 // Supports context cancellation and Ctrl+C detection.
 // Terminal state is always restored, even on interrupt.
 func ReadPassword(ctx context.Context, out *Output) ([]byte, error) {
-	fd, ok := osutil.FDInt(os.Stdin.Fd())
-
-	if !ok || !term.IsTerminal(fd) {
+	if !StdinIsTerminal() {
 		return ReadLine(ctx, os.Stdin)
+	}
+
+	cleanup, err := makeRawStdin(out)
+	if err != nil {
+		return nil, err
+	}
+	defer cleanup()
+
+	return readPasswordBytes(ctx, os.Stdin)
+}
+
+func makeRawStdin(out *Output) (func(), error) {
+	fd, ok := fdInt(os.Stdin)
+	if !ok {
+		return nil, fmt.Errorf("stdin file descriptor: %w", errFDOverflow)
 	}
 
 	oldState, err := term.MakeRaw(fd)
 	if err != nil {
 		return nil, fmt.Errorf("set raw mode: %w", err)
 	}
-	defer func() {
-		if restoreErr := term.Restore(fd, oldState); restoreErr != nil {
-			if out != nil {
-				out.Verbosef("failed to restore terminal: %v", restoreErr)
-			}
-		}
-	}()
 
-	return readPasswordBytes(ctx, os.Stdin)
+	return func() {
+		if restoreErr := term.Restore(fd, oldState); restoreErr != nil && out != nil {
+			out.Verbosef("failed to restore terminal: %v", restoreErr)
+		}
+	}, nil
 }
 
 // ReadLine reads one line from r.
