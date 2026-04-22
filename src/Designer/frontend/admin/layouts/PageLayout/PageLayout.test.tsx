@@ -1,13 +1,12 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../testing/mocks';
 import { appContentWrapperId } from '@studio/testing/testids';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { useMediaQuery } from '@studio/hooks';
-import { useFeatureFlag } from '@studio/feature-flags';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockNavigate = jest.fn();
 
@@ -19,19 +18,32 @@ jest.mock('react-router-dom', () => ({
   Outlet: () => <div>Outlet</div>,
   useNavigate: () => mockNavigate,
 }));
-jest.mock('@studio/hooks', () => ({
-  ...jest.requireActual('@studio/hooks'),
-  useMediaQuery: jest.fn(),
-}));
-jest.mock('@studio/feature-flags', () => ({
-  ...jest.requireActual('@studio/feature-flags'),
-  useFeatureFlag: jest.fn(),
-}));
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: jest.fn(() => ({ environment: {} })),
-}));
-jest.mock('app-shared/hooks/mutations/useLogoutMutation', () => ({
-  useLogoutMutation: () => ({ mutate: jest.fn() }),
+jest.mock('app-shared/components/PageHeader/PageHeader', () => ({
+  PageHeader: ({ onOrgSelect, onUserSelect }: any) => (
+    <>
+      <button
+        onClick={() =>
+          onOrgSelect({ username: 'skd', full_name: 'Skatteetaten', avatar_url: '', id: 2 })
+        }
+      >
+        Skatteetaten
+      </button>
+      <button
+        onClick={() =>
+          onUserSelect({
+            login: 'test',
+            full_name: 'Test User',
+            id: 1,
+            email: '',
+            avatar_url: '',
+            userType: 0,
+          })
+        }
+      >
+        Test User
+      </button>
+    </>
+  ),
 }));
 
 const scrollToMock = jest.fn();
@@ -42,19 +54,13 @@ const userMock = {
   email: '',
   full_name: 'Test User',
   id: 1,
-  login: 'test',
+  login: 'testuser',
   userType: 0,
 };
-
-const organizationsMock = [
-  { username: 'ttd', full_name: 'The TTD org', avatar_url: '', id: 1 },
-  { username: 'skd', full_name: 'Skatteetaten', avatar_url: '', id: 2 },
-];
 
 const renderPageLayout = (initialEntries = ['/ttd/apps']) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.CurrentUser], userMock);
-  queryClient.setQueryData([QueryKey.Organizations], organizationsMock);
   return renderWithProviders(
     <Routes>
       <Route path='/:owner/*' element={<PageLayout />} />
@@ -64,11 +70,6 @@ const renderPageLayout = (initialEntries = ['/ttd/apps']) => {
 };
 
 describe('PageLayout', () => {
-  beforeEach(() => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
-    (useFeatureFlag as jest.Mock).mockReturnValue(false);
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -92,8 +93,7 @@ describe('PageLayout', () => {
     const user = userEvent.setup();
     renderPageLayout(['/ttd/apps/at22/my-app']);
 
-    await user.click(screen.getByRole('button', { name: /The TTD org/ }));
-    await user.click(screen.getByRole('menuitemradio', { name: 'Skatteetaten' }));
+    await user.click(screen.getByRole('button', { name: 'Skatteetaten' }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/skd/apps/at22/my-app');
   });
@@ -102,9 +102,36 @@ describe('PageLayout', () => {
     const user = userEvent.setup();
     renderPageLayout(['/ttd/apps']);
 
-    await user.click(screen.getByRole('button', { name: /The TTD org/ }));
-    await user.click(screen.getByRole('menuitemradio', { name: userMock.full_name }));
+    await user.click(screen.getByRole('button', { name: 'Test User' }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/test/apps');
+  });
+
+  it('renders a loading spinner while the user query is pending', () => {
+    const queryClient = createQueryClientMock();
+    renderWithProviders(
+      <Routes>
+        <Route path='/:owner/*' element={<PageLayout />} />
+      </Routes>,
+      { queryClient, initialEntries: ['/ttd/apps'] },
+    );
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
+  });
+
+  it('renders the error page when the user query fails', async () => {
+    renderWithProviders(
+      <Routes>
+        <Route path='/:owner/*' element={<PageLayout />} />
+      </Routes>,
+      {
+        queries: { getUser: () => Promise.reject(new Error('failed')) },
+        initialEntries: ['/ttd/apps'],
+      },
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: textMock('general.page_error_title') }),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -53,7 +53,7 @@ const CenterContent = ({ owner }: CenterContentProps): ReactElement => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
-  const isAdminPath = pathname.startsWith(ADMIN_BASENAME);
+  const isAdminPath = pathname === ADMIN_BASENAME || pathname.startsWith(`${ADMIN_BASENAME}/`);
 
   return (
     <StudioPageHeader.Center>

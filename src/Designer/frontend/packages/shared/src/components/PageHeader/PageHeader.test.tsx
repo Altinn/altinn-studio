@@ -5,8 +5,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageHeader } from './PageHeader';
 import { useMediaQuery } from '@studio/hooks';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
-import { DISPLAY_NAME } from 'app-shared/constants';
+import { FeatureFlag, FeatureFlagsProvider } from '@studio/feature-flags';
+import { ADMIN_BASENAME, DISPLAY_NAME } from 'app-shared/constants';
 
 const mockEnvironment: {
   environment: AltinnStudioEnvironment | null;
@@ -34,6 +34,12 @@ const mockUser = {
 jest.mock('@studio/hooks', () => ({
   ...jest.requireActual('@studio/hooks'),
   useMediaQuery: jest.fn(),
+}));
+
+const mockUseFeatureFlag = jest.fn();
+jest.mock('@studio/feature-flags', () => ({
+  ...jest.requireActual('@studio/feature-flags'),
+  useFeatureFlag: (...args: unknown[]) => mockUseFeatureFlag(...args),
 }));
 
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
@@ -125,6 +131,29 @@ describe('PageHeader', () => {
     await user.click(screen.getByRole('menuitemradio', { name: mockUser.full_name }));
 
     expect(mockUserSelect).toHaveBeenCalledWith(mockUser);
+  });
+
+  describe('admin link active state', () => {
+    beforeEach(() => {
+      mockUseFeatureFlag.mockImplementation((flag: FeatureFlag) => flag === FeatureFlag.Admin);
+    });
+
+    it.each([
+      [ADMIN_BASENAME, true],
+      [`${ADMIN_BASENAME}/ttd`, true],
+      [`${ADMIN_BASENAME}/ttd/apps`, true],
+      ['/administer', false],
+      ['/admin-old', false],
+      ['/dashboard', false],
+    ])('path "%s" → admin link is active: %s', (path, expectedActive) => {
+      renderPageHeader([path]);
+      const adminLink = screen.getByText(textMock('admin.apps.title'));
+      if (expectedActive) {
+        expect(adminLink).toHaveClass('active');
+      } else {
+        expect(adminLink).not.toHaveClass('active');
+      }
+    });
   });
 });
 
