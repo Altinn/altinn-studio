@@ -49,7 +49,3 @@
   display: flex;
   flex-direction: column;
 }
-
-.alertMessage {
-  margin: var(--fds-spacing-1) var(--fds-spacing-8);
-}
