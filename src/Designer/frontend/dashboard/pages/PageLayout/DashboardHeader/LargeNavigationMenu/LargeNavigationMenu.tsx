@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
-import { StudioPageHeader } from '@studio/components';
+import { StudioLink, StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
@@ -30,23 +30,29 @@ function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement
   const selectedContext: string = useSelectedContext();
   const subroute = useSubroute();
   const { t } = useTranslation();
-  const path: string = `/${menuItem.link}/${selectedContext}`;
+  const path: string = menuItem.getLink(selectedContext);
 
   return (
     <li key={menuItem.name}>
       <StudioPageHeader.HeaderLink
         isBeta={menuItem.isBeta}
-        renderLink={(props) => (
-          <NavLink to={path} {...props}>
-            <span
-              className={cn({
-                [classes.active]: menuItem.link === subroute,
-              })}
-            >
+        renderLink={(props) =>
+          menuItem.isExternalLink ? (
+            <StudioLink href={path} {...props}>
               {t(menuItem.name)}
-            </span>
-          </NavLink>
-        )}
+            </StudioLink>
+          ) : (
+            <NavLink to={path} {...props}>
+              <span
+                className={cn({
+                  [classes.active]: menuItem.getLink().startsWith(subroute),
+                })}
+              >
+                {t(menuItem.name)}
+              </span>
+            </NavLink>
+          )
+        }
       />
     </li>
   );

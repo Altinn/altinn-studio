@@ -3,19 +3,31 @@ import { Subroute } from '../../enums/Subroute';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';
+import { isOrg } from '../orgUtils/orgUtils';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import { type StudioProfileMenuGroup } from '@studio/components';
+import { FeatureFlag } from '@studio/feature-flags';
+import { ADMIN_BASENAME } from 'app-shared/constants';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.AppDashboard,
-    link: Subroute.AppDashboard,
+    getLink: (selectedContext: string = '') => `${Subroute.AppDashboard}/${selectedContext}`,
     name: 'dashboard.header_item_dashboard',
     group: HeaderMenuGroupKey.Tools,
   },
   {
+    key: HeaderMenuItemKey.Admin,
+    getLink: (selectedContext: string = '') =>
+      `${ADMIN_BASENAME}/${isOrg(selectedContext) ? selectedContext : ''}`,
+    name: 'admin.apps.title',
+    group: HeaderMenuGroupKey.Tools,
+    featureFlag: FeatureFlag.Admin,
+    isExternalLink: true,
+  },
+  {
     key: HeaderMenuItemKey.OrgLibrary,
-    link: Subroute.OrgLibrary,
+    getLink: (selectedContext: string = '') => `${Subroute.OrgLibrary}/${selectedContext}`,
     name: 'dashboard.header_item_library',
     group: HeaderMenuGroupKey.Tools,
     isBeta: true,
@@ -43,7 +55,7 @@ export const mapHeaderMenuGroupToNavigationMenu = (
   items: menuGroup.menuItems.map((menuItem: HeaderMenuItem) => ({
     action: {
       type: 'link',
-      href: menuItem.link,
+      href: menuItem.getLink(),
     },
     itemName: menuItem.name,
   })),

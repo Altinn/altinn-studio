@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
+import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useRepoPath } from '../../hooks/useRepoPath';
 import { useSubroute } from '../../hooks/useSubRoute';
@@ -44,6 +45,7 @@ export const HeaderContextProvider = ({
   const subroute = useSubroute();
 
   const { environment } = useEnvironmentConfig();
+  const { flags } = useFeatureFlagsContext();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
     navigate(`${subroute}/${context}${location.search}`);
@@ -111,7 +113,9 @@ export const HeaderContextProvider = ({
       value={{
         user,
         selectableOrgs,
-        menuItems: dashboardHeaderMenuItems.map((item) => ({ name: t(item.name), ...item })),
+        menuItems: dashboardHeaderMenuItems
+          .filter((item) => !item.featureFlag || flags.includes(item.featureFlag))
+          .map((item) => ({ name: t(item.name), ...item })),
         profileMenuItems,
         profileMenuGroups,
       }}
