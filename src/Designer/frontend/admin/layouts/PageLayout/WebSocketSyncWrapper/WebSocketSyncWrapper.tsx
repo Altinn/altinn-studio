@@ -2,11 +2,11 @@ import React from 'react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { useQueryClient } from '@tanstack/react-query';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
 import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';
 import type { AlertsUpdated } from 'app-shared/types/api/AlertsUpdated';
 import { AlertsUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/AlertsUpdatedQueriesInvalidator';
+import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
 
 enum SyncAlertsClientName {
   AlertsUpdated = 'AlertsUpdated',
@@ -18,9 +18,9 @@ type WebSocketSyncWrapperProps = {
 export const WebSocketSyncWrapper = ({
   children,
 }: WebSocketSyncWrapperProps): React.ReactElement => {
-  const { org } = useStudioEnvironmentParams();
+  const { owner } = useRoutePathsParams();
   const queryClient = useQueryClient();
-  const alertsUpdateInvalidator = AlertsUpdatedQueriesInvalidator.getInstance(queryClient, org);
+  const alertsUpdateInvalidator = AlertsUpdatedQueriesInvalidator.getInstance(queryClient, owner);
 
   useWebSocket({
     webSocketUrls: [syncAlertsUpdateWebSocketHub()],

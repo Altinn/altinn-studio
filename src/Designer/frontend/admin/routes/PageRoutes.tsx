@@ -5,24 +5,29 @@ import {
   createRoutesFromElements,
   Route,
 } from 'react-router-dom';
-import { App } from 'admin/layout/App';
-import { PageLayout } from 'admin/layout/PageLayout';
+import { PageLayout } from 'admin/layouts/PageLayout/PageLayout';
+import { OrgPageLayout } from 'admin/layouts/OrgPageLayout/OrgPageLayout';
 import { PageLayout as AppsLayout } from 'admin/features/apps/layout/PageLayout';
 import { ADMIN_BASENAME } from 'app-shared/constants';
-import { NotFoundPage } from 'admin/layout/NotFoundPage';
+import { RoutePaths } from './RoutePaths';
+import { NotFound } from 'admin/components/NotFound/NotFound';
 import {
   AppRouteErrorBoundary,
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
 } from './PageRouterErrorBoundary';
 import { routerRoutes } from './routes';
-
-const BASE_PATH = '/:org';
+import { IndexRedirect } from 'admin/components/IndexRedirect/IndexRedirect';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route element={<App />} errorElement={<AppRouteErrorBoundary />}>
-      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
+    <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
+      <Route index element={<IndexRedirect />} />
+      <Route
+        path={RoutePaths.Owner}
+        element={<OrgPageLayout />}
+        errorElement={<RouteErrorBoundary />}
+      >
         <Route element={<AppsLayout />} errorElement={<RouteErrorBoundary />}>
           {routerRoutes.map((route) => (
             <Route
@@ -33,9 +38,8 @@ const router = createBrowserRouter(
             />
           ))}
         </Route>
-        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
+        <Route path='*' element={<NotFound />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
-      <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,
   ),
   {
@@ -43,7 +47,4 @@ const router = createBrowserRouter(
   },
 );
 
-/**
- * Displays the routes for app development pages
- */
 export const PageRoutes = (): React.ReactElement => <RouterProvider router={router} />;

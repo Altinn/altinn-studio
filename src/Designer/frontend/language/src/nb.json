@@ -7,6 +7,8 @@
   "admin.app.info.publish_date": "Publiseringsdato",
   "admin.app.info.published_by": "Publisert av",
   "admin.app.info.title": "Informasjon om appen",
+  "admin.apps.alert_no_org_selected": "For å vise publiserte apper, må du velge en organisasjon i menyen øverst til høyre.",
+  "admin.apps.alert_no_org_selected_no_access": "Hvis du ikke har tilgang til noen organisasjoner, må du be om tilgang fra en tjenesteeier.",
   "admin.apps.name": "Navn",
   "admin.apps.search": "Søk i apper",
   "admin.apps.title": "Publiserte apper",

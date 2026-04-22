@@ -11,23 +11,25 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import axios from 'axios';
 import userEvent from '@testing-library/user-event';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
-import { OrgContext } from 'admin/layout/PageLayout';
+import { OrgContext } from 'admin/contexts/OrgContext';
 
 const range = 1440;
 const env = 'production';
 const envTitle = textMock('general.production_environment_alt').toLowerCase();
-const orgName = org;
+const orgFullName = 'Test Org Full Name';
 
 const orgMock = {
-  name: {
-    en: org,
-    nb: org,
-    nn: org,
-  },
-  logo: '',
-  orgnr: '',
-  homepage: '',
-  environments: [],
+  username: org,
+  full_name: orgFullName,
+  avatar_url: '',
+  id: 1,
+};
+
+const orgMockWithoutFullName = {
+  username: org,
+  full_name: '',
+  avatar_url: '',
+  id: 1,
 };
 
 const defaultProps: AppsTableProps = {
@@ -131,7 +133,41 @@ describe('AppsTable', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.errors.missing_rights', { envTitle, orgName })),
+        screen.getByText(
+          textMock('admin.metrics.errors.missing_rights', { envTitle, orgName: orgFullName }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('should use org username when full name is missing in missing rights alert', async () => {
+      const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+      const queryClient = createQueryClientMock();
+
+      queryClient.setQueryData([QueryKey.PublishedApps, org], {
+        production: [
+          {
+            app,
+            env,
+            org,
+            version: '1',
+          },
+        ],
+      });
+
+      renderAppsTable(queryClient, defaultProps, orgMockWithoutFullName);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByLabelText(textMock('admin.metrics.errors.loading')),
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByText(
+          textMock('admin.metrics.errors.missing_rights', { envTitle, orgName: org }),
+        ),
       ).toBeInTheDocument();
     });
 
@@ -239,10 +275,11 @@ describe('AppsTable', () => {
 const renderAppsTable = (
   client = createQueryClientMock(),
   props: AppsTableProps = defaultProps,
+  currentOrg = orgMock,
 ) => {
   render(
     <MemoryRouter>
-      <OrgContext.Provider value={orgMock}>
+      <OrgContext.Provider value={currentOrg}>
         <QueryClientProvider client={client}>
           <AppsTable {...props} />
         </QueryClientProvider>

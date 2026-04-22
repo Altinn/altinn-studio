@@ -1,16 +1,11 @@
 import { StudioHeading } from '@studio/components';
-import { useParams } from 'react-router-dom';
 import { InstanceDataView } from './components/InstanceDataView';
 import { Breadcrumbs } from '../../components/Breadcrumbs/Breadcrumbs';
 import classes from './InstanceDetails.module.css';
+import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
 
 export const InstanceDetails = () => {
-  const { org, environment, app, instanceId } = useParams() as {
-    org: string;
-    environment: string;
-    app: string;
-    instanceId: string;
-  };
+  const { owner: org, app, environment, instanceId } = useRoutePathsParams();
 
   return (
     <div className={classes.container}>
