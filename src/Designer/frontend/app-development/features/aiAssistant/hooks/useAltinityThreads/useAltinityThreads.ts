@@ -8,8 +8,6 @@ import { useDeleteChatThreadMutation } from '../mutations/useDeleteChatThreadMut
 import { useChatMessagesQuery } from '../queries/useChatMessagesQuery';
 import { useCreateChatMessageMutation } from '../mutations/useCreateChatMessageMutation';
 
-type ApiChatThread = Pick<ChatThread, 'id' | 'title' | 'createdAt'>;
-
 export interface AltinityThreadState {
   chatThreads: ChatThread[];
   currentSessionId: string | null;
@@ -32,7 +30,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
   const { mutate: deleteThreadMutation } = useDeleteChatThreadMutation();
 
   const apiThreads: ChatThread[] = useMemo(
-    () => (threadResponses ?? []).map((response: ApiChatThread) => ({ ...response, messages: [] })),
+    () => (threadResponses ?? []).map((thread) => ({ ...thread, messages: [] })),
     [threadResponses],
   );
 

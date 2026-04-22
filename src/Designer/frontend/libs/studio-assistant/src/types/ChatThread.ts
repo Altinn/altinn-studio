@@ -3,7 +3,7 @@ import type { MessageAuthor } from './MessageAuthor';
 export type ChatThread = {
   id: string;
   title: string;
-  messages: Message[];
+  messages?: Message[];
   createdAt: string;
   updatedAt?: string;
 };
