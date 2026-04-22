@@ -29,10 +29,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
   const { mutateAsync: createThreadMutation } = useCreateChatThreadMutation();
   const { mutate: deleteThreadMutation } = useDeleteChatThreadMutation();
 
-  const apiThreads: ChatThread[] = useMemo(
-    () => (threadResponses ?? []).map((thread) => ({ ...thread, messages: [] })),
-    [threadResponses],
-  );
+  const chatThreads: ChatThread[] = useMemo(() => threadResponses ?? [], [threadResponses]);
 
   const { data: apiMessages } = useChatMessagesQuery(currentSessionId);
   const { mutate: createChatMessage } = useCreateChatMessageMutation();
@@ -43,15 +40,6 @@ export const useAltinityThreads = (): AltinityThreadState => {
   }, []);
 
   const persistedMessages: Message[] = useMemo(() => apiMessages ?? [], [apiMessages]);
-
-  const chatThreads: ChatThread[] = useMemo(
-    () =>
-      apiThreads.map((thread) => ({
-        ...thread,
-        messages: thread.id === currentSessionId ? persistedMessages : [],
-      })),
-    [apiThreads, currentSessionId, persistedMessages],
-  );
 
   const selectThread = useCallback(
     (threadId: string | null) => {
@@ -89,13 +77,13 @@ export const useAltinityThreads = (): AltinityThreadState => {
         threadId,
         payload: isUser
           ? {
-              author: message.author,
+              role: message.author,
               content: message.content,
               allowAppChanges: message.allowAppChanges,
               attachmentFileNames: message.attachments?.map((a) => a.name),
             }
           : {
-              author: message.author,
+              role: message.author,
               content: message.content,
               filesChanged: message.filesChanged,
               sources: message.sources,

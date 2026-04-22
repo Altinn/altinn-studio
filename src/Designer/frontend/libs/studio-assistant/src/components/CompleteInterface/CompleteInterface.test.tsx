@@ -75,7 +75,7 @@ describe('CompleteInterface', () => {
   });
 
   it('should render messages from the first thread by default', () => {
-    renderCompleteInterface({ chatThreads: mockChatThreads });
+    renderCompleteInterface({ messages: mockChatThreads[0].messages });
     const userMessage = screen.getByText('User message');
 
     expect(userMessage).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe('CompleteInterface', () => {
   it('should render the assistant loading bubble when the active workflow belongs to the active thread', () => {
     const loadingBubbleMessage = 'Working on it...';
     renderCompleteInterface({
-      chatThreads: mockChatThreads,
+      messages: mockChatThreads[0].messages,
       activeThreadId: '1',
       workflowStatus: { isActive: true, sessionId: '1', message: loadingBubbleMessage },
     });
@@ -141,7 +141,7 @@ describe('CompleteInterface', () => {
   it('should not render the assistant loading bubble when the active workflow belongs to another thread', () => {
     const loadingBubbleMessage = 'Working on it...';
     renderCompleteInterface({
-      chatThreads: mockChatThreads,
+      messages: mockChatThreads[0].messages,
       activeThreadId: '1',
       workflowStatus: { isActive: true, sessionId: '2', message: loadingBubbleMessage },
     });

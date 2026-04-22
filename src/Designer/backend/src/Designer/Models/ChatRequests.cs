@@ -18,7 +18,7 @@ public record CreateChatMessageRequest(
 public record ChatSourceRequest(
     string Tool,
     string Title,
-    string PreviewText,
+    string? PreviewText,
     int? ContentLength,
     string? Url,
     double? Relevance,
