@@ -801,6 +801,11 @@ internal sealed partial class EngineRepository
             await ExecuteWithRetry(
                 async ct =>
                 {
+                    // Reset on every attempt — ExecuteWithRetry re-invokes this delegate on
+                    // transient failures, and a partial read from a failed attempt would
+                    // otherwise accumulate and get re-reported to TryAbandonLostLease.
+                    lost.Clear();
+
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     // Pair (id, lease_token) via unnest so the WHERE check matches rows on both columns simultaneously.
                     // ANY(@ids) + ANY(@tokens) would be wrong — it would accept any id/token cross-product match.
@@ -911,9 +916,11 @@ internal sealed partial class EngineRepository
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
                         // Invariant: workflows reaching write-back were fetched by this host, so LeaseToken is non-null.
-#pragma warning disable NX0003
-                        leaseTokens[i] = w.LeaseToken!.Value;
-#pragma warning restore NX0003
+                        leaseTokens[i] =
+                            w.LeaseToken
+                            ?? throw new InvalidOperationException(
+                                $"Workflow {w.DatabaseId} reached write-back without a LeaseToken; expected FetchAndLockWorkflows to stamp one"
+                            );
                     }
 
                     // Lease-token compare-and-swap: rows whose LeaseToken no longer matches the
@@ -1048,11 +1055,18 @@ internal sealed partial class EngineRepository
                         await cmd.ExecuteNonQueryAsync(ct);
                     }
 
-                    await tx.CommitAsync(ct);
+                    // Signal dashboard SSE subscribers via PG NOTIFY. PostgreSQL queues NOTIFY
+                    // inside the enclosing transaction and drops it on rollback, so this is safe
+                    // to run before commit. Running it after commit would re-enter the retry on
+                    // any transient NOTIFY failure; the second attempt's CAS would then see rows
+                    // whose LeaseToken was already cleared by the first (committed) update and
+                    // classify every workflow as lease-lost.
+                    await using (var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx))
+                    {
+                        await notifyCmd.ExecuteNonQueryAsync(ct);
+                    }
 
-                    // Signal dashboard SSE subscribers via PG NOTIFY
-                    await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
-                    await notifyCmd.ExecuteNonQueryAsync(ct);
+                    await tx.CommitAsync(ct);
                 },
                 cancellationToken
             );

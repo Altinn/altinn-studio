@@ -17,7 +17,11 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     // Workflows whose CTS was cancelled by TryAbandonLostLease specifically (not user-cancel
     // or shutdown). Used by handlers to translate a race-induced OperationCanceledException
     // into the lease-lost path so metrics and activity tags stay accurate.
-    private readonly ConcurrentDictionary<Guid, byte> _abandonedLeases = new();
+    //
+    // The value stores the exact CTS the marker was set for, so a stale marker from an
+    // earlier in-flight attempt cannot be mistaken for an abandon of a newer attempt that
+    // happens to share the same workflow id (same-id re-fetch after reclaim).
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _abandonedLeases = new();
 
     public bool IsEmpty => _workflows.IsEmpty;
 
@@ -26,15 +30,15 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
 
     public bool TryRemove(Guid workflowId, out CancellationTokenSource? cts)
     {
-        // Clear the abandoned marker after removing the workflow. A concurrent
-        // TryAbandonLostLease that observed this workflow before removal may still
-        // add a marker after this point; the re-check inside TryAbandonLostLease
-        // handles that residual race and removes its own stale marker.
-        var removed = _workflows.TryRemove(workflowId, out var entry);
-        _abandonedLeases.TryRemove(workflowId, out _);
-
-        if (removed)
+        if (_workflows.TryRemove(workflowId, out var entry))
         {
+            // Clear the abandoned marker only if it still refers to the CTS we just
+            // removed. Compare-and-remove prevents an ABA race from clearing a marker
+            // that belongs to a newer in-flight attempt for the same workflow id.
+            // A concurrent TryAbandonLostLease that observed this workflow before
+            // removal may still add a marker after this point; its own re-check handles
+            // that residual race.
+            TryRemoveAbandonedLeaseIfOwned(workflowId, entry.Cts);
             cts = entry.Cts;
             return true;
         }
@@ -96,16 +100,18 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
                 continue;
 
             // Mark before cancelling so WasLeaseAbandoned is observable the moment
-            // the CT registration fires on the awaiting Submit.
-            _abandonedLeases.TryAdd(id, 0);
+            // the CT registration fires on the awaiting Submit. The marker is tied to
+            // this exact CTS so a stale observer cannot mistake it for an abandon of
+            // a newer in-flight attempt that happens to share the same workflow id.
+            _abandonedLeases[id] = entry.Cts;
 
             // Re-check: if the workflow was concurrently removed (or replaced with a
-            // different CTS) between the TryGetValue above and the TryAdd, the marker
-            // we just added would never be cleaned up by TryRemove and would leak.
-            // Drop it ourselves.
+            // different CTS) between the TryGetValue above and the marker store, drop
+            // our marker. Compare-and-remove so we only clear the marker we just set,
+            // never a newer attempt's marker.
             if (!_workflows.TryGetValue(id, out var current) || !ReferenceEquals(current.Cts, entry.Cts))
             {
-                _abandonedLeases.TryRemove(id, out _);
+                TryRemoveAbandonedLeaseIfOwned(id, entry.Cts);
                 continue;
             }
 
@@ -126,7 +132,18 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     /// <see cref="OperationCanceledException"/> (lease reclaimed by another host) from
     /// user-cancel or shutdown, so it can route the former to the lease-lost branch.
     /// </summary>
-    public bool WasLeaseAbandoned(Guid workflowId) => _abandonedLeases.ContainsKey(workflowId);
+    public bool WasLeaseAbandoned(Guid workflowId) =>
+        _workflows.TryGetValue(workflowId, out var entry)
+        && _abandonedLeases.TryGetValue(workflowId, out var abandonedCts)
+        && ReferenceEquals(abandonedCts, entry.Cts);
+
+    // Compare-and-remove on (workflowId, cts). No-ops if the stored marker no longer
+    // matches cts — protects against clearing a marker that was replaced by a newer
+    // in-flight attempt with the same workflow id.
+    private void TryRemoveAbandonedLeaseIfOwned(Guid workflowId, CancellationTokenSource cts) =>
+        ((ICollection<KeyValuePair<Guid, CancellationTokenSource>>)_abandonedLeases).Remove(
+            new KeyValuePair<Guid, CancellationTokenSource>(workflowId, cts)
+        );
 
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
 
@@ -138,18 +155,25 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     /// </summary>
     /// <remarks>
     /// Tracked workflows always originate from <c>FetchAndLockWorkflows</c>, which stamps a
-    /// fresh <c>LeaseToken</c> in the update CTE. The unwrap via <c>.Value</c> asserts that
-    /// invariant; a null here would mean an untracked call path added a workflow without a lease.
+    /// fresh <c>LeaseToken</c> in the update CTE, so the <c>?? throw</c> is an invariant
+    /// check, not a runtime code path.
     /// </remarks>
-    // Non-null assertion: tracked workflows always originate from FetchAndLockWorkflows, which
-    // stamps a fresh LeaseToken in the update CTE — so LeaseToken is guaranteed non-null here.
-#pragma warning disable NX0003
     public IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> GetSnapshotLeases() =>
         _workflows
-            .Where(kvp => !_abandonedLeases.ContainsKey(kvp.Key))
-            .Select(kvp => (kvp.Key, kvp.Value.Workflow.LeaseToken!.Value))
+            .Where(kvp =>
+                !_abandonedLeases.TryGetValue(kvp.Key, out var abandonedCts)
+                || !ReferenceEquals(abandonedCts, kvp.Value.Cts)
+            )
+            .Select(kvp =>
+                (
+                    kvp.Key,
+                    kvp.Value.Workflow.LeaseToken
+                        ?? throw new InvalidOperationException(
+                            $"Workflow {kvp.Key} tracked without a LeaseToken; expected FetchAndLockWorkflows to stamp one"
+                        )
+                )
+            )
             .ToList();
-#pragma warning restore NX0003
 
     /// <summary>
     /// Attempts to retrieve the in-memory <see cref="Workflow"/> object for a tracked workflow.
