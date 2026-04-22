@@ -18,6 +18,7 @@ import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NodeRefValidation } from 'src/features/validation';
+import type { NavigationState } from 'src/types/navigation';
 
 export interface NavigateToPageOptions {
   replace?: boolean;
@@ -219,7 +220,11 @@ export function useNavigatePage() {
     async (page?: string, options?: NavigateToPageOptions) => {
       const preventScrollReset = options?.searchParams?.has(SearchParams.FocusComponentId);
       const shouldExitSubform = options?.searchParams?.has(SearchParams.ExitSubform, 'true') ?? false;
-      const replace = options?.replace ?? false;
+      const navOptions: NavigateOptions = {
+        replace: options?.replace ?? false,
+        preventScrollReset,
+        state: preventScrollReset ? ({ preventFocusReset: true } satisfies NavigationState) : undefined,
+      };
       if (!page) {
         window.logWarn('navigateToPage called without page');
         return;
@@ -239,7 +244,7 @@ export function useNavigatePage() {
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStateless) {
         const url = `/${page}${searchParams}`;
-        return navigate(url, options, { replace, preventScrollReset });
+        return navigate(url, options, navOptions);
       }
 
       const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
@@ -247,11 +252,11 @@ export function useNavigatePage() {
       // Subform
       if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
         const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`;
-        return navigate(url, options, { replace, preventScrollReset });
+        return navigate(url, options, navOptions);
       }
 
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
-      navigate(url, options, { replace, preventScrollReset });
+      navigate(url, options, navOptions);
     },
     [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
   );
@@ -356,13 +361,6 @@ export function useNavigatePage() {
   };
 }
 
-export function focusMainContent(options?: Pick<NavigateToPageOptions, 'searchParams'>) {
-  if (!options?.searchParams?.has(SearchParams.FocusComponentId)) {
-    document.getElementById('main-content')?.focus();
-    window.scrollTo(0, 0);
-  }
-}
-
 export function useVisitedPages() {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -404,7 +402,10 @@ export function useNavigateToComponent() {
           !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      setSearchParams(newSearchParams, { preventScrollReset: true });
+      setSearchParams(newSearchParams, {
+        preventScrollReset: true,
+        state: { preventFocusReset: true } satisfies NavigationState,
+      });
     }
   };
 }

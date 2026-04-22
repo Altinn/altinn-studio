@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
+import { NavigationFocus } from 'src/components/NavigationFocus';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
@@ -40,6 +41,7 @@ export function AppLayout() {
         </ErrorBoundary>
       </AppComponentsBridge>
       <ScrollRestoration />
+      <NavigationFocus />
     </>
   );
 }

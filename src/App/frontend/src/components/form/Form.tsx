@@ -29,6 +29,7 @@ import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
+import type { NavigationState } from 'src/types/navigation';
 
 interface FormState {
   hasRequired: boolean;
@@ -60,7 +61,11 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
           nextParams.delete(SearchParams.Validate);
           return nextParams;
         },
-        { replace: true, preventScrollReset: true },
+        {
+          replace: true,
+          preventScrollReset: true,
+          state: { preventFocusReset: true } satisfies NavigationState,
+        },
       );
     }
   }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage, shouldNavigateToStart]);

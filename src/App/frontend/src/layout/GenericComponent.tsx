@@ -30,6 +30,7 @@ import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
+import type { NavigationState } from 'src/types/navigation';
 
 export interface IGenericComponentProps<Type extends CompTypes> {
   baseComponentId: string;
@@ -263,7 +264,11 @@ function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSear
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete(SearchParams.FocusComponentId);
     newSearchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(newSearchParams, { replace: true, preventScrollReset: true });
+    setSearchParams(newSearchParams, {
+      replace: true,
+      preventScrollReset: true,
+      state: { preventFocusReset: true } satisfies NavigationState,
+    });
   }
 }
 
