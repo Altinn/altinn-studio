@@ -7,6 +7,7 @@ import type {
   ConnectionStatus,
   AssistantMessageData,
   AgentResponse,
+  UserAttachment,
 } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -24,6 +25,8 @@ import {
 
 const INITIAL_WORKFLOW_MESSAGE = 'Jobber med saken...';
 const DEFAULT_WORKFLOW_WAIT_MESSAGE = 'Vent litt...';
+const WORKFLOW_ERROR_MESSAGE =
+  'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.';
 
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
@@ -158,7 +161,12 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         const sessionId = currentSessionIdRef.current;
         if (!sessionId) return;
         if (event.data?.status === 'cancelled') return;
-        persistMessage(sessionId, createAssistantErrorMessage());
+        persistMessage(sessionId, {
+          author: MessageAuthor.Assistant,
+          content: WORKFLOW_ERROR_MESSAGE,
+          createdAt: new Date().toISOString(),
+          filesChanged: [],
+        });
       }
     },
     [handleAssistantMessage, currentSessionIdRef, persistMessage],
@@ -176,47 +184,71 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     });
   }, [onAgentMessage, handleWorkflowEvent]);
 
-  const runWorkflowForSession = useCallback(
-    async (threadId: string, userMessage: UserMessage): Promise<void> => {
+  const startAgentWorkflow = useCallback(
+    async (
+      _threadId: string,
+      goal: string,
+      allowAppChanges: boolean,
+      attachments?: UserAttachment[],
+    ): Promise<AgentResponse> => {
       const activeSession = backendSessionIdRef.current;
-      if (!activeSession) {
-        console.error('No active backend session — connection not established');
-        return;
-      }
-
-      persistMessage(threadId, userMessage);
-
+      if (!activeSession) throw new Error('No active backend session — connection not established');
       setWorkflowStatus({
         isActive: true,
         sessionId: activeSession,
         currentStep: 'Initializing',
         message: INITIAL_WORKFLOW_MESSAGE,
       });
-
       const branchToUse = currentBranch ?? currentBranchRef.current;
-
       try {
         const result = await startWorkflow({
           session_id: activeSession,
-          goal: userMessage.content,
+          goal,
           org,
           app,
           branch: branchToUse,
-          allow_app_changes: userMessage.allowAppChanges,
-          attachments: userMessage.attachments,
+          allow_app_changes: allowAppChanges,
+          attachments,
         });
+        if (!result.accepted) setWorkflowStatus({ isActive: false });
+        return result;
+      } catch (error) {
+        setWorkflowStatus({ isActive: false });
+        throw error;
+      }
+    },
+    [app, currentBranch, org, startWorkflow],
+  );
 
+  const runWorkflowForSession = useCallback(
+    async (threadId: string, userMessage: UserMessage): Promise<void> => {
+      persistMessage(threadId, userMessage);
+      try {
+        const result = await startAgentWorkflow(
+          threadId,
+          userMessage.content,
+          userMessage.allowAppChanges,
+          userMessage.attachments,
+        );
         if (!result.accepted) {
-          setWorkflowStatus({ isActive: false });
-          persistMessage(threadId, createAssistantRejectionMessage(result));
+          persistMessage(threadId, {
+            author: MessageAuthor.Assistant,
+            content: formatRejectionMessage(result),
+            createdAt: new Date().toISOString(),
+            filesChanged: [],
+          });
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
-        setWorkflowStatus({ isActive: false });
-        persistMessage(threadId, createAssistantErrorMessage());
+        persistMessage(threadId, {
+          author: MessageAuthor.Assistant,
+          content: WORKFLOW_ERROR_MESSAGE,
+          createdAt: new Date().toISOString(),
+          filesChanged: [],
+        });
       }
     },
-    [app, currentBranch, org, persistMessage, startWorkflow],
+    [persistMessage, startAgentWorkflow],
   );
 
   const onSubmitUserMessage = useCallback(
@@ -288,25 +320,6 @@ function buildSessionBranchName(sessionId: string): string {
     ? sessionId.substring(8, 16)
     : sessionId.substring(0, 8);
   return `altinity_session_${uniqueIdWithoutPrefix}`;
-}
-
-function createAssistantErrorMessage(): AssistantMessage {
-  return {
-    author: MessageAuthor.Assistant,
-    content:
-      'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
-    createdAt: new Date().toISOString(),
-    filesChanged: [],
-  };
-}
-
-function createAssistantRejectionMessage(response: AgentResponse): AssistantMessage {
-  return {
-    author: MessageAuthor.Assistant,
-    content: formatRejectionMessage(response),
-    createdAt: new Date().toISOString(),
-    filesChanged: [],
-  };
 }
 
 function createThreadTitle(messageContent: string): string {
