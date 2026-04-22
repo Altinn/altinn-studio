@@ -1522,7 +1522,6 @@
   "settings.api_keys.loading": "Laster inn API-nøkler...",
   "settings.api_keys.new_key_title": "Din nye API-nøkkel",
   "settings.api_keys.new_key_warning": "Sørg for å kopiere API-nøkkelen din nå. Den vil ikke vises igjen.",
-  "settings.navigation.user": "Din profil",
   "settings.no_environments": "Ingen miljøer",
   "settings.orgs.bot_accounts.add_bot_account": "Legg til ny bot-konto",
   "settings.orgs.bot_accounts.api_keys_button": "API-nøkler",

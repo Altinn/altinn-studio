@@ -1,3 +1,3 @@
 export enum RoutePaths {
-  ApiKeys = 'api-keys',
+  Owner = ':owner',
 }

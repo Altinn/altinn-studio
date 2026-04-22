@@ -5,7 +5,14 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { BotAccounts } from './BotAccounts';
+import { Route, Routes } from 'react-router-dom';
 import type { BotAccount } from 'app-shared/types/BotAccount';
+
+const RoutedBotAccounts = () => (
+  <Routes>
+    <Route path=':owner/*' element={<BotAccounts />} />
+  </Routes>
+);
 
 jest.mock('./components/BotAccountsList/BotAccountsList', () => ({
   BotAccountsList: ({
@@ -63,12 +70,12 @@ const activeBotAccount: BotAccount = {
   apiKeyCount: 0,
 };
 
-const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/orgs/ttd/settings']) => {
+const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/ttd/settings']) => {
   const queryClient = createQueryClientMock();
   if (botAccounts !== undefined) {
     queryClient.setQueryData([QueryKey.BotAccounts, testOrg], botAccounts);
   }
-  return renderWithProviders(<BotAccounts />, { queryClient, initialEntries });
+  return renderWithProviders(<RoutedBotAccounts />, { queryClient, initialEntries });
 };
 
 describe('BotAccounts', () => {
@@ -80,10 +87,10 @@ describe('BotAccounts', () => {
   it('renders the error message when query fails', async () => {
     const queryClient = createQueryClientMock();
     const getBotAccounts = jest.fn().mockRejectedValue(new Error('Failed'));
-    renderWithProviders(<BotAccounts />, {
+    renderWithProviders(<RoutedBotAccounts />, {
       queries: { getBotAccounts },
       queryClient,
-      initialEntries: ['/orgs/ttd/settings'],
+      initialEntries: ['/ttd/settings'],
     });
     await screen.findByText(textMock('settings.orgs.bot_accounts.error'));
     expect(screen.getByText(textMock('settings.orgs.bot_accounts.error'))).toBeInTheDocument();
