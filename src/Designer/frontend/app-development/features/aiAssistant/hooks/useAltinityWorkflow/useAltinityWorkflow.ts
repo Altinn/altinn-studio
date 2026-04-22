@@ -118,7 +118,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const finalAssistantMessage: AssistantMessage = {
         author: MessageAuthor.Assistant,
         content: messageContent,
-        timestamp: messageTimestamp,
+        createdAt: messageTimestamp.toISOString(),
         filesChanged: assistantMessage.filesChanged || [],
         sources: assistantMessage.sources || [],
       };
@@ -295,7 +295,7 @@ function createAssistantErrorMessage(): AssistantMessage {
     author: MessageAuthor.Assistant,
     content:
       'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     filesChanged: [],
   };
 }
@@ -304,7 +304,7 @@ function createAssistantRejectionMessage(response: AgentResponse): AssistantMess
   return {
     author: MessageAuthor.Assistant,
     content: formatRejectionMessage(response),
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     filesChanged: [],
   };
 }

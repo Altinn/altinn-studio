@@ -1,5 +1,4 @@
 export * from './AddLanguagePayload';
-export * from './ChatPayloads';
 export * from './AddRepoParams';
 export * from './AppReleasesResponse';
 export * from './BranchTypes';

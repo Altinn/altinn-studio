@@ -12,16 +12,19 @@ const mockChatThreads: ChatThread[] = [
   {
     id: '1',
     title: 'Thread 1',
+    createdAt: new Date().toISOString(),
     messages: [],
   },
   {
     id: '2',
     title: 'Thread 2',
+    createdAt: new Date().toISOString(),
     messages: [],
   },
   {
     id: '3',
     title: 'Thread 3',
+    createdAt: new Date().toISOString(),
     messages: [],
   },
 ];

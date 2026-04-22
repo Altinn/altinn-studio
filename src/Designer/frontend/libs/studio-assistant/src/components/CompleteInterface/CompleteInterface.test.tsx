@@ -16,11 +16,12 @@ const mockChatThreads: ChatThread[] = [
   {
     id: '1',
     title: threadTitle1,
+    createdAt: new Date().toISOString(),
     messages: [
       {
         author: MessageAuthor.User,
         content: 'User message',
-        timestamp: new Date(),
+        createdAt: new Date().toISOString(),
         allowAppChanges: false,
       },
     ],
@@ -28,6 +29,7 @@ const mockChatThreads: ChatThread[] = [
   {
     id: '2',
     title: threadTitle2,
+    createdAt: new Date().toISOString(),
     messages: [],
   },
 ];

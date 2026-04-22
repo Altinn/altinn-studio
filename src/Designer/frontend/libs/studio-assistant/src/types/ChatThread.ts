@@ -4,7 +4,7 @@ export type ChatThread = {
   id: string;
   title: string;
   messages: Message[];
-  createdAt?: string;
+  createdAt: string;
   updatedAt?: string;
 };
 
@@ -29,7 +29,7 @@ export type Source = {
 export type UserMessage = {
   author: MessageAuthor.User;
   content: string;
-  timestamp: Date;
+  createdAt: string;
   allowAppChanges: boolean;
   attachments?: UserAttachment[];
 };
@@ -37,7 +37,7 @@ export type UserMessage = {
 export type AssistantMessage = {
   author: MessageAuthor.Assistant;
   content: string;
-  timestamp: Date;
+  createdAt: string;
   filesChanged: string[];
   sources?: Source[];
 };

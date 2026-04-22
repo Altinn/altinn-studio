@@ -6,7 +6,7 @@ export function createAssistantMessage(content: string): AssistantMessage {
   return {
     author: MessageAuthor.Assistant,
     content,
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     filesChanged: [],
   };
 }
@@ -19,7 +19,7 @@ export function createUserMessage(
   return {
     author: MessageAuthor.User,
     content,
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     allowAppChanges,
     attachments,
   };

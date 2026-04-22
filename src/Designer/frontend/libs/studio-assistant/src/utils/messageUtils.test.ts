@@ -15,7 +15,7 @@ describe('messageUtils', () => {
 
       expect(message.author).toBe(MessageAuthor.Assistant);
       expect(message.content).toBe(content);
-      expect(message.timestamp).toBeInstanceOf(Date);
+      expect(message.createdAt).toEqual(expect.any(String));
     });
   });
 
@@ -36,7 +36,7 @@ describe('messageUtils', () => {
       expect(message.author).toBe(MessageAuthor.User);
       expect(message.content).toBe(content);
       expect(message.allowAppChanges).toBe(allowAppChanges);
-      expect(message.timestamp).toBeInstanceOf(Date);
+      expect(message.createdAt).toEqual(expect.any(String));
       expect(message.attachments).toEqual(attachments);
     });
   });

@@ -44,7 +44,7 @@ describe('useAltinityWorkflow', () => {
     const message: UserMessage = {
       author: MessageAuthor.User,
       content: '',
-      timestamp: new Date(),
+      createdAt: new Date().toISOString(),
       allowAppChanges: false,
     };
 
@@ -80,7 +80,7 @@ describe('useAltinityWorkflow', () => {
     const message: UserMessage = {
       author: MessageAuthor.User,
       content: 'Hello',
-      timestamp: new Date(),
+      createdAt: new Date().toISOString(),
       allowAppChanges: false,
     };
 

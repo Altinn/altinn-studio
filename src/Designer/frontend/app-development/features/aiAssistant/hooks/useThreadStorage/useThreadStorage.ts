@@ -4,14 +4,11 @@ import { useChatThreadsQuery } from '../queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from '../mutations/useCreateChatThreadMutation';
 import { useUpdateChatThreadMutation } from '../mutations/useUpdateChatThreadMutation';
 import { useDeleteChatThreadMutation } from '../mutations/useDeleteChatThreadMutation';
-import type { ChatThreadResponse } from '../../types/api';
+type ApiChatThread = Pick<ChatThread, 'id' | 'title' | 'createdAt'>;
 
-const mapThreadResponseToChatThread = (response: ChatThreadResponse): ChatThread => ({
-  id: response.id,
-  title: response.title,
+const toChatThread = (response: ApiChatThread): ChatThread => ({
+  ...response,
   messages: [],
-  createdAt: response.createdAt,
-  updatedAt: response.createdAt,
 });
 
 export const useThreadStorage = () => {
@@ -21,7 +18,7 @@ export const useThreadStorage = () => {
   const { mutate: deleteThreadMutate } = useDeleteChatThreadMutation();
 
   const threads: ChatThread[] = useMemo(
-    () => (threadResponses ?? []).map(mapThreadResponseToChatThread),
+    () => (threadResponses ?? []).map(toChatThread),
     [threadResponses],
   );
 

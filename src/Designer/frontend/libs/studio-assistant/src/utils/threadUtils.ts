@@ -4,6 +4,7 @@ export function createNewChatThread(title: string): ChatThread {
   return {
     id: crypto.randomUUID(),
     title,
+    createdAt: new Date().toISOString(),
     messages: [],
   };
 }

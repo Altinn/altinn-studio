@@ -10,13 +10,13 @@ const mockMessages: Message[] = [
   {
     author: MessageAuthor.User,
     content: userMessageContent,
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     allowAppChanges: false,
   },
   {
     author: MessageAuthor.Assistant,
     content: assistantMessageContent,
-    timestamp: new Date(),
+    createdAt: new Date().toISOString(),
     filesChanged: [],
   },
 ];
