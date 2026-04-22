@@ -37,9 +37,10 @@ internal sealed class WorkflowHandler(
     /// </summary>
     public async Task Handle(Workflow workflow, CancellationToken ct)
     {
+        StartProcessWorkflowActivity(workflow);
         try
         {
-            await HandleInner(workflow, ct);
+            await ProcessWorkflow(workflow, ct);
         }
         catch (LeaseLostException)
         {
@@ -49,9 +50,13 @@ internal sealed class WorkflowHandler(
         catch (OperationCanceledException) when (tracker.WasLeaseAbandoned(workflow.DatabaseId))
         {
             // Race variant: heartbeat sweep's TryAbandonLostLease fired while Submit was
-            // awaiting flush, so the CT cancelled the TCS before the buffer could reject
+            // awaiting flush, so the CT canceled the TCS before the buffer could reject
             // it with LeaseLostException. Route through the same branch.
             HandleLeaseLost(workflow);
+        }
+        finally
+        {
+            StopActivity(workflow);
         }
     }
 
@@ -72,13 +77,10 @@ internal sealed class WorkflowHandler(
         }
 
         workflow.EngineActivity?.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
-        StopActivity(workflow);
     }
 
-    private async Task HandleInner(Workflow workflow, CancellationToken ct)
+    private async Task ProcessWorkflow(Workflow workflow, CancellationToken ct)
     {
-        StartProcessWorkflowActivity(workflow);
-
         Assert.That(workflow.Status == PersistentItemStatus.Processing);
         workflow.ExecutionStartedAt = timeProvider.GetUtcNow();
 
@@ -95,7 +97,6 @@ internal sealed class WorkflowHandler(
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
-            StopActivity(workflow);
             return;
         }
 
@@ -140,7 +141,6 @@ internal sealed class WorkflowHandler(
             // since we don't have access to the specific one here.
             await statusWriteBuffer.Submit(workflow, CancellationToken.None, dirtySteps: workflow.Steps);
 
-            StopActivity(workflow);
             throw;
         }
         catch (Exception ex)
@@ -161,7 +161,6 @@ internal sealed class WorkflowHandler(
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
-            StopActivity(workflow);
             return;
         }
 
@@ -186,8 +185,6 @@ internal sealed class WorkflowHandler(
         }
 
         await statusWriteBuffer.Submit(workflow, ct);
-
-        StopActivity(workflow);
     }
 
     private async Task ProcessSteps(Workflow workflow, CancellationToken ct)
@@ -225,14 +222,9 @@ internal sealed class WorkflowHandler(
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                if (workflow.CancellationRequestedAt is not null)
-                {
-                    step.Status = PersistentItemStatus.Canceled;
-                }
-                else
-                {
-                    step.Status = PersistentItemStatus.Requeued;
-                }
+                step.Status = workflow.CancellationRequestedAt is not null
+                    ? PersistentItemStatus.Canceled
+                    : PersistentItemStatus.Requeued;
 
                 StopActivity(step);
                 throw;
