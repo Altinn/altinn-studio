@@ -7,8 +7,6 @@ import (
 
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/ui"
-
-	"golang.org/x/term"
 )
 
 const (
@@ -89,8 +87,12 @@ var (
 
 //nolint:gochecknoglobals // Test seams for terminal detection keep the production code simple and the behavior unit-testable.
 var (
-	termGetSizeFn    = term.GetSize
-	termIsTerminalFn = term.IsTerminal
+	outputIsTTYFn = func(out *ui.Output) bool {
+		return out.IsTerminal()
+	}
+	outputTerminalSizeFn = func(out *ui.Output) (int, int, bool) {
+		return out.TerminalSize()
+	}
 )
 
 //nolint:govet // fieldalignment: keep model state grouped by concern; this is short-lived CLI state.
