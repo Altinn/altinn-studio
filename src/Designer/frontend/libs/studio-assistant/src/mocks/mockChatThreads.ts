@@ -18,6 +18,7 @@ export const mockChatThreads: ChatThread[] = [
         content:
           'Jeg har lastet opp en datamodell i appen min, men jeg er usikker på hvordan jeg kobler skjemakomponentene til feltene i datamodellen.\n\nJeg har et Input-felt for fornavn og etternavn, men dataene lagres ikke når jeg tester skjemaet.',
         timestamp: new Date('2025-10-01T10:00:00'),
+        allowAppChanges: false,
       },
       {
         author: MessageAuthor.Assistant,
@@ -31,6 +32,7 @@ export const mockChatThreads: ChatThread[] = [
         content:
           'Takk! Hva hvis jeg har et adressefelt som er nestet i datamodellen under "person.adresse.gate"?',
         timestamp: new Date('2025-10-01T10:02:00'),
+        allowAppChanges: false,
       },
       {
         author: MessageAuthor.Assistant,
@@ -56,6 +58,7 @@ export const mockChatThreads: ChatThread[] = [
         content:
           'Jeg trenger en nedtrekksmeny som viser kommuner basert på hvilket fylke brukeren har valgt. Hvordan kan jeg lage en slik dynamisk kodeliste i Altinn Studio?',
         timestamp: new Date('2025-09-30T14:30:00'),
+        allowAppChanges: false,
       },
       {
         author: MessageAuthor.Assistant,

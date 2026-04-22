@@ -34,14 +34,13 @@ export function ChatColumn({
   currentUser,
 }: ChatColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
-  const workflowStatusMessage = workflowStatus?.message;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView?.({ behavior: 'smooth' });
     }
-  }, [messages, workflowIsActive, workflowStatusMessage]);
+  }, [messages, workflowIsActive]);
 
   const placeholderContent = (
     <div className={classes.emptyState}>
@@ -60,12 +59,11 @@ export function ChatColumn({
   );
 
   const hasMessages = messages.length > 0;
-  const hasContent = hasMessages || workflowIsActive;
 
   return (
     <div className={classes.chatColumn}>
-      <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasContent })}>
-        {hasContent ? (
+      <div className={cn(classes.messagesWrapper, { [classes.hasMessages]: hasMessages })}>
+        {hasMessages ? (
           <>
             <Messages
               messages={messages}
