@@ -181,7 +181,7 @@ public class WorkflowHandlerTests
 
         var tracker = new InFlightTracker(FixedTime);
         using var workflowCts = new CancellationTokenSource();
-        tracker.TryAdd(workflow.DatabaseId, workflowCts, workflow);
+        tracker.Add(workflow.DatabaseId, workflowCts, workflow);
 
         var buffer = new Mock<IWorkflowUpdateBuffer>();
         buffer

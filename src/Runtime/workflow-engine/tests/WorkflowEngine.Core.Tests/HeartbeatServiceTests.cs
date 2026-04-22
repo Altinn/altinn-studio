@@ -76,8 +76,8 @@ public class HeartbeatServiceTests
         var id2 = Guid.NewGuid();
         using var cts1 = new CancellationTokenSource();
         using var cts2 = new CancellationTokenSource();
-        tracker.TryAdd(id1, cts1, DummyWorkflow());
-        tracker.TryAdd(id2, cts2, DummyWorkflow());
+        tracker.Add(id1, cts1, DummyWorkflow());
+        tracker.Add(id2, cts2, DummyWorkflow());
 
         using var cts = new CancellationTokenSource();
         await service.StartAsync(cts.Token);
@@ -100,8 +100,8 @@ public class HeartbeatServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id1, out _);
-            tracker.TryRemove(id2, out _);
+            tracker.Remove(id1);
+            tracker.Remove(id2);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
@@ -141,7 +141,7 @@ public class HeartbeatServiceTests
 
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.TryAdd(id, workflowCts, DummyWorkflow());
+        tracker.Add(id, workflowCts, DummyWorkflow());
 
         using var cts = new CancellationTokenSource();
         await service.StartAsync(cts.Token);
@@ -170,7 +170,7 @@ public class HeartbeatServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id, out _);
+            tracker.Remove(id);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
@@ -235,7 +235,7 @@ public class HeartbeatServiceTests
 
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.TryAdd(id, workflowCts, DummyWorkflow());
+        tracker.Add(id, workflowCts, DummyWorkflow());
 
         var firstCall = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var secondCall = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -276,7 +276,7 @@ public class HeartbeatServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id, out _);
+            tracker.Remove(id);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
@@ -301,7 +301,7 @@ public class HeartbeatServiceTests
         workflow.DatabaseId = id;
         workflow.LeaseToken = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.TryAdd(id, workflowCts, workflow);
+        tracker.Add(id, workflowCts, workflow);
 
         var sweepFired = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         repo.Setup(r =>
@@ -345,7 +345,7 @@ public class HeartbeatServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id, out _);
+            tracker.Remove(id);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }

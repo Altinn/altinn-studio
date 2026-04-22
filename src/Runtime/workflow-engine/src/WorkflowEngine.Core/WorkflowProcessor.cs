@@ -170,7 +170,7 @@ internal sealed class WorkflowProcessor(
 
         try
         {
-            tracker.TryAdd(workflow.DatabaseId, workflowCts, workflow);
+            tracker.Add(workflow.DatabaseId, workflowCts, workflow);
 
             // If cancellation was already requested before we picked up the workflow,
             // trigger the CTS immediately so the handler sees it
@@ -185,7 +185,7 @@ internal sealed class WorkflowProcessor(
         }
         finally
         {
-            tracker.TryRemove(workflow.DatabaseId, out _);
+            tracker.Remove(workflow.DatabaseId);
             limiter.ReleaseWorkerSlot();
         }
 

@@ -17,22 +17,20 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
 
     public bool IsEmpty => _workflows.IsEmpty;
 
-    public bool TryAdd(Guid workflowId, CancellationTokenSource cts, Workflow workflow) =>
-        _workflows.TryAdd(workflowId, (cts, workflow));
+    public void Add(Guid workflowId, CancellationTokenSource cts, Workflow workflow)
+    {
+        if (!_workflows.TryAdd(workflowId, (cts, workflow)))
+        {
+            throw new InvalidOperationException($"Workflow {workflowId} is already tracked");
+        }
+    }
 
-    public bool TryRemove(Guid workflowId, out CancellationTokenSource? cts)
+    public void Remove(Guid workflowId)
     {
         if (_workflows.TryRemove(workflowId, out var entry))
         {
-            // Compare-and-remove: only clear a marker that still matches our CTS, so a
-            // marker belonging to a newer same-id attempt survives an ABA race.
-            TryRemoveAbandonedLeaseIfOwned(workflowId, entry.Cts);
-            cts = entry.Cts;
-            return true;
+            RemoveAbandonedLeaseIfOwned(workflowId, entry.Cts);
         }
-
-        cts = null;
-        return false;
     }
 
     /// <summary>
@@ -92,11 +90,10 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
             _abandonedLeases[id] = entry.Cts;
 
             // If the workflow was concurrently removed or replaced between the TryGetValue
-            // above and the marker store, drop our marker (compare-and-remove so a newer
-            // attempt's marker is never touched).
+            // above and the marker store, drop our marker (compare-and-remove so a newer attempt's marker is never touched).
             if (!_workflows.TryGetValue(id, out var current) || !ReferenceEquals(current.Cts, entry.Cts))
             {
-                TryRemoveAbandonedLeaseIfOwned(id, entry.Cts);
+                RemoveAbandonedLeaseIfOwned(id, entry.Cts);
                 continue;
             }
 
@@ -122,10 +119,8 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
         && _abandonedLeases.TryGetValue(workflowId, out var abandonedCts)
         && ReferenceEquals(abandonedCts, entry.Cts);
 
-    private void TryRemoveAbandonedLeaseIfOwned(Guid workflowId, CancellationTokenSource cts) =>
-        ((ICollection<KeyValuePair<Guid, CancellationTokenSource>>)_abandonedLeases).Remove(
-            new KeyValuePair<Guid, CancellationTokenSource>(workflowId, cts)
-        );
+    private void RemoveAbandonedLeaseIfOwned(Guid workflowId, CancellationTokenSource cts) =>
+        _abandonedLeases.TryRemove(KeyValuePair.Create(workflowId, cts));
 
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
 

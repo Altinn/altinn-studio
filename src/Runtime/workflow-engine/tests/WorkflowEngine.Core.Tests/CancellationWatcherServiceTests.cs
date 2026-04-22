@@ -52,7 +52,7 @@ public class CancellationWatcherServiceTests
         var workflow = DummyWorkflow();
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.TryAdd(id, workflowCts, workflow);
+        tracker.Add(id, workflowCts, workflow);
 
         // When polled, return the workflow as pending cancellation
         repo.Setup(r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
@@ -79,7 +79,7 @@ public class CancellationWatcherServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id, out _);
+            tracker.Remove(id);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
@@ -130,7 +130,7 @@ public class CancellationWatcherServiceTests
         var workflow = DummyWorkflow();
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.TryAdd(id, workflowCts, workflow);
+        tracker.Add(id, workflowCts, workflow);
 
         var callCount = 0;
         repo.Setup(r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
@@ -166,7 +166,7 @@ public class CancellationWatcherServiceTests
         finally
         {
             await cts.CancelAsync();
-            tracker.TryRemove(id, out _);
+            tracker.Remove(id);
             using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await service.StopAsync(stopCts.Token);
         }
