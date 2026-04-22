@@ -618,10 +618,9 @@ internal sealed partial class EngineRepository
 
         await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // 1) Abandon stale workflows that have exceeded the reclaim limit (mark as Failed).
-        //    This runs first so they are not picked up by the candidate query below.
-        //    LeaseToken is cleared so a later write-back from the frozen original owner can't
-        //    match by token and overwrite the abandoned row.
+        // 1) Abandon stale workflows past the reclaim limit. Runs first so they are not
+        //    picked up below. LeaseToken is cleared so a later write-back from the frozen
+        //    original owner cannot match by token.
         var abandonedCount = await context.Database.ExecuteSqlAsync(
             $"""
             UPDATE "engine"."Workflows"
@@ -637,9 +636,8 @@ internal sealed partial class EngineRepository
             cancellationToken
         );
 
-        // 2) Fetch ready workflows (Enqueued/Requeued) + reclaim stale Processing workflows
-        //    in a single atomic UPDATE. The "was_stale" flag lets us count reclaims.
-        //    FOR UPDATE SKIP LOCKED must be on each individual SELECT (PG disallows it on UNION).
+        // 2) Fetch ready + reclaim stale in one atomic UPDATE. FOR UPDATE SKIP LOCKED must
+        //    sit on each SELECT (PG disallows it on UNION).
         var rows = await context
             .Database.SqlQuery<FetchRow>(
                 $"""
@@ -801,22 +799,17 @@ internal sealed partial class EngineRepository
             await ExecuteWithRetry(
                 async ct =>
                 {
-                    // Reset on every attempt — ExecuteWithRetry re-invokes this delegate on
-                    // transient failures, and a partial read from a failed attempt would
-                    // otherwise accumulate and get re-reported to TryAbandonLostLease.
+                    // Reset each attempt: ExecuteWithRetry re-invokes on transient failures, and
+                    // a partial read from a failed attempt would otherwise accumulate.
                     lost.Clear();
 
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    // Pair (id, lease_token) via unnest so the WHERE check matches rows on both columns simultaneously.
-                    // ANY(@ids) + ANY(@tokens) would be wrong — it would accept any id/token cross-product match.
-                    // The CTE runs two operations in one statement:
-                    //   1) UPDATE rows whose (id, lease_token) pair matches — standard heartbeat write.
-                    //   2) SELECT input ids whose lease has been lost (row exists but the token on the row
-                    //      no longer matches the caller's token). PG guarantees the UPDATE in WITH is
-                    //      executed exactly once regardless of whether its output is referenced.
-                    //
-                    // Pairing (id, token) via unnest is intentional — ANY(@ids) + ANY(@tokens) would accept
-                    // any cross-product match, which is not what we want.
+                    // (id, lease_token) paired via unnest so WHERE matches both columns on the
+                    // same row — ANY(@ids) + ANY(@tokens) would accept any cross-product.
+                    // The CTE does two things in one statement:
+                    //   1) UPDATE rows whose (id, token) pair matches.
+                    //   2) SELECT input ids whose token no longer matches (lease lost).
+                    // PG guarantees the UPDATE runs exactly once whether or not referenced.
                     const string sql = """
                     WITH input AS (
                         SELECT * FROM unnest(@ids, @lease_tokens) AS t(id, lease_token)
@@ -897,9 +890,8 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // 1. Bulk update all workflows
-                    // Sort by ID to ensure consistent row-lock acquisition order across
-                    // concurrent transactions, preventing deadlocks.
+                    // Sort by ID for consistent row-lock order across concurrent transactions,
+                    // preventing deadlocks.
                     var sorted = updates.OrderBy(u => u.Workflow.DatabaseId).ToList();
 
                     var ids = new Guid[sorted.Count];
@@ -915,7 +907,7 @@ internal sealed partial class EngineRepository
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
-                        // Invariant: workflows reaching write-back were fetched by this host, so LeaseToken is non-null.
+                        // FetchAndLockWorkflows always stamps a LeaseToken; the throw is an invariant check.
                         leaseTokens[i] =
                             w.LeaseToken
                             ?? throw new InvalidOperationException(
@@ -923,14 +915,13 @@ internal sealed partial class EngineRepository
                             );
                     }
 
-                    // Lease-token compare-and-swap: rows whose LeaseToken no longer matches the
-                    // caller's token are silently skipped. RETURNING gives us the accepted ids,
-                    // and any input id not in that set is reclaimed/lost.
+                    // Lease-token CAS: mismatched rows are silently skipped; RETURNING yields the
+                    // accepted ids, any input id not in that set is lease-lost.
                     //
-                    // Writes transitioning out of Processing clear LeaseToken. This upholds the
-                    // invariant "LeaseToken IS NOT NULL iff Status = Processing", which in turn
-                    // ensures later CAS writes from a frozen worker cannot match a row that has
-                    // since moved to a terminal/Requeued/Enqueued state with the same token.
+                    // Writes leaving Processing clear LeaseToken, preserving the invariant
+                    // "LeaseToken IS NOT NULL iff Status = Processing". Without this, a frozen
+                    // worker's later CAS could match a row that has since moved on under the
+                    // same token.
                     const string updateWorkflowsSql = """
                     UPDATE "engine"."Workflows" AS w
                     SET "Status"             = v.status,
@@ -979,9 +970,8 @@ internal sealed partial class EngineRepository
                         }
                     }
 
-                    // 2. Bulk update dirty steps — but only for accepted workflows.
-                    //    A rejected workflow's steps must not land, otherwise we leak step state
-                    //    into a workflow we no longer own.
+                    // Only update steps for accepted workflows — otherwise we leak step state
+                    // into a workflow we no longer own.
                     var acceptedIds = accepted.ToHashSet();
                     var allSteps = sorted
                         .Where(u => acceptedIds.Contains(u.Workflow.DatabaseId))
@@ -1055,17 +1045,22 @@ internal sealed partial class EngineRepository
                         await cmd.ExecuteNonQueryAsync(ct);
                     }
 
-                    // Signal dashboard SSE subscribers via PG NOTIFY. PostgreSQL queues NOTIFY
-                    // inside the enclosing transaction and drops it on rollback, so this is safe
-                    // to run before commit. Running it after commit would re-enter the retry on
-                    // any transient NOTIFY failure; the second attempt's CAS would then see rows
-                    // whose LeaseToken was already cleared by the first (committed) update and
-                    // classify every workflow as lease-lost.
+                    // NOTIFY inside the tx: PG queues it until commit and drops it on rollback,
+                    // so it's safe to run before CommitAsync. Running after commit would allow a
+                    // transient NOTIFY failure to re-enter the retry, whose CAS would then see
+                    // LeaseToken already cleared and classify every workflow as lease-lost.
                     await using (var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx))
                     {
                         await notifyCmd.ExecuteNonQueryAsync(ct);
                     }
 
+                    // Known gap: an ambiguous CommitAsync failure (server committed, client saw a
+                    // transient ack error) triggers a retry whose CAS sees LeaseToken already
+                    // cleared and misclassifies terminal-transition writes as lease-lost.
+                    // Telemetry-only: DB state is consistent, callers get a spurious
+                    // LeaseLostException, WorkflowsLeaseLost over-counts. Accepted as-is —
+                    // ambiguous commits are rare and the alternatives (hoisting CommitAsync out
+                    // of the retry, or a verification SELECT) are worse trade-offs.
                     await tx.CommitAsync(ct);
                 },
                 cancellationToken
@@ -1125,9 +1120,8 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // Reset the primary workflow — terminal states + Requeued (skips backoff wait).
-                    // LeaseToken is cleared to preserve the "LeaseToken IS NOT NULL iff Status = Processing"
-                    // invariant and ensure no frozen original owner can match this row on its next write-back.
+                    // Reset from terminal + Requeued (Requeued skips the backoff wait). Clearing
+                    // LeaseToken preserves the "NOT NULL iff Processing" invariant.
                     const string resetPrimarySql = """
                     UPDATE engine."Workflows"
                     SET "Status" = @enqueued,

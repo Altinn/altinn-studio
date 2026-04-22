@@ -43,17 +43,14 @@ internal sealed class WorkflowHandler(
         }
         catch (LeaseLostException)
         {
-            // Another host reclaimed this workflow while we were processing it. Exit cleanly —
-            // the new owner is already handling it, and our in-memory state mutations never
-            // landed in the database. Do not retry, do not re-enqueue.
+            // Reclaimed by another host. Exit cleanly — no retry, no re-enqueue.
             HandleLeaseLost(workflow);
         }
         catch (OperationCanceledException) when (tracker.WasLeaseAbandoned(workflow.DatabaseId))
         {
-            // Race variant of the above: the heartbeat sweep's TryAbandonLostLease fired while
-            // the final Submit was awaiting flush, so the CT registration cancelled the TCS
-            // before the buffer could reject it with LeaseLostException. Route to the same
-            // lease-lost branch so metrics and activity tags stay accurate.
+            // Race variant: heartbeat sweep's TryAbandonLostLease fired while Submit was
+            // awaiting flush, so the CT cancelled the TCS before the buffer could reject
+            // it with LeaseLostException. Route through the same branch.
             HandleLeaseLost(workflow);
         }
     }
@@ -63,9 +60,8 @@ internal sealed class WorkflowHandler(
         logger.WorkflowLeaseLost(workflow);
         Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistorgramTags());
 
-        // A per-step Submit throwing LeaseLostException unwinds past the step's StopActivity
-        // at line 252, so any currently-open step span would hang otherwise. Steps run
-        // sequentially, so at most one is live — but loop defensively in case of refactor.
+        // Steps run sequentially so at most one span is open, but a per-step Submit that
+        // throws LeaseLostException unwinds past the per-step StopActivity. Loop to catch it.
         foreach (var step in workflow.Steps)
         {
             if (step.EngineActivity is null)
@@ -88,7 +84,6 @@ internal sealed class WorkflowHandler(
 
         RecordWorkflowQueueTime(workflow);
 
-        // Early exit: cancellation was requested before processing started
         if (workflow.CancellationRequestedAt is not null)
         {
             workflow.Status = PersistentItemStatus.Canceled;
@@ -141,8 +136,8 @@ internal sealed class WorkflowHandler(
                 }
             }
 
-            // The in-flight step was modified inside ProcessSteps before rethrowing.
-            // Pass all steps since we don't have access to the specific step here.
+            // ProcessSteps mutates the in-flight step before rethrowing; pass all steps
+            // since we don't have access to the specific one here.
             await statusWriteBuffer.Submit(workflow, CancellationToken.None, dirtySteps: workflow.Steps);
 
             StopActivity(workflow);
@@ -203,7 +198,6 @@ internal sealed class WorkflowHandler(
             var step = workflow.Steps[i];
             var previous = i > 0 ? workflow.Steps[i - 1] : null;
 
-            // Step is already complete (from a previous processing round after requeue)
             if (step.Status.IsDone())
             {
                 continue;

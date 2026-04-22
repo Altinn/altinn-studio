@@ -13,14 +13,6 @@ namespace WorkflowEngine.Core;
 internal sealed class InFlightTracker(TimeProvider timeProvider)
 {
     private readonly ConcurrentDictionary<Guid, (CancellationTokenSource Cts, Workflow Workflow)> _workflows = new();
-
-    // Workflows whose CTS was cancelled by TryAbandonLostLease specifically (not user-cancel
-    // or shutdown). Used by handlers to translate a race-induced OperationCanceledException
-    // into the lease-lost path so metrics and activity tags stay accurate.
-    //
-    // The value stores the exact CTS the marker was set for, so a stale marker from an
-    // earlier in-flight attempt cannot be mistaken for an abandon of a newer attempt that
-    // happens to share the same workflow id (same-id re-fetch after reclaim).
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _abandonedLeases = new();
 
     public bool IsEmpty => _workflows.IsEmpty;
@@ -32,12 +24,8 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     {
         if (_workflows.TryRemove(workflowId, out var entry))
         {
-            // Clear the abandoned marker only if it still refers to the CTS we just
-            // removed. Compare-and-remove prevents an ABA race from clearing a marker
-            // that belongs to a newer in-flight attempt for the same workflow id.
-            // A concurrent TryAbandonLostLease that observed this workflow before
-            // removal may still add a marker after this point; its own re-check handles
-            // that residual race.
+            // Compare-and-remove: only clear a marker that still matches our CTS, so a
+            // marker belonging to a newer same-id attempt survives an ABA race.
             TryRemoveAbandonedLeaseIfOwned(workflowId, entry.Cts);
             cts = entry.Cts;
             return true;
@@ -99,16 +87,13 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
             if (!_workflows.TryGetValue(id, out var entry))
                 continue;
 
-            // Mark before cancelling so WasLeaseAbandoned is observable the moment
-            // the CT registration fires on the awaiting Submit. The marker is tied to
-            // this exact CTS so a stale observer cannot mistake it for an abandon of
-            // a newer in-flight attempt that happens to share the same workflow id.
+            // Mark before cancelling so WasLeaseAbandoned is visible the instant the CT
+            // registration fires on the awaiting Submit.
             _abandonedLeases[id] = entry.Cts;
 
-            // Re-check: if the workflow was concurrently removed (or replaced with a
-            // different CTS) between the TryGetValue above and the marker store, drop
-            // our marker. Compare-and-remove so we only clear the marker we just set,
-            // never a newer attempt's marker.
+            // If the workflow was concurrently removed or replaced between the TryGetValue
+            // above and the marker store, drop our marker (compare-and-remove so a newer
+            // attempt's marker is never touched).
             if (!_workflows.TryGetValue(id, out var current) || !ReferenceEquals(current.Cts, entry.Cts))
             {
                 TryRemoveAbandonedLeaseIfOwned(id, entry.Cts);
@@ -137,9 +122,6 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
         && _abandonedLeases.TryGetValue(workflowId, out var abandonedCts)
         && ReferenceEquals(abandonedCts, entry.Cts);
 
-    // Compare-and-remove on (workflowId, cts). No-ops if the stored marker no longer
-    // matches cts — protects against clearing a marker that was replaced by a newer
-    // in-flight attempt with the same workflow id.
     private void TryRemoveAbandonedLeaseIfOwned(Guid workflowId, CancellationTokenSource cts) =>
         ((ICollection<KeyValuePair<Guid, CancellationTokenSource>>)_abandonedLeases).Remove(
             new KeyValuePair<Guid, CancellationTokenSource>(workflowId, cts)
@@ -154,9 +136,8 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     /// re-trigger the lost-id path on every sweep while the handler unwinds.
     /// </summary>
     /// <remarks>
-    /// Tracked workflows always originate from <c>FetchAndLockWorkflows</c>, which stamps a
-    /// fresh <c>LeaseToken</c> in the update CTE, so the <c>?? throw</c> is an invariant
-    /// check, not a runtime code path.
+    /// <c>FetchAndLockWorkflows</c> always stamps a fresh <c>LeaseToken</c>, so the
+    /// <c>?? throw</c> is an invariant check, not a runtime code path.
     /// </remarks>
     public IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> GetSnapshotLeases() =>
         _workflows
