@@ -58,7 +58,7 @@ studioctl app run
 - `studioctl env status`: show runtime/container status
 - `studioctl env logs`: stream logs from localtest containers
 - `studioctl run`: alias for `studioctl app run`
-- `studioctl doctor --checks`: diagnose prerequisites and environment issues
+- `studioctl doctor`: diagnose prerequisites and environment issues
 
 ## Install from source (for contributors)
 

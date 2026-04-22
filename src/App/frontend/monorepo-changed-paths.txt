@@ -70,6 +70,7 @@ src/utils/formLayout.test.ts
 src/utils/formLayout.ts
 src/utils/refs/
 src/utils/versioning/versions.ts
+test/e2e/config/
 test/e2e/integration/component-library/pdf.ts
 test/e2e/integration/frontend-test/language.ts
 test/e2e/integration/frontend-test/process-next.ts

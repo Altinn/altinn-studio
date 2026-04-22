@@ -21,9 +21,9 @@ import (
 	"altinn.studio/studioctl/internal/appmanager"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -244,23 +244,31 @@ func (c *RunCommand) runTarget(
 	dotnetArgs []string,
 	flags runFlags,
 ) error {
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 	switch flags.mode {
 	case runModeProcess:
-		return c.runDotnet(ctx, target, dotnetArgs, flags)
+		return c.runDotnet(ctx, target, dotnetArgs, topology, flags)
 	case runModeContainer:
-		return c.runDocker(ctx, target, dotnetArgs, flags)
+		return c.runDocker(ctx, target, dotnetArgs, topology, flags)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.mode)
 	}
 }
 
-func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, args []string, flags runFlags) error {
+func (c *RunCommand) runDotnet(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	args []string,
+	topology envtopology.Local,
+	flags runFlags,
+) error {
 	appPath := target.Detection.AppRoot
 	spec, specErr := c.service.BuildDotnetRunSpec(
 		ctx,
 		appPath,
 		args,
 		os.Environ(),
+		topology,
 		appsvc.DotnetRunOptions{RandomHostPort: flags.randomHostPort},
 	)
 	if specErr != nil {
@@ -271,34 +279,13 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 		return err
 	}
 
-	targetPath, targetPathErr := c.resolveDotnetTargetPath(ctx, spec)
-	if targetPathErr != nil {
-		return targetPathErr
-	}
-	command, commandArgs := appsvc.DotnetAppRunCommand(targetPath, spec.AppArgs)
-	c.out.Verbosef("Running: %s %v", command, commandArgs)
-
-	cmd := processutil.CommandContext(context.WithoutCancel(ctx), command, commandArgs...)
-	logPath, cleanupLog, err := c.configureDotnetRunCommand(cmd, target, spec, flags)
+	cmd, waitErr, processName, logPath, cleanupLog, err := c.startDotnetRun(ctx, target, spec, flags)
 	if err != nil {
 		return err
 	}
 	defer cleanupLog()
 
-	if startErr := cmd.Start(); startErr != nil {
-		return fmt.Errorf("start dotnet: %w", startErr)
-	}
-
-	waitErr := waitForCommand(cmd)
-
-	processName := filepath.Base(targetPath)
-	metadataErr := c.writeProcessLogMetadata(target.AppID, cmd.Process.Pid, processName, logPath)
-	if metadataErr != nil {
-		stopDotnetProcess(cmd.Process, waitErr)
-		return metadataErr
-	}
-
-	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, flags)
+	baseURL, err := c.registerStartedDotnetApp(ctx, target, spec, cmd, waitErr, topology, flags)
 	if err != nil {
 		return err
 	}
@@ -333,6 +320,41 @@ func (c *RunCommand) runDotnet(ctx context.Context, target appsvc.RunTarget, arg
 		stopDotnetProcess(cmd.Process, waitErr)
 		return errAppRunStopped
 	}
+}
+
+func (c *RunCommand) startDotnetRun(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	spec appsvc.DotnetRunSpec,
+	flags runFlags,
+) (*exec.Cmd, chan error, string, string, func(), error) {
+	targetPath, err := c.resolveDotnetTargetPath(ctx, spec)
+	if err != nil {
+		return nil, nil, "", "", nil, err
+	}
+	command, commandArgs := appsvc.DotnetAppRunCommand(targetPath, spec.AppArgs)
+	c.out.Verbosef("Running: %s %v", command, commandArgs)
+
+	cmd := processutil.CommandContext(context.WithoutCancel(ctx), command, commandArgs...)
+	logPath, cleanupLog, err := c.configureDotnetRunCommand(cmd, target, spec, flags)
+	if err != nil {
+		return nil, nil, "", "", nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		cleanupLog()
+		return nil, nil, "", "", nil, fmt.Errorf("start dotnet: %w", err)
+	}
+
+	waitErr := waitForCommand(cmd)
+	processName := filepath.Base(targetPath)
+	if err := c.writeProcessLogMetadata(target.AppID, cmd.Process.Pid, processName, logPath); err != nil {
+		stopDotnetProcess(cmd.Process, waitErr)
+		cleanupLog()
+		return nil, nil, "", "", nil, err
+	}
+
+	return cmd, waitErr, processName, logPath, cleanupLog, nil
 }
 
 func (c *RunCommand) configureDotnetRunCommand(
@@ -374,11 +396,12 @@ func (c *RunCommand) registerStartedDotnetApp(
 	spec appsvc.DotnetRunSpec,
 	cmd *exec.Cmd,
 	waitErr chan error,
+	topology envtopology.Local,
 	flags runFlags,
 ) (string, error) {
 	monitor := processReadinessMonitor(waitErr)
 	runInfo := nativeAppRunInfo(cmd.Process.Pid)
-	return c.registerStartedDotnetAppWithRunInfo(ctx, target, spec, cmd, waitErr, monitor, runInfo, flags)
+	return c.registerStartedDotnetAppWithRunInfo(ctx, target, spec, cmd, waitErr, topology, monitor, runInfo, flags)
 }
 
 func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
@@ -387,6 +410,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 	spec appsvc.DotnetRunSpec,
 	cmd *exec.Cmd,
 	waitErr chan error,
+	topology envtopology.Local,
 	monitor readinessMonitor,
 	runInfo appmanager.AppRegistration,
 	flags runFlags,
@@ -398,6 +422,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 			ctx,
 			target.AppID,
 			cmd.Process.Pid,
+			topology,
 			runInfo,
 			monitor,
 			flags.jsonOutput,
@@ -407,6 +432,7 @@ func (c *RunCommand) registerStartedDotnetAppWithRunInfo(
 			ctx,
 			target.AppID,
 			spec.Port,
+			topology,
 			runInfo,
 			monitor,
 			flags.jsonOutput,
@@ -606,6 +632,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	port int,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
@@ -613,7 +640,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString()); err != nil {
+	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
 		return "", startupOperationError(ctx, "start app-manager", err)
 	}
 
@@ -668,6 +695,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	hostPort int,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
@@ -675,7 +703,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString()); err != nil {
+	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
 		return "", startupOperationError(ctx, "start app-manager", err)
 	}
 
@@ -695,6 +723,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	ctx context.Context,
 	appID string,
 	processID int,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	monitor readinessMonitor,
 	jsonOutput bool,
@@ -702,7 +731,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	if c.cfg == nil {
 		return "", errStudioctlConfigRequired
 	}
-	if err := appmanager.EnsureStarted(ctx, c.cfg, envlocaltest.DefaultLoadBalancerPortString()); err != nil {
+	if err := appmanager.EnsureStarted(ctx, c.cfg, topology.IngressPort()); err != nil {
 		return "", startupOperationError(ctx, "start app-manager", err)
 	}
 
@@ -862,9 +891,15 @@ func (c *RunCommand) unregisterAppBestEffort(ctx context.Context, appID string) 
 	}
 }
 
-func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, args []string, flags runFlags) error {
+func (c *RunCommand) runDocker(
+	ctx context.Context,
+	target appsvc.RunTarget,
+	args []string,
+	topology envtopology.Local,
+	flags runFlags,
+) error {
 	result := target.Detection
-	spec, specErr := c.service.BuildDockerRunSpec(result, args, appsvc.DockerRunOptions{
+	spec, specErr := c.service.BuildDockerRunSpec(result, args, topology, appsvc.DockerRunOptions{
 		ImageTag:       flags.imageTag,
 		RandomHostPort: flags.randomHostPort,
 	})
@@ -890,31 +925,22 @@ func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, arg
 		return prepareErr
 	}
 
-	if removeErr := client.ContainerRemove(ctx, spec.Config.Name, true); removeErr != nil &&
-		!errors.Is(removeErr, containerruntime.ErrContainerNotFound) {
-		return fmt.Errorf("remove existing app container: %w", removeErr)
-	}
-
-	containerID, err := client.CreateContainer(ctx, spec.Config)
+	containerID, info, err := c.createDockerAppContainer(ctx, client, spec, flags.jsonOutput)
 	if err != nil {
-		return fmt.Errorf("create app container: %w", err)
-	}
-
-	info, err := client.ContainerInspect(ctx, containerID)
-	if err != nil {
-		return c.withAppContainerCleanup(
-			ctx,
-			client,
-			containerID,
-			fmt.Errorf("inspect app container: %w", err),
-		)
-	}
-	if !flags.jsonOutput {
-		c.printDockerRunInfo(info)
+		return err
 	}
 
 	runInfo := containerAppRunInfo(containerID, info)
-	baseURL, err := c.waitForDockerAppReady(ctx, client, containerID, info, target.AppID, runInfo, flags.jsonOutput)
+	baseURL, err := c.waitForDockerAppReady(
+		ctx,
+		client,
+		containerID,
+		info,
+		target.AppID,
+		topology,
+		runInfo,
+		flags.jsonOutput,
+	)
 	if err != nil {
 		return c.withAppContainerCleanup(ctx, client, containerID, err)
 	}
@@ -934,6 +960,38 @@ func (c *RunCommand) runDocker(ctx context.Context, target appsvc.RunTarget, arg
 		return errors.Join(runErr, removeErr)
 	}
 	return runErr
+}
+
+func (c *RunCommand) createDockerAppContainer(
+	ctx context.Context,
+	client containerruntime.ContainerClient,
+	spec appsvc.DockerRunSpec,
+	jsonOutput bool,
+) (string, containerruntime.ContainerInfo, error) {
+	if removeErr := client.ContainerRemove(ctx, spec.Config.Name, true); removeErr != nil &&
+		!errors.Is(removeErr, containerruntime.ErrContainerNotFound) {
+		return "", containerruntime.ContainerInfo{}, fmt.Errorf("remove existing app container: %w", removeErr)
+	}
+
+	containerID, err := client.CreateContainer(ctx, spec.Config)
+	if err != nil {
+		return "", containerruntime.ContainerInfo{}, fmt.Errorf("create app container: %w", err)
+	}
+
+	info, err := client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return "", containerruntime.ContainerInfo{}, c.withAppContainerCleanup(
+			ctx,
+			client,
+			containerID,
+			fmt.Errorf("inspect app container: %w", err),
+		)
+	}
+	if !jsonOutput {
+		c.printDockerRunInfo(info)
+	}
+
+	return containerID, info, nil
 }
 
 func (c *RunCommand) withAppContainerCleanup(
@@ -957,6 +1015,7 @@ func (c *RunCommand) waitForDockerAppReady(
 	containerID string,
 	info containerruntime.ContainerInfo,
 	appID string,
+	topology envtopology.Local,
 	runInfo appmanager.AppRegistration,
 	jsonOutput bool,
 ) (string, error) {
@@ -969,6 +1028,7 @@ func (c *RunCommand) waitForDockerAppReady(
 		ctx,
 		appID,
 		candidate.HostPort,
+		topology,
 		runInfo,
 		containerReadinessMonitor(client, containerID),
 		jsonOutput,

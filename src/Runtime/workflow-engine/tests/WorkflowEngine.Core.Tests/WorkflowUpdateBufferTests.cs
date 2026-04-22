@@ -380,12 +380,10 @@ public class WorkflowUpdateBufferTests
     [Fact]
     public async Task Submit_DeduplicatesSameWorkflowInBatch()
     {
-        // Use a gate to block the first flush so items accumulate in the channel
         var settings = CreateSettings(maxBatchSize: 10);
         var (buffer, repo) = CreateBuffer(settings);
 
         IReadOnlyList<BatchWorkflowStatusUpdate>? capturedUpdates = null;
-        var gate = new TaskCompletionSource();
         repo.Setup(r =>
                 r.BatchUpdateWorkflowsAndSteps(
                     It.IsAny<IReadOnlyList<BatchWorkflowStatusUpdate>>(),
@@ -395,14 +393,17 @@ public class WorkflowUpdateBufferTests
             .Callback<IReadOnlyList<BatchWorkflowStatusUpdate>, CancellationToken>(
                 (updates, _) => capturedUpdates ??= updates
             )
-            .Returns(async (IReadOnlyList<BatchWorkflowStatusUpdate> _, CancellationToken _) => await gate.Task);
+            .Returns(Task.CompletedTask);
 
         using var serviceCts = new CancellationTokenSource();
-        await buffer.StartAsync(serviceCts.Token);
 
         try
         {
-            // Submit 3 updates for the same workflow — only the last should survive deduplication
+            // Submit 3 updates for the same workflow *before* starting the buffer. With a bounded
+            // channel that has capacity, WriteAsync completes synchronously, so all 3 items land
+            // in the channel before the drain loop runs. Starting the buffer then picks them up
+            // together, which is the only way to reliably exercise the in-batch dedup path
+            // without racing the reader's Task.Yield() against the test thread's submits.
             var sharedId = Guid.NewGuid();
             var tasks = Enumerable
                 .Range(1, 3)
@@ -415,8 +416,7 @@ public class WorkflowUpdateBufferTests
                 })
                 .ToList();
 
-            // Release the gate — all items process
-            gate.SetResult();
+            await buffer.StartAsync(serviceCts.Token);
 
             await Task.WhenAll(tasks);
 

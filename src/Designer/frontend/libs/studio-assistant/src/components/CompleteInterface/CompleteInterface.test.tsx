@@ -123,6 +123,28 @@ describe('CompleteInterface', () => {
 
     expect(previewPlaceholder).toBeInTheDocument();
   });
+
+  it('should render the assistant loading bubble when the active workflow belongs to the active thread', () => {
+    const loadingBubbleMessage = 'Working on it...';
+    renderCompleteInterface({
+      chatThreads: mockChatThreads,
+      activeThreadId: '1',
+      workflowStatus: { isActive: true, sessionId: '1', message: loadingBubbleMessage },
+    });
+
+    expect(screen.getByText(loadingBubbleMessage)).toBeInTheDocument();
+  });
+
+  it('should not render the assistant loading bubble when the active workflow belongs to another thread', () => {
+    const loadingBubbleMessage = 'Working on it...';
+    renderCompleteInterface({
+      chatThreads: mockChatThreads,
+      activeThreadId: '1',
+      workflowStatus: { isActive: true, sessionId: '2', message: loadingBubbleMessage },
+    });
+
+    expect(screen.queryByText(loadingBubbleMessage)).not.toBeInTheDocument();
+  });
 });
 
 const defaultProps: CompleteInterfaceProps = {

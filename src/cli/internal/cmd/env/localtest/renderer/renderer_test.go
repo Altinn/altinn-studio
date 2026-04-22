@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -448,7 +449,8 @@ func TestScreenRenderer_StopLeavesCursorAtLineStartForFollowupOutput(t *testing.
 	output.Success("Environment started")
 
 	got := out.String()
-	if !strings.Contains(got, "\rEnvironment started"+osutil.LineBreak) {
+	ansiSGR := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	if !strings.Contains(ansiSGR.ReplaceAllString(got, ""), "\rEnvironment started"+osutil.LineBreak) {
 		t.Fatalf("output %q missing flush-left follow-up success line", got)
 	}
 }
@@ -486,12 +488,7 @@ func TestDetectMode(t *testing.T) {
 func TestTerminalWidth_UsesOutputFD(t *testing.T) {
 	restoreTermFuncs := stubTerminalFuncsForTest(
 		func(int) bool { return true },
-		func(fd int) (int, int, error) {
-			if fd != 99 {
-				t.Fatalf("unexpected fd %d", fd)
-			}
-			return 123, 45, nil
-		},
+		func(int) (int, int, error) { return 123, 45, nil },
 	)
 	defer restoreTermFuncs()
 
@@ -514,13 +511,21 @@ func stubTerminalFuncsForTest(
 	isTerminal func(int) bool,
 	getSize func(int) (int, int, error),
 ) func() {
-	prevIsTerminal := termIsTerminalFn
-	prevGetSize := termGetSizeFn
-	termIsTerminalFn = isTerminal
-	termGetSizeFn = getSize
+	prevIsTerminal := outputIsTTYFn
+	prevGetSize := outputTerminalSizeFn
+	outputIsTTYFn = func(*ui.Output) bool {
+		return isTerminal(0)
+	}
+	outputTerminalSizeFn = func(*ui.Output) (int, int, bool) {
+		width, height, err := getSize(0)
+		if err != nil || width <= 0 || height <= 0 {
+			return 0, 0, false
+		}
+		return width, height, true
+	}
 	return func() {
-		termIsTerminalFn = prevIsTerminal
-		termGetSizeFn = prevGetSize
+		outputIsTTYFn = prevIsTerminal
+		outputTerminalSizeFn = prevGetSize
 	}
 }
 

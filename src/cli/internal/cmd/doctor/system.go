@@ -7,13 +7,10 @@ import (
 	"strings"
 
 	"altinn.studio/devenv/pkg/processutil"
-	"altinn.studio/studioctl/internal/osutil"
-
-	"golang.org/x/term"
+	"altinn.studio/studioctl/internal/ui"
 )
 
 func buildSystem(ctx context.Context) *System {
-	stdoutFD, stdoutFDOK := osutil.FDInt(os.Stdout.Fd())
 	system := &System{
 		OS:           runtime.GOOS,
 		Architecture: runtime.GOARCH,
@@ -21,7 +18,7 @@ func buildSystem(ctx context.Context) *System {
 		OSVersion:    "",
 		Terminal:     os.Getenv("TERM"),
 		ColorEnabled: os.Getenv("NO_COLOR") == "",
-		TTY:          stdoutFDOK && term.IsTerminal(stdoutFD),
+		TTY:          ui.StdoutIsTerminal(),
 	}
 
 	if system.Terminal == "" {

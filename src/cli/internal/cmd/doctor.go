@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	doctorsvc "altinn.studio/studioctl/internal/cmd/doctor"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -46,7 +46,6 @@ func (c *DoctorCommand) Usage() string {
 		"Diagnose the development environment and show any issues.",
 		"",
 		"Options:",
-		"  -c, --checks   Run active checks (probe host gateway, validate connectivity)",
 		"  --json         Output as JSON",
 		"  -h             Show this help",
 	)
@@ -56,10 +55,7 @@ func (c *DoctorCommand) Usage() string {
 func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("doctor", flag.ContinueOnError)
 	var jsonOutput bool
-	var runChecks bool
 	fs.BoolVar(&jsonOutput, "json", false, "Output as JSON")
-	fs.BoolVar(&runChecks, "checks", false, "Run active checks")
-	fs.BoolVar(&runChecks, "c", false, "Run active checks")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -70,7 +66,7 @@ func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 	}
 
 	service := doctorsvc.New(c.cfg, c.out.Verbosef)
-	report := service.BuildReport(ctx, runChecks)
+	report := service.BuildReport(ctx)
 	issues := service.HasIssues(report)
 
 	if jsonOutput {
@@ -79,10 +75,10 @@ func (c *DoctorCommand) Run(ctx context.Context, args []string) error {
 			"cli":           report.CLI,
 			"system":        report.System,
 			"prerequisites": report.Prerequisites,
-			"network":       report.Network,
 			"auth":          report.Auth,
 			"app":           report.App,
 			"disk":          report.Disk,
+			"localtestEnv":  report.LocaltestEnv,
 		})
 		if err != nil {
 			return fmt.Errorf("marshal doctor json: %w", err)
@@ -109,9 +105,9 @@ func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
 	c.renderDoctorCLISection(table, report.CLI)
 	c.renderDoctorSystemSection(table, report.System)
 	c.renderDoctorPrerequisitesSection(table, report.Prerequisites)
-	c.renderDoctorNetworkSection(table, report.Network)
 	c.renderDoctorAuthSection(table, report.Auth)
 	c.renderDoctorDiskSection(table, report.Disk)
+	c.renderDoctorLocaltestEnvSection(table, report.LocaltestEnv)
 	c.renderDoctorAppSection(table, report.App)
 	c.out.RenderTable(table)
 }
@@ -257,117 +253,6 @@ func (c *DoctorCommand) renderDoctorWindowsPrerequisite(table *ui.Table, prerequ
 	doctorKeyValueStatus(table, false, "Windows", msg)
 }
 
-func (c *DoctorCommand) renderDoctorNetworkSection(table *ui.Table, network *doctorsvc.Network) {
-	table.Section("Network")
-	defer table.Spacer()
-
-	if network == nil {
-		doctorKeyValue(table, "Status", unknownValue)
-		return
-	}
-
-	if network.Mode == "cached" {
-		c.renderDoctorCachedNetworkSection(table, network)
-		return
-	}
-
-	c.renderDoctorActiveNetworkSection(table, network)
-}
-
-func (c *DoctorCommand) renderDoctorCachedNetworkSection(table *ui.Table, network *doctorsvc.Network) {
-	switch {
-	case network.CacheExists != nil && !*network.CacheExists:
-		doctorKeyValue(table, "Host Gateway", "not cached")
-		doctorKeyValue(table, "Cache", fmt.Sprintf("missing (run '%s env up' to probe)", osutil.CurrentBin()))
-	case network.HostGateway == "":
-		doctorKeyValue(table, "Host Gateway", "invalid")
-		doctorKeyValue(table, "Cache", "corrupted")
-	default:
-		doctorKeyValue(table, "Host Gateway", network.HostGateway)
-		if network.HostDNS != "" {
-			doctorKeyValue(table, "Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
-		} else {
-			doctorKeyValue(table, "Host DNS", networking.LocalDomain+" unresolvable")
-		}
-		doctorKeyValue(table, "Cache", doctorCacheStateLabel(network))
-	}
-
-	c.renderDoctorLocalhostSection(table, network)
-}
-
-func doctorCacheStateLabel(network *doctorsvc.Network) string {
-	cacheState := unknownValue
-	if network.CacheFresh != nil {
-		if *network.CacheFresh {
-			cacheState = "fresh"
-		} else {
-			cacheState = "stale"
-		}
-	}
-
-	if network.CacheAge == "" {
-		return cacheState
-	}
-	return cacheState + " (" + network.CacheAge + " ago)"
-}
-
-func (c *DoctorCommand) renderDoctorActiveNetworkSection(table *ui.Table, network *doctorsvc.Network) {
-	if network.Error != "" {
-		doctorKeyValueStatus(table, false, "Host Gateway", network.Error)
-		c.renderDoctorLocalhostSection(table, network)
-		c.renderDoctorLoopbackSection(table, network)
-		return
-	}
-
-	doctorKeyValueStatus(table, true, "Host Gateway", network.HostGateway)
-	if network.PingOK != nil && *network.PingOK {
-		doctorKeyValueStatus(table, true, "Connectivity", "ping ok")
-	} else {
-		doctorKeyValueStatus(table, false, "Connectivity", "ping failed")
-	}
-
-	if network.HostDNS != "" {
-		doctorKeyValueStatus(table, true, "Host DNS", networking.LocalDomain+" -> "+network.HostDNS)
-	} else {
-		doctorKeyValueStatus(table, false, "Host DNS", networking.LocalDomain+" unresolvable")
-	}
-
-	if network.ContainerDNS != "" {
-		doctorKeyValueStatus(table, true, "Container DNS", networking.LocalDomain+" -> "+network.ContainerDNS)
-	} else {
-		doctorKeyValueStatus(table, false, "Container DNS", networking.LocalDomain+" unresolvable")
-	}
-
-	c.renderDoctorLocalhostSection(table, network)
-	c.renderDoctorLoopbackSection(table, network)
-}
-
-func (c *DoctorCommand) renderDoctorLocalhostSection(table *ui.Table, network *doctorsvc.Network) {
-	switch {
-	case network.LocalhostError != "":
-		doctorKeyValueStatus(table, false, "Localhost", network.LocalhostError)
-	case len(network.LocalhostAddrs) == 0:
-		doctorKeyValueStatus(table, false, "Localhost", "unresolvable")
-	default:
-		doctorKeyValueStatus(table, true, "Localhost", "localhost -> "+strings.Join(network.LocalhostAddrs, ", "))
-	}
-}
-
-func (c *DoctorCommand) renderDoctorLoopbackSection(table *ui.Table, network *doctorsvc.Network) {
-	for _, probe := range network.LoopbackEndpoints {
-		label := "Loopback " + strings.ToUpper(probe.Family)
-		if probe.Reachable {
-			doctorKeyValueStatus(table, true, label, probe.Endpoint+" reachable")
-			continue
-		}
-		msg := probe.Endpoint + " unreachable"
-		if probe.Error != "" {
-			msg += " (" + probe.Error + ")"
-		}
-		doctorKeyValueStatus(table, false, label, msg)
-	}
-}
-
 func (c *DoctorCommand) renderDoctorAuthSection(table *ui.Table, authJSON *doctorsvc.Auth) {
 	table.Section("Auth")
 	defer table.Spacer()
@@ -417,6 +302,43 @@ func (c *DoctorCommand) renderDoctorDiskSection(table *ui.Table, disk *doctorsvc
 			doctorKeyValueStatus(table, false, check.ID, "ERROR: "+value)
 		default:
 			doctorKeyValue(table, check.ID, value)
+		}
+	}
+}
+
+func (c *DoctorCommand) renderDoctorLocaltestEnvSection(
+	table *ui.Table,
+	localtestEnv *envlocaltest.DiagnosticReport,
+) {
+	table.Section("Env - localtest")
+	defer table.Spacer()
+
+	if localtestEnv == nil {
+		doctorKeyValue(table, "Status", unknownValue)
+		return
+	}
+
+	for _, service := range localtestEnv.Services {
+		table.Row(ui.Empty(), ui.Text(service.Name), ui.Empty())
+		for _, check := range service.Checks {
+			value := check.Message
+			if check.URL != "" {
+				value += " (" + check.URL + ")"
+			}
+
+			label := "  " + check.Label
+			switch check.Level {
+			case envlocaltest.DiagnosticLevelOK:
+				doctorKeyValueStatus(table, true, label, value)
+			case envlocaltest.DiagnosticLevelInfo:
+				doctorKeyValue(table, label, value)
+			case envlocaltest.DiagnosticLevelWarn:
+				doctorKeyValueStatus(table, false, label, "WARN: "+value)
+			case envlocaltest.DiagnosticLevelError:
+				doctorKeyValueStatus(table, false, label, "ERROR: "+value)
+			default:
+				doctorKeyValue(table, label, value)
+			}
 		}
 	}
 }

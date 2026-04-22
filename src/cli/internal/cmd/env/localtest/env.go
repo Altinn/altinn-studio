@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"altinn.studio/devenv/pkg/container"
@@ -15,8 +18,8 @@ import (
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/install"
-	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -31,30 +34,34 @@ var (
 
 	// ErrLegacyLocaltestRunning is returned when legacy localtest containers are detected.
 	ErrLegacyLocaltestRunning = errors.New("legacy localtest is running (started outside this CLI)")
+
+	errResetTargetOutsideDataDir = errors.New("reset target outside data directory")
+	errResetCleanupFailed        = errors.New("workflow-engine data cleanup helper failed")
+	errResetTargetSymlink        = errors.New("reset target must not be a symlink")
 )
 
 // teardownTimeout is the maximum time to wait for environment teardown.
 const teardownTimeout = 30 * time.Second
 
+const cleanupHelperLogTail = "100"
+
 const stoppingEnvironmentMessage = "Stopping localtest environment..."
 
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
-	cfg           *config.Config
-	out           *ui.Output
-	client        container.ContainerClient
-	runtimeConfig *runtimeConfigResolver
-	logs          *logStreamer
+	cfg    *config.Config
+	out    *ui.Output
+	client container.ContainerClient
+	logs   *logStreamer
 }
 
 // NewEnv creates a new localtest environment manager.
 func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient) *Env {
 	return &Env{
-		cfg:           cfg,
-		out:           out,
-		client:        client,
-		runtimeConfig: newRuntimeConfigResolver(cfg, client, out.Verbosef),
-		logs:          newLogStreamer(client, out),
+		cfg:    cfg,
+		out:    out,
+		client: client,
+		logs:   newLogStreamer(client, out),
 	}
 }
 
@@ -68,17 +75,14 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg, err := e.runtimeConfig.Build(ctx)
-	if err != nil {
-		return err
-	}
-	e.out.Verbosef("Host gateway IP: %s", runtimeCfg.HostGateway)
+	runtimeCfg := newRuntimeConfig()
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	if ensureErr := e.ensureAppManager(ctx, runtimeCfg); ensureErr != nil {
+	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
 		return ensureErr
 	}
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, opts.Monitoring, opts.PgAdmin)
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
@@ -92,7 +96,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return err
 	}
 
-	localtestURL := FormatLocaltestURL(runtimeCfg.LoadBalancerPort)
+	localtestURL := topology.LocaltestURL()
 
 	if opts.OpenBrowser {
 		e.out.Verbosef("Opening browser to: %s", localtestURL)
@@ -132,6 +136,34 @@ func (e *Env) Down(ctx context.Context) error {
 	}
 
 	e.out.Success("Environment stopped")
+	return nil
+}
+
+// Reset stops localtest if needed and deletes persisted data.
+func (e *Env) Reset(ctx context.Context) error {
+	toolchain := e.client.Toolchain()
+	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
+
+	if err := CheckForLegacyLocaltest(ctx, e.client, true); err != nil {
+		return err
+	}
+
+	hasResources, err := e.hasManagedResources(ctx)
+	if err != nil {
+		return err
+	}
+	if hasResources {
+		if err := e.destroyResources(ctx, e.buildDestroyOptions(), stoppingEnvironmentMessage); err != nil {
+			return fmt.Errorf("stop environment: %w", err)
+		}
+	}
+
+	e.out.Println("Deleting persisted localtest data...")
+	if err := e.deletePersistedData(ctx); err != nil {
+		return err
+	}
+
+	e.out.Success("Environment data reset")
 	return nil
 }
 
@@ -179,11 +211,11 @@ func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) 
 	return &status, nil
 }
 
-func (e *Env) ensureAppManager(ctx context.Context, runtimeCfg RuntimeConfig) error {
+func (e *Env) ensureAppManager(ctx context.Context, topology envtopology.Local) error {
 	if err := appmanager.EnsureStarted(
 		ctx,
 		e.cfg,
-		runtimeCfg.LoadBalancerPort,
+		topology.IngressPort(),
 	); err != nil {
 		return fmt.Errorf("ensure app-manager: %w", err)
 	}
@@ -358,7 +390,6 @@ func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
 		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
 		IncludeMonitoring: true, // include all for cleanup
-		Platform:          e.client.Toolchain().Platform,
 	}
 }
 
@@ -372,21 +403,206 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 	if err := ensurePgpass(e.cfg.DataDir); err != nil {
 		return err
 	}
+	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
+		return err
+	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
-		e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", err)
-		if installErr := e.installResources(ctx, true); installErr != nil {
-			return installErr
-		}
-		if err := ensurePgpass(e.cfg.DataDir); err != nil {
-			return err
-		}
-		if err := ValidateResourceHostPaths(buildOpts); err != nil {
-			return fmt.Errorf("validate resources after reinstall: %w", err)
-		}
+		return e.reinstallResourcesAfterValidationFailure(ctx, buildOpts, err)
 	}
 
 	return nil
+}
+
+func (e *Env) reinstallResourcesAfterValidationFailure(
+	ctx context.Context,
+	buildOpts ResourceBuildOptions,
+	cause error,
+) error {
+	e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", cause)
+	if err := e.installResources(ctx, true); err != nil {
+		return err
+	}
+	if err := ensurePgpass(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ValidateResourceHostPaths(buildOpts); err != nil {
+		return fmt.Errorf("validate resources after reinstall: %w", err)
+	}
+	return nil
+}
+
+func ensureWorkflowEngineDbDataDir(dataDir string) error {
+	if err := os.MkdirAll(workflowEngineDbDataPath(dataDir), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create workflow-engine database data directory: %w", err)
+	}
+	return nil
+}
+
+func ensureLocaltestStorageDir(dataDir string) error {
+	if err := os.MkdirAll(filepath.Join(dataDir, "AltinnPlatformLocal"), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create localtest storage directory: %w", err)
+	}
+	return nil
+}
+
+func (e *Env) deletePersistedData(ctx context.Context) error {
+	if err := removeResetDataPath(e.cfg.DataDir, filepath.Join(e.cfg.DataDir, "AltinnPlatformLocal")); err != nil {
+		return err
+	}
+	return e.removeWorkflowEngineDbData(ctx, workflowEngineDbDataPath(e.cfg.DataDir))
+}
+
+func (e *Env) removeWorkflowEngineDbData(ctx context.Context, target string) error {
+	targetAbs, exists, err := resetTargetPath(e.cfg.DataDir, target)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	if err := e.cleanupWorkflowEngineDbData(ctx, targetAbs); err != nil {
+		return err
+	}
+
+	return removeResetDataPath(e.cfg.DataDir, target)
+}
+
+func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string) error {
+	helperName := fmt.Sprintf("studioctl-reset-workflow-engine-db-%d", time.Now().UnixNano())
+	containerCfg := containertypes.ContainerConfig{
+		Labels:         nil,
+		HealthCheck:    nil,
+		Name:           helperName,
+		Image:          e.cfg.Images.Core.WorkflowEngineDb.Ref(),
+		User:           "",
+		RestartPolicy:  "",
+		ExtraHosts:     nil,
+		NetworkAliases: nil,
+		Volumes: []containertypes.VolumeMount{{
+			HostPath:      targetAbs,
+			ContainerPath: "/cleanup",
+			ReadOnly:      false,
+		}},
+		Networks: nil,
+		Ports:    nil,
+		Env:      nil,
+		Command:  []string{"sh", "-ceu", "rm -rf /cleanup/* /cleanup/.[!.]* /cleanup/..?*"},
+		CapAdd:   nil,
+		Detach:   true,
+	}
+
+	if _, err := e.client.CreateContainer(ctx, containerCfg); err != nil {
+		return fmt.Errorf("start workflow-engine data cleanup helper: %w", err)
+	}
+
+	exitCode, waitErr := e.client.ContainerWait(ctx, helperName)
+	failureDetails := ""
+	if waitErr == nil && exitCode != 0 {
+		failureDetails = e.cleanupHelperFailureDetails(ctx, helperName)
+	}
+	removeErr := e.client.ContainerRemove(ctx, helperName, true)
+	if waitErr != nil {
+		if removeErr != nil {
+			e.out.Verbosef("failed to remove cleanup helper container %q: %v", helperName, removeErr)
+		}
+		return fmt.Errorf("wait for workflow-engine data cleanup helper: %w", waitErr)
+	}
+	if removeErr != nil {
+		return fmt.Errorf("remove workflow-engine data cleanup helper: %w", removeErr)
+	}
+	if exitCode != 0 {
+		if failureDetails != "" {
+			return fmt.Errorf("%w: exit code %d: %s", errResetCleanupFailed, exitCode, failureDetails)
+		}
+		return fmt.Errorf("%w: exit code %d", errResetCleanupFailed, exitCode)
+	}
+
+	return nil
+}
+
+func (e *Env) cleanupHelperFailureDetails(ctx context.Context, helperName string) string {
+	logs, err := e.client.ContainerLogs(ctx, helperName, false, cleanupHelperLogTail)
+	if err != nil {
+		e.out.Verbosef("failed to read cleanup helper logs for %q: %v", helperName, err)
+		return ""
+	}
+	defer func() {
+		if cerr := logs.Close(); cerr != nil {
+			e.out.Verbosef("failed to close cleanup helper logs for %q: %v", helperName, cerr)
+		}
+	}()
+
+	data, err := io.ReadAll(logs)
+	if err != nil {
+		e.out.Verbosef("failed to read cleanup helper log stream for %q: %v", helperName, err)
+		return ""
+	}
+
+	text := strings.TrimSpace(string(data))
+	if text == "" {
+		return ""
+	}
+	return "logs: " + text
+}
+
+func removeResetDataPath(dataDir, target string) error {
+	targetAbs, exists, err := resetTargetPath(dataDir, target)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	if err := os.RemoveAll(targetAbs); err != nil {
+		return fmt.Errorf("remove persisted data %q: %w", targetAbs, err)
+	}
+
+	return nil
+}
+
+func resetTargetPath(dataDir, target string) (string, bool, error) {
+	dataDirAbs, err := filepath.Abs(dataDir)
+	if err != nil {
+		return "", false, fmt.Errorf("resolve data directory: %w", err)
+	}
+
+	targetAbs, err := filepath.Abs(target)
+	if err != nil {
+		return "", false, fmt.Errorf("resolve reset target %q: %w", target, err)
+	}
+
+	rel, err := filepath.Rel(dataDirAbs, targetAbs)
+	if err != nil {
+		return "", false, fmt.Errorf("relativize reset target %q: %w", targetAbs, err)
+	}
+	if rel == "." || rel == "" || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return "", false, fmt.Errorf("%w: %s", errResetTargetOutsideDataDir, targetAbs)
+	}
+
+	info, err := os.Lstat(targetAbs)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return targetAbs, false, nil
+		}
+		return "", false, fmt.Errorf("stat reset target %q: %w", targetAbs, err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return "", false, fmt.Errorf("%w: %s", errResetTargetSymlink, targetAbs)
+	}
+
+	return targetAbs, true, nil
 }
 
 func ensurePgpass(dataDir string) error {
@@ -442,6 +658,7 @@ func (e *Env) installResources(ctx context.Context, force bool) error {
 func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeCfg RuntimeConfig,
+	topology envtopology.Local,
 	monitoring bool,
 	pgAdmin bool,
 ) (ResourceBuildOptions, error) {
@@ -462,6 +679,7 @@ func (e *Env) buildResourceOptions(
 	return ResourceBuildOptions{
 		DataDir:           e.cfg.DataDir,
 		RuntimeConfig:     runtimeCfg,
+		Topology:          topology,
 		IncludeMonitoring: monitoring,
 		IncludePgAdmin:    pgAdmin,
 		ImageMode:         imageMode,
@@ -495,12 +713,4 @@ func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string)
 	}
 
 	return DevMode, &devCfg, ""
-}
-
-// FormatLocaltestURL returns the localtest URL, omitting port 80 since browsers default to it.
-func FormatLocaltestURL(port string) string {
-	if port == "80" {
-		return "http://" + networking.LocalDomain
-	}
-	return "http://" + networking.LocalDomain + ":" + port
 }

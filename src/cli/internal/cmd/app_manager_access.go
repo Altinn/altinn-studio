@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"altinn.studio/studioctl/internal/appmanager"
-	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 )
 
 type appRuntimeClient interface {
@@ -41,7 +41,8 @@ func (a appManagerAccess) ensure(ctx context.Context) error {
 	if a.cfg == nil {
 		return errStudioctlConfigRequired
 	}
-	return a.ensureStarted(ctx, a.cfg, envlocaltest.DefaultLoadBalancerPortString())
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	return a.ensureStarted(ctx, a.cfg, topology.IngressPort())
 }
 
 func filterApps(apps []appmanager.DiscoveredApp, appID string, managedOnly bool) []appmanager.DiscoveredApp {

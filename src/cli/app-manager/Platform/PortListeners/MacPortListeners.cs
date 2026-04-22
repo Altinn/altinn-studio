@@ -135,6 +135,10 @@ internal sealed partial class MacPortListeners : IPortListenerSource
     private static bool TryParseListener(ReadOnlySpan<char> addressField, out MacListenerKey listener)
     {
         listener = default;
+        var spaceIndex = addressField.IndexOf(' ');
+        if (spaceIndex >= 0)
+            addressField = addressField[..spaceIndex];
+
         var separatorIndex = addressField.LastIndexOf('.');
         var colonIndex = addressField.LastIndexOf(':');
         if (colonIndex > separatorIndex)
@@ -145,6 +149,7 @@ internal sealed partial class MacPortListeners : IPortListenerSource
 
         var hostField = addressField[..separatorIndex];
         var portField = addressField[(separatorIndex + 1)..];
+        hostField = UnwrapIpv6Literal(hostField);
         if (portField.Equals("*", StringComparison.Ordinal))
             return false;
 
@@ -157,7 +162,11 @@ internal sealed partial class MacPortListeners : IPortListenerSource
 
     private static ListenerBindScope ClassifyBindScope(ReadOnlySpan<char> hostField)
     {
-        if (hostField.Equals("*", StringComparison.Ordinal))
+        if (
+            hostField.Equals("*", StringComparison.Ordinal)
+            || hostField.Equals("0.0.0.0", StringComparison.Ordinal)
+            || hostField.Equals("::", StringComparison.Ordinal)
+        )
             return ListenerBindScope.Any;
 
         if (
@@ -168,6 +177,14 @@ internal sealed partial class MacPortListeners : IPortListenerSource
             return ListenerBindScope.Loopback;
 
         return ListenerBindScope.Specific;
+    }
+
+    private static ReadOnlySpan<char> UnwrapIpv6Literal(ReadOnlySpan<char> hostField)
+    {
+        if (hostField.Length >= 2 && hostField[0] == '[' && hostField[^1] == ']')
+            return hostField[1..^1];
+
+        return hostField;
     }
 
     private static bool IsProcessAlive(int processId)
