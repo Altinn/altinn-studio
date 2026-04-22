@@ -40,4 +40,4 @@ Spør brukeren hvilken modul han/hun vil velge. Hvis brukeren limer inn tekst di
 | E | Tiltaleform og register | Rydde opp i blanding av du/De/man eller formelt/uformelt |
 | F | Helhetlig innholdsrevisjon | Få en samlet revisjon av en hel skjerm eller flyt |
 
-Når brukeren har valgt en modul, les den tilsvarende modul-instruksen lokalisert i `./`. 
+Når brukeren har valgt en modul, les den tilsvarende modul-instruksen fra `./`. Filnavnene følger mønsteret `MODUL <BOKSTAV> - <Tittel>.md` — for eksempel `MODUL A - Terminologirevisjon.md`. Bruk nøyaktig samme stor/liten bokstav og mellomrom som i filnavnet.

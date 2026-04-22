@@ -12,9 +12,9 @@ Vurder mot disse seks kriteriene:
 
 Presenter funn per kriterie.
 Avslutt med en prioritert tiltaksliste:
-– HØY prioritet:    [tekster som blokkerer forståelse]
-– MIDDELS prioritet: [tekster som skaper friksjon]
-– LAV prioritet:    [tekster som kan bli bedre]
+- HØY prioritet: [tekster som blokkerer forståelse]
+- MIDDELS prioritet: [tekster som skaper friksjon]
+- LAV prioritet: [tekster som kan bli bedre]
 
 # Be brukeren om tekster
 

@@ -4,7 +4,7 @@ Analyser tekstene nedenfor og identifiser:
 1. Termer som brukes inkonsekvent (samme begrep, ulike ord)
 2. Teknisk sjargong som bør erstattes med vanligere ord
 3. Fremmedord eller faguttrykk uten forklaring
-4. Termer som ikke stemmer med terminologilisten i systempromptens
+4. Termer som ikke stemmer med terminologilisten i systemprompten
 
 Presenter funnene i en tabell med disse kolonnene:
 | Problemterm | Forekommer som | Anbefalt term | Begrunnelse |
