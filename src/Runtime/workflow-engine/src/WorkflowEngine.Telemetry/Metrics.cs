@@ -9,7 +9,7 @@ namespace WorkflowEngine.Telemetry;
 public static class Metrics
 {
     public const string ServiceName = "WorkflowEngine";
-    public const string ServiceVersion = "1.0.0"; // TODO: Get this from build
+    public const string ServiceVersion = "1.0.0";
     public static readonly ActivitySource Source = new(ServiceName);
     public static readonly Meter Meter = new(ServiceName);
 
