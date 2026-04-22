@@ -386,28 +386,10 @@ export const queriesMock: ServicesContextProps = {
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Chat
-  createChatThread: jest
-    .fn()
-    .mockImplementation(() =>
-      Promise.resolve({
-        id: 'mock-thread-id',
-        title: 'Mock Thread',
-        createdAt: new Date().toISOString(),
-      }),
-    ),
+  createChatThread: jest.fn().mockImplementation(() => Promise.resolve({ id: 'mock-thread-id' })),
   updateChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
-  createChatMessage: jest
-    .fn()
-    .mockImplementation(() =>
-      Promise.resolve({
-        id: 'mock-message-id',
-        threadId: 'mock-thread-id',
-        createdAt: new Date().toISOString(),
-        role: 'User',
-        content: '',
-      }),
-    ),
+  createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
   addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
