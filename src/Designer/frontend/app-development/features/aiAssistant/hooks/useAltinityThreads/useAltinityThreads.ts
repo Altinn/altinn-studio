@@ -2,9 +2,13 @@ import { useState, useRef, useCallback, useMemo } from 'react';
 import type { MutableRefObject } from 'react';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
-import { useThreadStorage } from '../useThreadStorage/useThreadStorage';
+import { useChatThreadsQuery } from '../queries/useChatThreadsQuery';
+import { useCreateChatThreadMutation } from '../mutations/useCreateChatThreadMutation';
+import { useDeleteChatThreadMutation } from '../mutations/useDeleteChatThreadMutation';
 import { useChatMessagesQuery } from '../queries/useChatMessagesQuery';
 import { useCreateChatMessageMutation } from '../mutations/useCreateChatMessageMutation';
+
+type ApiChatThread = Pick<ChatThread, 'id' | 'title' | 'createdAt'>;
 
 export interface AltinityThreadState {
   chatThreads: ChatThread[];
@@ -23,11 +27,14 @@ export const useAltinityThreads = (): AltinityThreadState => {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const currentSessionIdRef = useRef<string | null>(null);
 
-  const {
-    threads: apiThreads,
-    addThread: createApiThread,
-    deleteThread: deleteApiThread,
-  } = useThreadStorage();
+  const { data: threadResponses } = useChatThreadsQuery();
+  const { mutateAsync: createThreadMutation } = useCreateChatThreadMutation();
+  const { mutate: deleteThreadMutation } = useDeleteChatThreadMutation();
+
+  const apiThreads: ChatThread[] = useMemo(
+    () => (threadResponses ?? []).map((response: ApiChatThread) => ({ ...response, messages: [] })),
+    [threadResponses],
+  );
 
   const { data: apiMessages } = useChatMessagesQuery(currentSessionId);
   const { mutate: createChatMessage } = useCreateChatMessageMutation();
@@ -61,19 +68,20 @@ export const useAltinityThreads = (): AltinityThreadState => {
 
   const createThread = useCallback(
     async (title: string): Promise<string> => {
-      return createApiThread(title);
+      const result = await createThreadMutation({ title });
+      return result.id;
     },
-    [createApiThread],
+    [createThreadMutation],
   );
 
   const deleteThread = useCallback(
     (threadId: string) => {
-      deleteApiThread(threadId);
+      deleteThreadMutation(threadId);
       if (currentSessionIdRef.current === threadId) {
         setCurrentSession(null);
       }
     },
-    [deleteApiThread, setCurrentSession],
+    [deleteThreadMutation, setCurrentSession],
   );
 
   const persistMessage = useCallback(
