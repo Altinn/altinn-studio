@@ -120,6 +120,8 @@ export function createValidationSlice(
           } else {
             delete state.validation.otherDataElementBackendValidations[dataElementId];
           }
+
+          pruneBoundaryMasks(state);
         }
       }),
   };
