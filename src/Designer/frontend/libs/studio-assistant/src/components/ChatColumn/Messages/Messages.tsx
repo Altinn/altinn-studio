@@ -203,7 +203,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
             {source.relevance !== undefined && (
               <span className={classes.sourceRelevance}>{Math.round(source.relevance * 100)}%</span>
             )}
-            {source.contentLength !== undefined && (
+            {source.contentLength && (
               <span className={classes.sourceSize}>{formatFileSize(source.contentLength)}</span>
             )}
           </div>
