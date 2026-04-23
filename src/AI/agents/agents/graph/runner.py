@@ -178,12 +178,12 @@ async def _evaluate_implementation_match(user_goal: str, final_state: dict, trac
         from agents.services.evaluation.implementation_judge import run_implementation_judge
         step_plan = final_state.get("step_plan") or []
         await run_implementation_judge(
-            user_goal=user_goal,
             implementation_plan=final_state.get("implementation_plan"),
             step_plan=step_plan[0] if isinstance(step_plan, list) and step_plan else None,
             changed_files=final_state.get("changed_files") or [],
             patch_data=final_state.get("patch_data"),
             trace_id=trace_id,
+            planning_guidance=str(final_state.get("planning_guidance") or ""),
         )
     except asyncio.CancelledError:
         raise

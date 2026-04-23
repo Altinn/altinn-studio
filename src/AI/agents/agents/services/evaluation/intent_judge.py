@@ -15,18 +15,27 @@ config = get_config()
 _JUDGE_PROMPT_NAME = "intent_match"
 
 
-def _parse_judge_response(response: str) -> tuple[bool, str]:
-    """Extract (passed, reasoning) from the judge's JSON response."""
+def _parse_judge_response(response: str) -> tuple[bool | None, str]:
+    """Extract (passed, reasoning) from the judge's JSON response.
+
+    Returns None for passed when the output is unparsable, so callers can
+    skip score_validation rather than recording a misleading failing score.
+    """
     try:
         match = re.search(r"\{.*\}", response.strip(), re.DOTALL)
         if match:
             data = json.loads(match.group())
-            passed = int(data.get("score", 0)) == 1
+            raw_score = data.get("score")
+            if raw_score is None:
+                return None, f"Missing score field — raw response: {response[:200]}"
+            score = int(raw_score)
+            if score not in (0, 1):
+                return None, f"Invalid score value — raw response: {response[:200]}"
             reasoning = str(data.get("reasoning", ""))
-            return passed, reasoning
+            return score == 1, reasoning
     except Exception as e:
         log.warning("Failed to parse intent_match judge response: %s | raw: %.200s", e, response)
-    return False, f"Parse error — raw response: {response[:200]}"
+    return None, f"Parse error — raw response: {response[:200]}"
 
 
 async def run_intent_judge(
@@ -71,6 +80,9 @@ async def run_intent_judge(
         return False
 
     passed, reasoning = _parse_judge_response(response)
+    if passed is None:
+        log.warning("intent_match: unparsable judge output — skipping score")
+        return False
 
     score_validation(
         name="intent_match",
