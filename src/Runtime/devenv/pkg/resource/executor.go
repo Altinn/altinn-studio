@@ -117,9 +117,10 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 
 // Status returns the current status of all resources in the graph.
 func (e *Executor) Status(ctx context.Context, g *Graph) (map[ResourceID]Status, error) {
-	result := make(map[ResourceID]Status, len(g.All()))
+	resources := g.Enabled()
+	result := make(map[ResourceID]Status, len(resources))
 
-	for _, r := range g.All() {
+	for _, r := range resources {
 		status, err := e.resourceStatus(ctx, r)
 		if err != nil {
 			return nil, fmt.Errorf("status %s: %w", r.ID(), err)

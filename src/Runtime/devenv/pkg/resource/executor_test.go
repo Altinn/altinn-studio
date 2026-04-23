@@ -251,6 +251,42 @@ func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
 	}
 }
 
+func TestExecutor_ApplySkipsDisabledResources(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	buildCalled := false
+	client.BuildWithProgressFunc = func(
+		context.Context,
+		string,
+		string,
+		string,
+		types.ProgressHandler,
+		...types.BuildOptions,
+	) error {
+		buildCalled = true
+		return nil
+	}
+
+	graph := NewGraph()
+	disabled := false
+	image := &LocalImage{
+		Enabled:     &disabled,
+		ContextPath: "/tmp/app",
+		Tag:         "app:latest",
+	}
+	if err := graph.Add(image); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+
+	if err := NewExecutor(client).Apply(t.Context(), graph); err != nil {
+		t.Fatalf("Apply() error = %v, want nil", err)
+	}
+	if buildCalled {
+		t.Fatal("BuildWithProgress was called for disabled image")
+	}
+}
+
 func TestExecutor_ApplyContainer_WaitsForReadyWhenEnabled(t *testing.T) {
 	t.Parallel()
 
