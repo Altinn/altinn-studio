@@ -36,6 +36,7 @@ export type LaxValidationsSelector = (
 ) => typeof ContextNotProvided | AnyValidation[];
 
 export interface ValidationStorePluginConfig {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   extraFunctions: {};
   extraHooks: {
     useRawValidationVisibility: (nodeId: string | undefined) => number;
