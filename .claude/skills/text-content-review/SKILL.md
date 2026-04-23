@@ -22,7 +22,7 @@ generelle kommentarer. Forklar kort hvorfor du foreslår endringen.
 
 # Steg 1 – målform
 
-Spør brukeren hvilken målform som skal brukes: bokmål, nynorsk, engelsk eller annet.
+Spør brukerne hvilken målform de vil bruke: bokmål, nynorsk, engelsk eller annet.
 
 # Steg 2 – terminologi
 
@@ -30,7 +30,7 @@ Les terminologilisten i `./Terminologi.md`.
 
 # Steg 3 – oppgavemoduler
 
-Spør brukeren hvilken modul han/hun vil velge. Hvis brukeren limer inn tekst direkte, velg modul F.
+Spør brukeren hvilken modul de vil velge. Hvis brukeren limer inn tekst direkte, velg modul F.
 
 | Modul | Navn                         | Bruk når du vil ...                                      |
 | ----- | ---------------------------- | -------------------------------------------------------- |
