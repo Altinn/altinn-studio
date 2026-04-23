@@ -39,7 +39,8 @@ export interface ValidationStorePluginConfig {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   extraFunctions: {};
   extraHooks: {
-    useRawValidationVisibility: (nodeId: string | undefined) => number;
+    useValidationVisibility: (nodeId: string | undefined) => number;
+    useValidationVisibilityBreakdown: (nodeId: string | undefined) => ValidationVisibilityBreakdown;
     useRawValidations: (nodeId: string | undefined) => AnyValidation[];
     useVisibleValidations: (indexedId: string, showAll?: boolean) => AnyValidation[];
     useVisibleValidationsDeep: (
@@ -67,6 +68,22 @@ export interface ValidationStorePluginConfig {
 
 const emptyArray: never[] = [];
 
+export interface ValidationVisibilityBreakdown {
+  initial: number;
+  form: number;
+  page: number;
+  row: number;
+  effective: number;
+}
+
+const emptyVisibilityBreakdown: ValidationVisibilityBreakdown = {
+  initial: 0,
+  form: 0,
+  page: 0,
+  row: 0,
+  effective: 0,
+};
+
 export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginConfig> {
   extraFunctions() {
     return {};
@@ -74,7 +91,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
 
   extraHooks(): ValidationStorePluginConfig['extraHooks'] {
     return {
-      useRawValidationVisibility: (nodeId) => {
+      useValidationVisibility: (nodeId) => {
         const lookups = FormBootstrap.useLayoutLookups();
         return FormStore.raw.useSelector((state) => {
           if (!nodeId) {
@@ -82,6 +99,16 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           }
           const { baseComponentId } = splitDashedKey(nodeId);
           return getEffectiveValidationMask(state, nodeId, baseComponentId, lookups);
+        });
+      },
+      useValidationVisibilityBreakdown: (nodeId) => {
+        const lookups = FormBootstrap.useLayoutLookups();
+        return FormStore.raw.useShallowSelector((state) => {
+          if (!nodeId) {
+            return emptyVisibilityBreakdown;
+          }
+          const { baseComponentId } = splitDashedKey(nodeId);
+          return getValidationVisibilityBreakdown(state, nodeId, baseComponentId, lookups);
         });
       },
       useRawValidations: (nodeId) =>
@@ -306,9 +333,18 @@ export function getEffectiveValidationMask(
   baseId: string,
   lookups: LayoutLookups | undefined,
 ) {
+  return getValidationVisibilityBreakdown(state, nodeId, baseId, lookups).effective;
+}
+
+export function getValidationVisibilityBreakdown(
+  state: FormStoreState,
+  nodeId: string,
+  baseId: string,
+  lookups: LayoutLookups | undefined,
+): ValidationVisibilityBreakdown {
   const nodeData = state.nodes.nodeData[nodeId];
   if (!nodeData) {
-    return 0;
+    return emptyVisibilityBreakdown;
   }
 
   const initialMask = getInitialVisibilityMask(baseId, lookups);
@@ -316,7 +352,13 @@ export function getEffectiveValidationMask(
   const pageMask = state.validation?.pageMasks?.[nodeData.pageKey] ?? 0;
   const rowMask = getRowMaskForNode(state, nodeId);
 
-  return initialMask | formMask | pageMask | rowMask;
+  return {
+    initial: initialMask,
+    form: formMask,
+    page: pageMask,
+    row: rowMask,
+    effective: initialMask | formMask | pageMask | rowMask,
+  };
 }
 
 export function getInitialVisibilityMask(baseId: string, lookups: LayoutLookups | undefined) {
