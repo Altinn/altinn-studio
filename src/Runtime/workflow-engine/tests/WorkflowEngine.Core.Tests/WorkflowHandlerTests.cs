@@ -520,4 +520,59 @@ public class WorkflowHandlerTests
 
         Assert.Single(workflow.Steps[0].ErrorHistory);
     }
+
+    [Fact]
+    public async Task Handle_MultipleRetryableFailures_ErrorHistory_AccumulatesPopulatedEntries()
+    {
+        // Each Handle invocation represents one pickup by the processor. Simulate N retry cycles
+        // against the same in-memory workflow and verify every appended entry carries real data —
+        // this is the in-memory guard complementing the integration-level DB round-trip test.
+        const int cycles = 5;
+
+        var executor = MockExecutor(
+            Enumerable
+                .Range(0, cycles)
+                .Select(i => ExecutionResult.RetryableError($"fail-{i}", httpStatusCode: 500))
+                .ToArray()
+        );
+        var settings = new EngineSettings
+        {
+            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(1), maxRetries: cycles),
+            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
+            DatabaseRetryStrategy = RetryStrategy.None(),
+            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+            MaxWorkflowsPerRequest = 100,
+            MaxStepsPerWorkflow = 50,
+            MaxLabels = 50,
+            HeartbeatInterval = TimeSpan.FromSeconds(3),
+            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+            MaxReclaimCount = 3,
+            Concurrency = new ConcurrencySettings
+            {
+                MaxWorkers = 5,
+                MaxDbOperations = 5,
+                MaxHttpCalls = 5,
+            },
+        };
+        var handler = CreateHandler(executor.Object, settings);
+        var workflow = CreateWorkflow(CreateStep());
+
+        for (int i = 0; i < cycles; i++)
+        {
+            workflow.Status = PersistentItemStatus.Processing;
+            workflow.Steps[0].Status = PersistentItemStatus.Enqueued;
+            await handler.Handle(workflow, CancellationToken.None);
+        }
+
+        var entries = workflow.Steps[0].ErrorHistory;
+        Assert.Equal(cycles, entries.Count);
+        for (int i = 0; i < entries.Count; i++)
+        {
+            Assert.Equal($"fail-{i}", entries[i].Message);
+            Assert.Equal(500, entries[i].HttpStatusCode);
+            Assert.True(entries[i].WasRetryable);
+            Assert.True(entries[i].Timestamp > DateTimeOffset.MinValue);
+        }
+    }
 }
