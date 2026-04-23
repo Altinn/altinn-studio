@@ -15,7 +15,7 @@ RETNINGSLINJER DU SKAL FØLGE:
 brukerens perspektiv
 – UU-krav til tekst: unngå tvetydighet, støtt kognitiv tilgjengelighet,
 ikke anta forkunnskaper
-– Tiltaleform: alltid «du» (aldri «De», «man» eller passiv som erstatning)
+– Tiltaleform: for bokmål/nynorsk bruk «du» (aldri «De», «man» eller passiv som erstatning); for andre språk bruk målspråkets konvensjonelle andrepersonsform
 
 VIKTIG: Gi alltid konkrete forslag til forbedret tekst, ikke bare
 generelle kommentarer. Forklar kort hvorfor du foreslår endringen.
