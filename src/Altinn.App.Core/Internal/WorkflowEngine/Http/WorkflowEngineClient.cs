@@ -102,10 +102,36 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<WorkflowStatusResponse>> ListActiveWorkflows(
+    public async Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/hierarchy";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<WorkflowHierarchyResponse>(cancellationToken: cancellationToken)
+            ?? throw new InvalidOperationException(
+                "The expected workflow hierarchy was not found in the response content."
+            );
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         Guid? correlationId = null,
         Dictionary<string, string>? labels = null,
+        IReadOnlyList<PersistentItemStatus>? statuses = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -114,7 +140,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         while (true)
         {
-            var url = BuildListActiveWorkflowsUrl(ns, correlationId, labels, cursor);
+            var url = BuildListWorkflowsUrl(ns, correlationId, labels, statuses, cursor);
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
             using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
@@ -188,10 +214,11 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             );
     }
 
-    private string BuildListActiveWorkflowsUrl(
+    private string BuildListWorkflowsUrl(
         string ns,
         Guid? correlationId,
         Dictionary<string, string>? labels,
+        IReadOnlyList<PersistentItemStatus>? statuses,
         Guid? cursor
     )
     {
@@ -207,6 +234,13 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             foreach (var (key, value) in labels)
             {
                 queryParams.Add($"label={Uri.EscapeDataString(key)}:{Uri.EscapeDataString(value)}");
+            }
+        }
+        if (statuses is not null)
+        {
+            foreach (var status in statuses)
+            {
+                queryParams.Add($"statuses={Uri.EscapeDataString(status.ToString())}");
             }
         }
         if (cursor.HasValue)

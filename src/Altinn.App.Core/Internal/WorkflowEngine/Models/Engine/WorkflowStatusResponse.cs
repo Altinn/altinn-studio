@@ -83,6 +83,7 @@ internal sealed record WorkflowStatusResponse
     /// The overall status of the workflow.
     /// </summary>
     [JsonPropertyName("overallStatus")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required PersistentItemStatus OverallStatus { get; init; }
 
     /// <summary>
@@ -111,92 +112,4 @@ internal sealed record WorkflowStatusResponse
     /// </summary>
     [JsonPropertyName("steps")]
     public required IReadOnlyList<StepStatusResponse> Steps { get; init; }
-}
-
-/// <summary>
-/// Status details about a workflow engine step.
-/// </summary>
-internal sealed record StepStatusResponse
-{
-    /// <summary>
-    /// The database ID of the step.
-    /// </summary>
-    [JsonPropertyName("databaseId")]
-    public Guid DatabaseId { get; init; }
-
-    /// <summary>
-    /// The idempotency key of the step.
-    /// </summary>
-    [JsonPropertyName("idempotencyKey")]
-    public string? IdempotencyKey { get; init; }
-
-    /// <summary>
-    /// An identifier for this operation.
-    /// </summary>
-    [JsonPropertyName("operationId")]
-    public required string OperationId { get; init; }
-
-    /// <summary>
-    /// The processing order of this step within the workflow.
-    /// </summary>
-    [JsonPropertyName("processingOrder")]
-    public required int ProcessingOrder { get; init; }
-
-    /// <summary>
-    /// When the step was last updated.
-    /// </summary>
-    [JsonPropertyName("updatedAt")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? UpdatedAt { get; init; }
-
-    /// <summary>
-    /// Labels associated with the step.
-    /// </summary>
-    [JsonPropertyName("labels")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string>? Labels { get; init; }
-
-    /// <summary>
-    /// The command details for this step.
-    /// </summary>
-    [JsonPropertyName("command")]
-    public required CommandDetails Command { get; init; }
-
-    /// <summary>
-    /// The current execution status.
-    /// </summary>
-    [JsonPropertyName("status")]
-    public required PersistentItemStatus Status { get; init; }
-
-    /// <summary>
-    /// The number of times this step has been retried.
-    /// </summary>
-    [JsonPropertyName("retryCount")]
-    public required int RetryCount { get; init; }
-
-    /// <summary>
-    /// The output state produced by this step, passed as input to the next step.
-    /// </summary>
-    [JsonPropertyName("stateOut")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? StateOut { get; init; }
-
-    /// <summary>
-    /// The retry strategy for this step.
-    /// </summary>
-    [JsonPropertyName("retryStrategy")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public RetryStrategy? RetryStrategy { get; init; }
-
-    /// <summary>
-    /// Details about the command associated with a step.
-    /// </summary>
-    internal sealed record CommandDetails
-    {
-        /// <summary>
-        /// The command type (e.g. "app", "webhook").
-        /// </summary>
-        [JsonPropertyName("type")]
-        public required string Type { get; init; }
-    }
 }

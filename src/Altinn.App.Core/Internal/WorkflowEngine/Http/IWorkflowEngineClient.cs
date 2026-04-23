@@ -36,17 +36,29 @@ internal interface IWorkflowEngineClient
     );
 
     /// <summary>
-    /// Lists all active (incomplete) workflows, optionally filtered by correlation ID and labels.
-    /// Returns an empty list when no workflows are active.
+    /// Gets the workflow hierarchy rooted at the requested workflow.
+    /// Returns <see langword="null"/> when the workflow does not exist.
+    /// </summary>
+    Task<WorkflowHierarchyResponse?> GetWorkflowHierarchy(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Lists workflows, optionally filtered by correlation ID, labels, and statuses.
+    /// Returns an empty list when no workflows match.
     /// </summary>
     /// <param name="ns">Namespace (URL path segment)</param>
     /// <param name="correlationId">Optional correlation ID to filter by</param>
     /// <param name="labels">Optional label filters (key-value pairs)</param>
+    /// <param name="statuses">Optional workflow statuses to filter by</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task<IReadOnlyList<WorkflowStatusResponse>> ListActiveWorkflows(
+    Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         Guid? correlationId = null,
         Dictionary<string, string>? labels = null,
+        IReadOnlyList<PersistentItemStatus>? statuses = null,
         CancellationToken cancellationToken = default
     );
 

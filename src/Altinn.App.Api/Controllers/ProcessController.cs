@@ -470,6 +470,29 @@ public class ProcessController : ControllerBase
 
     private ActionResult<AppProcessState> GetResultForError(ProcessChangeResult result)
     {
+        if (result.WorkflowFailure is not null)
+        {
+            int statusCode =
+                result.WorkflowFailure.Kind == WorkflowFailureKind.Timeout
+                    ? StatusCodes.Status504GatewayTimeout
+                    : StatusCodes.Status500InternalServerError;
+
+            var problemDetails = new ProblemDetails
+            {
+                Detail = result.ErrorMessage,
+                Status = statusCode,
+                Title = "Something went wrong while moving to the next task.",
+            };
+            problemDetails.Extensions["workflowFailure"] = result.WorkflowFailure;
+            if (result.ProcessStateOnFailure is not null)
+            {
+                problemDetails.Extensions["processStateChanged"] = true;
+                problemDetails.Extensions["processState"] = result.ProcessStateOnFailure;
+            }
+
+            return StatusCode(statusCode, problemDetails);
+        }
+
         switch (result.ErrorType)
         {
             case ProcessErrorType.Conflict:

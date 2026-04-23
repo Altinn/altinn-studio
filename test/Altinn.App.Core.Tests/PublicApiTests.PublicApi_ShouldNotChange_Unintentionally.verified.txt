@@ -5361,6 +5361,7 @@ namespace Altinn.App.Core.Models.Process
         public string? ErrorTitle { get; set; }
         public Altinn.App.Core.Models.Process.ProcessErrorType? ErrorType { get; init; }
         public Altinn.App.Core.Models.Process.ProcessStateChange? ProcessStateChange { get; init; }
+        public Altinn.Platform.Storage.Interface.Models.ProcessState? ProcessStateOnFailure { get; init; }
         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, new string?[]?[] {
                 "ErrorMessage",
                 "ErrorType"})]
@@ -5375,6 +5376,7 @@ namespace Altinn.App.Core.Models.Process
         [set: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "ProcessStateChange")]
         public bool Success { get; init; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; set; }
+        public Altinn.App.Core.Models.Process.WorkflowFailure? WorkflowFailure { get; init; }
     }
     public enum ProcessErrorType
     {
@@ -5412,6 +5414,35 @@ namespace Altinn.App.Core.Models.Process
         public System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.InstanceEvent>? Events { get; set; }
         public Altinn.Platform.Storage.Interface.Models.ProcessState? NewProcessState { get; set; }
         public Altinn.Platform.Storage.Interface.Models.ProcessState? OldProcessState { get; set; }
+    }
+    public sealed class WorkflowFailure
+    {
+        public WorkflowFailure() { }
+        public string? CommandType { get; init; }
+        public Altinn.App.Core.Models.Process.WorkflowFailureKind Kind { get; init; }
+        public Altinn.App.Core.Models.Process.WorkflowFailureError? LastError { get; init; }
+        public string? RetryAction { get; init; }
+        public int? RetryCount { get; init; }
+        public System.Guid? RetryTargetWorkflowId { get; init; }
+        public string? StepOperationId { get; init; }
+        public System.Guid? WorkflowId { get; init; }
+        public string? WorkflowOperationId { get; init; }
+    }
+    public sealed class WorkflowFailureError
+    {
+        public WorkflowFailureError() { }
+        public int? HttpStatusCode { get; init; }
+        public string Message { get; init; }
+        public System.DateTimeOffset Timestamp { get; init; }
+        public bool WasRetryable { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+    public enum WorkflowFailureKind
+    {
+        StepFailed = 0,
+        DependencyFailed = 1,
+        EngineFault = 2,
+        Timeout = 3,
     }
 }
 namespace Altinn.App.Core.Models.Result

@@ -161,11 +161,14 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         processNextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
         sendAsyncCalled.Should().BeTrue();
 
-        responseAsString
-            .Should()
-            .Be(
-                "{\"title\":\"Service task failed!\",\"status\":500,\"detail\":\"Service task pdf failed with an exception!\"}"
-            );
+        JObject problem = JObject.Parse(responseAsString);
+        problem["title"]!.Value<string>().Should().Be("Something went wrong while moving to the next task.");
+        problem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.InternalServerError);
+        problem["detail"]!.Value<string>().Should().Be("Pdf generation failed");
+        problem["workflowFailure"]!["kind"]!.Value<string>().Should().Be("StepFailed");
+        problem["workflowFailure"]!["retryAction"]!.Value<string>().Should().Be("resumeWorkflow");
+        problem["processStateChanged"]!.Value<bool>().Should().BeTrue();
+        problem["processState"]!["currentTask"]!["elementId"]!.Value<string>().Should().Be("Task_2");
 
         // Double check that process did not move to the next task
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);

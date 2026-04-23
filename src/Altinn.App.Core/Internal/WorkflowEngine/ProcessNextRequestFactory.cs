@@ -68,10 +68,12 @@ internal sealed class ProcessNextRequestFactory
         Actor? actor = null,
         IEnumerable<WorkflowRef>? dependsOn = null,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        string? idempotencyKey = null
     )
     {
         List<StepRequest> commands = await AssembleCommandSequence(processStateChange, prefill, notification);
+        string effectiveIdempotencyKey = idempotencyKey ?? lockToken;
 
         string fromTaskId =
             processStateChange.OldProcessState?.CurrentTask?.ElementId
@@ -81,8 +83,6 @@ internal sealed class ProcessNextRequestFactory
             processStateChange.NewProcessState?.CurrentTask?.ElementId
             ?? processStateChange.NewProcessState?.EndEvent
             ?? "End event";
-
-        string idempotencyKey = dependsOn?.Any() == true ? $"{lockToken}-dep-{fromTaskId}" : lockToken;
 
         Actor resolvedActor = actor ?? await ExtractActor();
         InstanceIdentifier instanceId = new(instance);
@@ -115,7 +115,7 @@ internal sealed class ProcessNextRequestFactory
             ],
         };
 
-        return new WorkflowEnqueueBundle(request, ns, idempotencyKey, correlationId);
+        return new WorkflowEnqueueBundle(request, ns, effectiveIdempotencyKey, correlationId);
     }
 
     private async Task<List<StepRequest>> AssembleCommandSequence(

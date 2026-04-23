@@ -162,6 +162,7 @@ public sealed class ProcessEngineTest
         // Arrange - Mock the process engine client
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         WorkflowEnqueueRequest? capturedRequest = null;
+        Guid workflowId = Guid.NewGuid();
         processEngineClientMock
             .Setup(c =>
                 c.EnqueueWorkflows(
@@ -178,19 +179,12 @@ public sealed class ProcessEngineTest
             .ReturnsAsync(
                 new WorkflowEnqueueResponse.Accepted
                 {
-                    Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "org/app" }],
+                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
                 }
             );
         processEngineClientMock
-            .Setup(c =>
-                c.ListActiveWorkflows(
-                    It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync((IReadOnlyList<WorkflowStatusResponse>)[]);
+            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_1 -> Task_2"));
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -307,6 +301,7 @@ public sealed class ProcessEngineTest
         // Arrange
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         WorkflowEnqueueRequest? capturedRequest = null;
+        Guid workflowId = Guid.NewGuid();
         processEngineClientMock
             .Setup(c =>
                 c.EnqueueWorkflows(
@@ -323,19 +318,12 @@ public sealed class ProcessEngineTest
             .ReturnsAsync(
                 new WorkflowEnqueueResponse.Accepted
                 {
-                    Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "org/app" }],
+                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
                 }
             );
         processEngineClientMock
-            .Setup(c =>
-                c.ListActiveWorkflows(
-                    It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync((IReadOnlyList<WorkflowStatusResponse>)[]);
+            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_1 -> Task_2"));
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -446,6 +434,7 @@ public sealed class ProcessEngineTest
         // Arrange
         var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         WorkflowEnqueueRequest? capturedRequest = null;
+        Guid workflowId = Guid.NewGuid();
         processEngineClientMock
             .Setup(c =>
                 c.EnqueueWorkflows(
@@ -462,19 +451,12 @@ public sealed class ProcessEngineTest
             .ReturnsAsync(
                 new WorkflowEnqueueResponse.Accepted
                 {
-                    Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "org/app" }],
+                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
                 }
             );
         processEngineClientMock
-            .Setup(c =>
-                c.ListActiveWorkflows(
-                    It.IsAny<string>(),
-                    It.IsAny<Guid?>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync((IReadOnlyList<WorkflowStatusResponse>)[]);
+            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_2 -> EndEvent_1"));
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -1238,6 +1220,22 @@ public sealed class ProcessEngineTest
             );
     }
 
+    private static WorkflowStatusResponse CreateCompletedWorkflowStatusResponse(Guid workflowId, string operationId) =>
+        new()
+        {
+            DatabaseId = workflowId,
+            OperationId = operationId,
+            IdempotencyKey = "test-idempotency-key",
+            Namespace = "org/app",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            OverallStatus = PersistentItemStatus.Completed,
+            Steps = [],
+        };
+
+    private static WorkflowHierarchyResponse CreateWorkflowHierarchyResponse(Guid workflowId, string operationId) =>
+        new() { WorkflowId = workflowId, Workflows = [CreateCompletedWorkflowStatusResponse(workflowId, operationId)] };
+
     private sealed record Fixture(IServiceProvider ServiceProvider) : IAsyncDisposable
     {
         public LegacyProcessEngine ProcessEngine =>
@@ -1378,6 +1376,7 @@ public sealed class ProcessEngineTest
             services.TryAddTransient<IInstanceLocker>(_ => instanceLockerMock.Object);
 
             var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+            Guid workflowId = Guid.NewGuid();
             processEngineClientMock
                 .Setup(c =>
                     c.EnqueueWorkflows(
@@ -1391,19 +1390,12 @@ public sealed class ProcessEngineTest
                 .ReturnsAsync(
                     new WorkflowEnqueueResponse.Accepted
                     {
-                        Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "org/app" }],
+                        Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = "org/app" }],
                     }
                 );
             processEngineClientMock
-                .Setup(c =>
-                    c.ListActiveWorkflows(
-                        It.IsAny<string>(),
-                        It.IsAny<Guid?>(),
-                        It.IsAny<Dictionary<string, string>?>(),
-                        It.IsAny<CancellationToken>()
-                    )
-                )
-                .ReturnsAsync((IReadOnlyList<WorkflowStatusResponse>)[]);
+                .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next"));
             services.TryAddTransient<IWorkflowEngineClient>(_ => processEngineClientMock.Object);
 
             services.TryAddSingleton(new AppIdentifier("org", "app"));

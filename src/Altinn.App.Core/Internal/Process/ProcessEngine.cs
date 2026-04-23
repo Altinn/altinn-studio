@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -14,6 +16,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -36,6 +39,9 @@ namespace Altinn.App.Core.Internal.Process;
 internal class ProcessEngine : IProcessEngine
 {
     private const int MaxNextIterationsAllowed = 100;
+    private const int WorkflowPollingTimeoutMs = 100_000;
+    private const int InitialWorkflowPollingDelayMs = 100;
+    private const int MaxWorkflowPollingDelayMs = 2_000;
 
     private readonly IProcessReader _processReader;
     private readonly IProcessNavigator _processNavigator;
@@ -175,16 +181,25 @@ internal class ProcessEngine : IProcessEngine
         );
         string state = await _instanceStateService.CaptureState(unitOfWork);
 
-        await CreateAndEnqueueWorkflow(
+        string rootWorkflowIdempotencyKey = CreateProcessNextIdempotencyKey(instance, resolvedAction: "start");
+        Guid rootWorkflowId = await CreateAndEnqueueWorkflow(
             instance,
             processStateChange,
+            rootWorkflowIdempotencyKey,
             lockToken,
             state,
             prefill: prefill,
             notification: notification,
             ct: ct
         );
-        return await WaitForWorkflowsAndRefetchInstance(instance, ct);
+
+        WorkflowFamilyResult result = await WaitForWorkflowFamilyAndRefetchInstance(instance, rootWorkflowId, ct);
+        if (result.WorkflowFailure is null)
+        {
+            return result.Instance;
+        }
+
+        throw CreateWorkflowFailureException(result.WorkflowFailure);
     }
 
     /// <inheritdoc/>
@@ -388,6 +403,7 @@ internal class ProcessEngine : IProcessEngine
             moveToNextResult = await HandleMoveToNext(
                 instance,
                 processNextAction,
+                checkedAction,
                 _instanceLocker.CurrentLockToken
                     ?? throw new InvalidOperationException("Lock token must be set after acquiring instance lock"),
                 ct
@@ -403,6 +419,21 @@ internal class ProcessEngine : IProcessEngine
                 ErrorType = ProcessErrorType.Internal,
                 ErrorTitle = "Service task failed!",
                 ErrorMessage = ex.Message,
+            };
+            activity?.SetProcessChangeResult(failureResult);
+            return failureResult;
+        }
+
+        if (moveToNextResult.WorkflowFailure is not null)
+        {
+            var failureResult = new ProcessChangeResult(mutatedInstance: moveToNextResult.Instance)
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "Something went wrong while moving to the next task.",
+                ErrorMessage = CreateWorkflowFailureMessage(moveToNextResult.WorkflowFailure),
+                WorkflowFailure = moveToNextResult.WorkflowFailure,
+                ProcessStateOnFailure = moveToNextResult.ProcessStateChanged ? moveToNextResult.Instance.Process : null,
             };
             activity?.SetProcessChangeResult(failureResult);
             return failureResult;
@@ -648,6 +679,7 @@ internal class ProcessEngine : IProcessEngine
     private async Task<MoveToNextResult> HandleMoveToNext(
         Instance instance,
         string? action,
+        string resolvedAction,
         string lockToken,
         CancellationToken ct = default
     )
@@ -663,6 +695,7 @@ internal class ProcessEngine : IProcessEngine
         );
 
         string state = await _instanceStateService.CaptureState(unitOfWork);
+        string rootWorkflowIdempotencyKey = CreateProcessNextIdempotencyKey(instance, resolvedAction);
 
         ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
 
@@ -671,11 +704,23 @@ internal class ProcessEngine : IProcessEngine
             return new MoveToNextResult(instance, null);
         }
 
-        await CreateAndEnqueueWorkflow(instance, processStateChange, lockToken, state, ct: ct);
+        Guid rootWorkflowId = await CreateAndEnqueueWorkflow(
+            instance,
+            processStateChange,
+            rootWorkflowIdempotencyKey,
+            lockToken,
+            state,
+            ct: ct
+        );
 
-        Instance freshInstance = await WaitForWorkflowsAndRefetchInstance(instance, ct);
+        WorkflowFamilyResult result = await WaitForWorkflowFamilyAndRefetchInstance(instance, rootWorkflowId, ct);
 
-        return new MoveToNextResult(freshInstance, processStateChange);
+        return new MoveToNextResult(
+            result.Instance,
+            processStateChange,
+            result.WorkflowFailure,
+            result.ProcessStateChanged
+        );
     }
 
     /// <inheritdoc/>
@@ -695,6 +740,7 @@ internal class ProcessEngine : IProcessEngine
         await CreateAndEnqueueWorkflow(
             instance,
             processStateChange,
+            CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
             lockToken,
             state,
             actor: actor,
@@ -710,6 +756,7 @@ internal class ProcessEngine : IProcessEngine
     private async Task<Guid> CreateAndEnqueueWorkflow(
         Instance instance,
         ProcessStateChange processStateChange,
+        string idempotencyKey,
         string lockToken,
         string? state = null,
         Actor? actor = null,
@@ -727,7 +774,8 @@ internal class ProcessEngine : IProcessEngine
             actor: actor,
             dependsOn: dependsOn,
             prefill: prefill,
-            notification: notification
+            notification: notification,
+            idempotencyKey: idempotencyKey
         );
 
         WorkflowEnqueueResponse.Accepted response = await _workflowEngineClient.EnqueueWorkflows(
@@ -769,11 +817,36 @@ internal class ProcessEngine : IProcessEngine
         return new PlatformUser { OrgId = actor.UserIdOrOrgNumber };
     }
 
-    private sealed record MoveToNextResult(Instance Instance, ProcessStateChange? ProcessStateChange)
+    private static string CreateProcessNextIdempotencyKey(Instance instance, string resolvedAction)
+    {
+        ProcessElementInfo? currentTask = instance.Process?.CurrentTask;
+        string taskId = currentTask?.ElementId ?? instance.Process?.StartEvent ?? "process-start";
+        int flow = currentTask?.Flow ?? 0;
+        InstanceIdentifier instanceIdentifier = new(instance);
+        string fingerprint = $"{instanceIdentifier.InstanceGuid:N}|{flow}|{taskId}|{resolvedAction}";
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(fingerprint));
+        return $"process-next-operation-{Convert.ToHexString(hash).ToLowerInvariant()}";
+    }
+
+    private static string CreateDependentWorkflowIdempotencyKey(Guid dependsOnWorkflowId) =>
+        $"process-next-dependent-{dependsOnWorkflowId:N}";
+
+    private sealed record MoveToNextResult(
+        Instance Instance,
+        ProcessStateChange? ProcessStateChange,
+        WorkflowFailure? WorkflowFailure = null,
+        bool ProcessStateChanged = false
+    )
     {
         [MemberNotNullWhen(true, nameof(ProcessStateChange))]
         public bool IsEndEvent => ProcessStateChange?.NewProcessState?.Ended is not null;
     };
+
+    private sealed record WorkflowFamilyResult(
+        Instance Instance,
+        WorkflowFailure? WorkflowFailure,
+        bool ProcessStateChanged
+    );
 
     internal static string ConvertTaskTypeToAction(string actionOrTaskType)
     {
@@ -854,63 +927,158 @@ internal class ProcessEngine : IProcessEngine
         return true;
     }
 
-    /// <summary>
-    /// Polls the workflow engine until all active workflows for the instance have completed,
-    /// then fetches and returns the fresh instance from Storage.
-    /// </summary>
-    private async Task<Instance> WaitForWorkflowsAndRefetchInstance(Instance instance, CancellationToken ct)
+    private async Task<WorkflowFamilyResult> WaitForWorkflowFamilyAndRefetchInstance(
+        Instance instance,
+        Guid rootWorkflowId,
+        CancellationToken ct
+    )
     {
         var stopwatch = Stopwatch.StartNew();
-        const int timeoutMs = 100_000;
-        const int initialDelayMs = 100;
-        const int maxDelayMs = 2_000;
-        int currentDelayMs = initialDelayMs;
+        int currentDelayMs = InitialWorkflowPollingDelayMs;
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
-        Guid correlationId = new InstanceIdentifier(instance).InstanceGuid;
+        IReadOnlyList<WorkflowStatusResponse> lastObservedFamily = [];
 
         while (!ct.IsCancellationRequested)
         {
-            IReadOnlyList<WorkflowStatusResponse> activeWorkflows = await _workflowEngineClient.ListActiveWorkflows(
+            WorkflowHierarchyResponse? hierarchy = await _workflowEngineClient.GetWorkflowHierarchy(
                 ns,
-                correlationId,
+                rootWorkflowId,
                 cancellationToken: ct
             );
-
-            if (activeWorkflows.Count == 0)
+            IReadOnlyList<WorkflowStatusResponse> family = hierarchy?.Workflows ?? [];
+            if (family.Count > 0)
             {
-                break;
-            }
+                lastObservedFamily = family;
 
-            // Check for terminal failure states
-            foreach (var workflow in activeWorkflows)
-            {
-                switch (workflow.OverallStatus)
+                if (!family.Any(IsActiveWorkflowStatus))
                 {
-                    case PersistentItemStatus.Canceled:
-                        throw new InvalidOperationException($"Workflow '{workflow.OperationId}' was canceled.");
-                    case PersistentItemStatus.Failed:
-                        throw new InvalidOperationException($"Workflow '{workflow.OperationId}' failed.");
-                    case PersistentItemStatus.DependencyFailed:
-                        throw new InvalidOperationException(
-                            $"Workflow '{workflow.OperationId}' failed due to a dependency failure."
-                        );
+                    Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(family);
+                    bool processStateChanged = HasCommittedProcessState(family);
+                    return new WorkflowFamilyResult(freshInstance, workflowFailure, processStateChanged);
                 }
             }
 
-            if (stopwatch.ElapsedMilliseconds > timeoutMs)
+            if (stopwatch.ElapsedMilliseconds > WorkflowPollingTimeoutMs)
             {
-                throw new TimeoutException("Timeout while waiting for workflows to complete.");
+                Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
+                return new WorkflowFamilyResult(
+                    freshInstance,
+                    new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
+                    HasCommittedProcessState(lastObservedFamily)
+                );
             }
 
             await Task.Delay(currentDelayMs, ct);
-            currentDelayMs = Math.Min(currentDelayMs * 2, maxDelayMs);
+            currentDelayMs = Math.Min(currentDelayMs * 2, MaxWorkflowPollingDelayMs);
         }
 
         ct.ThrowIfCancellationRequested();
-
-        return await _instanceClient.GetInstance(instance, ct: ct);
+        throw new InvalidOperationException("Cancellation should have thrown.");
     }
+
+    private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
+        workflow.OverallStatus
+            is PersistentItemStatus.Enqueued
+                or PersistentItemStatus.Processing
+                or PersistentItemStatus.Requeued;
+
+    private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> family) =>
+        family.Any(workflow =>
+            workflow.Steps.Any(step =>
+                step.OperationId == SaveProcessStateToStorage.Key && step.Status == PersistentItemStatus.Completed
+            )
+        );
+
+    private static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> family)
+    {
+        WorkflowStatusResponse? stepFailedWorkflow = family.FirstOrDefault(workflow =>
+            workflow.OverallStatus == PersistentItemStatus.Failed
+            && workflow.Steps.Any(step => step.Status == PersistentItemStatus.Failed)
+        );
+        if (stepFailedWorkflow is not null)
+        {
+            StepStatusResponse failedStep = stepFailedWorkflow.Steps.First(step =>
+                step.Status == PersistentItemStatus.Failed
+            );
+            return new WorkflowFailure
+            {
+                Kind = WorkflowFailureKind.StepFailed,
+                WorkflowId = stepFailedWorkflow.DatabaseId,
+                WorkflowOperationId = stepFailedWorkflow.OperationId,
+                StepOperationId = failedStep.OperationId,
+                CommandType = failedStep.Command.Type,
+                RetryCount = failedStep.RetryCount,
+                LastError = ToWorkflowFailureError(failedStep.ErrorHistory?.LastOrDefault()),
+                RetryAction = "resumeWorkflow",
+                RetryTargetWorkflowId = stepFailedWorkflow.DatabaseId,
+            };
+        }
+
+        WorkflowStatusResponse? dependencyFailedWorkflow = family.FirstOrDefault(workflow =>
+            workflow.OverallStatus == PersistentItemStatus.DependencyFailed
+        );
+        if (dependencyFailedWorkflow is not null)
+        {
+            return new WorkflowFailure
+            {
+                Kind = WorkflowFailureKind.DependencyFailed,
+                WorkflowId = dependencyFailedWorkflow.DatabaseId,
+                WorkflowOperationId = dependencyFailedWorkflow.OperationId,
+            };
+        }
+
+        WorkflowStatusResponse? engineFaultWorkflow = family.FirstOrDefault(workflow =>
+            workflow.OverallStatus is PersistentItemStatus.Failed or PersistentItemStatus.Canceled
+        );
+        if (engineFaultWorkflow is not null)
+        {
+            StepStatusResponse? firstFailedStep = engineFaultWorkflow.Steps.FirstOrDefault(step =>
+                step.Status == PersistentItemStatus.Failed
+            );
+            return new WorkflowFailure
+            {
+                Kind = WorkflowFailureKind.EngineFault,
+                WorkflowId = engineFaultWorkflow.DatabaseId,
+                WorkflowOperationId = engineFaultWorkflow.OperationId,
+                StepOperationId = firstFailedStep?.OperationId,
+                CommandType = firstFailedStep?.Command.Type,
+                RetryCount = firstFailedStep?.RetryCount,
+                LastError = ToWorkflowFailureError(firstFailedStep?.ErrorHistory?.LastOrDefault()),
+            };
+        }
+
+        return null;
+    }
+
+    private static WorkflowFailureError? ToWorkflowFailureError(ErrorEntry? errorEntry) =>
+        errorEntry is null
+            ? null
+            : new WorkflowFailureError
+            {
+                Timestamp = errorEntry.Timestamp,
+                Message = errorEntry.Message,
+                HttpStatusCode = errorEntry.HttpStatusCode,
+                WasRetryable = errorEntry.WasRetryable,
+            };
+
+    private static Exception CreateWorkflowFailureException(WorkflowFailure workflowFailure) =>
+        workflowFailure.Kind == WorkflowFailureKind.Timeout
+            ? new TimeoutException("Timeout while waiting for workflows to complete.")
+            : new InvalidOperationException(CreateWorkflowFailureMessage(workflowFailure));
+
+    private static string CreateWorkflowFailureMessage(WorkflowFailure workflowFailure) =>
+        workflowFailure.Kind switch
+        {
+            WorkflowFailureKind.StepFailed => workflowFailure.LastError?.Message ?? "A workflow step failed.",
+            WorkflowFailureKind.DependencyFailed => workflowFailure.LastError?.Message
+                ?? "A workflow failed because a dependency failed.",
+            WorkflowFailureKind.EngineFault => workflowFailure.LastError?.Message
+                ?? "The workflow engine failed while moving to the next task.",
+            WorkflowFailureKind.Timeout => "Timeout while waiting for workflows to complete.",
+            _ => "Workflow execution failed.",
+        };
 
     private bool IsServiceTask(Instance instance)
     {

@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class WorkflowEngineClientTests
 {
     [Fact]
-    public async Task ListActiveWorkflows_FollowsCursorPaginationAndReturnsAllPages()
+    public async Task ListWorkflows_FollowsCursorPaginationAndReturnsAllPages()
     {
         // Arrange
         Guid correlationId = Guid.NewGuid();
@@ -74,10 +74,11 @@ public class WorkflowEngineClientTests
         );
 
         // Act
-        IReadOnlyList<WorkflowStatusResponse> workflows = await client.ListActiveWorkflows(
+        IReadOnlyList<WorkflowStatusResponse> workflows = await client.ListWorkflows(
             "ttd/app",
             correlationId,
-            new Dictionary<string, string> { ["org"] = "ttd" }
+            new Dictionary<string, string> { ["org"] = "ttd" },
+            [PersistentItemStatus.Enqueued, PersistentItemStatus.Failed]
         );
 
         // Assert
@@ -86,11 +87,11 @@ public class WorkflowEngineClientTests
         Assert.Equal("second-workflow", workflows[1].OperationId);
 
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd",
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&statuses=Enqueued&statuses=Failed",
             requestUris[0]!.ToString()
         );
         Assert.Equal(
-            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&cursor={nextCursor}",
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows?correlationId={correlationId}&label=org:ttd&statuses=Enqueued&statuses=Failed&cursor={nextCursor}",
             requestUris[1]!.ToString()
         );
 
@@ -102,6 +103,55 @@ public class WorkflowEngineClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             );
+    }
+
+    [Fact]
+    public async Task GetWorkflowHierarchy_UsesHierarchyEndpoint()
+    {
+        var requestUris = new List<Uri?>();
+        Guid workflowId = Guid.NewGuid();
+
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (request, _) =>
+                {
+                    requestUris.Add(request.RequestUri);
+                    return Task.FromResult(
+                        CreateJsonResponse(
+                            new WorkflowHierarchyResponse
+                            {
+                                WorkflowId = workflowId,
+                                Workflows = [CreateWorkflowStatusResponse("hierarchy-root")],
+                            }
+                        )
+                    );
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        WorkflowHierarchyResponse? hierarchy = await client.GetWorkflowHierarchy("ttd/app", workflowId);
+
+        Assert.NotNull(hierarchy);
+        Assert.Equal(workflowId, hierarchy.WorkflowId);
+        Assert.Single(hierarchy.Workflows);
+        Assert.Equal(
+            $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}/hierarchy",
+            requestUris[0]!.ToString()
+        );
     }
 
     private static HttpResponseMessage CreateJsonResponse<T>(T body) =>
