@@ -4,6 +4,10 @@ namespace Altinn.Studio.EnvTopology;
 
 public sealed class BoundTopologyIndex
 {
+    private const int PrefixRoutePrecedence = 0;
+    private const int PatternRoutePrecedence = 1;
+    private const int HostRoutePrecedence = 2;
+
     private readonly BoundTopologyAppRoute[] _apps;
     private readonly Dictionary<string, BoundTopologyAppRoute> _appsById;
     private readonly Dictionary<string, BoundTopologyComponentRoute[]> _componentRoutes;
@@ -14,11 +18,12 @@ public sealed class BoundTopologyIndex
     {
         config ??= new BoundTopologyConfig { Version = 1, Routes = [] };
 
-        var compiledRoutes = config.Routes.Where(static route => route.Enabled).Select(CompileRoute).ToArray();
+        var compiledRoutes = config.Routes.Select(CompileRoute).ToArray();
+        var enabledRoutes = compiledRoutes.Where(static route => route.Route.Enabled).ToArray();
         _routeGroupsByHost = BuildRouteGroups(compiledRoutes);
-        _hostHttpUpstreams = BuildHostHttpUpstreams(compiledRoutes);
-        _componentRoutes = BuildComponentRoutes(compiledRoutes);
-        var apps = BuildApps(compiledRoutes);
+        _hostHttpUpstreams = BuildHostHttpUpstreams(enabledRoutes);
+        _componentRoutes = BuildComponentRoutes(enabledRoutes);
+        var apps = BuildApps(enabledRoutes);
         _apps = apps.Routes;
         _appsById = apps.RoutesById;
     }
@@ -134,7 +139,10 @@ public sealed class BoundTopologyIndex
             .ToDictionary(
                 static hostGroup => hostGroup.Key,
                 static hostGroup => hostGroup.GroupBy(static route => route.GroupKey, StringComparer.Ordinal)
-                    .Select(static routeGroup => new RouteGroup(routeGroup.First().Host, [.. routeGroup]))
+                    .Select(static routeGroup => new RouteGroup([.. routeGroup]))
+                    .OrderBy(static group => group.Precedence)
+                    .ThenByDescending(static group => group.Specificity)
+                    .ThenBy(static group => group.GroupKey, StringComparer.Ordinal)
                     .ToArray(),
                 StringComparer.OrdinalIgnoreCase
             );
@@ -170,7 +178,7 @@ public sealed class BoundTopologyIndex
             );
         }
 
-        return new DisabledRoute(route, route.Match.Host, "disabled:" + route.Match.Host, httpDestinationUri);
+        return new HostRoute(route, route.Match.Host, "host:" + route.Match.Host, httpDestinationUri);
     }
 
     private static string? GetMetadataValue(IReadOnlyList<BoundTopologyMetadataEntry> metadata, string key)
@@ -205,11 +213,15 @@ public sealed class BoundTopologyIndex
         public int Port { get; } = Port;
     }
 
-    private sealed class RouteGroup(string host, CompiledRoute[] routes)
+    private sealed class RouteGroup(CompiledRoute[] routes)
     {
         private int _next = -1;
 
-        public string Host { get; } = host;
+        public string GroupKey { get; } = routes[0].GroupKey;
+
+        public int Precedence { get; } = routes[0].Precedence;
+
+        public int Specificity { get; } = routes[0].Specificity;
 
         public bool IsMatch(string path) => routes.Length > 0 && routes[0].IsMatch(path);
 
@@ -240,19 +252,25 @@ public sealed class BoundTopologyIndex
 
         public Uri? HttpDestinationUri { get; } = httpDestinationUri;
 
+        public abstract int Precedence { get; }
+
+        public virtual int Specificity => 0;
+
         public abstract bool IsMatch(string path);
 
         public BoundTopologyRequestMatch Match() => new(Route, HttpDestinationUri);
     }
 
-    private sealed class DisabledRoute(
+    private sealed class HostRoute(
         BoundTopologyRoute route,
         string host,
         string groupKey,
         Uri? httpDestinationUri
     ) : CompiledRoute(route, host, groupKey, httpDestinationUri)
     {
-        public override bool IsMatch(string path) => false;
+        public override int Precedence => HostRoutePrecedence;
+
+        public override bool IsMatch(string path) => true;
     }
 
     private sealed class PrefixRoute(
@@ -263,6 +281,10 @@ public sealed class BoundTopologyIndex
         Uri? httpDestinationUri
     ) : CompiledRoute(route, host, groupKey, httpDestinationUri)
     {
+        public override int Precedence => PrefixRoutePrecedence;
+
+        public override int Specificity => prefix.Length;
+
         public override bool IsMatch(string path)
         {
             if (prefix == "/")
@@ -293,6 +315,10 @@ public sealed class BoundTopologyIndex
     ) : CompiledRoute(route, host, groupKey, httpDestinationUri)
     {
         private readonly string[] _patternSegments = pattern.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        public override int Precedence => PatternRoutePrecedence;
+
+        public override int Specificity => _patternSegments.Length;
 
         public override bool IsMatch(string path)
         {

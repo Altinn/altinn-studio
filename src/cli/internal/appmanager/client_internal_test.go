@@ -178,30 +178,30 @@ func TestPrepareAppManagerSocketForStart_RejectsDirectory(t *testing.T) {
 	}
 }
 
-func TestBuildStartConfig_IncludesBoundTopologyMergedPathsWhenPresent(t *testing.T) {
+func TestBuildStartConfig_IncludesBoundTopologyConfigPathsWhenPresent(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
-	if err := os.MkdirAll(filepath.Dir(cfg.BoundTopologyBasePath()), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(cfg.BoundTopologyBaseConfigPath()), 0o700); err != nil {
 		t.Fatalf("create topology config dir: %v", err)
 	}
-	if err := os.WriteFile(cfg.BoundTopologyBasePath(), []byte("{}\n"), 0o600); err != nil {
+	if err := os.WriteFile(cfg.BoundTopologyBaseConfigPath(), []byte("{}\n"), 0o600); err != nil {
 		t.Fatalf("write base topology config: %v", err)
 	}
 
 	got := buildStartConfig(cfg, "8000", "/path/to/studioctl")
-	if got.BoundTopologyBasePath != cfg.BoundTopologyBasePath() {
+	if got.BoundTopologyBaseConfigPath != cfg.BoundTopologyBaseConfigPath() {
 		t.Fatalf(
-			"BoundTopologyBasePath = %q, want %q",
-			got.BoundTopologyBasePath,
-			cfg.BoundTopologyBasePath(),
+			"BoundTopologyBaseConfigPath = %q, want %q",
+			got.BoundTopologyBaseConfigPath,
+			cfg.BoundTopologyBaseConfigPath(),
 		)
 	}
-	if got.BoundTopologyMergedPath != cfg.BoundTopologyMergedPath() {
+	if got.BoundTopologyConfigPath != cfg.BoundTopologyConfigPath() {
 		t.Fatalf(
-			"BoundTopologyMergedPath = %q, want %q",
-			got.BoundTopologyMergedPath,
-			cfg.BoundTopologyMergedPath(),
+			"BoundTopologyConfigPath = %q, want %q",
+			got.BoundTopologyConfigPath,
+			cfg.BoundTopologyConfigPath(),
 		)
 	}
 }

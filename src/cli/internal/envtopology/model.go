@@ -25,7 +25,7 @@ type componentsDefinition struct {
 type componentDefinition struct {
 	Kind        string `yaml:"kind"`
 	Host        string `yaml:"host"`
-	BasePath    string `yaml:"basePath,omitempty"`
+	PathPrefix  string `yaml:"pathPrefix,omitempty"`
 	PathPattern string `yaml:"pathPattern,omitempty"`
 	Port        int    `yaml:"port,omitempty"`
 }

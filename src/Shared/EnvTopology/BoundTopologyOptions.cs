@@ -8,19 +8,19 @@ public sealed class BoundTopologyOptions
 
     public const string BaseName = "base";
 
-    public const string MergedName = "merged";
+    public const string BoundName = "bound";
 
-    public const string BasePathConfigurationKey = SectionName + ":BasePath";
+    public const string BaseConfigPathConfigurationKey = SectionName + ":BaseConfigPath";
 
-    public const string MergedPathConfigurationKey = SectionName + ":MergedPath";
+    public const string ConfigPathConfigurationKey = SectionName + ":ConfigPath";
 
-    public const string BasePathEnvironmentVariable = SectionName + "__BasePath";
+    public const string BaseConfigPathEnvironmentVariable = SectionName + "__BaseConfigPath";
 
-    public const string MergedPathEnvironmentVariable = SectionName + "__MergedPath";
+    public const string ConfigPathEnvironmentVariable = SectionName + "__ConfigPath";
 
-    public string? BasePath { get; set; }
+    public string? BaseConfigPath { get; set; }
 
-    public string? MergedPath { get; set; }
+    public string? ConfigPath { get; set; }
 
     public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(10);
 }

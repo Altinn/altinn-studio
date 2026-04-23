@@ -21,21 +21,23 @@ func TestLocalTopologyURLs(t *testing.T) {
 
 	tests := map[string]string{
 		"app":              topology.AppBaseURL(),
+		"grafana route":    topology.PublicRouteURL(envtopology.ComponentGrafana),
 		"localtest":        topology.LocaltestBaseURL(),
 		"localtest pretty": envtopology.NewLocal("80").LocaltestURL(),
 		"otel":             topology.OTelURL(),
-		"pdf":              topology.PDFURL(),
+		"pdf root":         topology.PublicBaseURL(envtopology.ComponentPDF),
 		"platform":         topology.PlatformAPIBaseURL(),
-		"workflow engine":  topology.WorkflowEngineURL(),
+		"workflow root":    topology.PublicBaseURL(envtopology.ComponentWorkflowEngine),
 	}
 	want := map[string]string{
 		"app":              "http://local.altinn.cloud:9080/{org}/{app}/",
+		"grafana route":    "http://local.altinn.cloud:9080/grafana",
 		"localtest":        "http://local.altinn.cloud:9080",
 		"localtest pretty": "http://local.altinn.cloud",
 		"otel":             "http://otel.local.altinn.cloud:4317",
-		"pdf":              "http://pdf.local.altinn.cloud:9080/pdf",
+		"pdf root":         "http://pdf.local.altinn.cloud:9080",
 		"platform":         "http://local.altinn.cloud:9080",
-		"workflow engine":  "http://workflow-engine.local.altinn.cloud:9080/api/v1/",
+		"workflow root":    "http://workflow-engine.local.altinn.cloud:9080",
 	}
 	for name, got := range tests {
 		if got != want[name] {

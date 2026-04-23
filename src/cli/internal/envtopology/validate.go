@@ -64,8 +64,8 @@ func validateComponent(field string, component componentDefinition) error {
 
 	switch component.Kind {
 	case componentKindApp:
-		if component.BasePath != "" {
-			return fmt.Errorf("%s.basePath: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
+		if component.PathPrefix != "" {
+			return fmt.Errorf("%s.pathPrefix: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 		}
 		if component.Port != 0 {
 			return fmt.Errorf("%s.port: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
@@ -74,10 +74,10 @@ func validateComponent(field string, component componentDefinition) error {
 			return err
 		}
 	case componentKindPlatform:
-		return validateHTTPComponent(field, component, false)
+		return validateHTTPComponent(field, component)
 	case componentKindTelemetry:
-		if component.BasePath != "" {
-			return fmt.Errorf("%s.basePath: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
+		if component.PathPrefix != "" {
+			return fmt.Errorf("%s.pathPrefix: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 		}
 		if component.PathPattern != "" {
 			return fmt.Errorf("%s.pathPattern: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
@@ -86,7 +86,7 @@ func validateComponent(field string, component componentDefinition) error {
 			return err
 		}
 	case componentKindRuntimeService, componentKindMonitoring, componentKindTool, componentKindFrontendDev:
-		return validateHTTPComponent(field, component, true)
+		return validateHTTPComponent(field, component)
 	default:
 		return fmt.Errorf("%s.kind: %w %q", field, errUnsupportedComponentKind, component.Kind)
 	}
@@ -94,18 +94,15 @@ func validateComponent(field string, component componentDefinition) error {
 	return nil
 }
 
-func validateHTTPComponent(field string, component componentDefinition, requireBasePath bool) error {
+func validateHTTPComponent(field string, component componentDefinition) error {
 	if component.PathPattern != "" {
 		return fmt.Errorf("%s.pathPattern: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 	}
 	if component.Port != 0 {
 		return fmt.Errorf("%s.port: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 	}
-	if requireBasePath {
-		return validateBasePath(field+".basePath", component.BasePath)
-	}
-	if component.BasePath != "" {
-		if err := validateBasePath(field+".basePath", component.BasePath); err != nil {
+	if component.PathPrefix != "" {
+		if err := validatePathPrefix(field+".pathPrefix", component.PathPrefix); err != nil {
 			return err
 		}
 	}
@@ -130,7 +127,7 @@ func validateHost(field, host string) error {
 	return nil
 }
 
-func validateBasePath(field, path string) error {
+func validatePathPrefix(field, path string) error {
 	if path == "" {
 		return fmt.Errorf("%s: %w", field, errFieldRequired)
 	}

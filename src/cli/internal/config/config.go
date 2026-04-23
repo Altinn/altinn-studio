@@ -258,13 +258,13 @@ func (c *Config) BoundTopologyConfigDir() string {
 	return filepath.Join(c.DataDir, envtopology.BoundTopologyConfigDirName)
 }
 
-// BoundTopologyMergedPath returns the path to the generated merged bound topology.
-func (c *Config) BoundTopologyMergedPath() string {
+// BoundTopologyConfigPath returns the path to the generated bound topology.
+func (c *Config) BoundTopologyConfigPath() string {
 	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyConfigFileName)
 }
 
-// BoundTopologyBasePath returns the path to the generated base bound topology.
-func (c *Config) BoundTopologyBasePath() string {
+// BoundTopologyBaseConfigPath returns the path to the generated base topology.
+func (c *Config) BoundTopologyBaseConfigPath() string {
 	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyBaseConfigFileName)
 }
 

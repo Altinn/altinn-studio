@@ -36,7 +36,7 @@ func TestResolveBindings(t *testing.T) {
 	if bindings[0].Host != "local.altinn.cloud" || bindings[0].PathPattern != "/{org}/{app}/{**rest}" {
 		t.Fatalf("app binding did not use topology route shape: %#v", bindings[0])
 	}
-	if bindings[1].Host != "pdf.local.altinn.cloud" || bindings[1].BasePath != "/pdf" {
+	if bindings[1].Host != "pdf.local.altinn.cloud" || bindings[1].PathPrefix != "" {
 		t.Fatalf("pdf binding did not use topology route shape: %#v", bindings[1])
 	}
 }
@@ -80,14 +80,45 @@ func TestBoundTopologyConfig(t *testing.T) {
 	if got.Version != envtopology.BoundTopologyConfigVersion {
 		t.Fatalf("Version = %d, want %d", got.Version, envtopology.BoundTopologyConfigVersion)
 	}
+	if len(got.Routes) != 2 {
+		t.Fatalf("len(Routes) = %d, want 2", len(got.Routes))
+	}
+	if got.Routes[0].Component != envtopology.ComponentApp {
+		t.Fatalf("Routes[0].Component = %q, want %q", got.Routes[0].Component, envtopology.ComponentApp)
+	}
+	if got.Routes[0].Destination.URL != "" {
+		t.Fatalf("app destination url = %q, want empty template URL", got.Routes[0].Destination.URL)
+	}
+	if got.Routes[1].Component != envtopology.ComponentPDF {
+		t.Fatalf("Routes[1].Component = %q, want %q", got.Routes[1].Component, envtopology.ComponentPDF)
+	}
+	if got.Routes[1].Destination.URL != "http://pdf:5031" {
+		t.Fatalf("pdf destination url = %q, want %q", got.Routes[1].Destination.URL, "http://pdf:5031")
+	}
+}
+
+func TestBoundTopologyConfigKeepsDisabledRoutes(t *testing.T) {
+	t.Parallel()
+
+	got := envtopology.NewLocal(envtopology.DefaultIngressPortString()).BoundTopologyConfig(
+		[]envtopology.RuntimeBinding{
+			{
+				ComponentID: envtopology.ComponentPgAdmin,
+				Destination: envtopology.BoundTopologyDestination{
+					Location: envtopology.DestinationLocationEnv,
+					Kind:     envtopology.DestinationKindHTTP,
+					URL:      "http://pgadmin:80",
+				},
+				Enabled: false,
+			},
+		},
+	)
+
 	if len(got.Routes) != 1 {
 		t.Fatalf("len(Routes) = %d, want 1", len(got.Routes))
 	}
-	if got.Routes[0].Component != envtopology.ComponentPDF {
-		t.Fatalf("Routes[0].Component = %q, want %q", got.Routes[0].Component, envtopology.ComponentPDF)
-	}
-	if got.Routes[0].Destination.URL != "http://pdf:5031" {
-		t.Fatalf("pdf destination url = %q, want %q", got.Routes[0].Destination.URL, "http://pdf:5031")
+	if got.Routes[0].Enabled {
+		t.Fatal("Routes[0].Enabled = true, want false")
 	}
 }
 

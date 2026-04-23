@@ -100,7 +100,7 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
     }
 
     private bool IsEnabled =>
-        !string.IsNullOrWhiteSpace(_options.BasePath) && !string.IsNullOrWhiteSpace(_options.MergedPath);
+        !string.IsNullOrWhiteSpace(_options.BaseConfigPath) && !string.IsNullOrWhiteSpace(_options.ConfigPath);
 
     private async Task RunPollLoop(ChannelWriter<RefreshReason> refreshRequests, CancellationToken stoppingToken)
     {
@@ -128,23 +128,23 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
                 return;
             }
 
-            var mergedConfig = Merge(_baseTopologyConfig.Get(BoundTopologyOptions.BaseName), _appRegistry.GetAll());
-            var payload = JsonSerializer.SerializeToUtf8Bytes(mergedConfig, _jsonOptions);
+            var boundConfig = Merge(_baseTopologyConfig.Get(BoundTopologyOptions.BaseName), _appRegistry.GetAll());
+            var payload = JsonSerializer.SerializeToUtf8Bytes(boundConfig, _jsonOptions);
             if (_lastAppliedPayload is not null && payload.AsSpan().SequenceEqual(_lastAppliedPayload))
             {
                 return;
             }
 
-            await WriteMergedConfig(payload, cancellationToken);
+            await WriteBoundConfig(payload, cancellationToken);
             _lastAppliedPayload = payload;
 
             if (_logger.IsEnabled(LogLevel.Information))
             {
                 _logger.LogInformation(
                     "Applied bound topology config version {Version} with {RouteCount} routes to {Path}",
-                    mergedConfig.Version,
-                    mergedConfig.Routes.Count,
-                    _options.MergedPath
+                    boundConfig.Version,
+                    boundConfig.Routes.Count,
+                    _options.ConfigPath
                 );
             }
         }
@@ -156,20 +156,20 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
         {
             _logger.LogError(
                 ex,
-                "Failed to refresh bound topology config from {BasePath} to {MergedPath}",
-                _options.BasePath,
-                _options.MergedPath
+                "Failed to refresh bound topology config from {BaseConfigPath} to {ConfigPath}",
+                _options.BaseConfigPath,
+                _options.ConfigPath
             );
         }
     }
 
-    private async Task WriteMergedConfig(byte[] payload, CancellationToken cancellationToken)
+    private async Task WriteBoundConfig(byte[] payload, CancellationToken cancellationToken)
     {
-        var path = _options.MergedPath ?? throw new InvalidOperationException("bound topology merged path is required");
+        var path = _options.ConfigPath ?? throw new InvalidOperationException("bound topology config path is required");
         var directory = Path.GetDirectoryName(path);
         if (string.IsNullOrWhiteSpace(directory))
         {
-            throw new InvalidOperationException("bound topology merged path must have a parent directory");
+            throw new InvalidOperationException("bound topology config path must have a parent directory");
         }
 
         Directory.CreateDirectory(directory);

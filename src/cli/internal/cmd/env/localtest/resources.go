@@ -175,6 +175,7 @@ func coreContainers(
 ) []ContainerSpec {
 	ingressPort := topology.IngressPort()
 	app := topology.MustComponent(envtopology.ComponentApp)
+	runtimeConfig := newLocaltestConfig(topology)
 	bindings := topology.ResolveBindings(RuntimeBindings(BindingOptions{
 		IncludeMonitoring: includeMonitoring,
 		IncludePgAdmin:    includePgAdmin,
@@ -199,16 +200,7 @@ func coreContainers(
 				// we can remove this port mapping
 				newPort(localtestServicePort, localtestServicePort), // Internal port
 			},
-			map[string]string{
-				"ASPNETCORE_URLS":                                       localtestListenURLs(ingressPort),
-				"DOTNET_ENVIRONMENT":                                    "Development",
-				"GeneralSettings__BaseUrl":                              topology.LocaltestBaseURL(),
-				"GeneralSettings__HostName":                             app.Host(),
-				"LocalPlatformSettings__LocalTestingStorageBasePath":    "/AltinnPlatformLocal/",
-				"LocalPlatformSettings__LocalTestingStaticTestDataPath": "/testdata/",
-				envtopology.BoundTopologyOptionsBasePathEnv:             envtopology.BoundTopologyBaseConfigContainerPath,
-				envtopology.BoundTopologyOptionsMergedPathEnv:           envtopology.BoundTopologyConfigContainerPath,
-			},
+			runtimeConfig.localtestEnv(ingressPort),
 			[]types.VolumeMount{
 				newReadOnlyVolume(
 					envtopology.BoundTopologyHostDir(dataDir),
@@ -225,19 +217,14 @@ func coreContainers(
 			ContainerPDF3,
 			// TODO: same as above, we only need host port mapping here because old
 			[]types.PortMapping{newPort("5300", "5031")},
-			map[string]string{
-				"TZ":                             "Europe/Oslo",
-				"PDF3_ENVIRONMENT":               "localtest",
-				"PDF3_QUEUE_SIZE":                "3",
-				"PDF3_LOCALTEST_PUBLIC_BASE_URL": topology.LocaltestBaseURL(),
-			},
+			runtimeConfig.pdfEnv(),
 			nil,
 			nil,
 			[]string{ContainerLocaltest},
 			nil,
 		),
 		workflowEngineDbContainerSpec(dataDir),
-		workflowEngineContainerSpec(topology),
+		workflowEngineContainerSpec(runtimeConfig),
 	}
 	if includePgAdmin {
 		containers = append(containers, pgAdminContainerSpec(dataDir))
@@ -280,15 +267,11 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 	return spec
 }
 
-func workflowEngineContainerSpec(topology envtopology.Local) ContainerSpec {
+func workflowEngineContainerSpec(runtimeConfig localtestConfig) ContainerSpec {
 	return newContainerSpec(
 		ContainerWorkflowEngine,
 		nil,
-		map[string]string{
-			"ASPNETCORE_ENVIRONMENT":              "Docker",
-			"ConnectionStrings__WorkflowEngine":   "Host=" + ContainerWorkflowEngineDb + ";Port=" + postgresPort + ";Database=" + workflowEngineDB + ";Username=" + postgresUser + ";Password=" + postgresPassword,
-			"AppCommandSettings__CommandEndpoint": topology.LocaltestBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
-		},
+		runtimeConfig.workflowEngineEnv(),
 		nil,
 		nil,
 		[]string{ContainerWorkflowEngineDb, ContainerLocaltest},

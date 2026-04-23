@@ -1,9 +1,6 @@
 package envtopology
 
-import (
-	"fmt"
-	"strconv"
-)
+import "fmt"
 
 // ComponentID identifies a topology component.
 type ComponentID string
@@ -84,9 +81,9 @@ func (c Component) Host() string {
 	return c.def.Host
 }
 
-// BasePath returns the component base path, if any.
-func (c Component) BasePath() string {
-	return c.def.BasePath
+// PathPrefix returns the component route path prefix, if any.
+func (c Component) PathPrefix() string {
+	return c.def.PathPrefix
 }
 
 // PathPattern returns the component path pattern, if any.
@@ -97,17 +94,4 @@ func (c Component) PathPattern() string {
 // Port returns the component port, if any.
 func (c Component) Port() int {
 	return c.def.Port
-}
-
-// URL returns the externally visible component URL.
-func (c Component) URL() string {
-	if c.def.Port != 0 {
-		return c.topology.scheme() + "://" + c.def.Host + ":" + itoa(c.def.Port)
-	}
-
-	return c.topology.url(c.def.Host) + c.def.BasePath
-}
-
-func itoa(value int) string {
-	return strconv.Itoa(value)
 }

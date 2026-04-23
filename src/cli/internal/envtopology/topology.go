@@ -67,7 +67,7 @@ func (l Local) FrontendDevServerHostName() string {
 
 // LocaltestBaseURL returns the localtest ingress URL.
 func (l Local) LocaltestBaseURL() string {
-	return l.MustComponent(ComponentApp).URL()
+	return l.PublicBaseURL(ComponentApp)
 }
 
 // LocaltestURL returns the browser-facing localtest URL.
@@ -86,22 +86,27 @@ func (l Local) AppBaseURL() string {
 
 // PlatformAPIBaseURL returns the base URL for local platform APIs.
 func (l Local) PlatformAPIBaseURL() string {
-	return l.MustComponent(ComponentPlatform).URL()
+	return l.PublicBaseURL(ComponentPlatform)
 }
 
 // OTelURL returns the local OTLP endpoint URL.
 func (l Local) OTelURL() string {
-	return l.MustComponent(ComponentOTel).URL()
+	component := l.MustComponent(ComponentOTel)
+	if component.Port() == 0 {
+		panic("envtopology: otel component requires a port")
+	}
+	return l.scheme() + "://" + component.Host() + ":" + strconv.Itoa(component.Port())
 }
 
-// PDFURL returns the local PDF service endpoint URL.
-func (l Local) PDFURL() string {
-	return l.MustComponent(ComponentPDF).URL()
+// PublicBaseURL returns the externally visible root URL for a component.
+func (l Local) PublicBaseURL(id ComponentID) string {
+	return l.url(l.MustComponent(id).Host())
 }
 
-// WorkflowEngineURL returns the local workflow engine API endpoint URL.
-func (l Local) WorkflowEngineURL() string {
-	return l.MustComponent(ComponentWorkflowEngine).URL()
+// PublicRouteURL returns the externally visible URL for a route-shaped component.
+func (l Local) PublicRouteURL(id ComponentID) string {
+	component := l.MustComponent(id)
+	return l.url(component.Host()) + component.PathPrefix()
 }
 
 // LocaltestIngressHosts returns the hostnames routed through localtest.

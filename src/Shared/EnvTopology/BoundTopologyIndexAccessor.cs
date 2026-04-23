@@ -10,11 +10,11 @@ public sealed class BoundTopologyIndexAccessor
 
     public BoundTopologyIndexAccessor(IOptionsMonitor<BoundTopologyConfig> boundTopologyConfig)
     {
-        _current = new BoundTopologyIndex(boundTopologyConfig.Get(BoundTopologyOptions.MergedName));
+        _current = new BoundTopologyIndex(boundTopologyConfig.Get(BoundTopologyOptions.BoundName));
         boundTopologyConfig.OnChange(
             (config, name) =>
             {
-                if (name == BoundTopologyOptions.MergedName)
+                if (name == BoundTopologyOptions.BoundName)
                 {
                     Volatile.Write(ref _current, new BoundTopologyIndex(config));
                 }

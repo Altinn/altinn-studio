@@ -414,13 +414,13 @@ func assertLocaltestCoreContainer(t *testing.T, spec ContainerSpec, topology env
 	assertEnvValue(
 		t,
 		spec.Environment,
-		envtopology.BoundTopologyOptionsBasePathEnv,
+		envtopology.BoundTopologyOptionsBaseConfigPathEnv,
 		envtopology.BoundTopologyBaseConfigContainerPath,
 	)
 	assertEnvValue(
 		t,
 		spec.Environment,
-		envtopology.BoundTopologyOptionsMergedPathEnv,
+		envtopology.BoundTopologyOptionsConfigPathEnv,
 		envtopology.BoundTopologyConfigContainerPath,
 	)
 	assertEnvMissing(t, spec.Environment, "LocalPlatformSettings__LocalGrafanaUrl")

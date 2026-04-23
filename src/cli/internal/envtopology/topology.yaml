@@ -17,20 +17,16 @@ components:
   pdf:
     kind: runtime-service
     host: pdf.local.altinn.cloud
-    basePath: /pdf
   grafana:
     kind: monitoring
     host: local.altinn.cloud
-    basePath: /grafana
+    pathPrefix: /grafana
   pgadmin:
     kind: tool
     host: pgadmin.local.altinn.cloud
-    basePath: /
   workflowEngine:
     kind: runtime-service
     host: workflow-engine.local.altinn.cloud
-    basePath: /api/v1/
   frontendDevServer:
     kind: frontend-dev
     host: app-frontend.local.altinn.cloud
-    basePath: /

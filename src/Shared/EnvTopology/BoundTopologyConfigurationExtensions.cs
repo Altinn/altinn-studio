@@ -17,11 +17,11 @@ public static class BoundTopologyConfigurationExtensions
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<BoundTopologyOptions>>().Value);
         services.Configure<BoundTopologyConfig>(
             BoundTopologyOptions.BaseName,
-            BoundTopologyConfiguration(configuration[BoundTopologyOptions.BasePathConfigurationKey])
+            BoundTopologyConfiguration(configuration[BoundTopologyOptions.BaseConfigPathConfigurationKey])
         );
         services.Configure<BoundTopologyConfig>(
-            BoundTopologyOptions.MergedName,
-            BoundTopologyConfiguration(configuration[BoundTopologyOptions.MergedPathConfigurationKey])
+            BoundTopologyOptions.BoundName,
+            BoundTopologyConfiguration(configuration[BoundTopologyOptions.ConfigPathConfigurationKey])
         );
         services.AddSingleton<BoundTopologyIndexAccessor>();
         return services;

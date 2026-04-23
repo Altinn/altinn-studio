@@ -21,7 +21,7 @@ const (
 	// BoundTopologyBaseConfigFileName is the app-manager input config file.
 	BoundTopologyBaseConfigFileName = "base.json"
 
-	// BoundTopologyConfigFileName is the merged config consumed by localtest.
+	// BoundTopologyConfigFileName is the bound config consumed by localtest.
 	BoundTopologyConfigFileName = "bound.json"
 
 	// BoundTopologyContainerDir is the localtest mount point for generated topology config.
@@ -30,14 +30,14 @@ const (
 	// BoundTopologyBaseConfigContainerPath is the in-container app-manager input config path.
 	BoundTopologyBaseConfigContainerPath = BoundTopologyContainerDir + "/" + BoundTopologyBaseConfigFileName
 
-	// BoundTopologyConfigContainerPath is the in-container merged config path.
+	// BoundTopologyConfigContainerPath is the in-container bound config path.
 	BoundTopologyConfigContainerPath = BoundTopologyContainerDir + "/" + BoundTopologyConfigFileName
 
-	// BoundTopologyOptionsBasePathEnv is the env var key for the base config path.
-	BoundTopologyOptionsBasePathEnv = "BoundTopologyOptions__BasePath"
+	// BoundTopologyOptionsBaseConfigPathEnv is the env var key for the base config path.
+	BoundTopologyOptionsBaseConfigPathEnv = "BoundTopologyOptions__BaseConfigPath"
 
-	// BoundTopologyOptionsMergedPathEnv is the env var key for the merged config path.
-	BoundTopologyOptionsMergedPathEnv = "BoundTopologyOptions__MergedPath"
+	// BoundTopologyOptionsConfigPathEnv is the env var key for the bound config path.
+	BoundTopologyOptionsConfigPathEnv = "BoundTopologyOptions__ConfigPath"
 
 	windowsGOOS = "windows"
 )
@@ -65,7 +65,7 @@ const (
 type Binding struct {
 	ComponentID ComponentID
 	Host        string
-	BasePath    string
+	PathPrefix  string
 	PathPattern string
 	Destination BoundTopologyDestination
 	Enabled     bool
@@ -167,12 +167,12 @@ func (l Local) BoundTopologyBaseConfig(runtimeBindings []RuntimeBinding) BoundTo
 	}
 }
 
-// BoundTopologyConfig resolves the initial concrete shared bound topology for the current run.
+// BoundTopologyConfig resolves the initial shared bound topology for the current run.
 func (l Local) BoundTopologyConfig(runtimeBindings []RuntimeBinding) BoundTopologyConfig {
 	bindings := l.ResolveBindings(runtimeBindings)
 	routes := make([]BoundTopologyRoute, 0, len(bindings))
 	for _, binding := range bindings {
-		if !binding.HasConcreteRoute() {
+		if !binding.HasRoute() {
 			continue
 		}
 		routes = append(routes, boundTopologyRoute(binding))
@@ -218,7 +218,7 @@ func BoundTopologyHostDir(dataDir string) string {
 	return filepath.Join(dataDir, BoundTopologyConfigDirName)
 }
 
-// BoundTopologyHostPath returns the host path for the merged bound topology config.
+// BoundTopologyHostPath returns the host path for the bound topology config.
 func BoundTopologyHostPath(dataDir string) string {
 	return filepath.Join(BoundTopologyHostDir(dataDir), BoundTopologyConfigFileName)
 }
@@ -227,7 +227,7 @@ func newBinding(component Component, runtimeBinding RuntimeBinding) Binding {
 	return Binding{
 		ComponentID: runtimeBinding.ComponentID,
 		Host:        component.Host(),
-		BasePath:    component.BasePath(),
+		PathPrefix:  component.PathPrefix(),
 		PathPattern: component.PathPattern(),
 		Destination: runtimeBinding.Destination,
 		Enabled:     runtimeBinding.Enabled,
@@ -239,11 +239,6 @@ func (b Binding) HasRoute() bool {
 	return b.Destination.Kind != ""
 }
 
-// HasConcreteRoute reports whether the binding has a concrete destination URL.
-func (b Binding) HasConcreteRoute() bool {
-	return b.HasRoute() && b.Destination.URL != ""
-}
-
 func boundTopologyRoute(binding Binding) BoundTopologyRoute {
 	route := BoundTopologyRoute{
 		Component:   binding.ComponentID,
@@ -251,7 +246,7 @@ func boundTopologyRoute(binding Binding) BoundTopologyRoute {
 		Match: BoundTopologyRouteMatch{
 			Host:        binding.Host,
 			PathPattern: binding.PathPattern,
-			PathPrefix:  binding.BasePath,
+			PathPrefix:  binding.PathPrefix,
 		},
 		Metadata: nil,
 		Enabled:  binding.Enabled,

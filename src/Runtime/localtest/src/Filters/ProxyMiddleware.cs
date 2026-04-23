@@ -57,6 +57,12 @@ public class ProxyMiddleware
         }
 
         var route = match.Route;
+        if (!route.Enabled)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return true;
+        }
+
         if (!string.Equals(route.Destination.Kind, DestinationKindHttp, StringComparison.OrdinalIgnoreCase))
         {
             return false;

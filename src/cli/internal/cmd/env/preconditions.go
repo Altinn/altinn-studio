@@ -16,11 +16,11 @@ func EnsureBoundTopology(
 	topology envtopology.Local,
 	bindings []envtopology.RuntimeBinding,
 ) error {
-	if err := topology.WriteBoundTopologyBaseConfig(cfg.BoundTopologyBasePath(), bindings); err != nil {
+	if err := topology.WriteBoundTopologyBaseConfig(cfg.BoundTopologyBaseConfigPath(), bindings); err != nil {
 		return fmt.Errorf("write base bound topology config: %w", err)
 	}
 
-	if err := topology.WriteBoundTopologyConfig(cfg.BoundTopologyMergedPath(), bindings); err != nil {
+	if err := topology.WriteBoundTopologyConfig(cfg.BoundTopologyConfigPath(), bindings); err != nil {
 		return fmt.Errorf("write bound topology config: %w", err)
 	}
 
