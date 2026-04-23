@@ -23,8 +23,8 @@ import {
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
-import { pruneBoundaryMasks } from 'src/features/validation/ValidationStorePlugin';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
+import { pruneBoundaryMasks } from 'src/features/validation/ValidationStorePlugin';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
@@ -235,13 +235,11 @@ function ManageShowAllErrors() {
 }
 
 function UpdateShowAllErrors() {
-  const [taskValidations, dataModels, otherDataElementBackendValidations, setShowAllErrors] =
-    FormStore.raw.useShallowSelector((state) => [
-      state.validation.state.task,
-      state.data.models,
-      state.validation.otherDataElementBackendValidations,
-      state.validation.setShowAllUnboundValidations,
-    ]);
+  const [taskValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
+    state.validation.state.task,
+    state.data.models,
+    state.validation.setShowAllUnboundValidations,
+  ]);
 
   const isFirstRender = useRef(true);
 
@@ -277,17 +275,15 @@ function UpdateShowAllErrors() {
   useEffect(() => {
     const backendMask = ValidationMask.Backend | ValidationMask.CustomBackend;
     const hasFieldErrors =
-      [
-        ...Object.values(dataModels).map((model) => model.validations.backend),
-        ...Object.values(otherDataElementBackendValidations),
-      ]
+      Object.values(dataModels)
+        .map((model) => model.validations.backend)
         .flatMap((validations) => Object.values(validations))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
     if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
       setShowAllErrors(false);
     }
-  }, [dataModels, otherDataElementBackendValidations, setShowAllErrors, taskValidations]);
+  }, [dataModels, setShowAllErrors, taskValidations]);
 
   return null;
 }
