@@ -654,11 +654,13 @@ func (c *EnvCommand) runHostsAdd(_ context.Context, args []string) error {
 		return err
 	}
 	printHostWarnings(c.out, warnings)
+	addWarnings := localtestHostsAddWarnings()
+	printHostWarnings(c.out, addWarnings)
 
 	output := envHostsMutationOutput{
 		Runtime:  flags.runtime,
 		Targets:  make([]envHostsMutationTargetOutput, 0, len(targets)),
-		Warnings: warnings,
+		Warnings: append(warnings, addWarnings...),
 	}
 
 	for _, target := range targets {
@@ -816,14 +818,14 @@ func (c *EnvCommand) localtestHostsSpec() ([]osutil.HostsTarget, []string, local
 		return nil, nil, localtestHostsSpec{}, err
 	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
-	return targets, localtestHostsWarnings(), localtestHostsSpec{
+	return targets, nil, localtestHostsSpec{
 		address:   envlocaltest.HostsLoopbackAddress,
 		blockName: envlocaltest.HostsBlockName,
 		hostnames: topology.HostFileHostnames(),
 	}, nil
 }
 
-func localtestHostsWarnings() []string {
+func localtestHostsAddWarnings() []string {
 	if !osutil.IsWSL() {
 		return nil
 	}
