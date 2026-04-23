@@ -57,7 +57,8 @@ public partial class EngineTests
             timeout: TimeSpan.FromSeconds(30)
         );
 
-        // Assert — 3 entries, each with real data; none defaulted
+        // Assert — 3 entries, each with real data; none defaulted. Explicit assertions defend against
+        // the regression pattern (defaulted fields) independently of any future snapshot edits.
         var entries = completed.Steps.Single().ErrorHistory;
         Assert.NotNull(entries);
         Assert.Equal(3, entries.Count);
@@ -72,5 +73,11 @@ public partial class EngineTests
                 Assert.True(entry.WasRetryable);
             }
         );
+
+        // Snapshot — documents the exact response shape, including how the WireMock body ("boom-N") gets
+        // embedded into the ErrorEntry message. No sibling test exercises a non-empty upstream body.
+        using var response = await _client.GetWorkflowRaw(workflowId);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
     }
 }
