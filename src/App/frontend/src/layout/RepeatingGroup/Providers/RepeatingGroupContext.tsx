@@ -366,11 +366,11 @@ function useMaybeValidateRow() {
 
   return () => {
     const { editingAll, editingId, editingNone } = store.getState();
-    const index = produceStateFromRows(getRows() ?? []).editableRows.find((row) => row.uuid === editingId)?.index;
-    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || index === undefined) {
+    const row = produceStateFromRows(getRows() ?? []).editableRows.find((row) => row.uuid === editingId);
+    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || !row) {
       return Promise.resolve(false);
     }
-    return onGroupCloseValidation(baseComponentId, index, editingId, validateOnSaveRow);
+    return onGroupCloseValidation(baseComponentId, row, validateOnSaveRow);
   };
 }
 

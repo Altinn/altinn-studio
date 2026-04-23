@@ -3,18 +3,23 @@ import { useCallback } from 'react';
 import dot from 'dot-object';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { getInitialMaskFromItem, selectValidations } from 'src/features/validation/utils';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { ContextNotProvided } from 'src/core/contexts/context';
-import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
+import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type {
+  AnyValidation,
+  NodeRefValidation,
+  NodeVisibility,
+  ValidationSeverity,
+} from 'src/features/validation/index';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation/index';
 
 export type ValidationsSelector = (
   nodeId: string,
@@ -54,7 +59,7 @@ export interface ValidationStorePluginConfig {
       mask: NodeVisibility,
       severity?: ValidationSeverity,
       includeHidden?: boolean, // Defaults to false
-    ) => [string[], AnyValidation[]];
+    ) => AnyValidation[];
     usePageHasVisibleRequiredValidations: (pageKey: string | undefined) => boolean;
   };
 }
@@ -62,7 +67,7 @@ export interface ValidationStorePluginConfig {
 const emptyArray: never[] = [];
 
 export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginConfig> {
-  extraFunctions(_set: FormStoreSet) {
+  extraFunctions() {
     return {};
   }
 
@@ -198,7 +203,6 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
             // constantly recompute this.
             const state = zustand.getState();
 
-            const outNodes: string[] = [];
             const outValidations: AnyValidation[] = [];
             for (const id of Object.keys(state.nodes.nodeData)) {
               const data = state.nodes.nodeData[id];
@@ -212,11 +216,10 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
                 lookups,
               });
               if (validations.length > 0) {
-                outNodes.push(id);
                 outValidations.push(...validations);
               }
             }
-            return [outNodes, outValidations];
+            return outValidations;
           },
           [zustand, lookups],
         );
@@ -320,7 +323,7 @@ export function getInitialVisibilityMask(baseId: string, lookups: LayoutLookups 
     return 0;
   }
 
-  return getInitialMaskFromItem(lookups.allComponents[baseId], baseId);
+  return getInitialMaskFromItem(lookups.allComponents[baseId]);
 }
 
 export function getRowMaskForNode(state: FormStoreState, nodeId: string) {
@@ -329,6 +332,66 @@ export function getRowMaskForNode(state: FormStoreState, nodeId: string) {
     mask |= state.validation?.rowMasks?.[rowId] ?? 0;
   }
   return mask;
+}
+
+export function pruneBoundaryMasks(state: FormStoreState) {
+  const { formMask, pageMasks, rowMasks } = state.validation;
+  if (!formMask && Object.keys(pageMasks).length === 0 && Object.keys(rowMasks).length === 0) {
+    return;
+  }
+
+  const pageMatches = new Set<string>();
+  const rowMatches = new Set<string>();
+  let hasFormErrors = formMask === 0;
+
+  for (const node of Object.values(state.nodes.nodeData)) {
+    if (!node || !('validations' in node) || node.hidden || !node.isValid) {
+      continue;
+    }
+
+    if (formMask && !hasFormErrors && selectValidations(node.validations, formMask, 'error').length > 0) {
+      hasFormErrors = true;
+    }
+
+    const pageMask = pageMasks[node.pageKey];
+    if (
+      pageMask &&
+      !pageMatches.has(node.pageKey) &&
+      selectValidations(node.validations, pageMask, 'error').length > 0
+    ) {
+      pageMatches.add(node.pageKey);
+    }
+
+    if (Object.keys(rowMasks).length === 0) {
+      continue;
+    }
+
+    for (const rowId of getRowIdsForNode(state, node.id)) {
+      const rowMask = rowMasks[rowId];
+      if (!rowMask || rowMatches.has(rowId)) {
+        continue;
+      }
+      if (selectValidations(node.validations, rowMask, 'error').length > 0) {
+        rowMatches.add(rowId);
+      }
+    }
+  }
+
+  if (formMask && !hasFormErrors) {
+    state.validation.formMask = 0;
+  }
+
+  for (const [pageKey, pageMask] of Object.entries(pageMasks)) {
+    if (pageMask && !pageMatches.has(pageKey)) {
+      delete state.validation.pageMasks[pageKey];
+    }
+  }
+
+  for (const [rowId, rowMask] of Object.entries(rowMasks)) {
+    if (rowMask && !rowMatches.has(rowId)) {
+      delete state.validation.rowMasks[rowId];
+    }
+  }
 }
 
 export function getRowIdsForNode(state: FormStoreState, nodeId: string): string[] {

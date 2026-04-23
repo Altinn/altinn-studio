@@ -4,8 +4,7 @@ import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { ComponentValidation } from 'src/features/validation/index';
 import type { CompCategory } from 'src/layout/common';
 import type { TypesFromCategory } from 'src/layout/layout';
-import type { DefPluginExtraState } from 'src/utils/layout/plugins/NodeDefPlugin';
-import type { StateFactoryProps } from 'src/utils/layout/types';
+import type { DefPluginExtraState, DefPluginStateFactoryProps } from 'src/utils/layout/plugins/NodeDefPlugin';
 
 interface Config {
   componentType: TypesFromCategory<CompCategory.Form | CompCategory.Container>;
@@ -42,7 +41,7 @@ export class ValidationPlugin extends NodeDefPlugin<Config> {
     }
   }
 
-  stateFactory(_props: StateFactoryProps<Config['componentType']>): DefPluginExtraState<Config> {
+  stateFactory(_props: DefPluginStateFactoryProps): DefPluginExtraState<Config> {
     return {
       hidden: false,
       validations: emptyArray,

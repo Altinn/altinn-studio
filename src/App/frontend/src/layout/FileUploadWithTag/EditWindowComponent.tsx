@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
-import { ValidationMessage } from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_Suggestion as Suggestion, ValidationMessage } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
@@ -10,9 +9,9 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
-import validationClasses from 'src/features/validation/ComponentValidations.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import validationClasses from 'src/features/validation/ComponentValidations.module.css';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
@@ -45,41 +44,10 @@ export function EditWindowComponent({
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
   const rawSelectedTags = uploadedAttachment?.data.tags?.filter((tag) => options?.find((o) => o.value === tag)) ?? [];
   const [chosenTags, setChosenTags] = useState<string[]>(rawSelectedTags);
-  const [showMissingTagError, setShowMissingTagError] = useState(false);
+  const [showMissingTagError, setShowMissingTagError] = useResettingErrorState(chosenTags);
   const chosenTagsLabels = chosenTags.map((tag) => langAsString(options?.find((o) => o.value === tag)?.label ?? ''));
   const nodeId = useIndexedId(baseComponentId);
   const updateAttachment = useAttachmentsUpdater();
-  const hasErrors = showMissingTagError && chosenTags.length === 0;
-
-  useEffect(() => {
-    if (chosenTags.length > 0 && showMissingTagError) {
-      setShowMissingTagError(false);
-    }
-  }, [chosenTags.length, showMissingTagError]);
-
-  const missingTagMessage = useMemo(
-    () => (
-      <ValidationMessage
-        data-size='sm'
-        asChild
-      >
-        <span>
-          <Lang
-            id='form_filler.file_uploader_validation_error_no_chosen_tag'
-            params={[
-              textResourceBindings?.tagTitle
-                ? {
-                    key: textResourceBindings.tagTitle,
-                    makeLowerCase: true,
-                  }
-                : 'tag',
-            ]}
-          />
-        </span>
-      </ValidationMessage>
-    ),
-    [textResourceBindings?.tagTitle],
-  );
 
   const formatSelectedValue = (tags: string[]): string | SuggestionItem | undefined => {
     const tag = tags[0];
@@ -215,7 +183,7 @@ export function EditWindowComponent({
               >
                 <Suggestion.Input
                   id={`attachment-tag-dropdown-${uniqueId}`}
-                  aria-invalid={hasErrors}
+                  aria-invalid={showMissingTagError}
                   aria-label={langAsString('general.choose')}
                 />
                 <Suggestion.Clear onClick={() => setChosenTags([])} />
@@ -270,17 +238,45 @@ export function EditWindowComponent({
           </Flex>
         )}
       </Flex>
-      {hasErrors ? (
-        <div
-          style={{
-            whiteSpace: 'pre-wrap',
-          }}
-        >
+      {showMissingTagError ? (
+        <div style={{ whiteSpace: 'pre-wrap' }}>
           <ul className={validationClasses.errorList}>
-            <li>{missingTagMessage}</li>
+            <li>
+              <ValidationMessage
+                data-size='sm'
+                asChild
+              >
+                <span>
+                  <Lang
+                    id='form_filler.file_uploader_validation_error_no_chosen_tag'
+                    params={[
+                      textResourceBindings?.tagTitle
+                        ? {
+                            key: textResourceBindings.tagTitle,
+                            makeLowerCase: true,
+                          }
+                        : 'tag',
+                    ]}
+                  />
+                </span>
+              </ValidationMessage>
+            </li>
           </ul>
         </div>
       ) : undefined}
     </div>
   );
+}
+
+function useResettingErrorState(chosenTags: string[]) {
+  const [showMissingTagError, setShowMissingTagError] = useState(false);
+  const finalState = showMissingTagError && chosenTags.length === 0;
+
+  useEffect(() => {
+    if (chosenTags.length > 0 && showMissingTagError) {
+      setShowMissingTagError(false);
+    }
+  }, [chosenTags.length, showMissingTagError]);
+
+  return [finalState, setShowMissingTagError] as const;
 }

@@ -23,9 +23,7 @@ export function useOnFormSubmitValidation() {
     /*
      * Check if there are any frontend validation errors, and if so, show them now and block submit
      */
-    const nodesWithFrontendErrors = getNodesWithErrors(ValidationMask.All, 'error', false);
-
-    const [, validations] = nodesWithFrontendErrors;
+    const validations = getNodesWithErrors(ValidationMask.All, 'error', false);
     if (
       includeNonIncrementalValidations
         ? validations.length > 0

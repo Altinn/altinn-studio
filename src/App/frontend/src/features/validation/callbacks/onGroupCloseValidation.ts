@@ -7,6 +7,7 @@ import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import type { NodeRefValidation } from 'src/features/validation';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
+import type { BaseRow } from 'src/utils/layout/types';
 
 /**
  * Checks if a repeating group row has validation errors when the group is closed.
@@ -21,7 +22,7 @@ export function useOnGroupCloseValidation() {
 
   /* Ensures the callback will have the latest state */
   const callback = useOurEffectEvent(
-    (baseComponentId: string, restriction: number | undefined, rowId: string, masks: AllowedValidationMasks): boolean => {
+    (baseComponentId: string, row: BaseRow, masks: AllowedValidationMasks): boolean => {
       const mask = getVisibilityMask(masks);
       const state = formStore.getState();
       const errors: NodeRefValidation[] = [];
@@ -31,7 +32,7 @@ export function useOnGroupCloseValidation() {
         includeHidden: false,
         includeSelf: false,
         severity: 'error',
-        restriction,
+        restriction: row.index,
         mask,
         state,
         lookups,
@@ -39,15 +40,14 @@ export function useOnGroupCloseValidation() {
         output: errors,
       });
 
-      const nodesWithErrors = errors.map((v) => v.nodeId);
-
-      setRowValidationMask(rowId, nodesWithErrors.length > 0 ? mask : undefined);
-      return nodesWithErrors.length > 0;
+      const hasErrors = errors.length > 0;
+      setRowValidationMask(row.uuid, hasErrors ? mask : undefined);
+      return hasErrors;
     },
   );
 
-  return async (baseComponentId: string, restriction: number | undefined, rowId: string, masks: AllowedValidationMasks) => {
+  return async (baseComponentId: string, row: BaseRow, masks: AllowedValidationMasks) => {
     await validating();
-    return callback(baseComponentId, restriction, rowId, masks);
+    return callback(baseComponentId, row, masks);
   };
 }

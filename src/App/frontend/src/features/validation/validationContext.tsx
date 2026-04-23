@@ -23,7 +23,7 @@ import {
   mapValidatorGroupsToDataModelValidations,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
-import { getRowIdsForNode } from 'src/features/validation/ValidationStorePlugin';
+import { pruneBoundaryMasks } from 'src/features/validation/ValidationStorePlugin';
 import { hasValidationErrors, selectValidations } from 'src/features/validation/utils';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
@@ -69,19 +69,19 @@ export function createValidationSlice(
       }),
     setPageMask: (pageKey, mask) =>
       set((state) => {
-        if (!mask) {
+        if (mask === undefined) {
           delete state.validation.pageMasks[pageKey];
-          return;
+        } else {
+          state.validation.pageMasks[pageKey] = mask;
         }
-        state.validation.pageMasks[pageKey] = mask;
       }),
     setRowMask: (rowId, mask) =>
       set((state) => {
-        if (!mask) {
+        if (mask === undefined) {
           delete state.validation.rowMasks[rowId];
-          return;
+        } else {
+          state.validation.rowMasks[rowId] = mask;
         }
-        state.validation.rowMasks[rowId] = mask;
       }),
     setShowAllUnboundValidations: (newValue) =>
       set((state) => {
@@ -100,11 +100,13 @@ export function createValidationSlice(
         const dataModel = state.data.models[dataType];
         if (dataModel && validations) {
           dataModel.validations[key] = validations;
+          pruneBoundaryMasks(state);
         }
       }),
     updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
       set((state) => {
         updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
+        pruneBoundaryMasks(state);
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
@@ -173,7 +175,6 @@ export function ValidationEffects() {
   return (
     <>
       <BackendValidation />
-      <ManageBoundaryMasks />
       <ManageShowAllErrors />
     </>
   );
@@ -231,83 +232,6 @@ export function useWaitForValidation(): WaitForValidation {
 function ManageShowAllErrors() {
   const showAllErrors = FormStore.raw.useSelector((state) => state.validation.showAllUnboundValidations);
   return showAllErrors ? <UpdateShowAllErrors /> : null;
-}
-
-function ManageBoundaryMasks() {
-  const hasMasks = FormStore.raw.useSelector((state) => {
-    const { formMask, pageMasks, rowMasks } = state.validation;
-    return Boolean(formMask || Object.keys(pageMasks).length || Object.keys(rowMasks).length);
-  });
-
-  return hasMasks ? <UpdateBoundaryMasks /> : null;
-}
-
-function UpdateBoundaryMasks() {
-  const [nodeData, models, formMask, pageMasks, rowMasks, setFormMask, setPageMask, setRowMask] =
-    FormStore.raw.useShallowSelector((state) => [
-      state.nodes.nodeData,
-      state.data.models,
-      state.validation.formMask,
-      state.validation.pageMasks,
-      state.validation.rowMasks,
-      state.validation.setFormMask,
-      state.validation.setPageMask,
-      state.validation.setRowMask,
-    ]);
-
-  useEffect(() => {
-    const pageMatches = new Set<string>();
-    const rowMatches = new Set<string>();
-    let hasFormErrors = formMask === 0;
-
-    for (const node of Object.values(nodeData)) {
-      if (!node || !('validations' in node) || node.hidden || !node.isValid) {
-        continue;
-      }
-
-      if (formMask && !hasFormErrors && selectValidations(node.validations, formMask, 'error').length > 0) {
-        hasFormErrors = true;
-      }
-
-      const pageMask = pageMasks[node.pageKey];
-      if (pageMask && !pageMatches.has(node.pageKey) && selectValidations(node.validations, pageMask, 'error').length > 0) {
-        pageMatches.add(node.pageKey);
-      }
-
-      const nodeRowIds = Object.keys(rowMasks).length > 0 ? getRowIdsForNode({ nodes: { nodeData }, data: { models } } as FormStoreState, node.id) : [];
-      if (nodeRowIds.length === 0) {
-        continue;
-      }
-
-      for (const rowId of nodeRowIds) {
-        const rowMask = rowMasks[rowId];
-        if (!rowMask || rowMatches.has(rowId)) {
-          continue;
-        }
-        if (selectValidations(node.validations, rowMask, 'error').length > 0) {
-          rowMatches.add(rowId);
-        }
-      }
-    }
-
-    if (formMask && !hasFormErrors) {
-      setFormMask(undefined);
-    }
-
-    for (const [pageKey, pageMask] of Object.entries(pageMasks)) {
-      if (pageMask && !pageMatches.has(pageKey)) {
-        setPageMask(pageKey, undefined);
-      }
-    }
-
-    for (const [rowId, rowMask] of Object.entries(rowMasks)) {
-      if (rowMask && !rowMatches.has(rowId)) {
-        setRowMask(rowId, undefined);
-      }
-    }
-  }, [formMask, models, nodeData, pageMasks, rowMasks, setFormMask, setPageMask, setRowMask]);
-
-  return null;
 }
 
 function UpdateShowAllErrors() {
