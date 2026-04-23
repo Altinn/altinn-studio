@@ -17,16 +17,6 @@ public sealed class AppTunnelProxy
 
     public bool IsConnected => _client.IsConnected;
 
-    public async Task ProxyAsync(
-        HttpContext context,
-        string? appId,
-        CancellationToken cancellationToken
-    )
-    {
-        using var request = CreateRequest(context);
-        await _client.Proxy(request, appId, context, cancellationToken);
-    }
-
     public async Task ProxyToTargetAsync(
         HttpContext context,
         string target,

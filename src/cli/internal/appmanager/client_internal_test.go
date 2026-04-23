@@ -178,6 +178,34 @@ func TestPrepareAppManagerSocketForStart_RejectsDirectory(t *testing.T) {
 	}
 }
 
+func TestBuildStartConfig_IncludesBoundTopologyMergedPathsWhenPresent(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := os.MkdirAll(filepath.Dir(cfg.BoundTopologyBasePath()), 0o700); err != nil {
+		t.Fatalf("create topology config dir: %v", err)
+	}
+	if err := os.WriteFile(cfg.BoundTopologyBasePath(), []byte("{}\n"), 0o600); err != nil {
+		t.Fatalf("write base topology config: %v", err)
+	}
+
+	got := buildStartConfig(cfg, "8000", "/path/to/studioctl")
+	if got.BoundTopologyBasePath != cfg.BoundTopologyBasePath() {
+		t.Fatalf(
+			"BoundTopologyBasePath = %q, want %q",
+			got.BoundTopologyBasePath,
+			cfg.BoundTopologyBasePath(),
+		)
+	}
+	if got.BoundTopologyMergedPath != cfg.BoundTopologyMergedPath() {
+		t.Fatalf(
+			"BoundTopologyMergedPath = %q, want %q",
+			got.BoundTopologyMergedPath,
+			cfg.BoundTopologyMergedPath(),
+		)
+	}
+}
+
 func writeTestLog(t *testing.T, dir, name, content string) string {
 	t.Helper()
 

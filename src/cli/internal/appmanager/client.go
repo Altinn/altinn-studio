@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -46,13 +47,15 @@ const (
 )
 
 type startConfig struct {
-	BinaryPath     string `json:"binaryPath"`
-	WorkingDir     string `json:"workingDir"`
-	UnixSocketPath string `json:"unixSocketPath,omitempty"`
-	TunnelURL      string `json:"tunnelUrl"`
-	LocaltestURL   string `json:"localtestUrl"`
-	StudioctlPath  string `json:"studioctlPath"`
-	InternalDev    bool   `json:"internalDev"`
+	BinaryPath              string `json:"binaryPath"`
+	WorkingDir              string `json:"workingDir"`
+	UnixSocketPath          string `json:"unixSocketPath,omitempty"`
+	TunnelURL               string `json:"tunnelUrl"`
+	LocaltestURL            string `json:"localtestUrl"`
+	StudioctlPath           string `json:"studioctlPath"`
+	BoundTopologyBasePath   string `json:"boundTopologyBasePath,omitempty"`
+	BoundTopologyMergedPath string `json:"boundTopologyMergedPath,omitempty"`
+	InternalDev             bool   `json:"internalDev"`
 }
 
 type runtimeState struct {
@@ -563,6 +566,12 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	if startConfig.StudioctlPath != "" {
 		cmd.Env = append(cmd.Env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
 	}
+	if startConfig.BoundTopologyBasePath != "" {
+		cmd.Env = append(cmd.Env, envtopology.BoundTopologyOptionsBasePathEnv+"="+startConfig.BoundTopologyBasePath)
+	}
+	if startConfig.BoundTopologyMergedPath != "" {
+		cmd.Env = append(cmd.Env, envtopology.BoundTopologyOptionsMergedPathEnv+"="+startConfig.BoundTopologyMergedPath)
+	}
 	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
 	if err != nil {
 		return fmt.Errorf("open null device: %w", err)
@@ -787,26 +796,44 @@ func managedProcessStopped(pid int) (bool, error) {
 
 func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) startConfig {
 	return startConfig{
-		BinaryPath:     cfg.AppManagerBinaryPath(),
-		WorkingDir:     cfg.Home,
-		UnixSocketPath: cfg.AppManagerSocketPath(),
-		TunnelURL:      TunnelURL(loadBalancerPort),
-		LocaltestURL:   LocaltestURL(loadBalancerPort),
-		StudioctlPath:  studioctlPath,
-		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
+		BinaryPath:              cfg.AppManagerBinaryPath(),
+		WorkingDir:              cfg.Home,
+		UnixSocketPath:          cfg.AppManagerSocketPath(),
+		TunnelURL:               TunnelURL(loadBalancerPort),
+		LocaltestURL:            LocaltestURL(loadBalancerPort),
+		StudioctlPath:           studioctlPath,
+		BoundTopologyBasePath:   boundTopologyBasePathIfExists(cfg),
+		BoundTopologyMergedPath: boundTopologyMergedPathIfBaseExists(cfg),
+		InternalDev:             config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}
 }
 
 func liveConfig(cfg *config.Config, status *Status) startConfig {
 	return startConfig{
-		BinaryPath:     cfg.AppManagerBinaryPath(),
-		WorkingDir:     cfg.Home,
-		UnixSocketPath: cfg.AppManagerSocketPath(),
-		TunnelURL:      status.Tunnel.URL,
-		LocaltestURL:   status.LocaltestURL,
-		StudioctlPath:  status.StudioctlPath,
-		InternalDev:    status.InternalDev,
+		BinaryPath:              cfg.AppManagerBinaryPath(),
+		WorkingDir:              cfg.Home,
+		UnixSocketPath:          cfg.AppManagerSocketPath(),
+		TunnelURL:               status.Tunnel.URL,
+		LocaltestURL:            status.LocaltestURL,
+		StudioctlPath:           status.StudioctlPath,
+		BoundTopologyBasePath:   boundTopologyBasePathIfExists(cfg),
+		BoundTopologyMergedPath: boundTopologyMergedPathIfBaseExists(cfg),
+		InternalDev:             status.InternalDev,
 	}
+}
+
+func boundTopologyBasePathIfExists(cfg *config.Config) string {
+	if _, err := os.Stat(cfg.BoundTopologyBasePath()); err == nil {
+		return cfg.BoundTopologyBasePath()
+	}
+	return ""
+}
+
+func boundTopologyMergedPathIfBaseExists(cfg *config.Config) string {
+	if _, err := os.Stat(cfg.BoundTopologyBasePath()); err == nil {
+		return cfg.BoundTopologyMergedPath()
+	}
+	return ""
 }
 
 func currentExecutablePath() string {
@@ -1026,13 +1053,15 @@ func isUTCDatePrefix(value string) bool {
 func zeroRuntimeState() runtimeState {
 	return runtimeState{
 		Start: startConfig{
-			BinaryPath:     "",
-			WorkingDir:     "",
-			UnixSocketPath: "",
-			TunnelURL:      "",
-			LocaltestURL:   "",
-			StudioctlPath:  "",
-			InternalDev:    false,
+			BinaryPath:              "",
+			WorkingDir:              "",
+			UnixSocketPath:          "",
+			TunnelURL:               "",
+			LocaltestURL:            "",
+			StudioctlPath:           "",
+			BoundTopologyBasePath:   "",
+			BoundTopologyMergedPath: "",
+			InternalDev:             false,
 		},
 		PID: 0,
 	}

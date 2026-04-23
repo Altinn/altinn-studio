@@ -1,11 +1,18 @@
 package envtopology_test
 
 import (
+	"bytes"
+	_ "embed"
 	"slices"
 	"testing"
 
+	"gopkg.in/yaml.v3"
+
 	"altinn.studio/studioctl/internal/envtopology"
 )
+
+//go:embed topology.yaml
+var embeddedTopology []byte
 
 func TestLocalTopologyURLs(t *testing.T) {
 	t.Parallel()
@@ -67,5 +74,32 @@ func TestHostFileHostnames(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Fatalf("HostFileHostnames() = %v, want %v", got, want)
+	}
+}
+
+func TestEmbeddedTopologyYAMLRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	var node yaml.Node
+	if err := yaml.Unmarshal(embeddedTopology, &node); err != nil {
+		t.Fatalf("yaml.Unmarshal(embeddedTopology) error = %v", err)
+	}
+
+	var buf bytes.Buffer
+	encoder := yaml.NewEncoder(&buf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(&node); err != nil {
+		t.Fatalf("encoder.Encode(...) error = %v", err)
+	}
+	if err := encoder.Close(); err != nil {
+		t.Fatalf("encoder.Close() error = %v", err)
+	}
+
+	if !bytes.Equal(buf.Bytes(), embeddedTopology) {
+		t.Fatalf(
+			"embedded topology yaml roundtrip mismatch\n--- got ---\n%s\n--- want ---\n%s",
+			buf.Bytes(),
+			embeddedTopology,
+		)
 	}
 }

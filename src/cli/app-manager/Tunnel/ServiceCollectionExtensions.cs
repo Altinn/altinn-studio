@@ -1,4 +1,5 @@
 using System.Net;
+using Altinn.Studio.EnvTopology;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.AppManager.Tunnel;
@@ -36,8 +37,10 @@ internal static class ServiceCollectionExtensions
                 }
             });
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<TunnelOptions>>().Value);
+        services.AddBoundTopology(configuration);
         services.AddSingleton<TunnelState>();
-        services.AddSingleton<LoadBalancer>();
+        services.AddSingleton<BoundTopologyConfigReconciler>();
+        services.AddHostedService(static sp => sp.GetRequiredService<BoundTopologyConfigReconciler>());
         services.AddHostedService<TunnelWorker>();
         return services;
     }

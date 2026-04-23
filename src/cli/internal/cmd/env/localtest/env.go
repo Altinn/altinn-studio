@@ -13,7 +13,6 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
-	"altinn.studio/studioctl/internal/appmanager"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
@@ -78,15 +77,18 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	runtimeCfg := newRuntimeConfig()
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
-		return ensureErr
-	}
-
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
 	e.out.Verbosef("Image mode: %s", buildOpts.ImageMode)
+
+	if err := envtypes.EnsureBoundTopology(ctx, e.cfg, topology, RuntimeBindings(BindingOptions{
+		IncludeMonitoring: buildOpts.IncludeMonitoring,
+		IncludePgAdmin:    buildOpts.IncludePgAdmin,
+	})); err != nil {
+		return fmt.Errorf("ensure bound topology: %w", err)
+	}
 
 	if err := e.ensureResources(ctx, buildOpts); err != nil {
 		return err
@@ -209,17 +211,6 @@ func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) 
 	status.AnyRunning = runningCoreContainers > 0
 
 	return &status, nil
-}
-
-func (e *Env) ensureAppManager(ctx context.Context, topology envtopology.Local) error {
-	if err := appmanager.EnsureStarted(
-		ctx,
-		e.cfg,
-		topology.IngressPort(),
-	); err != nil {
-		return fmt.Errorf("ensure app-manager: %w", err)
-	}
-	return nil
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {

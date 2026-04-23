@@ -167,8 +167,25 @@ func localtestListenURLs(loadBalancerPort string) string {
 	return "http://*:" + localtestServicePort + "/;http://*:" + loadBalancerPort + "/"
 }
 
-func coreContainers(dataDir string, topology envtopology.Local, includePgAdmin bool) []ContainerSpec {
+func coreContainers(
+	dataDir string,
+	topology envtopology.Local,
+	includeMonitoring bool,
+	includePgAdmin bool,
+) []ContainerSpec {
 	ingressPort := topology.IngressPort()
+	app := topology.MustComponent(envtopology.ComponentApp)
+	bindings := topology.ResolveBindings(RuntimeBindings(BindingOptions{
+		IncludeMonitoring: includeMonitoring,
+		IncludePgAdmin:    includePgAdmin,
+	}))
+	networkAliases := []string{app.Host()}
+	for _, binding := range bindings {
+		if !binding.Enabled || !binding.HasRoute() || binding.Host == app.Host() {
+			continue
+		}
+		networkAliases = append(networkAliases, binding.Host)
+	}
 
 	containers := []ContainerSpec{
 		newContainerSpec(
@@ -186,21 +203,21 @@ func coreContainers(dataDir string, topology envtopology.Local, includePgAdmin b
 				"ASPNETCORE_URLS":                                       localtestListenURLs(ingressPort),
 				"DOTNET_ENVIRONMENT":                                    "Development",
 				"GeneralSettings__BaseUrl":                              topology.LocaltestBaseURL(),
-				"GeneralSettings__HostName":                             topology.AppHostName(),
-				"LocalPlatformSettings__LocalAppMode":                   "http",
-				"LocalPlatformSettings__LocalAppUrl":                    "",
+				"GeneralSettings__HostName":                             app.Host(),
 				"LocalPlatformSettings__LocalTestingStorageBasePath":    "/AltinnPlatformLocal/",
 				"LocalPlatformSettings__LocalTestingStaticTestDataPath": "/testdata/",
-				"LocalPlatformSettings__LocalGrafanaUrl":                "http://monitoring_grafana:3000",
-				"LocalPlatformSettings__LocalPdfServiceUrl":             "http://" + ContainerPDF3 + ":5031",
-				"LocalPlatformSettings__LocalWorkflowEngineUrl":         "http://" + ContainerWorkflowEngine + ":8080",
-				"LocalPlatformSettings__LocalPgAdminUrl":                "http://" + ContainerPgAdmin + ":80",
+				envtopology.BoundTopologyOptionsBasePathEnv:             envtopology.BoundTopologyBaseConfigContainerPath,
+				envtopology.BoundTopologyOptionsMergedPathEnv:           envtopology.BoundTopologyConfigContainerPath,
 			},
 			[]types.VolumeMount{
+				newReadOnlyVolume(
+					envtopology.BoundTopologyHostDir(dataDir),
+					envtopology.BoundTopologyContainerDir,
+				),
 				newVolume(filepath.Join(dataDir, "testdata"), "/testdata"),
 				newVolume(filepath.Join(dataDir, "AltinnPlatformLocal"), "/AltinnPlatformLocal"),
 			},
-			topology.LocaltestIngressHosts(),
+			networkAliases,
 			nil,
 			nil,
 		),
@@ -358,50 +375,65 @@ func monitoringContainers(dataDir string, topology envtopology.Local) []Containe
 			nil,
 			[]string{"-config.file=/etc/loki.yaml", "-target=all", "-log.level=error"},
 		),
-		newContainerSpec(
-			ContainerMonitoringOtelCollector,
-			[]types.PortMapping{newPort("4317", "4317")},
-			nil,
-			[]types.VolumeMount{
-				newVolume(filepath.Join(infraPath, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
-			},
-			[]string{topology.OTelHost()},
-			[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
-			[]string{"--config=/etc/otel-collector.yaml"},
-		),
-		newContainerSpec(
-			ContainerMonitoringGrafana,
-			nil,
-			map[string]string{
-				"GF_AUTH_ANONYMOUS_ENABLED":     "true",
-				"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
-				"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
-				"GF_LOG_LEVEL":                  "error",
-				"GF_SERVER_DOMAIN":              topology.AppHostName(),
-				"GF_SERVER_SERVE_FROM_SUB_PATH": "true",
-				"GF_SERVER_ROOT_URL":            "%(protocol)s://%(domain)s:%(http_port)s/grafana/",
-			},
-			[]types.VolumeMount{
-				newVolume(
-					filepath.Join(infraPath, "grafana-datasources.yaml"),
-					"/etc/grafana/provisioning/datasources/datasources.yaml",
-				),
-				newVolume(
-					filepath.Join(infraPath, "grafana-dashboards.yaml"),
-					"/etc/grafana/provisioning/dashboards/dashboards.yaml",
-				),
-				newVolume(filepath.Join(infraPath, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
-			},
-			nil,
-			[]string{
-				ContainerMonitoringOtelCollector,
-				ContainerMonitoringMimir,
-				ContainerMonitoringTempo,
-				ContainerMonitoringLoki,
-			},
-			nil,
-		),
+		monitoringOTelCollectorContainer(infraPath, topology),
+		monitoringGrafanaContainer(infraPath, topology),
 	}
+}
+
+func monitoringOTelCollectorContainer(
+	infraPath string,
+	topology envtopology.Local,
+) ContainerSpec {
+	otel := topology.MustComponent(envtopology.ComponentOTel)
+
+	return newContainerSpec(
+		ContainerMonitoringOtelCollector,
+		[]types.PortMapping{newPort("4317", "4317")},
+		nil,
+		[]types.VolumeMount{
+			newVolume(filepath.Join(infraPath, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
+		},
+		[]string{otel.Host()},
+		[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
+		[]string{"--config=/etc/otel-collector.yaml"},
+	)
+}
+
+func monitoringGrafanaContainer(infraPath string, topology envtopology.Local) ContainerSpec {
+	app := topology.MustComponent(envtopology.ComponentApp)
+
+	return newContainerSpec(
+		ContainerMonitoringGrafana,
+		nil,
+		map[string]string{
+			"GF_AUTH_ANONYMOUS_ENABLED":     "true",
+			"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
+			"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
+			"GF_LOG_LEVEL":                  "error",
+			"GF_SERVER_DOMAIN":              app.Host(), // TODO: should be localtest/proxy, not app.
+			"GF_SERVER_SERVE_FROM_SUB_PATH": "true",
+			"GF_SERVER_ROOT_URL":            "%(protocol)s://%(domain)s:%(http_port)s/grafana/", // TODO: mirror real envs, /monitor.
+		},
+		[]types.VolumeMount{
+			newVolume(
+				filepath.Join(infraPath, "grafana-datasources.yaml"),
+				"/etc/grafana/provisioning/datasources/datasources.yaml",
+			),
+			newVolume(
+				filepath.Join(infraPath, "grafana-dashboards.yaml"),
+				"/etc/grafana/provisioning/dashboards/dashboards.yaml",
+			),
+			newVolume(filepath.Join(infraPath, "grafana-dashboards"), "/var/lib/grafana/dashboards"),
+		},
+		nil,
+		[]string{
+			ContainerMonitoringOtelCollector,
+			ContainerMonitoringMimir,
+			ContainerMonitoringTempo,
+			ContainerMonitoringLoki,
+		},
+		nil,
+	)
 }
 
 func monitoringImageRefs(mon config.MonitoringImages) map[string]string {
@@ -419,8 +451,8 @@ type ResourceBuildOptions struct {
 	DevConfig         *DevImageConfig
 	Images            config.ImagesConfig
 	DataDir           string
-	Topology          envtopology.Local
 	RuntimeConfig     RuntimeConfig
+	Topology          envtopology.Local
 	ImageMode         ImageMode
 	IncludeMonitoring bool
 	IncludePgAdmin    bool
@@ -566,7 +598,7 @@ func buildResourcesWithMode(
 	monImages map[string]string,
 	mode containerResourceMode,
 ) []resource.Resource {
-	core := coreContainers(dataDir, topology, includePgAdmin)
+	core := coreContainers(dataDir, topology, includeMonitoring, includePgAdmin)
 	mon := monitoringContainers(dataDir, topology)
 	labels := map[string]string{LabelKey: LabelValue}
 
@@ -725,7 +757,7 @@ type hostPathExpectation struct {
 }
 
 func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
-	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludePgAdmin)
+	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludeMonitoring, opts.IncludePgAdmin)
 	all := core
 	if opts.IncludeMonitoring {
 		all = append(all, monitoringContainers(opts.DataDir, opts.Topology)...)

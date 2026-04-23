@@ -1,0 +1,279 @@
+package envtopology
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+
+	"altinn.studio/studioctl/internal/osutil"
+)
+
+const (
+	// BoundTopologyConfigVersion is the current generated topology config version.
+	BoundTopologyConfigVersion = 1
+
+	// BoundTopologyConfigDirName is the generated config directory under the studioctl data dir.
+	BoundTopologyConfigDirName = "generated/topology"
+
+	// BoundTopologyBaseConfigFileName is the app-manager input config file.
+	BoundTopologyBaseConfigFileName = "base.json"
+
+	// BoundTopologyConfigFileName is the merged config consumed by localtest.
+	BoundTopologyConfigFileName = "bound.json"
+
+	// BoundTopologyContainerDir is the localtest mount point for generated topology config.
+	BoundTopologyContainerDir = "/studioctl/topology"
+
+	// BoundTopologyBaseConfigContainerPath is the in-container app-manager input config path.
+	BoundTopologyBaseConfigContainerPath = BoundTopologyContainerDir + "/" + BoundTopologyBaseConfigFileName
+
+	// BoundTopologyConfigContainerPath is the in-container merged config path.
+	BoundTopologyConfigContainerPath = BoundTopologyContainerDir + "/" + BoundTopologyConfigFileName
+
+	// BoundTopologyOptionsBasePathEnv is the env var key for the base config path.
+	BoundTopologyOptionsBasePathEnv = "BoundTopologyOptions__BasePath"
+
+	// BoundTopologyOptionsMergedPathEnv is the env var key for the merged config path.
+	BoundTopologyOptionsMergedPathEnv = "BoundTopologyOptions__MergedPath"
+
+	windowsGOOS = "windows"
+)
+
+// DestinationLocation describes where a route currently resolves.
+type DestinationLocation string
+
+const (
+	// DestinationLocationEnv routes to the local environment side of the topology boundary.
+	DestinationLocationEnv DestinationLocation = "env"
+
+	// DestinationLocationHost routes to the host side of the topology boundary.
+	DestinationLocationHost DestinationLocation = "host"
+)
+
+// DestinationKind describes how a route destination is reached.
+type DestinationKind string
+
+const (
+	// DestinationKindHTTP routes to a concrete HTTP base URL.
+	DestinationKindHTTP DestinationKind = "http"
+)
+
+// Binding describes one topology component together with its resolved runtime target.
+type Binding struct {
+	ComponentID ComponentID
+	Host        string
+	BasePath    string
+	PathPattern string
+	Destination BoundTopologyDestination
+	Enabled     bool
+}
+
+// RuntimeBinding describes how one topology component is bound in a concrete environment runtime.
+type RuntimeBinding struct {
+	ComponentID ComponentID
+	Destination BoundTopologyDestination
+	Enabled     bool
+}
+
+// BoundTopologyConfig is the shared bound topology configuration for localtest and app-manager.
+type BoundTopologyConfig struct {
+	Routes  []BoundTopologyRoute `json:"routes"`
+	Version int                  `json:"version"`
+}
+
+// BoundTopologyRoute describes one externally exposed route.
+type BoundTopologyRoute struct {
+	Destination BoundTopologyDestination `json:"destination"`
+	Match       BoundTopologyRouteMatch  `json:"match"`
+	Component   ComponentID              `json:"component"`
+	Metadata    []BoundTopologyMetadata  `json:"metadata,omitempty"`
+	Enabled     bool                     `json:"enabled"`
+}
+
+// BoundTopologyMetadata describes one ordered metadata entry on a route.
+type BoundTopologyMetadata struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// BoundTopologyRouteMatch identifies which incoming requests belong to a route.
+type BoundTopologyRouteMatch struct {
+	Host        string `json:"host"`
+	PathPattern string `json:"pathPattern,omitempty"`
+	PathPrefix  string `json:"pathPrefix,omitempty"`
+}
+
+// BoundTopologyDestination describes where a route currently resolves.
+type BoundTopologyDestination struct {
+	Location DestinationLocation `json:"location"`
+	Kind     DestinationKind     `json:"kind"`
+	URL      string              `json:"url,omitempty"`
+}
+
+// ResolveBindings combines static topology components with runtime-specific binding data.
+func (l Local) ResolveBindings(runtimeBindings []RuntimeBinding) []Binding {
+	bindings := make([]Binding, 0, len(runtimeBindings))
+	for _, runtimeBinding := range runtimeBindings {
+		bindings = append(bindings, newBinding(l.MustComponent(runtimeBinding.ComponentID), runtimeBinding))
+	}
+	return bindings
+}
+
+// ResolveBinding resolves the current binding for a component.
+func (l Local) ResolveBinding(id ComponentID, runtimeBindings []RuntimeBinding) (Binding, bool) {
+	component, ok := l.Component(id)
+	if !ok {
+		var zero Binding
+		return zero, false
+	}
+
+	for _, runtimeBinding := range runtimeBindings {
+		if runtimeBinding.ComponentID == id {
+			return newBinding(component, runtimeBinding), true
+		}
+	}
+
+	var zero Binding
+	return zero, false
+}
+
+// MustResolveBinding resolves a component binding or panics if the component is unsupported.
+func (l Local) MustResolveBinding(id ComponentID, runtimeBindings []RuntimeBinding) Binding {
+	binding, ok := l.ResolveBinding(id, runtimeBindings)
+	if ok {
+		return binding
+	}
+
+	panic("envtopology: unsupported binding for component " + string(id))
+}
+
+// BoundTopologyBaseConfig resolves the shared bound topology template for the current run.
+func (l Local) BoundTopologyBaseConfig(runtimeBindings []RuntimeBinding) BoundTopologyConfig {
+	bindings := l.ResolveBindings(runtimeBindings)
+	routes := make([]BoundTopologyRoute, 0, len(bindings))
+	for _, binding := range bindings {
+		if !binding.HasRoute() {
+			continue
+		}
+		routes = append(routes, boundTopologyRoute(binding))
+	}
+
+	return BoundTopologyConfig{
+		Routes:  routes,
+		Version: BoundTopologyConfigVersion,
+	}
+}
+
+// BoundTopologyConfig resolves the initial concrete shared bound topology for the current run.
+func (l Local) BoundTopologyConfig(runtimeBindings []RuntimeBinding) BoundTopologyConfig {
+	bindings := l.ResolveBindings(runtimeBindings)
+	routes := make([]BoundTopologyRoute, 0, len(bindings))
+	for _, binding := range bindings {
+		if !binding.HasConcreteRoute() {
+			continue
+		}
+		routes = append(routes, boundTopologyRoute(binding))
+	}
+
+	return BoundTopologyConfig{
+		Routes:  routes,
+		Version: BoundTopologyConfigVersion,
+	}
+}
+
+// WriteBoundTopologyBaseConfig writes the shared base bound topology to disk.
+func (l Local) WriteBoundTopologyBaseConfig(path string, runtimeBindings []RuntimeBinding) error {
+	return WriteBoundTopologyConfig(path, l.BoundTopologyBaseConfig(runtimeBindings))
+}
+
+// WriteBoundTopologyConfig writes the shared bound topology configuration to disk.
+func (l Local) WriteBoundTopologyConfig(path string, runtimeBindings []RuntimeBinding) error {
+	return WriteBoundTopologyConfig(path, l.BoundTopologyConfig(runtimeBindings))
+}
+
+// WriteBoundTopologyConfig writes a bound topology configuration to disk atomically.
+func WriteBoundTopologyConfig(path string, config BoundTopologyConfig) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create bound topology config directory: %w", err)
+	}
+
+	data, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal bound topology config: %w", err)
+	}
+
+	tmpPath := path + ".tmp"
+	if err := os.WriteFile(tmpPath, append(data, '\n'), osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("write bound topology config temp file: %w", err)
+	}
+	return replaceBoundTopologyConfig(tmpPath, path)
+}
+
+// BoundTopologyHostDir returns the host directory for generated topology config.
+func BoundTopologyHostDir(dataDir string) string {
+	return filepath.Join(dataDir, BoundTopologyConfigDirName)
+}
+
+// BoundTopologyHostPath returns the host path for the merged bound topology config.
+func BoundTopologyHostPath(dataDir string) string {
+	return filepath.Join(BoundTopologyHostDir(dataDir), BoundTopologyConfigFileName)
+}
+
+func newBinding(component Component, runtimeBinding RuntimeBinding) Binding {
+	return Binding{
+		ComponentID: runtimeBinding.ComponentID,
+		Host:        component.Host(),
+		BasePath:    component.BasePath(),
+		PathPattern: component.PathPattern(),
+		Destination: runtimeBinding.Destination,
+		Enabled:     runtimeBinding.Enabled,
+	}
+}
+
+// HasRoute reports whether the binding participates in generated routing.
+func (b Binding) HasRoute() bool {
+	return b.Destination.Kind != ""
+}
+
+// HasConcreteRoute reports whether the binding has a concrete destination URL.
+func (b Binding) HasConcreteRoute() bool {
+	return b.HasRoute() && b.Destination.URL != ""
+}
+
+func boundTopologyRoute(binding Binding) BoundTopologyRoute {
+	route := BoundTopologyRoute{
+		Component:   binding.ComponentID,
+		Destination: binding.Destination,
+		Match: BoundTopologyRouteMatch{
+			Host:        binding.Host,
+			PathPattern: binding.PathPattern,
+			PathPrefix:  binding.BasePath,
+		},
+		Metadata: nil,
+		Enabled:  binding.Enabled,
+	}
+	if !binding.HasRoute() {
+		panic("envtopology: binding is not a route")
+	}
+	return route
+}
+
+func replaceBoundTopologyConfig(tmpPath, path string) error {
+	if err := os.Rename(tmpPath, path); err == nil {
+		return nil
+	} else if runtime.GOOS != windowsGOOS {
+		return fmt.Errorf("replace bound topology config: %w", err)
+	}
+
+	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("remove previous bound topology config: %w", err)
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		return fmt.Errorf("replace bound topology config after remove: %w", err)
+	}
+	return nil
+}

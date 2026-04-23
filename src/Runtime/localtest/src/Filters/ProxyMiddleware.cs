@@ -5,9 +5,10 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using Altinn.Studio.AppTunnel;
+using Altinn.Studio.EnvTopology;
 using LocalTest.Configuration;
 using LocalTest.Tunnel;
-using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Transforms;
@@ -16,52 +17,34 @@ namespace LocalTest.Filters;
 
 public class ProxyMiddleware
 {
+    private const string AppComponent = "app";
+    private const string DestinationKindHttp = "http";
+    private const string DestinationLocationEnv = "env";
+    private const string DestinationLocationHost = "host";
+
     private readonly RequestDelegate _nextMiddleware;
-    private readonly LocalPlatformSettings _settings;
     private readonly IHttpForwarder _forwarder;
     private readonly ILogger<ProxyMiddleware> _logger;
     private readonly AppTunnelProxy _appTunnelProxy;
+    private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
     // Cookie name for frontend version override (URL-encoded URL)
     private const string FrontendVersionCookie = "frontendVersion";
-    private const string PdfServiceHost = "pdf.local.altinn.cloud";
-    private const string PgAdminHost = "pgadmin.local.altinn.cloud";
-    private const string WorkflowEngineHost = "workflow-engine.local.altinn.cloud";
-    private const string FrontendHost = "app-frontend.local.altinn.cloud";
 
     public ProxyMiddleware(
         RequestDelegate nextMiddleware,
-        IOptions<LocalPlatformSettings> localPlatformSettings,
+        BoundTopologyIndexAccessor boundTopologyIndex,
         IHttpForwarder forwarder,
         ILogger<ProxyMiddleware> logger,
         AppTunnelProxy appTunnelProxy
     )
     {
         _nextMiddleware = nextMiddleware;
-        _settings = localPlatformSettings.Value;
         _forwarder = forwarder;
         _logger = logger;
         _appTunnelProxy = appTunnelProxy;
+        _boundTopologyIndex = boundTopologyIndex;
     }
-
-    // Path prefixes handled directly by localtest (not proxied to apps)
-    private static readonly string[] _localtestPathPrefixes =
-    [
-        "/Home/",
-        "/_framework/",
-        "/localtestresources/",
-        "/LocalPlatformStorage/",
-        "/accessmanagement/",
-        "/authentication/",
-        "/authorization/",
-        "/profile/",
-        "/events/",
-        "/register/",
-        "/storage/",
-        "/notifications/",
-        "/health",
-        "/internal/",
-    ];
 
     public async Task Invoke(HttpContext context)
     {
@@ -72,106 +55,36 @@ public class ProxyMiddleware
             return;
         }
 
-        if (await TryProxyToHostService(context))
+        if (await TryProxyResolvedRoute(context, path))
         {
             return;
         }
 
-        if (await TryProxyToExternalService(context, path))
-        {
-            return;
-        }
-
-        if (IsLocaltestPath(path))
-        {
-            await _nextMiddleware(context);
-            return;
-        }
-
-        var appId = ExtractAppIdFromPath(path);
-        if (appId != null && _appTunnelProxy.IsConnected)
-        {
-            try
-            {
-                await ProxyTunneledRequest(context, appId);
-                return;
-            }
-            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
-            {
-                await HandleTunnelProxyError(context, ex, appId);
-                return;
-            }
-        }
-
-        if (_appTunnelProxy.IsConnected)
-        {
-            try
-            {
-                await ProxyTunneledRequest(context, appId: null);
-                return;
-            }
-            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
-            {
-                if (!CanFallbackToLocalAppUrl(context))
-                    throw;
-
-                context.Response.Clear();
-                _logger.LogDebug(ex, "Tunnel proxy failed for default app, falling back to LocalAppUrl");
-            }
-        }
-
-        if (!string.IsNullOrEmpty(_settings.LocalAppUrl))
-        {
-            await ProxyRequest(context, _settings.LocalAppUrl);
-            return;
-        }
-
-        // If we get here, no proxy target available
         await _nextMiddleware(context);
     }
 
-    private async Task<bool> TryProxyToHostService(HttpContext context)
+    private async Task<bool> TryProxyResolvedRoute(HttpContext context, string path)
     {
-        var host = context.Request.Host.Host;
-        if (string.IsNullOrWhiteSpace(host))
+        var match = _boundTopologyIndex.Current.MatchRequest(context.Request.Host.Host, path);
+        if (match == null)
         {
             return false;
         }
 
-        if (IsHost(host, WorkflowEngineHost))
+        var route = match.Route;
+        if (!string.Equals(route.Destination.Kind, DestinationKindHttp, StringComparison.OrdinalIgnoreCase))
         {
-            return await TryProxyToConfiguredService(context, _settings.LocalWorkflowEngineUrl);
+            return false;
         }
 
-        if (IsHost(host, FrontendHost))
+        if (string.Equals(route.Destination.Location, DestinationLocationEnv, StringComparison.OrdinalIgnoreCase))
         {
-            await ProxyTunnelTarget(
-                context,
-                Altinn.Studio.AppTunnel.TunnelDefaults.FrontendDevServerTarget,
-                Altinn.Studio.AppTunnel.TunnelDefaults.FrontendDevServerPort,
-                $"frontend dev server on port {Altinn.Studio.AppTunnel.TunnelDefaults.FrontendDevServerPort}"
-            );
-            return true;
+            return await TryProxyToConfiguredService(context, route.Destination.Url);
         }
 
-        if (IsHost(host, PdfServiceHost))
+        if (string.Equals(route.Destination.Location, DestinationLocationHost, StringComparison.OrdinalIgnoreCase))
         {
-            return await TryProxyToConfiguredService(context, _settings.LocalPdfServiceUrl);
-        }
-
-        if (IsHost(host, PgAdminHost))
-        {
-            return await TryProxyToConfiguredService(context, _settings.LocalPgAdminUrl);
-        }
-
-        return false;
-    }
-
-    private async Task<bool> TryProxyToExternalService(HttpContext context, string path)
-    {
-        if (path.StartsWith("/grafana/", StringComparison.OrdinalIgnoreCase) || path == "/grafana")
-        {
-            return await TryProxyToConfiguredService(context, _settings.LocalGrafanaUrl);
+            return await TryProxyBoundHostHttpRoute(context, match);
         }
 
         return false;
@@ -188,46 +101,25 @@ public class ProxyMiddleware
         return true;
     }
 
-    private static bool IsHost(string host, string expected) =>
-        string.Equals(host, expected, StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsLocaltestPath(string path)
+    private async Task<bool> TryProxyBoundHostHttpRoute(HttpContext context, BoundTopologyRequestMatch match)
     {
-        if (path == "/")
+        var route = match.Route;
+        if (
+            match.HttpDestinationUri is not { } uri
+            || !string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+        )
         {
-            return true;
+            _logger.LogWarning(
+                "Bound topology route {Component} has unsupported host destination URL {Url}",
+                route.Component,
+                route.Destination.Url
+            );
+            return false;
         }
 
-        foreach (var prefix in _localtestPathPrefixes)
-        {
-            if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        await ProxyTunnelTarget(context, uri.Host, uri.Port, route.Component);
+        return true;
     }
-
-    /// <summary>
-    /// Extract appId (org/app) from URL path
-    /// Expects path format: /org/app/...
-    /// </summary>
-    private static string? ExtractAppIdFromPath(string path)
-    {
-        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Length >= 2)
-        {
-            return $"{segments[0]}/{segments[1]}";
-        }
-        return null;
-    }
-
-    private static bool CanFallbackToLocalAppUrl(HttpContext context) =>
-        !context.Response.HasStarted && !RequestMayHaveBody(context.Request);
-
-    private static bool RequestMayHaveBody(HttpRequest request) =>
-        request.ContentLength is > 0 || request.Headers.ContainsKey(HeaderNames.TransferEncoding);
 
     private static readonly HttpMessageInvoker _httpClient = new(
         new SocketsHttpHandler
@@ -264,23 +156,6 @@ public class ProxyMiddleware
         }
     }
 
-    private async Task ProxyTunneledRequest(HttpContext context, string? appId)
-    {
-        var frontendVersionUrl = GetFrontendVersionUrl(context);
-        if (frontendVersionUrl == null)
-        {
-            context.Response.OnStarting(() =>
-            {
-                LocaltestResponseTransformer.RewriteCookieDomains(context.Response.Headers);
-                return Task.CompletedTask;
-            });
-            await _appTunnelProxy.ProxyAsync(context, appId, context.RequestAborted);
-            return;
-        }
-
-        await ProxyTunneledRequestWithBufferedResponse(context, appId, frontendVersionUrl);
-    }
-
     private async Task ProxyTunnelTarget(
         HttpContext context,
         string target,
@@ -290,6 +165,12 @@ public class ProxyMiddleware
     {
         try
         {
+            if (string.Equals(description, AppComponent, StringComparison.OrdinalIgnoreCase))
+            {
+                await ProxyTunnelTargetWithBufferedResponse(context, target, targetPort);
+                return;
+            }
+
             await _appTunnelProxy.ProxyToTargetAsync(context, target, targetPort, context.RequestAborted);
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
@@ -298,19 +179,31 @@ public class ProxyMiddleware
         }
     }
 
-    private async Task ProxyTunneledRequestWithBufferedResponse(
+    private async Task ProxyTunnelTargetWithBufferedResponse(
         HttpContext context,
-        string? appId,
-        string frontendVersionUrl
+        string target,
+        int targetPort
     )
     {
+        var frontendVersionUrl = GetFrontendVersionUrl(context);
+        if (frontendVersionUrl == null)
+        {
+            context.Response.OnStarting(() =>
+            {
+                LocaltestResponseTransformer.RewriteCookieDomains(context.Response.Headers);
+                return Task.CompletedTask;
+            });
+            await _appTunnelProxy.ProxyToTargetAsync(context, target, targetPort, context.RequestAborted);
+            return;
+        }
+
         var originalBody = context.Response.Body;
         await using var bufferedBody = new MemoryStream();
         context.Response.Body = bufferedBody;
 
         try
         {
-            await _appTunnelProxy.ProxyAsync(context, appId, context.RequestAborted);
+            await _appTunnelProxy.ProxyToTargetAsync(context, target, targetPort, context.RequestAborted);
         }
         finally
         {
@@ -383,9 +276,7 @@ public class ProxyMiddleware
 
         context.Response.StatusCode = 502;
         context.Response.ContentType = "text/html; charset=utf-8";
-
-        var errorPage = GetErrorPage(targetHost);
-        await context.Response.WriteAsync(errorPage);
+        await context.Response.WriteAsync(GetServiceErrorPage(targetHost));
     }
 
     private async Task HandleTunnelProxyError(HttpContext context, Exception exception, string targetDescription)
@@ -400,43 +291,41 @@ public class ProxyMiddleware
         context.Response.Clear();
         context.Response.StatusCode = 502;
         context.Response.ContentType = "text/html; charset=utf-8";
-
-        await context.Response.WriteAsync(GetErrorPage($"app tunnel for {targetDescription}"));
+        await context.Response.WriteAsync(GetAppErrorPage(targetDescription));
     }
 
     /// <summary>
     /// Generate a friendly 502 error page.
     /// </summary>
-    private static string GetErrorPage(string targetHost)
+    private static string GetAppErrorPage(string appId)
     {
-        var isAppTarget = targetHost.Contains(":5005");
+        return $$"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>App not running</title>
+                <style>
+                    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+                    h1 { color: #c00; }
+                    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
+                </style>
+            </head>
+            <body>
+                <h1>502 Bad Gateway</h1>
+                <h2>Your local app is not running</h2>
+                <p>Could not proxy requests for {{HttpUtility.HtmlEncode(appId)}}</p>
+                <p>Please ensure your Altinn app is running. Start it with:</p>
+                <pre>dotnet run --project App/App.csproj</pre>
+                <p>Or use studioctl:</p>
+                <pre>studioctl run</pre>
+            </body>
+            </html>
+            """;
+    }
 
-        if (isAppTarget)
-        {
-            return """
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>App not running</title>
-                    <style>
-                        body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-                        h1 { color: #c00; }
-                        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
-                    </style>
-                </head>
-                <body>
-                    <h1>502 Bad Gateway</h1>
-                    <h2>Your local app is not running</h2>
-                    <p>Please ensure your Altinn app is running. Start it with:</p>
-                    <pre>dotnet run --project App/App.csproj</pre>
-                    <p>Or use studioctl:</p>
-                    <pre>studioctl run</pre>
-                </body>
-                </html>
-                """;
-        }
-
+    private static string GetServiceErrorPage(string targetHost)
+    {
         return $$"""
             <!DOCTYPE html>
             <html lang="en">
