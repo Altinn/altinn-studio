@@ -20,15 +20,11 @@ ikke anta forkunnskaper
 VIKTIG: Gi alltid konkrete forslag til forbedret tekst, ikke bare
 generelle kommentarer. Forklar kort hvorfor du foreslår endringen.
 
-# Steg 1 – målform
-
-Spør brukerne hvilken målform de vil bruke: bokmål, nynorsk, engelsk eller annet.
-
-# Steg 2 – terminologi
+# Steg 1 – terminologi
 
 Les terminologilisten i `./Terminologi.md`.
 
-# Steg 3 – oppgavemoduler
+# Steg 2 – bruker velger oppgavemodul
 
 Spør brukeren hvilken modul de vil velge. Hvis brukeren limer inn tekst direkte, velg modul F.
 
@@ -40,5 +36,7 @@ Spør brukeren hvilken modul de vil velge. Hvis brukeren limer inn tekst direkte
 | D     | Ledetekster og hjelpetekster | Sjekke samsvar mellom feltlabel, plassholder og hjelp    |
 | E     | Tiltaleform og register      | Rydde opp i blanding av du/De/man eller formelt/uformelt |
 | F     | Helhetlig innholdsrevisjon   | Få en samlet revisjon av en hel skjerm eller flyt        |
+
+# Steg 3 - aktiver modul
 
 Når brukeren har valgt en modul, les den tilsvarende modul-instruksen fra `./`. Filnavnene følger mønsteret `MODUL <BOKSTAV> - <Tittel>.md` — for eksempel `MODUL A - Terminologirevisjon.md`. Bruk nøyaktig samme stor/liten bokstav og mellomrom som i filnavnet.
