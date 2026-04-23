@@ -4,10 +4,6 @@ namespace Altinn.Studio.EnvTopology;
 
 public sealed class BoundTopologyIndex
 {
-    private const int PrefixRoutePrecedence = 0;
-    private const int PatternRoutePrecedence = 1;
-    private const int HostRoutePrecedence = 2;
-
     private readonly BoundTopologyAppRoute[] _apps;
     private readonly Dictionary<string, BoundTopologyAppRoute> _appsById;
     private readonly Dictionary<string, BoundTopologyComponentRoute[]> _componentRoutes;
@@ -140,8 +136,8 @@ public sealed class BoundTopologyIndex
                 static hostGroup => hostGroup.Key,
                 static hostGroup => hostGroup.GroupBy(static route => route.GroupKey, StringComparer.Ordinal)
                     .Select(static routeGroup => new RouteGroup([.. routeGroup]))
-                    .OrderBy(static group => group.Precedence)
-                    .ThenByDescending(static group => group.Specificity)
+                    .OrderBy(static group => group.IsHostOnly)
+                    .ThenByDescending(static group => group.PathPrefixLength)
                     .ThenBy(static group => group.GroupKey, StringComparer.Ordinal)
                     .ToArray(),
                 StringComparer.OrdinalIgnoreCase
@@ -163,17 +159,6 @@ public sealed class BoundTopologyIndex
                 route.Match.Host,
                 route.Match.PathPrefix,
                 "prefix:" + route.Match.Host + "\n" + route.Match.PathPrefix,
-                httpDestinationUri
-            );
-        }
-
-        if (!string.IsNullOrEmpty(route.Match.PathPattern))
-        {
-            return new PatternRoute(
-                route,
-                route.Match.Host,
-                route.Match.PathPattern,
-                "pattern:" + route.Match.Host + "\n" + route.Match.PathPattern,
                 httpDestinationUri
             );
         }
@@ -219,9 +204,9 @@ public sealed class BoundTopologyIndex
 
         public string GroupKey { get; } = routes[0].GroupKey;
 
-        public int Precedence { get; } = routes[0].Precedence;
+        public bool IsHostOnly { get; } = routes[0].IsHostOnly;
 
-        public int Specificity { get; } = routes[0].Specificity;
+        public int PathPrefixLength { get; } = routes[0].PathPrefixLength;
 
         public bool IsMatch(string path) => routes.Length > 0 && routes[0].IsMatch(path);
 
@@ -252,9 +237,9 @@ public sealed class BoundTopologyIndex
 
         public Uri? HttpDestinationUri { get; } = httpDestinationUri;
 
-        public abstract int Precedence { get; }
+        public virtual bool IsHostOnly => false;
 
-        public virtual int Specificity => 0;
+        public virtual int PathPrefixLength => 0;
 
         public abstract bool IsMatch(string path);
 
@@ -268,7 +253,7 @@ public sealed class BoundTopologyIndex
         Uri? httpDestinationUri
     ) : CompiledRoute(route, host, groupKey, httpDestinationUri)
     {
-        public override int Precedence => HostRoutePrecedence;
+        public override bool IsHostOnly => true;
 
         public override bool IsMatch(string path) => true;
     }
@@ -281,9 +266,7 @@ public sealed class BoundTopologyIndex
         Uri? httpDestinationUri
     ) : CompiledRoute(route, host, groupKey, httpDestinationUri)
     {
-        public override int Precedence => PrefixRoutePrecedence;
-
-        public override int Specificity => prefix.Length;
+        public override int PathPrefixLength => prefix.Length;
 
         public override bool IsMatch(string path)
         {
@@ -304,61 +287,6 @@ public sealed class BoundTopologyIndex
 
             return path.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase);
         }
-    }
-
-    private sealed class PatternRoute(
-        BoundTopologyRoute route,
-        string host,
-        string pattern,
-        string groupKey,
-        Uri? httpDestinationUri
-    ) : CompiledRoute(route, host, groupKey, httpDestinationUri)
-    {
-        private readonly string[] _patternSegments = pattern.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-        public override int Precedence => PatternRoutePrecedence;
-
-        public override int Specificity => _patternSegments.Length;
-
-        public override bool IsMatch(string path)
-        {
-            var pathSegments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            var pathIndex = 0;
-
-            foreach (var patternSegment in _patternSegments)
-            {
-                if (IsCatchAllSegment(patternSegment))
-                {
-                    return true;
-                }
-
-                if (pathIndex >= pathSegments.Length)
-                {
-                    return false;
-                }
-
-                if (IsPlaceholderSegment(patternSegment))
-                {
-                    pathIndex++;
-                    continue;
-                }
-
-                if (!string.Equals(patternSegment, pathSegments[pathIndex], StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-
-                pathIndex++;
-            }
-
-            return pathIndex == pathSegments.Length;
-        }
-
-        private static bool IsCatchAllSegment(string segment) =>
-            segment.StartsWith("{**", StringComparison.Ordinal) && segment.EndsWith('}');
-
-        private static bool IsPlaceholderSegment(string segment) =>
-            segment.StartsWith('{') && segment.EndsWith('}');
     }
 }
 

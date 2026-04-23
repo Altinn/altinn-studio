@@ -66,7 +66,6 @@ type Binding struct {
 	ComponentID ComponentID
 	Host        string
 	PathPrefix  string
-	PathPattern string
 	Destination BoundTopologyDestination
 	Enabled     bool
 }
@@ -80,8 +79,15 @@ type RuntimeBinding struct {
 
 // BoundTopologyConfig is the shared bound topology configuration for localtest and app-manager.
 type BoundTopologyConfig struct {
-	Routes  []BoundTopologyRoute `json:"routes"`
-	Version int                  `json:"version"`
+	AppRouteTemplate BoundTopologyAppRouteTemplate `json:"appRouteTemplate"`
+	Routes           []BoundTopologyRoute          `json:"routes"`
+	Version          int                           `json:"version"`
+}
+
+// BoundTopologyAppRouteTemplate describes how discovered apps become concrete routes.
+type BoundTopologyAppRouteTemplate struct {
+	Host               string `json:"host"`
+	PathPrefixTemplate string `json:"pathPrefixTemplate"`
 }
 
 // BoundTopologyRoute describes one externally exposed route.
@@ -101,9 +107,8 @@ type BoundTopologyMetadata struct {
 
 // BoundTopologyRouteMatch identifies which incoming requests belong to a route.
 type BoundTopologyRouteMatch struct {
-	Host        string `json:"host"`
-	PathPattern string `json:"pathPattern,omitempty"`
-	PathPrefix  string `json:"pathPrefix,omitempty"`
+	Host       string `json:"host"`
+	PathPrefix string `json:"pathPrefix,omitempty"`
 }
 
 // BoundTopologyDestination describes where a route currently resolves.
@@ -152,35 +157,31 @@ func (l Local) MustResolveBinding(id ComponentID, runtimeBindings []RuntimeBindi
 
 // BoundTopologyBaseConfig resolves the shared bound topology template for the current run.
 func (l Local) BoundTopologyBaseConfig(runtimeBindings []RuntimeBinding) BoundTopologyConfig {
-	bindings := l.ResolveBindings(runtimeBindings)
-	routes := make([]BoundTopologyRoute, 0, len(bindings))
-	for _, binding := range bindings {
-		if !binding.HasRoute() {
-			continue
-		}
-		routes = append(routes, boundTopologyRoute(binding))
-	}
-
-	return BoundTopologyConfig{
-		Routes:  routes,
-		Version: BoundTopologyConfigVersion,
-	}
+	return l.BoundTopologyConfig(runtimeBindings)
 }
 
 // BoundTopologyConfig resolves the initial shared bound topology for the current run.
 func (l Local) BoundTopologyConfig(runtimeBindings []RuntimeBinding) BoundTopologyConfig {
 	bindings := l.ResolveBindings(runtimeBindings)
 	routes := make([]BoundTopologyRoute, 0, len(bindings))
+	appRouteTemplate := BoundTopologyAppRouteTemplate{
+		Host:               l.AppHostName(),
+		PathPrefixTemplate: l.def.AppRouteTemplate.PathPrefixTemplate,
+	}
 	for _, binding := range bindings {
 		if !binding.HasRoute() {
+			continue
+		}
+		if binding.ComponentID == ComponentApp {
 			continue
 		}
 		routes = append(routes, boundTopologyRoute(binding))
 	}
 
 	return BoundTopologyConfig{
-		Routes:  routes,
-		Version: BoundTopologyConfigVersion,
+		AppRouteTemplate: appRouteTemplate,
+		Routes:           routes,
+		Version:          BoundTopologyConfigVersion,
 	}
 }
 
@@ -228,7 +229,6 @@ func newBinding(component Component, runtimeBinding RuntimeBinding) Binding {
 		ComponentID: runtimeBinding.ComponentID,
 		Host:        component.Host(),
 		PathPrefix:  component.PathPrefix(),
-		PathPattern: component.PathPattern(),
 		Destination: runtimeBinding.Destination,
 		Enabled:     runtimeBinding.Enabled,
 	}
@@ -244,9 +244,8 @@ func boundTopologyRoute(binding Binding) BoundTopologyRoute {
 		Component:   binding.ComponentID,
 		Destination: binding.Destination,
 		Match: BoundTopologyRouteMatch{
-			Host:        binding.Host,
-			PathPattern: binding.PathPattern,
-			PathPrefix:  binding.PathPrefix,
+			Host:       binding.Host,
+			PathPrefix: binding.PathPrefix,
 		},
 		Metadata: nil,
 		Enabled:  binding.Enabled,

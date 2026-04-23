@@ -180,26 +180,9 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
 
     private static BoundTopologyConfig Merge(BoundTopologyConfig baseConfig, IReadOnlyList<DiscoveredApp> apps)
     {
-        var routes = new List<BoundTopologyRoute>(baseConfig.Routes.Count + apps.Count);
-        List<BoundTopologyRoute>? appTemplates = null;
-        foreach (var route in baseConfig.Routes)
-        {
-            if (string.Equals(route.Component, AppComponent, StringComparison.OrdinalIgnoreCase))
-            {
-                appTemplates ??= [];
-                appTemplates.Add(route);
-                continue;
-            }
-
-            routes.Add(route);
-        }
-
-        if (appTemplates is null || appTemplates.Count == 0)
-        {
-            return new BoundTopologyConfig { Version = baseConfig.Version, Routes = routes };
-        }
-
-        foreach (var template in appTemplates)
+        var routes = new List<BoundTopologyRoute>(baseConfig.Routes);
+        var template = baseConfig.AppRouteTemplate;
+        if (!string.IsNullOrWhiteSpace(template.Host) && !string.IsNullOrWhiteSpace(template.PathPrefixTemplate))
         {
             foreach (var app in SelectResolvedApps(apps))
             {
@@ -207,7 +190,12 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
             }
         }
 
-        return new BoundTopologyConfig { Version = baseConfig.Version, Routes = routes };
+        return new BoundTopologyConfig
+        {
+            AppRouteTemplate = template,
+            Version = baseConfig.Version,
+            Routes = routes,
+        };
     }
 
     private static IEnumerable<DiscoveredApp> SelectResolvedApps(IReadOnlyList<DiscoveredApp> apps)
@@ -216,12 +204,12 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
             .ThenBy(static app => app.BaseUri.ToString(), StringComparer.OrdinalIgnoreCase);
     }
 
-    private static BoundTopologyRoute ExpandAppRoute(BoundTopologyRoute template, DiscoveredApp app)
+    private static BoundTopologyRoute ExpandAppRoute(BoundTopologyAppRouteTemplate template, DiscoveredApp app)
     {
         return new BoundTopologyRoute
         {
-            Component = template.Component,
-            Enabled = template.Enabled,
+            Component = AppComponent,
+            Enabled = true,
             Destination = new BoundTopologyDestination
             {
                 Kind = "http",
@@ -230,12 +218,24 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
             },
             Match = new BoundTopologyRouteMatch
             {
-                Host = template.Match.Host,
-                PathPrefix = URLPathSeparator + app.AppId.Trim(URLPathSeparator),
-                PathPattern = "",
+                Host = template.Host,
+                PathPrefix = ExpandAppPathPrefix(template.PathPrefixTemplate, app.AppId),
             },
             Metadata = BuildMetadata(app),
         };
+    }
+
+    private static string ExpandAppPathPrefix(string pathPrefixTemplate, string appId)
+    {
+        var parts = appId.Trim(URLPathSeparator).Split(URLPathSeparator, 2);
+        if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
+        {
+            throw new InvalidOperationException($"Invalid discovered app id '{appId}'");
+        }
+
+        return pathPrefixTemplate
+            .Replace("{org}", parts[0], StringComparison.Ordinal)
+            .Replace("{app}", parts[1], StringComparison.Ordinal);
     }
 
     private static List<BoundTopologyMetadataEntry> BuildMetadata(DiscoveredApp app)

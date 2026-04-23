@@ -4,9 +4,18 @@ namespace Altinn.Studio.EnvTopology;
 
 public sealed class BoundTopologyConfig
 {
+    public BoundTopologyAppRouteTemplate AppRouteTemplate { get; set; } = new();
+
     public List<BoundTopologyRoute> Routes { get; set; } = [];
 
     public int Version { get; set; }
+}
+
+public sealed class BoundTopologyAppRouteTemplate
+{
+    public string Host { get; set; } = string.Empty;
+
+    public string PathPrefixTemplate { get; set; } = string.Empty;
 }
 
 public sealed class BoundTopologyRoute
@@ -32,8 +41,6 @@ public sealed class BoundTopologyMetadataEntry
 public sealed class BoundTopologyRouteMatch
 {
     public string Host { get; set; } = string.Empty;
-
-    public string PathPattern { get; set; } = string.Empty;
 
     public string PathPrefix { get; set; } = string.Empty;
 }

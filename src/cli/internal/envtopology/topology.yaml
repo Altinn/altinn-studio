@@ -6,7 +6,6 @@ components:
   app:
     kind: app
     host: local.altinn.cloud
-    pathPattern: /{org}/{app}/{**rest}
   platform:
     kind: platform
     host: local.altinn.cloud
@@ -30,3 +29,5 @@ components:
   frontendDevServer:
     kind: frontend-dev
     host: app-frontend.local.altinn.cloud
+appRouteTemplate:
+  pathPrefixTemplate: /{org}/{app}

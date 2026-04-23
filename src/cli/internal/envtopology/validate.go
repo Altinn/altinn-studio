@@ -53,8 +53,10 @@ func validateDefinition(def definition) error {
 			return err
 		}
 	}
-
-	return nil
+	return validatePathPrefixTemplate(
+		"appRouteTemplate.pathPrefixTemplate",
+		def.AppRouteTemplate.PathPrefixTemplate,
+	)
 }
 
 func validateComponent(field string, component componentDefinition) error {
@@ -70,17 +72,11 @@ func validateComponent(field string, component componentDefinition) error {
 		if component.Port != 0 {
 			return fmt.Errorf("%s.port: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 		}
-		if err := validateRoutePathPattern(field+".pathPattern", component.PathPattern); err != nil {
-			return err
-		}
 	case componentKindPlatform:
 		return validateHTTPComponent(field, component)
 	case componentKindTelemetry:
 		if component.PathPrefix != "" {
 			return fmt.Errorf("%s.pathPrefix: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
-		}
-		if component.PathPattern != "" {
-			return fmt.Errorf("%s.pathPattern: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 		}
 		if err := validatePort(component.Port, field+".port"); err != nil {
 			return err
@@ -95,9 +91,6 @@ func validateComponent(field string, component componentDefinition) error {
 }
 
 func validateHTTPComponent(field string, component componentDefinition) error {
-	if component.PathPattern != "" {
-		return fmt.Errorf("%s.pathPattern: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
-	}
 	if component.Port != 0 {
 		return fmt.Errorf("%s.port: %w %q", field, errFieldMustBeEmptyForKind, component.Kind)
 	}
@@ -137,7 +130,7 @@ func validatePathPrefix(field, path string) error {
 	return nil
 }
 
-func validateRoutePathPattern(field, path string) error {
+func validatePathPrefixTemplate(field, path string) error {
 	if strings.TrimSpace(path) == "" {
 		return fmt.Errorf("%s: %w", field, errFieldRequired)
 	}

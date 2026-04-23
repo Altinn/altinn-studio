@@ -86,11 +86,6 @@ func (c Component) PathPrefix() string {
 	return c.def.PathPrefix
 }
 
-// PathPattern returns the component path pattern, if any.
-func (c Component) PathPattern() string {
-	return c.def.PathPattern
-}
-
 // Port returns the component port, if any.
 func (c Component) Port() int {
 	return c.def.Port

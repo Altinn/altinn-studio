@@ -80,8 +80,7 @@ func (l Local) LocaltestURL() string {
 
 // AppBaseURL returns the local app URL template.
 func (l Local) AppBaseURL() string {
-	app := l.MustComponent(ComponentApp)
-	return l.url(app.Host()) + appBasePathTemplate(app.PathPattern())
+	return l.url(l.AppHostName()) + appBasePathTemplate(l.def.AppRouteTemplate.PathPrefixTemplate)
 }
 
 // PlatformAPIBaseURL returns the base URL for local platform APIs.
@@ -145,12 +144,8 @@ func (l Local) url(host string) string {
 	return l.scheme() + "://" + host + ":" + l.ingressPort
 }
 
-func appBasePathTemplate(pattern string) string {
-	trimmed := strings.TrimSuffix(pattern, "{**rest}")
-	if strings.HasSuffix(trimmed, "/") {
-		return trimmed
-	}
-	return trimmed + "/"
+func appBasePathTemplate(pathPrefixTemplate string) string {
+	return strings.TrimRight(pathPrefixTemplate, "/") + "/"
 }
 
 func slicesClone(values []string) []string {

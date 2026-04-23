@@ -1,9 +1,10 @@
 package envtopology
 
 type definition struct {
-	Ingress    ingressDefinition    `yaml:"ingress"`
-	Components componentsDefinition `yaml:"components"`
-	Version    int                  `yaml:"version"`
+	Ingress          ingressDefinition          `yaml:"ingress"`
+	AppRouteTemplate appRouteTemplateDefinition `yaml:"appRouteTemplate"`
+	Components       componentsDefinition       `yaml:"components"`
+	Version          int                        `yaml:"version"`
 }
 
 type ingressDefinition struct {
@@ -23,9 +24,12 @@ type componentsDefinition struct {
 }
 
 type componentDefinition struct {
-	Kind        string `yaml:"kind"`
-	Host        string `yaml:"host"`
-	PathPrefix  string `yaml:"pathPrefix,omitempty"`
-	PathPattern string `yaml:"pathPattern,omitempty"`
-	Port        int    `yaml:"port,omitempty"`
+	Kind       string `yaml:"kind"`
+	Host       string `yaml:"host"`
+	PathPrefix string `yaml:"pathPrefix,omitempty"`
+	Port       int    `yaml:"port,omitempty"`
+}
+
+type appRouteTemplateDefinition struct {
+	PathPrefixTemplate string `yaml:"pathPrefixTemplate"`
 }
