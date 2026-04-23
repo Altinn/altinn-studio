@@ -13,21 +13,31 @@ namespace Altinn.Studio.AppManager.Tunnel;
 
 internal sealed class TunnelWorker : BackgroundService
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private static readonly HttpClient HttpClient = new(
+        new SocketsHttpHandler
+        {
+            UseProxy = false,
+            AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.None,
+            UseCookies = false,
+            EnableMultipleHttp2Connections = true,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+            ConnectTimeout = TimeSpan.FromSeconds(5),
+        }
+    );
+
     private readonly TunnelOptions _options;
     private readonly TunnelState _state;
     private readonly ILogger<TunnelWorker> _logger;
     private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
     public TunnelWorker(
-        IHttpClientFactory httpClientFactory,
         IOptions<TunnelOptions> options,
         TunnelState state,
         ILogger<TunnelWorker> logger,
         BoundTopologyIndexAccessor boundTopologyIndex
     )
     {
-        _httpClientFactory = httpClientFactory;
         _options = options.Value;
         _state = state;
         _logger = logger;
@@ -283,8 +293,7 @@ internal sealed class TunnelWorker : BackgroundService
         var request = pendingRequest.BuildHttpRequest(ResolveTargetUri(pendingRequest));
         try
         {
-            using var client = _httpClientFactory.CreateClient(TunnelHttpClient.Name);
-            return await client.SendAsync(
+            return await HttpClient.SendAsync(
                 request,
                 HttpCompletionOption.ResponseHeadersRead,
                 pendingRequest.CancellationTokenSource.Token

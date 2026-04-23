@@ -1,31 +1,12 @@
-using System.Net;
 using Altinn.Studio.EnvTopology;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.AppManager.Tunnel;
 
-internal static class TunnelHttpClient
-{
-    public const string Name = "AppTunnelProxy";
-}
-
 internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddTunnelServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services
-            .AddHttpClient(TunnelHttpClient.Name)
-            .ConfigurePrimaryHttpMessageHandler(static () =>
-                new SocketsHttpHandler
-                {
-                    UseProxy = false,
-                    AllowAutoRedirect = false,
-                    AutomaticDecompression = DecompressionMethods.None,
-                    UseCookies = false,
-                    EnableMultipleHttp2Connections = true,
-                    ConnectTimeout = TimeSpan.FromSeconds(5),
-                }
-            );
         services
             .AddOptions<TunnelOptions>()
             .Configure(options =>
