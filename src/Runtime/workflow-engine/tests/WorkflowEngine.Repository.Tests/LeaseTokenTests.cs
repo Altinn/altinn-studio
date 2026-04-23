@@ -8,9 +8,6 @@ namespace WorkflowEngine.Repository.Tests;
 [Collection(PostgresCollection.Name)]
 public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
 {
-    private static readonly TimeSpan StaleThreshold = TimeSpan.FromSeconds(15);
-    private const int MaxReclaimCount = 3;
-
     public async ValueTask InitializeAsync() => await fixture.Reset();
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -26,14 +23,9 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
         var enqueued = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued);
         Assert.Null(enqueued.LeaseToken);
 
-        var result = await repo.FetchAndLockWorkflows(
-            10,
-            StaleThreshold,
-            MaxReclaimCount,
-            TestContext.Current.CancellationToken
-        );
+        var workflows = await repo.FetchAndLockWorkflows(10, TestContext.Current.CancellationToken);
 
-        var fetched = Assert.Single(result.Workflows);
+        var fetched = Assert.Single(workflows);
         Assert.NotNull(fetched.LeaseToken);
 
         var dbWf = await fixture.GetWorkflow(enqueued.DatabaseId);
@@ -42,12 +34,14 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task FetchAndLock_IssuesFreshLeaseToken_OnReclaim()
+    public async Task FetchAndLock_IssuesFreshLeaseToken_AfterReclaim()
     {
+        // Reclaim now happens in DbMaintenanceService — it resets the row to Enqueued
+        // and the next fetch stamps a new LeaseToken.
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
+        var maintenance = fixture.CreateMaintenanceService();
 
-        // Processing workflow with a stale heartbeat — will be reclaimed
         var wf = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Processing);
         var tokenBefore = wf.LeaseToken;
 
@@ -61,15 +55,15 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        var result = await repo.FetchAndLockWorkflows(
-            10,
-            StaleThreshold,
-            MaxReclaimCount,
+        await maintenance.ReclaimStaleWorkflows(
+            DateTimeOffset.UtcNow,
+            fixture.Settings,
             TestContext.Current.CancellationToken
         );
 
-        var reclaimed = Assert.Single(result.Workflows);
-        Assert.Equal(1, result.ReclaimedCount);
+        var workflows = await repo.FetchAndLockWorkflows(10, TestContext.Current.CancellationToken);
+
+        var reclaimed = Assert.Single(workflows);
         Assert.NotEqual(tokenBefore, reclaimed.LeaseToken);
 
         var dbWf = await fixture.GetWorkflow(wf.DatabaseId);

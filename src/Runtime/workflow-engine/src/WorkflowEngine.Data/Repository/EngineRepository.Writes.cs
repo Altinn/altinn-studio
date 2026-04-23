@@ -603,43 +603,20 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<FetchResult> FetchAndLockWorkflows(
-        int count,
-        TimeSpan staleThreshold,
-        int maxReclaimCount,
-        CancellationToken cancellationToken
-    )
+    public async Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.FetchAndLockWorkflows");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var now = timeProvider.GetUtcNow();
-        var staleDeadline = now - staleThreshold;
 
         await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // 1) Abandon stale workflows past the reclaim limit. Runs first so they are not
-        //    picked up below. LeaseToken is cleared so a later write-back from the frozen
-        //    original owner cannot match by token.
-        var abandonedCount = await context.Database.ExecuteSqlAsync(
-            $"""
-            UPDATE "engine"."Workflows"
-            SET "Status" = {PersistentItemStatus.Failed},
-                "UpdatedAt" = {now},
-                "HeartbeatAt" = NULL,
-                "LeaseToken" = NULL
-            WHERE "Status" = {PersistentItemStatus.Processing}
-              AND "HeartbeatAt" IS NOT NULL
-              AND "HeartbeatAt" < {staleDeadline}
-              AND "ReclaimCount" >= {maxReclaimCount}
-            """,
-            cancellationToken
-        );
-
-        // 2) Fetch ready + reclaim stale in one atomic UPDATE. FOR UPDATE SKIP LOCKED must
-        //    sit on each SELECT (PG disallows it on UNION).
-        var rows = await context
-            .Database.SqlQuery<FetchRow>(
+        // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poison abandonment
+        // and stale reclaim run as separate sweeps in DbMaintenanceService — reclaimed rows
+        // re-enter here as Enqueued.
+        var ids = await context
+            .Database.SqlQuery<Guid>(
                 $"""
                 WITH ready AS (
                     SELECT w."Id"
@@ -659,45 +636,25 @@ internal sealed partial class EngineRepository
                     FOR UPDATE SKIP LOCKED
                     LIMIT {count}
                 ),
-                stale AS (
-                    SELECT w."Id"
-                    FROM "engine"."Workflows" w
-                    WHERE w."Status" = {PersistentItemStatus.Processing}
-                      AND w."HeartbeatAt" IS NOT NULL
-                      AND w."HeartbeatAt" < {staleDeadline}
-                      AND w."ReclaimCount" < {maxReclaimCount}
-                    ORDER BY w."HeartbeatAt"
-                    FOR UPDATE SKIP LOCKED
-                    LIMIT GREATEST(0, {count} - (SELECT count(*) FROM ready))
-                ),
-                candidates AS (
-                    SELECT "Id", FALSE AS was_stale FROM ready
-                    UNION ALL
-                    SELECT "Id", TRUE  AS was_stale FROM stale
-                ),
                 updated AS (
                     UPDATE "engine"."Workflows" w
-                    SET "Status"       = {PersistentItemStatus.Processing},
-                        "UpdatedAt"    = {now},
-                        "HeartbeatAt"  = {now},
-                        "LeaseToken"   = gen_random_uuid(),
-                        "ReclaimCount" = w."ReclaimCount" + (CASE WHEN c.was_stale THEN 1 ELSE 0 END)
-                    FROM candidates c
-                    WHERE w."Id" = c."Id"
-                    RETURNING w."Id", c.was_stale AS "WasStale"
+                    SET "Status"      = {PersistentItemStatus.Processing},
+                        "UpdatedAt"   = {now},
+                        "HeartbeatAt" = {now},
+                        "LeaseToken"  = gen_random_uuid()
+                    FROM ready r
+                    WHERE w."Id" = r."Id"
+                    RETURNING w."Id"
                 )
-                SELECT "Id", "WasStale" FROM updated
+                SELECT "Id" AS "Value" FROM updated
                 """
             )
             .ToListAsync(cancellationToken);
 
-        if (rows.Count == 0)
+        if (ids.Count == 0)
         {
-            return new FetchResult([], 0, abandonedCount);
+            return [];
         }
-
-        var ids = rows.Select(r => r.Id).ToList();
-        var reclaimedCount = rows.Count(r => r.WasStale);
 
         var entities = await context
             .Workflows.AsNoTracking()
@@ -711,7 +668,7 @@ internal sealed partial class EngineRepository
 
         Metrics.DbOperationsSucceeded.Add(1);
 
-        return new FetchResult(workflows, reclaimedCount, abandonedCount);
+        return workflows;
     }
 
     /// <inheritdoc/>
@@ -858,11 +815,6 @@ internal sealed partial class EngineRepository
             throw;
         }
     }
-
-    /// <summary>
-    /// Row shape returned by the FetchAndLockWorkflows CTE.
-    /// </summary>
-    private sealed record FetchRow(Guid Id, bool WasStale);
 
     /// <inheritdoc/>
     public async Task<BatchUpdateResult> BatchUpdateWorkflowsAndSteps(

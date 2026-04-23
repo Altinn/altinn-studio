@@ -107,7 +107,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
-            Metrics.WorkflowsFailed.Add(1);
+            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"));
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -181,7 +181,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             workflow.EngineActivity?.Errored();
-            Metrics.WorkflowsFailed.Add(1);
+            Metrics.WorkflowsFailed.Add(1, ("reason", "execution"));
         }
 
         await statusWriteBuffer.Submit(workflow, ct);

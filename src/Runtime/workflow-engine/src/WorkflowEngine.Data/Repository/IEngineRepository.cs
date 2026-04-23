@@ -130,14 +130,10 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Atomically fetches and locks available workflows for processing using FOR UPDATE SKIP LOCKED.
-    /// Also reclaims stale workflows stuck in Processing whose heartbeat has expired.
+    /// Stale workflow reclaim and poison abandonment run as separate sweeps in
+    /// <c>DbMaintenanceService</c>; reclaimed rows re-enter this fetch as <c>Enqueued</c>.
     /// </summary>
-    Task<FetchResult> FetchAndLockWorkflows(
-        int count,
-        TimeSpan staleThreshold,
-        int maxReclaimCount,
-        CancellationToken cancellationToken
-    );
+    Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);
 
     /// <summary>
     /// Sets the <c>CancellationRequestedAt</c> flag on a workflow.
