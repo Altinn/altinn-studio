@@ -5,12 +5,14 @@ import { useCreateChatThreadMutation } from '../mutations/useCreateChatThreadMut
 import { useDeleteChatThreadMutation } from '../mutations/useDeleteChatThreadMutation';
 import { useChatMessagesQuery } from '../queries/useChatMessagesQuery';
 import { useCreateChatMessageMutation } from '../mutations/useCreateChatMessageMutation';
+import { useDeleteChatMessageMutation } from '../mutations/useDeleteChatMessageMutation';
 
 jest.mock('../queries/useChatThreadsQuery');
 jest.mock('../mutations/useCreateChatThreadMutation');
 jest.mock('../mutations/useDeleteChatThreadMutation');
 jest.mock('../queries/useChatMessagesQuery');
 jest.mock('../mutations/useCreateChatMessageMutation');
+jest.mock('../mutations/useDeleteChatMessageMutation');
 
 const mockUseChatThreadsQuery = useChatThreadsQuery as jest.MockedFunction<
   typeof useChatThreadsQuery
@@ -27,6 +29,9 @@ const mockUseChatMessagesQuery = useChatMessagesQuery as jest.MockedFunction<
 const mockUseCreateChatMessageMutation = useCreateChatMessageMutation as jest.MockedFunction<
   typeof useCreateChatMessageMutation
 >;
+const mockUseDeleteChatMessageMutation = useDeleteChatMessageMutation as jest.MockedFunction<
+  typeof useDeleteChatMessageMutation
+>;
 
 const threadId = 'session-1';
 
@@ -39,6 +44,7 @@ describe('useAltinityThreads', () => {
     mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: jest.fn() } as any);
     mockUseChatMessagesQuery.mockReturnValue({ data: [], isLoading: false } as any);
     mockUseCreateChatMessageMutation.mockReturnValue({ mutate: jest.fn() } as any);
+    mockUseDeleteChatMessageMutation.mockReturnValue({ mutate: jest.fn() } as any);
   });
 
   afterEach(() => {

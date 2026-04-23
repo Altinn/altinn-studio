@@ -134,6 +134,27 @@ public class ChatController(IChatService chatService) : ControllerBase
         }
     }
 
+    [HttpDelete("threads/{threadId:guid}/messages/{messageId:guid}")]
+    public async Task<IActionResult> DeleteMessage(
+        string org,
+        string app,
+        Guid threadId,
+        Guid messageId,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
+        try
+        {
+            await chatService.DeleteMessageAsync(threadId, messageId, editingContext, cancellationToken);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
     private AltinnRepoEditingContext GetEditingContext(string org, string app)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

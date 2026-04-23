@@ -7,6 +7,7 @@ import { useCreateChatThreadMutation } from '../mutations/useCreateChatThreadMut
 import { useDeleteChatThreadMutation } from '../mutations/useDeleteChatThreadMutation';
 import { useChatMessagesQuery } from '../queries/useChatMessagesQuery';
 import { useCreateChatMessageMutation } from '../mutations/useCreateChatMessageMutation';
+import { useDeleteChatMessageMutation } from '../mutations/useDeleteChatMessageMutation';
 
 export interface AltinityThreadState {
   chatThreads: ChatThread[];
@@ -18,6 +19,7 @@ export interface AltinityThreadState {
   createNewThread: () => void;
   createThread: (title: string) => Promise<string>;
   deleteThread: (threadId: string) => void;
+  deleteMessage: (threadId: string, messageId: string) => void;
   persistMessage: (threadId: string, message: UserMessage | AssistantMessage) => void;
 }
 
@@ -33,6 +35,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
 
   const { data: apiMessages } = useChatMessagesQuery(currentSessionId);
   const { mutate: createChatMessage } = useCreateChatMessageMutation();
+  const { mutate: deleteChatMessage } = useDeleteChatMessageMutation();
 
   const setCurrentSession = useCallback((sessionId: string | null) => {
     setCurrentSessionId(sessionId);
@@ -93,6 +96,13 @@ export const useAltinityThreads = (): AltinityThreadState => {
     [createChatMessage],
   );
 
+  const deleteMessage = useCallback(
+    (threadId: string, messageId: string): void => {
+      deleteChatMessage({ threadId, messageId });
+    },
+    [deleteChatMessage],
+  );
+
   return {
     chatThreads,
     currentSessionId,
@@ -103,6 +113,7 @@ export const useAltinityThreads = (): AltinityThreadState => {
     createNewThread,
     createThread,
     deleteThread,
+    deleteMessage,
     persistMessage,
   };
 };

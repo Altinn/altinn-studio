@@ -27,6 +27,7 @@ export type Source = {
 };
 
 export type UserMessage = {
+  id?: string;
   role: MessageAuthor.User;
   content: string;
   createdAt: string;
@@ -35,6 +36,7 @@ export type UserMessage = {
 };
 
 export type AssistantMessage = {
+  id?: string;
   role: MessageAuthor.Assistant;
   content: string;
   createdAt: string;

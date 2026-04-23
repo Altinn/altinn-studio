@@ -5,10 +5,10 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type { UserMessage, AssistantMessage } from '@studio/assistant';
 
 type CreateChatMessagePayload =
-  | (Pick<UserMessage, 'author' | 'content' | 'allowAppChanges'> & {
+  | (Pick<UserMessage, 'role' | 'content' | 'allowAppChanges'> & {
       attachmentFileNames?: string[];
     })
-  | Pick<AssistantMessage, 'author' | 'content' | 'filesChanged' | 'sources'>;
+  | Pick<AssistantMessage, 'role' | 'content' | 'filesChanged' | 'sources'>;
 
 export const useCreateChatMessageMutation = () => {
   const queryClient = useQueryClient();

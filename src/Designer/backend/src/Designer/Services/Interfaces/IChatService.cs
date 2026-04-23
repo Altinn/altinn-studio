@@ -45,4 +45,11 @@ public interface IChatService
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     );
+
+    Task DeleteMessageAsync(
+        Guid threadId,
+        Guid messageId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -82,6 +82,7 @@ import {
   chatThreadsPath,
   chatThreadPath,
   chatMessagesPath,
+  chatMessagePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -272,3 +273,4 @@ export const createChatThread = (org: string, app: string, payload: { title: str
 export const updateChatThread = (org: string, app: string, threadId: string, payload: { title: string }) => put(chatThreadPath(org, app, threadId), payload);
 export const deleteChatThread = (org: string, app: string, threadId: string) => del(chatThreadPath(org, app, threadId));
 export const createChatMessage = (org: string, app: string, threadId: string, payload: object) => post(chatMessagesPath(org, app, threadId), payload);
+export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));

@@ -61,6 +61,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     currentSessionIdRef,
     setCurrentSession,
     createThread,
+    deleteMessage,
     persistMessage,
     persistedMessages,
   } = threads;
@@ -131,7 +132,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         resetRepoForSession(event.session_id);
       }
     },
-    [resetRepoForSession, markWorkflowCompleted, persistMessage],
+    [currentSessionIdRef, resetRepoForSession, markWorkflowCompleted, persistMessage],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -285,9 +286,11 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
     setWorkflowStatus({ isActive: false });
 
-    const lastUserMessage = persistedMessages.findLast((msg) => msg.role === MessageAuthor.User);
-    if (lastUserMessage) {
-      setCancelledMessageContent(lastUserMessage.content);
+    const latestPersistedMessage = persistedMessages.at(-1);
+    const noAssistantResponseReceived = latestPersistedMessage?.role === MessageAuthor.User;
+    if (noAssistantResponseReceived) {
+      deleteMessage(threadId, latestPersistedMessage.id);
+      setCancelledMessageContent(latestPersistedMessage.content);
     }
 
     const activeSession = backendSessionIdRef.current;
@@ -298,7 +301,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, currentSessionIdRef, persistedMessages]);
+  }, [cancelWorkflow, currentSessionIdRef, deleteMessage, persistedMessages]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);

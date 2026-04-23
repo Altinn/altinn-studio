@@ -113,4 +113,12 @@ public class ChatRepository : IChatRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatMessageMapper.MapToModel(dbModel);
     }
+
+    /// <inheritdoc />
+    public async Task DeleteMessageAsync(Guid threadId, Guid messageId, CancellationToken cancellationToken = default)
+    {
+        await _dbContext
+            .ChatMessages.Where(m => m.ThreadId == threadId && m.Id == messageId)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
 }

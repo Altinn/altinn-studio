@@ -73,4 +73,12 @@ public interface IChatRepository
         ChatMessageEntity message,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Deletes a message from a given thread.
+    /// </summary>
+    /// <param name="threadId">The thread id.</param>
+    /// <param name="messageId">The message id.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    Task DeleteMessageAsync(Guid threadId, Guid messageId, CancellationToken cancellationToken = default);
 }

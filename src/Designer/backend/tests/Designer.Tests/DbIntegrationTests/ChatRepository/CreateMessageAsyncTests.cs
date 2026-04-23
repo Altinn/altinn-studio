@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Enums;
@@ -117,18 +118,24 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
 
         Assert.NotNull(retrievedMessage);
         Assert.NotNull(retrievedMessage.Sources);
-        Assert.Equal(2, retrievedMessage.Sources.Count);
 
-        Assert.Equal("Altinn Docs", retrievedMessage.Sources[0].Title);
-        Assert.Equal(4096, retrievedMessage.Sources[0].ContentLength);
-        Assert.Equal(0.95, retrievedMessage.Sources[0].Relevance);
-        Assert.Equal("form layout", retrievedMessage.Sources[0].MatchedTerms);
-        Assert.True(retrievedMessage.Sources[0].Cited);
+        List<ChatSourceEntity> actualSources = JsonSerializer.Deserialize<List<ChatSourceEntity>>(
+            retrievedMessage.Sources
+        );
 
-        Assert.Equal("GitHub Issue", retrievedMessage.Sources[1].Title);
-        Assert.Null(retrievedMessage.Sources[1].ContentLength);
-        Assert.Null(retrievedMessage.Sources[1].Relevance);
-        Assert.Null(retrievedMessage.Sources[1].Cited);
+        Assert.NotNull(actualSources);
+        Assert.Equal(2, actualSources.Count);
+
+        Assert.Equal("Altinn Docs", actualSources[0].Title);
+        Assert.Equal(4096, actualSources[0].ContentLength);
+        Assert.Equal(0.95, actualSources[0].Relevance);
+        Assert.Equal("form layout", actualSources[0].MatchedTerms);
+        Assert.True(actualSources[0].Cited);
+
+        Assert.Equal("GitHub Issue", actualSources[1].Title);
+        Assert.Null(actualSources[1].ContentLength);
+        Assert.Null(actualSources[1].Relevance);
+        Assert.Null(actualSources[1].Cited);
     }
 
     [Fact]

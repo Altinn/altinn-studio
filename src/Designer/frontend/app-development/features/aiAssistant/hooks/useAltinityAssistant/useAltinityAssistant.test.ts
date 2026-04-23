@@ -55,6 +55,7 @@ const createThreadState = (): AltinityThreadState => ({
   createNewThread: jest.fn(),
   createThread: jest.fn().mockResolvedValue('new-thread-id'),
   deleteThread: jest.fn(),
+  deleteMessage: jest.fn(),
   persistMessage: jest.fn(),
 });
 

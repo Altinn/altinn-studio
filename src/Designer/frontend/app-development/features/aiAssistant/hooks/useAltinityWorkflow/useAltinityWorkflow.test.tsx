@@ -148,20 +148,106 @@ describe('useAltinityWorkflow', () => {
       }),
     );
   });
+
+  it('deletes latest user message on abort when no assistant response has been received', async () => {
+    const threads = createThreadState({
+      currentSessionId: 'thread-1',
+      persistedMessages: [
+        {
+          id: 'message-1',
+          role: MessageAuthor.User,
+          content: 'Please do this',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+      ],
+    });
+    const cancelWorkflow = jest.fn();
+
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      sessionId: 'backend-session',
+      startWorkflow: jest.fn(),
+      cancelWorkflow,
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    expect(threads.deleteMessage).toHaveBeenCalledWith('thread-1', 'message-1');
+    expect(threads.setCurrentSession).toHaveBeenCalledWith(null);
+    expect(cancelWorkflow).toHaveBeenCalledWith('backend-session');
+  });
+
+  it('does not delete message on abort when assistant has already responded', async () => {
+    const threads = createThreadState({
+      currentSessionId: 'thread-1',
+      persistedMessages: [
+        {
+          id: 'message-1',
+          role: MessageAuthor.User,
+          content: 'Please do this',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+        {
+          id: 'message-2',
+          role: MessageAuthor.Assistant,
+          content: 'Done',
+          createdAt: new Date().toISOString(),
+          filesChanged: [],
+        },
+      ],
+    });
+    const cancelWorkflow = jest.fn();
+
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      sessionId: 'backend-session',
+      startWorkflow: jest.fn(),
+      cancelWorkflow,
+      onAgentMessage: jest.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    await act(async () => {
+      await result.current.cancelCurrentWorkflow();
+    });
+
+    expect(threads.deleteMessage).not.toHaveBeenCalled();
+    expect(cancelWorkflow).toHaveBeenCalledWith('backend-session');
+  });
 });
 
-const createThreadState = (): AltinityThreadState => ({
-  chatThreads: [],
-  currentSessionId: null,
-  currentSessionIdRef: { current: null },
-  persistedMessages: [],
-  setCurrentSession: jest.fn(),
-  selectThread: jest.fn(),
-  createNewThread: jest.fn(),
-  createThread: jest.fn().mockResolvedValue('new-thread-id'),
-  deleteThread: jest.fn(),
-  persistMessage: jest.fn(),
-});
+const createThreadState = (overrides: Partial<AltinityThreadState> = {}): AltinityThreadState => {
+  const currentSessionId = overrides.currentSessionId ?? null;
+
+  return {
+    chatThreads: [],
+    currentSessionId,
+    currentSessionIdRef: { current: currentSessionId },
+    persistedMessages: [],
+    setCurrentSession: jest.fn(),
+    selectThread: jest.fn(),
+    createNewThread: jest.fn(),
+    createThread: jest.fn().mockResolvedValue('new-thread-id'),
+    deleteThread: jest.fn(),
+    deleteMessage: jest.fn(),
+    persistMessage: jest.fn(),
+    ...overrides,
+  };
+};
 
 const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {
   const queryClient = new QueryClient();
