@@ -19,6 +19,7 @@ import type {
   NodeVisibility,
   ValidationSeverity,
 } from 'src/features/validation/index';
+import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 export type ValidationsSelector = (
@@ -97,8 +98,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           if (!nodeId) {
             return 0;
           }
-          const { baseComponentId } = splitDashedKey(nodeId);
-          return getEffectiveValidationMask(state, nodeId, baseComponentId, lookups);
+          return getEffectiveValidationMask(state, nodeId, lookups);
         });
       },
       useValidationVisibilityBreakdown: (nodeId) => {
@@ -107,8 +107,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           if (!nodeId) {
             return emptyVisibilityBreakdown;
           }
-          const { baseComponentId } = splitDashedKey(nodeId);
-          return getValidationVisibilityBreakdown(state, nodeId, baseComponentId, lookups);
+          return getValidationVisibilityBreakdown(state, nodeId, lookups);
         });
       },
       useRawValidations: (nodeId) =>
@@ -294,13 +293,12 @@ interface GetValidationsProps {
   mask: NodeVisibility;
   severity?: ValidationSeverity;
   includeHidden?: boolean;
-  lookups: LayoutLookups | undefined;
+  lookups: LayoutLookups;
 }
 
 function getValidations({
   state,
   id,
-  baseId,
   mask,
   severity,
   includeHidden = false,
@@ -315,7 +313,7 @@ function getValidations({
     return emptyArray;
   }
 
-  const nodeVisibility = getEffectiveValidationMask(state, id, baseId, lookups);
+  const nodeVisibility = getEffectiveValidationMask(state, id, lookups);
   const visibilityMask =
     mask === 'visible'
       ? nodeVisibility
@@ -327,27 +325,21 @@ function getValidations({
   return validations.length > 0 ? validations : emptyArray;
 }
 
-export function getEffectiveValidationMask(
-  state: FormStoreState,
-  nodeId: string,
-  baseId: string,
-  lookups: LayoutLookups | undefined,
-) {
-  return getValidationVisibilityBreakdown(state, nodeId, baseId, lookups).effective;
+export function getEffectiveValidationMask(state: FormStoreState, nodeId: string, lookups: LayoutLookups) {
+  return getValidationVisibilityBreakdown(state, nodeId, lookups).effective;
 }
 
 export function getValidationVisibilityBreakdown(
   state: FormStoreState,
   nodeId: string,
-  baseId: string,
-  lookups: LayoutLookups | undefined,
+  lookups: LayoutLookups,
 ): ValidationVisibilityBreakdown {
   const nodeData = state.nodes.nodeData[nodeId];
   if (!nodeData) {
     return emptyVisibilityBreakdown;
   }
 
-  const initialMask = getInitialVisibilityMask(baseId, lookups);
+  const initialMask = getInitialVisibilityMask(nodeData.baseId, lookups);
   const formMask = state.validation?.formMask ?? 0;
   const pageMask = state.validation?.pageMasks?.[nodeData.pageKey] ?? 0;
   const rowMask = getRowMaskForNode(state, nodeId);
@@ -361,7 +353,7 @@ export function getValidationVisibilityBreakdown(
   };
 }
 
-export function getInitialVisibilityMask(baseId: string, lookups: LayoutLookups | undefined) {
+export function getInitialVisibilityMask(baseId: string, lookups: LayoutLookups) {
   if (!lookups) {
     return 0;
   }
@@ -377,6 +369,14 @@ export function getRowMaskForNode(state: FormStoreState, nodeId: string) {
   return mask;
 }
 
+/**
+ * Pruning boundary masks happens when validation state change. This will remove any masks that force validations to
+ * be visible (in the entire form, on a page, in a row). We do this on validation state change to clean up masks
+ * so that the visibility resets when the user fixes validation errors after getting the 'you need to fix these errors'
+ * message on the bottom of the form.
+ *
+ * @see ErrorReport
+ */
 export function pruneBoundaryMasks(state: FormStoreState) {
   const { formMask, pageMasks, rowMasks } = state.validation;
   if (!formMask && Object.keys(pageMasks).length === 0 && Object.keys(rowMasks).length === 0) {
@@ -454,7 +454,7 @@ export function getRowIdsForNode(state: FormStoreState, nodeId: string): string[
         parent.nodeType,
         parent.dataModelBindings as IDataModelBindings<typeof parent.nodeType>,
       );
-      const rowId = getRowIdForIndex(state, groupBinding, child.rowIndex);
+      const rowId = groupBinding ? getRowIdForIndex(state, groupBinding, child.rowIndex) : undefined;
       if (rowId) {
         rowIds.push(rowId);
       }
@@ -467,15 +467,7 @@ export function getRowIdsForNode(state: FormStoreState, nodeId: string): string[
   return rowIds;
 }
 
-function getRowIdForIndex(
-  state: FormStoreState,
-  groupBinding: { dataType: string; field: string } | undefined,
-  rowIndex: number,
-) {
-  if (!groupBinding) {
-    return undefined;
-  }
-
+function getRowIdForIndex(state: FormStoreState, groupBinding: IDataModelReference, rowIndex: number) {
   const rawRows = dot.pick(groupBinding.field, state.data.models[groupBinding.dataType]?.currentData);
   if (!Array.isArray(rawRows)) {
     return undefined;
