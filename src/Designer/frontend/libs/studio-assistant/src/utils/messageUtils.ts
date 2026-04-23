@@ -4,7 +4,7 @@ import { MessageAuthor } from '../types/MessageAuthor';
 
 export function createAssistantMessage(content: string): AssistantMessage {
   return {
-    author: MessageAuthor.Assistant,
+    role: MessageAuthor.Assistant,
     content,
     createdAt: new Date().toISOString(),
     filesChanged: [],
@@ -17,7 +17,7 @@ export function createUserMessage(
   attachments?: UserAttachment[],
 ): UserMessage {
   return {
-    author: MessageAuthor.User,
+    role: MessageAuthor.User,
     content,
     createdAt: new Date().toISOString(),
     allowAppChanges,

@@ -47,7 +47,7 @@ public class ChatMessageDbModel
     public List<string>? FilesChanged { get; set; }
 
     /// <summary>
-    /// Sources referenced by the assistant.
+    /// Sources referenced by the assistant, serialized as JSON.
     /// </summary>
-    public List<ChatSourceDbModel>? Sources { get; set; }
+    public string? Sources { get; set; }
 }

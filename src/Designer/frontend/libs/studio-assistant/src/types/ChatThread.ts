@@ -27,7 +27,7 @@ export type Source = {
 };
 
 export type UserMessage = {
-  author: MessageAuthor.User;
+  role: MessageAuthor.User;
   content: string;
   createdAt: string;
   allowAppChanges: boolean;
@@ -35,7 +35,7 @@ export type UserMessage = {
 };
 
 export type AssistantMessage = {
-  author: MessageAuthor.Assistant;
+  role: MessageAuthor.Assistant;
   content: string;
   createdAt: string;
   filesChanged: string[];

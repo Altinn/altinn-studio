@@ -82,7 +82,7 @@ type MessageItemProps = {
 };
 
 function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemProps): ReactElement {
-  const isUser = message.author === MessageAuthor.User;
+  const isUser = message.role === MessageAuthor.User;
   const userLabel = currentUser?.full_name ?? DEFAULT_USER_LABEL;
 
   const renderUserAttachments = (attachments: UserAttachment[]): ReactElement | null => {
@@ -140,7 +140,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
   }
 
   const renderFilesChanged = (): ReactElement | null => {
-    if (message.author !== MessageAuthor.Assistant) return null;
+    if (message.role !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
     if (!assistantMessage.filesChanged || assistantMessage.filesChanged.length === 0) return null;
@@ -217,7 +217,7 @@ function MessageItem({ message, currentUser, assistantAvatarUrl }: MessageItemPr
   };
 
   const renderSources = (): ReactElement | null => {
-    if (message.author !== MessageAuthor.Assistant) return null;
+    if (message.role !== MessageAuthor.Assistant) return null;
 
     const assistantMessage = message;
     if (!assistantMessage.sources || assistantMessage.sources.length === 0) return null;

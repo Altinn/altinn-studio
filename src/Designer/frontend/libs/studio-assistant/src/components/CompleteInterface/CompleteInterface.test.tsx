@@ -19,7 +19,7 @@ const mockChatThreads: ChatThread[] = [
     createdAt: new Date().toISOString(),
     messages: [
       {
-        author: MessageAuthor.User,
+        role: MessageAuthor.User,
         content: 'User message',
         createdAt: new Date().toISOString(),
         allowAppChanges: false,

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -19,7 +19,7 @@ public static class ChatMessageMapper
             AllowAppChanges = entity.AllowAppChanges,
             FilesChanged = entity.FilesChanged,
             AttachmentFileNames = entity.AttachmentFileNames,
-            Sources = entity.Sources?.Select(MapSourceToDbModel).ToList(),
+            Sources = entity.Sources is null ? null : JsonSerializer.Serialize(entity.Sources),
         };
     }
 
@@ -35,37 +35,9 @@ public static class ChatMessageMapper
             AllowAppChanges = dbModel.AllowAppChanges,
             FilesChanged = dbModel.FilesChanged,
             AttachmentFileNames = dbModel.AttachmentFileNames,
-            Sources = dbModel.Sources?.Select(MapSourceToEntity).ToList(),
-        };
-    }
-
-    private static ChatSourceDbModel MapSourceToDbModel(ChatSourceEntity source)
-    {
-        return new ChatSourceDbModel
-        {
-            Tool = source.Tool,
-            Title = source.Title,
-            PreviewText = source.PreviewText,
-            ContentLength = source.ContentLength,
-            Url = source.Url,
-            Relevance = source.Relevance,
-            MatchedTerms = source.MatchedTerms,
-            Cited = source.Cited,
-        };
-    }
-
-    private static ChatSourceEntity MapSourceToEntity(ChatSourceDbModel dbModel)
-    {
-        return new ChatSourceEntity
-        {
-            Tool = dbModel.Tool,
-            Title = dbModel.Title,
-            PreviewText = dbModel.PreviewText,
-            ContentLength = dbModel.ContentLength,
-            Url = dbModel.Url,
-            Relevance = dbModel.Relevance,
-            MatchedTerms = dbModel.MatchedTerms,
-            Cited = dbModel.Cited,
+            Sources = dbModel.Sources is null
+                ? null
+                : JsonSerializer.Deserialize<List<ChatSourceEntity>>(dbModel.Sources),
         };
     }
 }

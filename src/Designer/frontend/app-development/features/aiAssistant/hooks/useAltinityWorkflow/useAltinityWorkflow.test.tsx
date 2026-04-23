@@ -1,6 +1,12 @@
 import { act } from '@testing-library/react';
 import { QueryClient, type UseQueryResult } from '@tanstack/react-query';
-import type { AgentResponse, UserMessage, WorkflowRequest } from '@studio/assistant';
+import type {
+  AgentResponse,
+  AssistantMessageEvent,
+  UserMessage,
+  WorkflowEvent,
+  WorkflowRequest,
+} from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import type { AltinityThreadState } from '../useAltinityThreads/useAltinityThreads';
 import { useAltinityWorkflow } from './useAltinityWorkflow';
@@ -42,7 +48,7 @@ describe('useAltinityWorkflow', () => {
     const { result } = renderUseAltinityWorkflow(threads);
 
     const message: UserMessage = {
-      author: MessageAuthor.User,
+      role: MessageAuthor.User,
       content: '',
       createdAt: new Date().toISOString(),
       allowAppChanges: false,
@@ -54,6 +60,43 @@ describe('useAltinityWorkflow', () => {
 
     expect(startWorkflow).not.toHaveBeenCalled();
     expect(threads.persistMessage).not.toHaveBeenCalled();
+  });
+
+  it('persists assistant message using thread ID, not backend session ID', async () => {
+    const threads = createThreadState();
+    threads.currentSessionIdRef.current = 'database-thread-id';
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      sessionId: 'backend-session',
+      startWorkflow: jest.fn(),
+      cancelWorkflow: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAltinityWorkflow(threads);
+
+    const assistantMessageEvent: AssistantMessageEvent = {
+      type: 'assistant_message',
+      session_id: 'backend-session',
+      data: { content: 'Assistant reply' },
+    };
+
+    await act(async () => {
+      capturedOnAgentMessage!(assistantMessageEvent);
+    });
+
+    expect(threads.persistMessage).toHaveBeenCalledWith(
+      'database-thread-id',
+      expect.objectContaining({ role: MessageAuthor.Assistant, content: 'Assistant reply' }),
+    );
+    expect(threads.persistMessage).not.toHaveBeenCalledWith('backend-session', expect.anything());
   });
 
   it('creates thread and starts workflow for new session', async () => {
@@ -78,7 +121,7 @@ describe('useAltinityWorkflow', () => {
     const { result } = renderUseAltinityWorkflow(threads);
 
     const message: UserMessage = {
-      author: MessageAuthor.User,
+      role: MessageAuthor.User,
       content: 'Hello',
       createdAt: new Date().toISOString(),
       allowAppChanges: false,
@@ -92,7 +135,7 @@ describe('useAltinityWorkflow', () => {
     expect(threads.setCurrentSession).toHaveBeenCalledWith('new-thread-id');
     expect(threads.persistMessage).toHaveBeenCalledWith(
       'new-thread-id',
-      expect.objectContaining({ author: MessageAuthor.User, content: 'Hello' }),
+      expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
     );
     expect(startWorkflow).toHaveBeenCalledWith(
       expect.objectContaining({

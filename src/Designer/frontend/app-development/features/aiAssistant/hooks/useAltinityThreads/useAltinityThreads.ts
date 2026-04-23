@@ -72,18 +72,18 @@ export const useAltinityThreads = (): AltinityThreadState => {
 
   const persistMessage = useCallback(
     (threadId: string, message: UserMessage | AssistantMessage) => {
-      const isUser = message.author === MessageAuthor.User;
+      const isUser = message.role === MessageAuthor.User;
       createChatMessage({
         threadId,
         payload: isUser
           ? {
-              role: message.author,
+              role: message.role,
               content: message.content,
               allowAppChanges: message.allowAppChanges,
               attachmentFileNames: message.attachments?.map((a) => a.name),
             }
           : {
-              role: message.author,
+              role: message.role,
               content: message.content,
               filesChanged: message.filesChanged,
               sources: message.sources,

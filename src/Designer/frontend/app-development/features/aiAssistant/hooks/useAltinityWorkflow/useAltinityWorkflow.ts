@@ -119,13 +119,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       if (!event.session_id) return;
 
       const finalAssistantMessage: AssistantMessage = {
-        author: MessageAuthor.Assistant,
+        role: MessageAuthor.Assistant,
         content: messageContent,
         createdAt: messageTimestamp.toISOString(),
         filesChanged: assistantMessage.filesChanged || [],
         sources: assistantMessage.sources || [],
       };
-      persistMessage(event.session_id, finalAssistantMessage);
+      persistMessage(currentSessionIdRef.current, finalAssistantMessage);
 
       if (!shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(event.session_id);
@@ -162,7 +162,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         if (!sessionId) return;
         if (event.data?.status === 'cancelled') return;
         persistMessage(sessionId, {
-          author: MessageAuthor.Assistant,
+          role: MessageAuthor.Assistant,
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
@@ -232,7 +232,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         );
         if (!result.accepted) {
           persistMessage(threadId, {
-            author: MessageAuthor.Assistant,
+            role: MessageAuthor.Assistant,
             content: formatRejectionMessage(result),
             createdAt: new Date().toISOString(),
             filesChanged: [],
@@ -241,7 +241,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       } catch (error) {
         console.error('Workflow request failed:', error);
         persistMessage(threadId, {
-          author: MessageAuthor.Assistant,
+          role: MessageAuthor.Assistant,
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
           filesChanged: [],
@@ -285,7 +285,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
     setWorkflowStatus({ isActive: false });
 
-    const lastUserMessage = persistedMessages.findLast((msg) => msg.author === MessageAuthor.User);
+    const lastUserMessage = persistedMessages.findLast((msg) => msg.role === MessageAuthor.User);
     if (lastUserMessage) {
       setCancelledMessageContent(lastUserMessage.content);
     }
