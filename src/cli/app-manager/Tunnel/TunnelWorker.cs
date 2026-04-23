@@ -512,6 +512,10 @@ internal sealed class TunnelWorker : BackgroundService
             {
                 if (string.Equals(header.Key, HeaderNames.Host, StringComparison.OrdinalIgnoreCase))
                 {
+                    if (header.Value is [var host, ..] && !string.IsNullOrWhiteSpace(host))
+                    {
+                        request.Headers.Host = host;
+                    }
                     continue;
                 }
 

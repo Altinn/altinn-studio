@@ -62,6 +62,10 @@ public sealed class AppTunnelProxy
                 request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
             }
         }
+
+        SetRequestHeader(request, "X-Forwarded-Host", context.Request.Host.Value);
+        SetRequestHeader(request, "X-Forwarded-Proto", context.Request.Scheme);
+
         if (
             request.Content is not null
             && request.Headers.TransferEncodingChunked == true
@@ -72,6 +76,12 @@ public sealed class AppTunnelProxy
         }
 
         return request;
+    }
+
+    private static void SetRequestHeader(HttpRequestMessage request, string name, string value)
+    {
+        request.Headers.Remove(name);
+        request.Headers.TryAddWithoutValidation(name, value);
     }
 
     private static bool RequestHasDeclaredBody(HttpRequest request) =>

@@ -466,6 +466,9 @@ public sealed class AppTunnelClient
         private static Dictionary<string, string[]> CollectHeaders(HttpRequestMessage request)
         {
             var headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(request.Headers.Host))
+                headers[HeaderNames.Host] = [request.Headers.Host];
+
             foreach (var header in request.Headers)
             {
                 if (!TunnelHttpHeaders.ShouldSkipRequestHeader(header.Key))
