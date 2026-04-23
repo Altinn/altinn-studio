@@ -209,7 +209,8 @@ namespace LocalTest
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
             services.AddSingleton<AppTunnelClient>();
-            services.AddSingleton<AppTunnelProxy>();
+            services.AddSingleton<EnvProxy>();
+            services.AddSingleton<HostProxy>();
 
             services.AddHttpForwarder();
 
