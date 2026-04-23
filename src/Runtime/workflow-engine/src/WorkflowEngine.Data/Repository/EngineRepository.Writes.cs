@@ -862,7 +862,7 @@ internal sealed partial class EngineRepository
                         // FetchAndLockWorkflows always stamps a LeaseToken; the throw is an invariant check.
                         leaseTokens[i] =
                             w.LeaseToken
-                            ?? throw new InvalidOperationException(
+                            ?? throw new UnreachableException(
                                 $"Workflow {w.DatabaseId} reached write-back without a LeaseToken; expected FetchAndLockWorkflows to stamp one"
                             );
                     }
