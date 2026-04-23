@@ -35,6 +35,8 @@ var (
 
 	// ErrHostsConflict is returned when desired hostnames already have conflicting active mappings.
 	ErrHostsConflict = errors.New("conflicting host entries")
+
+	errHostsBackupRaceRetries = errors.New("exhausted hosts backup race retries")
 )
 
 // HostsWriteResult describes one hosts-file mutation.
@@ -45,16 +47,16 @@ type HostsWriteResult struct {
 
 // HostsConflict contains one hostname and its active addresses.
 type HostsConflict struct {
-	Addresses []string `json:"addresses"`
 	Host      string   `json:"host"`
+	Addresses []string `json:"addresses"`
 }
 
 // HostsFileStatus describes whether a hosts file satisfies the desired localtest mappings.
 type HostsFileStatus struct {
+	State     string          `json:"state"`
 	Conflicts []HostsConflict `json:"conflicts,omitempty"`
 	Missing   []string        `json:"missing,omitempty"`
 	Managed   bool            `json:"managed"`
-	State     string          `json:"state"`
 }
 
 // HostsConflictError contains conflicting active mappings that must be resolved manually.
@@ -95,7 +97,10 @@ func EnsureManagedHosts(path, blockName, address string, hostnames []string) (Ho
 		return HostsWriteResult{}, err
 	}
 	if !changed {
-		return HostsWriteResult{Changed: false}, nil
+		return HostsWriteResult{
+			BackupPath: "",
+			Changed:    false,
+		}, nil
 	}
 
 	backupPath, err := writeHostsBackup(path, content, info.Mode())
@@ -122,7 +127,10 @@ func RemoveManagedHosts(path, blockName string) (HostsWriteResult, error) {
 		return HostsWriteResult{}, err
 	}
 	if !changed {
-		return HostsWriteResult{Changed: false}, nil
+		return HostsWriteResult{
+			BackupPath: "",
+			Changed:    false,
+		}, nil
 	}
 
 	backupPath, err := writeHostsBackup(path, content, info.Mode())
@@ -173,8 +181,10 @@ func inspectHostsContent(content, blockName, address string, hostnames []string)
 	mappings := parseActiveHosts(content)
 	normalizedHosts := normalizeHostnames(hostnames)
 	status := HostsFileStatus{
-		Managed: managed.present,
-		State:   HostsStateInstalled,
+		State:     HostsStateInstalled,
+		Managed:   managed.present,
+		Conflicts: nil,
+		Missing:   nil,
 	}
 
 	for _, host := range normalizedHosts {
@@ -265,11 +275,11 @@ func removeManagedHostsContent(content, blockName string) (string, bool, error) 
 
 type managedBlock struct {
 	content   string
-	exact     bool
-	present   bool
 	lineBreak string
 	prefix    string
 	suffix    string
+	exact     bool
+	present   bool
 }
 
 func extractManagedBlock(content, blockName string) (managedBlock, error) {
@@ -280,7 +290,14 @@ func extractManagedBlock(content, blockName string) (managedBlock, error) {
 	endCount := strings.Count(content, endMarker)
 	switch {
 	case startCount == 0 && endCount == 0:
-		return managedBlock{lineBreak: detectFileLineBreak(content)}, nil
+		return managedBlock{
+			content:   "",
+			lineBreak: detectFileLineBreak(content),
+			prefix:    "",
+			suffix:    "",
+			exact:     false,
+			present:   false,
+		}, nil
 	case startCount != 1 || endCount != 1:
 		return managedBlock{}, fmt.Errorf("%w: %s", ErrMalformedManagedHostsBlock, blockName)
 	}
@@ -301,10 +318,11 @@ func extractManagedBlock(content, blockName string) (managedBlock, error) {
 	block := content[blockStart:blockEnd]
 	return managedBlock{
 		content:   block,
-		present:   true,
 		prefix:    content[:blockStart],
 		suffix:    content[blockEnd:],
 		lineBreak: lineBreak,
+		exact:     false,
+		present:   true,
 	}, nil
 }
 
@@ -347,7 +365,7 @@ func appendManagedBlock(content, block, lineBreak string) string {
 
 func parseActiveHosts(content string) map[string]map[string]struct{} {
 	result := make(map[string]map[string]struct{})
-	for _, rawLine := range strings.Split(content, "\n") {
+	for rawLine := range strings.SplitSeq(content, "\n") {
 		line := strings.TrimSpace(strings.TrimSuffix(rawLine, "\r"))
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
@@ -510,22 +528,41 @@ func writeHostsBackup(path, content string, mode fs.FileMode) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		file, err := os.OpenFile(backupPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, fileModeOrDefault(mode))
-		if err == nil {
-			if _, err := file.WriteString(content); err != nil {
-				_ = file.Close()
-				return "", fmt.Errorf("write hosts backup %q: %w", backupPath, err)
-			}
-			if err := file.Close(); err != nil {
-				return "", fmt.Errorf("close hosts backup %q: %w", backupPath, err)
-			}
+
+		writeErr := writeHostsBackupFile(backupPath, content, fileModeOrDefault(mode))
+		switch {
+		case writeErr == nil:
 			return backupPath, nil
-		}
-		if !errors.Is(err, fs.ErrExist) {
-			return "", fmt.Errorf("write hosts backup %q: %w", backupPath, err)
+		case errors.Is(writeErr, fs.ErrExist):
+			continue
+		default:
+			return "", writeErr
 		}
 	}
-	return "", fmt.Errorf("allocate hosts backup path for %q: exhausted race retries", path)
+	return "", fmt.Errorf("allocate hosts backup path for %q: %w", path, errHostsBackupRaceRetries)
+}
+
+func writeHostsBackupFile(path, content string, mode fs.FileMode) error {
+	//nolint:gosec // Path is derived from caller-controlled hosts path.
+	file, err := os.OpenFile(
+		path,
+		os.O_WRONLY|os.O_CREATE|os.O_EXCL,
+		mode,
+	)
+	if err != nil {
+		return fmt.Errorf("open hosts backup %q: %w", path, err)
+	}
+	if _, err = file.WriteString(content); err != nil {
+		closeErr := closeFile(file, fmt.Sprintf("hosts backup file %q", path))
+		if closeErr != nil {
+			return errors.Join(
+				fmt.Errorf("write hosts backup %q: %w", path, err),
+				closeErr,
+			)
+		}
+		return fmt.Errorf("write hosts backup %q: %w", path, err)
+	}
+	return closeFile(file, fmt.Sprintf("hosts backup file %q", path))
 }
 
 func nextHostsBackupPath(path string) (string, error) {
@@ -574,7 +611,7 @@ func hostsBackupIndex(base, name string) (int, bool) {
 	return index, true
 }
 
-func writeHostsFileAtomic(path, content string, mode fs.FileMode) error {
+func writeHostsFileAtomic(path, content string, mode fs.FileMode) (retErr error) {
 	dir := filepath.Dir(path)
 	tmpFile, err := os.CreateTemp(dir, "."+filepath.Base(path)+".studioctl.tmp-*")
 	if err != nil {
@@ -583,26 +620,34 @@ func writeHostsFileAtomic(path, content string, mode fs.FileMode) error {
 	tmpPath := tmpFile.Name()
 	cleanup := true
 	defer func() {
-		if cleanup {
-			_ = os.Remove(tmpPath)
+		if !cleanup {
+			return
+		}
+		if tmpFile != nil {
+			closeErr := closeFile(tmpFile, fmt.Sprintf("temp hosts file %q", tmpPath))
+			if closeErr != nil {
+				retErr = errors.Join(retErr, fmt.Errorf("write hosts file %q: %w", path, closeErr))
+			}
+		}
+		removeErr := removePathIfExists(tmpPath)
+		if removeErr != nil {
+			retErr = errors.Join(retErr, fmt.Errorf("write hosts file %q: %w", path, removeErr))
 		}
 	}()
 
 	if err := tmpFile.Chmod(mode); err != nil {
-		_ = tmpFile.Close()
 		return fmt.Errorf("write hosts file %q: chmod temp file: %w", path, err)
 	}
 	if _, err := tmpFile.WriteString(content); err != nil {
-		_ = tmpFile.Close()
 		return fmt.Errorf("write hosts file %q: write temp file: %w", path, err)
 	}
 	if err := tmpFile.Sync(); err != nil {
-		_ = tmpFile.Close()
 		return fmt.Errorf("write hosts file %q: sync temp file: %w", path, err)
 	}
-	if err := tmpFile.Close(); err != nil {
-		return fmt.Errorf("write hosts file %q: close temp file: %w", path, err)
+	if err := closeFile(tmpFile, fmt.Sprintf("temp hosts file %q", tmpPath)); err != nil {
+		return fmt.Errorf("write hosts file %q: %w", path, err)
 	}
+	tmpFile = nil
 	if err := replacePathAtomic(tmpPath, path); err != nil {
 		return fmt.Errorf("write hosts file %q: replace target: %w", path, err)
 	}
@@ -615,66 +660,73 @@ func writeHostsFileAtomic(path, content string, mode fs.FileMode) error {
 
 func replacePathAtomic(src, dst string) error {
 	if runtime.GOOS != "windows" {
-		return os.Rename(src, dst)
-	}
-
-	if err := os.Rename(src, dst); err == nil {
-		return nil
-	} else if !errors.Is(err, os.ErrExist) && !errors.Is(err, os.ErrPermission) {
-		backupPath, backupErr := reserveReplaceBackupPath(dst)
-		if backupErr != nil {
-			return err
-		}
-		if moveErr := os.Rename(dst, backupPath); moveErr != nil {
-			_ = os.Remove(backupPath)
-			return err
-		}
-		if renameErr := os.Rename(src, dst); renameErr != nil {
-			restoreErr := os.Rename(backupPath, dst)
-			if restoreErr != nil {
-				return errors.Join(renameErr, restoreErr)
-			}
-			return renameErr
-		}
-		if removeErr := os.Remove(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
-			return removeErr
+		if err := os.Rename(src, dst); err != nil {
+			return fmt.Errorf("rename %q to %q: %w", src, dst, err)
 		}
 		return nil
 	}
 
+	renameErr := os.Rename(src, dst)
+	if renameErr == nil {
+		return nil
+	}
+
+	canRetry := errors.Is(renameErr, os.ErrExist) || errors.Is(renameErr, os.ErrPermission)
+	if !canRetry {
+		return fmt.Errorf("rename %q to %q: %w", src, dst, renameErr)
+	}
+
+	return replacePathAtomicWindows(src, dst)
+}
+
+func replacePathAtomicWindows(src, dst string) error {
 	backupPath, err := reserveReplaceBackupPath(dst)
 	if err != nil {
 		return err
 	}
+
 	if moveErr := os.Rename(dst, backupPath); moveErr != nil {
-		_ = os.Remove(backupPath)
-		return moveErr
+		removeErr := removePathIfExists(backupPath)
+		wrappedMoveErr := fmt.Errorf("rename %q to %q: %w", dst, backupPath, moveErr)
+		if removeErr != nil {
+			return errors.Join(wrappedMoveErr, removeErr)
+		}
+		return wrappedMoveErr
 	}
-	if err := os.Rename(src, dst); err != nil {
+	if moveErr := os.Rename(src, dst); moveErr != nil {
+		wrappedMoveErr := fmt.Errorf("rename %q to %q: %w", src, dst, moveErr)
 		restoreErr := os.Rename(backupPath, dst)
 		if restoreErr != nil {
-			return errors.Join(err, restoreErr)
+			return errors.Join(
+				wrappedMoveErr,
+				fmt.Errorf("rename %q to %q: %w", backupPath, dst, restoreErr),
+			)
 		}
-		return err
+		return wrappedMoveErr
 	}
-	if removeErr := os.Remove(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
-		return removeErr
-	}
-	return nil
+	return removePathIfExists(backupPath)
 }
 
 func reserveReplaceBackupPath(dst string) (string, error) {
 	backup, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".old-*")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("reserve backup path for %q: create temp file: %w", dst, err)
 	}
 	backupPath := backup.Name()
-	if err := backup.Close(); err != nil {
-		_ = os.Remove(backupPath)
-		return "", err
+	closeErr := closeFile(backup, fmt.Sprintf("temporary backup file %q", backupPath))
+	if closeErr != nil {
+		removeErr := removePathIfExists(backupPath)
+		if removeErr != nil {
+			return "", errors.Join(
+				fmt.Errorf("reserve backup path for %q: %w", dst, closeErr),
+				removeErr,
+			)
+		}
+		return "", fmt.Errorf("reserve backup path for %q: %w", dst, closeErr)
 	}
-	if err := os.Remove(backupPath); err != nil {
-		return "", err
+	removeErr := removePathIfExists(backupPath)
+	if removeErr != nil {
+		return "", fmt.Errorf("reserve backup path for %q: %w", dst, removeErr)
 	}
 	return backupPath, nil
 }
@@ -683,10 +735,37 @@ func syncDirIfSupported(path string) error {
 	if runtime.GOOS == "windows" {
 		return nil
 	}
-	dir, err := os.Open(path)
+
+	dir, err := os.Open(path) //nolint:gosec // Path is derived from caller-controlled hosts file location.
 	if err != nil {
-		return err
+		return fmt.Errorf("open directory %q: %w", path, err)
 	}
-	defer dir.Close()
-	return dir.Sync()
+	syncErr := dir.Sync()
+	if syncErr != nil {
+		closeErr := closeFile(dir, fmt.Sprintf("directory %q", path))
+		if closeErr != nil {
+			return errors.Join(fmt.Errorf("sync directory %q: %w", path, syncErr), closeErr)
+		}
+		return fmt.Errorf("sync directory %q: %w", path, syncErr)
+	}
+	return closeFile(dir, fmt.Sprintf("directory %q", path))
+}
+
+func closeFile(file *os.File, name string) error {
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("close %s: %w", name, err)
+	}
+	return nil
+}
+
+func removePathIfExists(path string) error {
+	err := os.Remove(path)
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, os.ErrNotExist):
+		return nil
+	default:
+		return fmt.Errorf("remove %q: %w", path, err)
+	}
 }

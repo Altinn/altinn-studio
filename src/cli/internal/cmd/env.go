@@ -18,15 +18,21 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
-const runtimeLocaltest = "localtest"
+const (
+	runtimeLocaltest    = "localtest"
+	envStatusSubcommand = authStatusSubcommand
+)
 
-var errResetUnsupported = errors.New("reset is not supported for runtime")
-var localHostsFileTargets = osutil.LocalHostsFileTargets
+var (
+	errNoHostsFileTarget = errors.New("no hosts file target available")
+	errResetUnsupported  = errors.New("reset is not supported for runtime")
+)
 
 // EnvCommand implements the 'env' subcommand.
 type EnvCommand struct {
-	cfg *config.Config
-	out *ui.Output
+	hostsFileTargets func() ([]osutil.HostsTarget, error)
+	cfg              *config.Config
+	out              *ui.Output
 }
 
 type envUpOutput struct {
@@ -136,7 +142,11 @@ func (o envResetOutput) Print(out *ui.Output) error {
 
 // NewEnvCommand creates a new env command.
 func NewEnvCommand(cfg *config.Config, out *ui.Output) *EnvCommand {
-	return &EnvCommand{cfg: cfg, out: out}
+	return &EnvCommand{
+		hostsFileTargets: osutil.LocalHostsFileTargets,
+		cfg:              cfg,
+		out:              out,
+	}
 }
 
 // Name returns the command name.
@@ -195,7 +205,7 @@ func (c *EnvCommand) Run(ctx context.Context, args []string) error {
 		return c.runHosts(ctx, subArgs)
 	case "reset":
 		return c.runReset(ctx, subArgs)
-	case "status":
+	case envStatusSubcommand:
 		return c.runStatus(ctx, subArgs)
 	case "logs":
 		return c.runLogs(ctx, subArgs)
@@ -625,7 +635,7 @@ func (c *EnvCommand) runHosts(ctx context.Context, args []string) error {
 	switch subCmd {
 	case "add":
 		return c.runHostsAdd(ctx, subArgs)
-	case "status":
+	case envStatusSubcommand:
 		return c.runHostsStatus(ctx, subArgs)
 	case "remove":
 		return c.runHostsRemove(ctx, subArgs)
@@ -649,24 +659,24 @@ func (c *EnvCommand) runHostsAdd(_ context.Context, args []string) error {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.runtime)
 	}
 
-	targets, warnings, spec, err := c.localtestHostsSpec()
+	targets, spec, err := c.localtestHostsSpec()
 	if err != nil {
 		return err
 	}
-	printHostWarnings(c.out, warnings)
 	addWarnings := localtestHostsAddWarnings()
 	printHostWarnings(c.out, addWarnings)
 
 	output := envHostsMutationOutput{
 		Runtime:  flags.runtime,
 		Targets:  make([]envHostsMutationTargetOutput, 0, len(targets)),
-		Warnings: append(warnings, addWarnings...),
+		Warnings: addWarnings,
 	}
 
 	for _, target := range targets {
 		result, ensureErr := envlocaltest.EnsureManagedHosts(target.Path, spec.blockName, spec.address, spec.hostnames)
 		if ensureErr == nil {
 			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
+				Error:  "",
 				Label:  target.Label,
 				Path:   target.Path,
 				Result: result,
@@ -685,10 +695,13 @@ func (c *EnvCommand) runHostsAdd(_ context.Context, args []string) error {
 
 		if handled := printOptionalHostWarning(c.out, target, "add", ensureErr); handled {
 			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
-				Error:  humanHostsError(target, "add", ensureErr).Error(),
-				Label:  target.Label,
-				Path:   target.Path,
-				Result: envlocaltest.HostsWriteResult{},
+				Error: humanHostsError(target, "add", ensureErr).Error(),
+				Label: target.Label,
+				Path:  target.Path,
+				Result: envlocaltest.HostsWriteResult{
+					BackupPath: "",
+					Changed:    false,
+				},
 			})
 			continue
 		}
@@ -713,16 +726,16 @@ func (c *EnvCommand) runHostsStatus(_ context.Context, args []string) error {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.runtime)
 	}
 
-	targets, warnings, spec, err := c.localtestHostsSpec()
+	targets, spec, err := c.localtestHostsSpec()
 	if err != nil {
 		return err
 	}
-	printHostWarnings(c.out, warnings)
 
 	output := envHostsStatusOutput{
+		Path:     "",
 		Runtime:  flags.runtime,
 		Hosts:    make([]envHostsStatusHostOutput, 0, len(spec.hostnames)),
-		Warnings: warnings,
+		Warnings: nil,
 	}
 	table := ui.NewTable(
 		ui.NewColumn("Hostname"),
@@ -756,22 +769,22 @@ func (c *EnvCommand) runHostsRemove(_ context.Context, args []string) error {
 		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.runtime)
 	}
 
-	targets, warnings, spec, err := c.localtestHostsSpec()
+	targets, spec, err := c.localtestHostsSpec()
 	if err != nil {
 		return err
 	}
-	printHostWarnings(c.out, warnings)
 
 	output := envHostsMutationOutput{
 		Runtime:  flags.runtime,
 		Targets:  make([]envHostsMutationTargetOutput, 0, len(targets)),
-		Warnings: warnings,
+		Warnings: nil,
 	}
 
 	for _, target := range targets {
 		result, removeErr := envlocaltest.RemoveManagedHosts(target.Path, spec.blockName)
 		if removeErr == nil {
 			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
+				Error:  "",
 				Label:  target.Label,
 				Path:   target.Path,
 				Result: result,
@@ -790,10 +803,13 @@ func (c *EnvCommand) runHostsRemove(_ context.Context, args []string) error {
 
 		if handled := printOptionalHostWarning(c.out, target, "remove", removeErr); handled {
 			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
-				Error:  humanHostsError(target, "remove", removeErr).Error(),
-				Label:  target.Label,
-				Path:   target.Path,
-				Result: envlocaltest.HostsWriteResult{},
+				Error: humanHostsError(target, "remove", removeErr).Error(),
+				Label: target.Label,
+				Path:  target.Path,
+				Result: envlocaltest.HostsWriteResult{
+					BackupPath: "",
+					Changed:    false,
+				},
 			})
 			continue
 		}
@@ -812,13 +828,17 @@ type localtestHostsSpec struct {
 	hostnames []string
 }
 
-func (c *EnvCommand) localtestHostsSpec() ([]osutil.HostsTarget, []string, localtestHostsSpec, error) {
-	targets, err := localHostsFileTargets()
+func (c *EnvCommand) localtestHostsSpec() ([]osutil.HostsTarget, localtestHostsSpec, error) {
+	hostsFileTargets := c.hostsFileTargets
+	if hostsFileTargets == nil {
+		hostsFileTargets = osutil.LocalHostsFileTargets
+	}
+	targets, err := hostsFileTargets()
 	if err != nil {
-		return nil, nil, localtestHostsSpec{}, err
+		return nil, localtestHostsSpec{}, err
 	}
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
-	return targets, nil, localtestHostsSpec{
+	return targets, localtestHostsSpec{
 		address:   envlocaltest.HostsLoopbackAddress,
 		blockName: envlocaltest.HostsBlockName,
 		hostnames: topology.HostFileHostnames(),
@@ -846,9 +866,13 @@ func (c *EnvCommand) inspectRequiredHostsTarget(
 		if handled := appendOptionalHostStatusWarning(c.out, target, err); handled {
 			continue
 		}
-		return osutil.HostsTarget{}, envlocaltest.HostsFileStatus{}, fmt.Errorf("inspect hosts file %q: %w", target.Path, err)
+		return osutil.HostsTarget{}, envlocaltest.HostsFileStatus{}, fmt.Errorf(
+			"inspect hosts file %q: %w",
+			target.Path,
+			err,
+		)
 	}
-	return osutil.HostsTarget{}, envlocaltest.HostsFileStatus{}, errors.New("no hosts file target available")
+	return osutil.HostsTarget{}, envlocaltest.HostsFileStatus{}, errNoHostsFileTarget
 }
 
 func renderHostsByHostname(
@@ -875,8 +899,9 @@ func renderHostsByHostname(
 			})
 		case hasMissingHost(missing, host):
 			rows = append(rows, envHostsStatusHostOutput{
-				Host:  host,
-				State: envlocaltest.HostsStateMissing,
+				Detail: "",
+				Host:   host,
+				State:  envlocaltest.HostsStateMissing,
 			})
 		case status.Managed && status.State == envlocaltest.HostsStateInstalled:
 			rows = append(rows, envHostsStatusHostOutput{
@@ -936,27 +961,30 @@ func printOptionalHostWarning(out *ui.Output, target osutil.HostsTarget, action 
 
 func formatHostsCommandError(target osutil.HostsTarget, action string, err error) error {
 	humanErr := humanHostsError(target, action, err)
-	if strings.Contains(humanErr.Error(), "\n") {
-		return fmt.Errorf("%s hosts file %q:\n%s", action, target.Path, humanErr.Error())
-	}
 	return fmt.Errorf("%s hosts file %q: %w", action, target.Path, humanErr)
+}
+
+type hostsHumanError string
+
+func (e hostsHumanError) Error() string {
+	return string(e)
 }
 
 func humanHostsError(target osutil.HostsTarget, action string, err error) error {
 	var conflictErr *envlocaltest.HostsConflictError
 	switch {
 	case errors.As(err, &conflictErr):
-		return fmt.Errorf("conflicting entries must be resolved manually: %s", conflictErr.Error())
+		return hostsHumanError("conflicting entries must be resolved manually: " + conflictErr.Error())
 	case osutil.IsPermissionError(err):
-		return fmt.Errorf("%s", hostsPermissionMessage(target, action))
+		return hostsHumanError(hostsPermissionMessage(target, action))
 	default:
 		return err
 	}
 }
 
 func hostsPermissionMessage(target osutil.HostsTarget, action string) string {
-	switch {
-	case target.Label == "Windows":
+	switch target.Label {
+	case "Windows":
 		return fmt.Sprintf(
 			"%s requires administrator privileges\nrerun in an elevated PowerShell or edit %s manually",
 			action,

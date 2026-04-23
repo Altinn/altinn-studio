@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Add `env reset` for localtest to delete persisted localtest and workflow-engine database data, with interactive confirmation.
+- Add `env hosts add`, `env hosts remove`, and `env hosts status` for localtest, including managed hosts-file blocks, backup creation, and `--json` output.
 
 ### Fixed
 

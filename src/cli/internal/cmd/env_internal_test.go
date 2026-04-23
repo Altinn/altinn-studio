@@ -70,16 +70,11 @@ func TestEnvHostsStatusJSON(t *testing.T) {
 		t.Fatalf("os.WriteFile() error = %v", err)
 	}
 
-	originalTargets := localHostsFileTargets
-	localHostsFileTargets = func() ([]osutil.HostsTarget, error) {
-		return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
-	}
-	t.Cleanup(func() {
-		localHostsFileTargets = originalTargets
-	})
-
 	var out bytes.Buffer
 	command := &EnvCommand{
+		hostsFileTargets: func() ([]osutil.HostsTarget, error) {
+			return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
+		},
 		cfg: &config.Config{},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
@@ -122,16 +117,11 @@ func TestEnvHostsAddJSON(t *testing.T) {
 		t.Fatalf("os.WriteFile() error = %v", err)
 	}
 
-	originalTargets := localHostsFileTargets
-	localHostsFileTargets = func() ([]osutil.HostsTarget, error) {
-		return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
-	}
-	t.Cleanup(func() {
-		localHostsFileTargets = originalTargets
-	})
-
 	var out bytes.Buffer
 	command := &EnvCommand{
+		hostsFileTargets: func() ([]osutil.HostsTarget, error) {
+			return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
+		},
 		cfg: &config.Config{},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
