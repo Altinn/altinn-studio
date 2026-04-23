@@ -601,4 +601,107 @@ internal sealed partial class EngineRepository
             throw;
         }
     }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>?> GetWorkflowHierarchy(
+        Guid workflowId,
+        string ns,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflowHierarchy");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.FetchingWorkflowById(workflowId);
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var root = await context
+                .GetWorkflowById(workflowId)
+                .Where(wf => wf.Namespace == ns)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (root is null)
+            {
+                logger.WorkflowNotFound(workflowId);
+                return null;
+            }
+
+            if (root.CorrelationId is null)
+            {
+                return [root.ToDomainModel()];
+            }
+
+            var workflows = await context
+                .GetWorkflowsByCorrelationId(root.CorrelationId.Value, namespaceFilter: ns)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
+
+            return BuildWorkflowHierarchy(workflowId, workflows);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    private static List<Workflow> BuildWorkflowHierarchy(Guid workflowId, IReadOnlyList<Workflow> workflows)
+    {
+        var workflowsById = workflows.ToDictionary(workflow => workflow.DatabaseId);
+        if (!workflowsById.ContainsKey(workflowId))
+        {
+            return [];
+        }
+
+        var dependentsByDependencyId = new Dictionary<Guid, List<Workflow>>();
+        foreach (Workflow workflow in workflows)
+        {
+            if (workflow.Dependencies is null)
+            {
+                continue;
+            }
+
+            foreach (Workflow dependency in workflow.Dependencies)
+            {
+                if (!dependentsByDependencyId.TryGetValue(dependency.DatabaseId, out List<Workflow>? dependents))
+                {
+                    dependents = [];
+                    dependentsByDependencyId[dependency.DatabaseId] = dependents;
+                }
+
+                dependents.Add(workflow);
+            }
+        }
+
+        HashSet<Guid> visited = [workflowId];
+        Queue<Guid> queue = new([workflowId]);
+        List<Workflow> hierarchy = [];
+
+        while (queue.TryDequeue(out Guid currentWorkflowId))
+        {
+            hierarchy.Add(workflowsById[currentWorkflowId]);
+
+            if (!dependentsByDependencyId.TryGetValue(currentWorkflowId, out List<Workflow>? dependents))
+            {
+                continue;
+            }
+
+            foreach (Workflow dependent in dependents)
+            {
+                if (visited.Add(dependent.DatabaseId))
+                {
+                    queue.Enqueue(dependent.DatabaseId);
+                }
+            }
+        }
+
+        return hierarchy;
+    }
 }

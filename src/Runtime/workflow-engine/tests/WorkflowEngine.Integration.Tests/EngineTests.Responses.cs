@@ -193,10 +193,10 @@ public partial class EngineTests
         await VerifyJson(body).ScrubInlineGuids();
     }
 
-    // ── ListActiveWorkflows endpoint responses ────────────────────────────────
+    // ── ListWorkflows endpoint responses ────────────────────────────────
 
     [Fact]
-    public async Task Response_ListActiveWorkflows_WhileProcessing_ReturnsWorkflowsShape()
+    public async Task Response_ListWorkflows_WhileProcessing_ReturnsWorkflowsShape()
     {
         // Arrange - slow WireMock so workflow stays active
         fixture.WireMock.Reset();
@@ -236,7 +236,7 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task Response_ListActiveWorkflows_NoWorkflows_Returns204()
+    public async Task Response_ListWorkflows_NoWorkflows_Returns204()
     {
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
@@ -400,10 +400,10 @@ public partial class EngineTests
         await VerifyJson(body);
     }
 
-    // ── ListActiveWorkflows endpoint responses ────────────────────────────────
+    // ── ListWorkflows endpoint responses ────────────────────────────────
 
     [Fact]
-    public async Task Response_ListActiveWorkflows_AfterCompletion_Returns204()
+    public async Task Response_ListWorkflows_AfterCompletion_ReturnsCompletedWorkflowShape()
     {
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
@@ -419,6 +419,9 @@ public partial class EngineTests
             TestContext.Current.CancellationToken
         );
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
     }
 }

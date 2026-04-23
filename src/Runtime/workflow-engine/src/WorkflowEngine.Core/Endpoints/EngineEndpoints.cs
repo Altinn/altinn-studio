@@ -30,14 +30,19 @@ internal static class EngineEndpoints
             .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
         group
-            .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
-            .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows, optionally filtered by correlation ID");
+            .MapGet("", EngineRequestHandlers.ListWorkflows)
+            .WithName("ListWorkflows")
+            .WithDescription("Lists workflows, optionally filtered by correlation ID, labels, and statuses");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
             .WithDescription("Gets details of a single workflow by database ID");
+
+        group
+            .MapGet("/{workflowId:guid}/hierarchy", EngineRequestHandlers.GetWorkflowHierarchy)
+            .WithName("GetWorkflowHierarchy")
+            .WithDescription("Gets the workflow hierarchy rooted at the requested workflow");
 
         group
             .MapPost("/{workflowId:guid}/cancel", EngineRequestHandlers.CancelWorkflow)
@@ -125,10 +130,11 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+    public static async Task<Results<Ok<PaginatedResponse<WorkflowStatusResponse>>, NoContent>> ListWorkflows(
         [FromRoute] string @namespace,
         [FromQuery] Guid? correlationId,
         [FromQuery(Name = "label")] string[]? labels,
+        [FromQuery] PersistentItemStatus[]? statuses,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
@@ -143,14 +149,16 @@ internal static class EngineRequestHandlers
 
         var ns = NormalizeNamespace(@namespace);
         var labelFilters = ParseLabelFilters(labels);
-        var result = await repository.GetActiveWorkflows(
+        var effectiveStatuses = GetQueryStatuses(statuses);
+        var result = await repository.QueryWorkflows(
             effectivePageSize,
+            effectiveStatuses,
             cursor,
             includeTotalCount: true,
-            correlationId,
-            ns,
-            labelFilters,
-            cancellationToken
+            labelFilters: labelFilters,
+            namespaceFilter: ns,
+            correlationId: correlationId?.ToString(),
+            cancellationToken: cancellationToken
         );
 
         if (result.TotalCount == 0)
@@ -183,6 +191,30 @@ internal static class EngineRequestHandlers
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
+    }
+
+    public static async Task<Results<Ok<WorkflowHierarchyResponse>, NotFound>> GetWorkflowHierarchy(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "hierarchy"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var hierarchy = await repository.GetWorkflowHierarchy(workflowId, ns, cancellationToken);
+
+        if (hierarchy is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(
+            new WorkflowHierarchyResponse
+            {
+                WorkflowId = workflowId,
+                Workflows = hierarchy.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+            }
+        );
     }
 
     public static async Task<
@@ -295,5 +327,13 @@ internal static class EngineRequestHandlers
         }
 
         return result;
+    }
+
+    private static PersistentItemStatus[] GetQueryStatuses(PersistentItemStatus[]? statuses)
+    {
+        if (statuses is { Length: > 0 })
+            return statuses;
+
+        return Enum.GetValues<PersistentItemStatus>();
     }
 }
