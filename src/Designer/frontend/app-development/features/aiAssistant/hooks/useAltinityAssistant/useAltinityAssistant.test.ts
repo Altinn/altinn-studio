@@ -53,13 +53,8 @@ const createThreadState = (): AltinityThreadState => ({
   selectThread: jest.fn(),
   createNewThread: jest.fn(),
   deleteThread: jest.fn(),
-  addMessageToThread: jest.fn(),
-  removeLoadingMessage: jest.fn(),
-  replaceLoadingWithMessage: jest.fn(),
   removeLastUserMessage: jest.fn(),
-  removeCancelledMessages: jest.fn(),
-  upsertAssistantMessage: jest.fn(),
-  updateWorkflowStatusMessage: jest.fn(),
+  persistMessage: jest.fn(),
 });
 
 const renderUseAltinityAssistant = () => renderHook(() => useAltinityAssistant());
