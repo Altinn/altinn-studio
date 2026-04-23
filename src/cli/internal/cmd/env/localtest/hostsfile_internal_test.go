@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -396,7 +397,9 @@ func TestWriteHostsFileAtomicReplacesExistingFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("os.Stat() error = %v", err)
 	}
-	if info.Mode().Perm() != 0o600 {
-		t.Fatalf("perm = %o, want %o", info.Mode().Perm(), 0o600)
+	if runtime.GOOS != osWindows {
+		if info.Mode().Perm() != 0o600 {
+			t.Fatalf("perm = %o, want %o", info.Mode().Perm(), 0o600)
+		}
 	}
 }
