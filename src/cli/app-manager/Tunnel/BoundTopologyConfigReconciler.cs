@@ -68,6 +68,10 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
                 }
             }
         );
+        using var appRegistrySubscription = _appRegistry.OnChanged(() =>
+        {
+            refreshRequests.Writer.TryWrite(RefreshReason.AppsChanged);
+        });
 
         var pollTask = Task.Run(() => RunPollLoop(refreshRequests.Writer, stoppingToken), stoppingToken);
         try
@@ -271,6 +275,7 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
     private enum RefreshReason
     {
         BaseChanged,
+        AppsChanged,
         Poll,
     }
 }
