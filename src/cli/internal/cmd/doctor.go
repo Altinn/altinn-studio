@@ -325,6 +325,7 @@ func (c *DoctorCommand) renderDoctorLocaltestEnvSection(
 			if check.URL != "" {
 				value += " (" + check.URL + ")"
 			}
+			showHostsHint := check.Label == "DNS:" && check.Level == envlocaltest.DiagnosticLevelError
 
 			label := "  " + check.Label
 			switch check.Level {
@@ -338,6 +339,9 @@ func (c *DoctorCommand) renderDoctorLocaltestEnvSection(
 				doctorKeyValueStatus(table, false, label, "ERROR: "+value)
 			default:
 				doctorKeyValue(table, label, value)
+			}
+			if showHostsHint {
+				table.Row(ui.Empty(), ui.Empty(), ui.Dim("run '"+osutil.CurrentBin()+" env hosts add'"))
 			}
 		}
 	}
