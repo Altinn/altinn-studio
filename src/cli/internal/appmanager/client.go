@@ -65,14 +65,16 @@ type runtimeState struct {
 
 // Status describes the current app-manager status.
 type Status struct {
-	AppManagerVersion string          `json:"appManagerVersion"`
-	DotnetVersion     string          `json:"dotnetVersion"`
-	StudioctlPath     string          `json:"studioctlPath"`
-	LocaltestURL      string          `json:"localtestUrl"`
-	Tunnel            TunnelStatus    `json:"tunnel"`
-	Apps              []DiscoveredApp `json:"apps"`
-	ProcessID         int             `json:"processId"`
-	InternalDev       bool            `json:"internalDev"`
+	AppManagerVersion           string          `json:"appManagerVersion"`
+	DotnetVersion               string          `json:"dotnetVersion"`
+	StudioctlPath               string          `json:"studioctlPath"`
+	LocaltestURL                string          `json:"localtestUrl"`
+	BoundTopologyBaseConfigPath string          `json:"boundTopologyBaseConfigPath"`
+	BoundTopologyConfigPath     string          `json:"boundTopologyConfigPath"`
+	Tunnel                      TunnelStatus    `json:"tunnel"`
+	Apps                        []DiscoveredApp `json:"apps"`
+	ProcessID                   int             `json:"processId"`
+	InternalDev                 bool            `json:"internalDev"`
 }
 
 // TunnelStatus describes the configured app tunnel.
@@ -240,11 +242,13 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}
 
 	var status struct {
-		AppManagerVersion string `json:"appManagerVersion"`
-		DotnetVersion     string `json:"dotnetVersion"`
-		StudioctlPath     string `json:"studioctlPath"`
-		LocaltestURL      string `json:"localtestUrl"`
-		Tunnel            struct {
+		AppManagerVersion           string `json:"appManagerVersion"`
+		DotnetVersion               string `json:"dotnetVersion"`
+		StudioctlPath               string `json:"studioctlPath"`
+		LocaltestURL                string `json:"localtestUrl"`
+		BoundTopologyBaseConfigPath string `json:"boundTopologyBaseConfigPath"`
+		BoundTopologyConfigPath     string `json:"boundTopologyConfigPath"`
+		Tunnel                      struct {
 			URL       string `json:"url"`
 			Enabled   bool   `json:"enabled"`
 			Connected bool   `json:"connected"`
@@ -267,12 +271,14 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}
 
 	result := &Status{
-		ProcessID:         status.ProcessID,
-		AppManagerVersion: status.AppManagerVersion,
-		DotnetVersion:     status.DotnetVersion,
-		StudioctlPath:     status.StudioctlPath,
-		LocaltestURL:      status.LocaltestURL,
-		InternalDev:       status.InternalDev,
+		ProcessID:                   status.ProcessID,
+		AppManagerVersion:           status.AppManagerVersion,
+		DotnetVersion:               status.DotnetVersion,
+		StudioctlPath:               status.StudioctlPath,
+		LocaltestURL:                status.LocaltestURL,
+		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
+		BoundTopologyConfigPath:     status.BoundTopologyConfigPath,
+		InternalDev:                 status.InternalDev,
 		Tunnel: TunnelStatus{
 			Enabled:   status.Tunnel.Enabled,
 			Connected: status.Tunnel.Connected,
@@ -824,8 +830,8 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		TunnelURL:                   status.Tunnel.URL,
 		LocaltestURL:                status.LocaltestURL,
 		StudioctlPath:               status.StudioctlPath,
-		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPathIfExists(cfg),
-		BoundTopologyConfigPath:     boundTopologyConfigPathIfBaseExists(cfg),
+		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
+		BoundTopologyConfigPath:     status.BoundTopologyConfigPath,
 		InternalDev:                 status.InternalDev,
 	}
 }
