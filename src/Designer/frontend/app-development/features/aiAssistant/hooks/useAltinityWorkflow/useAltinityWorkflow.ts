@@ -186,7 +186,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   const startAgentWorkflow = useCallback(
     async (
-      _threadId: string,
+      threadId: string,
       goal: string,
       allowAppChanges: boolean,
       attachments?: UserAttachment[],
@@ -195,7 +195,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       if (!activeSession) throw new Error('No active backend session — connection not established');
       setWorkflowStatus({
         isActive: true,
-        sessionId: activeSession,
+        sessionId: threadId,
         currentStep: 'Initializing',
         message: INITIAL_WORKFLOW_MESSAGE,
       });
