@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -7,7 +8,7 @@ public record CreateChatThreadRequest(string Title);
 public record UpdateChatThreadRequest(string Title);
 
 public record CreateChatMessageRequest(
-    string Role,
+    Role Role,
     string Content,
     bool? AllowAppChanges,
     List<string>? AttachmentFileNames,

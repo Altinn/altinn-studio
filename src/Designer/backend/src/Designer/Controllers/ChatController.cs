@@ -128,10 +128,6 @@ public class ChatController(IChatService chatService) : ControllerBase
         {
             return NotFound();
         }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
     }
 
     [HttpDelete("threads/{threadId:guid}/messages/{messageId:guid}")]

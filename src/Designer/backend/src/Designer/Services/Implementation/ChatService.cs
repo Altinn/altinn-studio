@@ -84,17 +84,12 @@ public class ChatService(IChatRepository repository) : IChatService
     {
         await GetOwnedThreadAsync(threadId, context, cancellationToken);
 
-        if (!Enum.TryParse<Role>(request.Role, ignoreCase: true, out var parsedRole))
-        {
-            throw new ArgumentException($"Invalid role: '{request.Role}'. Must be 'User' or 'Assistant'.");
-        }
-
         var message = new ChatMessageEntity
         {
             Id = Guid.CreateVersion7(),
             ThreadId = threadId,
             CreatedAt = DateTime.UtcNow,
-            Role = parsedRole,
+            Role = request.Role,
             Content = request.Content,
             AllowAppChanges = request.AllowAppChanges,
             AttachmentFileNames = request.AttachmentFileNames,
