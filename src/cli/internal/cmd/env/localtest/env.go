@@ -492,6 +492,7 @@ func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string)
 		Volumes: []containertypes.VolumeMount{{
 			HostPath:      targetAbs,
 			ContainerPath: "/cleanup",
+			Type:          containertypes.VolumeMountTypeBind,
 			ReadOnly:      false,
 		}},
 		Networks: nil,
