@@ -34,6 +34,7 @@ const (
 	infraDir                  = "infra"
 	workflowEngineInfraDir    = "workflow-engine"
 	workflowEngineDbDataDir   = "workflow-engine-db"
+	workflowEngineDbVolume    = "localtest-workflow-engine-db-data"
 	localtestServicePort      = "5101"
 
 	postgresHealthInterval    = 10 * time.Second
@@ -101,6 +102,7 @@ func newVolume(hostPath, containerPath string) types.VolumeMount {
 		HostPath:      hostPath,
 		ContainerPath: containerPath,
 		ReadOnly:      false,
+		Type:          types.VolumeMountTypeBind,
 	}
 }
 
@@ -109,6 +111,16 @@ func newReadOnlyVolume(hostPath, containerPath string) types.VolumeMount {
 		HostPath:      hostPath,
 		ContainerPath: containerPath,
 		ReadOnly:      true,
+		Type:          types.VolumeMountTypeBind,
+	}
+}
+
+func newNamedVolume(name, containerPath string) types.VolumeMount {
+	return types.VolumeMount{
+		HostPath:      name,
+		ContainerPath: containerPath,
+		ReadOnly:      false,
+		Type:          types.VolumeMountTypeVolume,
 	}
 }
 
@@ -227,8 +239,8 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 			"TZ":                "Europe/Oslo",
 		},
 		[]types.VolumeMount{
-			newVolume(
-				workflowEngineDbDataPath(dataDir),
+			newNamedVolume(
+				workflowEngineDbVolume,
 				"/var/lib/postgresql",
 			),
 			newReadOnlyVolume(
@@ -726,6 +738,9 @@ func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
 		spec := &all[i]
 		for j := range spec.Volumes {
 			volume := spec.Volumes[j]
+			if !isBindMount(volume) {
+				continue
+			}
 			if _, ok := seen[volume.HostPath]; ok {
 				continue
 			}
@@ -737,6 +752,10 @@ func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
 		}
 	}
 	return result
+}
+
+func isBindMount(volume types.VolumeMount) bool {
+	return volume.Type == "" || volume.Type == types.VolumeMountTypeBind
 }
 
 // ValidateResourceHostPaths ensures all bind-mounted host paths exist and have expected type.

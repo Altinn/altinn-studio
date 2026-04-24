@@ -14,24 +14,38 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      operationId: /retry-target,
+      operationId: /error-history-target,
       processingOrder: 0,
       updatedAt: {Scrubbed},
       command: {
         type: webhook
       },
       status: Completed,
-      retryCount: 2,
+      retryCount: 3,
+      retryStrategy: {
+        backoffType: Constant,
+        baseInterval: 00:00:00.1000000,
+        maxRetries: 5,
+        maxDelay: 00:00:00.1000000,
+        maxDuration: null,
+        nonRetryableHttpStatusCodes: null
+      },
       errorHistory: [
         {
           timestamp: DateTimeOffset_1,
-          message: Webhook execution failed with status 500: <no body content>,
+          message: Webhook execution failed with status 500: boom-1,
           httpStatusCode: 500,
           wasRetryable: true
         },
         {
           timestamp: DateTimeOffset_2,
-          message: Webhook execution failed with status 500: <no body content>,
+          message: Webhook execution failed with status 500: boom-2,
+          httpStatusCode: 500,
+          wasRetryable: true
+        },
+        {
+          timestamp: DateTimeOffset_3,
+          message: Webhook execution failed with status 500: boom-3,
           httpStatusCode: 500,
           wasRetryable: true
         }
