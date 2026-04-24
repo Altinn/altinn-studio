@@ -6,21 +6,33 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
+	"strings"
 
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
-const runtimeLocaltest = "localtest"
+const (
+	runtimeLocaltest    = "localtest"
+	envStatusSubcommand = authStatusSubcommand
+)
+
+var (
+	errNoHostsFileTarget = errors.New("no hosts file target available")
+	errResetUnsupported  = errors.New("reset is not supported for runtime")
+)
 
 // EnvCommand implements the 'env' subcommand.
 type EnvCommand struct {
-	cfg *config.Config
-	out *ui.Output
+	hostsFileTargets func() ([]osutil.HostsTarget, error)
+	cfg              *config.Config
+	out              *ui.Output
 }
 
 type envUpOutput struct {
@@ -84,9 +96,57 @@ func (o envStatusOutput) Print(out *ui.Output) error {
 	return nil
 }
 
+type envResetOutput struct {
+	Runtime    string `json:"runtime"`
+	Reset      bool   `json:"reset"`
+	JSONOutput bool   `json:"-"`
+}
+
+type envHostsFlags struct {
+	runtime    string
+	jsonOutput bool
+}
+
+type envHostsStatusHostOutput struct {
+	Detail string `json:"detail,omitempty"`
+	Host   string `json:"host"`
+	State  string `json:"state"`
+}
+
+type envHostsStatusOutput struct {
+	Path     string                     `json:"path,omitempty"`
+	Runtime  string                     `json:"runtime"`
+	Hosts    []envHostsStatusHostOutput `json:"hosts"`
+	Warnings []string                   `json:"warnings,omitempty"`
+}
+
+type envHostsMutationTargetOutput struct {
+	Error  string                        `json:"error,omitempty"`
+	Label  string                        `json:"label"`
+	Path   string                        `json:"path"`
+	Result envlocaltest.HostsWriteResult `json:"result"`
+}
+
+type envHostsMutationOutput struct {
+	Runtime  string                         `json:"runtime"`
+	Targets  []envHostsMutationTargetOutput `json:"targets"`
+	Warnings []string                       `json:"warnings,omitempty"`
+}
+
+func (o envResetOutput) Print(out *ui.Output) error {
+	if o.JSONOutput {
+		return printJSONOutput(out, "env reset", o)
+	}
+	return nil
+}
+
 // NewEnvCommand creates a new env command.
 func NewEnvCommand(cfg *config.Config, out *ui.Output) *EnvCommand {
-	return &EnvCommand{cfg: cfg, out: out}
+	return &EnvCommand{
+		hostsFileTargets: osutil.LocalHostsFileTargets,
+		cfg:              cfg,
+		out:              out,
+	}
 }
 
 // Name returns the command name.
@@ -105,6 +165,8 @@ func (c *EnvCommand) Usage() string {
 		"Subcommands:",
 		"  up       Start the environment",
 		"  down     Stop the environment",
+		"  hosts    Manage localtest hosts-file entries",
+		"  reset    Delete persisted environment data",
 		"  status   Show environment status",
 		"  logs     Stream environment logs",
 		"",
@@ -116,6 +178,9 @@ func (c *EnvCommand) Usage() string {
 		"  --monitoring     Start monitoring stack",
 		"  --pgadmin        Start pgAdmin for the workflow-engine database",
 		"  --open           Open localtest in browser after starting",
+		"",
+		"Options for 'env reset':",
+		"  -y, --yes        Skip confirmation prompt",
 		"",
 		fmt.Sprintf("Run '%s env <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)
@@ -136,7 +201,11 @@ func (c *EnvCommand) Run(ctx context.Context, args []string) error {
 		return c.runUp(ctx, subArgs)
 	case "down":
 		return c.runDown(ctx, subArgs)
-	case "status":
+	case "hosts":
+		return c.runHosts(ctx, subArgs)
+	case "reset":
+		return c.runReset(ctx, subArgs)
+	case envStatusSubcommand:
 		return c.runStatus(ctx, subArgs)
 	case "logs":
 		return c.runLogs(ctx, subArgs)
@@ -345,6 +414,109 @@ func (c *EnvCommand) runDown(ctx context.Context, args []string) error {
 	})
 }
 
+// envResetFlags holds parsed flags for the env reset command.
+type envResetFlags struct {
+	runtime    string
+	yes        bool
+	jsonOutput bool
+}
+
+func (c *EnvCommand) parseResetFlags(args []string) (envResetFlags, bool, error) {
+	fs := flag.NewFlagSet("env reset", flag.ContinueOnError)
+	var f envResetFlags
+	fs.StringVar(&f.runtime, "r", runtimeLocaltest, "Runtime to use")
+	fs.StringVar(&f.runtime, "runtime", runtimeLocaltest, "Runtime to use")
+	fs.BoolVar(&f.yes, "y", false, "Skip confirmation prompt")
+	fs.BoolVar(&f.yes, "yes", false, "Skip confirmation prompt")
+	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return f, true, nil
+		}
+		return f, false, fmt.Errorf("parsing flags: %w", err)
+	}
+
+	return f, false, nil
+}
+
+func (c *EnvCommand) runReset(ctx context.Context, args []string) error {
+	flags, helpShown, err := c.parseResetFlags(args)
+	if err != nil {
+		return err
+	}
+	if helpShown {
+		return nil
+	}
+	if err := validateResetRuntime(flags.runtime); err != nil {
+		return err
+	}
+	if proceed, err := c.confirmResetIfNeeded(ctx, flags); err != nil {
+		return err
+	} else if !proceed {
+		return nil
+	}
+
+	return c.withContainerClient(ctx, func(client container.ContainerClient) error {
+		env, err := c.getEnvWithOutput(flags.runtime, client, commandOutput(c.out, flags.jsonOutput))
+		if err != nil {
+			return err
+		}
+
+		resetter, ok := env.(envtypes.Resetter)
+		if !ok {
+			return fmt.Errorf("%w: %s", errResetUnsupported, flags.runtime)
+		}
+
+		if err := resetter.Reset(ctx); err != nil {
+			return fmt.Errorf("env reset: %w", err)
+		}
+
+		return envResetOutput{
+			Runtime:    flags.runtime,
+			Reset:      true,
+			JSONOutput: flags.jsonOutput,
+		}.Print(c.out)
+	})
+}
+
+func validateResetRuntime(runtime string) error {
+	switch runtime {
+	case runtimeLocaltest:
+		return nil
+	default:
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, runtime)
+	}
+}
+
+func (c *EnvCommand) confirmResetIfNeeded(ctx context.Context, flags envResetFlags) (bool, error) {
+	if flags.jsonOutput && !flags.yes {
+		return false, fmt.Errorf("%w: --json requires --yes", ErrInvalidFlagValue)
+	}
+	if flags.yes {
+		return true, nil
+	}
+	if !ui.StdinIsTerminal() {
+		return false, fmt.Errorf("%w: --yes is required when stdin is not a terminal", ErrInvalidFlagValue)
+	}
+
+	confirmed, err := ui.Confirm(
+		ctx,
+		c.out,
+		os.Stdin,
+		fmt.Sprintf("Delete persisted %s environment data? [y/N]: ", flags.runtime),
+	)
+	if err != nil {
+		return false, fmt.Errorf("confirm reset: %w", err)
+	}
+	if !confirmed {
+		c.out.Println("Reset cancelled")
+		return false, nil
+	}
+
+	return true, nil
+}
+
 // envStatusFlags holds parsed flags for the env status command.
 type envStatusFlags struct {
 	runtime    string
@@ -414,6 +586,418 @@ func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
 		table.Row(ui.Text(ctr.Name), ui.Text(ctr.Status))
 	}
 	out.RenderTable(table)
+}
+
+func (c *EnvCommand) hostsUsage() string {
+	return joinLines(
+		fmt.Sprintf("Usage: %s env hosts <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		"Manage localtest hosts-file entries.",
+		"",
+		"Subcommands:",
+		"  add       Add studioctl-managed localtest hosts entries",
+		"  status    Show localtest hosts-file status",
+		"  remove    Remove studioctl-managed localtest hosts entries",
+		"",
+		"Options:",
+		"  -r, --runtime    Runtime to use (default: localtest)",
+		"  --json           Output as JSON",
+		"",
+		fmt.Sprintf("Run '%s env hosts <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
+}
+
+func parseEnvHostsFlags(name string, args []string) (envHostsFlags, bool, error) {
+	fs := flag.NewFlagSet(name, flag.ContinueOnError)
+	var f envHostsFlags
+	fs.StringVar(&f.runtime, "r", runtimeLocaltest, "Runtime to use")
+	fs.StringVar(&f.runtime, "runtime", runtimeLocaltest, "Runtime to use")
+	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return f, true, nil
+		}
+		return f, false, fmt.Errorf("parsing flags: %w", err)
+	}
+	return f, false, nil
+}
+
+func (c *EnvCommand) runHosts(ctx context.Context, args []string) error {
+	if len(args) == 0 {
+		c.out.Print(c.hostsUsage())
+		return nil
+	}
+
+	subCmd := args[0]
+	subArgs := args[1:]
+
+	switch subCmd {
+	case "add":
+		return c.runHostsAdd(ctx, subArgs)
+	case envStatusSubcommand:
+		return c.runHostsStatus(ctx, subArgs)
+	case "remove":
+		return c.runHostsRemove(ctx, subArgs)
+	case "-h", flagHelp, helpSubcmd:
+		c.out.Print(c.hostsUsage())
+		return nil
+	default:
+		return fmt.Errorf("%w: %s", ErrUnknownSubcommand, subCmd)
+	}
+}
+
+func (c *EnvCommand) runHostsAdd(_ context.Context, args []string) error {
+	flags, helpShown, err := parseEnvHostsFlags("env hosts add", args)
+	if err != nil {
+		return err
+	}
+	if helpShown {
+		return nil
+	}
+	if flags.runtime != runtimeLocaltest {
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.runtime)
+	}
+
+	targets, spec, err := c.localtestHostsSpec()
+	if err != nil {
+		return err
+	}
+	addWarnings := localtestHostsAddWarnings()
+	printHostWarnings(c.out, addWarnings)
+
+	output := envHostsMutationOutput{
+		Runtime:  flags.runtime,
+		Targets:  make([]envHostsMutationTargetOutput, 0, len(targets)),
+		Warnings: addWarnings,
+	}
+
+	for _, target := range targets {
+		result, ensureErr := envlocaltest.EnsureManagedHosts(target.Path, spec.blockName, spec.address, spec.hostnames)
+		if ensureErr == nil {
+			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
+				Error:  "",
+				Label:  target.Label,
+				Path:   target.Path,
+				Result: result,
+			})
+			if flags.jsonOutput {
+				continue
+			}
+			if result.Changed {
+				c.out.Successf("Added hosts entries to %s", target.Path)
+				c.out.Printlnf("Backup saved to %s", result.BackupPath)
+			} else {
+				c.out.Printlnf("Managed localtest hosts entries already present in %s", target.Path)
+			}
+			continue
+		}
+
+		if handled := printOptionalHostWarning(c.out, target, "add", ensureErr); handled {
+			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
+				Error: humanHostsError(target, "add", ensureErr).Error(),
+				Label: target.Label,
+				Path:  target.Path,
+				Result: envlocaltest.HostsWriteResult{
+					BackupPath: "",
+					Changed:    false,
+				},
+			})
+			continue
+		}
+		return formatHostsCommandError(target, "add", ensureErr)
+	}
+
+	if flags.jsonOutput {
+		return printJSONOutput(c.out, "env hosts add", output)
+	}
+	return nil
+}
+
+func (c *EnvCommand) runHostsStatus(_ context.Context, args []string) error {
+	flags, helpShown, err := parseEnvHostsFlags("env hosts status", args)
+	if err != nil {
+		return err
+	}
+	if helpShown {
+		return nil
+	}
+	if flags.runtime != runtimeLocaltest {
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.runtime)
+	}
+
+	targets, spec, err := c.localtestHostsSpec()
+	if err != nil {
+		return err
+	}
+
+	output := envHostsStatusOutput{
+		Path:     "",
+		Runtime:  flags.runtime,
+		Hosts:    make([]envHostsStatusHostOutput, 0, len(spec.hostnames)),
+		Warnings: nil,
+	}
+	table := ui.NewTable(
+		ui.NewColumn("Hostname"),
+		ui.NewColumn("State"),
+		ui.NewColumn("Details"),
+	)
+
+	target, status, err := c.inspectRequiredHostsTarget(targets, spec)
+	if err != nil {
+		return err
+	}
+	output.Path = target.Path
+	output.Hosts = renderHostsByHostname(status, spec.address, spec.hostnames)
+	if flags.jsonOutput {
+		return printJSONOutput(c.out, "env hosts status", output)
+	}
+	appendHostsByHostnameRows(table, output.Hosts)
+	c.out.RenderTable(table)
+	return nil
+}
+
+func (c *EnvCommand) runHostsRemove(_ context.Context, args []string) error {
+	flags, helpShown, err := parseEnvHostsFlags("env hosts remove", args)
+	if err != nil {
+		return err
+	}
+	if helpShown {
+		return nil
+	}
+	if flags.runtime != runtimeLocaltest {
+		return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.runtime)
+	}
+
+	targets, spec, err := c.localtestHostsSpec()
+	if err != nil {
+		return err
+	}
+
+	output := envHostsMutationOutput{
+		Runtime:  flags.runtime,
+		Targets:  make([]envHostsMutationTargetOutput, 0, len(targets)),
+		Warnings: nil,
+	}
+
+	for _, target := range targets {
+		result, removeErr := envlocaltest.RemoveManagedHosts(target.Path, spec.blockName)
+		if removeErr == nil {
+			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
+				Error:  "",
+				Label:  target.Label,
+				Path:   target.Path,
+				Result: result,
+			})
+			if flags.jsonOutput {
+				continue
+			}
+			if result.Changed {
+				c.out.Successf("Removed managed hosts entries from %s", target.Path)
+				c.out.Printlnf("Backup saved to %s", result.BackupPath)
+			} else {
+				c.out.Printlnf("No managed localtest hosts entries found in %s", target.Path)
+			}
+			continue
+		}
+
+		if handled := printOptionalHostWarning(c.out, target, "remove", removeErr); handled {
+			output.Targets = append(output.Targets, envHostsMutationTargetOutput{
+				Error: humanHostsError(target, "remove", removeErr).Error(),
+				Label: target.Label,
+				Path:  target.Path,
+				Result: envlocaltest.HostsWriteResult{
+					BackupPath: "",
+					Changed:    false,
+				},
+			})
+			continue
+		}
+		return formatHostsCommandError(target, "remove", removeErr)
+	}
+
+	if flags.jsonOutput {
+		return printJSONOutput(c.out, "env hosts remove", output)
+	}
+	return nil
+}
+
+type localtestHostsSpec struct {
+	address   string
+	blockName string
+	hostnames []string
+}
+
+func (c *EnvCommand) localtestHostsSpec() ([]osutil.HostsTarget, localtestHostsSpec, error) {
+	hostsFileTargets := c.hostsFileTargets
+	if hostsFileTargets == nil {
+		hostsFileTargets = osutil.LocalHostsFileTargets
+	}
+	targets, err := hostsFileTargets()
+	if err != nil {
+		return nil, localtestHostsSpec{}, err
+	}
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	return targets, localtestHostsSpec{
+		address:   envlocaltest.HostsLoopbackAddress,
+		blockName: envlocaltest.HostsBlockName,
+		hostnames: topology.HostFileHostnames(),
+	}, nil
+}
+
+func localtestHostsAddWarnings() []string {
+	if !osutil.IsWSL() {
+		return nil
+	}
+	return []string{
+		"WSL note: studioctl opens URLs in the Windows browser; if local domains do not resolve there, also update the Windows hosts file manually (usually C:\\Windows\\System32\\drivers\\etc\\hosts).",
+	}
+}
+
+func (c *EnvCommand) inspectRequiredHostsTarget(
+	targets []osutil.HostsTarget,
+	spec localtestHostsSpec,
+) (osutil.HostsTarget, envlocaltest.HostsFileStatus, error) {
+	for _, target := range targets {
+		status, err := envlocaltest.InspectHostsFile(target.Path, spec.blockName, spec.address, spec.hostnames)
+		if err == nil {
+			return target, status, nil
+		}
+		if handled := appendOptionalHostStatusWarning(c.out, target, err); handled {
+			continue
+		}
+		return osutil.HostsTarget{}, envlocaltest.HostsFileStatus{}, fmt.Errorf(
+			"inspect hosts file %q: %w",
+			target.Path,
+			err,
+		)
+	}
+	return osutil.HostsTarget{}, envlocaltest.HostsFileStatus{}, errNoHostsFileTarget
+}
+
+func renderHostsByHostname(
+	status envlocaltest.HostsFileStatus,
+	address string,
+	hostnames []string,
+) []envHostsStatusHostOutput {
+	conflicts := make(map[string][]string, len(status.Conflicts))
+	for _, conflict := range status.Conflicts {
+		conflicts[conflict.Host] = conflict.Addresses
+	}
+	missing := make(map[string]struct{}, len(status.Missing))
+	for _, host := range status.Missing {
+		missing[host] = struct{}{}
+	}
+	rows := make([]envHostsStatusHostOutput, 0, len(hostnames))
+	for _, host := range hostnames {
+		switch {
+		case conflicts[host] != nil:
+			rows = append(rows, envHostsStatusHostOutput{
+				Detail: strings.Join(conflicts[host], ", "),
+				Host:   host,
+				State:  envlocaltest.HostsStateConflict,
+			})
+		case hasMissingHost(missing, host):
+			rows = append(rows, envHostsStatusHostOutput{
+				Detail: "",
+				Host:   host,
+				State:  envlocaltest.HostsStateMissing,
+			})
+		case status.Managed && status.State == envlocaltest.HostsStateInstalled:
+			rows = append(rows, envHostsStatusHostOutput{
+				Detail: address,
+				Host:   host,
+				State:  "managed",
+			})
+		default:
+			rows = append(rows, envHostsStatusHostOutput{
+				Detail: address,
+				Host:   host,
+				State:  envlocaltest.HostsStatePresent,
+			})
+		}
+	}
+	return rows
+}
+
+func hasMissingHost(missing map[string]struct{}, host string) bool {
+	_, ok := missing[host]
+	return ok
+}
+
+func appendHostsByHostnameRows(table *ui.Table, hosts []envHostsStatusHostOutput) {
+	for _, host := range hosts {
+		table.Row(ui.Text(host.Host), ui.Text(host.State), ui.Text(host.Detail))
+	}
+}
+
+func printHostWarnings(out *ui.Output, warnings []string) {
+	for _, warning := range warnings {
+		out.Warning(warning)
+	}
+}
+
+func appendOptionalHostStatusWarning(out *ui.Output, target osutil.HostsTarget, err error) bool {
+	if !target.Required {
+		out.Warningf("Skipping optional %s hosts file (%s): %v", target.Label, target.Path, err)
+		return true
+	}
+	return false
+}
+
+func printOptionalHostWarning(out *ui.Output, target osutil.HostsTarget, action string, err error) bool {
+	if target.Required {
+		return false
+	}
+	out.Warningf(
+		"Skipping optional %s hosts file during %s (%s): %v",
+		target.Label,
+		action,
+		target.Path,
+		humanHostsError(target, action, err),
+	)
+	return true
+}
+
+func formatHostsCommandError(target osutil.HostsTarget, action string, err error) error {
+	humanErr := humanHostsError(target, action, err)
+	return fmt.Errorf("%s hosts file %q: %w", action, target.Path, humanErr)
+}
+
+type hostsHumanError string
+
+func (e hostsHumanError) Error() string {
+	return string(e)
+}
+
+func humanHostsError(target osutil.HostsTarget, action string, err error) error {
+	var conflictErr *envlocaltest.HostsConflictError
+	switch {
+	case errors.As(err, &conflictErr):
+		return hostsHumanError("conflicting entries must be resolved manually: " + conflictErr.Error())
+	case osutil.IsPermissionError(err):
+		return hostsHumanError(hostsPermissionMessage(target, action))
+	default:
+		return err
+	}
+}
+
+func hostsPermissionMessage(target osutil.HostsTarget, action string) string {
+	switch target.Label {
+	case "Windows":
+		return fmt.Sprintf(
+			"%s requires administrator privileges\nrerun in an elevated PowerShell or edit %s manually",
+			action,
+			target.Path,
+		)
+	default:
+		return fmt.Sprintf(
+			"%s requires elevated privileges\nrerun with sudo:\n  sudo %s env hosts %s",
+			action,
+			osutil.CurrentBinPath(),
+			action,
+		)
+	}
 }
 
 // envLogsFlags holds parsed flags for the env logs command.

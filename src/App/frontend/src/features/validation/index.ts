@@ -70,6 +70,7 @@ export type WaitForValidation = (forceSave?: boolean) => Promise<void>;
 
 export type ValidationSliceState = {
   state: ValidationState;
+  otherDataElementBackendValidations: DataModelValidations;
 
   /**
    * If there are no frontend errors, but process next still returns validation errors,
@@ -81,7 +82,6 @@ export type ValidationSliceState = {
 
 export type ValidationState = {
   task: BaseValidation[];
-  dataModels: DataModelValidations;
 };
 
 export type DataModelValidations = {

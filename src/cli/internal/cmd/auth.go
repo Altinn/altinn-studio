@@ -376,12 +376,9 @@ func (c *AuthCommand) runLogout(_ context.Context, args []string) error {
 // confirmOverwrite prompts the user to confirm overwriting existing credentials.
 // Returns (confirmed, error) where error is ui.ErrInterrupted on Ctrl+C.
 func (c *AuthCommand) confirmOverwrite(ctx context.Context) (bool, error) {
-	c.out.Print("Overwrite existing credentials? [y/N]: ")
-	response, err := ui.ReadLine(ctx, os.Stdin)
+	confirmed, err := ui.Confirm(ctx, c.out, os.Stdin, "Overwrite existing credentials? [y/N]: ")
 	if err != nil {
-		c.out.Println("")
-		return false, fmt.Errorf("read confirmation: %w", err)
+		return false, fmt.Errorf("confirm overwrite: %w", err)
 	}
-	answer := strings.TrimSpace(strings.ToLower(string(response)))
-	return answer == "y" || answer == "yes", nil
+	return confirmed, nil
 }
