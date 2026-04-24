@@ -16,28 +16,30 @@ public class WorkflowHandlerTests
 {
     private static readonly TimeProvider FixedTime = TimeProvider.System;
 
+    private static readonly EngineSettings _defaultSettings = new()
+    {
+        DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+        DefaultStepRetryStrategy = RetryStrategy.None(),
+        DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
+        DatabaseRetryStrategy = RetryStrategy.None(),
+        MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+        MaxWorkflowsPerRequest = 100,
+        MaxStepsPerWorkflow = 50,
+        MaxLabels = 50,
+        HeartbeatInterval = TimeSpan.FromSeconds(3),
+        StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+        MaxReclaimCount = 3,
+        Concurrency = new ConcurrencySettings
+        {
+            MaxWorkers = 5,
+            MaxDbOperations = 5,
+            MaxHttpCalls = 5,
+        },
+    };
+
     private static WorkflowHandler CreateHandler(IWorkflowExecutor executor, EngineSettings? settings = null)
     {
-        settings ??= new EngineSettings
-        {
-            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
-            DefaultStepRetryStrategy = RetryStrategy.None(),
-            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-            DatabaseRetryStrategy = RetryStrategy.None(),
-            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-            MaxWorkflowsPerRequest = 100,
-            MaxStepsPerWorkflow = 50,
-            MaxLabels = 50,
-            HeartbeatInterval = TimeSpan.FromSeconds(3),
-            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-            MaxReclaimCount = 3,
-            Concurrency = new ConcurrencySettings
-            {
-                MaxWorkers = 5,
-                MaxDbOperations = 5,
-                MaxHttpCalls = 5,
-            },
-        };
+        settings ??= _defaultSettings;
 
         var buffer = new Mock<IWorkflowUpdateBuffer>();
         buffer
@@ -123,25 +125,9 @@ public class WorkflowHandlerTests
     public async Task Handle_StepRetryableError_WithRetries_WorkflowRequeued()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
-        var settings = new EngineSettings
+        var settings = _defaultSettings with
         {
-            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
-            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-            DatabaseRetryStrategy = RetryStrategy.None(),
-            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-            MaxWorkflowsPerRequest = 100,
-            MaxStepsPerWorkflow = 50,
-            MaxLabels = 50,
-            HeartbeatInterval = TimeSpan.FromSeconds(3),
-            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-            MaxReclaimCount = 3,
-            Concurrency = new ConcurrencySettings
-            {
-                MaxWorkers = 5,
-                MaxDbOperations = 5,
-                MaxHttpCalls = 5,
-            },
         };
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());
@@ -477,25 +463,9 @@ public class WorkflowHandlerTests
     public async Task Handle_RetryableError_ErrorHistory_IsPopulated()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
-        var settings = new EngineSettings
+        var settings = _defaultSettings with
         {
-            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
-            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-            DatabaseRetryStrategy = RetryStrategy.None(),
-            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-            MaxWorkflowsPerRequest = 100,
-            MaxStepsPerWorkflow = 50,
-            MaxLabels = 50,
-            HeartbeatInterval = TimeSpan.FromSeconds(3),
-            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-            MaxReclaimCount = 3,
-            Concurrency = new ConcurrencySettings
-            {
-                MaxWorkers = 5,
-                MaxDbOperations = 5,
-                MaxHttpCalls = 5,
-            },
         };
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());
@@ -519,5 +489,44 @@ public class WorkflowHandlerTests
         await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Single(workflow.Steps[0].ErrorHistory);
+    }
+
+    [Fact]
+    public async Task Handle_MultipleRetryableFailures_ErrorHistory_AccumulatesPopulatedEntries()
+    {
+        // Each Handle invocation represents one pickup by the processor. Simulate N retry cycles
+        // against the same in-memory workflow and verify every appended entry carries real data —
+        // this is the in-memory guard complementing the integration-level DB round-trip test.
+        const int cycles = 5;
+
+        var executor = MockExecutor(
+            Enumerable
+                .Range(0, cycles)
+                .Select(i => ExecutionResult.RetryableError($"fail-{i}", httpStatusCode: 500))
+                .ToArray()
+        );
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(1), maxRetries: cycles),
+        };
+        var handler = CreateHandler(executor.Object, settings);
+        var workflow = CreateWorkflow(CreateStep());
+
+        for (int i = 0; i < cycles; i++)
+        {
+            workflow.Status = PersistentItemStatus.Processing;
+            workflow.Steps[0].Status = PersistentItemStatus.Enqueued;
+            await handler.Handle(workflow, CancellationToken.None);
+        }
+
+        var entries = workflow.Steps[0].ErrorHistory;
+        Assert.Equal(cycles, entries.Count);
+        for (int i = 0; i < entries.Count; i++)
+        {
+            Assert.Equal($"fail-{i}", entries[i].Message);
+            Assert.Equal(500, entries[i].HttpStatusCode);
+            Assert.True(entries[i].WasRetryable);
+            Assert.True(entries[i].Timestamp > DateTimeOffset.MinValue);
+        }
     }
 }

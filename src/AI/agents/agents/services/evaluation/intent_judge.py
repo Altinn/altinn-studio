@@ -12,28 +12,37 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-_JUDGE_PROMPT_NAME = "llm-as-a-judge/intent_match_judge"
+_JUDGE_PROMPT_NAME = "intent_match"
 
 
-def _parse_judge_response(response: str) -> tuple[bool, str]:
-    """Extract (passed, reasoning) from the judge's JSON response."""
+def _parse_judge_response(response: str) -> tuple[bool | None, str]:
+    """Extract (passed, reasoning) from the judge's JSON response.
+
+    Returns None for passed when the output is unparsable, so callers can
+    skip score_validation rather than recording a misleading failing score.
+    """
     try:
         match = re.search(r"\{.*\}", response.strip(), re.DOTALL)
         if match:
             data = json.loads(match.group())
-            passed = int(data.get("score", 0)) == 1
+            raw_score = data.get("score")
+            if raw_score is None:
+                return None, f"Missing score field — raw response: {response[:200]}"
+            score = int(raw_score)
+            if score not in (0, 1):
+                return None, f"Invalid score value — raw response: {response[:200]}"
             reasoning = str(data.get("reasoning", ""))
-            return passed, reasoning
+            return score == 1, reasoning
     except Exception as e:
         log.warning("Failed to parse intent_match judge response: %s | raw: %.200s", e, response)
-    return False, f"Parse error — raw response: {response[:200]}"
+    return None, f"Parse error — raw response: {response[:200]}"
 
 
 async def run_intent_judge(
     user_goal: str,
     agent_plan: Optional[str],
     trace_id: str,
-) -> None:
+) -> bool:
     """Evaluate intent_match and write a boolean score to Langfuse.
 
     Compares the user's original goal against the agent's step_plan
@@ -42,13 +51,13 @@ async def run_intent_judge(
     """
     if not agent_plan:
         log.warning("intent_match: no agent_plan available — skipping evaluation")
-        return
+        return False
 
     try:
-        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME)
+        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME, local_path="llm-as-a-judge/intent_match")
     except FileNotFoundError:
         log.error("Judge prompt '%s' not found — skipping intent_match", _JUDGE_PROMPT_NAME)
-        return
+        return False
 
     user_message = (
         "## User's original goal\n"
@@ -68,9 +77,12 @@ async def run_intent_judge(
         )
     except Exception as e:
         log.warning("intent_match judge LLM call failed: %s", e)
-        return
+        return False
 
     passed, reasoning = _parse_judge_response(response)
+    if passed is None:
+        log.warning("intent_match: unparsable judge output — skipping score")
+        return False
 
     score_validation(
         name="intent_match",
@@ -85,3 +97,4 @@ async def run_intent_judge(
         trace_id,
         reasoning,
     )
+    return passed

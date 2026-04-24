@@ -43,6 +43,7 @@ type Client struct {
 	NetworkCreateFunc    func(ctx context.Context, cfg types.NetworkConfig) (string, error)
 	NetworkInspectFunc   func(ctx context.Context, nameOrID string) (types.NetworkInfo, error)
 	NetworkRemoveFunc    func(ctx context.Context, nameOrID string) error
+	VolumeRemoveFunc     func(ctx context.Context, name string, force bool) error
 	ContainerLogsFunc    func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
 	ContainerWaitFunc    func(ctx context.Context, nameOrID string) (int, error)
 
@@ -272,6 +273,15 @@ func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	c.recordCall("NetworkRemove", nameOrID)
 	if c.NetworkRemoveFunc != nil {
 		return c.NetworkRemoveFunc(ctx, nameOrID)
+	}
+	return nil
+}
+
+// VolumeRemove implements ContainerClient.
+func (c *Client) VolumeRemove(ctx context.Context, name string, force bool) error {
+	c.recordCall("VolumeRemove", name, force)
+	if c.VolumeRemoveFunc != nil {
+		return c.VolumeRemoveFunc(ctx, name, force)
 	}
 	return nil
 }

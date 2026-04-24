@@ -100,12 +100,17 @@ def get_prompt_content(prompt_name: str) -> str:
     return load_prompt(prompt_name)["content"]
 
 
-def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
+def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) -> tuple[str, object]:
     """Return ``(compiled_content, raw_langfuse_prompt)`` for use with LLM calls.
 
     Pass the raw prompt object to ``call_sync``/``call_async`` via
     ``langfuse_prompt=`` to link the generation to the prompt version in Langfuse.
     Falls back to the local file when Langfuse is unavailable (raw prompt is ``None``).
+
+    Args:
+        prompt_name: Name used to look up the prompt in Langfuse.
+        local_path: Local file path (relative to prompts dir, without .md) to use as
+            fallback. Defaults to ``prompt_name`` when omitted.
     """
     lf_prompt = get_raw_langfuse_prompt(prompt_name)
     if lf_prompt is not None:
@@ -114,7 +119,7 @@ def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
         except Exception as e:
             log.warning(f"Failed to compile Langfuse prompt '{prompt_name}': {e}")
             # Fall through to local prompt
-    return load_prompt(prompt_name)["content"], None
+    return load_prompt(local_path or prompt_name)["content"], None
 
 
 _IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")

@@ -34,6 +34,7 @@ const (
 	infraDir                  = "infra"
 	workflowEngineInfraDir    = "workflow-engine"
 	workflowEngineDbDataDir   = "workflow-engine-db"
+	workflowEngineDbVolume    = "localtest-workflow-engine-db-data"
 	localtestServicePort      = "5101"
 
 	postgresHealthInterval    = 10 * time.Second
@@ -101,6 +102,7 @@ func newVolume(hostPath, containerPath string) types.VolumeMount {
 		HostPath:      hostPath,
 		ContainerPath: containerPath,
 		ReadOnly:      false,
+		Type:          types.VolumeMountTypeBind,
 	}
 }
 
@@ -109,6 +111,16 @@ func newReadOnlyVolume(hostPath, containerPath string) types.VolumeMount {
 		HostPath:      hostPath,
 		ContainerPath: containerPath,
 		ReadOnly:      true,
+		Type:          types.VolumeMountTypeBind,
+	}
+}
+
+func newNamedVolume(name, containerPath string) types.VolumeMount {
+	return types.VolumeMount{
+		HostPath:      name,
+		ContainerPath: containerPath,
+		ReadOnly:      false,
+		Type:          types.VolumeMountTypeVolume,
 	}
 }
 
@@ -227,8 +239,8 @@ func workflowEngineDbContainerSpec(dataDir string) ContainerSpec {
 			"TZ":                "Europe/Oslo",
 		},
 		[]types.VolumeMount{
-			newVolume(
-				workflowEngineDbDataPath(dataDir),
+			newNamedVolume(
+				workflowEngineDbVolume,
 				"/var/lib/postgresql",
 			),
 			newReadOnlyVolume(
@@ -469,18 +481,21 @@ func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResourc
 	images := buildRemoteCoreImages(opts.Images.Core)
 
 	images[ContainerLocaltest] = &resource.LocalImage{
+		Enabled:     nil,
 		ContextPath: opts.DevConfig.LocaltestContextPath(),
 		Dockerfile:  opts.DevConfig.LocaltestDockerfile(),
 		Build:       buildCacheOptions(buildCacheRefLocaltest),
 		Tag:         devImageTagLocaltest,
 	}
 	images[ContainerPDF3] = &resource.LocalImage{
+		Enabled:     nil,
 		ContextPath: opts.DevConfig.PDF3ContextPath(),
 		Dockerfile:  opts.DevConfig.PDF3Dockerfile(),
 		Build:       buildCacheOptions(buildCacheRefPDF3),
 		Tag:         devImageTagPDF3,
 	}
 	images[ContainerWorkflowEngine] = &resource.LocalImage{
+		Enabled:     nil,
 		ContextPath: opts.DevConfig.WorkflowEngineContextPath(),
 		Dockerfile:  opts.DevConfig.WorkflowEngineDockerfile(),
 		Build: types.BuildOptions{
@@ -514,22 +529,27 @@ func buildCacheOptions(ref string) types.BuildOptions {
 func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageResource {
 	return map[string]resource.ImageResource{
 		ContainerLocaltest: &resource.RemoteImage{
+			Enabled:    nil,
 			Ref:        core.Localtest.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerPDF3: &resource.RemoteImage{
+			Enabled:    nil,
 			Ref:        core.PDF3.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerWorkflowEngineDb: &resource.RemoteImage{
+			Enabled:    nil,
 			Ref:        core.WorkflowEngineDb.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerWorkflowEngine: &resource.RemoteImage{
+			Enabled:    nil,
 			Ref:        core.WorkflowEngine.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerPgAdmin: &resource.RemoteImage{
+			Enabled:    nil,
 			Ref:        core.PgAdmin.Ref(),
 			PullPolicy: resource.PullIfNotPresent,
 		},
@@ -557,9 +577,10 @@ func buildResourcesWithMode(
 	resources := make([]resource.Resource, 0, capacity)
 
 	network := &resource.Network{
-		Name:   NetworkName,
-		Driver: "bridge",
-		Labels: labels,
+		Enabled: nil,
+		Name:    NetworkName,
+		Driver:  "bridge",
+		Labels:  labels,
 		Lifecycle: resource.LifecycleOptions{
 			// When apps are started with `studioctl run --mode container ..`
 			// we might have active containers attached to the network
@@ -593,6 +614,7 @@ func buildResourcesWithMode(
 		for i := range mon {
 			spec := &mon[i]
 			image := &resource.RemoteImage{
+				Enabled:    nil,
 				Ref:        monImages[spec.Name],
 				PullPolicy: resource.PullIfNotPresent,
 			}
@@ -624,6 +646,7 @@ func newContainerResource(
 			HealthCheck: nil,
 			Name:        spec.Name,
 			Image:       resource.Ref(imageRes),
+			Enabled:     nil,
 			Networks:    []resource.ResourceRef{network},
 			DependsOn:   nil,
 			Lifecycle: resource.ContainerLifecycleOptions{
@@ -653,6 +676,7 @@ func newContainerResource(
 		HealthCheck: spec.HealthCheck,
 		Name:        spec.Name,
 		Image:       resource.Ref(imageRes),
+		Enabled:     nil,
 		Networks:    []resource.ResourceRef{network},
 		DependsOn:   containerDependencyRefs(spec.Dependencies),
 		Ports:       spec.Ports,
@@ -714,6 +738,9 @@ func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
 		spec := &all[i]
 		for j := range spec.Volumes {
 			volume := spec.Volumes[j]
+			if !isBindMount(volume) {
+				continue
+			}
 			if _, ok := seen[volume.HostPath]; ok {
 				continue
 			}
@@ -725,6 +752,10 @@ func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
 		}
 	}
 	return result
+}
+
+func isBindMount(volume types.VolumeMount) bool {
+	return volume.Type == "" || volume.Type == types.VolumeMountTypeBind
 }
 
 // ValidateResourceHostPaths ensures all bind-mounted host paths exist and have expected type.

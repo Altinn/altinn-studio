@@ -7,6 +7,7 @@ var errNetworkNameRequired = errors.New("network name is required")
 // Network is a resource representing a container network.
 // It is a pure value type - use Executor to apply to infrastructure.
 type Network struct {
+	Enabled   *bool
 	Labels    map[string]string
 	Lifecycle LifecycleOptions
 	Name      string
@@ -34,6 +35,11 @@ func (n *Network) NetworkName() string {
 	return n.Name
 }
 
+// IsEnabled reports whether this network participates in graph execution.
+func (n *Network) IsEnabled() bool {
+	return Enabled(n.Enabled)
+}
+
 // Validate checks that the network configuration is valid.
 func (n *Network) Validate() error {
 	if n.Name == "" {
@@ -54,5 +60,6 @@ var (
 	_ Resource                 = (*Network)(nil)
 	_ NetworkResource          = (*Network)(nil)
 	_ Validator                = (*Network)(nil)
+	_ EnablementProvider       = (*Network)(nil)
 	_ LifecycleOptionsProvider = (*Network)(nil)
 )

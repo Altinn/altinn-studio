@@ -4,13 +4,14 @@ import type { PropsWithChildren } from 'react';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { UpdateDataElementIdsForCypress } from 'src/features/form/DataElementIdsForCypress';
-import { FormProviderHooks, FormProviderInternal } from 'src/features/form/FormContext';
+import { FormProviderInternal, FormStore, getRootFormStore } from 'src/features/form/FormContext';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
@@ -54,7 +55,8 @@ export function FormProvider({
   readOnly = false,
   ...props
 }: React.PropsWithChildren<FormProviderProps & Pick<FormContext, 'readOnly'>>) {
-  const isEmbedded = FormProviderHooks.useIsInContext();
+  const parentFromContext = FormStore.raw.useLaxStore();
+  const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
   const { error, bootstrap: bootstrapBase, layouts: bootstrapLayouts, enabled } = useBoostrapQuery(props);
   const layouts = useLayoutOverrides(bootstrapLayouts);
@@ -79,6 +81,21 @@ export function FormProvider({
   const bootstrapBaseRef = useRef(bootstrapBase);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
 
+  useEffect(() => {
+    // This injects validations for subform data elements into the top-most form store. They are maintained by
+    // the top-most FormProvider running <BackendValidations /> which also updates when subform validations change.
+    // This is needed for the top-form to be able to indicate subforms with errors.
+    if (parent && bootstrap && props.dataElementIdOverride !== undefined) {
+      for (const model of Object.values(bootstrap.dataModels)) {
+        if (model.dataElementId === props.dataElementIdOverride && model.initialValidationIssues) {
+          getRootFormStore(parent)
+            .getState()
+            .validation.setOtherDataElementBackendValidations(model.dataElementId, model.initialValidationIssues);
+        }
+      }
+    }
+  }, [bootstrap, parent, props.dataElementIdOverride]);
+
   if (!enabled) {
     // No point in trying to render a form here, but this can still happen when FormProvider is applied for all tasks
     // without actually checking the task type (such as in src/index.tsx). Only data-tasks, subforms, custom receipt and
@@ -102,7 +119,7 @@ export function FormProvider({
     // When the bootstrap query changes, or if it's the first render, we should wipe the store and restart. This usually
     // means we're moved to another task while keeping a similar enough render-tree to cause this to be re-used. The
     // layouts can change without all of this being reset, however.
-    storeRef.current = createFormStore({ nodes: { isEmbedded, readOnly }, data: dataSliceProps, bootstrap });
+    storeRef.current = createFormStore({ parent, nodes: { readOnly }, data: dataSliceProps, bootstrap });
     bootstrapBaseRef.current = bootstrapBase;
   }
 
@@ -178,16 +195,19 @@ function useBoostrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProvi
 }
 
 function createFormStore({
+  parent,
   data,
   nodes,
   bootstrap,
 }: {
+  parent: FormStoreApi | undefined;
   data: FormDataSliceProps;
   nodes: NodesSliceProps;
   bootstrap: FormBootstrapContextValue;
 }): FormStoreApi {
   return createStore<FormStoreState>()(
     immer((set: FormStoreSet) => ({
+      parent,
       data: createFormDataWriteSlice(data, set),
       validation: createValidationSlice(bootstrap, set),
       nodes: createNodesSlice(nodes, set),
