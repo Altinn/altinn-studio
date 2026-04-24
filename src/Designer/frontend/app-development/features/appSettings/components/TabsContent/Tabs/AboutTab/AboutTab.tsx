@@ -1,7 +1,12 @@
 import type { ReactElement } from 'react';
 import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioValidationMessage } from '@studio/components';
+import {
+  StudioCard,
+  StudioHeading,
+  StudioParagraph,
+  StudioValidationMessage,
+} from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
@@ -27,6 +32,7 @@ export function AboutTab(): ReactElement {
 
 function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
+  const { t } = useTranslation();
 
   const { mutate: saveApplicationMetadata } = useAppMetadataMutation(org, app);
   const {
@@ -55,12 +61,36 @@ function AboutTabContent(): ReactElement {
     case 'success': {
       return (
         <div className={classes.wrapper}>
-          <AppConfigForm
-            appConfig={appMetadata}
-            saveAppConfig={(updatedAppConfig: ApplicationMetadata) =>
-              setApplicationMetadata(updatedAppConfig)
-            }
-          />
+          <div>
+            <AppConfigForm
+              appConfig={appMetadata}
+              saveAppConfig={(updatedAppConfig: ApplicationMetadata) =>
+                setApplicationMetadata(updatedAppConfig)
+              }
+            />
+          </div>
+          <div className={classes.cardContainer}>
+            <StudioCard>
+              <StudioCard.Block>
+                <img
+                  src='/img/illustration_about-page.png'
+                  alt={t('app_settings.about_tab_image_alt_text')}
+                />
+              </StudioCard.Block>
+              <StudioCard.Block className={classes.cardContent}>
+                <StudioHeading level={3}>Hvorfor må du beskrive appen?</StudioHeading>
+                <StudioParagraph>
+                  Du må beskrive appen du har laget i Altinn Studio for å fortelle tilgangsstyring i
+                  Altinn at tjenesten din finnes. Da får appen tilgang til Altinn Autorisasjon, og
+                  sluttbrukerne får tilgang til skjema og andre tjenester du lager.
+                </StudioParagraph>
+                <StudioParagraph>
+                  Du beskriver appen på denne siden og beskrivelsen registreres i Altinn
+                  (ressursregisteret) når du har publisert appen.
+                </StudioParagraph>
+              </StudioCard.Block>
+            </StudioCard>
+          </div>
         </div>
       );
     }
