@@ -99,6 +99,60 @@ describe('useAltinityWorkflow', () => {
     expect(threads.persistMessage).not.toHaveBeenCalledWith('backend-session', expect.anything());
   });
 
+  it('persists assistant message to the submission thread even when the user has switched to another thread', async () => {
+    const threads = createThreadState({ currentSessionId: 'thread-a' });
+    threads.currentSessionIdRef.current = 'thread-a';
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAltinityWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      sessionId: 'backend-session',
+      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'backend-session' }),
+      cancelWorkflow: jest.fn(),
+      onAgentMessage: jest.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAltinityWorkflow(threads);
+
+    const userMessage: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello from thread A',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    await act(async () => {
+      await result.current.onSubmitUserMessage(userMessage);
+    });
+
+    // Simulate the user switching threads before the assistant responds
+    threads.currentSessionIdRef.current = 'thread-b';
+
+    const assistantMessageEvent: AssistantMessageEvent = {
+      type: 'assistant_message',
+      session_id: 'backend-session',
+      data: { content: 'Assistant reply for thread A' },
+    };
+
+    await act(async () => {
+      capturedOnAgentMessage!(assistantMessageEvent);
+    });
+
+    expect(threads.persistMessage).toHaveBeenCalledWith(
+      'thread-a',
+      expect.objectContaining({
+        role: MessageAuthor.Assistant,
+        content: 'Assistant reply for thread A',
+      }),
+    );
+    expect(threads.persistMessage).not.toHaveBeenCalledWith('thread-b', expect.anything());
+  });
+
   it('creates thread and starts workflow for new session', async () => {
     const threads = createThreadState();
     const startWorkflow = jest.fn<Promise<AgentResponse>, [WorkflowRequest]>().mockResolvedValue({
