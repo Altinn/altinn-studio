@@ -29,7 +29,7 @@ import { useAppErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useAp
 import { AppErrorMetric } from './AppErrorMetric';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 ChartJS.register(LinearScale, BarElement, ArcElement, Title, Tooltip, Filler, TimeScale);
 
@@ -39,7 +39,11 @@ export type AppMetricsProps = {
 };
 
 export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
-  const { owner: org, environment, app } = useRoutePathsParams();
+  const {
+    owner: org,
+    environment,
+    app,
+  } = useRequiredRoutePathsParams(['owner', 'environment', 'app']);
   const { t } = useTranslation();
 
   const envTitle = useEnvironmentTitle(environment);

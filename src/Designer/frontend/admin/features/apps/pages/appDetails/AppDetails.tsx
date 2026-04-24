@@ -6,10 +6,14 @@ import { Instances } from '../instances/Instances';
 import { AppInfo } from './components/AppInfo';
 import { Breadcrumbs } from 'admin/features/apps/components/Breadcrumbs/Breadcrumbs';
 import { DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 export const AppsDetails = () => {
-  const { owner: org, environment, app } = useRoutePathsParams();
+  const {
+    owner: org,
+    environment,
+    app,
+  } = useRequiredRoutePathsParams(['owner', 'environment', 'app']);
   const defaultRange = DEFAULT_SEARCH_PARAMS.range;
   const [range, setRange] = useQueryParamState<number>('range', defaultRange);
 

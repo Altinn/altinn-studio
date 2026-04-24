@@ -2,10 +2,15 @@ import { StudioHeading } from '@studio/components';
 import { InstanceDataView } from './components/InstanceDataView';
 import { Breadcrumbs } from '../../components/Breadcrumbs/Breadcrumbs';
 import classes from './InstanceDetails.module.css';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 export const InstanceDetails = () => {
-  const { owner: org, app, environment, instanceId } = useRoutePathsParams();
+  const {
+    owner: org,
+    app,
+    environment,
+    instanceId,
+  } = useRequiredRoutePathsParams(['owner', 'environment', 'app', 'instanceId']);
 
   return (
     <div className={classes.container}>

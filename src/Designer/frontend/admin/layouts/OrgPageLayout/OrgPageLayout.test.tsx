@@ -5,10 +5,17 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Outlet: () => <div>Outlet</div>,
+}));
+jest.mock('./WebSocketSyncWrapper', () => ({
+  WebSocketSyncWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+jest.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
+  useRequiredRoutePathsParams: jest.fn(() => ({ owner: 'ttd' })),
 }));
 
 const userMock = {
@@ -47,6 +54,11 @@ const renderOrgPageLayout = ({
 };
 
 describe('OrgPageLayout', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+    (useRequiredRoutePathsParams as jest.Mock).mockReturnValue({ owner: 'ttd' });
+  });
+
   it('renders the outlet when org is found', () => {
     renderOrgPageLayout();
     expect(screen.getByText('Outlet')).toBeInTheDocument();
@@ -73,6 +85,7 @@ describe('OrgPageLayout', () => {
   });
 
   it('renders the not-found page when org is not in the list', () => {
+    (useRequiredRoutePathsParams as jest.Mock).mockReturnValue({ owner: 'unknown-org' });
     renderOrgPageLayout({ initialEntries: ['/unknown-org/apps'] });
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
@@ -80,6 +93,7 @@ describe('OrgPageLayout', () => {
   });
 
   it('renders NoOrgSelected when user login equals org parameter', () => {
+    (useRequiredRoutePathsParams as jest.Mock).mockReturnValue({ owner: 'testuser' });
     renderOrgPageLayout({ initialEntries: ['/testuser/apps'] });
     expect(screen.getByText(textMock('admin.apps.alert_no_org_selected'))).toBeInTheDocument();
   });

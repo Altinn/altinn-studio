@@ -6,7 +6,7 @@ import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses'
 import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';
 import type { AlertsUpdated } from 'app-shared/types/api/AlertsUpdated';
 import { AlertsUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/AlertsUpdatedQueriesInvalidator';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 enum SyncAlertsClientName {
   AlertsUpdated = 'AlertsUpdated',
@@ -18,7 +18,7 @@ type WebSocketSyncWrapperProps = {
 export const WebSocketSyncWrapper = ({
   children,
 }: WebSocketSyncWrapperProps): React.ReactElement => {
-  const { owner } = useRoutePathsParams();
+  const { owner } = useRequiredRoutePathsParams(['owner']);
   const queryClient = useQueryClient();
   const alertsUpdateInvalidator = AlertsUpdatedQueriesInvalidator.getInstance(queryClient, owner);
 

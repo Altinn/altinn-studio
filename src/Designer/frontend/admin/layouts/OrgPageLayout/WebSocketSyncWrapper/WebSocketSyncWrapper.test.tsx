@@ -14,8 +14,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
-jest.mock('admin/hooks/useRoutePathsParams', () => ({
-  useRoutePathsParams: () => ({ owner: org, app }),
+jest.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
+  useRequiredRoutePathsParams: () => ({ owner: org, app }),
 }));
 
 describe('WebSocketSyncWrapper', () => {

@@ -7,12 +7,10 @@ import { appContentWrapperId } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 const mockNavigate = jest.fn();
 
-jest.mock('./WebSocketSyncWrapper', () => ({
-  WebSocketSyncWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Outlet: () => <div>Outlet</div>,
@@ -45,6 +43,9 @@ jest.mock('app-shared/components/PageHeader/PageHeader', () => ({
     </>
   ),
 }));
+jest.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
+  useRequiredRoutePathsParams: jest.fn(() => ({ owner: 'ttd' })),
+}));
 
 const scrollToMock = jest.fn();
 Object.defineProperty(window, 'scrollTo', { value: scrollToMock, writable: true });
@@ -72,6 +73,7 @@ const renderPageLayout = (initialEntries = ['/ttd/apps']) => {
 describe('PageLayout', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    (useRequiredRoutePathsParams as jest.Mock).mockReturnValue({ owner: 'ttd' });
   });
 
   it('renders the app content wrapper', () => {

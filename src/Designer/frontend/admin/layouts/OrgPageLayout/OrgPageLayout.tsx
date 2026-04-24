@@ -7,11 +7,12 @@ import { NotFound } from '../../components/NotFound/NotFound';
 import { OrgContext } from '../../contexts/OrgContext';
 import { StudioPageError } from 'app-shared/components';
 import { NoOrgSelected } from 'admin/components/NoOrgSelected/NoOrgSelected';
-import { useRoutePathsParams } from 'admin/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
+import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 
 export const OrgPageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
-  const { owner: org } = useRoutePathsParams();
+  const { owner: org } = useRequiredRoutePathsParams(['owner']);
   const { data: user, isPending: isUserPending, isError: isUserError } = useUserQuery();
   const {
     data: organizations,
@@ -42,8 +43,10 @@ export const OrgPageLayout = (): React.ReactNode => {
   }
 
   return (
-    <OrgContext.Provider value={currentOrg}>
-      <Outlet />
-    </OrgContext.Provider>
+    <WebSocketSyncWrapper>
+      <OrgContext.Provider value={currentOrg}>
+        <Outlet />
+      </OrgContext.Provider>
+    </WebSocketSyncWrapper>
   );
 };
