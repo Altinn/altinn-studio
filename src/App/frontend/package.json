@@ -193,7 +193,7 @@
         "localhost",
         "localhost:8080",
         "app-frontend.local.altinn.cloud",
-        "app-frontend.local.altinn.cloud:8000",
+        "app-frontend.local.altinn.cloud:8080",
         "altinncdn.no"
       ],
       "launch-options": {
