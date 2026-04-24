@@ -193,7 +193,7 @@ internal class ProcessEngine : IProcessEngine
             ct: ct
         );
 
-        WorkflowFamilyResult result = await WaitForWorkflowFamilyAndRefetchInstance(instance, rootWorkflowId, ct);
+        WorkflowHierarchyResult result = await WaitForWorkflowHierarchyAndRefetchInstance(instance, rootWorkflowId, ct);
         if (result.WorkflowFailure is null)
         {
             return result.Instance;
@@ -713,7 +713,7 @@ internal class ProcessEngine : IProcessEngine
             ct: ct
         );
 
-        WorkflowFamilyResult result = await WaitForWorkflowFamilyAndRefetchInstance(instance, rootWorkflowId, ct);
+        WorkflowHierarchyResult result = await WaitForWorkflowHierarchyAndRefetchInstance(instance, rootWorkflowId, ct);
 
         return new MoveToNextResult(
             result.Instance,
@@ -842,7 +842,7 @@ internal class ProcessEngine : IProcessEngine
         public bool IsEndEvent => ProcessStateChange?.NewProcessState?.Ended is not null;
     };
 
-    private sealed record WorkflowFamilyResult(
+    private sealed record WorkflowHierarchyResult(
         Instance Instance,
         WorkflowFailure? WorkflowFailure,
         bool ProcessStateChanged
@@ -927,7 +927,7 @@ internal class ProcessEngine : IProcessEngine
         return true;
     }
 
-    private async Task<WorkflowFamilyResult> WaitForWorkflowFamilyAndRefetchInstance(
+    private async Task<WorkflowHierarchyResult> WaitForWorkflowHierarchyAndRefetchInstance(
         Instance instance,
         Guid rootWorkflowId,
         CancellationToken ct
@@ -937,7 +937,7 @@ internal class ProcessEngine : IProcessEngine
         int currentDelayMs = InitialWorkflowPollingDelayMs;
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
-        IReadOnlyList<WorkflowStatusResponse> lastObservedFamily = [];
+        IReadOnlyList<WorkflowStatusResponse> lastObservedHierarchy = [];
 
         while (!ct.IsCancellationRequested)
         {
@@ -946,27 +946,27 @@ internal class ProcessEngine : IProcessEngine
                 rootWorkflowId,
                 cancellationToken: ct
             );
-            IReadOnlyList<WorkflowStatusResponse> family = hierarchy?.Workflows ?? [];
-            if (family.Count > 0)
+            IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows = hierarchy?.Workflows ?? [];
+            if (hierarchyWorkflows.Count > 0)
             {
-                lastObservedFamily = family;
+                lastObservedHierarchy = hierarchyWorkflows;
 
-                if (!family.Any(IsActiveWorkflowStatus))
+                if (!hierarchyWorkflows.Any(IsActiveWorkflowStatus))
                 {
                     Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
-                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(family);
-                    bool processStateChanged = HasCommittedProcessState(family);
-                    return new WorkflowFamilyResult(freshInstance, workflowFailure, processStateChanged);
+                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(hierarchyWorkflows);
+                    bool processStateChanged = HasCommittedProcessState(hierarchyWorkflows);
+                    return new WorkflowHierarchyResult(freshInstance, workflowFailure, processStateChanged);
                 }
             }
 
             if (stopwatch.ElapsedMilliseconds > WorkflowPollingTimeoutMs)
             {
                 Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
-                return new WorkflowFamilyResult(
+                return new WorkflowHierarchyResult(
                     freshInstance,
                     new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-                    HasCommittedProcessState(lastObservedFamily)
+                    HasCommittedProcessState(lastObservedHierarchy)
                 );
             }
 
@@ -984,16 +984,16 @@ internal class ProcessEngine : IProcessEngine
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued;
 
-    private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> family) =>
-        family.Any(workflow =>
+    private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
+        hierarchyWorkflows.Any(workflow =>
             workflow.Steps.Any(step =>
                 step.OperationId == SaveProcessStateToStorage.Key && step.Status == PersistentItemStatus.Completed
             )
         );
 
-    private static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> family)
+    private static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {
-        WorkflowStatusResponse? stepFailedWorkflow = family.FirstOrDefault(workflow =>
+        WorkflowStatusResponse? stepFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
             workflow.OverallStatus == PersistentItemStatus.Failed
             && workflow.Steps.Any(step => step.Status == PersistentItemStatus.Failed)
         );
@@ -1016,7 +1016,7 @@ internal class ProcessEngine : IProcessEngine
             };
         }
 
-        WorkflowStatusResponse? dependencyFailedWorkflow = family.FirstOrDefault(workflow =>
+        WorkflowStatusResponse? dependencyFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
             workflow.OverallStatus == PersistentItemStatus.DependencyFailed
         );
         if (dependencyFailedWorkflow is not null)
@@ -1029,7 +1029,7 @@ internal class ProcessEngine : IProcessEngine
             };
         }
 
-        WorkflowStatusResponse? engineFaultWorkflow = family.FirstOrDefault(workflow =>
+        WorkflowStatusResponse? engineFaultWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
             workflow.OverallStatus is PersistentItemStatus.Failed or PersistentItemStatus.Canceled
         );
         if (engineFaultWorkflow is not null)

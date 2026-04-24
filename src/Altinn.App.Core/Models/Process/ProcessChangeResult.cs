@@ -170,7 +170,7 @@ public enum WorkflowFailureKind
     EngineFault,
 
     /// <summary>
-    /// Polling timed out before the workflow family reached a terminal state.
+    /// Polling timed out before the workflow hierarchy reached a terminal state.
     /// </summary>
     Timeout,
 }
