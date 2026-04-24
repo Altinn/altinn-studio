@@ -43,7 +43,7 @@
       Method: {
         Method: GET
       },
-      RequestUri: http://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/7d02fcac-d1e6-478a-a048-85eba12a8086,
+      RequestUri: http://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2,
       Headers: {
         Authorization: [
           Bearer <token>
@@ -56,7 +56,7 @@
     IsSuccessStatusCode: true
   },
   Response: {
-    Id: 501337/7d02fcac-d1e6-478a-a048-85eba12a8086,
+    Id: 501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2,
     InstanceOwner: {
       PartyId: 501337,
       PersonNumber: 01039012345
@@ -64,8 +64,8 @@
     AppId: ttd/basic,
     Org: ttd,
     SelfLinks: {
-      Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/7d02fcac-d1e6-478a-a048-85eba12a8086,
-      Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/7d02fcac-d1e6-478a-a048-85eba12a8086
+      Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2,
+      Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2
     },
     VisibleAfter: DateTime_1,
     Process: {
@@ -92,10 +92,10 @@
         InstanceGuid: Guid_2,
         DataType: model,
         ContentType: application/xml,
-        BlobStoragePath: ttd/basic/7d02fcac-d1e6-478a-a048-85eba12a8086/data/3a83e6b5-aa78-46c2-9108-83f931ae2a12,
+        BlobStoragePath: ttd/basic/51fbad88-dd36-40c8-9aaa-76916c6e97f2/data/99fd845f-f127-4483-a32d-0a2e4bbb274a,
         SelfLinks: {
-          Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/7d02fcac-d1e6-478a-a048-85eba12a8086/data/3a83e6b5-aa78-46c2-9108-83f931ae2a12,
-          Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/7d02fcac-d1e6-478a-a048-85eba12a8086/data/3a83e6b5-aa78-46c2-9108-83f931ae2a12
+          Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2/data/99fd845f-f127-4483-a32d-0a2e4bbb274a,
+          Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/51fbad88-dd36-40c8-9aaa-76916c6e97f2/data/99fd845f-f127-4483-a32d-0a2e4bbb274a
         },
         Size: 200,
         Locked: true,

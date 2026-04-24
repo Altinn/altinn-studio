@@ -17,6 +17,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<ProcessTaskResolver>();
         services.AddTransient<ProcessNextRequestFactory>();
         services.AddTransient<InstanceStateService>();
+        services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
         services.AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>();
 
         // Process engine callback handlers - TaskStart

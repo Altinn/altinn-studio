@@ -1397,6 +1397,7 @@ public sealed class ProcessEngineTest
                 .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next"));
             services.TryAddTransient<IWorkflowEngineClient>(_ => processEngineClientMock.Object);
+            services.TryAddTransient<IWorkflowEngineService, WorkflowEngineService>();
 
             services.TryAddSingleton(new AppIdentifier("org", "app"));
             services.AddSingleton(

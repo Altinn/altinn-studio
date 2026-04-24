@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-using System.Text;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -16,10 +14,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
-using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -39,9 +34,6 @@ namespace Altinn.App.Core.Internal.Process;
 internal class ProcessEngine : IProcessEngine
 {
     private const int MaxNextIterationsAllowed = 100;
-    private const int WorkflowPollingTimeoutMs = 100_000;
-    private const int InitialWorkflowPollingDelayMs = 100;
-    private const int MaxWorkflowPollingDelayMs = 2_000;
 
     private readonly IProcessReader _processReader;
     private readonly IProcessNavigator _processNavigator;
@@ -53,11 +45,9 @@ internal class ProcessEngine : IProcessEngine
     private readonly IProcessEngineAuthorizer _processEngineAuthorizer;
     private readonly ILogger<ProcessEngine> _logger;
     private readonly IValidationService _validationService;
-    private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly InstanceStateService _instanceStateService;
-    private readonly IWorkflowEngineClient _workflowEngineClient;
+    private readonly IWorkflowEngineService _workflowEngineService;
     private readonly IInstanceClient _instanceClient;
-    private readonly AppIdentifier _appIdentifier;
     private readonly IInstanceLocker _instanceLocker;
 
     /// <summary>
@@ -71,7 +61,7 @@ internal class ProcessEngine : IProcessEngine
         IServiceProvider serviceProvider,
         IProcessEngineAuthorizer processEngineAuthorizer,
         IValidationService validationService,
-        IWorkflowEngineClient workflowEngineClient,
+        IWorkflowEngineService workflowEngineService,
         ILogger<ProcessEngine> logger,
         Telemetry? telemetry = null
     )
@@ -84,13 +74,11 @@ internal class ProcessEngine : IProcessEngine
         _processEngineAuthorizer = processEngineAuthorizer;
         _validationService = validationService;
         _logger = logger;
-        _workflowEngineClient = workflowEngineClient;
-        _processNextRequestFactory = serviceProvider.GetRequiredService<ProcessNextRequestFactory>();
+        _workflowEngineService = workflowEngineService;
         _instanceStateService = serviceProvider.GetRequiredService<InstanceStateService>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _instanceClient = serviceProvider.GetRequiredService<IInstanceClient>();
-        _appIdentifier = serviceProvider.GetRequiredService<AppIdentifier>();
         _instanceLocker = serviceProvider.GetRequiredService<IInstanceLocker>();
     }
 
@@ -181,19 +169,16 @@ internal class ProcessEngine : IProcessEngine
         );
         string state = await _instanceStateService.CaptureState(unitOfWork);
 
-        string rootWorkflowIdempotencyKey = CreateProcessNextIdempotencyKey(instance, resolvedAction: "start");
-        Guid rootWorkflowId = await CreateAndEnqueueWorkflow(
+        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
             instance,
             processStateChange,
-            rootWorkflowIdempotencyKey,
+            resolvedAction: "start",
             lockToken,
             state,
             prefill: prefill,
             notification: notification,
             ct: ct
         );
-
-        WorkflowHierarchyResult result = await WaitForWorkflowHierarchyAndRefetchInstance(instance, rootWorkflowId, ct);
         if (result.WorkflowFailure is null)
         {
             return result.Instance;
@@ -695,8 +680,6 @@ internal class ProcessEngine : IProcessEngine
         );
 
         string state = await _instanceStateService.CaptureState(unitOfWork);
-        string rootWorkflowIdempotencyKey = CreateProcessNextIdempotencyKey(instance, resolvedAction);
-
         ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
 
         if (processStateChange is null)
@@ -704,16 +687,14 @@ internal class ProcessEngine : IProcessEngine
             return new MoveToNextResult(instance, null);
         }
 
-        Guid rootWorkflowId = await CreateAndEnqueueWorkflow(
+        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
             instance,
             processStateChange,
-            rootWorkflowIdempotencyKey,
+            resolvedAction,
             lockToken,
             state,
             ct: ct
         );
-
-        WorkflowHierarchyResult result = await WaitForWorkflowHierarchyAndRefetchInstance(instance, rootWorkflowId, ct);
 
         return new MoveToNextResult(
             result.Instance,
@@ -737,56 +718,15 @@ internal class ProcessEngine : IProcessEngine
         PlatformUser user = CreatePlatformUser(actor);
         ProcessStateChange processStateChange = await ComputeNextTransition(instance, action, user);
 
-        await CreateAndEnqueueWorkflow(
+        await _workflowEngineService.EnqueueDependentProcessNext(
             instance,
             processStateChange,
-            CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
             lockToken,
+            dependsOnWorkflowId,
             state,
-            actor: actor,
-            dependsOn: [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
+            actor,
             ct: ct
         );
-    }
-
-    /// <summary>
-    /// Creates a workflow enqueue request from a process state change and sends it to the workflow engine.
-    /// Returns the database ID of the enqueued workflow.
-    /// </summary>
-    private async Task<Guid> CreateAndEnqueueWorkflow(
-        Instance instance,
-        ProcessStateChange processStateChange,
-        string idempotencyKey,
-        string lockToken,
-        string? state = null,
-        Actor? actor = null,
-        IEnumerable<WorkflowRef>? dependsOn = null,
-        Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null,
-        CancellationToken ct = default
-    )
-    {
-        WorkflowEnqueueBundle bundle = await _processNextRequestFactory.Create(
-            instance,
-            processStateChange,
-            lockToken,
-            state,
-            actor: actor,
-            dependsOn: dependsOn,
-            prefill: prefill,
-            notification: notification,
-            idempotencyKey: idempotencyKey
-        );
-
-        WorkflowEnqueueResponse.Accepted response = await _workflowEngineClient.EnqueueWorkflows(
-            bundle.Namespace,
-            bundle.IdempotencyKey,
-            bundle.CorrelationId,
-            bundle.Request,
-            ct
-        );
-
-        return response.Workflows[0].DatabaseId;
     }
 
     private static InstanceEvent CreateInstanceEvent(
@@ -817,20 +757,6 @@ internal class ProcessEngine : IProcessEngine
         return new PlatformUser { OrgId = actor.UserIdOrOrgNumber };
     }
 
-    private static string CreateProcessNextIdempotencyKey(Instance instance, string resolvedAction)
-    {
-        ProcessElementInfo? currentTask = instance.Process?.CurrentTask;
-        string taskId = currentTask?.ElementId ?? instance.Process?.StartEvent ?? "process-start";
-        int flow = currentTask?.Flow ?? 0;
-        InstanceIdentifier instanceIdentifier = new(instance);
-        string fingerprint = $"{instanceIdentifier.InstanceGuid:N}|{flow}|{taskId}|{resolvedAction}";
-        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(fingerprint));
-        return $"process-next-operation-{Convert.ToHexString(hash).ToLowerInvariant()}";
-    }
-
-    private static string CreateDependentWorkflowIdempotencyKey(Guid dependsOnWorkflowId) =>
-        $"process-next-dependent-{dependsOnWorkflowId:N}";
-
     private sealed record MoveToNextResult(
         Instance Instance,
         ProcessStateChange? ProcessStateChange,
@@ -841,12 +767,6 @@ internal class ProcessEngine : IProcessEngine
         [MemberNotNullWhen(true, nameof(ProcessStateChange))]
         public bool IsEndEvent => ProcessStateChange?.NewProcessState?.Ended is not null;
     };
-
-    private sealed record WorkflowHierarchyResult(
-        Instance Instance,
-        WorkflowFailure? WorkflowFailure,
-        bool ProcessStateChanged
-    );
 
     internal static string ConvertTaskTypeToAction(string actionOrTaskType)
     {
@@ -926,142 +846,6 @@ internal class ProcessEngine : IProcessEngine
         state = new CurrentTaskIdAndAltinnTaskType(taskId, taskType);
         return true;
     }
-
-    private async Task<WorkflowHierarchyResult> WaitForWorkflowHierarchyAndRefetchInstance(
-        Instance instance,
-        Guid rootWorkflowId,
-        CancellationToken ct
-    )
-    {
-        var stopwatch = Stopwatch.StartNew();
-        int currentDelayMs = InitialWorkflowPollingDelayMs;
-
-        string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
-        IReadOnlyList<WorkflowStatusResponse> lastObservedHierarchy = [];
-
-        while (!ct.IsCancellationRequested)
-        {
-            WorkflowHierarchyResponse? hierarchy = await _workflowEngineClient.GetWorkflowHierarchy(
-                ns,
-                rootWorkflowId,
-                cancellationToken: ct
-            );
-            IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows = hierarchy?.Workflows ?? [];
-            if (hierarchyWorkflows.Count > 0)
-            {
-                lastObservedHierarchy = hierarchyWorkflows;
-
-                if (!hierarchyWorkflows.Any(IsActiveWorkflowStatus))
-                {
-                    Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
-                    WorkflowFailure? workflowFailure = BuildWorkflowFailure(hierarchyWorkflows);
-                    bool processStateChanged = HasCommittedProcessState(hierarchyWorkflows);
-                    return new WorkflowHierarchyResult(freshInstance, workflowFailure, processStateChanged);
-                }
-            }
-
-            if (stopwatch.ElapsedMilliseconds > WorkflowPollingTimeoutMs)
-            {
-                Instance freshInstance = await _instanceClient.GetInstance(instance, ct: ct);
-                return new WorkflowHierarchyResult(
-                    freshInstance,
-                    new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-                    HasCommittedProcessState(lastObservedHierarchy)
-                );
-            }
-
-            await Task.Delay(currentDelayMs, ct);
-            currentDelayMs = Math.Min(currentDelayMs * 2, MaxWorkflowPollingDelayMs);
-        }
-
-        ct.ThrowIfCancellationRequested();
-        throw new InvalidOperationException("Cancellation should have thrown.");
-    }
-
-    private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
-        workflow.OverallStatus
-            is PersistentItemStatus.Enqueued
-                or PersistentItemStatus.Processing
-                or PersistentItemStatus.Requeued;
-
-    private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
-        hierarchyWorkflows.Any(workflow =>
-            workflow.Steps.Any(step =>
-                step.OperationId == SaveProcessStateToStorage.Key && step.Status == PersistentItemStatus.Completed
-            )
-        );
-
-    private static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
-    {
-        WorkflowStatusResponse? stepFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
-            workflow.OverallStatus == PersistentItemStatus.Failed
-            && workflow.Steps.Any(step => step.Status == PersistentItemStatus.Failed)
-        );
-        if (stepFailedWorkflow is not null)
-        {
-            StepStatusResponse failedStep = stepFailedWorkflow.Steps.First(step =>
-                step.Status == PersistentItemStatus.Failed
-            );
-            return new WorkflowFailure
-            {
-                Kind = WorkflowFailureKind.StepFailed,
-                WorkflowId = stepFailedWorkflow.DatabaseId,
-                WorkflowOperationId = stepFailedWorkflow.OperationId,
-                StepOperationId = failedStep.OperationId,
-                CommandType = failedStep.Command.Type,
-                RetryCount = failedStep.RetryCount,
-                LastError = ToWorkflowFailureError(failedStep.ErrorHistory?.LastOrDefault()),
-                RetryAction = "resumeWorkflow",
-                RetryTargetWorkflowId = stepFailedWorkflow.DatabaseId,
-            };
-        }
-
-        WorkflowStatusResponse? dependencyFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
-            workflow.OverallStatus == PersistentItemStatus.DependencyFailed
-        );
-        if (dependencyFailedWorkflow is not null)
-        {
-            return new WorkflowFailure
-            {
-                Kind = WorkflowFailureKind.DependencyFailed,
-                WorkflowId = dependencyFailedWorkflow.DatabaseId,
-                WorkflowOperationId = dependencyFailedWorkflow.OperationId,
-            };
-        }
-
-        WorkflowStatusResponse? engineFaultWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
-            workflow.OverallStatus is PersistentItemStatus.Failed or PersistentItemStatus.Canceled
-        );
-        if (engineFaultWorkflow is not null)
-        {
-            StepStatusResponse? firstFailedStep = engineFaultWorkflow.Steps.FirstOrDefault(step =>
-                step.Status == PersistentItemStatus.Failed
-            );
-            return new WorkflowFailure
-            {
-                Kind = WorkflowFailureKind.EngineFault,
-                WorkflowId = engineFaultWorkflow.DatabaseId,
-                WorkflowOperationId = engineFaultWorkflow.OperationId,
-                StepOperationId = firstFailedStep?.OperationId,
-                CommandType = firstFailedStep?.Command.Type,
-                RetryCount = firstFailedStep?.RetryCount,
-                LastError = ToWorkflowFailureError(firstFailedStep?.ErrorHistory?.LastOrDefault()),
-            };
-        }
-
-        return null;
-    }
-
-    private static WorkflowFailureError? ToWorkflowFailureError(ErrorEntry? errorEntry) =>
-        errorEntry is null
-            ? null
-            : new WorkflowFailureError
-            {
-                Timestamp = errorEntry.Timestamp,
-                Message = errorEntry.Message,
-                HttpStatusCode = errorEntry.HttpStatusCode,
-                WasRetryable = errorEntry.WasRetryable,
-            };
 
     private static Exception CreateWorkflowFailureException(WorkflowFailure workflowFailure) =>
         workflowFailure.Kind == WorkflowFailureKind.Timeout
