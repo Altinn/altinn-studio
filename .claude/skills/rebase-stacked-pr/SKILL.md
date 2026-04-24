@@ -18,11 +18,45 @@ The fix is `git rebase --onto main <pre-squash-parent-tip> <child-branch>`, whic
 
 Before running commands, confirm:
 
-1. **Parent PR number** — from the child PR description, or ask the user.
+1. **Parent PR number** — see [Finding the parent PR number](#finding-the-parent-pr-number).
 2. **Child branch name** — usually the current branch; verify with `git branch --show-current`.
 3. **Parent is actually merged** — check with `gh pr view <PARENT_PR> --json state,mergedAt`. Abort if state is not `MERGED`.
 
 If the child PR description contains a "Rebase instructions" block with explicit variables, prefer those values.
+
+## Finding the parent PR number
+
+Check the child PR description for explicit declarations first:
+
+- `Depends on #`, `Stacked on #`, `Parent: #`
+- A `Related` or `Related issues` section — common in this codebase. **Filter to PRs only**; issue numbers referenced there are not valid parents.
+
+Any `#NNNN` reference may be either a PR or an issue. Confirm it is a PR:
+
+```bash
+gh pr view <N> --json headRefName,state   # errors if N is an issue, not a PR
+```
+
+**Strongest signal — matching branch names.** The parent PR's head branch should equal the child PR's base branch. Cross-check every candidate:
+
+```bash
+CHILD_BASE=$(gh pr view --json baseRefName -q .baseRefName)   # child PR on current branch
+gh pr view <CANDIDATE> --json headRefName -q .headRefName
+```
+
+If those match, the candidate is almost certainly the parent.
+
+Alternatively, search for PRs whose head branch matches the child's base:
+
+```bash
+gh pr list --state merged --head "$CHILD_BASE" --json number,title,url
+```
+
+**Ask the user** if any of the following hold — do not guess:
+
+- No explicit marker is present and no candidate branch matches.
+- Multiple PRs plausibly match.
+- You are not completely certain the candidate is the intended parent.
 
 ## Procedure
 
@@ -78,7 +112,6 @@ Always `--force-with-lease`, never plain `--force` — lease protects against ov
 
 - **Parent branch was force-pushed during review**: `gh pr view --json commits` returns the *final* commit list of the PR at merge time, which is what you want. Don't use the local `origin/parent-branch` ref — it may point at an obsolete tip.
 - **Deep stack (3+ levels)**: rebase bottom-up, one level at a time. After the bottom child is rebased and pushed, treat the next level up as a new child whose parent is now the rebased branch.
-- **Parent PR description missing**: if the child PR doesn't declare its parent, ask the user which PR is the dependency before proceeding. Don't guess from branch names.
 - **`gh` not authenticated**: fall back to asking the user for the pre-squash tip SHA, which is visible on the closed PR page as the last commit before the merge event.
 
 ## PR description template (for authors)
