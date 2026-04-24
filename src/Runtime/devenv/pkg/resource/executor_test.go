@@ -109,6 +109,30 @@ func TestContainerSpecHash_ChangesOnNetworkAliasChange(t *testing.T) {
 	}
 }
 
+func TestContainerSpecHash_ChangesOnVolumeMountTypeChange(t *testing.T) {
+	t.Parallel()
+
+	base := &Container{
+		Name:    "postgres",
+		Image:   RefID("image:postgres"),
+		Volumes: []types.VolumeMount{{HostPath: "data", ContainerPath: "/var/lib/postgresql"}},
+	}
+
+	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
+
+	modified := *base
+	modified.Volumes = []types.VolumeMount{{
+		HostPath:      "data",
+		ContainerPath: "/var/lib/postgresql",
+		Type:          types.VolumeMountTypeVolume,
+	}}
+	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
+
+	if baseHash == modifiedHash {
+		t.Fatalf("container spec hash did not change when volume mount type changed")
+	}
+}
+
 func TestExecutor_StopAndRemoveContainer_PropagatesStopError(t *testing.T) {
 	t.Parallel()
 

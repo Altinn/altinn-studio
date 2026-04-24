@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -145,6 +146,15 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	workflowEngineDb := containers[2]
 	if got := workflowEngineDb.Ports; got != nil {
 		t.Fatalf("workflowEngineDb.Ports = %v, want nil", got)
+	}
+	wantDbVolume := newNamedVolume(workflowEngineDbVolume, "/var/lib/postgresql")
+	if !slices.Contains(workflowEngineDb.Volumes, wantDbVolume) {
+		t.Fatalf("workflowEngineDb.Volumes missing named data volume: %v", workflowEngineDb.Volumes)
+	}
+	for _, volume := range workflowEngineDb.Volumes {
+		if volume.ContainerPath == "/var/lib/postgresql" && volume.Type != containertypes.VolumeMountTypeVolume {
+			t.Fatalf("workflowEngineDb data volume Type = %q, want named volume", volume.Type)
+		}
 	}
 
 	workflowEngine := containers[3]
@@ -378,7 +388,6 @@ func createCoreLayout(t *testing.T, dataDir string) {
 	for _, dir := range []string{
 		filepath.Join(dataDir, "testdata"),
 		filepath.Join(dataDir, "AltinnPlatformLocal"),
-		workflowEngineDbDataPath(dataDir),
 		filepath.Join(dataDir, "infra"),
 		filepath.Join(dataDir, "infra", "workflow-engine"),
 	} {
