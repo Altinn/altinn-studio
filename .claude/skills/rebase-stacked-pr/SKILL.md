@@ -1,6 +1,6 @@
 ---
 name: rebase-stacked-pr
-description: Rebase a stacked/dependent PR onto main after its parent PR was squash-merged, using `git rebase --onto` to skip already-merged commits. Use when a dependency PR or parent branch has merged and the child branch still contains the pre-squash commits, when a plain `git rebase main` on a stacked branch produces empty commits or spurious conflicts from already-merged changes, or when cleaning up a branch that declares "Depends on #", "Stacked on #", or "Parent branch" in its PR description.
+description: Rebase a stacked PR onto main after its parent was squash-merged, using `git rebase --onto` to skip already-merged commits. Use when rebasing a stacked or dependent PR, handling a squash-merged parent PR, or recovering from empty commits or spurious conflicts after `git rebase main`.
 ---
 
 # Rebase a stacked PR after squash-merge
