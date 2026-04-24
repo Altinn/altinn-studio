@@ -301,7 +301,8 @@ public sealed class InstanceLockTests
 
         var exception = await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(instanceLocker.Lock);
 
-        Assert.Single(fixture.Server.LogEntries);
+        var acquireRequests = fixture.Server.FindLogEntries(fixture.GetAcquireLockRequestBuilder());
+        Assert.Single(acquireRequests);
 
         await Verify(new { Exception = exception })
             .UseParameters(storageStatusCode)
@@ -327,7 +328,8 @@ public sealed class InstanceLockTests
 
         var exception = await Assert.ThrowsAsync<PlatformHttpResponseSnapshotException>(instanceLocker.Lock);
 
-        Assert.Single(fixture.Server.LogEntries);
+        var acquireRequests = fixture.Server.FindLogEntries(fixture.GetAcquireLockRequestBuilder());
+        Assert.Single(acquireRequests);
 
         await Verify(new { Exception = exception }).IgnoreMember<PlatformHttpResponseSnapshotException>(x => x.Headers);
     }
