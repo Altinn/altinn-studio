@@ -84,11 +84,22 @@ After the rebase, the log should show **only** the child PR's commits between ma
 git log --oneline origin/main..HEAD
 ```
 
-If that list contains commits that belong to the parent PR (check their messages against `gh pr view $PARENT_PR --json commits`), the rebase replayed already-merged work — abort and investigate:
+If that list contains commits that belong to the parent PR (check their messages against `gh pr view $PARENT_PR --json commits`), the rebase replayed already-merged work — undo it and investigate.
+
+The rebase has already completed at this point, so `git rebase --abort` is a no-op. Reset back to the pre-rebase tip, which Git records in `ORIG_HEAD`:
 
 ```bash
-git rebase --abort
+git reset --hard ORIG_HEAD
 ```
+
+If `ORIG_HEAD` has been overwritten by a later operation, recover the pre-rebase commit from the reflog:
+
+```bash
+git reflog              # find the entry just before "rebase (start)"
+git reset --hard <sha>  # or: git reset --hard HEAD@{N}
+```
+
+Note: `git rebase --abort` is only valid **during** an in-progress rebase (mid-conflict). For that case, see [Handling conflicts](#handling-conflicts) below.
 
 ## Pushing
 
