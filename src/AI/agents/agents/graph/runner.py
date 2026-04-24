@@ -173,7 +173,7 @@ async def _evaluate_intent_match(user_goal: str, final_state: AgentState, trace_
         return False
 
 
-async def _evaluate_implementation_match(user_goal: str, final_state: AgentState, trace_id: str) -> None:
+async def _evaluate_implementation_match(final_state: AgentState, trace_id: str) -> None:
     try:
         from agents.services.evaluation.implementation_judge import run_implementation_judge
         step_plan = final_state.step_plan or []
@@ -195,7 +195,7 @@ async def _evaluate_intent_then_implementation(user_goal: str, final_state: Agen
     """Run intent_match; if it passes, also run implementation_match."""
     intent_passed = await _evaluate_intent_match(user_goal, final_state, trace_id)
     if intent_passed:
-        await _evaluate_implementation_match(user_goal, final_state, trace_id)
+        await _evaluate_implementation_match(final_state, trace_id)
 
 
 async def _evaluate_no_hallucination(user_goal: str, final_state: AgentState, trace_id: str) -> None:
