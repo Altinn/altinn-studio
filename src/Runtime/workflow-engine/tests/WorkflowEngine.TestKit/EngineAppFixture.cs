@@ -141,17 +141,51 @@ public abstract class EngineAppFixture : IAsyncLifetime
     /// </summary>
     private async Task WaitForDbIdle(TimeSpan? timeout = null)
     {
-        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
+        var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(30);
+        using var cts = new CancellationTokenSource(effectiveTimeout);
 
-        while (!cts.IsCancellationRequested)
+        try
         {
-            var repo = Services.GetRequiredService<IEngineRepository>();
-            var activeWorkflows = await repo.CountActiveWorkflows(cts.Token);
+            while (!cts.IsCancellationRequested)
+            {
+                var repo = Services.GetRequiredService<IEngineRepository>();
+                var activeWorkflows = await repo.CountActiveWorkflows(cts.Token);
 
-            if (activeWorkflows == 0)
-                return;
+                if (activeWorkflows == 0)
+                    return;
 
-            await Task.Delay(100, cts.Token);
+                await Task.Delay(100, cts.Token);
+            }
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            var options = new DbContextOptionsBuilder<EngineDbContext>()
+                .UseNpgsql(_postgres.GetConnectionString())
+                .Options;
+            await using var context = new EngineDbContext(options);
+            var stuckWorkflows = await context
+                .GetActiveWorkflows(includeDependencies: false, includeLinks: false)
+                .OrderBy(wf => wf.Id)
+                .Select(wf => new
+                {
+                    wf.Id,
+                    wf.OperationId,
+                    wf.Status,
+                    wf.StartAt,
+                    wf.BackoffUntil,
+                })
+                .ToListAsync();
+
+            var details = string.Join(
+                "; ",
+                stuckWorkflows.Select(wf =>
+                    $"{wf.Id} ({wf.OperationId}) status={wf.Status} startAt={wf.StartAt:O} backoffUntil={wf.BackoffUntil:O}"
+                )
+            );
+
+            throw new TimeoutException(
+                $"Timed out after {effectiveTimeout.TotalSeconds:0}s waiting for the engine database to become idle. Active workflows: {details}"
+            );
         }
     }
 

@@ -66,6 +66,8 @@ public partial class EngineTests
         Assert.NotEmpty(active);
         Assert.Single(active);
         Assert.Equal(workflowId, active[0].DatabaseId);
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
     }
 
     [Fact]
@@ -106,7 +108,7 @@ public partial class EngineTests
         // Act
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var activeFromApi = await _client.ListActiveWorkflows();
+        var enqueuedFromApi = await _client.ListWorkflows([PersistentItemStatus.Enqueued]);
         var scheduledFromDb = await context.GetScheduledWorkflows().ToListAsync(TestContext.Current.CancellationToken);
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
@@ -114,7 +116,8 @@ public partial class EngineTests
         // Assert
         await _testHelpers.AssertDbWorkflowCount(1);
 
-        Assert.Empty(activeFromApi);
+        Assert.Single(enqueuedFromApi);
+        Assert.Equal(workflowId, enqueuedFromApi[0].DatabaseId);
         Assert.Equal(workflowId, scheduledFromDb.Single().Id);
 
         var logs = fixture.WireMock.LogEntries;

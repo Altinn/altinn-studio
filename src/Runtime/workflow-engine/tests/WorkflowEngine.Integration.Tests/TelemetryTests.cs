@@ -256,7 +256,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         );
 
         // Assert repository activities for query operations
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.QueryWorkflows"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
     }
 

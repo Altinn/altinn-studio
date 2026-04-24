@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -63,6 +64,7 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body).ScrubMembers("databaseId");
+        await WaitForAcceptedWorkflowsToComplete(body);
     }
 
     [Fact]
@@ -81,6 +83,7 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body).ScrubMembers("databaseId");
+        await WaitForAcceptedWorkflowsToComplete(body);
     }
 
     // ── GetWorkflow endpoint responses ────────────────────────────────────────
@@ -233,6 +236,9 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body);
+
+        var activeWorkflowId = active.Single(w => w.OverallStatus == PersistentItemStatus.Processing).DatabaseId;
+        await _client.WaitForWorkflowStatus(activeWorkflowId, PersistentItemStatus.Completed);
     }
 
     [Fact]
@@ -312,6 +318,9 @@ public partial class EngineTests
         using var response = await _client.EnqueueRaw(request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await WaitForAcceptedWorkflowsToComplete(body, TimeSpan.FromSeconds(90));
     }
 
     [Fact]
@@ -345,6 +354,9 @@ public partial class EngineTests
         using var response = await _client.EnqueueRaw(request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await WaitForAcceptedWorkflowsToComplete(body);
     }
 
     [Fact]
@@ -423,5 +435,17 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body);
+    }
+
+    private async Task WaitForAcceptedWorkflowsToComplete(string responseBody, TimeSpan? timeout = null)
+    {
+        var accepted = JsonSerializer.Deserialize<WorkflowEnqueueResponse.Accepted>(responseBody);
+        Assert.NotNull(accepted);
+
+        await _client.WaitForWorkflowStatus(
+            accepted.Workflows.Select(workflow => workflow.DatabaseId),
+            PersistentItemStatus.Completed,
+            timeout ?? TimeSpan.FromSeconds(30)
+        );
     }
 }
