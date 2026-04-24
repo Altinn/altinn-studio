@@ -48,6 +48,11 @@ public class ProcessChangeResult
     public WorkflowFailure? WorkflowFailure { get; init; }
 
     /// <summary>
+    /// Frontend-oriented status for the current task when a normal process-next call is blocked.
+    /// </summary>
+    public ProcessNextState? ProcessNextState { get; init; }
+
+    /// <summary>
     /// The persisted process state when a workflow failure happened after the process state was committed.
     /// </summary>
     public ProcessState? ProcessStateOnFailure { get; init; }
@@ -95,6 +100,22 @@ public enum ProcessErrorType
     /// The request was not valid
     /// </summary>
     BadRequest,
+}
+
+/// <summary>
+/// Minimal state information for clients when a task cannot continue with a normal process-next.
+/// </summary>
+public enum ProcessNextState
+{
+    /// <summary>
+    /// A workflow for the current task is still running or waiting for automatic retry.
+    /// </summary>
+    Retrying,
+
+    /// <summary>
+    /// The workflow for the current task failed and must be recovered before continuing.
+    /// </summary>
+    RecoveryRequired,
 }
 
 /// <summary>

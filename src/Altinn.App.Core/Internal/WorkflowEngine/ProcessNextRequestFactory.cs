@@ -34,6 +34,8 @@ internal sealed record WorkflowEnqueueBundle(
 /// </summary>
 internal sealed class ProcessNextRequestFactory
 {
+    internal const string ProcessNextIdLabel = "processNextId";
+
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppIdentifier _appIdentifier;
@@ -99,9 +101,15 @@ internal sealed class ProcessNextRequestFactory
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
         Guid correlationId = instanceId.InstanceGuid;
+        Dictionary<string, string>? labels = null;
+        if (CreateProcessNextId(processStateChange.NewProcessState?.CurrentTask) is { } processNextId)
+        {
+            labels = new Dictionary<string, string>(StringComparer.Ordinal) { [ProcessNextIdLabel] = processNextId };
+        }
 
         var request = new WorkflowEnqueueRequest
         {
+            Labels = labels,
             Context = JsonSerializer.SerializeToElement(context),
             Workflows =
             [
@@ -117,6 +125,11 @@ internal sealed class ProcessNextRequestFactory
 
         return new WorkflowEnqueueBundle(request, ns, effectiveIdempotencyKey, correlationId);
     }
+
+    internal static string? CreateProcessNextId(ProcessElementInfo? currentTask) =>
+        currentTask?.ElementId is { Length: > 0 } taskId ? CreateProcessNextId(taskId, currentTask.Flow ?? 0) : null;
+
+    internal static string CreateProcessNextId(string taskId, int flow) => $"{taskId}:{flow}";
 
     private async Task<List<StepRequest>> AssembleCommandSequence(
         ProcessStateChange processStateChange,

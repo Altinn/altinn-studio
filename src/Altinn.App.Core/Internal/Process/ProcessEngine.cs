@@ -262,6 +262,112 @@ internal class ProcessEngine : IProcessEngine
         return result;
     }
 
+    /// <inheritdoc/>
+    public async Task<ProcessChangeResult> RecoverCurrentTask(
+        ProcessNextRequest request,
+        CancellationToken ct = default
+    )
+    {
+        Instance instance = request.Instance;
+
+        using Activity? activity = _telemetry?.StartProcessNextActivity(instance, "recover");
+
+        if (
+            !TryGetCurrentTaskIdAndAltinnTaskType(
+                instance,
+                out CurrentTaskIdAndAltinnTaskType? currentTaskIdAndAltinnTaskType,
+                out ProcessChangeResult? invalidProcessStateError
+            )
+        )
+        {
+            activity?.SetProcessChangeResult(invalidProcessStateError);
+            return invalidProcessStateError;
+        }
+
+        (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
+
+        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action);
+
+        if (!authorized)
+        {
+            var result = new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Unauthorized,
+                ErrorMessage =
+                    $"User is not authorized to recover the current task. Task ID: {LogSanitizer.Sanitize(currentTaskId)}. Task type: {LogSanitizer.Sanitize(altinnTaskType)}.",
+            };
+            activity?.SetProcessChangeResult(result);
+            return result;
+        }
+
+        await using var instanceLock = _instanceLocker.InitLock();
+        await instanceLock.Lock();
+
+        CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
+            instance,
+            ct
+        );
+
+        if (currentTaskWorkflowState.ProcessNextState == ProcessNextState.Retrying)
+        {
+            ProcessChangeResult retryingResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
+            activity?.SetProcessChangeResult(retryingResult);
+            return retryingResult;
+        }
+
+        if (
+            currentTaskWorkflowState.ProcessNextState != ProcessNextState.RecoveryRequired
+            || currentTaskWorkflowState.WorkflowId is not Guid workflowId
+        )
+        {
+            var result = new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "Task does not need recovery.",
+                ErrorMessage = "The current task does not have a failed workflow that can be recovered.",
+            };
+            activity?.SetProcessChangeResult(result);
+            return result;
+        }
+
+        ProcessNextWorkflowResult workflowResult = await _workflowEngineService.ResumeAndWaitForWorkflow(
+            instance,
+            workflowId,
+            ct
+        );
+
+        if (workflowResult.WorkflowFailure is not null)
+        {
+            var failureResult = new ProcessChangeResult(mutatedInstance: workflowResult.Instance)
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "Something went wrong while recovering the current task.",
+                ErrorMessage = CreateWorkflowFailureMessage(workflowResult.WorkflowFailure),
+                WorkflowFailure = workflowResult.WorkflowFailure,
+                ProcessStateOnFailure = workflowResult.ProcessStateChanged ? workflowResult.Instance.Process : null,
+            };
+            activity?.SetProcessChangeResult(failureResult);
+            return failureResult;
+        }
+
+        var changeResult = new ProcessChangeResult(mutatedInstance: workflowResult.Instance)
+        {
+            Success = true,
+            ProcessStateChange = new ProcessStateChange
+            {
+                OldProcessState = instance.Process,
+                NewProcessState = workflowResult.Instance.Process,
+                Events = [],
+            },
+        };
+
+        activity?.SetProcessChangeResult(changeResult);
+        return changeResult;
+    }
+
     /// <summary>
     /// Internal method that performs a single process next operation without automatic service task handling.
     /// </summary>
@@ -316,6 +422,17 @@ internal class ProcessEngine : IProcessEngine
         string checkedAction = request.Action ?? ConvertTaskTypeToAction(altinnTaskType);
         bool isServiceTask = CheckIfServiceTask(altinnTaskType) is not null;
         string? processNextAction = request.Action;
+
+        CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
+            instance,
+            ct
+        );
+        if (currentTaskWorkflowState.ProcessNextState is { } blockedState)
+        {
+            ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(blockedState);
+            activity?.SetProcessChangeResult(blockedResult);
+            return blockedResult;
+        }
 
         // If the action is 'reject', we should not run any service task and there is no need to check for a user action handler, since 'reject' doesn't have one.
         if (request.Action is not "reject")
@@ -862,6 +979,29 @@ internal class ProcessEngine : IProcessEngine
                 ?? "The workflow engine failed while moving to the next task.",
             WorkflowFailureKind.Timeout => "Timeout while waiting for workflows to complete.",
             _ => "Workflow execution failed.",
+        };
+
+    private static ProcessChangeResult CreateCurrentTaskWorkflowBlockedResult(ProcessNextState blockedState) =>
+        blockedState switch
+        {
+            ProcessNextState.Retrying => new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "Task is still being processed.",
+                ErrorMessage =
+                    "The current task is still being processed by the workflow engine. Wait for automatic retries to finish before trying again.",
+                ProcessNextState = ProcessNextState.Retrying,
+            },
+            ProcessNextState.RecoveryRequired => new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "Task must be recovered before it can continue.",
+                ErrorMessage = "The current task has a failed workflow that must be recovered before it can continue.",
+                ProcessNextState = ProcessNextState.RecoveryRequired,
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
     private bool IsServiceTask(Instance instance)

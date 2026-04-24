@@ -26,6 +26,14 @@ internal interface IWorkflowEngineService
         CancellationToken ct = default
     );
 
+    Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(Instance instance, CancellationToken ct = default);
+
+    Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
+        Instance instance,
+        Guid workflowId,
+        CancellationToken ct = default
+    );
+
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
@@ -42,6 +50,8 @@ internal sealed record ProcessNextWorkflowResult(
     WorkflowFailure? WorkflowFailure,
     bool ProcessStateChanged
 );
+
+internal sealed record CurrentTaskWorkflowState(ProcessNextState? ProcessNextState, Guid? WorkflowId = null);
 
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
@@ -111,6 +121,67 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             dependsOn: [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
             ct: ct
         );
+
+    public async Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(
+        Instance instance,
+        CancellationToken ct = default
+    )
+    {
+        string? processNextId = ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask);
+        if (processNextId is null)
+        {
+            return new CurrentTaskWorkflowState(null);
+        }
+
+        InstanceIdentifier instanceIdentifier = new(instance);
+        IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await _workflowEngineClient.ListWorkflows(
+            GetNamespace(),
+            instanceIdentifier.InstanceGuid,
+            labels: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [ProcessNextRequestFactory.ProcessNextIdLabel] = processNextId,
+            },
+            cancellationToken: ct
+        );
+
+        WorkflowStatusResponse? rootWorkflow = matchingWorkflows
+            .OrderByDescending(workflow => workflow.CreatedAt)
+            .FirstOrDefault();
+
+        if (rootWorkflow is null)
+        {
+            return new CurrentTaskWorkflowState(null);
+        }
+
+        WorkflowHierarchyResponse? hierarchy = await _workflowEngineClient.GetWorkflowHierarchy(
+            GetNamespace(),
+            rootWorkflow.DatabaseId,
+            cancellationToken: ct
+        );
+        IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows = hierarchy?.Workflows ?? [rootWorkflow];
+
+        if (hierarchyWorkflows.Any(IsActiveWorkflowStatus))
+        {
+            return new CurrentTaskWorkflowState(ProcessNextState.Retrying, rootWorkflow.DatabaseId);
+        }
+
+        if (hierarchyWorkflows.Any(IsRecoveryRequiredWorkflowStatus))
+        {
+            return new CurrentTaskWorkflowState(ProcessNextState.RecoveryRequired, rootWorkflow.DatabaseId);
+        }
+
+        return new CurrentTaskWorkflowState(null, rootWorkflow.DatabaseId);
+    }
+
+    public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
+        Instance instance,
+        Guid workflowId,
+        CancellationToken ct = default
+    )
+    {
+        await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cancellationToken: ct);
+        return await WaitForWorkflowHierarchyAndRefetchInstance(instance, workflowId, ct);
+    }
 
     private async Task<Guid> CreateAndEnqueueWorkflow(
         Instance instance,
@@ -204,6 +275,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued;
+
+    private static bool IsRecoveryRequiredWorkflowStatus(WorkflowStatusResponse workflow) =>
+        workflow.OverallStatus
+            is PersistentItemStatus.Failed
+                or PersistentItemStatus.Canceled
+                or PersistentItemStatus.DependencyFailed;
 
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>

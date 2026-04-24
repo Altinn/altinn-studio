@@ -34,6 +34,11 @@ internal interface IProcessEngine
     Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default);
 
     /// <summary>
+    /// Attempts to recover the workflow that established the instance's current task.
+    /// </summary>
+    Task<ProcessChangeResult> RecoverCurrentTask(ProcessNextRequest request, CancellationToken ct = default);
+
+    /// <summary>
     /// Enqueues a process-next workflow that transitions the process from the current task to the next element.
     /// The workflow has a dependency on <paramref name="dependsOnWorkflowId"/> so it won't start
     /// until that workflow completes.

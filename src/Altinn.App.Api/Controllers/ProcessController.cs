@@ -255,6 +255,64 @@ public class ProcessController : ControllerBase
     }
 
     /// <summary>
+    /// Recovers the workflow that established the instance's current task.
+    /// </summary>
+    [HttpPost("recover")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AppProcessState>> RecoverCurrentTask(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                null,
+                ct
+            );
+
+            ProcessChangeResult result = await _processEngine.RecoverCurrentTask(
+                new ProcessNextRequest
+                {
+                    User = User,
+                    Instance = instance,
+                    Action = null,
+                    Language = null,
+                },
+                ct
+            );
+
+            if (!result.Success)
+            {
+                return GetResultForError(result);
+            }
+
+            Instance freshInstance = result.MutatedInstance ?? instance;
+            AppProcessState appProcessState = await ConvertAndAuthorizeActions(freshInstance, freshInstance.Process);
+
+            return Ok(appProcessState);
+        }
+        catch (PlatformHttpException e)
+        {
+            _logger.LogError("Platform exception when recovering current task. {Message}", e.Message);
+            return HandlePlatformHttpException(e, "Recover current task failed.");
+        }
+        catch (Exception exception)
+        {
+            return ExceptionResponse(exception, "Recover current task failed.");
+        }
+    }
+
+    /// <summary>
     /// Attemts to end the process by running next until an end event is reached.
     /// Notice that process must have been started.
     /// </summary>
@@ -496,16 +554,19 @@ public class ProcessController : ControllerBase
         switch (result.ErrorType)
         {
             case ProcessErrorType.Conflict:
+                Dictionary<string, object?> extensions = new() { { "validationIssues", result.ValidationIssues } };
+                if (result.ProcessNextState is { } processNextState)
+                {
+                    extensions["processNextState"] = ToProcessNextStateValue(processNextState);
+                }
+
                 return Conflict(
                     new ProblemDetails()
                     {
                         Detail = result.ErrorMessage,
                         Status = StatusCodes.Status409Conflict,
                         Title = result.ErrorTitle,
-                        Extensions = new Dictionary<string, object?>
-                        {
-                            { "validationIssues", result.ValidationIssues },
-                        },
+                        Extensions = extensions,
                     }
                 );
             case ProcessErrorType.Internal:
@@ -651,4 +712,12 @@ public class ProcessController : ControllerBase
 
         return ExceptionResponse(e, defaultMessage);
     }
+
+    private static string ToProcessNextStateValue(ProcessNextState processNextState) =>
+        processNextState switch
+        {
+            ProcessNextState.Retrying => "retrying",
+            ProcessNextState.RecoveryRequired => "recoveryRequired",
+            _ => throw new ArgumentOutOfRangeException(nameof(processNextState), processNextState, null),
+        };
 }

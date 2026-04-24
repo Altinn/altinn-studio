@@ -185,6 +185,17 @@ public sealed class ProcessEngineTest
         processEngineClientMock
             .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_1 -> Task_2"));
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -293,6 +304,7 @@ public sealed class ProcessEngineTest
 
         // Verify OperationId contains transition info
         capturedRequest.Workflows[0].OperationId.Should().Be("Process next: Task_1 -> Task_2");
+        capturedRequest.Labels.Should().ContainKey("processNextId").WhoseValue.Should().Be("Task_2:3");
     }
 
     [Fact]
@@ -324,6 +336,17 @@ public sealed class ProcessEngineTest
         processEngineClientMock
             .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_1 -> Task_2"));
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -457,6 +480,17 @@ public sealed class ProcessEngineTest
         processEngineClientMock
             .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next: Task_2 -> EndEvent_1"));
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
 
         var services = new ServiceCollection();
         services.AddSingleton(processEngineClientMock.Object);
@@ -1220,7 +1254,217 @@ public sealed class ProcessEngineTest
             );
     }
 
+    [Fact]
+    public async Task Next_blocks_when_current_task_workflow_is_retrying()
+    {
+        Guid workflowId = Guid.NewGuid();
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: StartEvent_1 -> Task_1",
+                    PersistentItemStatus.Requeued
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                CreateWorkflowHierarchyResponse(
+                    workflowId,
+                    CreateWorkflowStatusResponse(
+                        workflowId,
+                        "Process next: StartEvent_1 -> Task_1",
+                        PersistentItemStatus.Requeued
+                    )
+                )
+            );
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeFalse();
+        result.ErrorType.Should().Be(ProcessErrorType.Conflict);
+        result.ProcessNextState.Should().Be(ProcessNextState.Retrying);
+        result.ErrorTitle.Should().Be("Task is still being processed.");
+    }
+
+    [Fact]
+    public async Task Next_blocks_when_current_task_workflow_requires_recovery()
+    {
+        Guid workflowId = Guid.NewGuid();
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: StartEvent_1 -> Task_1",
+                    PersistentItemStatus.Failed
+                ),
+            ]);
+        processEngineClientMock
+            .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                CreateWorkflowHierarchyResponse(
+                    workflowId,
+                    CreateWorkflowStatusResponse(
+                        workflowId,
+                        "Process next: StartEvent_1 -> Task_1",
+                        PersistentItemStatus.Failed
+                    )
+                )
+            );
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeFalse();
+        result.ErrorType.Should().Be(ProcessErrorType.Conflict);
+        result.ProcessNextState.Should().Be(ProcessNextState.RecoveryRequired);
+        result.ErrorTitle.Should().Be("Task must be recovered before it can continue.");
+    }
+
+    [Fact]
+    public async Task RecoverCurrentTask_resumes_failed_workflow_and_returns_updated_instance()
+    {
+        Guid workflowId = Guid.NewGuid();
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c =>
+                c.ListWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>(),
+                    It.Is<Dictionary<string, string>>(labels => labels["processNextId"] == "Task_1:2"),
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(
+                    workflowId,
+                    "Process next: StartEvent_1 -> Task_1",
+                    PersistentItemStatus.Failed
+                ),
+            ]);
+        processEngineClientMock
+            .SetupSequence(c => c.GetWorkflowHierarchy(It.IsAny<string>(), workflowId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                CreateWorkflowHierarchyResponse(
+                    workflowId,
+                    CreateWorkflowStatusResponse(
+                        workflowId,
+                        "Process next: StartEvent_1 -> Task_1",
+                        PersistentItemStatus.Failed
+                    )
+                )
+            )
+            .ReturnsAsync(
+                CreateWorkflowHierarchyResponse(
+                    workflowId,
+                    CreateWorkflowStatusResponse(
+                        workflowId,
+                        "Process next: StartEvent_1 -> Task_1",
+                        PersistentItemStatus.Completed
+                    )
+                )
+            );
+        processEngineClientMock
+            .Setup(c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+
+        Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
+        Instance originalInstance = CreateTask1Instance();
+        Instance recoveredInstance = CreateTask2Instance();
+        instanceClientMock
+            .Setup(c =>
+                c.GetInstance(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(recoveredInstance);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+        services.AddSingleton(instanceClientMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+        LegacyProcessEngine processEngine = fixture.ProcessEngine;
+
+        ProcessChangeResult result = await processEngine.RecoverCurrentTask(
+            new ProcessNextRequest
+            {
+                Instance = originalInstance,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeTrue();
+        result.MutatedInstance.Should().BeSameAs(recoveredInstance);
+        result.ProcessStateChange.Should().NotBeNull();
+        result.ProcessStateChange!.OldProcessState.Should().BeEquivalentTo(originalInstance.Process);
+        result.ProcessStateChange.NewProcessState.Should().BeEquivalentTo(recoveredInstance.Process);
+        processEngineClientMock.Verify(
+            c => c.ResumeWorkflow(It.IsAny<string>(), workflowId, false, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
     private static WorkflowStatusResponse CreateCompletedWorkflowStatusResponse(Guid workflowId, string operationId) =>
+        CreateWorkflowStatusResponse(workflowId, operationId, PersistentItemStatus.Completed);
+
+    private static WorkflowStatusResponse CreateWorkflowStatusResponse(
+        Guid workflowId,
+        string operationId,
+        PersistentItemStatus overallStatus
+    ) =>
         new()
         {
             DatabaseId = workflowId,
@@ -1229,12 +1473,69 @@ public sealed class ProcessEngineTest
             Namespace = "org/app",
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
-            OverallStatus = PersistentItemStatus.Completed,
+            OverallStatus = overallStatus,
             Steps = [],
         };
 
     private static WorkflowHierarchyResponse CreateWorkflowHierarchyResponse(Guid workflowId, string operationId) =>
-        new() { WorkflowId = workflowId, Workflows = [CreateCompletedWorkflowStatusResponse(workflowId, operationId)] };
+        CreateWorkflowHierarchyResponse(workflowId, CreateCompletedWorkflowStatusResponse(workflowId, operationId));
+
+    private static WorkflowHierarchyResponse CreateWorkflowHierarchyResponse(
+        Guid workflowId,
+        params WorkflowStatusResponse[] workflows
+    ) => new() { WorkflowId = workflowId, Workflows = workflows };
+
+    private static ClaimsPrincipal CreateUserClaimsPrincipal() =>
+        new(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1337"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                }
+            )
+        );
+
+    private static Instance CreateTask1Instance() =>
+        new()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = new()
+                {
+                    ElementId = "Task_1",
+                    AltinnTaskType = AltinnTaskTypes.Data,
+                    Flow = 2,
+                    Validated = new() { CanCompleteTask = true },
+                },
+            },
+        };
+
+    private static Instance CreateTask2Instance() =>
+        new()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = new()
+                {
+                    ElementId = "Task_2",
+                    AltinnTaskType = AltinnTaskTypes.Confirmation,
+                    Flow = 3,
+                    FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
+                    Name = "Bekreft",
+                },
+            },
+        };
 
     private sealed record Fixture(IServiceProvider ServiceProvider) : IAsyncDisposable
     {
@@ -1396,6 +1697,17 @@ public sealed class ProcessEngineTest
             processEngineClientMock
                 .Setup(c => c.GetWorkflowHierarchy(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(CreateWorkflowHierarchyResponse(workflowId, "Process next"));
+            processEngineClientMock
+                .Setup(c =>
+                    c.ListWorkflows(
+                        It.IsAny<string>(),
+                        It.IsAny<Guid?>(),
+                        It.IsAny<Dictionary<string, string>>(),
+                        null,
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync([]);
             services.TryAddTransient<IWorkflowEngineClient>(_ => processEngineClientMock.Object);
             services.TryAddTransient<IWorkflowEngineService, WorkflowEngineService>();
 
