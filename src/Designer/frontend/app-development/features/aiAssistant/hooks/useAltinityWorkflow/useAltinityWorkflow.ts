@@ -53,7 +53,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const { mutate: resetRepository } = useResetRepositoryMutation(org, app);
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
-  const currentBranchRef = useRef<string>('master');
   const backendSessionIdRef = useRef<string | null>(backendSessionId);
   const sessionToThreadId = useRef<Map<string, string>>(new Map());
 
@@ -70,12 +69,6 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   useEffect(() => {
     backendSessionIdRef.current = backendSessionId;
   }, [backendSessionId]);
-
-  useEffect(() => {
-    if (currentBranch) {
-      currentBranchRef.current = currentBranch;
-    }
-  }, [currentBranch]);
 
   const resetWorkflowStatus = useCallback(() => {
     setWorkflowStatus({ isActive: false });
@@ -100,11 +93,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const branch = buildSessionBranchName(sessionId);
       resetRepository(undefined, {
         onSuccess: () => {
-          checkoutBranch(branch, {
-            onSuccess: () => {
-              currentBranchRef.current = branch;
-            },
-          });
+          checkoutBranch(branch);
         },
       });
     },
@@ -206,20 +195,21 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     ): Promise<AgentResponse> => {
       const activeSession = backendSessionIdRef.current;
       if (!activeSession) throw new Error('No active backend session — connection not established');
+      if (!currentBranch)
+        throw new Error('Current branch is unknown — branch query has not loaded');
       setWorkflowStatus({
         isActive: true,
         sessionId: threadId,
         currentStep: 'Initializing',
         message: INITIAL_WORKFLOW_MESSAGE,
       });
-      const branchToUse = currentBranch ?? currentBranchRef.current;
       try {
         const result = await startWorkflow({
           session_id: activeSession,
           goal,
           org,
           app,
-          branch: branchToUse,
+          branch: currentBranch,
           allow_app_changes: allowAppChanges,
           attachments,
         });
@@ -265,7 +255,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [backendSessionIdRef, sessionToThreadId, persistMessage, startAgentWorkflow],
+    [persistMessage, startAgentWorkflow],
   );
 
   const onSubmitUserMessage = useCallback(

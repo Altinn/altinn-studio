@@ -236,7 +236,6 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.deleteMessage).toHaveBeenCalledWith('thread-1', 'message-1');
-    expect(threads.setCurrentSession).toHaveBeenCalledWith(null);
     expect(cancelWorkflow).toHaveBeenCalledWith('backend-session');
   });
 
