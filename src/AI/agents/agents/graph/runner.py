@@ -259,7 +259,6 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 
                     current_graph = build_graph()
                     final_state = await current_graph.ainvoke(state)
-                    typed_state = AgentState.model_validate(final_state)
 
                     root_span.update(output={
                         "success": bool(final_state.get("tests_passed", False)),
@@ -268,13 +267,20 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     })
 
                     # LLM-as-a-judge evaluations — run after workflow, failures must not affect the main flow
-                    for coro in (
-                        _evaluate_intent_then_implementation(state.user_goal, typed_state, root_span.trace_id),
-                        _evaluate_no_hallucination(state.user_goal, typed_state, root_span.trace_id),
-                    ):
-                        task = asyncio.create_task(coro)
-                        _active_tasks.add(task)
-                        task.add_done_callback(_active_tasks.discard)
+                    try:
+                        typed_state = AgentState.model_validate(final_state)
+                    except Exception:
+                        log.exception("Failed to validate final state for judge evaluations — skipping")
+                        typed_state = None
+
+                    if typed_state is not None:
+                        for coro in (
+                            _evaluate_intent_then_implementation(state.user_goal, typed_state, root_span.trace_id),
+                            _evaluate_no_hallucination(state.user_goal, typed_state, root_span.trace_id),
+                        ):
+                            task = asyncio.create_task(coro)
+                            _active_tasks.add(task)
+                            task.add_done_callback(_active_tasks.discard)
 
                 except Exception as e:
                     root_span.update(
