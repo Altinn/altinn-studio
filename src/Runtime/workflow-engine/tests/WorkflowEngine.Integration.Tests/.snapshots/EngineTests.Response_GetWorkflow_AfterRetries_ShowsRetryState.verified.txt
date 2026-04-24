@@ -24,16 +24,16 @@
       retryCount: 2,
       errorHistory: [
         {
-          timestamp: Date_MinValue,
-          message: null,
-          httpStatusCode: null,
-          wasRetryable: false
+          timestamp: DateTimeOffset_1,
+          message: Webhook execution failed with status 500: <no body content>,
+          httpStatusCode: 500,
+          wasRetryable: true
         },
         {
-          timestamp: Date_MinValue,
-          message: null,
-          httpStatusCode: null,
-          wasRetryable: false
+          timestamp: DateTimeOffset_2,
+          message: Webhook execution failed with status 500: <no body content>,
+          httpStatusCode: 500,
+          wasRetryable: true
         }
       ]
     }

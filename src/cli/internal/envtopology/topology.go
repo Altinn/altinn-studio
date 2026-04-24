@@ -117,6 +117,18 @@ func (l Local) LocaltestIngressHosts() []string {
 	return hosts
 }
 
+// HostFileHostnames returns local environment hostnames that must resolve on the host machine.
+func (l Local) HostFileHostnames() []string {
+	return []string{
+		appHost,
+		pdfHost,
+		workflowEngineHost,
+		pgAdminHost,
+		frontendHost,
+		otelHost,
+	}
+}
+
 // OTelHost returns the local OpenTelemetry collector host name.
 func (l Local) OTelHost() string {
 	return otelHost

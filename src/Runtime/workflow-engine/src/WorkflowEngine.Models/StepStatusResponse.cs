@@ -71,7 +71,7 @@ public sealed record StepStatusResponse
     public RetryStrategy? RetryStrategy { get; init; }
 
     /// <summary>
-    /// Error entries recorded while attempting to execute this step.
+    /// History of errors recorded across this step's execution attempts. Omitted when no errors have occurred.
     /// </summary>
     [JsonPropertyName("errorHistory")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

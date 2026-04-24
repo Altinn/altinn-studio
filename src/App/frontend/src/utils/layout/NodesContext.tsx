@@ -11,7 +11,6 @@ import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAtta
 import { FormStore } from 'src/features/form/FormContext';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys } from 'src/routesBuilder';
@@ -212,7 +211,6 @@ export function createNodesSlice(props: NodesSliceProps, set: FormStoreSet): For
 
 export interface NodesSliceProps {
   readOnly: boolean;
-  isEmbedded: boolean;
 }
 
 export const NodesProvider = ({ children }: PropsWithChildren) => {
@@ -226,7 +224,6 @@ export const NodesProvider = ({ children }: PropsWithChildren) => {
         </GeneratorData.Provider>
       </GeneratorValidationProvider>
       {window.Cypress && <UpdateAttachmentsForCypress />}
-      <ExpressionValidation />
       {children}
     </ProvideGlobalContext>
   );
@@ -344,9 +341,6 @@ function NodesLoader() {
 export const nodesHooks = {
   useIsReadOnly() {
     return FormStore.raw.useSelector((state) => state.nodes.readOnly);
-  },
-  useIsEmbedded() {
-    return FormStore.raw.useSelector((state) => state.nodes.isEmbedded);
   },
   useFullErrorList() {
     return FormStore.raw.useMemoSelector((s) => {
