@@ -35,10 +35,11 @@ public sealed record Workflow : PersistentItem
 
     /// <summary>
     /// Per-fetch lease identifier. <c>null</c> until the workflow is first fetched; a fresh token is
-    /// then issued on every fetch/reclaim by the engine and asserted on heartbeat and write-back to
-    /// prevent a stale worker from writing over a workflow that has been reclaimed by another host.
-    /// The token is left in place on terminal writes so retries of the same write-back remain
-    /// idempotent (a network blip between commit and ack would otherwise look like lease loss).
+    /// then issued on every fetch by the engine and asserted on heartbeat and write-back to prevent
+    /// a stale worker from writing over a workflow that has been reclaimed by another host. Cleared
+    /// on every transition out of <c>Processing</c> (terminal write-back, resume, poison abandon,
+    /// stale reclaim) to maintain the invariant "<c>LeaseToken IS NOT NULL iff Status = Processing</c>",
+    /// which is what makes a frozen owner's later CAS fail deterministically.
     /// </summary>
     public Guid? LeaseToken { get; set; }
 
