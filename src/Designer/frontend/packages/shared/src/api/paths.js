@@ -68,12 +68,13 @@ export const formLayoutsPath = (org, app, layoutSetName) => `${apiBasePath}/${or
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
 export const frontEndSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/front-end-settings`; // Get
-export const layoutPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/layouts/layoutSet/${layoutSetName}`;
+export const taskNavigationGroupPath = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
+// FormEditor - layoutPath
+const layoutPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/layouts/layoutSet/${layoutSetName}`;
 export const layoutPagesPath = (org, app, layoutSetName, pageName) => `${layoutPath(org, app, layoutSetName)}/pages/${pageName ? pageName : ''}`;
 export const layoutPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/page-groups/`;
 export const layoutConvertToPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pagegroups/`;
 export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pageorder/`;
-export const taskNavigationGroupPath = (org, app) => `${apiBasePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
 
 // Gitea
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
@@ -111,7 +112,7 @@ export const publishedResourcesPath = (org, path) => `${apiBasePath}/${org}/shar
 export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
 
 // Preview
-export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
+const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 
 // Release and Deployment
@@ -140,7 +141,6 @@ export const createRepoPath = () => `${apiBasePath}/repos/create-app`; // Post
 export const repoCommitPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `${apiBasePath}/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
-export const repoLatestCommitPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/latest-commit`; // Get
 export const repoMetaPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/metadata`; // Get
 export const repoPullPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/pull`; // Get
 export const repoPushPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/push`; // Post
@@ -148,8 +148,6 @@ export const repoResetPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${a
 export const repoSearchPath = () => `${apiBasePath}/repos/search`; // Get
 export const repoStatusPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/status`; // Get
 export const repoDiffPath = (org, app) => `${apiBasePath}/repos/repo/${org}/${app}/diff`; // Get
-export const reposListPath = (org) => `${apiBasePath}/repos/org/${org}`; // Get
-export const stageFilePath = (org, app, filename) => `${apiBasePath}/repos/repo/${org}/${app}/stage/${filename}`; // Get
 
 // Text - old
 export const textLanguagesPath = (org, app) => `${apiBasePath}/${org}/${app}/text/languages`; // Get
@@ -160,7 +158,6 @@ export const textResourceIdsPath = (org, app) => `${apiBasePath}/${org}/${app}/t
 
 // User
 export const userCurrentPath = () => `${apiBasePath}/user/current`; // Get
-export const userReposPath = () => `${apiBasePath}/user/repos`; // Get
 export const userStarredListPath = () => `${apiBasePath}/user/starred`; // Get
 export const userStarredRepoPath = (org, app) => `${apiBasePath}/user/starred/${org}/${app}`; // Put, Delete
 
@@ -196,7 +193,7 @@ export const altinn2DelegationsMigrationPath = (org, env) => `${apiBasePath}/${o
 export const consentTemplatesPath = (org) => `${apiBasePath}/${org}/resources/consenttemplates/`; // Get
 
 // Preview
-export const instancesPath = (org, app) => `/${org}/${app}/instances`;
+const instancesPath = (org, app) => `/${org}/${app}/instances`;
 export const createInstancePath = (org, app, partyId, taskId) => `${instancesPath(org, app)}?instanceOwnerPartyId=${partyId}&taskId=${taskId}`; // Post
 
 // Process Editor
