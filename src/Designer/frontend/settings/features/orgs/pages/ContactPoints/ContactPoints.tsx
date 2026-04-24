@@ -22,7 +22,7 @@ export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();
   const { owner: org } = useRequiredRoutePathsParams(['owner']);
 
-  const { data: contactPoints, isPending, isError } = useGetContactPointsQuery(org!);
+  const { data: contactPoints, isPending, isError } = useGetContactPointsQuery(org);
 
   if (isPending) {
     return <StudioSpinner aria-hidden spinnerTitle={t('settings.orgs.contact_points.loading')} />;
@@ -70,10 +70,10 @@ export const ContactPoints = (): ReactElement => {
         </div>
       </div>
       <section className={classes.section}>
-        <PersonsList org={org!} persons={persons} />
+        <PersonsList org={org} persons={persons} />
       </section>
       <section className={classes.section}>
-        <SlackChannelsList org={org!} channels={channels} />
+        <SlackChannelsList org={org} channels={channels} />
       </section>
     </div>
   );

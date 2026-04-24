@@ -5,16 +5,15 @@ import { PageHeader } from 'app-shared/components/PageHeader/PageHeader';
 import { RoutePaths } from '../../routes/RoutePaths';
 import { RoutePaths as OrgRoutePaths } from '../../features/orgs/routes/RoutePaths';
 import { RoutePaths as UserRoutePaths } from '../../features/user/routes/RoutePaths';
-import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
 
 const orgValidPaths = Object.values(OrgRoutePaths);
 const userValidPaths = Object.values(UserRoutePaths);
 
 export const PageLayout = () => {
-  const { owner } = useRequiredRoutePathsParams(['owner']);
   const navigate = useNavigate();
   const ownerMatch = useMatch(`/${RoutePaths.Owner}/*`);
   const subPath = ownerMatch?.params['*'] || '';
+  const owner = ownerMatch?.params.owner;
 
   const buildPath = (username: string, validPaths: string[]) => {
     const page = validPaths.includes(subPath) ? subPath : '';

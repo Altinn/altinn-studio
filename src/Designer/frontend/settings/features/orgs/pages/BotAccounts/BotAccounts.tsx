@@ -18,9 +18,9 @@ export const BotAccounts = (): ReactElement => {
   const { t } = useTranslation();
   const { owner: org } = useRequiredRoutePathsParams(['owner']);
 
-  const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org!);
+  const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org);
   const { data: orgs } = useOrgListQuery();
-  const availableEnvironments = orgs?.[org!]?.environments ?? [];
+  const availableEnvironments = orgs?.[org]?.environments ?? [];
 
   const [dialogState, setDialogState] = useState<DialogState>(null);
   const [newBotId, setNewBotId] = useState<string | undefined>(undefined);
@@ -62,7 +62,7 @@ export const BotAccounts = (): ReactElement => {
       </div>
       <div className={classes.content}>
         <BotAccountsList
-          org={org!}
+          org={org}
           botAccounts={botAccounts ?? []}
           onEdit={openEditDialog}
           highlightId={newBotId}
@@ -74,7 +74,7 @@ export const BotAccounts = (): ReactElement => {
         </AddButton>
         {dialogState && (
           <BotAccountDialog
-            org={org!}
+            org={org}
             initialForm={dialogState.form}
             availableEnvironments={availableEnvironments}
             onClose={closeDialog}
