@@ -10,13 +10,13 @@ import { BotAccountDialog } from './components/BotAccountDialog/BotAccountDialog
 import type { BotAccountForm } from './components/BotAccountDialog/BotAccountDialog';
 import { AddButton } from '../../../../components/AddButton/AddButton';
 import classes from './BotAccounts.module.css';
-import { useRoutePathsParams } from 'settings/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
 
 type DialogState = { form: BotAccountForm; editingId: string | null } | null;
 
 export const BotAccounts = (): ReactElement => {
   const { t } = useTranslation();
-  const { owner: org } = useRoutePathsParams();
+  const { owner: org } = useRequiredRoutePathsParams(['owner']);
 
   const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org!);
   const { data: orgs } = useOrgListQuery();

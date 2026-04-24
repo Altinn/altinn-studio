@@ -13,14 +13,14 @@ import { PersonsList } from './components/PersonsList/PersonsList';
 import { SlackChannelsList } from './components/SlackChannelsList/SlackChannelsList';
 import classes from './ContactPoints.module.css';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
-import { useRoutePathsParams } from 'settings/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
 
 const isSlackChannel = (cp: ContactPoint): boolean =>
   cp.methods.some((m) => m.methodType === 'slack');
 
 export const ContactPoints = (): ReactElement => {
   const { t } = useTranslation();
-  const { owner: org } = useRoutePathsParams();
+  const { owner: org } = useRequiredRoutePathsParams(['owner']);
 
   const { data: contactPoints, isPending, isError } = useGetContactPointsQuery(org!);
 

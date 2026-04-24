@@ -6,11 +6,11 @@ import { NotFound } from '../../../components/NotFound/NotFound';
 import { useTranslation } from 'react-i18next';
 import { useOrganizationsQuery, useUserOrgPermissionsQuery } from 'app-shared/hooks/queries';
 import { Menu } from '../components/Menu/Menu';
-import { useRoutePathsParams } from 'settings/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
-  const { owner: org } = useRoutePathsParams();
+  const { owner: org } = useRequiredRoutePathsParams(['owner']);
   const { data: orgs, isPending: isOrgsPending, isError: isOrgsError } = useOrganizationsQuery();
   const selectedOrg = orgs?.find((o) => o.username === org);
   const {

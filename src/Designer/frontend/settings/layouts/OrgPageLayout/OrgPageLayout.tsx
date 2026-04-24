@@ -4,11 +4,11 @@ import { NotFound } from '../../components/NotFound/NotFound';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { StudioPageError } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
-import { useRoutePathsParams } from 'settings/hooks/useRoutePathsParams';
+import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
 
 export const OrgPageLayout = () => {
   const { t } = useTranslation();
-  const { owner: org } = useRoutePathsParams();
+  const { owner: org } = useRequiredRoutePathsParams(['owner']);
   const { data: user, isPending, isError } = useUserQuery();
 
   if (isPending) {
