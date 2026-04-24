@@ -54,7 +54,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
   const currentBranch = currentBranchInfo?.branchName;
   const backendSessionIdRef = useRef<string | null>(backendSessionId);
-  const sessionToThreadId = useRef<Map<string, string>>(new Map());
+  const activeWorkflowThreadId = useRef<string | null>(null);
 
   const {
     currentSessionId,
@@ -107,9 +107,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
       const messageTimestamp = getAssistantMessageTimestamp(assistantMessage);
       markWorkflowCompleted(assistantMessage, messageTimestamp);
 
-      const threadId =
-        (event.session_id && sessionToThreadId.current.get(event.session_id)) ||
-        currentSessionIdRef.current;
+      const threadId = activeWorkflowThreadId.current || currentSessionIdRef.current;
       if (!threadId) return;
 
       const finalAssistantMessage: AssistantMessage = {
@@ -125,13 +123,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         resetRepoForSession(event.session_id);
       }
     },
-    [
-      sessionToThreadId,
-      currentSessionIdRef,
-      resetRepoForSession,
-      markWorkflowCompleted,
-      persistMessage,
-    ],
+    [currentSessionIdRef, resetRepoForSession, markWorkflowCompleted, persistMessage],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -158,9 +150,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         }));
       } else if (event.type === 'error') {
         setWorkflowStatus({ isActive: false });
-        const sessionId =
-          (event.session_id && sessionToThreadId.current.get(event.session_id)) ||
-          currentSessionIdRef.current;
+        const sessionId = activeWorkflowThreadId.current || currentSessionIdRef.current;
         if (!sessionId) return;
         if (event.data?.status === 'cancelled') return;
         persistMessage(sessionId, {
@@ -171,7 +161,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [handleAssistantMessage, currentSessionIdRef, sessionToThreadId, persistMessage],
+    [handleAssistantMessage, currentSessionIdRef, persistMessage],
   );
 
   useEffect(() => {
@@ -225,10 +215,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
-      const activeSession = backendSessionIdRef.current;
-      if (activeSession) {
-        sessionToThreadId.current.set(activeSession, threadId);
-      }
+      activeWorkflowThreadId.current = threadId;
       persistMessage(threadId, userMessage);
       try {
         const result = await startAgentWorkflow(
