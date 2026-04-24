@@ -43,7 +43,7 @@ public class ChatController(IChatService chatService) : ControllerBase
             editingContext,
             cancellationToken
         );
-        return Created(string.Empty, created);
+        return CreatedAtAction(nameof(GetMessages), new { org, app, threadId = created.Id }, created);
     }
 
     [HttpPut("threads/{threadId:guid}")]
@@ -122,7 +122,7 @@ public class ChatController(IChatService chatService) : ControllerBase
                 editingContext,
                 cancellationToken
             );
-            return Created(string.Empty, created);
+            return CreatedAtAction(nameof(GetMessages), new { org, app, threadId = created.ThreadId }, created);
         }
         catch (KeyNotFoundException)
         {
