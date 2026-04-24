@@ -264,7 +264,11 @@ function HandleNavigationFocusComponent() {
         searchParams.delete(SearchParams.ExitSubform);
         const basePath = locationRef.current.pathname;
         const nextLocation = searchParams.size > 0 ? `${basePath}?${searchParams.toString()}` : basePath;
-        navigate(nextLocation, { replace: true });
+        navigate(nextLocation, {
+          replace: true,
+          preventScrollReset: true,
+          state: { preventFocusReset: true } satisfies NavigationState,
+        });
       }
     })();
   }, [navigate, locationRef, exitSubform, validate, onFormSubmitValidation]);
