@@ -162,10 +162,9 @@ export function getTargetUrl(appName: string) {
 function getConfiguredFrontendHost() {
   const config = Cypress.config() as Cypress.ConfigOptions & {
     frontendUrl?: string;
-    browser?: { isHeadless?: boolean };
   };
 
-  if (!config?.browser?.isHeadless) {
+  if (!Cypress.config().browser.isHeadless) {
     return new URL('http://localhost:8080').host;
   }
 
