@@ -1,1 +1,0 @@
-export { SchemaSelect } from './SchemaSelect';
