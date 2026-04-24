@@ -31,6 +31,28 @@ func TestReadLine_CancelDoesNotLeaveReaderBehind(t *testing.T) {
 	)
 }
 
+func TestReadLine_DoesNotReadPastNewline(t *testing.T) {
+	t.Parallel()
+
+	reader := strings.NewReader("token\nnext\n")
+
+	data, err := ReadLine(context.Background(), reader)
+	if err != nil {
+		t.Fatalf("ReadLine() error = %v", err)
+	}
+	if got, want := string(data), "token"; got != want {
+		t.Fatalf("ReadLine() = %q, want %q", got, want)
+	}
+
+	remaining, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("ReadAll() error = %v", err)
+	}
+	if got, want := string(remaining), "next\n"; got != want {
+		t.Fatalf("remaining input = %q, want %q", got, want)
+	}
+}
+
 func TestReadPasswordBytes_HandlesControlInput(t *testing.T) {
 	t.Parallel()
 
@@ -40,6 +62,73 @@ func TestReadPasswordBytes_HandlesControlInput(t *testing.T) {
 	}
 	if got, want := string(data), "abd"; got != want {
 		t.Fatalf("readPasswordBytes() = %q, want %q", got, want)
+	}
+}
+
+func TestReadPasswordBytes_StripsBracketedPasteMarkers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{
+			name: "pasted token",
+			in:   "\x1b[200~secret\x1b[201~\n",
+			want: "secret",
+		},
+		{
+			name: "pasted token with trailing newline",
+			in:   "\x1b[200~secret\n\x1b[201~",
+			want: "secret",
+		},
+		{
+			name: "pasted ctrl c is data",
+			in:   "\x1b[200~sec\x03ret\n\x1b[201~",
+			want: "sec\x03ret",
+		},
+		{
+			name: "escape sequence is kept when not bracketed paste",
+			in:   "sec\x1b[31mret\n",
+			want: "sec\x1b[31mret",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			data, err := readPasswordBytes(context.Background(), strings.NewReader(test.in))
+			if err != nil {
+				t.Fatalf("readPasswordBytes() error = %v", err)
+			}
+			if got := string(data); got != test.want {
+				t.Fatalf("readPasswordBytes() = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+func TestReadPasswordBytes_DoesNotReadPastBracketedPasteEnd(t *testing.T) {
+	t.Parallel()
+
+	reader := strings.NewReader("\x1b[200~secret\n\x1b[201~next\n")
+
+	data, err := readPasswordBytes(context.Background(), reader)
+	if err != nil {
+		t.Fatalf("readPasswordBytes() error = %v", err)
+	}
+	if got, want := string(data), "secret"; got != want {
+		t.Fatalf("readPasswordBytes() = %q, want %q", got, want)
+	}
+
+	remaining, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("ReadAll() error = %v", err)
+	}
+	if got, want := string(remaining), "next\n"; got != want {
+		t.Fatalf("remaining input = %q, want %q", got, want)
 	}
 }
 

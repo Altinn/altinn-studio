@@ -6,6 +6,8 @@ import (
 	"runtime"
 )
 
+const osWindows = "windows"
+
 func newRuntimeConfig() RuntimeConfig {
 	return RuntimeConfig{
 		User: runtimeContainerUser(),
@@ -14,7 +16,7 @@ func newRuntimeConfig() RuntimeConfig {
 
 func runtimeContainerUser() string {
 	// Keep empty on Windows because os.Getuid/getgid are unsupported there.
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		return ""
 	}
 	return fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())

@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'react';
 import type { ReactElement } from 'react';
+import { useRef, useEffect } from 'react';
 import cn from 'classnames';
 import { Messages } from './Messages/Messages';
 import { UserInput } from './UserInput/UserInput';
@@ -8,6 +8,7 @@ import { StudioParagraph } from '@studio/components';
 import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
+import type { WorkflowStatus } from '../../types/WorkflowStatus';
 
 export type ChatColumnProps = {
   texts: AssistantTexts;
@@ -16,7 +17,7 @@ export type ChatColumnProps = {
   onCancelWorkflow?: () => void;
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
-  workflowIsActive?: boolean;
+  workflowStatus?: WorkflowStatus;
   enableCompactInterface: boolean;
   currentUser?: User;
 };
@@ -28,18 +29,19 @@ export function ChatColumn({
   onCancelWorkflow,
   cancelledMessageContent,
   onCancelledMessageConsumed,
-  workflowIsActive = false,
+  workflowStatus,
   enableCompactInterface,
   currentUser,
 }: ChatColumnProps): ReactElement {
+  const workflowIsActive = workflowStatus?.isActive === true;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView?.({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, workflowIsActive]);
+
   const placeholderContent = (
     <div className={classes.emptyState}>
       <div className={classes.emptyStateIcon}>
@@ -65,6 +67,7 @@ export function ChatColumn({
           <>
             <Messages
               messages={messages}
+              workflowStatus={workflowStatus}
               currentUser={currentUser}
               assistantAvatarUrl={undefined}
             />

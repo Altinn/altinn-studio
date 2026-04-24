@@ -1,0 +1,19 @@
+.avatar {
+  flex-shrink: 0;
+  width: var(--ds-size-12);
+  height: var(--ds-size-12);
+  color: var(--ds-color-text-subtle);
+}
+
+.avatarUser {
+  color: var(--ds-color-accent);
+}
+
+.avatarAssistant {
+  color: var(--ds-color-neutral);
+  background-color: var(--ds-color-surface-default);
+  padding: var(--ds-size-1);
+  box-sizing: border-box;
+  object-fit: contain;
+  border-radius: 0;
+}

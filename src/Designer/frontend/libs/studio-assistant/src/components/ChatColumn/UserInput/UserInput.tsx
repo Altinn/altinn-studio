@@ -4,7 +4,7 @@ import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
 import type { UserAttachment, UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
-import { createUserMessage } from '../../../utils/utils';
+import { createUserMessage } from '../../../utils/messageUtils';
 import type { AssistantTexts } from '../../../types/AssistantTexts';
 
 export type UserInputProps = {
