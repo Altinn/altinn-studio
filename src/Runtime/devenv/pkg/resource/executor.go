@@ -18,11 +18,11 @@ import (
 )
 
 // Executor applies resources to infrastructure using a container client.
-// It maintains resolved state (e.g., image IDs) across resource applications.
+// It stores runtime outputs while applying resources.
 type Executor struct {
 	client   container.ContainerClient
 	observer Observer
-	resolved *resolvedMap // Stores resolved state (image IDs, etc.)
+	outputs  *outputStore
 }
 
 const containerSpecHashLabel = "altinn.studio/devenv-spec-hash"
@@ -45,8 +45,8 @@ var (
 // NewExecutor creates an executor with the given container client.
 func NewExecutor(client container.ContainerClient) *Executor {
 	return &Executor{
-		client:   client,
-		resolved: newResolvedMap(),
+		client:  client,
+		outputs: newOutputStore(),
 	}
 }
 
@@ -57,30 +57,36 @@ func (e *Executor) SetObserver(o Observer) {
 
 // Apply creates/updates all resources in the graph in dependency order.
 // Resources at the same dependency level are applied in parallel.
-func (e *Executor) Apply(ctx context.Context, g *Graph) error {
+func (e *Executor) Apply(ctx context.Context, g *Graph) (Outputs, error) {
 	levels, err := g.TopologicalOrder()
 	if err != nil {
-		return err
+		return Outputs{}, err
 	}
+
+	e.outputs.Reset()
 
 	for _, level := range levels {
 		eg, groupCtx := errgroup.WithContext(ctx)
 		for _, r := range level {
 			eg.Go(func() error {
 				e.notify(EventApplyStart, r.ID(), nil)
-				if err := e.applyResource(groupCtx, r); err != nil {
+				output, err := e.applyResource(groupCtx, r)
+				if err != nil {
 					e.notify(EventApplyFailed, r.ID(), err)
 					return fmt.Errorf("apply %s: %w", r.ID(), err)
+				}
+				if output != nil && !isNoOutput(output) {
+					e.outputs.Set(r.ID(), output)
 				}
 				e.notify(EventApplyDone, r.ID(), nil)
 				return nil
 			})
 		}
 		if err := eg.Wait(); err != nil {
-			return fmt.Errorf("apply level: %w", err)
+			return Outputs{}, fmt.Errorf("apply level: %w", err)
 		}
 	}
-	return nil
+	return e.outputs.Snapshot(), nil
 }
 
 // Destroy removes all resources in the graph in reverse dependency order.
@@ -117,9 +123,10 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 
 // Status returns the current status of all resources in the graph.
 func (e *Executor) Status(ctx context.Context, g *Graph) (map[ResourceID]Status, error) {
-	result := make(map[ResourceID]Status, len(g.All()))
+	resources := g.Enabled()
+	result := make(map[ResourceID]Status, len(resources))
 
-	for _, r := range g.All() {
+	for _, r := range resources {
 		status, err := e.resourceStatus(ctx, r)
 		if err != nil {
 			return nil, fmt.Errorf("status %s: %w", r.ID(), err)
@@ -130,7 +137,7 @@ func (e *Executor) Status(ctx context.Context, g *Graph) (map[ResourceID]Status,
 	return result, nil
 }
 
-func (e *Executor) applyResource(ctx context.Context, r Resource) error {
+func (e *Executor) applyResource(ctx context.Context, r Resource) (Output, error) {
 	switch res := r.(type) {
 	case *RemoteImage:
 		return e.applyRemoteImage(ctx, res)
@@ -141,7 +148,7 @@ func (e *Executor) applyResource(ctx context.Context, r Resource) error {
 	case *Container:
 		return e.applyContainer(ctx, res)
 	default:
-		return fmt.Errorf("%w: %T", errUnknownResourceType, r)
+		return nil, fmt.Errorf("%w: %T", errUnknownResourceType, r)
 	}
 }
 
@@ -179,12 +186,12 @@ func (e *Executor) resourceStatus(ctx context.Context, r Resource) (Status, erro
 
 // Image operations
 
-func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) error {
+func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) (Output, error) {
 	// Check if image exists locally
 	_, err := e.client.ImageInspect(ctx, img.Ref)
 	imageExists := err == nil
 	if err != nil && !errors.Is(err, types.ErrImageNotFound) {
-		return fmt.Errorf("inspect image %s: %w", img.Ref, err)
+		return nil, fmt.Errorf("inspect image %s: %w", img.Ref, err)
 	}
 
 	switch img.PullPolicy {
@@ -192,33 +199,32 @@ func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) error
 		if pullErr := e.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
 			e.notifyProgress(img.ID(), progressFromContainerUpdate(update))
 		}); pullErr != nil {
-			return fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
+			return nil, fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
 		}
 	case PullIfNotPresent:
 		if !imageExists {
 			if pullErr := e.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
 				e.notifyProgress(img.ID(), progressFromContainerUpdate(update))
 			}); pullErr != nil {
-				return fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
+				return nil, fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
 			}
 		}
 	case PullNever:
 		if !imageExists {
-			return fmt.Errorf("%w: %s", errImageMissingForPullNever, img.Ref)
+			return nil, fmt.Errorf("%w: %s", errImageMissingForPullNever, img.Ref)
 		}
 	}
 
 	// Get the resolved image ID
 	info, err := e.client.ImageInspect(ctx, img.Ref)
 	if err != nil {
-		return fmt.Errorf("inspect image %s: %w", img.Ref, err)
+		return nil, fmt.Errorf("inspect image %s: %w", img.Ref, err)
 	}
 
-	e.resolved.Set(img.ID(), info.ID)
-	return nil
+	return ImageOutput{ImageID: info.ID}, nil
 }
 
-func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) error {
+func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) (Output, error) {
 	dockerfile := img.Dockerfile
 	if dockerfile == "" {
 		dockerfile = "Dockerfile"
@@ -227,17 +233,16 @@ func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) error {
 	if err := e.client.BuildWithProgress(ctx, img.ContextPath, dockerfile, img.Tag, func(update types.ProgressUpdate) {
 		e.notifyProgress(img.ID(), progressFromContainerUpdate(update))
 	}, img.Build); err != nil {
-		return fmt.Errorf("build image %s: %w", img.Tag, err)
+		return nil, fmt.Errorf("build image %s: %w", img.Tag, err)
 	}
 
 	// Get the resolved image ID
 	info, err := e.client.ImageInspect(ctx, img.Tag)
 	if err != nil {
-		return fmt.Errorf("inspect built image %s: %w", img.Tag, err)
+		return nil, fmt.Errorf("inspect built image %s: %w", img.Tag, err)
 	}
 
-	e.resolved.Set(img.ID(), info.ID)
-	return nil
+	return ImageOutput{ImageID: info.ID}, nil
 }
 
 func (e *Executor) imageStatus(ctx context.Context, ref string) (Status, error) {
@@ -253,16 +258,16 @@ func (e *Executor) imageStatus(ctx context.Context, ref string) (Status, error) 
 
 // Network operations
 
-func (e *Executor) applyNetwork(ctx context.Context, net *Network) error {
+func (e *Executor) applyNetwork(ctx context.Context, net *Network) (Output, error) {
 	_, err := e.client.NetworkInspect(ctx, net.Name)
 	if err == nil {
 		// Network exists
 		// TODO: check labels match, recreate if needed
-		return nil
+		return noOutput{}, nil
 	}
 
 	if !errors.Is(err, types.ErrNetworkNotFound) {
-		return fmt.Errorf("inspect network %s: %w", net.Name, err)
+		return nil, fmt.Errorf("inspect network %s: %w", net.Name, err)
 	}
 
 	// Create network
@@ -278,10 +283,10 @@ func (e *Executor) applyNetwork(ctx context.Context, net *Network) error {
 	}
 
 	if _, err := e.client.NetworkCreate(ctx, cfg); err != nil {
-		return fmt.Errorf("create network %s: %w", net.Name, err)
+		return nil, fmt.Errorf("create network %s: %w", net.Name, err)
 	}
 
-	return nil
+	return noOutput{}, nil
 }
 
 func (e *Executor) destroyNetwork(ctx context.Context, net *Network) error {
@@ -319,49 +324,60 @@ func (e *Executor) networkStatus(ctx context.Context, net *Network) (Status, err
 
 // Container operations
 
-func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
-	imageID, ok := e.resolved.Get(c.Image.ID())
+func (e *Executor) applyContainer(ctx context.Context, c *Container) (Output, error) {
+	imageOutput, ok := e.outputs.Image(c.Image.ID())
 	if !ok {
-		return fmt.Errorf("%w: %s", errImageNotResolved, c.Image.ID())
+		return nil, fmt.Errorf("%w: %s", errImageNotResolved, c.Image.ID())
 	}
+	imageID := imageOutput.ImageID
 
 	networks, err := e.resolveNetworkNames(c.Networks)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	desiredLabels := normalizedContainerLabels(c, imageID, networks)
 
 	needsCreate, err := e.reconcileExistingContainer(ctx, c.Name, imageID, desiredLabels, networks)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if !needsCreate {
-		return e.waitForContainerReadyIfEnabled(ctx, c)
+	if needsCreate {
+		cfg := types.ContainerConfig{
+			HealthCheck:    c.HealthCheck,
+			Name:           c.Name,
+			Image:          imageID,
+			Command:        c.Command,
+			Env:            c.Env,
+			Ports:          c.Ports,
+			Volumes:        c.Volumes,
+			ExtraHosts:     c.ExtraHosts,
+			NetworkAliases: c.NetworkAliases,
+			RestartPolicy:  c.RestartPolicy,
+			Labels:         desiredLabels,
+			Detach:         true,
+			User:           c.User,
+			Networks:       networks,
+		}
+
+		if _, err = e.client.CreateContainer(ctx, cfg); err != nil {
+			return nil, fmt.Errorf("create container %s: %w", c.Name, err)
+		}
 	}
 
-	cfg := types.ContainerConfig{
-		HealthCheck:    c.HealthCheck,
-		Name:           c.Name,
-		Image:          imageID,
-		Command:        c.Command,
-		Env:            c.Env,
-		Ports:          c.Ports,
-		Volumes:        c.Volumes,
-		ExtraHosts:     c.ExtraHosts,
-		NetworkAliases: c.NetworkAliases,
-		RestartPolicy:  c.RestartPolicy,
-		Labels:         desiredLabels,
-		Detach:         true,
-		User:           c.User,
-		Networks:       networks,
+	if readyErr := e.waitForContainerReadyIfEnabled(ctx, c); readyErr != nil {
+		return nil, readyErr
 	}
 
-	if _, err = e.client.CreateContainer(ctx, cfg); err != nil {
-		return fmt.Errorf("create container %s: %w", c.Name, err)
+	info, err := e.client.ContainerInspect(ctx, c.Name)
+	if err != nil {
+		return nil, fmt.Errorf("inspect container %s for outputs: %w", c.Name, err)
 	}
 
-	return e.waitForContainerReadyIfEnabled(ctx, c)
+	return ContainerOutput{
+		ContainerID: info.ID,
+		HostPorts:   clonePublishedPorts(info.Ports),
+	}, nil
 }
 
 // resolveNetworkNames extracts network names from NetworkResource references.
@@ -570,6 +586,16 @@ func progressFromContainerUpdate(update types.ProgressUpdate) Progress {
 		Total:         update.Total,
 		Indeterminate: update.Indeterminate,
 	}
+}
+
+func clonePublishedPorts(ports []types.PublishedPort) []types.PublishedPort {
+	if len(ports) == 0 {
+		return nil
+	}
+
+	cloned := make([]types.PublishedPort, len(ports))
+	copy(cloned, ports)
+	return cloned
 }
 
 // labelsMatch checks if expected labels are present in actual labels.

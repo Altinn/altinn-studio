@@ -1,11 +1,13 @@
-//go:build !windows && !linux
+//go:build linux
 
 package osutil
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"syscall"
 )
 
@@ -30,6 +32,9 @@ func ProcessRunning(pid int) (bool, error) {
 	err = process.Signal(syscall.Signal(0))
 	switch {
 	case err == nil:
+		if zombie, zombieErr := processZombie(pid); zombie || zombieErr != nil {
+			return false, zombieErr
+		}
 		return true, nil
 	case errors.Is(err, syscall.ESRCH), errors.Is(err, os.ErrProcessDone):
 		return false, nil
@@ -38,4 +43,24 @@ func ProcessRunning(pid int) (bool, error) {
 	default:
 		return false, fmt.Errorf("signal process: %w", err)
 	}
+}
+
+func processZombie(pid int) (bool, error) {
+	status, err := os.ReadFile("/proc/" + strconv.Itoa(pid) + "/status")
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, fmt.Errorf("read process status: %w", err)
+	}
+
+	for line := range bytes.SplitSeq(status, []byte{'\n'}) {
+		if !bytes.HasPrefix(line, []byte("State:")) {
+			continue
+		}
+
+		return bytes.Contains(line, []byte("(zombie)")) || bytes.Contains(line, []byte("\tZ")), nil
+	}
+
+	return false, nil
 }

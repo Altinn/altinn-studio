@@ -4,12 +4,23 @@ All notable changes to studioctl will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
 ### Added
 
 - Add `env reset` for localtest to delete persisted localtest and workflow-engine database data, with interactive confirmation.
+- Add `env hosts add`, `env hosts remove`, and `env hosts status` for localtest, including managed hosts-file blocks, backup creation, and `--json` output.
+
+### Changed
+
+- Make `--random-host-port` default to `true` for `run` and `app run`.
+
+### Fixed
+
+- Fix app-manager shutdown waits incorrectly reporting that an exited process is still running on Linux systems.
+- Reading password input when using `studioctl auth` now works on macOS with bracketed paste enabled.
 
 ### Removed
 

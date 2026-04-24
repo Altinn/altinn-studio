@@ -13,6 +13,7 @@ export const FormBootstrap = {
   useHiddenLayoutsExpressions: () => FormProviderHooks.useBootstrap().hiddenLayoutsExpressions,
   useLaxHiddenLayoutsExpressions: () => FormProviderHooks.useLaxBootstrap()?.hiddenLayoutsExpressions,
   useExpandedWidthLayouts: () => FormProviderHooks.useBootstrap().expandedWidthLayouts,
+  useDataModels: () => FormProviderHooks.useBootstrap().dataModels,
 
   useDefaultDataType: () => {
     const uiFolder = FormProviderHooks.useBootstrap().uiFolder;
@@ -46,7 +47,6 @@ export const FormBootstrap = {
       }).data ?? Object.keys(dataModels)
     );
   },
-  useDataModelSchema: (dataType: string) => FormProviderHooks.useBootstrap().dataModels[dataType]?.schemaResult,
   useSchemaLookup: () => {
     const dataModels = FormProviderHooks.useBootstrap().dataModels;
     return useMemo(
@@ -68,11 +68,6 @@ export const FormBootstrap = {
       return undefined;
     }, [dataModels]);
   },
-  useExpressionValidationConfig: (dataType: string) =>
-    FormProviderHooks.useBootstrap().dataModels[dataType]?.expressionValidationConfig,
-
-  useDataElementIdForDataType: (dataType: string) =>
-    FormProviderHooks.useBootstrap().dataModels[dataType]?.dataElementId,
   useGetDataElementIdForDataType: () => {
     const dataModels = FormProviderHooks.useBootstrap().dataModels;
     return useCallback((dataType: string) => dataModels[dataType]?.dataElementId, [dataModels]);

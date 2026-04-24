@@ -304,7 +304,7 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 	renderer.Start()
 	executor.SetObserver(renderer)
 
-	if err := executor.Apply(ctx, graph); err != nil {
+	if _, err := executor.Apply(ctx, graph); err != nil {
 		renderer.FailAll(err.Error())
 		renderer.Stop()
 		return fmt.Errorf("start environment: %w", err)
