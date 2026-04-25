@@ -1,0 +1,12 @@
+.root {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: calc(100vh - var(--header-height));
+  width: 100%;
+}
+
+.dataModellingWrapper {
+  flex: 1;
+}
