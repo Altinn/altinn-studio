@@ -123,6 +123,8 @@ import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyReq
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
+import type { CreateChatMessagePayload } from 'app-shared/types/api';
+import type { CreateChatThreadPayload, CreateChatThreadResponse } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 
 const headers = {
   Accept: 'application/json',
@@ -268,9 +270,9 @@ export const createBotAccountApiKey = (org: string, botAccountId: string, payloa
 export const revokeBotAccountApiKey = (org: string, botAccountId: string, keyId: number): Promise<void> => del(botAccountApiKeyPath(org, botAccountId, keyId));
 export const updateBotAccount = (org: string, botAccountId: string, deployEnvironments: string[]): Promise<void> => put(botAccountPath(org, botAccountId), { deployEnvironments });
 
-// Chat
-export const createChatThread = (org: string, app: string, payload: { title: string }) => post<{ id: string; title: string; createdAt: string }>(chatThreadsPath(org, app), payload);
+// Assistant Chat
+export const createChatThread = (org: string, app: string, payload: CreateChatThreadPayload) => post<CreateChatThreadResponse>(chatThreadsPath(org, app), payload);
 export const updateChatThread = (org: string, app: string, threadId: string, payload: { title: string }) => put(chatThreadPath(org, app, threadId), payload);
 export const deleteChatThread = (org: string, app: string, threadId: string) => del(chatThreadPath(org, app, threadId));
-export const createChatMessage = (org: string, app: string, threadId: string, payload: object) => post(chatMessagesPath(org, app, threadId), payload);
+export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post(chatMessagesPath(org, app, threadId), payload);
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));

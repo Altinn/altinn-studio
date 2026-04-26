@@ -1,18 +1,18 @@
 import { act, renderHook } from '@testing-library/react';
 import { useAltinityThreads } from './useAltinityThreads';
-import { useChatThreadsQuery } from '../queries/useChatThreadsQuery';
-import { useCreateChatThreadMutation } from '../mutations/useCreateChatThreadMutation';
-import { useDeleteChatThreadMutation } from '../mutations/useDeleteChatThreadMutation';
-import { useChatMessagesQuery } from '../queries/useChatMessagesQuery';
-import { useCreateChatMessageMutation } from '../mutations/useCreateChatMessageMutation';
-import { useDeleteChatMessageMutation } from '../mutations/useDeleteChatMessageMutation';
+import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
+import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
+import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
+import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQuery';
+import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
+import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
-jest.mock('../queries/useChatThreadsQuery');
-jest.mock('../mutations/useCreateChatThreadMutation');
-jest.mock('../mutations/useDeleteChatThreadMutation');
-jest.mock('../queries/useChatMessagesQuery');
-jest.mock('../mutations/useCreateChatMessageMutation');
-jest.mock('../mutations/useDeleteChatMessageMutation');
+jest.mock('app-shared/hooks/queries/useChatThreadsQuery');
+jest.mock('app-shared/hooks/mutations/useCreateChatThreadMutation');
+jest.mock('app-shared/hooks/mutations/useDeleteChatThreadMutation');
+jest.mock('app-shared/hooks/queries/useChatMessagesQuery');
+jest.mock('app-shared/hooks/mutations/useCreateChatMessageMutation');
+jest.mock('app-shared/hooks/mutations/useDeleteChatMessageMutation');
 
 const mockUseChatThreadsQuery = useChatThreadsQuery as jest.MockedFunction<
   typeof useChatThreadsQuery

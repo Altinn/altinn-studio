@@ -2,13 +2,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { ChatThread } from 'app-shared/types/api';
 
-export const useDeleteChatThreadMutation = () => {
+export type CreateChatThreadPayload = Pick<ChatThread, 'title'>;
+export type CreateChatThreadResponse = Pick<ChatThread, 'id' | 'title' | 'createdAt'>;
+
+export const useCreateChatThreadMutation = () => {
   const queryClient = useQueryClient();
-  const { deleteChatThread } = useServicesContext();
+  const { createChatThread } = useServicesContext();
   const { org, app } = useStudioEnvironmentParams();
-  return useMutation<void, Error, string>({
-    mutationFn: (threadId) => deleteChatThread(org, app, threadId),
+  return useMutation({
+    mutationFn: (payload: CreateChatThreadPayload) => createChatThread(org, app, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ChatThreads, org, app] });
     },

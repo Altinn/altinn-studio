@@ -3,18 +3,16 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-type DeleteChatMessageVariables = {
-  threadId: string;
-  messageId: string;
-};
+type DeleteChatMessageMutationArgs = { threadId: string; messageId: string };
 
 export const useDeleteChatMessageMutation = () => {
   const queryClient = useQueryClient();
   const { deleteChatMessage } = useServicesContext();
   const { org, app } = useStudioEnvironmentParams();
 
-  return useMutation<void, Error, DeleteChatMessageVariables>({
-    mutationFn: ({ threadId, messageId }) => deleteChatMessage(org, app, threadId, messageId),
+  return useMutation({
+    mutationFn: ({ threadId, messageId }: DeleteChatMessageMutationArgs) =>
+      deleteChatMessage(org, app, threadId, messageId),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.ChatMessages, org, app, variables.threadId],

@@ -2,12 +2,12 @@ import { useState, useRef, useCallback, useMemo } from 'react';
 import type { MutableRefObject } from 'react';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
-import { useChatThreadsQuery } from '../queries/useChatThreadsQuery';
-import { useCreateChatThreadMutation } from '../mutations/useCreateChatThreadMutation';
-import { useDeleteChatThreadMutation } from '../mutations/useDeleteChatThreadMutation';
-import { useChatMessagesQuery } from '../queries/useChatMessagesQuery';
-import { useCreateChatMessageMutation } from '../mutations/useCreateChatMessageMutation';
-import { useDeleteChatMessageMutation } from '../mutations/useDeleteChatMessageMutation';
+import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
+import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
+import { useDeleteChatThreadMutation } from 'app-shared/hooks/mutations/useDeleteChatThreadMutation';
+import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQuery';
+import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
+import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
 export interface AltinityThreadState {
   chatThreads: ChatThread[];
@@ -78,19 +78,14 @@ export const useAltinityThreads = (): AltinityThreadState => {
       const isUser = message.role === MessageAuthor.User;
       createChatMessage({
         threadId,
-        payload: isUser
-          ? {
-              role: message.role,
-              content: message.content,
-              allowAppChanges: message.allowAppChanges,
-              attachmentFileNames: message.attachments?.map((a) => a.name),
-            }
-          : {
-              role: message.role,
-              content: message.content,
-              filesChanged: message.filesChanged,
-              sources: message.sources,
-            },
+        payload: {
+          role: message.role,
+          content: message.content,
+          allowAppChanges: isUser ? message.allowAppChanges : false,
+          attachmentFileNames: isUser ? (message.attachments?.map((a) => a.name) ?? []) : [],
+          filesChanged: isUser ? [] : message.filesChanged,
+          sources: isUser ? null : (message.sources ?? null),
+        },
       });
     },
     [createChatMessage],
