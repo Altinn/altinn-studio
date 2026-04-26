@@ -2,9 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { Lang } from 'src/features/language/Lang';
-import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 function TestSubject() {
@@ -19,11 +17,8 @@ describe('Lang', () => {
   beforeAll(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
-  beforeEach(() => {
-    jest.mocked(fetchInstanceData).mockImplementation(async () => getInstanceDataMock());
-  });
   afterAll(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should work properly', async () => {

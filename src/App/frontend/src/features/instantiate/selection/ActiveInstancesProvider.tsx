@@ -3,26 +3,21 @@ import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
+import { activeInstancesQuery } from 'src/core/queries/instance/instance.queries';
+import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
 const useActiveInstancesQuery = () => {
-  const { fetchActiveInstances } = useAppQueries();
   const selectedParty = useSelectedParty();
+  const instanceApi = useInstanceApi();
+  const partyId = String(selectedParty?.partyId ?? '');
 
   const utils = useQuery({
-    queryKey: ['getActiveInstances', selectedParty?.partyId],
-    queryFn: async () => {
-      const simpleInstances = await fetchActiveInstances(selectedParty?.partyId ?? -1);
-
-      // Sort array by last changed date
-      simpleInstances.sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());
-
-      return simpleInstances;
-    },
+    ...activeInstancesQuery({ partyId, instanceApi }),
+    enabled: Boolean(selectedParty?.partyId),
   });
 
   useEffect(() => {
@@ -51,7 +46,7 @@ function MaybeInstantiate({ children }: PropsWithChildren) {
   const instances = useActiveInstances();
   if (instances.length === 0) {
     // If there's no active instances, we should instantiate a new one
-    return <InstantiateContainer />;
+    return <InstantiationContainer />;
   }
 
   return children;

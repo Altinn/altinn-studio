@@ -23,27 +23,25 @@ public partial class AppFixture : IAsyncDisposable
         private readonly AppFixture _fixture = fixture;
 
         /// <summary>
-        /// Tests container-to-container connectivity by calling the app's PDF diagnostic endpoint.
-        /// This verifies that the app container can reach the PDF service container via container network.
+        /// Tests app-to-PDF connectivity by calling the app's PDF diagnostic endpoint.
         /// </summary>
         public async Task<ConnectivityResult> Pdf()
         {
             var client = _fixture.GetAppClient();
-            using var response = await client.GetAsync($"/ttd/{_fixture._app}/api/testing/connectivity/pdf");
-            Assert.True(response.IsSuccessStatusCode, "Failed to check app container PDF connectivity");
+            using var response = await client.GetAsync($"{_fixture.AppPath}/api/testing/connectivity/pdf");
+            Assert.True(response.IsSuccessStatusCode, "Failed to check app PDF connectivity");
             var content = await response.Content.ReadFromJsonAsync<ConnectivityResult>();
             return content ?? throw new InvalidOperationException("Failed to deserialize connectivity result");
         }
 
         /// <summary>
-        /// Tests container-to-container connectivity by calling the app's localtest diagnostic endpoint.
-        /// This verifies that the app container can reach the localtest health endpoint via container network.
+        /// Tests app-to-localtest connectivity by calling the app's localtest diagnostic endpoint.
         /// </summary>
         public async Task<ConnectivityResult> Localtest()
         {
             var client = _fixture.GetAppClient();
-            using var response = await client.GetAsync($"/ttd/{_fixture._app}/api/testing/connectivity/localtest");
-            Assert.True(response.IsSuccessStatusCode, "Failed to check app container localtest connectivity");
+            using var response = await client.GetAsync($"{_fixture.AppPath}/api/testing/connectivity/localtest");
+            Assert.True(response.IsSuccessStatusCode, "Failed to check app localtest connectivity");
             var content = await response.Content.ReadFromJsonAsync<ConnectivityResult>();
             return content ?? throw new InvalidOperationException("Failed to deserialize connectivity result");
         }

@@ -1,0 +1,14 @@
+﻿{
+  Activities: [
+    {
+      Name: Notifications.Condition.GenerateToken,
+      IdFormat: W3C,
+      Tags: [
+        {
+          notification.order.id: Guid_1
+        }
+      ],
+      HasParent: false
+    }
+  ]
+}

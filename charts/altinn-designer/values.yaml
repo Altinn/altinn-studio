@@ -10,7 +10,6 @@ serviceAccount:
 image:
   repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
   containerPort: 5000
-  imagePullSecret: acrsecret
 
 dbMigrationsJob:
   image:
@@ -99,6 +98,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:
@@ -187,6 +188,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:
@@ -273,6 +276,8 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AltinitySettings__AgentUrl
+      value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
       valueFrom:
         secretKeyRef:
@@ -352,4 +357,4 @@ lifecycle:
         - >
           mkdir -p wwwroot/designer/config &&
           STUDIO_OIDC_FLAG=$([ "${FeatureManagement__StudioOidc}" = "true" ] && echo true || echo false) &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"featureFlags\": {\"studioOidc\": ${STUDIO_OIDC_FLAG}}}" > wwwroot/designer/config/env.json
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"accountLinkUrl\": \"${StudioOidcLoginSettings__AccountLinkUrl}\", \"featureFlags\": {\"studioOidc\": ${STUDIO_OIDC_FLAG}}}" > wwwroot/designer/config/env.json

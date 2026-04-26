@@ -27,7 +27,7 @@ internal static class NuGetPackaging
                 "dotnet",
                 // -p:Deterministic  - ensure deterministic builds, also sets ContinuousIntegrationBuild through our src/Directory.Build.props
                 // -p:DebugType      - Embed symbols in the nupkg
-                // -p:IncludeSymbols - Don't generate additional snupkg-files which are not determistic and will mess with the Docker cache
+                // -p:IncludeSymbols - Don't generate additional snupkg-files, which are not deterministic
                 $"pack -c Release -p:Deterministic=true -p:DebugType=embedded -p:IncludeSymbols=false --output \"{output}\"",
                 solutionDirectory,
                 logger,

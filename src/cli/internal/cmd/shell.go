@@ -36,15 +36,16 @@ func (c *ShellCommand) Synopsis() string { return "Shell integration (alias, com
 
 // Usage returns the full help text.
 func (c *ShellCommand) Usage() string {
-	return fmt.Sprintf(`Usage: %s shell <subcommand> [options]
-
-Configure shell integration for %s.
-
-Subcommands:
-  alias    Configure a shell alias for %s
-
-Run '%s shell <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s shell <subcommand> [options]", osutil.CurrentBin()),
+		"",
+		fmt.Sprintf("Configure shell integration for %s.", osutil.CurrentBin()),
+		"",
+		"Subcommands:",
+		"  alias    Configure a shell alias for "+osutil.CurrentBin(),
+		"",
+		fmt.Sprintf("Run '%s shell <subcommand> --help' for more information.", osutil.CurrentBin()),
+	)
 }
 
 // Run executes the command.
@@ -97,28 +98,29 @@ func (c *ShellCommand) runAlias(ctx context.Context, args []string) error {
 }
 
 func (c *ShellCommand) aliasUsage() string {
-	return fmt.Sprintf(`Usage: %s shell alias [options]
-
-Configure a shell alias for %s.
-
-Options:
-  -a, --alias NAME   Alias name (default: "s")
-  -s, --shell SHELL  Shell type: bash, zsh, fish, powershell (auto-detected if not specified)
-  --dry-run          Print what would be added without modifying files
-  -h                 Show this help
-
-Supported shells:
-  bash        ~/.bashrc
-  zsh         ~/.zshrc
-  fish        ~/.config/fish/config.fish
-  powershell  $PROFILE (Windows PowerShell profile)
-
-Examples:
-  %s shell alias              # Add 's' alias to detected shell
-  %s shell alias -a studio    # Use 'studio' as alias name
-  %s shell alias --dry-run    # Preview changes without modifying files
-  %s shell alias -s zsh       # Force zsh shell type
-`, osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin(), osutil.CurrentBin())
+	return joinLines(
+		fmt.Sprintf("Usage: %s shell alias [options]", osutil.CurrentBin()),
+		"",
+		fmt.Sprintf("Configure a shell alias for %s.", osutil.CurrentBin()),
+		"",
+		"Options:",
+		`  -a, --alias NAME   Alias name (default: "s")`,
+		"  -s, --shell SHELL  Shell type: bash, zsh, fish, powershell (auto-detected if not specified)",
+		"  --dry-run          Print what would be added without modifying files",
+		"  -h                 Show this help",
+		"",
+		"Supported shells:",
+		"  bash        ~/.bashrc",
+		"  zsh         ~/.zshrc",
+		"  fish        ~/.config/fish/config.fish",
+		"  powershell  $PROFILE (Windows PowerShell profile)",
+		"",
+		"Examples:",
+		fmt.Sprintf("  %s shell alias              # Add 's' alias to detected shell", osutil.CurrentBin()),
+		fmt.Sprintf("  %s shell alias -a studio    # Use 'studio' as alias name", osutil.CurrentBin()),
+		fmt.Sprintf("  %s shell alias --dry-run    # Preview changes without modifying files", osutil.CurrentBin()),
+		fmt.Sprintf("  %s shell alias -s zsh       # Force zsh shell type", osutil.CurrentBin()),
+	)
 }
 
 func (c *ShellCommand) parseAliasFlags(args []string) (aliasFlags, bool, error) {
@@ -148,24 +150,24 @@ func (c *ShellCommand) parseAliasFlags(args []string) (aliasFlags, bool, error) 
 func (c *ShellCommand) renderAliasResult(aliasName string, result shellsvc.AliasResult) error {
 	switch result.Status {
 	case shellsvc.AliasStatusDryRun:
-		c.out.Printf("Shell:       %s\n", result.Shell)
-		c.out.Printf("Config file: %s\n", result.ConfigPath)
-		c.out.Printf("Alias line:  %s\n", result.AliasLine)
+		c.out.Printlnf("Shell:       %s", result.Shell)
+		c.out.Printlnf("Config file: %s", result.ConfigPath)
+		c.out.Printlnf("Alias line:  %s", result.AliasLine)
 		return nil
 	case shellsvc.AliasStatusAlreadyConfigured:
 		c.out.Success("Alias already configured in " + result.ConfigPath)
 		return nil
 	case shellsvc.AliasStatusConflict:
-		c.out.Warning(fmt.Sprintf("Alias '%s' already exists with different value:", aliasName))
-		c.out.Printf("  Existing: %s\n", result.ExistingLine)
-		c.out.Printf("  New:      %s\n", result.AliasLine)
+		c.out.Warninglnf("Alias '%s' already exists with different value:", aliasName)
+		c.out.Printlnf("  Existing: %s", result.ExistingLine)
+		c.out.Printlnf("  New:      %s", result.AliasLine)
 		c.out.Println("Remove the existing alias manually if you want to update it.")
 		return nil
 	case shellsvc.AliasStatusAdded:
-		c.out.Success(fmt.Sprintf("Added alias '%s' to %s", aliasName, result.ConfigPath))
+		c.out.Successlnf("Added alias '%s' to %s", aliasName, result.ConfigPath)
 		c.out.Println("")
 		c.out.Println("To use the alias, reload your shell configuration:")
-		c.out.Printf("  %s\n", result.ReloadCommand)
+		c.out.Printlnf("  %s", result.ReloadCommand)
 		return nil
 	default:
 		return fmt.Errorf("%w: %q", errUnexpectedAliasStatus, result.Status)

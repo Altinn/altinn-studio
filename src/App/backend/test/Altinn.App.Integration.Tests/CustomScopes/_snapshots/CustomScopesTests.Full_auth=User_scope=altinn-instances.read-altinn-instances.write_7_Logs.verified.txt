@@ -1,1 +1,1 @@
-﻿[basic/custom-scopes] [INIT INFO] Fixture configuration updated
+﻿emptyString

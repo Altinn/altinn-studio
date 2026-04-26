@@ -137,14 +137,16 @@ public class CreateWithGitOpsEnabledTests
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(deploymentEntity);
 
-        // Verify event was created in the database
+        // Verify events were created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
+            .OrderBy(e => e.Created)
             .ToListAsync();
 
-        Assert.Single(events);
-        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[0].EventType);
+        Assert.Equal(2, events.Count);
+        Assert.Equal(DeployEventType.ResourceRegistryPublishFailed.ToString(), events[0].EventType);
+        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[1].EventType);
 
         // Verify GitOps methods were called correctly
         _gitOpsConfigurationManagerMock.Verify(
@@ -245,14 +247,16 @@ public class CreateWithGitOpsEnabledTests
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(deploymentEntity);
 
-        // Verify event was created in the database
+        // Verify events were created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
+            .OrderBy(e => e.Created)
             .ToListAsync();
 
-        Assert.Single(events);
-        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[0].EventType);
+        Assert.Equal(2, events.Count);
+        Assert.Equal(DeployEventType.ResourceRegistryPublishFailed.ToString(), events[0].EventType);
+        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[1].EventType);
 
         // Verify GitOps methods were called correctly
         _gitOpsConfigurationManagerMock.Verify(

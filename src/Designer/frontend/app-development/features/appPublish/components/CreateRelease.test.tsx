@@ -131,4 +131,42 @@ describe('CreateRelease', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('shows critical validation message when app has critical validation errors', async () => {
+    const mockAppValidationResult = {
+      isValid: false,
+      errors: {
+        'title.nb': ['error1'],
+      },
+    };
+    renderCreateRelease({ getAppValidation: () => Promise.resolve(mockAppValidationResult) });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('app_create_release.validation_errors')),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('app_create_release.validation_error_message')),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows warning validation message when app has non-critical validation errors', async () => {
+    const mockAppValidationResult = {
+      isValid: false,
+      errors: {
+        'title.en': ['error1'],
+      },
+    };
+    renderCreateRelease({ getAppValidation: () => Promise.resolve(mockAppValidationResult) });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('app_create_release.validation_warning')),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('app_create_release.validation_warning_message')),
+      ).toBeInTheDocument();
+    });
+  });
 });

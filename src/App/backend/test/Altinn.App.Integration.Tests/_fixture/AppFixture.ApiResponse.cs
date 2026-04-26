@@ -21,17 +21,17 @@ public sealed partial class AppFixture
 
         private SettingsTask VerifyInternal(Scrubbers? scrubbers = null, [CallerFilePath] string sourceFile = "")
         {
-            var appPort = Fixture._appContainer.GetMappedPublicPort(AppPort).ToString();
-            var localtestPort = Fixture._localtestContainer.GetMappedPublicPort(LocaltestPort).ToString();
+            var appPort = Fixture._appProcess.BaseUri.Port.ToString();
+            var localtestPort = StudioctlLocaltestHostPort.ToString();
             var snapshot = IncludeBodyInSnapshot ? Snapshot.Create(Response, Data) : Snapshot.Create(Response);
 
             var settings = Verifier
                 .Verify(snapshot, sourceFile: sourceFile)
                 .AddExtraSettings(settings =>
                 {
-                    settings.Converters.Add(new StringConverter(appPort, localtestPort, scrubbers));
-                    settings.Converters.Add(new HeadersConverter(appPort, localtestPort, scrubbers));
-                    settings.Converters.Add(new UriConverter(appPort, localtestPort, scrubbers));
+                    settings.Converters.Add(new StringConverter(Fixture, appPort, localtestPort, scrubbers));
+                    settings.Converters.Add(new HeadersConverter(Fixture, appPort, localtestPort, scrubbers));
+                    settings.Converters.Add(new UriConverter(Fixture, appPort, localtestPort, scrubbers));
                 });
             return settings;
         }
@@ -88,15 +88,15 @@ public sealed partial class AppFixture
 
         public virtual SettingsTask Verify(Scrubbers? scrubbers = null, [CallerFilePath] string sourceFile = "")
         {
-            var appPort = Fixture._appContainer.GetMappedPublicPort(AppPort).ToString();
-            var localtestPort = Fixture._localtestContainer.GetMappedPublicPort(LocaltestPort).ToString();
+            var appPort = Fixture._appProcess.BaseUri.Port.ToString();
+            var localtestPort = StudioctlLocaltestHostPort.ToString();
             var settings = Verifier
                 .Verify(Snapshot.Create(Response), sourceFile: sourceFile)
                 .AddExtraSettings(settings =>
                 {
-                    settings.Converters.Add(new StringConverter(appPort, localtestPort, scrubbers));
-                    settings.Converters.Add(new HeadersConverter(appPort, localtestPort, scrubbers));
-                    settings.Converters.Add(new UriConverter(appPort, localtestPort, scrubbers));
+                    settings.Converters.Add(new StringConverter(Fixture, appPort, localtestPort, scrubbers));
+                    settings.Converters.Add(new HeadersConverter(Fixture, appPort, localtestPort, scrubbers));
+                    settings.Converters.Add(new UriConverter(Fixture, appPort, localtestPort, scrubbers));
                 });
             return settings;
         }
@@ -120,21 +120,28 @@ public sealed partial class AppFixture
         }
     }
 
-    private sealed class StringConverter(string _appPort, string _localtestPort, Scrubbers? _scrubbers)
-        : WriteOnlyJsonConverter<string>
+    private sealed class StringConverter(
+        AppFixture _fixture,
+        string _appPort,
+        string _localtestPort,
+        Scrubbers? _scrubbers
+    ) : WriteOnlyJsonConverter<string>
     {
         public override void Write(VerifyJsonWriter writer, string value)
         {
             if (_scrubbers?.StringScrubber is { } scrubber)
                 value = scrubber(value);
-            value = value.Replace(_appPort, "<appPort>");
-            value = value.Replace(_localtestPort, "<localtestPort>");
+            value = Scrub(value, _fixture, _appPort, _localtestPort);
             writer.WriteValue(value);
         }
     }
 
-    private sealed class HeadersConverter(string _appPort, string _localtestPort, Scrubbers? _scrubbers)
-        : WriteOnlyJsonConverter<HttpHeaders>
+    private sealed class HeadersConverter(
+        AppFixture _fixture,
+        string _appPort,
+        string _localtestPort,
+        Scrubbers? _scrubbers
+    ) : WriteOnlyJsonConverter<HttpHeaders>
     {
         public override void Write(VerifyJsonWriter writer, HttpHeaders headers)
         {
@@ -175,8 +182,7 @@ public sealed partial class AppFixture
                             string v = headerValue;
                             if (_scrubbers?.StringScrubber is { } scrubber)
                                 v = scrubber(v);
-                            v = v.Replace(_appPort, "<appPort>");
-                            v = v.Replace(_localtestPort, "<localtestPort>");
+                            v = Scrub(v, _fixture, _appPort, _localtestPort);
                             writer.WriteValue(v);
                         }
                         writer.WriteEndArray();
@@ -187,17 +193,29 @@ public sealed partial class AppFixture
         }
     }
 
-    private sealed class UriConverter(string _appPort, string _localtestPort, Scrubbers? _scrubbers)
-        : WriteOnlyJsonConverter<Uri>
+    private sealed class UriConverter(
+        AppFixture _fixture,
+        string _appPort,
+        string _localtestPort,
+        Scrubbers? _scrubbers
+    ) : WriteOnlyJsonConverter<Uri>
     {
         public override void Write(VerifyJsonWriter writer, Uri value)
         {
             var uri = value.ToString();
             if (_scrubbers?.StringScrubber is { } scrubber)
                 uri = scrubber(uri);
-            uri = uri.Replace(_appPort, "<appPort>");
-            uri = uri.Replace(_localtestPort, "<localtestPort>");
+            uri = Scrub(uri, _fixture, _appPort, _localtestPort);
             writer.WriteValue(uri);
         }
+    }
+
+    private static string Scrub(string value, AppFixture fixture, string appPort, string localtestPort)
+    {
+        return value
+            .Replace(fixture._appId, fixture._originalAppId)
+            .Replace(fixture._effectiveApp, fixture._app)
+            .Replace(appPort, "<appPort>")
+            .Replace(localtestPort, "<localtestPort>");
     }
 }

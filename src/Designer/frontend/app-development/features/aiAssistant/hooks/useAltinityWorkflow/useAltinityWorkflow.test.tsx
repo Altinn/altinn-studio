@@ -32,6 +32,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
+      cancelWorkflow: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -51,7 +52,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(startWorkflow).not.toHaveBeenCalled();
-    expect(threads.addMessageToThread).not.toHaveBeenCalled();
+    expect(threads.persistMessage).not.toHaveBeenCalled();
   });
 
   it('starts workflow with backend session id', async () => {
@@ -66,6 +67,7 @@ describe('useAltinityWorkflow', () => {
       connectionStatus: 'connected',
       sessionId: 'backend-session',
       startWorkflow,
+      cancelWorkflow: jest.fn(),
       onAgentMessage: jest.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
@@ -85,7 +87,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(threads.setCurrentSession).toHaveBeenCalledWith('backend-session');
-    expect(threads.addMessageToThread).toHaveBeenCalledWith(
+    expect(threads.persistMessage).toHaveBeenCalledWith(
       'backend-session',
       expect.objectContaining({ author: MessageAuthor.User, content: 'Hello' }),
     );
@@ -110,9 +112,8 @@ const createThreadState = (): AltinityThreadState => ({
   selectThread: jest.fn(),
   createNewThread: jest.fn(),
   deleteThread: jest.fn(),
-  addMessageToThread: jest.fn(),
-  upsertAssistantMessage: jest.fn(),
-  updateWorkflowStatusMessage: jest.fn(),
+  removeLastUserMessage: jest.fn(),
+  persistMessage: jest.fn(),
 });
 
 const renderUseAltinityWorkflow = (threads: AltinityThreadState) => {

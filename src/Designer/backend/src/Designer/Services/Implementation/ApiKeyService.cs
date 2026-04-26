@@ -29,6 +29,7 @@ public class ApiKeyService(
         string name,
         ApiKeyType tokenType,
         DateTimeOffset expiresAt,
+        string? createdByUsername = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -59,6 +60,15 @@ public class ApiKeyService(
             throw new DuplicateTokenNameException($"A non-revoked token with name '{name}' already exists.");
         }
 
+        Guid? createdByUserAccountId = null;
+        if (!string.IsNullOrEmpty(createdByUsername))
+        {
+            var createdByAccount = await dbContext
+                .UserAccounts.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Username == createdByUsername, cancellationToken);
+            createdByUserAccountId = createdByAccount?.Id;
+        }
+
         string rawKey = GenerateRawKey();
         ApiKeyHash keyHash = ApiKeyHash.FromRawKey(rawKey, settings);
 
@@ -71,10 +81,11 @@ public class ApiKeyService(
             ExpiresAt = expiresAt,
             Revoked = false,
             CreatedAt = timeProvider.GetUtcNow(),
+            CreatedByUserAccountId = createdByUserAccountId,
         };
 
         var created = await repository.CreateAsync(model, cancellationToken);
-        return (rawKey, MapToDomain(created, username));
+        return (rawKey, MapToDomain(created, username, createdByUsername));
     }
 
     public async Task<ApiKey?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default)
@@ -87,7 +98,7 @@ public class ApiKeyService(
             return null;
         }
 
-        if (model.Revoked || model.ExpiresAt <= timeProvider.GetUtcNow())
+        if (model.Revoked || model.ExpiresAt <= timeProvider.GetUtcNow() || model.UserAccount.Deactivated)
         {
             return null;
         }
@@ -126,7 +137,7 @@ public class ApiKeyService(
         return userAccount.Id;
     }
 
-    private static ApiKey MapToDomain(ApiKeyDbModel model, string username) =>
+    private static ApiKey MapToDomain(ApiKeyDbModel model, string username, string? createdByUsername = null) =>
         new()
         {
             Id = model.Id,
@@ -135,6 +146,7 @@ public class ApiKeyService(
             ExpiresAt = model.ExpiresAt,
             CreatedAt = model.CreatedAt,
             Username = username,
+            CreatedByUsername = createdByUsername ?? model.CreatedByUserAccount?.Username,
         };
 
     private static string GenerateRawKey()

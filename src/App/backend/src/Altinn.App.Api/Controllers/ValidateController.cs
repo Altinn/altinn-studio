@@ -69,7 +69,14 @@ public class ValidateController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
 
             string? taskId = instance.Process?.CurrentTask?.ElementId;
             if (taskId == null)
@@ -131,7 +138,14 @@ public class ValidateController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerId, instanceId);
+        Instance? instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerId,
+            instanceId,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
         if (instance == null)
         {
             return NotFound();

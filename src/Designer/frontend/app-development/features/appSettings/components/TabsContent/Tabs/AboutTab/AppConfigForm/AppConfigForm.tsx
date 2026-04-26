@@ -14,6 +14,7 @@ import { AppVisibilityAndDelegationCard } from './AppVisibilityAndDelegationCard
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { ContactPointsTable } from './ContactPointsTable/ContactPointsTable';
+import { DEFAULT_RIGHTS_DESCRIPTION } from 'app-shared/constants';
 
 export type AppConfigFormProps = {
   appConfig: ApplicationMetadata;
@@ -30,6 +31,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const [keywordsInputValue, setKeywordsInputValue] = useState(
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
   );
+  const [unsavedFields, setUnsavedFields] = useState<Set<string>>(new Set());
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
     null,
@@ -37,7 +39,19 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
 
-  const hasUnsavedChanges = !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig);
+  const handleUnsavedValueChange =
+    (fieldId: string) =>
+    (hasUnsavedValue: boolean): void => {
+      setUnsavedFields((prev) => {
+        const next = new Set(prev);
+        if (hasUnsavedValue) next.add(fieldId);
+        else next.delete(fieldId);
+        return next;
+      });
+    };
+
+  const hasUnsavedChanges =
+    !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig) || unsavedFields.size > 0;
   useUnsavedChangesWarning(
     hasUnsavedChanges,
     t('app_settings.about_tab_unsaved_changes_navigation_warning'),
@@ -88,8 +102,25 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
       access: {
         ...oldVal.access,
         delegable: e.target.checked,
+        visible: e.target.checked,
+        rightDescription: getRightDescription(oldVal, e.target.checked),
       },
     }));
+  };
+
+  const getRightDescription = (
+    oldVal: ApplicationMetadata,
+    checked: boolean,
+  ): SupportedLanguage => {
+    if (!checked) {
+      return defaultDescriptionValue;
+    }
+    const previous = oldVal.access?.rightDescription ?? defaultDescriptionValue;
+    return {
+      nb: previous.nb || DEFAULT_RIGHTS_DESCRIPTION.nb,
+      nn: previous.nn || DEFAULT_RIGHTS_DESCRIPTION.nn,
+      en: previous.en || DEFAULT_RIGHTS_DESCRIPTION.en,
+    };
   };
 
   const onChangeRightDescription = (updatedLanguage: SupportedLanguage): void => {
@@ -164,6 +195,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
+          onUnsavedValueChange={handleUnsavedValueChange('homepage')}
         />
         <AppVisibilityAndDelegationCard
           visible={updatedAppConfig.access?.visible ?? false}
@@ -182,6 +214,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
+          onUnsavedValueChange={handleUnsavedValueChange('keywords')}
         />
         <ContactPointsTable
           contactPointList={updatedAppConfig.contactPoints}

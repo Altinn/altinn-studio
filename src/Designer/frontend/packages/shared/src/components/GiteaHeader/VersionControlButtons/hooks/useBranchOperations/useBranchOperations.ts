@@ -1,64 +1,111 @@
 import { useState } from 'react';
-import { useCreateAndCheckoutBranch } from '../useCreateAndCheckoutBranch';
-import { useCheckoutWithUncommittedChangesHandling } from 'app-shared/hooks/mutations/useCheckoutWithUncommittedChangesHandling';
+import { useTranslation } from 'react-i18next';
+import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
+import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBranchMutation';
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
+import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
+import { HttpResponseUtils } from 'app-shared/utils/httpResponseUtils';
+import { DEFAULT_APP_BRANCH } from 'app-shared/constants';
 import type { UncommittedChangesError } from 'app-shared/types/api/BranchTypes';
+import type { AxiosError } from 'axios';
 
 export interface UseBranchOperationsResult {
   checkoutExistingBranch: (branchName: string) => void;
   checkoutNewBranch: (branchName: string) => void;
   discardChangesAndCheckout: (targetBranch: string) => void;
+  deleteCurrentBranch: (branchName: string) => void;
   clearUncommittedChangesError: () => void;
   isLoading: boolean;
   uncommittedChangesError: UncommittedChangesError | null;
   createError: string;
 }
 
+/**
+ * Abstraction layer for branch mutations that are dependent on one another.
+ * May be moved to backend in the future, to avoid cascading HTTP calls.
+ */
 export function useBranchOperations(org: string, app: string): UseBranchOperationsResult {
+  const { t } = useTranslation();
   const [uncommittedChangesError, setUncommittedChangesError] =
     useState<UncommittedChangesError | null>(null);
+  const [createError, setCreateError] = useState('');
 
-  const {
-    createAndCheckoutBranch,
-    isLoading: isLoadingCreateNewBranch,
-    createError,
-  } = useCreateAndCheckoutBranch(org, app, {
-    onUncommittedChanges: setUncommittedChangesError,
-  });
-
-  const checkoutMutation = useCheckoutWithUncommittedChangesHandling(org, app, {
-    onUncommittedChanges: setUncommittedChangesError,
-  });
-
+  const createBranchMutation = useCreateBranchMutation(org, app);
+  const checkoutBranchMutation = useCheckoutBranchMutation(org, app);
   const discardChangesMutation = useDiscardChangesMutation(org, app);
+  const deleteBranchMutation = useDeleteBranchMutation(org, app);
 
-  const checkoutNewBranch = (branchName: string) => {
-    setUncommittedChangesError(null);
-    createAndCheckoutBranch(branchName);
+  const handleCheckoutError = (error: AxiosError<UncommittedChangesError>): void => {
+    if (HttpResponseUtils.isConflict(error) && error.response?.data) {
+      setUncommittedChangesError(error.response.data);
+    }
   };
 
-  const checkoutExistingBranch = (branchName: string) => {
-    setUncommittedChangesError(null);
-    checkoutMutation.mutate(branchName);
-  };
-
-  const discardChangesAndCheckout = (targetBranch: string) => {
-    discardChangesMutation.mutate(undefined, {
-      onSuccess: () => checkoutMutation.mutate(targetBranch),
+  const checkoutAndReload = (branchName: string): void => {
+    checkoutBranchMutation.mutate(branchName, {
+      onSuccess: () => location.reload(),
+      onError: handleCheckoutError,
     });
   };
 
-  const clearUncommittedChangesError = () => {
+  const checkoutExistingBranch = (branchName: string): void => {
+    setUncommittedChangesError(null);
+    checkoutAndReload(branchName);
+  };
+
+  const checkoutNewBranch = (branchName: string): void => {
+    setUncommittedChangesError(null);
+    setCreateError('');
+
+    createBranchMutation.mutate(branchName, {
+      onSuccess: () => checkoutAndReload(branchName),
+      onError: (error: AxiosError) => {
+        setCreateError(
+          t(
+            HttpResponseUtils.isConflict(error)
+              ? 'branching.new_branch_dialog.error_already_exists'
+              : 'branching.new_branch_dialog.error_generic',
+          ),
+        );
+      },
+    });
+  };
+
+  const discardChangesAndCheckout = (targetBranch: string): void => {
+    discardChangesMutation.mutate(undefined, {
+      onSuccess: () => checkoutAndReload(targetBranch),
+    });
+  };
+
+  const deleteCurrentBranch = (branchName: string): void => {
+    discardChangesMutation.mutate(undefined, {
+      onSuccess: () => {
+        checkoutBranchMutation.mutate(DEFAULT_APP_BRANCH, {
+          onSuccess: () => {
+            deleteBranchMutation.mutate(branchName, {
+              onSuccess: () => location.reload(),
+            });
+          },
+        });
+      },
+    });
+  };
+
+  const clearUncommittedChangesError = (): void => {
     setUncommittedChangesError(null);
   };
 
   const isLoading =
-    isLoadingCreateNewBranch || checkoutMutation.isPending || discardChangesMutation.isPending;
+    createBranchMutation.isPending ||
+    checkoutBranchMutation.isPending ||
+    discardChangesMutation.isPending ||
+    deleteBranchMutation.isPending;
 
   return {
     checkoutExistingBranch,
     checkoutNewBranch,
     discardChangesAndCheckout,
+    deleteCurrentBranch,
     clearUncommittedChangesError,
     uncommittedChangesError,
     createError,

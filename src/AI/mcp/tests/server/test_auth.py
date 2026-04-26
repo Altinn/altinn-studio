@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from server.auth import get_request_token, get_gitea_token_with_fallback
 
 BEARER_VALUE = "oauth_abc123"
@@ -30,28 +31,27 @@ class TestGetGiteaTokenWithFallback:
         assert get_gitea_token_with_fallback({"authorization": f"Bearer {BEARER_VALUE}"}) == BEARER_VALUE
         assert get_gitea_token_with_fallback({"authorization": f"token {TOKEN_VALUE}"}) == TOKEN_VALUE
 
-    def test_fallback_to_environment_variable(self, mocker):
-        mocker.patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE)
-        assert get_gitea_token_with_fallback({}) == FALLBACK_VALUE
+    def test_fallback_to_environment_variable(self):
+        with patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE):
+            assert get_gitea_token_with_fallback({}) == FALLBACK_VALUE
 
-    def test_header_token_takes_precedence_over_fallback(self, mocker):
-        mocker.patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE)
-        assert get_gitea_token_with_fallback({"authorization": f"Bearer {BEARER_VALUE}"}) == BEARER_VALUE
+    def test_header_token_takes_precedence_over_fallback(self):
+        with patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE):
+            assert get_gitea_token_with_fallback({"authorization": f"Bearer {BEARER_VALUE}"}) == BEARER_VALUE
 
-    def test_raises_value_error_when_no_token_available(self, mocker):
-        mocker.patch('server.auth.FALLBACK_GITEA_TOKEN', None)
-        with pytest.raises(ValueError, match="No Gitea API token found"):
-            get_gitea_token_with_fallback({})
+    def test_raises_value_error_when_no_token_available(self):
+        with patch('server.auth.FALLBACK_GITEA_TOKEN', None):
+            with pytest.raises(ValueError, match="No Gitea API token found"):
+                get_gitea_token_with_fallback({})
 
-    def test_fetches_from_fastmcp_context_when_headers_none(self, mocker):
-        mocker.patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE)
-        mock_get_headers = mocker.patch('fastmcp.server.dependencies.get_http_headers')
-        mock_get_headers.return_value = {"authorization": f"Bearer {BEARER_VALUE}"}
+    def test_fetches_from_fastmcp_context_when_headers_none(self):
+        with patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE), \
+             patch('fastmcp.server.dependencies.get_http_headers',
+                   return_value={"authorization": f"Bearer {BEARER_VALUE}"}):
+            assert get_gitea_token_with_fallback(None) == BEARER_VALUE
 
-        assert get_gitea_token_with_fallback(None) == BEARER_VALUE
-
-    def test_uses_fallback_when_context_raises_exception(self, mocker):
-        mocker.patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE)
-        mocker.patch('fastmcp.server.dependencies.get_http_headers', side_effect=Exception("Not in HTTP context"))
-
-        assert get_gitea_token_with_fallback(None) == FALLBACK_VALUE
+    def test_uses_fallback_when_context_raises_exception(self):
+        with patch('server.auth.FALLBACK_GITEA_TOKEN', FALLBACK_VALUE), \
+             patch('fastmcp.server.dependencies.get_http_headers',
+                   side_effect=Exception("Not in HTTP context")):
+            assert get_gitea_token_with_fallback(None) == FALLBACK_VALUE

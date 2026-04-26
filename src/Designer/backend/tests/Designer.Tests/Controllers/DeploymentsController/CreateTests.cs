@@ -329,7 +329,7 @@ public class CreateTests
 
     [Theory]
     [InlineData("ttd", "deploy-test-at22", "at22", "3.0.0", "40001")]
-    public async Task Create_WhenGitOpsFeatureFlagDisabled_ShouldNotCreateDeployEvent(
+    public async Task Create_WhenGitOpsFeatureFlagDisabled_ShouldCreateDeployEvents(
         string org,
         string app,
         string envName,
@@ -355,13 +355,15 @@ public class CreateTests
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        // Verify no events were created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
+            .OrderBy(e => e.Created)
             .ToListAsync();
 
-        Assert.Empty(events);
+        Assert.Equal(2, events.Count);
+        Assert.Equal(DeployEventType.ResourceRegistryPublishFailed.ToString(), events[0].EventType);
+        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[1].EventType);
     }
 
     private async Task PrepareReleaseInDb(string org, string app, string tagName)

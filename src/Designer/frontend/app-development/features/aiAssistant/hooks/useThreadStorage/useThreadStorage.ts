@@ -55,13 +55,10 @@ export const useThreadStorage = () => {
   }, [threads, storage]);
 
   const addThread = useCallback((thread: ChatThread) => {
+    if (threadsRef.current.some((t) => t.id === thread.id)) return;
+    threadsRef.current = [thread, ...threadsRef.current];
     setThreads((prev) => {
-      // Check if thread already exists to prevent duplicates
-      const exists = prev.some((t) => t.id === thread.id);
-      if (exists) {
-        console.warn('Thread already exists:', thread.id);
-        return prev;
-      }
+      if (prev.some((t) => t.id === thread.id)) return prev;
       const newThreads = [thread, ...prev];
       threadsRef.current = newThreads;
       return newThreads;
@@ -69,6 +66,11 @@ export const useThreadStorage = () => {
   }, []);
 
   const updateThread = useCallback((threadId: string, updates: Partial<ChatThread>) => {
+    threadsRef.current = threadsRef.current.map((thread) =>
+      thread.id === threadId
+        ? { ...thread, ...updates, updatedAt: new Date().toISOString() }
+        : thread,
+    );
     setThreads((prev) => {
       const newThreads = prev.map((thread) =>
         thread.id === threadId
@@ -81,6 +83,7 @@ export const useThreadStorage = () => {
   }, []);
 
   const deleteThread = useCallback((threadId: string) => {
+    threadsRef.current = threadsRef.current.filter((thread) => thread.id !== threadId);
     setThreads((prev) => {
       const newThreads = prev.filter((thread) => thread.id !== threadId);
       threadsRef.current = newThreads;

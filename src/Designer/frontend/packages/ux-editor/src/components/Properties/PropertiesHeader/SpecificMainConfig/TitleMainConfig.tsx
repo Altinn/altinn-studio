@@ -4,6 +4,8 @@ import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComp
 import { ConfigStringProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
 import type { properties } from '../../../../testing/schemas/json/component/Header.schema.v1.json';
 
+import type { JSX } from 'react';
+
 type TitleMainProperties = (keyof typeof properties)[];
 export const titleMainProperties: TitleMainProperties = ['size'];
 

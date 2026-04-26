@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type JSX } from 'react';
 import { useDispatch } from 'react-redux';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';

@@ -5,11 +5,13 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -417,8 +419,39 @@ func TestScreenRenderer_PrintLinesRepositionsCursorWhenShrinking(t *testing.T) {
 	if !strings.Contains(got, "\033[1A\r") {
 		t.Fatalf("output %q missing shrink cursor adjustment", got)
 	}
+	if !strings.HasSuffix(got, "\r") {
+		t.Fatalf("output %q missing trailing carriage return", got)
+	}
 	if renderer.renderedLines != 2 {
 		t.Fatalf("renderedLines = %d, want 2", renderer.renderedLines)
+	}
+}
+
+func TestScreenRenderer_StopLeavesCursorAtLineStartForFollowupOutput(t *testing.T) {
+	t.Parallel()
+
+	restoreTermFuncs := stubTerminalFuncsForTest(
+		func(int) bool { return true },
+		func(int) (int, int, error) { return 160, 24, nil },
+	)
+	defer restoreTermFuncs()
+
+	out := &fakeFDBuffer{fd: 7}
+	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	container := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
+	output := ui.NewOutput(out, io.Discard, false)
+	renderer := NewTable(output, []resource.Resource{image, container}, OperationApply)
+
+	renderer.Start()
+	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: image.ID()})
+	renderer.OnEvent(resource.Event{Type: resource.EventApplyDone, Resource: container.ID()})
+	renderer.Stop()
+	output.Success("Environment started")
+
+	got := out.String()
+	ansiSGR := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	if !strings.Contains(ansiSGR.ReplaceAllString(got, ""), "\rEnvironment started"+osutil.LineBreak) {
+		t.Fatalf("output %q missing flush-left follow-up success line", got)
 	}
 }
 
@@ -455,12 +488,7 @@ func TestDetectMode(t *testing.T) {
 func TestTerminalWidth_UsesOutputFD(t *testing.T) {
 	restoreTermFuncs := stubTerminalFuncsForTest(
 		func(int) bool { return true },
-		func(fd int) (int, int, error) {
-			if fd != 99 {
-				t.Fatalf("unexpected fd %d", fd)
-			}
-			return 123, 45, nil
-		},
+		func(int) (int, int, error) { return 123, 45, nil },
 	)
 	defer restoreTermFuncs()
 
@@ -483,13 +511,21 @@ func stubTerminalFuncsForTest(
 	isTerminal func(int) bool,
 	getSize func(int) (int, int, error),
 ) func() {
-	prevIsTerminal := termIsTerminalFn
-	prevGetSize := termGetSizeFn
-	termIsTerminalFn = isTerminal
-	termGetSizeFn = getSize
+	prevIsTerminal := outputIsTTYFn
+	prevGetSize := outputTerminalSizeFn
+	outputIsTTYFn = func(*ui.Output) bool {
+		return isTerminal(0)
+	}
+	outputTerminalSizeFn = func(*ui.Output) (int, int, bool) {
+		width, height, err := getSize(0)
+		if err != nil || width <= 0 || height <= 0 {
+			return 0, 0, false
+		}
+		return width, height, true
+	}
 	return func() {
-		termIsTerminalFn = prevIsTerminal
-		termGetSizeFn = prevGetSize
+		outputIsTTYFn = prevIsTerminal
+		outputTerminalSizeFn = prevGetSize
 	}
 }
 

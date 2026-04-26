@@ -17,7 +17,7 @@ COPY test/Directory.* ./test/
 RUN dotnet restore
 COPY . .
 
-RUN dotnet test
+RUN dotnet test /p:CSharpier_Bypass=true
 
 # Run in project root with
 # docker build --progress=plain -f test/Dockerfile .

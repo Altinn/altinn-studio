@@ -1,20 +1,17 @@
-// eslint-disable-next-line react-compiler/react-compiler
-/* eslint-disable react-hooks/rules-of-hooks */
-import { useMemo } from 'react';
+/* eslint-disable react-compiler/react-compiler, react-hooks/rules-of-hooks */
+import { useCallback, useMemo } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormStore } from 'src/features/form/FormContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -22,42 +19,40 @@ import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation'
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
 import type { FormDataSelectorLax } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
 export interface ExpressionDataSources {
-  process?: IProcess;
-  instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
+  attachmentsSelector: AttachmentsSelector;
+  codeListSelector: (optionsId: string) => IOptionInternal[] | undefined;
+  currentDataModelPath: IDataModelReference | undefined;
+  currentLanguage: string;
+  currentPage: string | undefined;
   dataElementSelector: ReturnType<typeof useDataElementsSelectorProps>;
   dataModelNames: string[];
-  formDataSelector: FormDataSelectorLax;
-  attachmentsSelector: AttachmentsSelector;
-  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
-  currentLanguage: string;
   defaultDataType: string | null;
-  externalApis: ExternalApisResult;
-  currentDataModelPath: IDataModelReference | undefined;
-  codeListSelector: CodeListSelector;
-  layoutLookups: LayoutLookups;
   displayValues: Record<string, string | undefined>;
+  externalApis: ExternalApisResult;
+  formDataSelector: FormDataSelectorLax;
   hiddenComponents: Record<string, boolean | undefined>;
-  currentPage: string | undefined;
+  instanceDataSources: IInstanceDataSources | null;
+  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
+  layoutLookups: LayoutLookups;
+  process?: IProcess;
 }
 
 const multiSelectors = {
-  formDataSelector: () => FD.useLaxDebouncedSelectorProps(),
-  attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
-  codeListSelector: () => useCodeListSelectorProps(),
+  formDataSelector: () => FormStore.data.useLaxDebouncedSelectorProps(),
+  attachmentsSelector: () => FormStore.nodes.useAttachmentsSelectorProps(),
 } satisfies {
   [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: DSPropsMatching<ExpressionDataSources[K]>;
 };
@@ -67,21 +62,23 @@ const directHooks = {
   applicationSettings: () => useApplicationSettings(),
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
-  layoutLookups: () => useLayoutLookups(),
+  layoutLookups: () => FormBootstrap.useLayoutLookups(),
+  codeListSelector: () => {
+    const staticOptions = FormBootstrap.useStaticOptionsMap();
+    return useCallback((optionsId: string) => staticOptions[optionsId]?.options, [staticOptions]);
+  },
   dataElementSelector: () => useDataElementsSelectorProps(),
   instanceDataSources: (isInGenerator) =>
     isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),
-  defaultDataType: (isInGenerator) =>
-    (isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType()) ?? null,
-  dataModelNames: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
+  defaultDataType: () => FormBootstrap.useDefaultDataType() ?? null,
+  dataModelNames: () => FormBootstrap.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
     isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
-  langToolsSelector: (isInGenerator) =>
+  langToolsSelector: () =>
     useInnerLanguageWithForcedPathSelector(
-      isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType(),
-      isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
-      FD.useDebouncedSelector(),
+      FormBootstrap.useDefaultDataType(),
+      FormBootstrap.useReadableDataTypes(),
+      FormStore.data.useDebouncedSelector(),
     ),
   currentPage: (_isInGenerator) => useNavigationParam('pageKey'),
 } satisfies {

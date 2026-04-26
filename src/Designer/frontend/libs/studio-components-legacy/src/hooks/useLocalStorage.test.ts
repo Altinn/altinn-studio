@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { useLocalStorage } from './useLocalStorage';
 import { typedLocalStorage } from '@studio/pure-functions';
+import { act } from 'react';
 
 describe('useLocalStorage', () => {
   it('Gives access to the stored value', () => {
@@ -22,11 +23,16 @@ describe('useLocalStorage', () => {
 
   it('Provides a function that sets the stored value', async () => {
     const key = 'keyThatIsNotYetSet';
-    const { result } = renderHook(() => useLocalStorage(key));
     const value = 'value';
-    await waitFor(() => result.current[1](value));
+    const { result } = renderHook(() => useLocalStorage(key));
+
+    act(() => result.current[1](value));
+
+    await waitFor(() => {
+      expect(result.current[0]).toBe(value);
+    });
+
     expect(typedLocalStorage.getItem(key)).toBe(value);
-    expect(result.current[0]).toBe(value);
   });
 
   it('Provides a function that removes the stored value', async () => {
@@ -34,8 +40,13 @@ describe('useLocalStorage', () => {
     const value = 'value';
     typedLocalStorage.setItem(key, value);
     const { result } = renderHook(() => useLocalStorage(key));
-    await waitFor(() => result.current[2]());
+
+    act(() => result.current[2]());
+
+    await waitFor(() => {
+      expect(result.current[0]).toBeUndefined();
+    });
+
     expect(typedLocalStorage.getItem(key)).toBeNull();
-    expect(result.current[0]).toBeUndefined();
   });
 });

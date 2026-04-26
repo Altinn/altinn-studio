@@ -4,18 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/appmanager"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/install"
-	"altinn.studio/studioctl/internal/networking"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -30,36 +34,40 @@ var (
 
 	// ErrLegacyLocaltestRunning is returned when legacy localtest containers are detected.
 	ErrLegacyLocaltestRunning = errors.New("legacy localtest is running (started outside this CLI)")
+
+	errResetTargetOutsideDataDir = errors.New("reset target outside data directory")
+	errResetCleanupFailed        = errors.New("workflow-engine data cleanup helper failed")
+	errResetTargetSymlink        = errors.New("reset target must not be a symlink")
 )
 
 // teardownTimeout is the maximum time to wait for environment teardown.
 const teardownTimeout = 30 * time.Second
 
+const cleanupHelperLogTail = "100"
+
 const stoppingEnvironmentMessage = "Stopping localtest environment..."
 
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
-	cfg           *config.Config
-	out           *ui.Output
-	client        container.ContainerClient
-	runtimeConfig *runtimeConfigResolver
-	logs          *logStreamer
+	cfg    *config.Config
+	out    *ui.Output
+	client container.ContainerClient
+	logs   *logStreamer
 }
 
 // NewEnv creates a new localtest environment manager.
 func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient) *Env {
 	return &Env{
-		cfg:           cfg,
-		out:           out,
-		client:        client,
-		runtimeConfig: newRuntimeConfigResolver(cfg, client, out.Verbosef),
-		logs:          newLogStreamer(client, out),
+		cfg:    cfg,
+		out:    out,
+		client: client,
+		logs:   newLogStreamer(client, out),
 	}
 }
 
 // Preflight validates prerequisites before startup.
-func (e *Env) Preflight(ctx context.Context) error {
-	return CheckForLegacyLocaltest(ctx, e.client)
+func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
+	return CheckForLegacyLocaltest(ctx, e.client, opts.PgAdmin)
 }
 
 // Up starts the localtest environment.
@@ -67,13 +75,14 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeCfg, err := e.runtimeConfig.Build(ctx, opts.Port)
-	if err != nil {
-		return err
-	}
-	e.out.Verbosef("Host gateway IP: %s", runtimeCfg.HostGateway)
+	runtimeCfg := newRuntimeConfig()
+	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, opts.Monitoring)
+	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
+		return ensureErr
+	}
+
+	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
@@ -87,10 +96,10 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return err
 	}
 
-	localtestURL := FormatLocaltestURL(runtimeCfg.LoadBalancerPort)
+	localtestURL := topology.LocaltestURL()
 
 	if opts.OpenBrowser {
-		e.out.Verbosef("Opening browser to: %s\n", localtestURL)
+		e.out.Verbosef("Opening browser to: %s", localtestURL)
 		if err := osutil.OpenContext(ctx, localtestURL); err != nil {
 			e.out.Warningf("Failed to open browser: %v", err)
 		}
@@ -100,10 +109,11 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 		return e.runForeground(ctx, localtestURL)
 	}
 
-	e.out.Println("\nLocaltest started in background.")
-	e.out.Printf("Access the platform at: %s\n", localtestURL)
-	e.out.Printf("Use '%s env logs' to view logs.\n", osutil.CurrentBin())
-	e.out.Printf("Use '%s env down' to stop.\n", osutil.CurrentBin())
+	e.out.Println("")
+	e.out.Println("Localtest started in background.")
+	e.out.Printlnf("Access the platform at: %s", localtestURL)
+	e.out.Printlnf("Use '%s env logs' to view logs.", osutil.CurrentBin())
+	e.out.Printlnf("Use '%s env down' to stop.", osutil.CurrentBin())
 
 	return nil
 }
@@ -129,12 +139,54 @@ func (e *Env) Down(ctx context.Context) error {
 	return nil
 }
 
+// Reset stops localtest if needed and deletes persisted data.
+func (e *Env) Reset(ctx context.Context) error {
+	toolchain := e.client.Toolchain()
+	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
+
+	if err := CheckForLegacyLocaltest(ctx, e.client, true); err != nil {
+		return err
+	}
+
+	hasResources, err := e.hasManagedResources(ctx)
+	if err != nil {
+		return err
+	}
+	if hasResources {
+		if err := e.destroyResources(ctx, e.buildDestroyOptions(), stoppingEnvironmentMessage); err != nil {
+			return fmt.Errorf("stop environment: %w", err)
+		}
+	}
+
+	e.out.Println("Deleting persisted localtest data...")
+	if err := e.deletePersistedData(ctx); err != nil {
+		return err
+	}
+
+	e.out.Success("Environment data reset")
+	return nil
+}
+
 // Status returns the localtest environment status.
 func (e *Env) Status(ctx context.Context) (*Status, error) {
+	return e.status(ctx, false)
+}
+
+// StatusForUp returns status for the containers requested by env up.
+func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
+	return e.status(ctx, opts.PgAdmin)
+}
+
+// Logs streams localtest environment logs.
+func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
+	return e.logs.Stream(ctx, opts.Component, opts.Follow, opts.JSON)
+}
+
+func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) {
 	// TODO: graph resource model package should handle this (retrieving the current state of a graph of resources).
 	status := newStatus()
 
-	containers := coreContainerNames()
+	containers := coreContainerNames(includePgAdmin)
 	runningCoreContainers := 0
 	for _, name := range containers {
 		state, err := e.client.ContainerState(ctx, name)
@@ -159,9 +211,15 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 	return &status, nil
 }
 
-// Logs streams localtest environment logs.
-func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
-	return e.logs.Stream(ctx, opts.Component, opts.Follow)
+func (e *Env) ensureAppManager(ctx context.Context, topology envtopology.Local) error {
+	if err := appmanager.EnsureStarted(
+		ctx,
+		e.cfg,
+		topology.IngressPort(),
+	); err != nil {
+		return fmt.Errorf("ensure app-manager: %w", err)
+	}
+	return nil
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
@@ -196,14 +254,16 @@ func (e *Env) runForeground(
 	ctx context.Context,
 	localtestURL string,
 ) error {
-	e.out.Println("\nLocaltest is running. Press Ctrl+C to stop.")
-	e.out.Printf("Access the platform at: %s\n", localtestURL)
+	e.out.Println("")
+	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
+	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	if err := e.logs.Stream(ctx, "", true); err != nil {
+	if err := e.logs.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
-	e.out.Println("\n" + stoppingEnvironmentMessage)
+	e.out.Println("")
+	e.out.Println(stoppingEnvironmentMessage)
 
 	teardownCtx, cancel := context.WithTimeout(context.Background(), teardownTimeout)
 	defer cancel()
@@ -244,7 +304,7 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 	renderer.Start()
 	executor.SetObserver(renderer)
 
-	if err := executor.Apply(ctx, graph); err != nil {
+	if _, err := executor.Apply(ctx, graph); err != nil {
 		renderer.FailAll(err.Error())
 		renderer.Stop()
 		return fmt.Errorf("start environment: %w", err)
@@ -330,7 +390,6 @@ func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
 		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
 		IncludeMonitoring: true, // include all for cleanup
-		Platform:          e.client.Toolchain().Platform,
 	}
 }
 
@@ -339,22 +398,234 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 		if err := e.installResources(ctx, false); err != nil {
 			return err
 		}
-		if err := ValidateResourceHostPaths(buildOpts); err != nil {
-			return fmt.Errorf("validate resources: %w", err)
-		}
-		return nil
+	}
+
+	if err := ensurePgpass(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
+		return err
 	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
-		e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", err)
-		if installErr := e.installResources(ctx, true); installErr != nil {
-			return installErr
-		}
-		if err := ValidateResourceHostPaths(buildOpts); err != nil {
-			return fmt.Errorf("validate resources after reinstall: %w", err)
-		}
+		return e.reinstallResourcesAfterValidationFailure(ctx, buildOpts, err)
 	}
 
+	return nil
+}
+
+func (e *Env) reinstallResourcesAfterValidationFailure(
+	ctx context.Context,
+	buildOpts ResourceBuildOptions,
+	cause error,
+) error {
+	e.out.Verbosef("Resource layout invalid, forcing reinstall: %v", cause)
+	if err := e.installResources(ctx, true); err != nil {
+		return err
+	}
+	if err := ensurePgpass(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
+		return err
+	}
+	if err := ValidateResourceHostPaths(buildOpts); err != nil {
+		return fmt.Errorf("validate resources after reinstall: %w", err)
+	}
+	return nil
+}
+
+func ensureLocaltestStorageDir(dataDir string) error {
+	if err := os.MkdirAll(filepath.Join(dataDir, "AltinnPlatformLocal"), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create localtest storage directory: %w", err)
+	}
+	return nil
+}
+
+func (e *Env) deletePersistedData(ctx context.Context) error {
+	if err := removeResetDataPath(e.cfg.DataDir, filepath.Join(e.cfg.DataDir, "AltinnPlatformLocal")); err != nil {
+		return err
+	}
+	if err := e.removeLegacyWorkflowEngineDbData(ctx, workflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
+		e.out.Verbosef("Failed to remove legacy workflow-engine database data: %v", err)
+	}
+	return e.removeWorkflowEngineDbVolume(ctx)
+}
+
+func (e *Env) removeLegacyWorkflowEngineDbData(ctx context.Context, target string) error {
+	targetAbs, exists, err := resetTargetPath(e.cfg.DataDir, target)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	if err := e.cleanupWorkflowEngineDbData(ctx, targetAbs); err != nil {
+		return err
+	}
+
+	return removeResetDataPath(e.cfg.DataDir, target)
+}
+
+func (e *Env) removeWorkflowEngineDbVolume(ctx context.Context) error {
+	if err := e.client.VolumeRemove(ctx, workflowEngineDbVolume, true); err != nil {
+		if errors.Is(err, containertypes.ErrVolumeNotFound) {
+			return nil
+		}
+		return fmt.Errorf("remove workflow-engine database volume %q: %w", workflowEngineDbVolume, err)
+	}
+	return nil
+}
+
+func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string) error {
+	helperName := fmt.Sprintf("studioctl-reset-workflow-engine-db-%d", time.Now().UnixNano())
+	containerCfg := containertypes.ContainerConfig{
+		Labels:         nil,
+		HealthCheck:    nil,
+		Name:           helperName,
+		Image:          e.cfg.Images.Core.WorkflowEngineDb.Ref(),
+		User:           "",
+		RestartPolicy:  "",
+		ExtraHosts:     nil,
+		NetworkAliases: nil,
+		Volumes: []containertypes.VolumeMount{{
+			HostPath:      targetAbs,
+			ContainerPath: "/cleanup",
+			Type:          containertypes.VolumeMountTypeBind,
+			ReadOnly:      false,
+		}},
+		Networks: nil,
+		Ports:    nil,
+		Env:      nil,
+		Command:  []string{"sh", "-ceu", "rm -rf /cleanup/* /cleanup/.[!.]* /cleanup/..?*"},
+		CapAdd:   nil,
+		Detach:   true,
+	}
+
+	if _, err := e.client.CreateContainer(ctx, containerCfg); err != nil {
+		return fmt.Errorf("start workflow-engine data cleanup helper: %w", err)
+	}
+
+	exitCode, waitErr := e.client.ContainerWait(ctx, helperName)
+	failureDetails := ""
+	if waitErr == nil && exitCode != 0 {
+		failureDetails = e.cleanupHelperFailureDetails(ctx, helperName)
+	}
+	removeErr := e.client.ContainerRemove(ctx, helperName, true)
+	if waitErr != nil {
+		if removeErr != nil {
+			e.out.Verbosef("failed to remove cleanup helper container %q: %v", helperName, removeErr)
+		}
+		return fmt.Errorf("wait for workflow-engine data cleanup helper: %w", waitErr)
+	}
+	if removeErr != nil {
+		return fmt.Errorf("remove workflow-engine data cleanup helper: %w", removeErr)
+	}
+	if exitCode != 0 {
+		if failureDetails != "" {
+			return fmt.Errorf("%w: exit code %d: %s", errResetCleanupFailed, exitCode, failureDetails)
+		}
+		return fmt.Errorf("%w: exit code %d", errResetCleanupFailed, exitCode)
+	}
+
+	return nil
+}
+
+func (e *Env) cleanupHelperFailureDetails(ctx context.Context, helperName string) string {
+	logs, err := e.client.ContainerLogs(ctx, helperName, false, cleanupHelperLogTail)
+	if err != nil {
+		e.out.Verbosef("failed to read cleanup helper logs for %q: %v", helperName, err)
+		return ""
+	}
+	defer func() {
+		if cerr := logs.Close(); cerr != nil {
+			e.out.Verbosef("failed to close cleanup helper logs for %q: %v", helperName, cerr)
+		}
+	}()
+
+	data, err := io.ReadAll(logs)
+	if err != nil {
+		e.out.Verbosef("failed to read cleanup helper log stream for %q: %v", helperName, err)
+		return ""
+	}
+
+	text := strings.TrimSpace(string(data))
+	if text == "" {
+		return ""
+	}
+	return "logs: " + text
+}
+
+func removeResetDataPath(dataDir, target string) error {
+	targetAbs, exists, err := resetTargetPath(dataDir, target)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return nil
+	}
+
+	if err := os.RemoveAll(targetAbs); err != nil {
+		return fmt.Errorf("remove persisted data %q: %w", targetAbs, err)
+	}
+
+	return nil
+}
+
+func resetTargetPath(dataDir, target string) (string, bool, error) {
+	dataDirAbs, err := filepath.Abs(dataDir)
+	if err != nil {
+		return "", false, fmt.Errorf("resolve data directory: %w", err)
+	}
+
+	targetAbs, err := filepath.Abs(target)
+	if err != nil {
+		return "", false, fmt.Errorf("resolve reset target %q: %w", target, err)
+	}
+
+	rel, err := filepath.Rel(dataDirAbs, targetAbs)
+	if err != nil {
+		return "", false, fmt.Errorf("relativize reset target %q: %w", targetAbs, err)
+	}
+	if rel == "." || rel == "" || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return "", false, fmt.Errorf("%w: %s", errResetTargetOutsideDataDir, targetAbs)
+	}
+
+	info, err := os.Lstat(targetAbs)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return targetAbs, false, nil
+		}
+		return "", false, fmt.Errorf("stat reset target %q: %w", targetAbs, err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return "", false, fmt.Errorf("%w: %s", errResetTargetSymlink, targetAbs)
+	}
+
+	return targetAbs, true, nil
+}
+
+func ensurePgpass(dataDir string) error {
+	content := fmt.Sprintf(
+		"%s:%s:*:%s:%s\n",
+		ContainerWorkflowEngineDb,
+		postgresPort,
+		postgresUser,
+		postgresPassword,
+	)
+	if err := os.MkdirAll(workflowEngineInfraPath(dataDir), osutil.DirPermDefault); err != nil {
+		return fmt.Errorf("create workflow-engine infra directory: %w", err)
+	}
+
+	path := workflowEngineInfraFilePath(dataDir, "pgpass")
+	// PgAdmin's entrypoint runs as the image user and must read this bind mount before it copies it to a private 0600 file.
+	if err := os.WriteFile(path, []byte(content), osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("write pgpass: %w", err)
+	}
+	if err := os.Chmod(path, osutil.FilePermDefault); err != nil {
+		return fmt.Errorf("chmod pgpass: %w", err)
+	}
 	return nil
 }
 
@@ -388,48 +659,59 @@ func (e *Env) installResources(ctx context.Context, force bool) error {
 func (e *Env) buildResourceOptions(
 	ctx context.Context,
 	runtimeCfg RuntimeConfig,
+	topology envtopology.Local,
 	monitoring bool,
+	pgAdmin bool,
 ) (ResourceBuildOptions, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return ResourceBuildOptions{}, fmt.Errorf("get working directory: %w", err)
 	}
 
-	imageMode, devConfig := detectImageMode(ctx, cwd)
+	imageMode, devConfig, note := detectImageMode(ctx, cwd)
+	if note != "" {
+		if imageMode == DevMode {
+			e.out.Verbosef("%s", note)
+		} else {
+			e.out.Warning(note)
+		}
+	}
 
 	return ResourceBuildOptions{
 		DataDir:           e.cfg.DataDir,
 		RuntimeConfig:     runtimeCfg,
+		Topology:          topology,
 		IncludeMonitoring: monitoring,
+		IncludePgAdmin:    pgAdmin,
 		ImageMode:         imageMode,
 		Images:            e.cfg.Images,
 		DevConfig:         devConfig,
 	}, nil
 }
 
-func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig) {
-	devModeEnv := os.Getenv(config.EnvInternalDevMode)
-	if devModeEnv != "true" && devModeEnv != "1" {
-		return ReleaseMode, nil
+func detectImageMode(ctx context.Context, cwd string) (ImageMode, *DevImageConfig, string) {
+	if !config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)) {
+		return ReleaseMode, nil, ""
 	}
 
 	detection, err := repocontext.Detect(ctx, cwd, "")
-	if err != nil || !detection.InStudioRepo {
-		return ReleaseMode, nil
+	if err == nil && detection.InStudioRepo {
+		return resolveDevImageMode(detection.StudioRoot)
 	}
 
-	devCfg := DevImageConfig{RepoRoot: detection.StudioRoot}
-	if _, err := os.Stat(devCfg.LocaltestDockerfile()); err != nil {
-		return ReleaseMode, nil
-	}
-
-	return DevMode, &devCfg
+	return ReleaseMode, nil,
+		"STUDIOCTL_INTERNAL_DEV is set, but studioctl could not detect a Studio repo from the current directory; using release images"
 }
 
-// FormatLocaltestURL returns the localtest URL, omitting port 80 since browsers default to it.
-func FormatLocaltestURL(port string) string {
-	if port == "80" {
-		return "http://" + networking.LocalDomain
+func resolveDevImageMode(studioRoot string) (ImageMode, *DevImageConfig, string) {
+	devCfg := DevImageConfig{RepoRoot: studioRoot}
+	if _, err := os.Stat(devCfg.LocaltestDockerfile()); err != nil {
+		return ReleaseMode, nil,
+			fmt.Sprintf(
+				"STUDIOCTL_INTERNAL_DEV is set, but %s was not found; using release images",
+				devCfg.LocaltestDockerfile(),
+			)
 	}
-	return "http://" + networking.LocalDomain + ":" + port
+
+	return DevMode, &devCfg, ""
 }

@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
@@ -281,24 +282,26 @@ describe('Form', () => {
       renderer: () => <Form />,
       initialPage: mockLayoutId,
       queries: {
-        fetchFormData: async () => ({
-          Group: [
-            {
-              prop1: 'value1',
-              prop2: 'value2',
-              prop3: 'value3',
-            },
-          ],
-        }),
-        fetchLayouts: () =>
-          Promise.resolve({
-            FormLayout: {
-              data: {
-                layout,
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              Group: [
+                {
+                  prop1: 'value1',
+                  prop2: 'value2',
+                  prop3: 'value3',
+                },
+              ],
+            };
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout,
+                },
               },
-            },
+            };
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
           }),
-        fetchBackendValidations: () => Promise.resolve(validationIssues),
       },
     });
   }

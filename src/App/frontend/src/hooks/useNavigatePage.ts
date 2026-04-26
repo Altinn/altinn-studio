@@ -2,20 +2,21 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import type { NavigateOptions } from 'react-router';
 
+import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { FormStore } from 'src/features/form/FormContext';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
-import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
+import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
@@ -27,11 +28,6 @@ export interface NavigateToPageOptions {
   searchParams?: URLSearchParams;
 }
 
-export enum TaskKeys {
-  ProcessEnd = 'ProcessEnd',
-  CustomReceipt = 'CustomReceipt',
-}
-
 /**
  * Navigation function for react-router
  * Makes sure to clear returnToView and summaryNodeOfOrigin on navigation
@@ -40,8 +36,8 @@ export enum TaskKeys {
 
 const useOurNavigate = () => {
   const storeCallback = useSetNavigationEffect();
-  const setReturnToView = useSetReturnToView();
-  const setSummaryNodeOfOrigin = useSetSummaryNodeOfOrigin();
+  const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
   const navigate = useNavigate();
 
   return useCallback(
@@ -104,48 +100,38 @@ export const useStartUrl = (forcedTaskId?: string) => {
   // so it does not make a difference here.
   const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } =
     useAllNavigationParams();
-  const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
   const isStateless = useIsStateless();
 
-  return useMemo(() => {
-    const firstPage = order?.[0];
-    if (isStateless && firstPage) {
-      return `/${firstPage}${queryKeys}`;
-    }
-    if (typeof forcedTaskId === 'string') {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${forcedTaskId}${queryKeys}`;
-    }
-    if (taskType === ProcessTaskType.Archived) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${TaskKeys.ProcessEnd}${queryKeys}`;
-    }
-    if (taskType !== ProcessTaskType.Data && taskId !== undefined) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}${queryKeys}`;
-    }
-    if (isSubformPage && taskId && mainPageKey && componentId && dataElementId && firstPage) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${firstPage}${queryKeys}`;
-    }
-    if (taskId && firstPage) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${firstPage}${queryKeys}`;
-    }
-    if (taskId) {
-      return `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}${queryKeys}`;
-    }
-    return `/instance/${instanceOwnerPartyId}/${instanceGuid}${queryKeys}`;
-  }, [
-    componentId,
-    dataElementId,
-    forcedTaskId,
-    instanceGuid,
-    isStateless,
-    isSubformPage,
-    mainPageKey,
-    order,
-    instanceOwnerPartyId,
-    queryKeys,
-    taskId,
-    taskType,
-  ]);
+  return useMemo(
+    () =>
+      computeStartUrl({
+        instanceOwnerPartyId,
+        instanceGuid,
+        taskId,
+        mainPageKey,
+        componentId,
+        dataElementId,
+        queryKeys,
+        firstPage: order?.[0],
+        forcedTaskId,
+        taskType,
+        isStateless,
+      }),
+    [
+      componentId,
+      dataElementId,
+      forcedTaskId,
+      instanceGuid,
+      isStateless,
+      mainPageKey,
+      order,
+      instanceOwnerPartyId,
+      queryKeys,
+      taskId,
+      taskType,
+    ],
+  );
 };
 
 export function useNavigateToTask() {
@@ -236,7 +222,7 @@ export function useNavigatePage() {
     }
   }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
-  const waitForSave = FD.useWaitForSave();
+  const waitForSave = FormStore.data.useWaitForSave();
   const maybeSaveOnPageChange = useCallback(async () => {
     await waitForSave(autoSaveBehavior === 'onChangePage');
   }, [autoSaveBehavior, waitForSave]);
@@ -403,7 +389,7 @@ export function useVisitedPages() {
 const emptyArray = [];
 
 export function useNavigateToComponent() {
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const { navigateToPage } = useNavigatePage();
   const currentPageId = useCurrentView();
   const [searchParams, setSearchParams] = useSearchParams();

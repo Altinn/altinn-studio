@@ -2,6 +2,7 @@
 Version: 2025-10-29-debug-v2
 """
 
+import asyncio
 import json
 import os
 import time
@@ -18,14 +19,66 @@ from shared.utils.langfuse_utils import score_validation
 
 log = get_logger(__name__)
 
+INITIAL_RETRY_DELAY_SECONDS = 2
+MAX_RETRY_DELAY_SECONDS = 30
+RETRY_BACKOFF_FACTOR = 2
+DOCS_READY_TIMEOUT_SECONDS = 120
+DOCS_READY_POLL_INTERVAL_SECONDS = 3
+DOCS_MAX_CONSECUTIVE_FAILURES = 3
+RECONNECT_MAX_RETRIES = 5
+
 
 class MCPClient:
-    """Client for interacting with MCP (Model Context Protocol) servers."""
-    def __init__(self, server_url: str = "http://localhost:8069"): # TODO: Make this configurable
+    """Client for interacting with MCP (Model Context Protocol) servers.
+    
+    Supports lazy connection — the agent service can start without MCP being
+    available.  Call ``start_connection_loop()`` to begin a background task
+    that retries until the server responds, then caches the tool list.
+    """
+    
+    def __init__(self, server_url: str = "http://localhost:8070"):
         self.server_url = server_url
         self._client = None
+        self._available_tools: list = []
+        self._current_designer_api_key: str | None = None
+        self._connected = False
+        self._last_error: str | None = None
+        self._connection_task: asyncio.Task | None = None
+        self._docs_ready = False
+        self._docs_indexing = False
+
+    @property
+    def is_ready(self) -> bool:
+        """True when the MCP server has been reached at least once."""
+        return self._connected
+
+    @property
+    def is_docs_ready(self) -> bool:
+        """True when the MCP server's documentation index is fully built."""
+        return self._docs_ready
+
+    @property
+    def is_docs_indexing(self) -> bool:
+        """True while the MCP server is still indexing documentation."""
+        return self._docs_indexing
+
+    @property
+    def last_error(self) -> str | None:
+        return self._last_error
+
+    def _mark_disconnected(self, error: Exception | str | None = None):
+        """Reset connection state and restart a limited reconnection loop."""
+        if error is not None:
+            self._last_error = str(error)
+        if not self._connected:
+            return  # Already disconnected — avoid duplicate loops
+        self._connected = False
         self._available_tools = []
-        self._current_designer_api_key = None  # Store key separately from tool arguments
+        self._client = None
+        self._docs_ready = False
+        self._docs_indexing = False
+        log.warning("🔌 MCP marked as disconnected — starting limited reconnection loop")
+        self._start_reconnect_loop()
 
     async def _get_client(self, designer_api_key: str = None):
         """Get or create FastMCP client with Authorization header (MCP spec compliant)"""
@@ -37,6 +90,7 @@ class MCPClient:
         if self._client is None:
             try:
                 from fastmcp import Client
+                # Server URL should already include /sse if needed
                 log.info(f"Connecting to FastMCP server at: {self.server_url}")
 
                 # Set X-Api-Key header for Gitea proxy authentication
@@ -51,124 +105,199 @@ class MCPClient:
                 log.error("FastMCP library not available, install with: pip install fastmcp")
                 raise Exception("FastMCP library not installed")
         return self._client
-
-    async def connect(self, designer_api_key: str = None):
-        """Connect to the MCP server."""
+    
+    async def connect(self):
+        """Connect to the MCP server and cache available tools."""
+        # Skip if already connected and tools are cached
+        if self._available_tools:
+            log.debug(f"MCP client already connected with {len(self._available_tools)} tools cached")
+            return
+            
         # List available tools
         try:
-            client = await self._get_client(designer_api_key)
+            client = await self._get_client()
             async with client:
                 await client.ping()
                 tools = await client.list_tools()
                 self._available_tools = [{"name": tool.name, "description": tool.description} for tool in tools]
+                self._connected = True
+                self._last_error = None
                 log.info(f"Available MCP tools: {len(self._available_tools)}")
         except Exception as e:
+            self._connected = False
+            self._last_error = str(e)
             log.warning(f"Could not list MCP tools: {e}")
+            raise
 
-    async def check_server_status(self, expected_version: str = None) -> dict:
-        """
-        Check MCP server status and version.
+        # Check docs readiness on every successful connect (best-effort)
+        await self._check_docs_status()
 
-        Args:
-            expected_version: Expected version string (e.g., "1.0.0"). If None, just checks connectivity.
+    async def _check_docs_status(self) -> bool:
+        """Probe ``altinn_status`` to update docs readiness flags.
 
-        Returns:
-            dict with 'running', 'version', 'version_match' keys
-
-        Raises:
-            Exception: If server is not running or version doesn't match
+        Returns True if the check succeeded, False if MCP was unreachable
+        or returned an error.
         """
         try:
-            # Try to call server_info tool
-            result = await self.call_tool("server_info", {})
-
-            if isinstance(result, dict) and "error" in result:
-                raise Exception(f"MCP server not responding: {result['error']}")
-
-            # Extract server info from result
-            if hasattr(result, 'content'):
-                # CallToolResult object (newer MCP versions)
-                content = result.content
-                if isinstance(content, str):
-                    # JSON string - parse it
-                    try:
-                        server_info = json.loads(content)
-                    except json.JSONDecodeError:
-                        raise Exception(f"Invalid JSON in CallToolResult content: {content}")
-                elif isinstance(content, list) and len(content) > 0:
-                    # List of response objects
-                    first_item = content[0]
-                    if hasattr(first_item, 'text'):
-                        # Parse JSON from text attribute
-                        try:
-                            server_info = json.loads(first_item.text)
-                        except json.JSONDecodeError:
-                            raise Exception(f"Invalid JSON in CallToolResult list item: {first_item.text}")
-                    else:
-                        # Plain object
-                        server_info = first_item
-                else:
-                    # Content is already a dict or other object
-                    server_info = content
-            elif isinstance(result, list) and len(result) > 0:
-                # Legacy list format (older MCP versions)
-                if hasattr(result[0], 'text'):
-                    # Parse JSON response
-                    try:
-                        server_info = json.loads(result[0].text)
-                    except json.JSONDecodeError:
-                        raise Exception("Invalid server_info response format")
-                else:
-                    server_info = result[0]
+            result = await self.call_tool("altinn_status", {})
+            status = self._extract_status_dict(result)
+            if status and "error" not in status:
+                self._docs_ready = status.get("docs_ready", False)
+                self._docs_indexing = status.get("docs_indexing", False)
+                log.info(
+                    f"📋 MCP docs status: ready={self._docs_ready}, indexing={self._docs_indexing}"
+                )
+                return True
             else:
-                # Direct dict response (fallback)
-                server_info = result
+                log.warning(f"📋 altinn_status returned error or unexpected data: {result!r}")
+                return False
+        except Exception as e:
+            log.warning(f"Could not check MCP docs status: {e}")
+            return False
 
-            # Extract version (required for this MCP server)
-            if isinstance(server_info, dict):
-                # Check if version is directly available
-                version = server_info.get("version")
-                if not version:
-                    # Check if it's nested under 'result' key
-                    result_data = server_info.get("result")
-                    if isinstance(result_data, dict):
-                        version = result_data.get("version")
-                        # Update server_info to point to the result data for consistency
-                        server_info = result_data
+    async def wait_for_docs_ready(self) -> bool:
+        """Poll ``altinn_status`` until docs are ready or timeout.
 
-                if not version:
-                    # Try other possible keys
-                    version = server_info.get("server_version") or server_info.get("mcp_version")
-                    if not version:
-                        log.error(f"server_info dict keys: {list(server_info.keys())}")
-                        if "result" in server_info and isinstance(server_info["result"], dict):
-                            log.error(f"result dict keys: {list(server_info['result'].keys())}")
-                        raise Exception(f"Server did not return version information. Available keys: {list(server_info.keys())}")
+        Returns True if docs became ready, False on timeout or if MCP
+        becomes unreachable.  When MCP goes down, resets the connection
+        state and restarts the background reconnection loop.
+        """
+        if self._docs_ready:
+            return True
+
+        consecutive_failures = 0
+        start = time.time()
+        while time.time() - start < DOCS_READY_TIMEOUT_SECONDS:
+            success = await self._check_docs_status()
+            if self._docs_ready:
+                return True
+            if success:
+                consecutive_failures = 0
             else:
-                log.error(f"server_info is not a dict, it's: {type(server_info)} - {server_info}")
-                raise Exception(f"Server returned unexpected format: {type(server_info)}")
+                consecutive_failures += 1
+                if consecutive_failures >= DOCS_MAX_CONSECUTIVE_FAILURES:
+                    log.warning(
+                        "MCP became unreachable while waiting for docs "
+                        "— proceeding without documentation"
+                    )
+                    self._mark_disconnected(error="MCP unreachable during docs wait")
+                    return False
+            await asyncio.sleep(DOCS_READY_POLL_INTERVAL_SECONDS)
 
-            # Check version format (should be x.x.x)
-            import re
-            if not re.match(r'^\d+\.\d+\.\d+$', version):
-                raise Exception(f"Invalid version format: {version} (expected x.x.x)")
+        log.warning(
+            f"MCP docs did not become ready within {DOCS_READY_TIMEOUT_SECONDS}s — proceeding anyway"
+        )
+        return False
 
-            # Check version match if expected version provided
-            version_match = True
-            if expected_version:
-                version_match = version == expected_version
+    @staticmethod
+    def _extract_status_dict(result) -> dict | None:
+        """Extract a dict from a call_tool result regardless of shape.
 
-            log.info(f"MCP server status: running, version: {version}")
+        Handles plain dicts, CallToolResult with structured_content,
+        and CallToolResult with JSON text content.
+        """
+        if isinstance(result, dict):
+            return result
+        # CallToolResult with text content blocks
+        if hasattr(result, "content"):
+            import json as _json
+            for block in (result.content if isinstance(result.content, list) else [result.content]):
+                text = getattr(block, "text", None)
+                if text:
+                    try:
+                        return _json.loads(text)
+                    except (ValueError, TypeError):
+                        continue
+        return None
 
-            return {
-                "running": True,
-                "version": version,
-                "version_match": version_match
-            }
+    async def _connection_loop(self, max_retries: int | None = None):
+        """Background loop that retries connecting until successful.
+
+        Args:
+            max_retries: If set, give up after this many failed attempts.
+                         None means retry indefinitely (used at startup).
+        """
+        delay = INITIAL_RETRY_DELAY_SECONDS
+        attempts = 0
+        while not self._connected:
+            try:
+                await self.connect()
+                log.info("✅ MCP server connection established (background loop)")
+                return
+            except Exception:
+                attempts += 1
+                if max_retries is not None and attempts >= max_retries:
+                    log.warning(
+                        f"MCP reconnection failed after {attempts} attempts — giving up. "
+                        f"Will retry when a new request triggers a connection check."
+                    )
+                    return
+                log.info(
+                    f"⏳ MCP server not available yet, retrying in {delay}s... "
+                    f"({self.server_url})"
+                )
+                await asyncio.sleep(delay)
+                delay = min(delay * RETRY_BACKOFF_FACTOR, MAX_RETRY_DELAY_SECONDS)
+
+    def _start_reconnect_loop(self):
+        """Start a limited reconnection loop after MCP goes down.
+
+        Unlike ``start_connection_loop`` (used at startup), this gives up
+        after ``RECONNECT_MAX_RETRIES`` attempts to avoid retrying forever.
+        """
+        if self._connection_task is not None and not self._connection_task.done():
+            return  # A loop is already running
+        self._connection_task = asyncio.create_task(
+            self._connection_loop(max_retries=RECONNECT_MAX_RETRIES)
+        )
+
+    def start_connection_loop(self) -> asyncio.Task | None:
+        """Start a non-blocking background task that connects when the server is ready.
+
+        Safe to call multiple times — only one loop runs at a time.
+        Retries indefinitely — intended for initial startup.
+        Returns the ``asyncio.Task`` so the caller can cancel it on shutdown.
+        """
+        if self._connected:
+            return None
+        if self._connection_task is not None and not self._connection_task.done():
+            return self._connection_task
+        self._connection_task = asyncio.create_task(self._connection_loop())
+        return self._connection_task
+
+    async def ensure_connected(self):
+        """Block until the MCP server is reachable.
+
+        If a background loop is already running (e.g. the infinite startup
+        loop), we do **not** await it — that would block forever while MCP
+        is down.  Instead we attempt a single direct connection so the
+        caller gets an immediate success or exception.
+        """
+        if self._connected:
+            return
+        await self.connect()
+    
+    async def check_server_status(self) -> dict:
+        """
+        Check MCP server status by verifying transport-level connectivity.
+            
+        Returns:
+            dict with 'running' key
+            
+        Raises:
+            Exception: If server is not running
+        """
+        try:
+            client = await self._get_client()
+            async with client:
+                await client.ping()
+
+            log.info("MCP server status: running")
+            return {"running": True}
 
         except Exception as e:
             log.error(f"MCP server check failed: {e}")
-            raise Exception(f"MCP server check failed: {str(e)}")
+            raise Exception(f"MCP server check failed: {e!s}") from e
 
     async def call_tool(self, tool_name: str, arguments: dict, designer_api_key: str = None):
         """Call an MCP tool and return the result."""
@@ -178,17 +307,30 @@ class MCPClient:
 
             async with client:
                 result = await client.call_tool(tool_name, arguments)
-
+                
                 # Handle CallToolResult objects with structured content
                 if hasattr(result, 'structured_content') and result.structured_content:
                     return result.structured_content
-
+                
                 return result
         except Exception as e:
             log.error(f"Failed to call MCP tool {tool_name}: {e}")
+            if self._is_connection_error(e):
+                self._mark_disconnected(error=e)
             return {"error": str(e)}
 
-    async def create_patch_async(self, task_context: str, repository_path: str, attachments: list = None) -> dict:
+    @staticmethod
+    def _is_connection_error(exc: Exception) -> bool:
+        """Check if an exception indicates MCP server is unreachable."""
+        msg = str(exc).lower()
+        return any(phrase in msg for phrase in [
+            "failed to connect",
+            "connection refused",
+            "connection reset",
+            "all connection attempts failed",
+        ])
+    
+    async def create_patch_async(self, task_context: str, repository_path: str, attachments: Optional[list] = None, form_spec_summary: Optional[str] = None) -> dict:
         """
         Main workflow: Create a patch using MCP tools and LLM.
 
@@ -196,22 +338,20 @@ class MCPClient:
             task_context: The user goal and high-level plan
             repository_path: Path to the repository
             attachments: Optional list of attachments (images, files) for vision analysis
-
+            form_spec_summary: Optional structured form spec summary from spec agent
+        
         Returns:
             Patch data with files and changes arrays
         """
 
         start_time = time.time()
-
-        # Get Langfuse client for tracing
-        from langfuse import get_client
-        langfuse = get_client()
-
+        
         # This will be nested under the main workflow trace
+        from shared.utils.langfuse_utils import trace_span
         patch_data = None  # Initialize to avoid UnboundLocalError
         try:
             # Step 1: Scan repository - FIRST to understand what files exist
-            with langfuse.start_as_current_observation(name="repository_scanning", metadata={"span_type": "TOOL"}) as scan_span:
+            with trace_span("repository_scanning", metadata={"span_type": "TOOL"}) as scan_span:
                 scan_span.update(metadata={
                     "repository_path": repository_path,
                     "tool": "repository_scanner"
@@ -246,31 +386,40 @@ class MCPClient:
 
                 scan_span.update(output={"repo_facts": repo_facts})
 
-            # Step 2: Connect to MCP server
-            await self.connect()
+            # Step 2: Ensure MCP server connection (waits for background loop if needed)
+            try:
+                await self.ensure_connected()
+            except Exception as conn_err:
+                log.warning(f"⚠️ MCP connection unavailable — proceeding without MCP: {conn_err}")
 
             # Step 3: Extract planning guidance from task_context
-            # Planning guidance MUST be present - it should come from planning_tool_node
+            # Planning guidance should come from planning_tool_node
             planning_guidance = None
             if "PLANNING GUIDANCE:" not in task_context:
-                log.error("❌ CRITICAL: Planning guidance missing from task_context!")
-                log.error("The planning_tool_node must run successfully before create_patch_async is called.")
-                log.error("Planning guidance is a REQUIRED part of the workflow.")
-                raise Exception(
-                    "Planning guidance missing from task_context. "
-                    "Ensure planning_tool_node executes successfully before planner_node. "
-                    "This is a required step in the workflow."
-                )
+                if self._connected:
+                    log.error("❌ CRITICAL: Planning guidance missing from task_context!")
+                    log.error("The planning_tool_node must run successfully before create_patch_async is called.")
+                    raise Exception(
+                        "Planning guidance missing from task_context. "
+                        "Ensure planning_tool_node executes successfully before planner_node. "
+                        "This is a required step in the workflow."
+                    )
+                else:
+                    log.warning(
+                        "⚠️ Planning guidance missing (MCP disconnected) "
+                        "— proceeding with LLM-only patch generation"
+                    )
+                    planning_guidance = ""
+            else:
+                # Extract the planning guidance from task_context
+                log.info("✅ Planning guidance found in task_context (from planning_tool_node)")
+                parts = task_context.split("PLANNING GUIDANCE:")
+                if len(parts) > 1:
+                    planning_guidance = parts[1].strip()
 
-            # Extract the planning guidance from task_context
-            log.info("✅ Planning guidance found in task_context (from planning_tool_node)")
-            parts = task_context.split("PLANNING GUIDANCE:")
-            if len(parts) > 1:
-                planning_guidance = parts[1].strip()
-
-            if not planning_guidance:
-                log.error("❌ Planning guidance section exists but is empty!")
-                raise Exception("Planning guidance section is empty - planning_tool_node may have failed")
+                if not planning_guidance:
+                    log.warning("⚠️ Planning guidance section exists but is empty — proceeding anyway")
+                    planning_guidance = ""
 
             log.info(f"ℹ️ Using planning guidance ({len(planning_guidance)} chars)")
             log.info(
@@ -304,6 +453,7 @@ class MCPClient:
                     repo_facts_with_context,
                     planner_step=planning_guidance,
                     attachments=attachments,
+                    form_spec_summary=form_spec_summary,
                 )
 
                 if not patch_data:
@@ -319,7 +469,7 @@ class MCPClient:
                 raise
 
             # Step 5: Normalize patch structure
-            with langfuse.start_as_current_observation(name="patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
+            with trace_span("patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
                 patch_data = normalize_patch_structure(patch_data)
                 norm_span.update(output={
                     "files_count": len(patch_data.get('files', [])),
@@ -332,8 +482,8 @@ class MCPClient:
             validator = PatchValidator(self, repository_path)
 
             log.info(f"Starting validation for {len(patch_data.get('changes', []))} changes")
-
-            with langfuse.start_as_current_observation(name="patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
+            
+            with trace_span("patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
                 is_valid, errors, warnings = await validator.validate_patch(patch_data)
 
                 validation_span.update(output={
@@ -391,44 +541,12 @@ def get_mcp_client(server_url: str = None) -> MCPClient:
     return _mcp_client_instance
 
 
-async def check_mcp_server_startup(server_url: str = None, expected_version: str = None):
+def start_mcp_connection_loop() -> asyncio.Task | None:
+    """Start the background MCP reconnection loop on the singleton client.
+
+    Returns the ``asyncio.Task`` (or ``None`` if already connected) so the
+    caller can cancel it during shutdown.
     """
-    Check MCP server status and version at startup.
-
-    Args:
-        server_url: MCP server URL. If None, uses config default.
-        expected_version: Expected version string. If None, uses config default.
-
-    Exits the application with code 1 if MCP server check fails.
-    """
-    from shared.config import get_config
-
-    config = get_config()
-    if server_url is None:
-        server_url = config.MCP_SERVER_URL
-    if expected_version is None:
-        expected_version = config.MCP_SERVER_EXPECTED_VERSION
-
-    print(f"🔍 Checking MCP server at startup: {server_url}")
-
-    try:
-        # Create client and check status
-        client = MCPClient(server_url)
-        status = await client.check_server_status(expected_version)
-
-        if status["running"] and status["version_match"]:
-            print(f"✅ MCP server check passed - Version: {status['version']}")
-            return status
-        else:
-            error_msg = f"MCP server version mismatch. Expected: {expected_version}, Got: {status.get('version', 'unknown')}"
-            print(f"❌ {error_msg}")
-            print("\n🚫 Altinity startup failed: MCP server version mismatch")
-            print("💡 Start the MCP server with the correct version first")
-            os._exit(1)
-
-    except Exception as e:
-        error_msg = f"Cannot connect to MCP server: {str(e)}"
-        print(f"❌ {error_msg}")
-        print("\n🚫 Altinity startup failed: MCP server not running")
-        print("💡 Start the MCP server first before starting Altinity")
-        os._exit(1)
+    client = get_mcp_client()
+    log.info(f"🔍 Starting background MCP connection loop ({client.server_url})")
+    return client.start_connection_loop()

@@ -146,8 +146,26 @@ describe('Options', () => {
     cy.dsSelect(appFrontend.changeOfName.municipality, /Oslo/);
 
     cy.get(appFrontend.changeOfName.municipalityMetadata)
-      .should('have.prop', 'value')
-      .should('match', /language=nb,id=131,variant=,date=\d{1,2}[/.]\d{1,2}[/.]\d{4},level=,parentCode=/);
+      .invoke('val')
+      .then((metadataValue) => {
+        const metadata = String(metadataValue ?? '');
+        const keyValues = Object.fromEntries(
+          metadata.split(',').map((part) => {
+            const [rawKey, ...rawValue] = part.split('=');
+            return [rawKey, rawValue.join('=')];
+          }),
+        );
+        const expectedKeys = ['language', 'id', 'variant', 'date', 'level', 'parentCode'];
+
+        expect(Object.keys(keyValues).sort()).to.deep.eq(expectedKeys.sort());
+
+        expect(keyValues.language).to.eq('nb');
+        expect(keyValues.id).to.eq('131');
+        expect(keyValues.variant).to.eq('');
+        expect(keyValues.level).to.eq('');
+        expect(keyValues.parentCode).to.eq('');
+        expect(keyValues.date).to.match(/^\d{1,2}[/.]\d{1,2}[/.]\d{4}$/);
+      });
   });
 
   it('clears options when source changes and old value is no longer valid', () => {
@@ -353,7 +371,7 @@ describe('Options', () => {
   it('optionsFilter should remove options based on a condition', () => {
     cy.gotoHiddenPage('filtered-options');
 
-    cy.findByRole('checkbox', { name: 'Blåbær' }).dsCheck();
+    cy.findByRole('checkbox', { name: 'Blåbær' }).check();
     cy.findByRole('checkbox', { name: 'Druer' }).should('not.exist'); // Filtered out
     cy.findByRole('checkbox', { name: 'Banan' }).should('not.exist'); // Filtered out
 
@@ -376,7 +394,7 @@ describe('Options', () => {
     cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
 
     // Disliking 'vannmelon' will remove the selection and not allow it to be re-selected
-    cy.findByRole('checkbox', { name: 'Vannmelon' }).dsCheck();
+    cy.findByRole('checkbox', { name: 'Vannmelon' }).check();
     cy.get('[data-componentid="ingredientId-0"]').should('have.text', '');
     cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
     cy.get('[data-componentid="ingredientType-0"]').findByRole('combobox').click();

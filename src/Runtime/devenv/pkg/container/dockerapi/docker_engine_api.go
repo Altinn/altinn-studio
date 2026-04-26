@@ -11,14 +11,18 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/devenv/pkg/processutil"
 
 	cerrdefs "github.com/containerd/errdefs"
 	dockertypes "github.com/docker/docker/api/types"
 	dockercontainer "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	dockermount "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -30,12 +34,12 @@ import (
 )
 
 var (
-	errExecExitCode      = errors.New("exec exited with non-zero status")
-	errImagePullFailed   = errors.New("image pull failed")
-	errWaitWithoutStatus = errors.New("wait completed without status")
-	errContextCancelled  = errors.New("context cancelled while waiting for container")
-	errBuildCLINotFound  = errors.New("container build CLI not found")
-	errBuildxRequired    = errors.New("docker buildx plugin is required but not installed")
+	errExecExitCode       = errors.New("exec exited with non-zero status")
+	errImagePullFailed    = errors.New("image pull failed")
+	errWaitWithoutStatus  = errors.New("wait completed without status")
+	errContextCancelled   = errors.New("context cancelled while waiting for container")
+	errRuntimeCLINotFound = errors.New("container runtime CLI not found")
+	errBuildxRequired     = errors.New("docker buildx plugin is required but not installed")
 )
 
 // Client implements ContainerClient for Docker using the official SDK.
@@ -134,8 +138,8 @@ func (c *Client) Close() error {
 // Build builds a container image from a Dockerfile.
 // Uses CLI with BuildKit for proper --platform=$BUILDPLATFORM support in Dockerfiles.
 // The Docker Engine API doesn't support BuildKit sessions without complex setup.
-func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	return c.BuildWithProgress(ctx, contextPath, dockerfile, tag, nil)
+func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string, opts ...types.BuildOptions) error {
+	return c.BuildWithProgress(ctx, contextPath, dockerfile, tag, nil, opts...)
 }
 
 // BuildWithProgress builds a container image and emits best-effort progress updates.
@@ -143,13 +147,11 @@ func (c *Client) BuildWithProgress(
 	ctx context.Context,
 	contextPath, dockerfile, tag string,
 	onProgress types.ProgressHandler,
+	opts ...types.BuildOptions,
 ) error {
-	binary := c.toolchain.Platform.BuildCLI()
-	if binary == "" {
-		return fmt.Errorf("%w for platform %s", errBuildCLINotFound, c.toolchain.Platform)
-	}
-	if _, err := exec.LookPath(binary); err != nil {
-		return fmt.Errorf("%w: %s", errBuildCLINotFound, binary)
+	binary, err := runtimeCLI(c.toolchain.Platform)
+	if err != nil {
+		return err
 	}
 
 	if c.toolchain.Platform == types.PlatformPodman {
@@ -159,68 +161,173 @@ func (c *Client) BuildWithProgress(
 		return errBuildxRequired
 	}
 
-	args := []string{
-		"build",
-		"--progress", "rawjson",
-		"--provenance=false",
-		"--sbom=false",
-		"-t", tag,
-		"-f", dockerfile,
-		contextPath,
-	}
-	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
-	cmd := exec.CommandContext(ctx, binary, args...)
+	args := dockerBuildArgs(contextPath, dockerfile, tag, firstBuildOptions(opts))
+	cmd := processutil.CommandContext(ctx, binary, args...)
 	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 
 	return runStreamingBuild(binary, cmd, onProgress)
 }
 
+func dockerBuildArgs(contextPath, dockerfile, tag string, opts types.BuildOptions) []string {
+	args := make([]string, 0, 7+2*len(opts.CacheFrom)+2*len(opts.CacheTo)+5)
+	if buildxBuild(opts) {
+		args = append(args, "buildx", "build", "--load")
+	} else {
+		args = append(args, "build")
+	}
+	args = append(args, "--progress", "rawjson", "--provenance=false", "--sbom=false")
+	for _, cacheFrom := range opts.CacheFrom {
+		args = append(args, "--cache-from", cacheFrom)
+	}
+	for _, cacheTo := range opts.CacheTo {
+		args = append(args, "--cache-to", cacheTo)
+	}
+	args = append(args,
+		"-t", tag,
+		"-f", dockerfile,
+		contextPath,
+	)
+	return args
+}
+
+func buildxBuild(opts types.BuildOptions) bool {
+	return len(opts.CacheFrom) > 0 || len(opts.CacheTo) > 0
+}
+
+func firstBuildOptions(opts []types.BuildOptions) types.BuildOptions {
+	if len(opts) == 0 {
+		return types.BuildOptions{}
+	}
+	return opts[0]
+}
+
 // hasBuildx checks whether the Docker CLI has the buildx plugin installed.
 func hasBuildx(ctx context.Context, dockerBinary string) bool {
-	out, err := exec.CommandContext(ctx, dockerBinary, "buildx", "version").CombinedOutput()
+	out, err := processutil.CommandContext(ctx, dockerBinary, "buildx", "version").CombinedOutput()
 	return err == nil && len(out) > 0
 }
 
 // Push pushes an image to a registry.
 func (c *Client) Push(ctx context.Context, img string) error {
-	resp, err := c.cli.ImagePush(ctx, img, image.PushOptions{
-		// Empty auth for local registry
-		RegistryAuth: "e30=", // base64 encoded "{}"
-	})
+	binary, err := runtimeCLI(c.toolchain.Platform)
 	if err != nil {
-		return fmt.Errorf("docker push failed: %w", err)
-	}
-	defer closeBestEffort(resp)
-
-	// Read push output to detect errors
-	if err := jsonmessage.DisplayJSONMessagesStream(resp, io.Discard, 0, false, nil); err != nil {
-		return fmt.Errorf("docker push failed: %w", err)
+		return err
 	}
 
+	cmd := processutil.CommandContext(ctx, binary, c.toolchain.Platform.PushArgs(img)...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s push failed: %w\nOutput: %s", binary, err, string(output))
+	}
 	return nil
 }
 
+func runtimeCLI(platform types.ContainerPlatform) (string, error) {
+	binary := platform.BuildCLI()
+	if binary == "" {
+		return "", fmt.Errorf("%w for platform %s", errRuntimeCLINotFound, platform)
+	}
+	if _, err := exec.LookPath(binary); err != nil {
+		return "", fmt.Errorf("%w: %s", errRuntimeCLINotFound, binary)
+	}
+	return binary, nil
+}
+
 // CreateContainer creates and optionally starts a container.
-//
-//nolint:funlen,nestif // The Docker container create flow mirrors the underlying API shape.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
-	// Ensure image exists locally, pull if missing
-	_, err := c.cli.ImageInspect(ctx, cfg.Image)
+	if err := c.ensureImageExists(ctx, cfg.Image); err != nil {
+		return "", err
+	}
+
+	containerCfg, hostCfg, networkingConfig := buildDockerConfigs(cfg, c.toolchain.Platform)
+
+	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, networkingConfig, nil, cfg.Name)
 	if err != nil {
-		if cerrdefs.IsNotFound(err) {
-			if pullErr := c.ImagePull(ctx, cfg.Image); pullErr != nil {
-				return "", fmt.Errorf("failed to pull image %s: %w", cfg.Image, pullErr)
-			}
-		} else {
-			return "", fmt.Errorf("failed to inspect image %s: %w", cfg.Image, err)
+		return "", fmt.Errorf("failed to create container: %w", err)
+	}
+
+	// Connect to additional networks before starting
+	for _, net := range cfg.Networks[min(1, len(cfg.Networks)):] {
+		if err := c.cli.NetworkConnect(ctx, net, resp.ID, nil); err != nil {
+			removeContainerBestEffort(ctx, c.cli, resp.ID)
+			return "", fmt.Errorf("failed to connect to network %s: %w", net, err)
 		}
 	}
 
-	// Build port bindings
+	if cfg.Detach {
+		if err := c.cli.ContainerStart(ctx, resp.ID, dockercontainer.StartOptions{}); err != nil {
+			removeContainerBestEffort(ctx, c.cli, resp.ID)
+			return "", fmt.Errorf("failed to start container: %w", err)
+		}
+	}
+
+	return resp.ID, nil
+}
+
+// buildDockerConfigs assembles the Docker container and host configs from a ContainerConfig.
+func buildDockerConfigs(
+	cfg types.ContainerConfig,
+	platform types.ContainerPlatform,
+) (*dockercontainer.Config, *dockercontainer.HostConfig, *network.NetworkingConfig) {
+	portBindings, exposedPorts := buildPortMappings(cfg.Ports)
+
+	containerCfg := &dockercontainer.Config{
+		Image:        cfg.Image,
+		Cmd:          cfg.Command,
+		Env:          cfg.Env,
+		ExposedPorts: exposedPorts,
+		Labels:       cfg.Labels,
+		User:         cfg.User,
+	}
+
+	if cfg.HealthCheck != nil {
+		containerCfg.Healthcheck = &dockercontainer.HealthConfig{
+			Test:        cfg.HealthCheck.Test,
+			Interval:    cfg.HealthCheck.Interval,
+			Timeout:     cfg.HealthCheck.Timeout,
+			Retries:     cfg.HealthCheck.Retries,
+			StartPeriod: cfg.HealthCheck.StartPeriod,
+		}
+	}
+
+	var primaryNetwork string
+	if len(cfg.Networks) > 0 {
+		primaryNetwork = cfg.Networks[0]
+	}
+
+	capAdd := cfg.CapAdd
+	if platform == types.PlatformPodman {
+		capAdd = types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
+	}
+
+	hostCfg := &dockercontainer.HostConfig{
+		PortBindings:  portBindings,
+		Mounts:        buildBindMounts(cfg.Volumes),
+		ExtraHosts:    cfg.ExtraHosts,
+		RestartPolicy: buildRestartPolicy(cfg.RestartPolicy),
+		NetworkMode:   dockercontainer.NetworkMode(primaryNetwork),
+		CapAdd:        capAdd,
+	}
+
+	var networkingConfig *network.NetworkingConfig
+	if primaryNetwork != "" && len(cfg.NetworkAliases) > 0 {
+		networkingConfig = &network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{
+				primaryNetwork: {
+					Aliases: cfg.NetworkAliases,
+				},
+			},
+		}
+	}
+
+	return containerCfg, hostCfg, networkingConfig
+}
+
+func buildPortMappings(ports []types.PortMapping) (nat.PortMap, nat.PortSet) {
 	portBindings := nat.PortMap{}
 	exposedPorts := nat.PortSet{}
 
-	for _, p := range cfg.Ports {
+	for _, p := range ports {
 		proto := p.Protocol
 		if proto == "" {
 			proto = "tcp"
@@ -233,93 +340,42 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		})
 	}
 
-	// Build restart policy
-	restartPolicy := dockercontainer.RestartPolicy{}
-	switch cfg.RestartPolicy {
+	return portBindings, exposedPorts
+}
+
+func buildRestartPolicy(policy string) dockercontainer.RestartPolicy {
+	rp := dockercontainer.RestartPolicy{}
+	switch policy {
 	case "always":
-		restartPolicy.Name = dockercontainer.RestartPolicyAlways
+		rp.Name = dockercontainer.RestartPolicyAlways
 	case "on-failure":
-		restartPolicy.Name = dockercontainer.RestartPolicyOnFailure
+		rp.Name = dockercontainer.RestartPolicyOnFailure
 	case "unless-stopped":
-		restartPolicy.Name = dockercontainer.RestartPolicyUnlessStopped
+		rp.Name = dockercontainer.RestartPolicyUnlessStopped
 	default:
-		restartPolicy.Name = dockercontainer.RestartPolicyDisabled
+		rp.Name = dockercontainer.RestartPolicyDisabled
 	}
-
-	// Container config
-	containerCfg := &dockercontainer.Config{
-		Image:        cfg.Image,
-		Cmd:          cfg.Command,
-		Env:          cfg.Env,
-		ExposedPorts: exposedPorts,
-		Labels:       cfg.Labels,
-		User:         cfg.User,
-	}
-
-	// Determine primary network and additional networks
-	var primaryNetwork string
-	var additionalNetworks []string
-	if len(cfg.Networks) > 0 {
-		primaryNetwork = cfg.Networks[0]
-		additionalNetworks = cfg.Networks[1:]
-	}
-
-	// Build capability list
-	capAdd := cfg.CapAdd
-	if c.toolchain.Platform == types.PlatformPodman {
-		// Podman has a more restrictive default capability set than Docker.
-		// Add Docker's defaults to ensure consistent behavior.
-		capAdd = types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
-	}
-
-	// Host config
-	hostCfg := &dockercontainer.HostConfig{
-		PortBindings:  portBindings,
-		Mounts:        buildBindMounts(cfg.Volumes),
-		ExtraHosts:    cfg.ExtraHosts,
-		RestartPolicy: restartPolicy,
-		NetworkMode:   dockercontainer.NetworkMode(primaryNetwork),
-		CapAdd:        capAdd,
-	}
-
-	// Create the container
-	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, nil, nil, cfg.Name)
-	if err != nil {
-		return "", fmt.Errorf("failed to create container: %w", err)
-	}
-
-	// Connect to additional networks before starting
-	for _, net := range additionalNetworks {
-		if err := c.cli.NetworkConnect(ctx, net, resp.ID, nil); err != nil {
-			// Clean up on failure
-			removeContainerBestEffort(ctx, c.cli, resp.ID)
-			return "", fmt.Errorf("failed to connect to network %s: %w", net, err)
-		}
-	}
-
-	// Start the container if detached
-	if cfg.Detach {
-		if err := c.cli.ContainerStart(ctx, resp.ID, dockercontainer.StartOptions{}); err != nil {
-			// Clean up created container on start failure
-			removeContainerBestEffort(ctx, c.cli, resp.ID)
-			return "", fmt.Errorf("failed to start container: %w", err)
-		}
-	}
-
-	return resp.ID, nil
+	return rp
 }
 
 func buildBindMounts(volumes []types.VolumeMount) []dockermount.Mount {
 	mounts := make([]dockermount.Mount, 0, len(volumes))
 	for _, v := range volumes {
 		mounts = append(mounts, dockermount.Mount{
-			Type:     dockermount.TypeBind,
+			Type:     dockerMountType(v.Type),
 			Source:   v.HostPath,
 			Target:   v.ContainerPath,
 			ReadOnly: v.ReadOnly,
 		})
 	}
 	return mounts
+}
+
+func dockerMountType(mountType types.VolumeMountType) dockermount.Type {
+	if mountType == types.VolumeMountTypeVolume {
+		return dockermount.TypeVolume
+	}
+	return dockermount.TypeBind
 }
 
 func detectPlatform(ctx context.Context, hostHint string, opts ...client.Opt) (types.ContainerPlatform, error) {
@@ -431,10 +487,11 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 		return types.ContainerState{}, fmt.Errorf("failed to inspect container: %w", err)
 	}
 	return types.ContainerState{
-		Status:   info.State.Status,
-		Running:  info.State.Running,
-		Paused:   info.State.Paused,
-		ExitCode: info.State.ExitCode,
+		Status:       info.State.Status,
+		HealthStatus: dockerHealthStatus(info.State),
+		Running:      info.State.Running,
+		Paused:       info.State.Paused,
+		ExitCode:     info.State.ExitCode,
 	}, nil
 }
 
@@ -599,13 +656,104 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 		Image:   info.Config.Image,
 		ImageID: info.Image,
 		Labels:  info.Config.Labels,
+		Ports:   publishedPortsFromInspect(info.NetworkSettings),
 		State: types.ContainerState{
-			Status:   info.State.Status,
-			Running:  info.State.Running,
-			Paused:   info.State.Paused,
-			ExitCode: info.State.ExitCode,
+			Status:       info.State.Status,
+			HealthStatus: dockerHealthStatus(info.State),
+			Running:      info.State.Running,
+			Paused:       info.State.Paused,
+			ExitCode:     info.State.ExitCode,
 		},
 	}, nil
+}
+
+func dockerHealthStatus(state *dockercontainer.State) string {
+	if state == nil || state.Health == nil {
+		return ""
+	}
+	return state.Health.Status
+}
+
+// ListContainers returns containers matching the provided filters.
+func (c *Client) ListContainers(ctx context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+	args := filters.NewArgs()
+	for key, value := range filter.Labels {
+		label := key
+		if value != "" {
+			label += "=" + value
+		}
+		args.Add("label", label)
+	}
+
+	containers, err := c.cli.ContainerList(ctx, dockercontainer.ListOptions{
+		All:     filter.All,
+		Filters: args,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list containers: %w", err)
+	}
+
+	result := make([]types.ContainerInfo, 0, len(containers))
+	for _, ctr := range containers {
+		result = append(result, types.ContainerInfo{
+			ID:      ctr.ID,
+			Name:    firstContainerName(ctr.Names),
+			Image:   ctr.Image,
+			ImageID: ctr.ImageID,
+			Labels:  ctr.Labels,
+			Ports:   publishedPortsFromSummary(ctr.Ports),
+			State: types.ContainerState{
+				Status:  ctr.State,
+				Running: ctr.State == dockercontainer.StateRunning,
+			},
+		})
+	}
+	return result, nil
+}
+
+func firstContainerName(names []string) string {
+	if len(names) == 0 {
+		return ""
+	}
+	return strings.TrimPrefix(names[0], "/")
+}
+
+func publishedPortsFromPortMap(portMap nat.PortMap) []types.PublishedPort {
+	var ports []types.PublishedPort
+	for containerPort, bindings := range portMap {
+		for _, binding := range bindings {
+			ports = append(ports, types.PublishedPort{
+				HostIP:        binding.HostIP,
+				HostPort:      binding.HostPort,
+				ContainerPort: containerPort.Port(),
+				Protocol:      containerPort.Proto(),
+			})
+		}
+	}
+	return ports
+}
+
+func publishedPortsFromInspect(networkSettings *dockercontainer.NetworkSettings) []types.PublishedPort {
+	if networkSettings == nil {
+		return nil
+	}
+	return publishedPortsFromPortMap(networkSettings.Ports)
+}
+
+func publishedPortsFromSummary(ports []dockercontainer.Port) []types.PublishedPort {
+	result := make([]types.PublishedPort, 0, len(ports))
+	for _, port := range ports {
+		if port.PublicPort == 0 {
+			continue
+		}
+		result = append(result, types.PublishedPort{
+			HostIP:        port.IP,
+			HostPort:      strconv.FormatUint(uint64(port.PublicPort), 10),
+			ContainerPort: strconv.FormatUint(uint64(port.PrivatePort), 10),
+			Protocol:      port.Type,
+		})
+	}
+	return result
 }
 
 // ContainerStart starts an existing container.
@@ -686,9 +834,32 @@ func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 		if cerrdefs.IsNotFound(err) {
 			return types.ErrNetworkNotFound
 		}
+		if isNetworkInUseError(err) {
+			return types.ErrNetworkInUse
+		}
 		return fmt.Errorf("failed to remove network: %w", err)
 	}
 	return nil
+}
+
+// VolumeRemove removes a named volume.
+func (c *Client) VolumeRemove(ctx context.Context, name string, force bool) error {
+	if err := c.cli.VolumeRemove(ctx, name, force); err != nil {
+		if cerrdefs.IsNotFound(err) {
+			return types.ErrVolumeNotFound
+		}
+		return fmt.Errorf("remove volume %s: %w", name, err)
+	}
+	return nil
+}
+
+func isNetworkInUseError(err error) bool {
+	if cerrdefs.IsConflict(err) {
+		return true
+	}
+
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "active endpoints")
 }
 
 // ContainerLogs returns a stream of container logs.
@@ -710,7 +881,77 @@ func (c *Client) ContainerLogs(ctx context.Context, nameOrID string, follow bool
 		}
 		return nil, fmt.Errorf("failed to get container logs: %w", err)
 	}
-	return logs, nil
+	return demuxDockerLogs(logs), nil
+}
+
+func demuxDockerLogs(logs io.ReadCloser) io.ReadCloser {
+	pr, pw := io.Pipe()
+	reader := &dockerLogReader{
+		reader: pr,
+		source: logs,
+	}
+
+	go func() {
+		_, err := stdcopy.StdCopy(pw, pw, logs)
+		sourceErr := reader.closeSource()
+		if err != nil && !errors.Is(err, io.EOF) {
+			if reader.isClosed() {
+				if closeErr := pw.Close(); closeErr != nil {
+					return
+				}
+				return
+			}
+			_ = pw.CloseWithError(fmt.Errorf("demux docker logs: %w", err))
+			return
+		}
+		if sourceErr != nil && !reader.isClosed() {
+			_ = pw.CloseWithError(fmt.Errorf("close docker logs: %w", sourceErr))
+			return
+		}
+		if closeErr := pw.Close(); closeErr != nil {
+			return
+		}
+	}()
+
+	return reader
+}
+
+type dockerLogReader struct {
+	source    io.Closer
+	closeErr  error
+	reader    *io.PipeReader
+	closeOnce sync.Once
+	closedMu  sync.Mutex
+	closed    bool
+}
+
+//nolint:wrapcheck // io.Reader implementations should preserve EOF semantics.
+func (r *dockerLogReader) Read(p []byte) (int, error) {
+	return r.reader.Read(p)
+}
+
+func (r *dockerLogReader) Close() error {
+	r.closedMu.Lock()
+	r.closed = true
+	r.closedMu.Unlock()
+
+	if err := r.closeSource(); err != nil {
+		return fmt.Errorf("close docker log reader: %w", err)
+	}
+	return nil
+}
+
+func (r *dockerLogReader) closeSource() error {
+	r.closeOnce.Do(func() {
+		r.closeErr = r.source.Close()
+	})
+	return r.closeErr
+}
+
+func (r *dockerLogReader) isClosed() bool {
+	r.closedMu.Lock()
+	defer r.closedMu.Unlock()
+	return r.closed
 }
 
 // ContainerWait blocks until the container exits and returns the exit code.
@@ -737,6 +978,21 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 	case <-ctx.Done():
 		return -1, fmt.Errorf("%w: %w", errContextCancelled, ctx.Err())
 	}
+}
+
+// ensureImageExists checks that the image is available locally, pulling it if missing.
+func (c *Client) ensureImageExists(ctx context.Context, imageRef string) error {
+	_, err := c.cli.ImageInspect(ctx, imageRef)
+	if err == nil {
+		return nil
+	}
+	if !cerrdefs.IsNotFound(err) {
+		return fmt.Errorf("failed to inspect image %s: %w", imageRef, err)
+	}
+	if pullErr := c.ImagePull(ctx, imageRef); pullErr != nil {
+		return fmt.Errorf("failed to pull image %s: %w", imageRef, pullErr)
+	}
+	return nil
 }
 
 //nolint:errcheck,gosec // Client and stream cleanup is best-effort during setup and teardown paths.
@@ -771,8 +1027,7 @@ func runIndeterminateBuild(
 	onProgress types.ProgressHandler,
 ) error {
 	args := []string{"build", "-t", tag, "-f", dockerfile, contextPath}
-	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
-	cmd := exec.CommandContext(ctx, binary, args...)
+	cmd := processutil.CommandContext(ctx, binary, args...)
 
 	reportProgress(onProgress, types.ProgressUpdate{
 		Message:       "build started",
@@ -831,11 +1086,11 @@ func runStreamingBuild(
 	if stderrErr != nil {
 		return stderrErr
 	}
-	if stdoutErr != nil {
-		return fmt.Errorf("build stdout read failed: %w", stdoutErr)
-	}
 	if waitErr != nil {
 		return formatBuildFailure(binary, waitErr, aggregator.LastError(), stdoutBuf.String(), stderrText)
+	}
+	if stdoutErr != nil && !isClosedPipeReadError(stdoutErr) {
+		return fmt.Errorf("build stdout read failed: %w", stdoutErr)
 	}
 
 	reportProgress(onProgress, types.ProgressUpdate{
@@ -846,6 +1101,10 @@ func runStreamingBuild(
 	})
 
 	return nil
+}
+
+func isClosedPipeReadError(err error) bool {
+	return errors.Is(err, os.ErrClosed) || strings.Contains(err.Error(), "file already closed")
 }
 
 func streamBuildProgress(

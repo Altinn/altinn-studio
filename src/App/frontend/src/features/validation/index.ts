@@ -68,9 +68,9 @@ export type NodeVisibility = 'visible' | 'showAll' | number;
 
 export type WaitForValidation = (forceSave?: boolean) => Promise<void>;
 
-export type ValidationContext = {
+export type ValidationSliceState = {
   state: ValidationState;
-  validating: WaitForValidation | undefined;
+  otherDataElementBackendValidations: DataModelValidations;
 
   /**
    * If there are no frontend errors, but process next still returns validation errors,
@@ -82,7 +82,6 @@ export type ValidationContext = {
 
 export type ValidationState = {
   task: BaseValidation[];
-  dataModels: DataModelValidations;
 };
 
 export type DataModelValidations = {
@@ -206,7 +205,7 @@ export interface BackendValidationIssue {
   code?: string;
   description?: string;
   field?: string;
-  dataElementId?: string;
+  dataElementId: string;
   severity: BackendValidationSeverity;
   source: string;
   noIncrementalUpdates?: boolean; // true if it will not be validated on PATCH, should be ignored when trying to submit

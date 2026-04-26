@@ -27,7 +27,10 @@ public class ApiKeyRepository(DesignerdbContext dbContext) : IApiKeyRepository
         CancellationToken cancellationToken = default
     )
     {
-        var query = dbContext.ApiKeys.AsNoTracking().Where(t => t.UserAccountId == userAccountId && !t.Revoked);
+        var query = dbContext
+            .ApiKeys.AsNoTracking()
+            .Include(t => t.CreatedByUserAccount)
+            .Where(t => t.UserAccountId == userAccountId && !t.Revoked);
 
         if (tokenType.HasValue)
         {

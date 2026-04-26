@@ -7,16 +7,18 @@ import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { doUpdateAttachmentTags, fetchInstanceData } from 'src/queries/queries';
+import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IRawOption } from 'src/layout/common.generated';
-import type { CompExternalExact, ILayoutCollection } from 'src/layout/layout';
+import type { CompExternalExact } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
@@ -154,32 +156,35 @@ describe('File uploading components', () => {
       await renderWithInstanceAndLayout({
         renderer: () => <GenericComponent baseComponentId='FileUpload1' />,
         queries: {
-          fetchLayouts: async (): Promise<ILayoutCollection> => ({
-            page1: {
-              data: {
-                layout: [
-                  {
-                    id: 'FileUpload1',
-                    type: 'FileUpload',
-                    dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
-                    minNumberOfAttachments: 1,
-                    maxNumberOfAttachments: 5,
-                    maxFileSizeInMB: 2,
-                    displayMode: 'list',
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = {
+                page1: {
+                  data: {
+                    layout: [
+                      {
+                        id: 'FileUpload1',
+                        type: 'FileUpload',
+                        dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
+                        minNumberOfAttachments: 1,
+                        maxNumberOfAttachments: 5,
+                        maxFileSizeInMB: 2,
+                        displayMode: 'list',
+                      },
+                      {
+                        id: 'FileUpload2',
+                        type: 'FileUpload',
+                        dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
+                        minNumberOfAttachments: 1,
+                        maxNumberOfAttachments: 5,
+                        maxFileSizeInMB: 2,
+                        displayMode: 'list',
+                      },
+                    ],
                   },
-                  {
-                    id: 'FileUpload2',
-                    type: 'FileUpload',
-                    dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
-                    minNumberOfAttachments: 1,
-                    maxNumberOfAttachments: 5,
-                    maxFileSizeInMB: 2,
-                    displayMode: 'list',
-                  },
-                ],
-              },
-            },
-          }),
+                },
+              };
+            }),
         },
       });
 
@@ -215,7 +220,10 @@ describe('File uploading components', () => {
           },
           attachments: (dataType) => getDataElements({ count: 2, dataType }),
           queries: {
-            fetchFormData: () => Promise.resolve({ user: { type: 'admin' } }),
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { user: { type: 'admin' } };
+              }),
           },
         });
 
@@ -232,7 +240,10 @@ describe('File uploading components', () => {
           },
           attachments: (dataType) => getDataElements({ count: 3, dataType }),
           queries: {
-            fetchFormData: () => Promise.resolve({ user: { type: 'regular' } }),
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { user: { type: 'regular' } };
+              }),
           },
         });
 
@@ -251,7 +262,10 @@ describe('File uploading components', () => {
           },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
           queries: {
-            fetchFormData: () => Promise.resolve({ form: { requiredFiles: 3 } }),
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: { requiredFiles: 3 } };
+              }),
           },
         });
 
@@ -271,7 +285,10 @@ describe('File uploading components', () => {
           },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
           queries: {
-            fetchFormData: () => Promise.resolve({ form: { priority: 8 } }),
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: { priority: 8 } };
+              }),
           },
         });
 
@@ -290,7 +307,10 @@ describe('File uploading components', () => {
           },
           attachments: (dataType) => getDataElements({ count: 0, dataType }),
           queries: {
-            fetchFormData: () => Promise.resolve({ form: { optionalFiles: 0 } }),
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: { optionalFiles: 0 } };
+              }),
           },
         });
 
@@ -307,7 +327,10 @@ describe('File uploading components', () => {
           },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
           queries: {
-            fetchFormData: () => Promise.resolve({ form: {} }), // Empty form data
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: {} };
+              }),
           },
         });
 
@@ -529,12 +552,6 @@ describe('File uploading components', () => {
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     queries,
   }: Props<T>) {
-    jest.mocked(fetchInstanceData).mockImplementation(async () =>
-      getInstanceDataMock((i) => {
-        i.data.push(...attachments);
-      }),
-    );
-
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
 
@@ -583,6 +600,16 @@ describe('File uploading components', () => {
             headers: {},
           } as AxiosResponse<IRawOption[], unknown>),
         ...queries,
+      },
+      apis: {
+        instanceApi: {
+          getInstance: async () => ({
+            ...getInstanceDataMock((i) => {
+              i.data.push(...attachments);
+            }),
+            process: getProcessDataMock(),
+          }),
+        },
       },
     });
 

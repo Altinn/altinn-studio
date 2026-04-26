@@ -459,7 +459,7 @@ export class ExternalAppDataModel {
     return metadata.dataTypes.find((dt) => dt.id === this.dataType)!;
   }
 
-  simulateDataModel(numRows = 1, _layouts?: ILayoutCollection): unknown {
+  simulateDataModel(numRows = 1, _layouts?: ILayoutCollection): object {
     const dataModel = {};
     const layouts = _layouts ?? this.layoutSet?.getLayouts();
     if (!layouts) {

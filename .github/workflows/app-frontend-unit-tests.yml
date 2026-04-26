@@ -2,19 +2,21 @@ name: App Frontend - Unit tests
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/frontend/src/**'
-      - 'src/App/frontend/yarn.lock'
+      - 'src/App/frontend/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   unit-tests:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     name: Type-checks, eslint, unit tests and SonarCloud
     defaults:
       run:
@@ -34,7 +36,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -47,6 +49,16 @@ jobs:
 
       - name: type-check
         run: yarn tsc
+
+      - name: type-check-strict
+        run: |
+          strict_error_count="$(yarn tsc-strict:error-count)"
+          echo "Strict TypeScript error count: ${strict_error_count}"
+
+          if (( strict_error_count >= 301 )); then
+            echo "Strict TypeScript error count is ${strict_error_count}, expected less than 301."
+            exit 1
+          fi
 
       - name: run eslint
         run: yarn lint

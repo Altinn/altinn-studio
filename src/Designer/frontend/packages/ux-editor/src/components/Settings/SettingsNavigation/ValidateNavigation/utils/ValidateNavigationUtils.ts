@@ -2,6 +2,7 @@ import type { ExternalConfigState, InternalConfigState } from './ValidateNavigat
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -82,86 +83,95 @@ export const getAvailableTasks = (
 export const getAvailablePages = (
   formLayouts?: IFormLayouts,
   externalConfig?: ExternalConfigState[],
-  selectedPages?: string[],
+  initialSelectedPages?: string[],
 ): string[] => {
   const allPages = formLayouts ? Object.keys(formLayouts) : [];
   const pagesWithRules = externalConfig?.flatMap((config) => config.pages || []) || [];
-
   return allPages.filter((page) => {
-    return !pagesWithRules.includes(page) || selectedPages?.includes(page);
+    return !pagesWithRules.includes(page) || initialSelectedPages?.includes(page);
   });
 };
 
-type ValidateFormProps = {
+type IsSaveDisabledProps = {
   scope: Scope;
   config: InternalConfigState;
   newConfig: InternalConfigState;
 };
 
-export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): boolean => {
-  const noChangesMade = !newConfig || JSON.stringify(config) === JSON.stringify(newConfig);
+export const isSaveDisabled = ({ scope, config, newConfig }: IsSaveDisabledProps): boolean => {
+  const noChangesMade = !newConfig || ObjectUtils.areObjectsEqual(config, newConfig);
   if (noChangesMade) {
-    return false;
+    return true;
   }
 
   const hasTypes = newConfig.types?.length > 0;
   const hasPageScope = Boolean(newConfig.pageScope?.value);
 
   if (!hasTypes || !hasPageScope) {
-    return false;
+    return true;
   }
 
   switch (scope) {
     case Scope.AllTasks:
-      return true;
-    case Scope.SelectedTasks:
-      return newConfig.tasks?.length > 0;
-    case Scope.SelectedPages:
-      return Boolean(newConfig.task?.value) && newConfig.pages?.length > 0;
-    default:
       return false;
+    case Scope.SelectedTasks:
+      return !newConfig.tasks?.length;
+    case Scope.SelectedPages:
+      return !newConfig.task?.value || !newConfig.pages?.length;
+    default:
+      return true;
   }
 };
 
-type IsRuleDuplicateInScope = {
+type FindDuplicateRuleProps = {
   scope: Scope;
   newConfig: InternalConfigState;
   initialConfig?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
-  isFormValid?: boolean;
+  saveDisabled: boolean;
 };
 
-export const isRuleDuplicateInScope = ({
+export const findDuplicateRule = ({
   scope,
   newConfig,
   initialConfig,
   existingConfigs,
-  isFormValid,
-}: IsRuleDuplicateInScope): boolean => {
-  if (!existingConfigs || !isFormValid) return false;
+  saveDisabled,
+}: FindDuplicateRuleProps): { key: string; values: string } | null => {
+  if (!existingConfigs || saveDisabled) return null;
 
   const filteredConfigs = initialConfig
     ? existingConfigs.filter((config) => JSON.stringify(config) !== JSON.stringify(initialConfig))
     : existingConfigs;
 
-  const newConfigTypeValues = newConfig.types.map((type) => type.value);
-  const newPageScopeValue = newConfig.pageScope.value;
-  const newTaskValue = newConfig.task?.value;
+  const match = filteredConfigs.find((config) => isSameRule(config, newConfig, scope));
+  if (!match) return null;
 
-  return filteredConfigs.some((existingConfig) => {
-    const existingTypeValues = existingConfig.types?.map((type) => type.value);
-    const existingPageScopeValue = existingConfig.pageScope?.value;
-    const existingTaskValue = existingConfig.task?.value;
+  const isPageScope = scope === Scope.SelectedPages;
+  const labels = isPageScope ? match.pages.map((p) => p.label) : match.tasks.map((t) => t.label);
 
-    if (scope === Scope.SelectedPages && existingTaskValue !== newTaskValue) {
-      return false;
-    }
+  return {
+    key: 'ux_editor.settings.navigation_validation_alert_message',
+    values: formatList(labels),
+  };
+};
 
-    const typesMatch = arraysEqualUnordered(existingTypeValues, newConfigTypeValues);
-    const pageScopeMatches = existingPageScopeValue === newPageScopeValue;
+const isSameRule = (config: InternalConfigState, newConfig: InternalConfigState, scope: Scope) => {
+  const existingTypeValues = config.types?.map((t) => t.value);
+  const newTypeValues = newConfig.types.map((t) => t.value);
 
-    return typesMatch && pageScopeMatches;
-  });
+  const typesMatch = arraysEqualUnordered(existingTypeValues, newTypeValues);
+  const pageScopeMatches = config.pageScope?.value === newConfig.pageScope.value;
+
+  if (!typesMatch || !pageScopeMatches) {
+    return false;
+  }
+
+  if (scope === Scope.SelectedPages) {
+    return config.task?.value === newConfig.task?.value;
+  }
+
+  return true;
 };
 
 const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: string[]) => {
@@ -169,3 +179,6 @@ const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: str
   const setA = new Set(existingTypes);
   return newTypes.every((value) => setA.has(value));
 };
+
+const formatList = (list: string[]): string =>
+  new Intl.ListFormat('nb-NO', { style: 'long', type: 'conjunction' }).format(list);

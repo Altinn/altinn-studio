@@ -95,6 +95,18 @@ describe('PolicyRule', () => {
     expect(mockSavePolicy).toHaveBeenCalledTimes(numFields + 1);
   });
 
+  it('does not show subjects error when rule has access packages but no roles', () => {
+    const policyRuleWithAccessPackagesOnly = {
+      ...mockPolicyRuleCard1,
+      subject: [],
+      accessPackages: ['urn:altinn:accesspackage:some-package'],
+    };
+    renderPolicyRule({}, { policyRule: policyRuleWithAccessPackagesOnly, showErrors: true });
+    expect(
+      screen.queryByText(textMock('policy_editor.policy_rule_missing_subjects')),
+    ).not.toBeInTheDocument();
+  });
+
   it('renders policy rule with description when usage type is app', () => {
     const mockRuleDescription = 'test description';
     renderPolicyRule(

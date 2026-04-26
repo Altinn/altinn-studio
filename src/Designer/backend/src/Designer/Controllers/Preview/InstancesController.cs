@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -39,8 +38,8 @@ public class InstancesController(
     // </summary>
     public override void OnActionExecuting(ActionExecutingContext context)
     {
-        string org = context.RouteData.Values["org"] as string;
-        string app = context.RouteData.Values["app"] as string;
+        string? org = context.RouteData.Values["org"] as string;
+        string? app = context.RouteData.Values["app"] as string;
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             org,
@@ -87,8 +86,8 @@ public class InstancesController(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] int instanceOwnerPartyId,
-        [FromQuery] string taskId,
-        [FromQuery] string language = null
+        [FromQuery] string? taskId,
+        [FromQuery] string? language = null
     )
     {
         ApplicationMetadata applicationMetadata = await applicationMetadataService.GetApplicationMetadataFromRepository(
@@ -152,7 +151,7 @@ public class InstancesController(
             ProcessTasks =
                 tasks != null
                     ? new List<AppProcessTaskTypeInfo>(
-                        tasks?.ConvertAll(task => new AppProcessTaskTypeInfo
+                        tasks.ConvertAll(task => new AppProcessTaskTypeInfo
                         {
                             ElementId = task,
                             AltinnTaskType = "data",
@@ -191,7 +190,7 @@ public class InstancesController(
         [FromRoute] string app,
         [FromRoute] int partyId,
         [FromRoute] Guid instanceGuid,
-        [FromQuery] string lang,
+        [FromQuery] string? lang,
         CancellationToken cancellationToken
     )
     {
@@ -207,8 +206,8 @@ public class InstancesController(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] string optionListId,
-        [FromQuery] string language,
-        [FromQuery] string source,
+        [FromQuery] string? language,
+        [FromQuery] string? source,
         CancellationToken cancellationToken
     )
     {
@@ -239,8 +238,8 @@ public class InstancesController(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] string dataListId,
-        [FromQuery] string language,
-        [FromQuery] string size,
+        [FromQuery] string? language,
+        [FromQuery] string? size,
         CancellationToken cancellationToken
     )
     {
@@ -256,9 +255,9 @@ public class InstancesController(
     public IActionResult UpdateAttachmentWithTag(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] string currentPage,
-        [FromQuery] string layoutSetId,
-        [FromQuery] string dataTypeId
+        [FromQuery] string? currentPage,
+        [FromQuery] string? layoutSetId,
+        [FromQuery] string? dataTypeId
     )
     {
         return Ok();

@@ -28,6 +28,7 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
 
         await dbFixture.DbContext.Deployments.AddAsync(dbObject);
         await dbFixture.DbContext.SaveChangesAsync();
+        deploymentEntity.SequenceNo = dbObject.Sequenceno;
         dbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
         dbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
     }

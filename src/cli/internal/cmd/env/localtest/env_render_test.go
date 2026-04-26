@@ -57,8 +57,11 @@ func TestDestroyResources_ContinuesWhenRenderStatusProbeFails(t *testing.T) {
 	err := env.destroyResources(context.Background(), ResourceDestroyOptions{
 		Images: config.ImagesConfig{
 			Core: config.CoreImages{
-				Localtest: config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest"},
-				PDF3:      config.ImageSpec{Image: "ghcr.io/altinn/test-pdf3", Tag: "latest"},
+				Localtest:        config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest"},
+				PDF3:             config.ImageSpec{Image: "ghcr.io/altinn/test-pdf3", Tag: "latest"},
+				WorkflowEngineDb: config.ImageSpec{Image: "postgres", Tag: "18"},
+				WorkflowEngine:   config.ImageSpec{Image: "ghcr.io/altinn/test-workflow-engine", Tag: "latest"},
+				PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
 			},
 		},
 		IncludeMonitoring: false,
