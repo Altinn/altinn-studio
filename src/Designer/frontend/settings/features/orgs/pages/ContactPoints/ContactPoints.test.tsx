@@ -5,6 +5,13 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ContactPoints } from './ContactPoints';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
+import { Route, Routes } from 'react-router-dom';
+
+const RoutedContactPoints = () => (
+  <Routes>
+    <Route path=':owner/*' element={<ContactPoints />} />
+  </Routes>
+);
 
 jest.mock('./components/PersonsList/PersonsList', () => ({
   PersonsList: ({ persons }: { persons: ContactPoint[] }) => (
@@ -38,13 +45,13 @@ const slackContactPoint: ContactPoint = {
 
 const renderContactPoints = (
   contactPoints?: ContactPoint[],
-  initialEntries = ['/orgs/ttd/contact-points'],
+  initialEntries = ['/ttd/contact-points'],
 ) => {
   const queryClient = createQueryClientMock();
   if (contactPoints !== undefined) {
     queryClient.setQueryData([QueryKey.ContactPoints, testOrg], contactPoints);
   }
-  return renderWithProviders(<ContactPoints />, { queryClient, initialEntries });
+  return renderWithProviders(<RoutedContactPoints />, { queryClient, initialEntries });
 };
 
 describe('ContactPoints', () => {
@@ -56,10 +63,10 @@ describe('ContactPoints', () => {
   it('renders the error message when query fails', async () => {
     const queryClient = createQueryClientMock();
     const getContactPoints = jest.fn().mockRejectedValue(new Error('Failed'));
-    renderWithProviders(<ContactPoints />, {
+    renderWithProviders(<RoutedContactPoints />, {
       queries: { getContactPoints },
       queryClient,
-      initialEntries: ['/orgs/ttd/contact-points'],
+      initialEntries: ['/ttd/contact-points'],
     });
     await screen.findByText(textMock('settings.orgs.contact_points.error'));
     expect(screen.getByText(textMock('settings.orgs.contact_points.error'))).toBeInTheDocument();

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"runtime"
 
 	"altinn.studio/studioctl/internal/appmanager"
@@ -92,7 +93,8 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 			"  -h, --help          Show this help message",
 			"",
 			"If --path is not specified, an interactive picker will prompt you to",
-			"choose from detected installation locations.",
+			"choose from detected installation locations. If no terminal input is",
+			"available, the recommended writable location is used automatically.",
 		))
 	}
 
@@ -111,7 +113,7 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 	candidates := c.service.DetectCandidates()
 
 	if targetPath == "" {
-		selected, err := c.pickInstallLocation(ctx, candidates)
+		selected, err := c.resolveInstallLocation(ctx, candidates)
 		if err != nil {
 			return err
 		}
@@ -124,12 +126,43 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 	return c.performInstall(ctx, targetPath, candidates, skipResources)
 }
 
-func (c *SelfCommand) pickInstallLocation(ctx context.Context, candidates []selfsvc.Candidate) (string, error) {
+func (c *SelfCommand) resolveInstallLocation(
+	ctx context.Context,
+	candidates []selfsvc.Candidate,
+) (string, error) {
+	input, cleanup, err := ui.InteractiveInput()
+	if err != nil {
+		c.out.Verbosef("terminal input unavailable, using default install location: %v", err)
+		return c.defaultInstallLocation(candidates)
+	}
+	defer func() {
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			c.out.Verbosef("failed to close terminal input: %v", cleanupErr)
+		}
+	}()
+
+	return c.pickInstallLocation(ctx, input, candidates)
+}
+
+func (c *SelfCommand) defaultInstallLocation(candidates []selfsvc.Candidate) (string, error) {
+	target, ok := selfsvc.DefaultInstallLocation(candidates)
+	if ok {
+		return target, nil
+	}
+
+	return "", c.handleNoWritableLocations()
+}
+
+func (c *SelfCommand) pickInstallLocation(
+	ctx context.Context,
+	input io.Reader,
+	candidates []selfsvc.Candidate,
+) (string, error) {
 	if len(candidates) == 0 {
 		return "", c.handleNoWritableLocations()
 	}
 
-	picker := selfsvc.NewPicker(c.out, candidates)
+	picker := selfsvc.NewPicker(c.out, input, candidates)
 	selected, err := picker.Run(ctx)
 	if err != nil {
 		if errors.Is(err, selfsvc.ErrSkipped) {

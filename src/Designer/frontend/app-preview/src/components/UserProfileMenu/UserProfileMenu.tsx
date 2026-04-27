@@ -37,7 +37,7 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: `${SETTINGS_BASENAME}/${org}`,
       openInNewTab: false,
     },
     itemName: t('settings'),
@@ -49,7 +49,8 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [settingsMenuItem, docsMenuItem] : [docsMenuItem] },
+    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    { items: [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

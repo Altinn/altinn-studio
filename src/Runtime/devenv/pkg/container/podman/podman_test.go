@@ -102,3 +102,39 @@ func TestIsContainerNotFoundOutput(t *testing.T) {
 		})
 	}
 }
+
+func TestIsVolumeNotFoundOutput(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		output []byte
+		want   bool
+	}{
+		{
+			name:   "no such volume",
+			output: []byte("Error: no such volume localtest-workflow-engine-db-data"),
+			want:   true,
+		},
+		{
+			name:   "volume does not exist",
+			output: []byte("Error: volume does not exist"),
+			want:   true,
+		},
+		{
+			name:   "non-not-found error",
+			output: []byte("Error: volume is being used by container"),
+			want:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := isVolumeNotFoundOutput(tt.output)
+			if got != tt.want {
+				t.Fatalf("isVolumeNotFoundOutput() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -13,6 +13,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -250,6 +251,21 @@ func (c *Config) AppManagerBinaryPath() string {
 // AppManagerInstallDir returns the directory containing the installed app-manager payload.
 func (c *Config) AppManagerInstallDir() string {
 	return filepath.Join(c.BinDir, "app-manager")
+}
+
+// BoundTopologyConfigDir returns the directory containing generated bound topology files.
+func (c *Config) BoundTopologyConfigDir() string {
+	return filepath.Join(c.DataDir, envtopology.BoundTopologyConfigDirName)
+}
+
+// BoundTopologyConfigPath returns the path to the generated bound topology.
+func (c *Config) BoundTopologyConfigPath() string {
+	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyConfigFileName)
+}
+
+// BoundTopologyBaseConfigPath returns the path to the generated base topology.
+func (c *Config) BoundTopologyBaseConfigPath() string {
+	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyBaseConfigFileName)
 }
 
 // persistedConfigPath returns the path to the optional user override file.

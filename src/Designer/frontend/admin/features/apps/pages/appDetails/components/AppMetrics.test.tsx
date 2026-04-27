@@ -10,37 +10,31 @@ import axios from 'axios';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import userEvent from '@testing-library/user-event';
-import { OrgContext } from 'admin/layout/PageLayout';
+import { OrgContext } from 'admin/contexts/OrgContext';
 
 const env = 'test';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${env.toUpperCase()}`;
-const orgName = org;
+const orgFullName = 'Test Org Full Name';
 const range = 5;
 
 const orgMock = {
-  name: {
-    en: org,
-    nb: org,
-    nn: org,
-  },
-  logo: '',
-  orgnr: '',
-  homepage: '',
-  environments: [],
+  username: org,
+  full_name: orgFullName,
+  avatar_url: '',
+  id: 1,
+};
+
+const orgMockWithoutFullName = {
+  username: org,
+  full_name: '',
+  avatar_url: '',
+  id: 1,
 };
 
 jest.mock('react-chartjs-2');
-jest.mock('react-router-dom', () => {
-  const originalModule = jest.requireActual('react-router-dom');
-  return {
-    ...originalModule,
-    useParams: jest.fn(() => ({
-      org,
-      environment: env,
-      app,
-    })),
-  };
-});
+jest.mock('admin/hooks/useRoutePathsParams', () => ({
+  useRoutePathsParams: () => ({ owner: org, environment: env, app }),
+}));
 jest.mock('axios', () => ({
   ...jest.requireActual('axios'),
   get: jest.fn(),
@@ -78,10 +72,32 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByText(
-          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName }),
+          textMock('admin.metrics.app.health.missing_rights', { envTitle, orgName: orgFullName }),
         ),
       ).toBeInTheDocument();
     });
+
+    it.each([
+      ['health', 'admin.metrics.app.health.missing_rights', 'admin.metrics.app.health.loading'],
+      ['errors', 'admin.metrics.app.errors.missing_rights', 'admin.metrics.app.errors.loading'],
+      ['app', 'admin.metrics.app.missing_rights', 'admin.metrics.app.loading'],
+    ])(
+      'should use org username when full name is missing in %s missing rights alert',
+      async (_section, missingRightsKey, loadingKey) => {
+        const axiosError = createApiErrorMock(ServerCodes.Forbidden);
+        (axios.get as jest.Mock).mockRejectedValue(axiosError);
+
+        renderAppMetrics(createQueryClientMock(), defaultProps, orgMockWithoutFullName);
+
+        await waitFor(() => {
+          expect(screen.queryByLabelText(textMock(loadingKey))).not.toBeInTheDocument();
+        });
+
+        expect(
+          screen.getByText(textMock(missingRightsKey, { envTitle, orgName: org })),
+        ).toBeInTheDocument();
+      },
+    );
 
     it('should render error state', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
@@ -173,7 +189,7 @@ describe('AppMetrics', () => {
 
       expect(
         screen.getByText(
-          textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName }),
+          textMock('admin.metrics.app.errors.missing_rights', { envTitle, orgName: orgFullName }),
         ),
       ).toBeInTheDocument();
     });
@@ -291,7 +307,9 @@ describe('AppMetrics', () => {
       });
 
       expect(
-        screen.getByText(textMock('admin.metrics.app.missing_rights', { envTitle, orgName })),
+        screen.getByText(
+          textMock('admin.metrics.app.missing_rights', { envTitle, orgName: orgFullName }),
+        ),
       ).toBeInTheDocument();
     });
 
@@ -356,10 +374,11 @@ describe('AppMetrics', () => {
 const renderAppMetrics = (
   client = createQueryClientMock(),
   props: AppMetricsProps = defaultProps,
+  currentOrg = orgMock,
 ) => {
   render(
     <MemoryRouter>
-      <OrgContext.Provider value={orgMock}>
+      <OrgContext.Provider value={currentOrg}>
         <QueryClientProvider client={client}>
           <AppMetrics {...props} />
         </QueryClientProvider>
