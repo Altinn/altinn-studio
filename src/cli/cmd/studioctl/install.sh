@@ -27,7 +27,7 @@ Examples:
   curl -sSL .../install.sh | sh -s -- --version studioctl/v0.1.0
 
 Notes:
-  - If no terminal is available, --install-dir or STUDIOCTL_INSTALL_DIR is required.
+  - Without --install-dir, studioctl selects an install location.
   - Released scripts are pinned to a specific studioctl tag in this monorepo.
   - Binary integrity is verified via SHA256 checksum before execution.
   - The install step also installs app-manager alongside studioctl.

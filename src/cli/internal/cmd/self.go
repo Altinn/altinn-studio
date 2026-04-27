@@ -93,7 +93,8 @@ func (c *SelfCommand) runInstall(ctx context.Context, args []string) error {
 			"  -h, --help          Show this help message",
 			"",
 			"If --path is not specified, an interactive picker will prompt you to",
-			"choose from detected installation locations.",
+			"choose from detected installation locations. If no terminal input is",
+			"available, the recommended writable location is used automatically.",
 		))
 	}
 
