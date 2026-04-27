@@ -25,6 +25,7 @@ export function NavigationFocus(): null {
       return;
     }
 
+    // when the application loads, the value of key from useLocation is 'default'.
     if (key === 'default' || state?.preventFocusReset) {
       handledKeyRef.current = key;
       return;
