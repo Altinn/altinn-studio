@@ -135,6 +135,10 @@ internal sealed class WorkflowHandler(
 
             throw;
         }
+        catch (LeaseLostException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             workflow.Status = PersistentItemStatus.Failed;
