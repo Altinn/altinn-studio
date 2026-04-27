@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -103,19 +103,7 @@ public class ChatService(IChatRepository repository) : IChatService
             AllowAppChanges = request.AllowAppChanges,
             AttachmentFileNames = request.AttachmentFileNames,
             FilesChanged = request.FilesChanged,
-            Sources = request
-                .Sources?.Select(s => new ChatSourceEntity
-                {
-                    Tool = s.Tool,
-                    Title = s.Title,
-                    PreviewText = s.PreviewText,
-                    ContentLength = s.ContentLength,
-                    Url = s.Url,
-                    Relevance = s.Relevance,
-                    MatchedTerms = s.MatchedTerms,
-                    Cited = s.Cited,
-                })
-                .ToList(),
+            Sources = request.Sources,
         };
 
         return await repository.CreateMessageAsync(message, cancellationToken);

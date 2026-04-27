@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;

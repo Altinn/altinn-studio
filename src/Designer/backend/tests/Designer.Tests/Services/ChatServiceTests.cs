@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Implementation;
