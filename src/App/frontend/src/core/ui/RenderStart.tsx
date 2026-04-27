@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { NavigationFocus } from 'src/components/NavigationFocus';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 
@@ -17,6 +18,7 @@ interface Props extends PropsWithChildren {
 export function RenderStart({ children, devTools = true, dataModelFetcher = true }: Props) {
   return (
     <>
+      <NavigationFocus />
       {children}
       {devTools && <DevTools />}
       {dataModelFetcher && <DataModelFetcher />}
