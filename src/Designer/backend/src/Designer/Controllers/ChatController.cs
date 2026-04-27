@@ -43,16 +43,7 @@ public class ChatController(IChatService chatService) : ControllerBase
             editingContext,
             cancellationToken
         );
-        return CreatedAtAction(
-            nameof(GetMessages),
-            new
-            {
-                org,
-                app,
-                threadId = created.Id,
-            },
-            created
-        );
+        return Created((string?)null, created);
     }
 
     [HttpPut("threads/{threadId:guid}")]
@@ -124,16 +115,7 @@ public class ChatController(IChatService chatService) : ControllerBase
         if (created is null)
             return NotFound();
 
-        return CreatedAtAction(
-            nameof(GetMessages),
-            new
-            {
-                org,
-                app,
-                threadId = created.ThreadId,
-            },
-            created
-        );
+        return Created((string?)null, created);
     }
 
     [HttpDelete("threads/{threadId:guid}/messages/{messageId:guid}")]

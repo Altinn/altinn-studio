@@ -20,7 +20,7 @@ public class CreateThreadTests
         : base(factory, designerDbFixture) { }
 
     [Fact]
-    public async Task CreateThread_ReturnsCreatedWithLocationHeader()
+    public async Task CreateThread_ReturnsCreatedWithBody()
     {
         var request = new CreateChatThreadRequest($"Thread-{Guid.NewGuid():N}");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ThreadsUrl)
@@ -31,13 +31,11 @@ public class CreateThreadTests
         using var response = await HttpClient.SendAsync(httpRequest);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.NotNull(response.Headers.Location);
         var created = await DeserializeAsync<ChatThreadEntity>(response.Content);
         Assert.NotEqual(Guid.Empty, created.Id);
         Assert.Equal(request.Title, created.Title);
         Assert.Equal(Org, created.Org);
         Assert.Equal(App, created.App);
-        Assert.Contains(created.Id.ToString(), response.Headers.Location.ToString());
     }
 
     [Fact]

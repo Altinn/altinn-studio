@@ -21,7 +21,7 @@ public class CreateMessageTests
         : base(factory, designerDbFixture) { }
 
     [Fact]
-    public async Task CreateMessage_ReturnsCreatedWithLocationHeader()
+    public async Task CreateMessage_ReturnsCreatedWithBody()
     {
         var thread = await SeedThreadAsync();
         var request = new CreateChatMessageRequest(Role.User, "Hello", null, null, null, null);
@@ -33,12 +33,10 @@ public class CreateMessageTests
         using var response = await HttpClient.SendAsync(httpRequest);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.NotNull(response.Headers.Location);
         var created = await DeserializeAsync<ChatMessageEntity>(response.Content);
         Assert.NotEqual(Guid.Empty, created.Id);
         Assert.Equal(request.Content, created.Content);
         Assert.Equal(thread.Id, created.ThreadId);
-        Assert.Contains(thread.Id.ToString(), response.Headers.Location.ToString());
     }
 
     [Fact]
