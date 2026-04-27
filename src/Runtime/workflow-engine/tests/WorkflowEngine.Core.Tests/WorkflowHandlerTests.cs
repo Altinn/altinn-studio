@@ -15,52 +15,73 @@ namespace WorkflowEngine.Core.Tests;
 /// </summary>
 public class WorkflowHandlerTests
 {
-    private static readonly TimeProvider FixedTime = TimeProvider.System;
-
-    private static WorkflowHandler CreateHandler(IWorkflowExecutor executor, EngineSettings? settings = null)
+    private static readonly TimeProvider _fixedTime = TimeProvider.System;
+    private static readonly EngineSettings _defaultSettings = new()
     {
-        settings ??= new EngineSettings
+        DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+        DefaultStepRetryStrategy = RetryStrategy.None(),
+        DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
+        DatabaseRetryStrategy = RetryStrategy.None(),
+        MetricsCollectionInterval = TimeSpan.FromSeconds(5),
+        MaxWorkflowsPerRequest = 100,
+        MaxStepsPerWorkflow = 50,
+        MaxLabels = 50,
+        HeartbeatInterval = TimeSpan.FromSeconds(3),
+        StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+        MaxReclaimCount = 3,
+        Concurrency = new ConcurrencySettings
         {
-            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
-            DefaultStepRetryStrategy = RetryStrategy.None(),
-            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-            DatabaseRetryStrategy = RetryStrategy.None(),
-            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-            MaxWorkflowsPerRequest = 100,
-            MaxStepsPerWorkflow = 50,
-            MaxLabels = 50,
-            HeartbeatInterval = TimeSpan.FromSeconds(3),
-            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-            MaxReclaimCount = 3,
-            Concurrency = new ConcurrencySettings
-            {
-                MaxWorkers = 5,
-                MaxDbOperations = 5,
-                MaxHttpCalls = 5,
-            },
-        };
+            MaxWorkers = 5,
+            MaxDbOperations = 5,
+            MaxHttpCalls = 5,
+        },
+    };
 
-        var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer
-            .Setup(b =>
-                b.Submit(
-                    It.IsAny<Workflow>(),
-                    It.IsAny<CancellationToken>(),
-                    It.IsAny<IReadOnlyList<Step>?>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<Activity?>()
-                )
-            )
-            .Returns(Task.CompletedTask);
-
-        return new WorkflowHandler(
+    private static WorkflowHandler CreateHandler(
+        IWorkflowExecutor executor,
+        EngineSettings? settings = null,
+        IWorkflowUpdateBuffer? buffer = null,
+        InFlightTracker? tracker = null
+    ) =>
+        new(
             executor,
-            buffer.Object,
-            new InFlightTracker(FixedTime),
-            Options.Create(settings),
-            FixedTime,
+            buffer ?? MockBuffer().Object,
+            tracker ?? new InFlightTracker(_fixedTime),
+            Options.Create(settings ?? _defaultSettings),
+            _fixedTime,
             NullLogger<WorkflowHandler>.Instance
         );
+
+    /// <summary>
+    /// Builds a mock <see cref="IWorkflowUpdateBuffer"/>. Without <paramref name="onSubmit"/> all
+    /// Submit calls return <see cref="Task.CompletedTask"/>; otherwise the lambda decides per call
+    /// (it receives the workflow and cancellation token — the remaining matcher args are discarded).
+    /// </summary>
+    private static Mock<IWorkflowUpdateBuffer> MockBuffer(Func<Workflow, CancellationToken, Task>? onSubmit = null)
+    {
+        var buffer = new Mock<IWorkflowUpdateBuffer>();
+        var setup = buffer.Setup(b =>
+            b.Submit(
+                It.IsAny<Workflow>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<IReadOnlyList<Step>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Activity?>()
+            )
+        );
+
+        if (onSubmit is null)
+        {
+            setup.Returns(Task.CompletedTask);
+        }
+        else
+        {
+            setup.Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
+                (w, ct, _, _, _) => onSubmit(w, ct)
+            );
+        }
+
+        return buffer;
     }
 
     private static Workflow CreateWorkflow(params Step[] steps) =>
@@ -111,56 +132,15 @@ public class WorkflowHandlerTests
         var executor = MockExecutor(ExecutionResult.Success());
         var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
 
-        // Custom handler setup: the final Submit (workflow.Completed) throws LeaseLostException,
-        // simulating a worker whose lease was reclaimed mid-processing.
-        var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer
-            .Setup(b =>
-                b.Submit(
-                    It.IsAny<Workflow>(),
-                    It.IsAny<CancellationToken>(),
-                    It.IsAny<IReadOnlyList<Step>?>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<Activity?>()
-                )
-            )
-            .Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
-                (w, _, _, _, _) =>
-                    w.Status == PersistentItemStatus.Completed
-                        ? Task.FromException(new LeaseLostException(w.DatabaseId))
-                        : Task.CompletedTask
-            );
-
-        var settings = Options.Create(
-            new EngineSettings
-            {
-                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
-                DefaultStepRetryStrategy = RetryStrategy.None(),
-                DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-                DatabaseRetryStrategy = RetryStrategy.None(),
-                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-                MaxWorkflowsPerRequest = 100,
-                MaxStepsPerWorkflow = 50,
-                MaxLabels = 50,
-                HeartbeatInterval = TimeSpan.FromSeconds(3),
-                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-                MaxReclaimCount = 3,
-                Concurrency = new ConcurrencySettings
-                {
-                    MaxWorkers = 5,
-                    MaxDbOperations = 5,
-                    MaxHttpCalls = 5,
-                },
-            }
+        // The final Submit (workflow.Completed) throws LeaseLostException, simulating a
+        // worker whose lease was reclaimed mid-processing.
+        var buffer = MockBuffer(
+            (w, _) =>
+                w.Status == PersistentItemStatus.Completed
+                    ? Task.FromException(new LeaseLostException(w.DatabaseId))
+                    : Task.CompletedTask
         );
-        var handler = new WorkflowHandler(
-            executor.Object,
-            buffer.Object,
-            new InFlightTracker(FixedTime),
-            settings,
-            FixedTime,
-            NullLogger<WorkflowHandler>.Instance
-        );
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object);
 
         // Must not rethrow — caller should observe a clean return and rely on warn log + counter.
         var handleTask = handler.Handle(workflow, CancellationToken.None);
@@ -179,65 +159,24 @@ public class WorkflowHandlerTests
         var executor = MockExecutor(ExecutionResult.Success());
         var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
 
-        var tracker = new InFlightTracker(FixedTime);
+        var tracker = new InFlightTracker(_fixedTime);
         using var workflowCts = new CancellationTokenSource();
         tracker.Add(workflow.DatabaseId, workflowCts, workflow);
 
-        var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer
-            .Setup(b =>
-                b.Submit(
-                    It.IsAny<Workflow>(),
-                    It.IsAny<CancellationToken>(),
-                    It.IsAny<IReadOnlyList<Step>?>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<Activity?>()
-                )
-            )
-            .Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
-                (w, ct, _, _, _) =>
-                {
-                    // Simulate the race: the heartbeat sweep triggers lease abandonment *during*
-                    // the final Submit, and the CT cancellation wins over the buffer's reject.
-                    if (w.Status == PersistentItemStatus.Completed)
-                    {
-                        tracker.TryAbandonLostLease([w.DatabaseId]);
-                        return Task.FromException(new OperationCanceledException(ct));
-                    }
-                    return Task.CompletedTask;
-                }
-            );
-
-        var settings = Options.Create(
-            new EngineSettings
+        var buffer = MockBuffer(
+            (w, ct) =>
             {
-                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
-                DefaultStepRetryStrategy = RetryStrategy.None(),
-                DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-                DatabaseRetryStrategy = RetryStrategy.None(),
-                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-                MaxWorkflowsPerRequest = 100,
-                MaxStepsPerWorkflow = 50,
-                MaxLabels = 50,
-                HeartbeatInterval = TimeSpan.FromSeconds(3),
-                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-                MaxReclaimCount = 3,
-                Concurrency = new ConcurrencySettings
+                // Simulate the race: the heartbeat sweep triggers lease abandonment *during*
+                // the final Submit, and the CT cancellation wins over the buffer's reject.
+                if (w.Status == PersistentItemStatus.Completed)
                 {
-                    MaxWorkers = 5,
-                    MaxDbOperations = 5,
-                    MaxHttpCalls = 5,
-                },
+                    tracker.TryAbandonLostLease([w.DatabaseId]);
+                    return Task.FromException(new OperationCanceledException(ct));
+                }
+                return Task.CompletedTask;
             }
         );
-        var handler = new WorkflowHandler(
-            executor.Object,
-            buffer.Object,
-            tracker,
-            settings,
-            FixedTime,
-            NullLogger<WorkflowHandler>.Instance
-        );
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object, tracker: tracker);
 
         var handleTask = handler.Handle(workflow, workflowCts.Token);
         await handleTask;
@@ -254,54 +193,13 @@ public class WorkflowHandlerTests
 
         using var cts = new CancellationTokenSource();
 
-        var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer
-            .Setup(b =>
-                b.Submit(
-                    It.IsAny<Workflow>(),
-                    It.IsAny<CancellationToken>(),
-                    It.IsAny<IReadOnlyList<Step>?>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<Activity?>()
-                )
-            )
-            .Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
-                (w, ct, _, _, _) =>
-                    w.Status == PersistentItemStatus.Completed
-                        ? Task.FromException(new OperationCanceledException(ct))
-                        : Task.CompletedTask
-            );
-
-        var settings = Options.Create(
-            new EngineSettings
-            {
-                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
-                DefaultStepRetryStrategy = RetryStrategy.None(),
-                DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-                DatabaseRetryStrategy = RetryStrategy.None(),
-                MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-                MaxWorkflowsPerRequest = 100,
-                MaxStepsPerWorkflow = 50,
-                MaxLabels = 50,
-                HeartbeatInterval = TimeSpan.FromSeconds(3),
-                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-                MaxReclaimCount = 3,
-                Concurrency = new ConcurrencySettings
-                {
-                    MaxWorkers = 5,
-                    MaxDbOperations = 5,
-                    MaxHttpCalls = 5,
-                },
-            }
+        var buffer = MockBuffer(
+            (w, ct) =>
+                w.Status == PersistentItemStatus.Completed
+                    ? Task.FromException(new OperationCanceledException(ct))
+                    : Task.CompletedTask
         );
-        var handler = new WorkflowHandler(
-            executor.Object,
-            buffer.Object,
-            new InFlightTracker(FixedTime),
-            settings,
-            FixedTime,
-            NullLogger<WorkflowHandler>.Instance
-        );
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object);
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => handler.Handle(workflow, cts.Token));
     }
@@ -326,25 +224,9 @@ public class WorkflowHandlerTests
     public async Task Handle_StepRetryableError_WithRetries_WorkflowRequeued()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
-        var settings = new EngineSettings
+        var settings = _defaultSettings with
         {
-            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
-            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-            DatabaseRetryStrategy = RetryStrategy.None(),
-            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-            MaxWorkflowsPerRequest = 100,
-            MaxStepsPerWorkflow = 50,
-            MaxLabels = 50,
-            HeartbeatInterval = TimeSpan.FromSeconds(3),
-            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-            MaxReclaimCount = 3,
-            Concurrency = new ConcurrencySettings
-            {
-                MaxWorkers = 5,
-                MaxDbOperations = 5,
-                MaxHttpCalls = 5,
-            },
         };
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());
@@ -680,25 +562,9 @@ public class WorkflowHandlerTests
     public async Task Handle_RetryableError_ErrorHistory_IsPopulated()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
-        var settings = new EngineSettings
+        var settings = _defaultSettings with
         {
-            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
-            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-            DatabaseRetryStrategy = RetryStrategy.None(),
-            MetricsCollectionInterval = TimeSpan.FromSeconds(5),
-            MaxWorkflowsPerRequest = 100,
-            MaxStepsPerWorkflow = 50,
-            MaxLabels = 50,
-            HeartbeatInterval = TimeSpan.FromSeconds(3),
-            StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
-            MaxReclaimCount = 3,
-            Concurrency = new ConcurrencySettings
-            {
-                MaxWorkers = 5,
-                MaxDbOperations = 5,
-                MaxHttpCalls = 5,
-            },
         };
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());
