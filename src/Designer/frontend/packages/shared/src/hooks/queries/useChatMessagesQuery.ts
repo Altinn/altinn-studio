@@ -16,7 +16,7 @@ export const useChatMessagesQuery = (threadId: string | null) => {
   });
 };
 
-function mapChatMessageToFrontend(message: ChatMessage) {
+export function mapChatMessageToFrontend(message: ChatMessage) {
   const base = {
     id: message.id,
     role: message.role,
