@@ -20,10 +20,10 @@ export type ChatMessage = {
   createdAt: string;
   role: MessageAuthor;
   content: string;
-  allowAppChanges: boolean | null;
-  attachmentFileNames: string[] | null;
-  filesChanged: string[] | null;
-  sources: Source[] | null;
+  allowAppChanges?: boolean;
+  attachmentFileNames?: string[];
+  filesChanged?: string[];
+  sources?: Source[];
 };
 
 export type CreateChatMessagePayload = Omit<ChatMessage, 'id' | 'threadId' | 'createdAt'>;
