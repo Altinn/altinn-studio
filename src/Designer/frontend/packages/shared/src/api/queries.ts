@@ -241,7 +241,7 @@ export const getOrgTextLanguages = (org: string): Promise<string[] | null> => ge
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
 
-// Chat
+// Assistant chat
 export const getChatThreads = (org: string, app: string) => get(chatThreadsPath(org, app));
 export const getChatMessages = (org: string, app: string, threadId: string) => get(chatMessagesPath(org, app, threadId));
 

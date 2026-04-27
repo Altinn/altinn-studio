@@ -263,7 +263,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
-  // Queries - Chat
+  // Queries - Assistant chat
   getChatThreads: jest.fn().mockImplementation(() => Promise.resolve([])),
   getChatMessages: jest.fn().mockImplementation(() => Promise.resolve([])),
 
@@ -385,8 +385,8 @@ export const queriesMock: ServicesContextProps = {
   addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 
-  // Mutations - Chat
-  createChatThread: jest.fn().mockImplementation(() => Promise.resolve({ id: 'mock-thread-id' })),
+  // Mutations - Assistant chat
+  createChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
   updateChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
   createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),

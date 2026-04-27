@@ -109,7 +109,7 @@ export enum QueryKey {
   // User settings
   UserApiKeys = 'UserApiKeys',
 
-  // Chat
+  // Assistant chat
   ChatThreads = 'ChatThreads',
   ChatMessages = 'ChatMessages',
 
