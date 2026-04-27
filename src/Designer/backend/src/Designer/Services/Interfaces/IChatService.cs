@@ -20,7 +20,7 @@ public interface IChatService
         CancellationToken cancellationToken = default
     );
 
-    Task UpdateThreadAsync(
+    Task<ChatThreadEntity?> UpdateThreadAsync(
         Guid threadId,
         UpdateChatThreadRequest request,
         AltinnRepoEditingContext context,
@@ -33,13 +33,13 @@ public interface IChatService
         CancellationToken cancellationToken = default
     );
 
-    Task<List<ChatMessageEntity>> GetMessagesAsync(
+    Task<List<ChatMessageEntity>?> GetMessagesAsync(
         Guid threadId,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     );
 
-    Task<ChatMessageEntity> CreateMessageAsync(
+    Task<ChatMessageEntity?> CreateMessageAsync(
         Guid threadId,
         CreateChatMessageRequest request,
         AltinnRepoEditingContext context,

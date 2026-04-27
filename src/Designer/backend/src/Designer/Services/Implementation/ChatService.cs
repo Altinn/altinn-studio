@@ -40,16 +40,20 @@ public class ChatService(IChatRepository repository) : IChatService
         return await repository.CreateThreadAsync(thread, cancellationToken);
     }
 
-    public async Task UpdateThreadAsync(
+    public async Task<ChatThreadEntity?> UpdateThreadAsync(
         Guid threadId,
         UpdateChatThreadRequest request,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        if (thread is null)
+            return null;
+
         thread.Title = request.Title;
         await repository.UpdateThreadAsync(thread, cancellationToken);
+        return thread;
     }
 
     public async Task DeleteThreadAsync(
@@ -58,31 +62,36 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity? thread = await repository.GetThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
         if (thread is null)
             return;
 
         await repository.DeleteThreadAsync(threadId, cancellationToken);
     }
 
-    public async Task<List<ChatMessageEntity>> GetMessagesAsync(
+    public async Task<List<ChatMessageEntity>?> GetMessagesAsync(
         Guid threadId,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
     {
-        await GetOwnedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        if (thread is null)
+            return null;
+
         return await repository.GetMessagesAsync(threadId, cancellationToken);
     }
 
-    public async Task<ChatMessageEntity> CreateMessageAsync(
+    public async Task<ChatMessageEntity?> CreateMessageAsync(
         Guid threadId,
         CreateChatMessageRequest request,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
     {
-        await GetOwnedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        if (thread is null)
+            return null;
 
         var message = new ChatMessageEntity
         {
@@ -119,20 +128,17 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity? thread = await repository.GetThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
         if (thread is null)
             return;
 
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
     }
 
-    private async Task<ChatThreadEntity> GetOwnedThreadAsync(
+    // Validates the thread belongs to this org/app/developer before any mutation
+    private Task<ChatThreadEntity?> GetAuthorizedThreadAsync(
         Guid threadId,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
-    )
-    {
-        return await repository.GetThreadAsync(threadId, context, cancellationToken)
-            ?? throw new KeyNotFoundException($"Chat thread with id '{threadId}' was not found.");
-    }
+    ) => repository.GetThreadAsync(threadId, context, cancellationToken);
 }

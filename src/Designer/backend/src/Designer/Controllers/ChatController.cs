@@ -65,14 +65,10 @@ public class ChatController(IChatService chatService) : ControllerBase
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        try
-        {
-            await chatService.UpdateThreadAsync(threadId, request, editingContext, cancellationToken);
-        }
-        catch (KeyNotFoundException)
-        {
+        var updated = await chatService.UpdateThreadAsync(threadId, request, editingContext, cancellationToken);
+        if (updated is null)
             return NotFound();
-        }
+
         return NoContent();
     }
 
@@ -98,19 +94,15 @@ public class ChatController(IChatService chatService) : ControllerBase
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        try
-        {
-            List<ChatMessageEntity> messages = await chatService.GetMessagesAsync(
-                threadId,
-                editingContext,
-                cancellationToken
-            );
-            return Ok(messages);
-        }
-        catch (KeyNotFoundException)
-        {
+        List<ChatMessageEntity>? messages = await chatService.GetMessagesAsync(
+            threadId,
+            editingContext,
+            cancellationToken
+        );
+        if (messages is null)
             return NotFound();
-        }
+
+        return Ok(messages);
     }
 
     [HttpPost("threads/{threadId:guid}/messages")]
@@ -123,29 +115,25 @@ public class ChatController(IChatService chatService) : ControllerBase
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        try
-        {
-            ChatMessageEntity created = await chatService.CreateMessageAsync(
-                threadId,
-                request,
-                editingContext,
-                cancellationToken
-            );
-            return CreatedAtAction(
-                nameof(GetMessages),
-                new
-                {
-                    org,
-                    app,
-                    threadId = created.ThreadId,
-                },
-                created
-            );
-        }
-        catch (KeyNotFoundException)
-        {
+        ChatMessageEntity? created = await chatService.CreateMessageAsync(
+            threadId,
+            request,
+            editingContext,
+            cancellationToken
+        );
+        if (created is null)
             return NotFound();
-        }
+
+        return CreatedAtAction(
+            nameof(GetMessages),
+            new
+            {
+                org,
+                app,
+                threadId = created.ThreadId,
+            },
+            created
+        );
     }
 
     [HttpDelete("threads/{threadId:guid}/messages/{messageId:guid}")]

@@ -77,15 +77,19 @@ public class ChatServiceTests
     }
 
     [Fact]
-    public async Task UpdateThreadAsync_ThrowsKeyNotFoundException_WhenThreadNotFound()
+    public async Task UpdateThreadAsync_ReturnsNull_WhenThreadNotFound()
     {
         _repositoryMock
             .Setup(r => r.GetThreadAsync(It.IsAny<Guid>(), _context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(default(ChatThreadEntity));
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _chatService.UpdateThreadAsync(Guid.NewGuid(), new UpdateChatThreadRequest("New title"), _context)
+        var result = await _chatService.UpdateThreadAsync(
+            Guid.NewGuid(),
+            new UpdateChatThreadRequest("New title"),
+            _context
         );
+
+        Assert.Null(result);
     }
 
     [Fact]
@@ -129,13 +133,15 @@ public class ChatServiceTests
     }
 
     [Fact]
-    public async Task GetMessagesAsync_ThrowsKeyNotFoundException_WhenThreadNotFound()
+    public async Task GetMessagesAsync_ReturnsNull_WhenThreadNotFound()
     {
         _repositoryMock
             .Setup(r => r.GetThreadAsync(It.IsAny<Guid>(), _context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(default(ChatThreadEntity));
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _chatService.GetMessagesAsync(Guid.NewGuid(), _context));
+        var result = await _chatService.GetMessagesAsync(Guid.NewGuid(), _context);
+
+        Assert.Null(result);
     }
 
     [Fact]
@@ -160,19 +166,19 @@ public class ChatServiceTests
     }
 
     [Fact]
-    public async Task CreateMessageAsync_ThrowsKeyNotFoundException_WhenThreadNotFound()
+    public async Task CreateMessageAsync_ReturnsNull_WhenThreadNotFound()
     {
         _repositoryMock
             .Setup(r => r.GetThreadAsync(It.IsAny<Guid>(), _context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(default(ChatThreadEntity));
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _chatService.CreateMessageAsync(
-                Guid.NewGuid(),
-                new CreateChatMessageRequest(Role.User, "Hello", null, null, null, null),
-                _context
-            )
+        var result = await _chatService.CreateMessageAsync(
+            Guid.NewGuid(),
+            new CreateChatMessageRequest(Role.User, "Hello", null, null, null, null),
+            _context
         );
+
+        Assert.Null(result);
     }
 
     [Fact]
