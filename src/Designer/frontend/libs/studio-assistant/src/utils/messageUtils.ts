@@ -7,7 +7,6 @@ export function createAssistantMessage(content: string): AssistantMessage {
     role: MessageAuthor.Assistant,
     content,
     createdAt: new Date().toISOString(),
-    filesChanged: [],
   };
 }
 

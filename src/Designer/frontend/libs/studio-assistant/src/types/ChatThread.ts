@@ -9,9 +9,9 @@ export type ChatThread = {
 
 export type UserAttachment = {
   name: string;
-  mimeType: string;
-  size: number;
-  dataBase64: string;
+  mimeType?: string;
+  size?: number;
+  dataBase64?: string;
 };
 
 export type Source = {
@@ -39,7 +39,7 @@ export type AssistantMessage = {
   role: MessageAuthor.Assistant;
   content: string;
   createdAt: string;
-  filesChanged: string[];
+  filesChanged?: string[];
   sources?: Source[];
 };
 
