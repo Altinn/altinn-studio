@@ -669,7 +669,7 @@ func containerSpecHash(c *Container, imageID string, networks []string) string {
 	for _, v := range c.Volumes {
 		volumeEntries = append(
 			volumeEntries,
-			fmt.Sprintf("%s|%s|%t", v.HostPath, v.ContainerPath, v.ReadOnly),
+			fmt.Sprintf("%s|%s|%t|%s", v.HostPath, v.ContainerPath, v.ReadOnly, normalizedVolumeMountType(v.Type)),
 		)
 	}
 	writeSortedList(&b, "volumes", volumeEntries)
@@ -685,6 +685,13 @@ func containerSpecHash(c *Container, imageID string, networks []string) string {
 
 	sum := sha256.Sum256([]byte(b.String()))
 	return hex.EncodeToString(sum[:])
+}
+
+func normalizedVolumeMountType(mountType types.VolumeMountType) types.VolumeMountType {
+	if mountType == "" {
+		return types.VolumeMountTypeBind
+	}
+	return mountType
 }
 
 func writeSortedList(b *strings.Builder, key string, values []string) {

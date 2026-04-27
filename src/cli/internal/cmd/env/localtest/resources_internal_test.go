@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -100,7 +101,15 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	containers := coreContainers(t.TempDir(), testTopology(), true)
+	assertCoreContainerLayout(t, containers)
+	assertLocaltestContainerConfig(t, containers[0])
+	assertPdf3ContainerConfig(t, containers[1])
+	assertWorkflowEngineDbContainerConfig(t, containers[2])
+	assertWorkflowEngineContainerConfig(t, containers[3])
+}
 
+func assertCoreContainerLayout(t *testing.T, containers []ContainerSpec) {
+	t.Helper()
 	if len(containers) != len(coreContainerNames(true)) {
 		t.Fatalf("coreContainers() len = %d, want %d", len(containers), len(coreContainerNames(true)))
 	}
@@ -111,8 +120,10 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	) {
 		t.Fatalf("added core container names = %v, want localtest-prefixed names", got)
 	}
+}
 
-	localtest := containers[0]
+func assertLocaltestContainerConfig(t *testing.T, localtest ContainerSpec) {
+	t.Helper()
 	topology := testTopology()
 	wantAliases := topology.LocaltestIngressHosts()
 	if got := localtest.NetworkAliases; !slices.Equal(got, wantAliases) {
@@ -123,8 +134,10 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalAppMode", "http")
 	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalAppUrl", "")
 	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalPdfServiceUrl", "http://localtest-pdf3:5031")
+}
 
-	pdf3 := containers[1]
+func assertPdf3ContainerConfig(t *testing.T, pdf3 ContainerSpec) {
+	t.Helper()
 	if got := pdf3.Ports; len(got) != 1 || got[0] != newPort("5300", "5031") {
 		t.Fatalf("pdf3.Ports = %v, want [5300:5031]", got)
 	}
@@ -141,13 +154,26 @@ func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 			"http://local.altinn.cloud:8000",
 		)
 	}
+}
 
-	workflowEngineDb := containers[2]
+func assertWorkflowEngineDbContainerConfig(t *testing.T, workflowEngineDb ContainerSpec) {
+	t.Helper()
 	if got := workflowEngineDb.Ports; got != nil {
 		t.Fatalf("workflowEngineDb.Ports = %v, want nil", got)
 	}
+	wantDbVolume := newNamedVolume(workflowEngineDbVolume, "/var/lib/postgresql")
+	if !slices.Contains(workflowEngineDb.Volumes, wantDbVolume) {
+		t.Fatalf("workflowEngineDb.Volumes missing named data volume: %v", workflowEngineDb.Volumes)
+	}
+	for _, volume := range workflowEngineDb.Volumes {
+		if volume.ContainerPath == "/var/lib/postgresql" && volume.Type != containertypes.VolumeMountTypeVolume {
+			t.Fatalf("workflowEngineDb data volume Type = %q, want named volume", volume.Type)
+		}
+	}
+}
 
-	workflowEngine := containers[3]
+func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine ContainerSpec) {
+	t.Helper()
 	if got := workflowEngine.Ports; got != nil {
 		t.Fatalf("workflowEngine.Ports = %v, want nil", got)
 	}
@@ -378,7 +404,6 @@ func createCoreLayout(t *testing.T, dataDir string) {
 	for _, dir := range []string{
 		filepath.Join(dataDir, "testdata"),
 		filepath.Join(dataDir, "AltinnPlatformLocal"),
-		workflowEngineDbDataPath(dataDir),
 		filepath.Join(dataDir, "infra"),
 		filepath.Join(dataDir, "infra", "workflow-engine"),
 	} {

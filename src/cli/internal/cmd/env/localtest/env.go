@@ -406,9 +406,6 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
 		return err
 	}
-	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
-		return err
-	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
 		return e.reinstallResourcesAfterValidationFailure(ctx, buildOpts, err)
@@ -432,18 +429,8 @@ func (e *Env) reinstallResourcesAfterValidationFailure(
 	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
 		return err
 	}
-	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
-		return err
-	}
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
 		return fmt.Errorf("validate resources after reinstall: %w", err)
-	}
-	return nil
-}
-
-func ensureWorkflowEngineDbDataDir(dataDir string) error {
-	if err := os.MkdirAll(workflowEngineDbDataPath(dataDir), osutil.DirPermDefault); err != nil {
-		return fmt.Errorf("create workflow-engine database data directory: %w", err)
 	}
 	return nil
 }
@@ -459,10 +446,13 @@ func (e *Env) deletePersistedData(ctx context.Context) error {
 	if err := removeResetDataPath(e.cfg.DataDir, filepath.Join(e.cfg.DataDir, "AltinnPlatformLocal")); err != nil {
 		return err
 	}
-	return e.removeWorkflowEngineDbData(ctx, workflowEngineDbDataPath(e.cfg.DataDir))
+	if err := e.removeLegacyWorkflowEngineDbData(ctx, workflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
+		e.out.Verbosef("Failed to remove legacy workflow-engine database data: %v", err)
+	}
+	return e.removeWorkflowEngineDbVolume(ctx)
 }
 
-func (e *Env) removeWorkflowEngineDbData(ctx context.Context, target string) error {
+func (e *Env) removeLegacyWorkflowEngineDbData(ctx context.Context, target string) error {
 	targetAbs, exists, err := resetTargetPath(e.cfg.DataDir, target)
 	if err != nil {
 		return err
@@ -476,6 +466,16 @@ func (e *Env) removeWorkflowEngineDbData(ctx context.Context, target string) err
 	}
 
 	return removeResetDataPath(e.cfg.DataDir, target)
+}
+
+func (e *Env) removeWorkflowEngineDbVolume(ctx context.Context) error {
+	if err := e.client.VolumeRemove(ctx, workflowEngineDbVolume, true); err != nil {
+		if errors.Is(err, containertypes.ErrVolumeNotFound) {
+			return nil
+		}
+		return fmt.Errorf("remove workflow-engine database volume %q: %w", workflowEngineDbVolume, err)
+	}
+	return nil
 }
 
 func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string) error {
@@ -492,6 +492,7 @@ func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string)
 		Volumes: []containertypes.VolumeMount{{
 			HostPath:      targetAbs,
 			ContainerPath: "/cleanup",
+			Type:          containertypes.VolumeMountTypeBind,
 			ReadOnly:      false,
 		}},
 		Networks: nil,
