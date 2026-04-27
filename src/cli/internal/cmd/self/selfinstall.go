@@ -190,6 +190,21 @@ func markRecommended(candidates []Candidate) {
 	}
 }
 
+// DefaultInstallLocation returns the candidate to use when prompting is unavailable.
+func DefaultInstallLocation(candidates []Candidate) (string, bool) {
+	for _, candidate := range candidates {
+		if candidate.Recommended && candidate.Writable {
+			return candidate.Path, true
+		}
+	}
+	for _, candidate := range candidates {
+		if candidate.Writable {
+			return candidate.Path, true
+		}
+	}
+	return "", false
+}
+
 func isWritable(dir string, out *ui.Output) bool {
 	if dir == "" {
 		return false

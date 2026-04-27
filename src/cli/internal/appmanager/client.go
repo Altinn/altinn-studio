@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -46,13 +47,15 @@ const (
 )
 
 type startConfig struct {
-	BinaryPath     string `json:"binaryPath"`
-	WorkingDir     string `json:"workingDir"`
-	UnixSocketPath string `json:"unixSocketPath,omitempty"`
-	TunnelURL      string `json:"tunnelUrl"`
-	LocaltestURL   string `json:"localtestUrl"`
-	StudioctlPath  string `json:"studioctlPath"`
-	InternalDev    bool   `json:"internalDev"`
+	BinaryPath                  string `json:"binaryPath"`
+	WorkingDir                  string `json:"workingDir"`
+	UnixSocketPath              string `json:"unixSocketPath,omitempty"`
+	TunnelURL                   string `json:"tunnelUrl"`
+	LocaltestURL                string `json:"localtestUrl"`
+	StudioctlPath               string `json:"studioctlPath"`
+	BoundTopologyBaseConfigPath string `json:"boundTopologyBaseConfigPath,omitempty"`
+	BoundTopologyConfigPath     string `json:"boundTopologyConfigPath,omitempty"`
+	InternalDev                 bool   `json:"internalDev"`
 }
 
 type runtimeState struct {
@@ -62,14 +65,16 @@ type runtimeState struct {
 
 // Status describes the current app-manager status.
 type Status struct {
-	AppManagerVersion string          `json:"appManagerVersion"`
-	DotnetVersion     string          `json:"dotnetVersion"`
-	StudioctlPath     string          `json:"studioctlPath"`
-	LocaltestURL      string          `json:"localtestUrl"`
-	Tunnel            TunnelStatus    `json:"tunnel"`
-	Apps              []DiscoveredApp `json:"apps"`
-	ProcessID         int             `json:"processId"`
-	InternalDev       bool            `json:"internalDev"`
+	AppManagerVersion           string          `json:"appManagerVersion"`
+	DotnetVersion               string          `json:"dotnetVersion"`
+	StudioctlPath               string          `json:"studioctlPath"`
+	LocaltestURL                string          `json:"localtestUrl"`
+	BoundTopologyBaseConfigPath string          `json:"boundTopologyBaseConfigPath"`
+	BoundTopologyConfigPath     string          `json:"boundTopologyConfigPath"`
+	Tunnel                      TunnelStatus    `json:"tunnel"`
+	Apps                        []DiscoveredApp `json:"apps"`
+	ProcessID                   int             `json:"processId"`
+	InternalDev                 bool            `json:"internalDev"`
 }
 
 // TunnelStatus describes the configured app tunnel.
@@ -237,11 +242,13 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}
 
 	var status struct {
-		AppManagerVersion string `json:"appManagerVersion"`
-		DotnetVersion     string `json:"dotnetVersion"`
-		StudioctlPath     string `json:"studioctlPath"`
-		LocaltestURL      string `json:"localtestUrl"`
-		Tunnel            struct {
+		AppManagerVersion           string `json:"appManagerVersion"`
+		DotnetVersion               string `json:"dotnetVersion"`
+		StudioctlPath               string `json:"studioctlPath"`
+		LocaltestURL                string `json:"localtestUrl"`
+		BoundTopologyBaseConfigPath string `json:"boundTopologyBaseConfigPath"`
+		BoundTopologyConfigPath     string `json:"boundTopologyConfigPath"`
+		Tunnel                      struct {
 			URL       string `json:"url"`
 			Enabled   bool   `json:"enabled"`
 			Connected bool   `json:"connected"`
@@ -264,12 +271,14 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 	}
 
 	result := &Status{
-		ProcessID:         status.ProcessID,
-		AppManagerVersion: status.AppManagerVersion,
-		DotnetVersion:     status.DotnetVersion,
-		StudioctlPath:     status.StudioctlPath,
-		LocaltestURL:      status.LocaltestURL,
-		InternalDev:       status.InternalDev,
+		ProcessID:                   status.ProcessID,
+		AppManagerVersion:           status.AppManagerVersion,
+		DotnetVersion:               status.DotnetVersion,
+		StudioctlPath:               status.StudioctlPath,
+		LocaltestURL:                status.LocaltestURL,
+		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
+		BoundTopologyConfigPath:     status.BoundTopologyConfigPath,
+		InternalDev:                 status.InternalDev,
 		Tunnel: TunnelStatus{
 			Enabled:   status.Tunnel.Enabled,
 			Connected: status.Tunnel.Connected,
@@ -406,7 +415,10 @@ func EnsureStartedWithStudioctlPath(
 		err = errors.Join(err, closeAppManagerLifecycleLock(lock))
 	}()
 
-	desired := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
+	desired, err := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
+	if err != nil {
+		return err
+	}
 	client := NewClient(cfg)
 
 	status, err := client.Status(ctx)
@@ -550,19 +562,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	//nolint:gosec // G204: binary path comes from resolved studioctl config.
 	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.AppManagerBinaryPath())
 	cmd.Dir = startConfig.WorkingDir
-	cmd.Env = append(
-		os.Environ(),
-		appManagerUnixSocketEnv+"="+startConfig.UnixSocketPath,
-	)
-	if startConfig.TunnelURL != "" {
-		cmd.Env = append(cmd.Env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
-	}
-	if startConfig.LocaltestURL != "" {
-		cmd.Env = append(cmd.Env, appManagerLocaltestURLEnv+"="+startConfig.LocaltestURL)
-	}
-	if startConfig.StudioctlPath != "" {
-		cmd.Env = append(cmd.Env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
-	}
+	cmd.Env = appManagerEnvironment(startConfig)
 	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
 	if err != nil {
 		return fmt.Errorf("open null device: %w", err)
@@ -605,6 +605,32 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	ignoreError(osutil.KillProcess(startedPID))
 	ignoreError(removeAppManagerState(cfg))
 	return err
+}
+
+func appManagerEnvironment(startConfig startConfig) []string {
+	env := append(os.Environ(), appManagerUnixSocketEnv+"="+startConfig.UnixSocketPath)
+	if startConfig.TunnelURL != "" {
+		env = append(env, appManagerTunnelURLEnv+"="+startConfig.TunnelURL)
+	}
+	if startConfig.LocaltestURL != "" {
+		env = append(env, appManagerLocaltestURLEnv+"="+startConfig.LocaltestURL)
+	}
+	if startConfig.StudioctlPath != "" {
+		env = append(env, appManagerStudioctlEnv+"="+startConfig.StudioctlPath)
+	}
+	if startConfig.BoundTopologyBaseConfigPath != "" {
+		env = append(
+			env,
+			envtopology.BoundTopologyOptionsBaseConfigPathEnv+"="+startConfig.BoundTopologyBaseConfigPath,
+		)
+	}
+	if startConfig.BoundTopologyConfigPath != "" {
+		env = append(
+			env,
+			envtopology.BoundTopologyOptionsConfigPathEnv+"="+startConfig.BoundTopologyConfigPath,
+		)
+	}
+	return env
 }
 
 func prepareAppManagerSocketForStart(ctx context.Context, cfg *config.Config) error {
@@ -785,28 +811,48 @@ func managedProcessStopped(pid int) (bool, error) {
 	return !running, nil
 }
 
-func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) startConfig {
-	return startConfig{
-		BinaryPath:     cfg.AppManagerBinaryPath(),
-		WorkingDir:     cfg.Home,
-		UnixSocketPath: cfg.AppManagerSocketPath(),
-		TunnelURL:      TunnelURL(loadBalancerPort),
-		LocaltestURL:   LocaltestURL(loadBalancerPort),
-		StudioctlPath:  studioctlPath,
-		InternalDev:    config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
+func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) (startConfig, error) {
+	boundTopologyBaseConfigPath, boundTopologyConfigPath, err := boundTopologyConfigPathsIfBaseExists(cfg)
+	if err != nil {
+		return startConfig{}, err
 	}
+
+	return startConfig{
+		BinaryPath:                  cfg.AppManagerBinaryPath(),
+		WorkingDir:                  cfg.Home,
+		UnixSocketPath:              cfg.AppManagerSocketPath(),
+		TunnelURL:                   TunnelURL(loadBalancerPort),
+		LocaltestURL:                LocaltestURL(loadBalancerPort),
+		StudioctlPath:               studioctlPath,
+		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPath,
+		BoundTopologyConfigPath:     boundTopologyConfigPath,
+		InternalDev:                 config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
+	}, nil
 }
 
 func liveConfig(cfg *config.Config, status *Status) startConfig {
 	return startConfig{
-		BinaryPath:     cfg.AppManagerBinaryPath(),
-		WorkingDir:     cfg.Home,
-		UnixSocketPath: cfg.AppManagerSocketPath(),
-		TunnelURL:      status.Tunnel.URL,
-		LocaltestURL:   status.LocaltestURL,
-		StudioctlPath:  status.StudioctlPath,
-		InternalDev:    status.InternalDev,
+		BinaryPath:                  cfg.AppManagerBinaryPath(),
+		WorkingDir:                  cfg.Home,
+		UnixSocketPath:              cfg.AppManagerSocketPath(),
+		TunnelURL:                   status.Tunnel.URL,
+		LocaltestURL:                status.LocaltestURL,
+		StudioctlPath:               status.StudioctlPath,
+		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
+		BoundTopologyConfigPath:     status.BoundTopologyConfigPath,
+		InternalDev:                 status.InternalDev,
 	}
+}
+
+func boundTopologyConfigPathsIfBaseExists(cfg *config.Config) (string, string, error) {
+	_, err := os.Stat(cfg.BoundTopologyBaseConfigPath())
+	if err == nil {
+		return cfg.BoundTopologyBaseConfigPath(), cfg.BoundTopologyConfigPath(), nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return "", "", nil
+	}
+	return "", "", fmt.Errorf("stat bound topology base config: %w", err)
 }
 
 func currentExecutablePath() string {
@@ -1026,13 +1072,15 @@ func isUTCDatePrefix(value string) bool {
 func zeroRuntimeState() runtimeState {
 	return runtimeState{
 		Start: startConfig{
-			BinaryPath:     "",
-			WorkingDir:     "",
-			UnixSocketPath: "",
-			TunnelURL:      "",
-			LocaltestURL:   "",
-			StudioctlPath:  "",
-			InternalDev:    false,
+			BinaryPath:                  "",
+			WorkingDir:                  "",
+			UnixSocketPath:              "",
+			TunnelURL:                   "",
+			LocaltestURL:                "",
+			StudioctlPath:               "",
+			BoundTopologyBaseConfigPath: "",
+			BoundTopologyConfigPath:     "",
+			InternalDev:                 false,
 		},
 		PID: 0,
 	}

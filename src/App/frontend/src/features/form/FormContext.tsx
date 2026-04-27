@@ -67,6 +67,7 @@ export const FormStore = {
 };
 
 export interface FormStoreState {
+  parent: FormStoreApi | undefined;
   data: FormDataSliceState & FormDataMethods;
   validation: ValidationSliceState & ValidationInternals;
   nodes: NodesSliceState;
@@ -74,6 +75,14 @@ export interface FormStoreState {
 }
 
 export type FormStoreApi = StoreApi<FormStoreState>;
+
+export function getRootFormStore(store: FormStoreApi): FormStoreApi {
+  let current = store;
+  while (current.getState().parent) {
+    current = current.getState().parent!;
+  }
+  return current;
+}
 
 export type FormStoreSet = (
   partial:

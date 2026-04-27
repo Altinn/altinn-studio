@@ -20,6 +20,16 @@ func TestEnvCommand_RunUp_Help(t *testing.T) {
 	}
 }
 
+func TestEnvCommand_RunHosts_Help(t *testing.T) {
+	t.Parallel()
+
+	command := newTestEnvCommand(t)
+	err := command.Run(context.Background(), []string{"hosts", "--help"})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+}
+
 func newTestEnvCommand(t *testing.T) *cmd.EnvCommand {
 	t.Helper()
 
