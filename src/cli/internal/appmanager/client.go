@@ -55,7 +55,6 @@ type startConfig struct {
 	StudioctlPath               string `json:"studioctlPath"`
 	BoundTopologyBaseConfigPath string `json:"boundTopologyBaseConfigPath,omitempty"`
 	BoundTopologyConfigPath     string `json:"boundTopologyConfigPath,omitempty"`
-	InternalDev                 bool   `json:"internalDev"`
 }
 
 type runtimeState struct {
@@ -826,7 +825,6 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 		StudioctlPath:               studioctlPath,
 		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPath,
 		BoundTopologyConfigPath:     boundTopologyConfigPath,
-		InternalDev:                 config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
 	}, nil
 }
 
@@ -840,7 +838,6 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		StudioctlPath:               status.StudioctlPath,
 		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
 		BoundTopologyConfigPath:     status.BoundTopologyConfigPath,
-		InternalDev:                 status.InternalDev,
 	}
 }
 
@@ -1080,7 +1077,6 @@ func zeroRuntimeState() runtimeState {
 			StudioctlPath:               "",
 			BoundTopologyBaseConfigPath: "",
 			BoundTopologyConfigPath:     "",
-			InternalDev:                 false,
 		},
 		PID: 0,
 	}
