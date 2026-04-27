@@ -41,7 +41,7 @@ export const PageHeader = ({ owner, onOrgSelect, onUserSelect }: PageHeaderProps
     ...(adminEnabled
       ? [
           {
-            href: `${ADMIN_BASENAME}/${owner}`,
+            href: `${ADMIN_BASENAME}/${owner ?? ''}`,
             textKey: 'admin.apps.title',
             isActive: isPathActive(pathname, ADMIN_BASENAME),
           },
