@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -21,10 +22,16 @@ public class InstancesController : ControllerBase
 {
     private readonly ILogger<InstancesController> _logger;
     private readonly IAltinnStorageInstancesClient _instancesClient;
+    private readonly IAdminAuditLogger _auditLogger;
 
-    public InstancesController(IAltinnStorageInstancesClient instancesClient, ILogger<InstancesController> logger)
+    public InstancesController(
+        IAltinnStorageInstancesClient instancesClient,
+        IAdminAuditLogger auditLogger,
+        ILogger<InstancesController> logger
+    )
     {
         _instancesClient = instancesClient;
+        _auditLogger = auditLogger;
         _logger = logger;
     }
 
@@ -113,5 +120,20 @@ public class InstancesController : ControllerBase
         {
             return StatusCode(StatusCodes.Status499ClientClosedRequest);
         }
+    }
+
+    [HttpDelete("{app}/{instanceId}")]
+    [Authorize(Policy = AltinnPolicy.MustBeOrgOwner)]
+    public async Task<IActionResult> DeleteInstance(
+        string org,
+        string env,
+        string app,
+        string instanceId,
+        CancellationToken ct
+    )
+    {
+        await _instancesClient.DeleteInstance(org, env, app, instanceId, ct);
+        await _auditLogger.LogInstanceDeletedAsync(org, env, app, instanceId, ct);
+        return NoContent();
     }
 }
