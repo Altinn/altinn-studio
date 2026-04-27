@@ -124,36 +124,3 @@ func TestBoundTopologyConfigKeepsDisabledRoutes(t *testing.T) {
 		t.Fatal("Routes[0].Enabled = true, want false")
 	}
 }
-
-func TestBoundTopologyBaseConfig(t *testing.T) {
-	t.Parallel()
-
-	got := envtopology.NewLocal(envtopology.DefaultIngressPortString()).BoundTopologyBaseConfig(
-		[]envtopology.RuntimeBinding{
-			{
-				ComponentID: envtopology.ComponentApp,
-				Destination: envtopology.BoundTopologyDestination{
-					Location: envtopology.DestinationLocationHost,
-					Kind:     envtopology.DestinationKindHTTP,
-				},
-				Enabled: true,
-			},
-			{
-				ComponentID: envtopology.ComponentPDF,
-				Destination: envtopology.BoundTopologyDestination{
-					Location: envtopology.DestinationLocationEnv,
-					Kind:     envtopology.DestinationKindHTTP,
-					URL:      "http://pdf:5031",
-				},
-				Enabled: true,
-			},
-		},
-	)
-
-	if len(got.Routes) != 1 {
-		t.Fatalf("len(Routes) = %d, want 1", len(got.Routes))
-	}
-	if got.Routes[0].Component != envtopology.ComponentPDF {
-		t.Fatalf("Routes[0].Component = %q, want %q", got.Routes[0].Component, envtopology.ComponentPDF)
-	}
-}

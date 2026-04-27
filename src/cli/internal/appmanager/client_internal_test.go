@@ -189,7 +189,10 @@ func TestBuildStartConfig_IncludesBoundTopologyConfigPathsWhenPresent(t *testing
 		t.Fatalf("write base topology config: %v", err)
 	}
 
-	got := buildStartConfig(cfg, "8000", "/path/to/studioctl")
+	got, err := buildStartConfig(cfg, "8000", "/path/to/studioctl")
+	if err != nil {
+		t.Fatalf("buildStartConfig() error = %v", err)
+	}
 	if got.BoundTopologyBaseConfigPath != cfg.BoundTopologyBaseConfigPath() {
 		t.Fatalf(
 			"BoundTopologyBaseConfigPath = %q, want %q",

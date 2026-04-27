@@ -415,7 +415,10 @@ func EnsureStartedWithStudioctlPath(
 		err = errors.Join(err, closeAppManagerLifecycleLock(lock))
 	}()
 
-	desired := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
+	desired, err := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
+	if err != nil {
+		return err
+	}
 	client := NewClient(cfg)
 
 	status, err := client.Status(ctx)
@@ -808,7 +811,12 @@ func managedProcessStopped(pid int) (bool, error) {
 	return !running, nil
 }
 
-func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) startConfig {
+func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) (startConfig, error) {
+	boundTopologyBaseConfigPath, boundTopologyConfigPath, err := boundTopologyConfigPathsIfBaseExists(cfg)
+	if err != nil {
+		return startConfig{}, err
+	}
+
 	return startConfig{
 		BinaryPath:                  cfg.AppManagerBinaryPath(),
 		WorkingDir:                  cfg.Home,
@@ -816,10 +824,10 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 		TunnelURL:                   TunnelURL(loadBalancerPort),
 		LocaltestURL:                LocaltestURL(loadBalancerPort),
 		StudioctlPath:               studioctlPath,
-		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPathIfExists(cfg),
-		BoundTopologyConfigPath:     boundTopologyConfigPathIfBaseExists(cfg),
+		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPath,
+		BoundTopologyConfigPath:     boundTopologyConfigPath,
 		InternalDev:                 config.IsTruthyEnv(os.Getenv(config.EnvInternalDevMode)),
-	}
+	}, nil
 }
 
 func liveConfig(cfg *config.Config, status *Status) startConfig {
@@ -836,18 +844,15 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 	}
 }
 
-func boundTopologyBaseConfigPathIfExists(cfg *config.Config) string {
-	if _, err := os.Stat(cfg.BoundTopologyBaseConfigPath()); err == nil {
-		return cfg.BoundTopologyBaseConfigPath()
+func boundTopologyConfigPathsIfBaseExists(cfg *config.Config) (string, string, error) {
+	_, err := os.Stat(cfg.BoundTopologyBaseConfigPath())
+	if err == nil {
+		return cfg.BoundTopologyBaseConfigPath(), cfg.BoundTopologyConfigPath(), nil
 	}
-	return ""
-}
-
-func boundTopologyConfigPathIfBaseExists(cfg *config.Config) string {
-	if _, err := os.Stat(cfg.BoundTopologyBaseConfigPath()); err == nil {
-		return cfg.BoundTopologyConfigPath()
+	if errors.Is(err, os.ErrNotExist) {
+		return "", "", nil
 	}
-	return ""
+	return "", "", fmt.Errorf("stat bound topology base config: %w", err)
 }
 
 func currentExecutablePath() string {

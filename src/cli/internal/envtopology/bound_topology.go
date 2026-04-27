@@ -155,11 +155,6 @@ func (l Local) MustResolveBinding(id ComponentID, runtimeBindings []RuntimeBindi
 	panic("envtopology: unsupported binding for component " + string(id))
 }
 
-// BoundTopologyBaseConfig resolves the shared bound topology template for the current run.
-func (l Local) BoundTopologyBaseConfig(runtimeBindings []RuntimeBinding) BoundTopologyConfig {
-	return l.BoundTopologyConfig(runtimeBindings)
-}
-
 // BoundTopologyConfig resolves the initial shared bound topology for the current run.
 func (l Local) BoundTopologyConfig(runtimeBindings []RuntimeBinding) BoundTopologyConfig {
 	bindings := l.ResolveBindings(runtimeBindings)
@@ -187,7 +182,7 @@ func (l Local) BoundTopologyConfig(runtimeBindings []RuntimeBinding) BoundTopolo
 
 // WriteBoundTopologyBaseConfig writes the shared base bound topology to disk.
 func (l Local) WriteBoundTopologyBaseConfig(path string, runtimeBindings []RuntimeBinding) error {
-	return WriteBoundTopologyConfig(path, l.BoundTopologyBaseConfig(runtimeBindings))
+	return WriteBoundTopologyConfig(path, l.BoundTopologyConfig(runtimeBindings))
 }
 
 // WriteBoundTopologyConfig writes the shared bound topology configuration to disk.
@@ -211,7 +206,13 @@ func WriteBoundTopologyConfig(path string, config BoundTopologyConfig) error {
 	if err := os.WriteFile(tmpPath, append(data, '\n'), osutil.FilePermDefault); err != nil {
 		return fmt.Errorf("write bound topology config temp file: %w", err)
 	}
-	return replaceBoundTopologyConfig(tmpPath, path)
+	if err := replaceBoundTopologyConfig(tmpPath, path); err != nil {
+		if removeErr := os.Remove(tmpPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+			return errors.Join(err, fmt.Errorf("remove bound topology config temp file: %w", removeErr))
+		}
+		return err
+	}
+	return nil
 }
 
 // BoundTopologyHostDir returns the host directory for generated topology config.
@@ -257,17 +258,25 @@ func boundTopologyRoute(binding Binding) BoundTopologyRoute {
 }
 
 func replaceBoundTopologyConfig(tmpPath, path string) error {
-	if err := os.Rename(tmpPath, path); err == nil {
+	renameErr := os.Rename(tmpPath, path)
+	if renameErr == nil {
 		return nil
-	} else if runtime.GOOS != windowsGOOS {
-		return fmt.Errorf("replace bound topology config: %w", err)
+	}
+	if runtime.GOOS != windowsGOOS {
+		return fmt.Errorf("replace bound topology config: %w", renameErr)
 	}
 
 	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("remove previous bound topology config: %w", err)
+		return errors.Join(
+			fmt.Errorf("replace bound topology config: %w", renameErr),
+			fmt.Errorf("remove previous bound topology config: %w", err),
+		)
 	}
 	if err := os.Rename(tmpPath, path); err != nil {
-		return fmt.Errorf("replace bound topology config after remove: %w", err)
+		return errors.Join(
+			fmt.Errorf("replace bound topology config: %w", renameErr),
+			fmt.Errorf("replace bound topology config after remove: %w", err),
+		)
 	}
 	return nil
 }
