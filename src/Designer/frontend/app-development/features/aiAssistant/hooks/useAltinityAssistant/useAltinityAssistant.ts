@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import type {
   ChatThread,
   Message,
@@ -20,7 +19,7 @@ export interface UseAltinityAssistantResult {
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
   selectThread: (threadId: string | null) => void;
-  createNewThread: () => void;
+  clearCurrentSession: () => void;
   deleteThread: (threadId: string) => void;
 }
 
@@ -30,30 +29,24 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     connectionStatus,
     workflowStatus,
     onSubmitUserMessage,
-    resetWorkflowStatus,
+    clearCurrentSession,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
   } = useAltinityWorkflow(threads);
-  const { createNewThread: createThread } = threads;
-
-  const createNewThread = useCallback(() => {
-    createThread();
-    resetWorkflowStatus();
-  }, [createThread, resetWorkflowStatus]);
 
   return {
     connectionStatus,
     workflowStatus,
     chatThreads: threads.chatThreads,
-    messages: threads.persistedMessages,
+    messages: threads.chatMessages,
     currentSessionId: threads.currentSessionId,
     onSubmitUserMessage,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,
     selectThread: threads.selectThread,
-    createNewThread,
+    clearCurrentSession,
     deleteThread: threads.deleteThread,
   };
 };

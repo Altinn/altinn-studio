@@ -32,7 +32,7 @@ export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
   workflowStatus: WorkflowStatus;
   onSubmitUserMessage: (message: UserMessage) => Promise<void>;
-  resetWorkflowStatus: () => void;
+  clearCurrentSession: () => void;
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
@@ -62,17 +62,18 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     setCurrentSession,
     createThread,
     deleteMessage,
-    persistMessage,
-    persistedMessages,
+    createMessage,
+    chatMessages,
   } = threads;
 
   useEffect(() => {
     backendSessionIdRef.current = backendSessionId;
   }, [backendSessionId]);
 
-  const resetWorkflowStatus = useCallback(() => {
+  const clearCurrentSession = useCallback(() => {
+    setCurrentSession(null);
     setWorkflowStatus({ isActive: false });
-  }, []);
+  }, [setCurrentSession]);
 
   const markWorkflowCompleted = useCallback(
     (assistantMessage: AssistantMessageData, messageTimestamp: Date) => {
@@ -117,13 +118,13 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         filesChanged: assistantMessage.filesChanged || [],
         sources: assistantMessage.sources || [],
       };
-      persistMessage(threadId, finalAssistantMessage);
+      createMessage(threadId, finalAssistantMessage);
 
       if (event.session_id && !shouldSkipBranchOps(assistantMessage)) {
         resetRepoForSession(event.session_id);
       }
     },
-    [currentSessionIdRef, resetRepoForSession, markWorkflowCompleted, persistMessage],
+    [currentSessionIdRef, resetRepoForSession, markWorkflowCompleted, createMessage],
   );
 
   const handleWorkflowEvent = useCallback(
@@ -153,7 +154,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         const sessionId = activeWorkflowThreadId.current || currentSessionIdRef.current;
         if (!sessionId) return;
         if (event.data?.status === 'cancelled') return;
-        persistMessage(sessionId, {
+        createMessage(sessionId, {
           role: MessageAuthor.Assistant,
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
@@ -161,7 +162,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [handleAssistantMessage, currentSessionIdRef, persistMessage],
+    [handleAssistantMessage, currentSessionIdRef, createMessage],
   );
 
   useEffect(() => {
@@ -216,7 +217,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   const runWorkflowForSession = useCallback(
     async (threadId: string, userMessage: UserMessage): Promise<void> => {
       activeWorkflowThreadId.current = threadId;
-      persistMessage(threadId, userMessage);
+      createMessage(threadId, userMessage);
       try {
         const result = await startAgentWorkflow(
           threadId,
@@ -225,7 +226,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
           userMessage.attachments,
         );
         if (!result.accepted) {
-          persistMessage(threadId, {
+          createMessage(threadId, {
             role: MessageAuthor.Assistant,
             content: formatRejectionMessage(result),
             createdAt: new Date().toISOString(),
@@ -234,7 +235,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         }
       } catch (error) {
         console.error('Workflow request failed:', error);
-        persistMessage(threadId, {
+        createMessage(threadId, {
           role: MessageAuthor.Assistant,
           content: WORKFLOW_ERROR_MESSAGE,
           createdAt: new Date().toISOString(),
@@ -242,7 +243,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [persistMessage, startAgentWorkflow],
+    [createMessage, startAgentWorkflow],
   );
 
   const onSubmitUserMessage = useCallback(
@@ -279,7 +280,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
 
     setWorkflowStatus({ isActive: false });
 
-    const latestPersistedMessage = persistedMessages.at(-1);
+    const latestPersistedMessage = chatMessages.at(-1);
     const noAssistantResponseReceived = latestPersistedMessage?.role === MessageAuthor.User;
     if (noAssistantResponseReceived) {
       deleteMessage(threadId, latestPersistedMessage.id);
@@ -294,7 +295,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     } catch (error) {
       console.error('Cancel workflow request failed:', error);
     }
-  }, [cancelWorkflow, currentSessionIdRef, deleteMessage, persistedMessages]);
+  }, [cancelWorkflow, currentSessionIdRef, deleteMessage, chatMessages]);
 
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
@@ -304,7 +305,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     connectionStatus,
     workflowStatus,
     onSubmitUserMessage,
-    resetWorkflowStatus,
+    clearCurrentSession,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,

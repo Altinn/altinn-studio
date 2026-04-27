@@ -59,7 +59,7 @@ describe('useAltinityWorkflow', () => {
     });
 
     expect(startWorkflow).not.toHaveBeenCalled();
-    expect(threads.persistMessage).not.toHaveBeenCalled();
+    expect(threads.createMessage).not.toHaveBeenCalled();
   });
 
   it('persists assistant message using thread ID, not backend session ID', async () => {
@@ -92,11 +92,11 @@ describe('useAltinityWorkflow', () => {
       capturedOnAgentMessage!(assistantMessageEvent);
     });
 
-    expect(threads.persistMessage).toHaveBeenCalledWith(
+    expect(threads.createMessage).toHaveBeenCalledWith(
       'database-thread-id',
       expect.objectContaining({ role: MessageAuthor.Assistant, content: 'Assistant reply' }),
     );
-    expect(threads.persistMessage).not.toHaveBeenCalledWith('backend-session', expect.anything());
+    expect(threads.createMessage).not.toHaveBeenCalledWith('backend-session', expect.anything());
   });
 
   it('persists assistant message to the submission thread even when the user has switched to another thread', async () => {
@@ -143,14 +143,14 @@ describe('useAltinityWorkflow', () => {
       capturedOnAgentMessage!(assistantMessageEvent);
     });
 
-    expect(threads.persistMessage).toHaveBeenCalledWith(
+    expect(threads.createMessage).toHaveBeenCalledWith(
       'thread-a',
       expect.objectContaining({
         role: MessageAuthor.Assistant,
         content: 'Assistant reply for thread A',
       }),
     );
-    expect(threads.persistMessage).not.toHaveBeenCalledWith('thread-b', expect.anything());
+    expect(threads.createMessage).not.toHaveBeenCalledWith('thread-b', expect.anything());
   });
 
   it('creates thread and starts workflow for new session', async () => {
@@ -187,7 +187,7 @@ describe('useAltinityWorkflow', () => {
 
     expect(threads.createThread).toHaveBeenCalledWith('Hello');
     expect(threads.setCurrentSession).toHaveBeenCalledWith('new-thread-id');
-    expect(threads.persistMessage).toHaveBeenCalledWith(
+    expect(threads.createMessage).toHaveBeenCalledWith(
       'new-thread-id',
       expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
     );
@@ -206,7 +206,7 @@ describe('useAltinityWorkflow', () => {
   it('deletes latest user message on abort when no assistant response has been received', async () => {
     const threads = createThreadState({
       currentSessionId: 'thread-1',
-      persistedMessages: [
+      chatMessages: [
         {
           id: 'message-1',
           role: MessageAuthor.User,
@@ -242,7 +242,7 @@ describe('useAltinityWorkflow', () => {
   it('does not delete message on abort when assistant has already responded', async () => {
     const threads = createThreadState({
       currentSessionId: 'thread-1',
-      persistedMessages: [
+      chatMessages: [
         {
           id: 'message-1',
           role: MessageAuthor.User,
@@ -290,14 +290,13 @@ const createThreadState = (overrides: Partial<AltinityThreadState> = {}): Altini
     chatThreads: [],
     currentSessionId,
     currentSessionIdRef: { current: currentSessionId },
-    persistedMessages: [],
+    chatMessages: [],
     setCurrentSession: jest.fn(),
     selectThread: jest.fn(),
-    createNewThread: jest.fn(),
     createThread: jest.fn().mockResolvedValue('new-thread-id'),
     deleteThread: jest.fn(),
     deleteMessage: jest.fn(),
-    persistMessage: jest.fn(),
+    createMessage: jest.fn(),
     ...overrides,
   };
 };
