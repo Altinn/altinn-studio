@@ -193,14 +193,17 @@ public class ChatServiceTests
     }
 
     [Fact]
-    public async Task DeleteMessageAsync_ThrowsKeyNotFoundException_WhenThreadNotFound()
+    public async Task DeleteMessageAsync_DoesNotCallDelete_WhenThreadNotFound()
     {
         _repositoryMock
             .Setup(r => r.GetThreadAsync(It.IsAny<Guid>(), _context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(default(ChatThreadEntity));
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _chatService.DeleteMessageAsync(Guid.NewGuid(), Guid.NewGuid(), _context)
+        await _chatService.DeleteMessageAsync(Guid.NewGuid(), Guid.NewGuid(), _context);
+
+        _repositoryMock.Verify(
+            r => r.DeleteMessageAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never
         );
     }
 

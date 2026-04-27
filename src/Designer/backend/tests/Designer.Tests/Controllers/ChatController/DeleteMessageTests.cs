@@ -44,12 +44,12 @@ public class DeleteMessageTests
     }
 
     [Fact]
-    public async Task DeleteMessage_ReturnsNotFound_WhenThreadDoesNotExist()
+    public async Task DeleteMessage_ReturnsNoContent_WhenThreadDoesNotExist()
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, MessageUrl(Guid.NewGuid(), Guid.NewGuid()));
 
         using var response = await HttpClient.SendAsync(httpRequest);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 }

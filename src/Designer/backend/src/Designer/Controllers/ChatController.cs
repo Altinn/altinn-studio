@@ -158,15 +158,8 @@ public class ChatController(IChatService chatService) : ControllerBase
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        try
-        {
-            await chatService.DeleteMessageAsync(threadId, messageId, editingContext, cancellationToken);
-            return NoContent();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+        await chatService.DeleteMessageAsync(threadId, messageId, editingContext, cancellationToken);
+        return NoContent();
     }
 
     private AltinnRepoEditingContext GetEditingContext(string org, string app)

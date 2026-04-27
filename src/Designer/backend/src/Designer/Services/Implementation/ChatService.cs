@@ -119,7 +119,10 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        await GetOwnedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await repository.GetThreadAsync(threadId, context, cancellationToken);
+        if (thread is null)
+            return;
+
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
     }
 
