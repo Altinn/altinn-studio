@@ -148,10 +148,16 @@ internal sealed class WorkflowProcessor(
     {
         using var workflowCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 
+        if (!tracker.TryAdd(workflow.DatabaseId, workflowCts, workflow))
+        {
+            logger.WorkflowAlreadyTracked(workflow.DatabaseId);
+            Metrics.WorkflowFetchRaceDropped.Add(1);
+            limiter.ReleaseWorkerSlot();
+            return;
+        }
+
         try
         {
-            tracker.Add(workflow.DatabaseId, workflowCts, workflow);
-
             // If cancellation was already requested before we picked up the workflow,
             // trigger the CTS immediately so the handler sees it
             if (workflow.CancellationRequestedAt is not null)
@@ -228,4 +234,10 @@ internal static partial class WorkflowProcessorLogs
 
     [LoggerMessage(LogLevel.Information, "Database connection restored after {FailureCount} consecutive failures")]
     internal static partial void DatabaseConnectionRestored(this ILogger<WorkflowProcessor> logger, int failureCount);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Workflow {WorkflowId} re-fetched while still in flight on this host — dropping duplicate attempt"
+    )]
+    internal static partial void WorkflowAlreadyTracked(this ILogger<WorkflowProcessor> logger, Guid workflowId);
 }

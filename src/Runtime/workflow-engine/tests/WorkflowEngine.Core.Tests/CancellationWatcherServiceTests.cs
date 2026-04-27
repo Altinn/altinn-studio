@@ -52,7 +52,7 @@ public class CancellationWatcherServiceTests
         var workflow = DummyWorkflow();
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.Add(id, workflowCts, workflow);
+        tracker.TryAdd(id, workflowCts, workflow);
 
         // When polled, return the workflow as pending cancellation
         repo.Setup(r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
@@ -130,7 +130,7 @@ public class CancellationWatcherServiceTests
         var workflow = DummyWorkflow();
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.Add(id, workflowCts, workflow);
+        tracker.TryAdd(id, workflowCts, workflow);
 
         var callCount = 0;
         repo.Setup(r => r.GetPendingCancellations(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))

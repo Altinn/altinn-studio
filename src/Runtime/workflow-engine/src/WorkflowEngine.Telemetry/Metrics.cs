@@ -67,6 +67,10 @@ public static class Metrics
         "engine.workflows.execution.lease_lost",
         description: "Number of in-flight workflows this host abandoned because their lease was reclaimed by another host"
     );
+    public static readonly Counter<long> WorkflowFetchRaceDropped = Meter.CreateCounter<long>(
+        "engine.workflows.fetch.race_dropped",
+        description: "Number of fetched workflows skipped because they were already in-flight on this host (DbMaintenance reclaim race)"
+    );
     public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
         "engine.workflows.time.queue",
         "s",

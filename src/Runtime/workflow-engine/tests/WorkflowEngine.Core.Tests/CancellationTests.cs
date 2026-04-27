@@ -233,7 +233,7 @@ public class CancellationTests
         var id = Guid.NewGuid();
         using var cts = new CancellationTokenSource();
 
-        tracker.Add(id, cts, workflow);
+        tracker.TryAdd(id, cts, workflow);
 
         Assert.Null(workflow.CancellationRequestedAt);
 
@@ -254,7 +254,7 @@ public class CancellationTests
         var id = Guid.NewGuid();
         using var cts = new CancellationTokenSource();
 
-        tracker.Add(id, cts, workflow);
+        tracker.TryAdd(id, cts, workflow);
         tracker.TryCancel(id);
 
         Assert.Equal(originalTimestamp, workflow.CancellationRequestedAt);
@@ -276,7 +276,7 @@ public class CancellationTests
         var id = Guid.NewGuid();
         using var cts = new CancellationTokenSource();
 
-        tracker.Add(id, cts, workflow);
+        tracker.TryAdd(id, cts, workflow);
         tracker.Remove(id);
 
         var result = tracker.TryCancel(id);
@@ -297,9 +297,9 @@ public class CancellationTests
         using var cts2 = new CancellationTokenSource();
         using var cts3 = new CancellationTokenSource();
 
-        tracker.Add(id1, cts1, workflow1);
-        tracker.Add(id2, cts2, workflow2);
-        tracker.Add(id3, cts3, workflow3);
+        tracker.TryAdd(id1, cts1, workflow1);
+        tracker.TryAdd(id2, cts2, workflow2);
+        tracker.TryAdd(id3, cts3, workflow3);
 
         // Cancel only 1 and 3
         tracker.TryCancel([id1, id3]);
@@ -321,7 +321,7 @@ public class CancellationTests
         var id = Guid.NewGuid();
         var cts = new CancellationTokenSource();
 
-        tracker.Add(id, cts, workflow);
+        tracker.TryAdd(id, cts, workflow);
 
         // Simulate worker finishing and disposing CTS without removing from tracker (race condition)
         cts.Dispose();

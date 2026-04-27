@@ -76,8 +76,8 @@ public class HeartbeatServiceTests
         var id2 = Guid.NewGuid();
         using var cts1 = new CancellationTokenSource();
         using var cts2 = new CancellationTokenSource();
-        tracker.Add(id1, cts1, DummyWorkflow());
-        tracker.Add(id2, cts2, DummyWorkflow());
+        tracker.TryAdd(id1, cts1, DummyWorkflow());
+        tracker.TryAdd(id2, cts2, DummyWorkflow());
 
         using var cts = new CancellationTokenSource();
         await service.StartAsync(cts.Token);
@@ -141,7 +141,7 @@ public class HeartbeatServiceTests
 
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.Add(id, workflowCts, DummyWorkflow());
+        tracker.TryAdd(id, workflowCts, DummyWorkflow());
 
         using var cts = new CancellationTokenSource();
         await service.StartAsync(cts.Token);
@@ -235,7 +235,7 @@ public class HeartbeatServiceTests
 
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
-        tracker.Add(id, workflowCts, DummyWorkflow());
+        tracker.TryAdd(id, workflowCts, DummyWorkflow());
 
         var firstCall = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var secondCall = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

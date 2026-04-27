@@ -16,13 +16,8 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
 
     public bool IsEmpty => _workflows.IsEmpty;
 
-    public void Add(Guid workflowId, CancellationTokenSource cts, Workflow workflow)
-    {
-        if (!_workflows.TryAdd(workflowId, (cts, workflow)))
-        {
-            throw new InvalidOperationException($"Workflow {workflowId} is already tracked");
-        }
-    }
+    public bool TryAdd(Guid workflowId, CancellationTokenSource cts, Workflow workflow) =>
+        _workflows.TryAdd(workflowId, (cts, workflow));
 
     public void Remove(Guid workflowId) => _workflows.TryRemove(workflowId, out _);
 
