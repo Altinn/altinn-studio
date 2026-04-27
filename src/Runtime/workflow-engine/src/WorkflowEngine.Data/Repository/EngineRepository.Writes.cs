@@ -727,14 +727,14 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Guid>> BatchUpdateHeartbeats(
+    public async Task BatchUpdateHeartbeats(
         IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> leases,
         TimeSpan staleThreshold,
         CancellationToken cancellationToken
     )
     {
         if (leases.Count == 0)
-            return [];
+            return;
 
         using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateHeartbeats");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -752,39 +752,22 @@ internal sealed partial class EngineRepository
 
         try
         {
-            List<Guid> lost = [];
             await ExecuteWithRetry(
                 async ct =>
                 {
-                    // Reset each attempt: ExecuteWithRetry re-invokes on transient failures, and
-                    // a partial read from a failed attempt would otherwise accumulate.
-                    lost.Clear();
-
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     // (id, lease_token) paired via unnest so WHERE matches both columns on the
                     // same row — ANY(@ids) + ANY(@tokens) would accept any cross-product.
-                    // The CTE does two things in one statement:
-                    //   1) UPDATE rows whose (id, token) pair matches.
-                    //   2) SELECT input ids whose token no longer matches (lease lost).
-                    // PG guarantees the UPDATE runs exactly once whether or not referenced.
+                    // Stale-token rows silently no-op: the new owner's lease token is on the row,
+                    // the old worker's heartbeat write skips it, and the row keeps aging normally.
                     const string sql = """
-                    WITH input AS (
-                        SELECT * FROM unnest(@ids, @lease_tokens) AS t(id, lease_token)
-                    ),
-                    updated AS (
-                        UPDATE "engine"."Workflows" w
-                        SET "HeartbeatAt" = @now
-                        FROM input i
-                        WHERE w."Id" = i.id
-                          AND w."LeaseToken" = i.lease_token
-                          AND w."Status" = @status
-                          AND w."UpdatedAt" < @updatedBefore
-                    )
-                    SELECT i.id FROM input i
-                    WHERE NOT EXISTS (
-                        SELECT 1 FROM "engine"."Workflows" w
-                        WHERE w."Id" = i.id AND w."LeaseToken" = i.lease_token
-                    )
+                    UPDATE "engine"."Workflows" w
+                    SET "HeartbeatAt" = @now
+                    FROM unnest(@ids, @lease_tokens) AS i(id, lease_token)
+                    WHERE w."Id" = i.id
+                      AND w."LeaseToken" = i.lease_token
+                      AND w."Status" = @status
+                      AND w."UpdatedAt" < @updatedBefore
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
@@ -794,15 +777,10 @@ internal sealed partial class EngineRepository
                     cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Processing));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("updatedBefore", updatedBefore));
 
-                    await using var reader = await cmd.ExecuteReaderAsync(ct);
-                    while (await reader.ReadAsync(ct))
-                    {
-                        lost.Add(reader.GetGuid(0));
-                    }
+                    await cmd.ExecuteNonQueryAsync(ct);
                 },
                 cancellationToken
             );
-            return lost;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

@@ -75,7 +75,7 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
     // ----- Heartbeat honors lease token -----
 
     [Fact]
-    public async Task BatchUpdateHeartbeats_WithStaleLeaseToken_ReturnsLostId_AndDoesNotUpdateHeartbeat()
+    public async Task BatchUpdateHeartbeats_WithStaleLeaseToken_DoesNotUpdateHeartbeat()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -92,14 +92,11 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        var lost = await repo.BatchUpdateHeartbeats(
+        await repo.BatchUpdateHeartbeats(
             [(wf.DatabaseId, Guid.NewGuid())],
             TimeSpan.FromSeconds(10),
             TestContext.Current.CancellationToken
         );
-
-        Assert.Single(lost);
-        Assert.Equal(wf.DatabaseId, lost[0]);
 
         var dbWf = await fixture.GetWorkflow(wf.DatabaseId);
         Assert.NotNull(dbWf);
@@ -107,7 +104,7 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task BatchUpdateHeartbeats_WithMatchingLeaseToken_DoesNotReportLost()
+    public async Task BatchUpdateHeartbeats_WithMatchingLeaseToken_UpdatesHeartbeat()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -124,13 +121,11 @@ public sealed class LeaseTokenTests(PostgresFixture fixture) : IAsyncLifetime
             TestContext.Current.CancellationToken
         );
 
-        var lost = await repo.BatchUpdateHeartbeats(
+        await repo.BatchUpdateHeartbeats(
             [(wf.DatabaseId, wf.LeaseToken!.Value)],
             TimeSpan.FromSeconds(10),
             TestContext.Current.CancellationToken
         );
-
-        Assert.Empty(lost);
 
         var dbWf = await fixture.GetWorkflow(wf.DatabaseId);
         Assert.NotNull(dbWf);

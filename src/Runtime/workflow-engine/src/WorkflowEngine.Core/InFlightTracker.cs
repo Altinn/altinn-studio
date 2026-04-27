@@ -13,7 +13,6 @@ namespace WorkflowEngine.Core;
 internal sealed class InFlightTracker(TimeProvider timeProvider)
 {
     private readonly ConcurrentDictionary<Guid, (CancellationTokenSource Cts, Workflow Workflow)> _workflows = new();
-    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _abandonedLeases = new();
 
     public bool IsEmpty => _workflows.IsEmpty;
 
@@ -25,13 +24,7 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
         }
     }
 
-    public void Remove(Guid workflowId)
-    {
-        if (_workflows.TryRemove(workflowId, out var entry))
-        {
-            RemoveAbandonedLeaseIfOwned(workflowId, entry.Cts);
-        }
-    }
+    public void Remove(Guid workflowId) => _workflows.TryRemove(workflowId, out _);
 
     /// <summary>
     /// Attempts to cancel a single in-flight workflow by triggering its CTS.
@@ -71,64 +64,10 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
         }
     }
 
-    /// <summary>
-    /// Abandons an in-flight workflow because its lease was reclaimed by another host.
-    /// Cancels the CTS so the handler stops quickly, but does not stamp
-    /// <see cref="Workflow.CancellationRequestedAt"/> — the workflow itself is not canceled,
-    /// only this host's attempt to process it. The handler is expected to observe the
-    /// resulting <c>LeaseLostException</c> on its next write-back and exit without retry.
-    /// </summary>
-    public void TryAbandonLostLease(IReadOnlyList<Guid> workflowIds)
-    {
-        foreach (var id in workflowIds)
-        {
-            if (!_workflows.TryGetValue(id, out var entry))
-                continue;
-
-            // Mark before cancelling so WasLeaseAbandoned is visible the instant the CT
-            // registration fires on the awaiting Submit.
-            _abandonedLeases[id] = entry.Cts;
-
-            // If the workflow was concurrently removed or replaced between the TryGetValue
-            // above and the marker store, drop our marker (compare-and-remove so a newer attempt's marker is never touched).
-            if (!_workflows.TryGetValue(id, out var current) || !ReferenceEquals(current.Cts, entry.Cts))
-            {
-                RemoveAbandonedLeaseIfOwned(id, entry.Cts);
-                continue;
-            }
-
-            try
-            {
-                entry.Cts.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-                // CTS was already disposed by the worker finishing — benign race
-            }
-        }
-    }
-
-    /// <summary>
-    /// Returns <c>true</c> if the workflow's in-flight processing was abandoned by
-    /// <see cref="TryAbandonLostLease"/>. Used by handlers to distinguish a race-induced
-    /// <see cref="OperationCanceledException"/> (lease reclaimed by another host) from
-    /// user-cancel or shutdown, so it can route the former to the lease-lost branch.
-    /// </summary>
-    public bool WasLeaseAbandoned(Guid workflowId) =>
-        _workflows.TryGetValue(workflowId, out var entry)
-        && _abandonedLeases.TryGetValue(workflowId, out var abandonedCts)
-        && ReferenceEquals(abandonedCts, entry.Cts);
-
-    private void RemoveAbandonedLeaseIfOwned(Guid workflowId, CancellationTokenSource cts) =>
-        _abandonedLeases.TryRemove(KeyValuePair.Create(workflowId, cts));
-
     public IReadOnlyList<Guid> GetSnapshotIds() => [.. _workflows.Keys];
 
     /// <summary>
-    /// Snapshot of (workflowId, leaseToken) pairs for every in-flight workflow whose lease
-    /// is still considered ours. Entries already flagged by <see cref="TryAbandonLostLease"/>
-    /// are excluded — the new owner is processing them, and heartbeating them would only
-    /// re-trigger the lost-id path on every sweep while the handler unwinds.
+    /// Snapshot of (workflowId, leaseToken) pairs for every in-flight workflow.
     /// </summary>
     /// <remarks>
     /// <c>FetchAndLockWorkflows</c> always stamps a fresh <c>LeaseToken</c>, so the
@@ -136,10 +75,6 @@ internal sealed class InFlightTracker(TimeProvider timeProvider)
     /// </remarks>
     public IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> GetSnapshotLeases() =>
         _workflows
-            .Where(kvp =>
-                !_abandonedLeases.TryGetValue(kvp.Key, out var abandonedCts)
-                || !ReferenceEquals(abandonedCts, kvp.Value.Cts)
-            )
             .Select(kvp =>
                 (
                     kvp.Key,

@@ -171,11 +171,11 @@ internal interface IEngineRepository
     /// Used by the processor to prove liveness of in-flight workers.
     /// Skips workflows whose <c>UpdatedAt</c> is newer than <paramref name="staleThreshold"/> —
     /// a recent status write already proves liveness.
-    /// Rows are only updated when the caller's <c>LeaseToken</c> matches the current value on the row.
-    /// Returns the subset of input ids whose lease was lost (another host has reclaimed them);
-    /// the caller should treat these workflows as no longer owned and cancel their in-flight work.
+    /// Rows are only updated when the caller's <c>LeaseToken</c> matches the current value on the row;
+    /// stale-token heartbeats silently no-op so a reclaimed row goes back to <c>HeartbeatAt</c> aging
+    /// and remains stale-recoverable.
     /// </summary>
-    Task<IReadOnlyList<Guid>> BatchUpdateHeartbeats(
+    Task BatchUpdateHeartbeats(
         IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> leases,
         TimeSpan staleThreshold,
         CancellationToken cancellationToken

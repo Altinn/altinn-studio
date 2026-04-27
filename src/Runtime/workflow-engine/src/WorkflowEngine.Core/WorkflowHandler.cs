@@ -23,7 +23,6 @@ namespace WorkflowEngine.Core;
 internal sealed class WorkflowHandler(
     IWorkflowExecutor executor,
     IWorkflowUpdateBuffer statusWriteBuffer,
-    InFlightTracker tracker,
     IOptions<EngineSettings> settings,
     TimeProvider timeProvider,
     ILogger<WorkflowHandler> logger
@@ -45,13 +44,6 @@ internal sealed class WorkflowHandler(
         catch (LeaseLostException)
         {
             // Reclaimed by another host. Exit cleanly — no retry, no re-enqueue.
-            HandleLeaseLost(workflow);
-        }
-        catch (OperationCanceledException) when (tracker.WasLeaseAbandoned(workflow.DatabaseId))
-        {
-            // Race variant: heartbeat sweep's TryAbandonLostLease fired while Submit was
-            // awaiting flush, so the CT canceled the TCS before the buffer could reject
-            // it with LeaseLostException. Route through the same branch.
             HandleLeaseLost(workflow);
         }
         finally

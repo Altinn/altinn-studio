@@ -35,7 +35,6 @@ public class CancellationTests
         return new WorkflowHandler(
             executor,
             buffer.Object,
-            new InFlightTracker(TimeProvider.System),
             Options.Create(settings),
             TimeProvider.System,
             NullLogger<WorkflowHandler>.Instance
@@ -331,107 +330,5 @@ public class CancellationTests
         var result = tracker.TryCancel(id);
         Assert.True(result);
         Assert.NotNull(workflow.CancellationRequestedAt);
-    }
-
-    // ─── Lease-abandonment tracking ──────────────────────────────────────
-
-    [Fact]
-    public void TryAbandonLostLease_SetsWasLeaseAbandonedAndCancelsCts()
-    {
-        var tracker = new InFlightTracker(TimeProvider.System);
-        var workflow = CreateWorkflow(CreateStep());
-        var id = Guid.NewGuid();
-        using var cts = new CancellationTokenSource();
-
-        tracker.Add(id, cts, workflow);
-
-        Assert.False(tracker.WasLeaseAbandoned(id));
-
-        tracker.TryAbandonLostLease([id]);
-
-        Assert.True(tracker.WasLeaseAbandoned(id));
-        Assert.True(cts.IsCancellationRequested);
-    }
-
-    [Fact]
-    public void TryAbandonLostLease_DoesNotStampCancellationRequestedAt()
-    {
-        // Distinguishes lease-abandonment from user-cancel: the workflow itself isn't being
-        // canceled, only this host's attempt to process it.
-        var tracker = new InFlightTracker(TimeProvider.System);
-        var workflow = CreateWorkflow(CreateStep());
-        var id = Guid.NewGuid();
-        using var cts = new CancellationTokenSource();
-
-        tracker.Add(id, cts, workflow);
-        tracker.TryAbandonLostLease([id]);
-
-        Assert.Null(workflow.CancellationRequestedAt);
-    }
-
-    [Fact]
-    public void WasLeaseAbandoned_NotAbandoned_ReturnsFalse()
-    {
-        var tracker = new InFlightTracker(TimeProvider.System);
-        var workflow = CreateWorkflow(CreateStep());
-        var id = Guid.NewGuid();
-        using var cts = new CancellationTokenSource();
-
-        tracker.Add(id, cts, workflow);
-
-        Assert.False(tracker.WasLeaseAbandoned(id));
-    }
-
-    [Fact]
-    public void WasLeaseAbandoned_WorkflowNotInTracker_ReturnsFalse()
-    {
-        var tracker = new InFlightTracker(TimeProvider.System);
-        Assert.False(tracker.WasLeaseAbandoned(Guid.NewGuid()));
-    }
-
-    [Fact]
-    public void GetSnapshotLeases_ExcludesAbandonedEntries()
-    {
-        // Once a lease is abandoned, the handler will unwind over several heartbeat cycles.
-        // We must not re-include it in subsequent sweeps — the DB would re-report it as lost
-        // on every cycle, spamming the log and churning the CTS (already cancelled).
-        var tracker = new InFlightTracker(TimeProvider.System);
-
-        var alive = CreateWorkflow(CreateStep());
-        alive.LeaseToken = Guid.NewGuid();
-        var aliveId = Guid.NewGuid();
-        using var aliveCts = new CancellationTokenSource();
-        tracker.Add(aliveId, aliveCts, alive);
-
-        var abandoned = CreateWorkflow(CreateStep());
-        abandoned.LeaseToken = Guid.NewGuid();
-        var abandonedId = Guid.NewGuid();
-        using var abandonedCts = new CancellationTokenSource();
-        tracker.Add(abandonedId, abandonedCts, abandoned);
-
-        tracker.TryAbandonLostLease([abandonedId]);
-
-        var leases = tracker.GetSnapshotLeases();
-
-        var lease = Assert.Single(leases);
-        Assert.Equal(aliveId, lease.WorkflowId);
-        Assert.Equal(alive.LeaseToken, lease.LeaseToken);
-    }
-
-    [Fact]
-    public void TryRemove_ClearsWasLeaseAbandoned()
-    {
-        var tracker = new InFlightTracker(TimeProvider.System);
-        var workflow = CreateWorkflow(CreateStep());
-        var id = Guid.NewGuid();
-        using var cts = new CancellationTokenSource();
-
-        tracker.Add(id, cts, workflow);
-        tracker.TryAbandonLostLease([id]);
-        Assert.True(tracker.WasLeaseAbandoned(id));
-
-        tracker.Remove(id);
-
-        Assert.False(tracker.WasLeaseAbandoned(id));
     }
 }

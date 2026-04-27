@@ -40,13 +40,11 @@ public class WorkflowHandlerTests
     private static WorkflowHandler CreateHandler(
         IWorkflowExecutor executor,
         EngineSettings? settings = null,
-        IWorkflowUpdateBuffer? buffer = null,
-        InFlightTracker? tracker = null
+        IWorkflowUpdateBuffer? buffer = null
     ) =>
         new(
             executor,
             buffer ?? MockBuffer().Object,
-            tracker ?? new InFlightTracker(_fixedTime),
             Options.Create(settings ?? _defaultSettings),
             _fixedTime,
             NullLogger<WorkflowHandler>.Instance
@@ -149,45 +147,8 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenLeaseAbandonedAndFinalSubmitThrowsOCE_ExitsCleanlyWithoutThrowing()
+    public async Task Handle_WhenFinalSubmitThrowsOCE_Rethrows()
     {
-        // Race variant of the LeaseLost path: the heartbeat sweep's TryAbandonLostLease fires
-        // while the final Submit is awaiting flush. The CT registration in Submit cancels the
-        // TCS before the buffer can reject it with LeaseLostException, so the handler observes
-        // an OperationCanceledException instead. Handle must still route to the lease-lost
-        // branch (via the tracker filter) and return cleanly — not rethrow the OCE.
-        var executor = MockExecutor(ExecutionResult.Success());
-        var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
-
-        var tracker = new InFlightTracker(_fixedTime);
-        using var workflowCts = new CancellationTokenSource();
-        tracker.Add(workflow.DatabaseId, workflowCts, workflow);
-
-        var buffer = MockBuffer(
-            (w, ct) =>
-            {
-                // Simulate the race: the heartbeat sweep triggers lease abandonment *during*
-                // the final Submit, and the CT cancellation wins over the buffer's reject.
-                if (w.Status == PersistentItemStatus.Completed)
-                {
-                    tracker.TryAbandonLostLease([w.DatabaseId]);
-                    return Task.FromException(new OperationCanceledException(ct));
-                }
-                return Task.CompletedTask;
-            }
-        );
-        var handler = CreateHandler(executor.Object, buffer: buffer.Object, tracker: tracker);
-
-        var handleTask = handler.Handle(workflow, workflowCts.Token);
-        await handleTask;
-        Assert.True(handleTask.IsCompletedSuccessfully);
-    }
-
-    [Fact]
-    public async Task Handle_WhenOCEAndLeaseNotAbandoned_Rethrows()
-    {
-        // Counterpart to the above: a plain OCE (user-cancel or shutdown) without lease
-        // abandonment must still propagate — the new filter only catches lease-abandoned ones.
         var executor = MockExecutor(ExecutionResult.Success());
         var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
 

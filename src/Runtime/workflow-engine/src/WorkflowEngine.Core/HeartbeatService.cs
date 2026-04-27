@@ -67,14 +67,8 @@ internal sealed class HeartbeatService(
                 try
                 {
                     var leases = tracker.GetSnapshotLeases();
-                    var lost = await repo.BatchUpdateHeartbeats(leases, interval, safetyCts.Token);
+                    await repo.BatchUpdateHeartbeats(leases, interval, safetyCts.Token);
                     logger.HeartbeatSweepCompleted(leases.Count);
-
-                    if (lost.Count > 0)
-                    {
-                        logger.HeartbeatLeaseLost(lost.Count);
-                        tracker.TryAbandonLostLease(lost);
-                    }
                 }
                 catch (OperationCanceledException) when (safetyCts.IsCancellationRequested)
                 {
@@ -106,12 +100,6 @@ internal static partial class HeartbeatServiceLogs
 
     [LoggerMessage(LogLevel.Warning, "Heartbeat sweep failed — in-flight workflows may appear stale")]
     internal static partial void HeartbeatSweepFailed(this ILogger<HeartbeatService> logger, Exception ex);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "Heartbeat lease lost on {Count} workflow(s) — another host has reclaimed them; cancelling local execution"
-    )]
-    internal static partial void HeartbeatLeaseLost(this ILogger<HeartbeatService> logger, int count);
 
     [LoggerMessage(LogLevel.Warning, "HeartbeatService safety timeout expired — exiting despite non-empty tracker")]
     internal static partial void HeartbeatServiceSafetyTimeout(this ILogger<HeartbeatService> logger);

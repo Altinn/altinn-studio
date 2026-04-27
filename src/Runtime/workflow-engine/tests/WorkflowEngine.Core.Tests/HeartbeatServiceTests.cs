@@ -62,7 +62,7 @@ public class HeartbeatServiceTests
                 )
             )
             .Callback(() => sweepFired.TrySetResult())
-            .Returns(Task.FromResult<IReadOnlyList<Guid>>([]));
+            .Returns(Task.CompletedTask);
 
         using var service = new HeartbeatService(
             tracker,
@@ -129,7 +129,7 @@ public class HeartbeatServiceTests
                 if (!preCancelSweep.TrySetResult())
                     postCancelSweep.TrySetResult();
             })
-            .Returns(Task.FromResult<IReadOnlyList<Guid>>([]));
+            .Returns(Task.CompletedTask);
 
         using var service = new HeartbeatService(
             tracker,
@@ -257,7 +257,7 @@ public class HeartbeatServiceTests
                         throw new InvalidOperationException("Transient DB error");
                     }
                     secondCall.TrySetResult();
-                    return Task.FromResult<IReadOnlyList<Guid>>([]);
+                    return Task.CompletedTask;
                 }
             );
 
@@ -272,75 +272,6 @@ public class HeartbeatServiceTests
             await secondCall.Task.WaitAsync(GateTimeout, TestContext.Current.CancellationToken);
 
             Assert.True(callCount >= 2, $"Expected at least 2 calls but got {callCount}");
-        }
-        finally
-        {
-            await cts.CancelAsync();
-            tracker.Remove(id);
-            using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await service.StopAsync(stopCts.Token);
-        }
-    }
-
-    [Fact]
-    public async Task HeartbeatService_OnLostLease_CancelsInFlightWorkflow_WithoutStampingCancellationRequestedAt()
-    {
-        var tracker = new InFlightTracker(TimeProvider.System);
-        var repo = new Mock<IEngineRepository>();
-        var settings = Options.Create(DefaultSettings());
-        using var service = new HeartbeatService(
-            tracker,
-            repo.Object,
-            settings,
-            TimeProvider.System,
-            NullLogger<HeartbeatService>.Instance
-        );
-
-        var id = Guid.NewGuid();
-        var workflow = DummyWorkflow();
-        workflow.DatabaseId = id;
-        workflow.LeaseToken = Guid.NewGuid();
-        using var workflowCts = new CancellationTokenSource();
-        tracker.Add(id, workflowCts, workflow);
-
-        var sweepFired = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        repo.Setup(r =>
-                r.BatchUpdateHeartbeats(
-                    It.IsAny<IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)>>(),
-                    It.IsAny<TimeSpan>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Returns<IReadOnlyList<(Guid, Guid)>, TimeSpan, CancellationToken>(
-                (leases, _, _) =>
-                {
-                    sweepFired.TrySetResult();
-                    return Task.FromResult<IReadOnlyList<Guid>>(leases.Select(l => l.Item1).ToList());
-                }
-            );
-
-        using var cts = new CancellationTokenSource();
-        await service.StartAsync(cts.Token);
-
-        try
-        {
-            await sweepFired.Task.WaitAsync(GateTimeout, TestContext.Current.CancellationToken);
-
-            // The mock returned the lost-id set; the service's continuation then calls
-            // TryAbandonLostLease before looping back to Task.Delay. That continuation runs on
-            // the thread pool after our TCS completes, so we spin-wait on its observable effect
-            // (the workflow's CTS flipping) rather than racing a fixed yield count.
-            var deadline = DateTime.UtcNow + GateTimeout;
-            while (!workflowCts.IsCancellationRequested && DateTime.UtcNow < deadline)
-            {
-                await Task.Yield();
-            }
-
-            // Lease-lost abandonment should cancel the in-flight CTS but NOT stamp
-            // CancellationRequestedAt — the workflow itself is not canceled, only this host's
-            // attempt to process it.
-            Assert.True(workflowCts.IsCancellationRequested);
-            Assert.Null(workflow.CancellationRequestedAt);
         }
         finally
         {
