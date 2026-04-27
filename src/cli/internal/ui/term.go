@@ -11,8 +11,7 @@ type fdWriter interface {
 	Fd() uintptr
 }
 
-// StdinIsTerminal reports whether stdin is attached to an interactive terminal.
-func StdinIsTerminal() bool {
+func stdinIsTerminal() bool {
 	return isTerminalWriter(os.Stdin)
 }
 
