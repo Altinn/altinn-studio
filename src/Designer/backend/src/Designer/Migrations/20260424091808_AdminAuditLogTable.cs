@@ -28,7 +28,6 @@ namespace Altinn.Studio.Designer.Migrations
                     app = table.Column<string>(type: "character varying", nullable: false),
                     instance_id = table.Column<string>(type: "character varying", nullable: false),
                     action = table.Column<string>(type: "character varying", nullable: false),
-                    user_id = table.Column<long>(type: "bigint", nullable: false),
                     user_name = table.Column<string>(type: "character varying", nullable: false),
                     env = table.Column<string>(type: "character varying", nullable: false),
                     timestamp = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false),
@@ -44,13 +43,6 @@ namespace Altinn.Studio.Designer.Migrations
                 schema: "designer",
                 table: "admin_audit_log",
                 columns: new[] { "org", "app", "timestamp" }
-            );
-
-            migrationBuilder.CreateIndex(
-                name: "idx_admin_audit_log_user_timestamp",
-                schema: "designer",
-                table: "admin_audit_log",
-                columns: new[] { "user_id", "timestamp" }
             );
 
             migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("AdminAuditLog/setup-grants.sql"));

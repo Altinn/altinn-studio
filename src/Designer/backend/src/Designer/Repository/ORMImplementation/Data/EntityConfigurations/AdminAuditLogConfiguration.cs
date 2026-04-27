@@ -26,8 +26,6 @@ public class AdminAuditLogConfiguration : IEntityTypeConfiguration<AdminAuditLog
 
         builder.Property(e => e.Action).HasColumnType("character varying").HasColumnName("action").IsRequired();
 
-        builder.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
-
         builder.Property(e => e.UserName).HasColumnType("character varying").HasColumnName("user_name").IsRequired();
 
         builder.Property(e => e.Env).HasColumnType("character varying").HasColumnName("env").IsRequired();
@@ -43,6 +41,5 @@ public class AdminAuditLogConfiguration : IEntityTypeConfiguration<AdminAuditLog
             },
             "idx_admin_audit_log_org_app_timestamp"
         );
-        builder.HasIndex(e => new { e.UserId, e.Timestamp }, "idx_admin_audit_log_user_timestamp");
     }
 }

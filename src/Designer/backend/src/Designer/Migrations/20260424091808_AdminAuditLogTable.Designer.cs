@@ -64,10 +64,6 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("timestamp");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("character varying")
@@ -77,8 +73,6 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasName("admin_audit_log_pkey");
 
                     b.HasIndex(new[] { "Org", "App", "Timestamp" }, "idx_admin_audit_log_org_app_timestamp");
-
-                    b.HasIndex(new[] { "UserId", "Timestamp" }, "idx_admin_audit_log_user_timestamp");
 
                     b.ToTable("admin_audit_log", "designer");
                 });

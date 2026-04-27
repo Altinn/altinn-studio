@@ -15,8 +15,6 @@ public class AdminAuditLogDbModel
 
     public string Action { get; set; }
 
-    public long UserId { get; set; }
-
     public string UserName { get; set; }
 
     public string Env { get; set; }
