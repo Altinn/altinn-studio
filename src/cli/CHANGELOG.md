@@ -19,6 +19,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Fix app-manager shutdown waits incorrectly reporting that an exited process is still running on Linux systems.
 - Reading password input when using `studioctl auth` now works on macOS with bracketed paste enabled.
 
 ### Removed

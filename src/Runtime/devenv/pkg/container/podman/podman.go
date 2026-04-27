@@ -756,6 +756,32 @@ func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	return nil
 }
 
+// VolumeRemove removes a named volume.
+func (c *Client) VolumeRemove(ctx context.Context, name string, force bool) error {
+	args := []string{"volume", "rm"}
+	if force {
+		args = append(args, "-f")
+	}
+	args = append(args, name)
+
+	cmd := processutil.CommandContext(ctx, "podman", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		if isVolumeNotFoundOutput(output) {
+			return types.ErrVolumeNotFound
+		}
+		return fmt.Errorf("podman volume rm failed: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+func isVolumeNotFoundOutput(output []byte) bool {
+	lower := strings.ToLower(string(output))
+	return strings.Contains(lower, "no such volume") ||
+		strings.Contains(lower, "no such object") ||
+		strings.Contains(lower, "volume does not exist")
+}
+
 // ContainerLogs returns a stream of container logs.
 func (c *Client) ContainerLogs(
 	ctx context.Context,

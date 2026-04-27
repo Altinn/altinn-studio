@@ -116,21 +116,35 @@ To use a prompt from Langfuse instead of the local file:
 1. **Go to your Langfuse dashboard** (e.g. `https://langfuse.digdir.cloud`)
 2. **Navigate to Prompts** in the sidebar
 3. **Create a new prompt** with these settings:
-   - **Name**: Must match the local filename without `.md` (e.g. `general_planning`, `tool_planning_user`)
+   - **Name**: By default must match the local filename without `.md` (e.g. `general_planning`). For prompts in subdirectories (e.g. `llm-as-a-judge/`), the Langfuse name is a **flat short name** (e.g. `intent_match`) while the local file lives at `llm-as-a-judge/intent_match.md`. The `local_path` parameter in `get_prompt_with_langfuse()` bridges this difference — see the naming table below.
    - **Type**: `Text` (not Chat)
    - **Content**: Paste the prompt content (without YAML frontmatter for system prompts)
 4. **Label it `production`** — By default, `get_prompt()` fetches the version labeled `production`. If no version has this label, the fetch will fail and fall back to local.
 
 ### Prompt Naming Reference
 
-| Local file                           | Langfuse prompt name    |
-| ------------------------------------ | ----------------------- |
-| `general_planning.md`                | `general_planning`      |
-| `tool_planning.md`                   | `tool_planning`         |
-| `patch_synthesis.md`                 | `patch_synthesis`       |
-| `templates/general_planning_user.md` | `general_planning_user` |
-| `templates/tool_planning_user.md`    | `tool_planning_user`    |
-| `templates/patch_synthesis_user.md`  | `patch_synthesis_user`  |
+For top-level prompts the Langfuse name equals the filename (without `.md`).
+For prompts in subdirectories the Langfuse name is a **flat short name** — pass the subdirectory path as `local_path` so the loader can find the local fallback file:
+
+```python
+# Top-level: name == local path, no local_path needed
+get_prompt_with_langfuse("general_planning")
+
+# Subdirectory: short Langfuse name, explicit local fallback path
+get_prompt_with_langfuse("intent_match", local_path="llm-as-a-judge/intent_match")
+```
+
+| Local file                               | Langfuse prompt name    |
+| ---------------------------------------- | ----------------------- |
+| `general_planning.md`                    | `general_planning`      |
+| `tool_planning.md`                       | `tool_planning`         |
+| `patch_synthesis.md`                     | `patch_synthesis`       |
+| `templates/general_planning_user.md`     | `general_planning_user` |
+| `templates/tool_planning_user.md`        | `tool_planning_user`    |
+| `templates/patch_synthesis_user.md`      | `patch_synthesis_user`  |
+| `llm-as-a-judge/intent_match.md`         | `intent_match`          |
+| `llm-as-a-judge/no_hallucination.md`     | `no_hallucination`      |
+| `llm-as-a-judge/implementation_match.md` | `implementation_match`  |
 
 ### Required Environment Variables
 
