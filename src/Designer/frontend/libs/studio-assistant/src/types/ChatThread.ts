@@ -17,7 +17,7 @@ export type UserAttachment = {
 export type Source = {
   tool: string;
   title: string;
-  previewText: string;
+  previewText?: string;
   contentLength?: number;
   url?: string;
   relevance?: number;
