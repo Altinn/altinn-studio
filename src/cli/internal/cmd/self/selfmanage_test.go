@@ -1,10 +1,14 @@
 package self_test
 
 import (
+	"context"
 	"errors"
+	"io"
+	"strings"
 	"testing"
 
 	self "altinn.studio/studioctl/internal/cmd/self"
+	"altinn.studio/studioctl/internal/ui"
 )
 
 func TestNormalizeReleaseVersion(t *testing.T) {
@@ -85,6 +89,82 @@ func TestAppManagerAssetName(t *testing.T) {
 	}
 	if got != "app-manager-windows-amd64.tar.gz" {
 		t.Fatalf("AppManagerAssetName() = %q, want %q", got, "app-manager-windows-amd64.tar.gz")
+	}
+}
+
+func TestPickerUsesProvidedInput(t *testing.T) {
+	t.Parallel()
+
+	const installDir = "/tmp/studioctl-bin"
+	out := ui.NewOutput(io.Discard, io.Discard, false)
+	picker := self.NewPicker(
+		out,
+		strings.NewReader("\n"),
+		[]self.Candidate{
+			{
+				Path:        installDir,
+				Writable:    true,
+				Recommended: true,
+			},
+		},
+	)
+
+	got, err := picker.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Picker.Run() error = %v", err)
+	}
+	if got != installDir {
+		t.Fatalf("Picker.Run() = %q, want %q", got, installDir)
+	}
+}
+
+func TestDefaultInstallLocation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		want       string
+		candidates []self.Candidate
+		wantOK     bool
+	}{
+		{
+			name: "uses recommended writable candidate",
+			candidates: []self.Candidate{
+				{Path: "/not-selected", Writable: true},
+				{Path: "/selected", Writable: true, Recommended: true},
+			},
+			want:   "/selected",
+			wantOK: true,
+		},
+		{
+			name: "falls back to first writable candidate",
+			candidates: []self.Candidate{
+				{Path: "/not-writable", Writable: false, Recommended: true},
+				{Path: "/selected", Writable: true},
+			},
+			want:   "/selected",
+			wantOK: true,
+		},
+		{
+			name: "returns false when no writable candidates exist",
+			candidates: []self.Candidate{
+				{Path: "/not-writable", Writable: false, Recommended: true},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, ok := self.DefaultInstallLocation(tc.candidates)
+			if ok != tc.wantOK {
+				t.Fatalf("DefaultInstallLocation() ok = %v, want %v", ok, tc.wantOK)
+			}
+			if got != tc.want {
+				t.Fatalf("DefaultInstallLocation() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 

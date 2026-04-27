@@ -1,6 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
+using Altinn.Studio.EnvTopology;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
@@ -81,6 +82,7 @@ namespace LocalTest
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             services.Configure<LocalPlatformSettings>(Configuration.GetSection("LocalPlatformSettings"));
+            services.AddBoundTopology(Configuration);
             services.AddControllersWithViews();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -203,19 +205,12 @@ namespace LocalTest
 
             services.AddDirectoryBrowser();
 
-            // The tunnel is opportunistic on top of HTTP mode, so the existing LocalAppHttp path stays in place.
-            if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
-            {
-                services.AddTransient<ILocalApp, LocalAppHttp>();
-            }
-            else
-            {
-                services.AddTransient<ILocalApp, LocalAppFile>();
-            }
+            services.AddTransient<ILocalApp, LocalAppHttp>();
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
             services.AddSingleton<AppTunnelClient>();
-            services.AddSingleton<AppTunnelProxy>();
+            services.AddSingleton<EnvProxy>();
+            services.AddSingleton<HostProxy>();
 
             services.AddHttpForwarder();
 
