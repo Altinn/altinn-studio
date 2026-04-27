@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"altinn.studio/studioctl/internal/osutil"
 )
@@ -38,8 +37,6 @@ const (
 
 	// BoundTopologyOptionsConfigPathEnv is the env var key for the bound config path.
 	BoundTopologyOptionsConfigPathEnv = "BoundTopologyOptions__ConfigPath"
-
-	windowsGOOS = "windows"
 )
 
 // DestinationLocation describes where a route currently resolves.
@@ -262,21 +259,5 @@ func replaceBoundTopologyConfig(tmpPath, path string) error {
 	if renameErr == nil {
 		return nil
 	}
-	if runtime.GOOS != windowsGOOS {
-		return fmt.Errorf("replace bound topology config: %w", renameErr)
-	}
-
-	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return errors.Join(
-			fmt.Errorf("replace bound topology config: %w", renameErr),
-			fmt.Errorf("remove previous bound topology config: %w", err),
-		)
-	}
-	if err := os.Rename(tmpPath, path); err != nil {
-		return errors.Join(
-			fmt.Errorf("replace bound topology config: %w", renameErr),
-			fmt.Errorf("replace bound topology config after remove: %w", err),
-		)
-	}
-	return nil
+	return fmt.Errorf("replace bound topology config: %w", renameErr)
 }

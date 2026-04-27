@@ -95,6 +95,10 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
             {
                 _logger.LogDebug(ex, "Bound topology config poll loop cancelled");
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Bound topology config poll loop failed");
+            }
         }
     }
 
@@ -103,6 +107,15 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
 
     private async Task RunPollLoop(ChannelWriter<RefreshReason> refreshRequests, CancellationToken stoppingToken)
     {
+        if (_options.PollInterval <= TimeSpan.Zero)
+        {
+            _logger.LogWarning(
+                "Bound topology config poll loop disabled because PollInterval is not positive: {PollInterval}",
+                _options.PollInterval
+            );
+            return;
+        }
+
         using var timer = new PeriodicTimer(_options.PollInterval);
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
@@ -174,7 +187,27 @@ internal sealed class BoundTopologyConfigReconciler : BackgroundService
         Directory.CreateDirectory(directory);
         var tempPath = path + ".tmp";
         await File.WriteAllBytesAsync(tempPath, [.. payload, (byte)'\n'], cancellationToken);
-        File.Move(tempPath, path, overwrite: true);
+        try
+        {
+            File.Move(tempPath, path, overwrite: true);
+        }
+        catch
+        {
+            DeleteTempFile(tempPath);
+            throw;
+        }
+    }
+
+    private void DeleteTempFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _logger.LogWarning(ex, "Failed to remove bound topology temp file {Path}", path);
+        }
     }
 
     private BoundTopologyConfig Merge(BoundTopologyConfig baseConfig, IReadOnlyList<DiscoveredApp> apps)
