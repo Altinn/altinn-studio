@@ -38,7 +38,7 @@ export const PageLayout = () => {
   if (!orgPermissions?.isOrgOwner) {
     return (
       <StudioCenter>
-        <StudioAlert>
+        <StudioAlert data-color='info'>
           {t('settings.orgs.not_org_owner_alert', {
             orgName: selectedOrg.full_name || selectedOrg.username,
           })}
