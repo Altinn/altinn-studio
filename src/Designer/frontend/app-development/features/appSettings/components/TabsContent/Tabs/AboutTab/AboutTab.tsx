@@ -1,12 +1,7 @@
 import type { ReactElement } from 'react';
 import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioCard,
-  StudioHeading,
-  StudioParagraph,
-  StudioValidationMessage,
-} from '@studio/components';
+import { StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
@@ -16,6 +11,7 @@ import { TabDataError } from '../../TabDataError';
 import { AppConfigForm } from './AppConfigForm';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { Infobox } from './Infobox/Infobox';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -32,7 +28,6 @@ export function AboutTab(): ReactElement {
 
 function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
-  const { t } = useTranslation();
 
   const { mutate: saveApplicationMetadata } = useAppMetadataMutation(org, app);
   const {
@@ -67,23 +62,7 @@ function AboutTabContent(): ReactElement {
               setApplicationMetadata(updatedAppConfig)
             }
           />
-          <StudioCard className={classes.cardContainer}>
-            <StudioCard.Block>
-              <img
-                src='/img/illustration_about-page.png'
-                alt={t('app_settings.about_tab_image_alt_text')}
-              />
-            </StudioCard.Block>
-            <StudioCard.Block className={classes.cardContent}>
-              <StudioHeading level={3}>{t('app_settings.about_tab_info_box_title')}</StudioHeading>
-              <StudioParagraph>
-                {t('app_settings.about_tab_info_box_description_1')}
-              </StudioParagraph>
-              <StudioParagraph>
-                {t('app_settings.about_tab_info_box_description_2')}
-              </StudioParagraph>
-            </StudioCard.Block>
-          </StudioCard>
+          <Infobox />
         </div>
       );
     }
