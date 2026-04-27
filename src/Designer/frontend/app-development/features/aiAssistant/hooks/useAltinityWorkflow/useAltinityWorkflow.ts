@@ -31,7 +31,7 @@ const WORKFLOW_ERROR_MESSAGE =
 export interface UseAltinityWorkflowResult {
   connectionStatus: ConnectionStatus;
   workflowStatus: WorkflowStatus;
-  onSubmitUserMessage: (message: UserMessage) => Promise<void>;
+  onSubmitMessage: (message: UserMessage) => Promise<void>;
   clearCurrentSession: () => void;
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
@@ -89,6 +89,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [],
   );
 
+  const applyStatusMessage = useCallback((statusMessage: string) => {
+    setWorkflowStatus((prev) => ({ ...prev, message: statusMessage }));
+  }, []);
+
   const resetRepoForSession = useCallback(
     (sessionId: string) => {
       const branch = buildSessionBranchName(sessionId);
@@ -139,16 +143,10 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         if (isTerminal) {
           setWorkflowStatus({ isActive: false });
         } else {
-          setWorkflowStatus((prev) => ({
-            ...prev,
-            message: event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
-          }));
+          applyStatusMessage(event.data?.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
         }
       } else if (event.type === 'workflow_status') {
-        setWorkflowStatus((prev) => ({
-          ...prev,
-          message: event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE,
-        }));
+        applyStatusMessage(event.data.message || DEFAULT_WORKFLOW_WAIT_MESSAGE);
       } else if (event.type === 'error') {
         setWorkflowStatus({ isActive: false });
         const sessionId = activeWorkflowThreadId.current || currentSessionIdRef.current;
@@ -162,7 +160,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
         });
       }
     },
-    [handleAssistantMessage, currentSessionIdRef, createMessage],
+    [applyStatusMessage, handleAssistantMessage, currentSessionIdRef, createMessage],
   );
 
   useEffect(() => {
@@ -246,7 +244,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
     [createMessage, startAgentWorkflow],
   );
 
-  const onSubmitUserMessage = useCallback(
+  const onSubmitMessage = useCallback(
     async (message: UserMessage): Promise<void> => {
       if (!message.content) return;
 
@@ -304,7 +302,7 @@ export const useAltinityWorkflow = (threads: AltinityThreadState): UseAltinityWo
   return {
     connectionStatus,
     workflowStatus,
-    onSubmitUserMessage,
+    onSubmitMessage,
     clearCurrentSession,
     cancelCurrentWorkflow,
     cancelledMessageContent,

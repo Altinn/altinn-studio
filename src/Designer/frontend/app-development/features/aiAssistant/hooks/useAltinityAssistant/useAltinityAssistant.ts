@@ -14,7 +14,7 @@ export interface UseAltinityAssistantResult {
   chatThreads: ChatThread[];
   messages: Message[];
   currentSessionId: string | null;
-  onSubmitUserMessage: (message: UserMessage) => Promise<void>;
+  onSubmitMessage: (message: UserMessage) => Promise<void>;
   cancelCurrentWorkflow: () => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
@@ -28,7 +28,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
   const {
     connectionStatus,
     workflowStatus,
-    onSubmitUserMessage,
+    onSubmitMessage,
     clearCurrentSession,
     cancelCurrentWorkflow,
     cancelledMessageContent,
@@ -41,7 +41,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     chatThreads: threads.chatThreads,
     messages: threads.chatMessages,
     currentSessionId: threads.currentSessionId,
-    onSubmitUserMessage,
+    onSubmitMessage,
     cancelCurrentWorkflow,
     cancelledMessageContent,
     clearCancelledMessageContent,

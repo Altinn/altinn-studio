@@ -25,7 +25,7 @@ describe('useAltinityAssistant', () => {
     mockUseAltinityWorkflow.mockReturnValue({
       connectionStatus: 'connected',
       workflowStatus: { isActive: false },
-      onSubmitUserMessage: jest.fn(),
+      onSubmitMessage: jest.fn(),
       clearCurrentSession,
       cancelCurrentWorkflow: jest.fn(),
       cancelledMessageContent: null,

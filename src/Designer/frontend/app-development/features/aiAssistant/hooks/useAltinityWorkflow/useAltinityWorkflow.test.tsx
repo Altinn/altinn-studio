@@ -55,7 +55,7 @@ describe('useAltinityWorkflow', () => {
     };
 
     await act(async () => {
-      await result.current.onSubmitUserMessage(message);
+      await result.current.onSubmitMessage(message);
     });
 
     expect(startWorkflow).not.toHaveBeenCalled();
@@ -127,7 +127,7 @@ describe('useAltinityWorkflow', () => {
     };
 
     await act(async () => {
-      await result.current.onSubmitUserMessage(userMessage);
+      await result.current.onSubmitMessage(userMessage);
     });
 
     // Simulate the user switching threads before the assistant responds
@@ -182,7 +182,7 @@ describe('useAltinityWorkflow', () => {
     };
 
     await act(async () => {
-      await result.current.onSubmitUserMessage(message);
+      await result.current.onSubmitMessage(message);
     });
 
     expect(threads.createThread).toHaveBeenCalledWith('Hello');
