@@ -4,7 +4,7 @@ import type { Location } from 'react-router';
 
 import { loadingAttribute, useHasElementsByAttribute } from 'src/components/ReadyForPrint';
 import { useIsLoading } from 'src/core/loading/LoadingContext';
-import type { NavigationState } from 'src/types/navigation';
+import type { NavigationState } from 'src/types/NavigationState';
 
 /**
  * Moves focus to #main-content on every navigation, unless the navigation was

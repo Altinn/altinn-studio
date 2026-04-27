@@ -29,7 +29,7 @@ import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
-import type { NavigationState } from 'src/types/navigation';
+import type { NavigationState } from 'src/types/NavigationState';
 
 interface FormState {
   hasRequired: boolean;

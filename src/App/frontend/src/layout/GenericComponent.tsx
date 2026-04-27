@@ -30,7 +30,7 @@ import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
-import type { NavigationState } from 'src/types/navigation';
+import type { NavigationState } from 'src/types/NavigationState';
 
 export interface IGenericComponentProps<Type extends CompTypes> {
   baseComponentId: string;

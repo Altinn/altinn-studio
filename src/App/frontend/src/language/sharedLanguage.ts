@@ -10,7 +10,7 @@ import type { DOMNode, Element as ReactParserElement, HTMLReactParserOptions } f
 import { LinkToPotentialNode } from 'src/components/form/LinkToPotentialNode';
 import { LinkToPotentialPage } from 'src/components/form/LinkToPotentialPage';
 import { cachedFunction } from 'src/utils/cachedFunction';
-import type { NavigationState } from 'src/types/navigation';
+import type { NavigationState } from 'src/types/NavigationState';
 
 marked.use(mangle());
 

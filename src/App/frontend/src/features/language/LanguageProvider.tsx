@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 import { SearchParams } from 'src/core/routing/types';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useCookieState } from 'src/hooks/useCookieState';
-import type { NavigationState } from 'src/types/navigation';
+import type { NavigationState } from 'src/types/NavigationState';
 
 /**
   URL search param = temporary override (e.g., shared link)

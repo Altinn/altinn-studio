@@ -18,7 +18,7 @@ import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NodeRefValidation } from 'src/features/validation';
-import type { NavigationState } from 'src/types/navigation';
+import type { NavigationState } from 'src/types/NavigationState';
 
 export interface NavigateToPageOptions {
   replace?: boolean;
