@@ -3,6 +3,7 @@
 ###############################################################################
 * text=auto
 /src/App/backend/**/*.cs text eol=crlf
+/src/App/fileanalyzers/**/*.cs text eol=crlf
 
 # Go source files must use LF (required by gofmt and golangci-lint)
 *.go text eol=lf

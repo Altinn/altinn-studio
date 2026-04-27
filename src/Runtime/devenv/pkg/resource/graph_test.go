@@ -7,12 +7,14 @@ import (
 
 // mockResource is a test implementation of Resource.
 type mockResource struct {
-	id   ResourceID
-	deps []ResourceRef
+	id      ResourceID
+	enabled *bool
+	deps    []ResourceRef
 }
 
 func (m *mockResource) ID() ResourceID              { return m.id }
 func (m *mockResource) Dependencies() []ResourceRef { return m.deps }
+func (m *mockResource) IsEnabled() bool             { return Enabled(m.enabled) }
 
 func mustAddResource(t *testing.T, g *Graph, r Resource) {
 	t.Helper()
@@ -132,6 +134,23 @@ func TestGraph_Validate(t *testing.T) {
 			errMsg:  "non-existent resource",
 		},
 		{
+			name: "enabled resource depends on disabled resource",
+			resources: []Resource{
+				&mockResource{id: "a", enabled: new(bool)},
+				&mockResource{id: "b", deps: DepIDs("a")},
+			},
+			wantErr: true,
+			errMsg:  "disabled resource",
+		},
+		{
+			name: "disabled resource with missing dependency is ignored",
+			resources: []Resource{
+				&mockResource{id: "a", enabled: new(bool), deps: DepIDs("nonexistent")},
+				&mockResource{id: "b"},
+			},
+			wantErr: false,
+		},
+		{
 			name: "self cycle",
 			resources: []Resource{
 				&mockResource{id: "a", deps: DepIDs("a")},
@@ -182,6 +201,20 @@ func TestGraph_Validate(t *testing.T) {
 	}
 }
 
+func TestGraph_Enabled(t *testing.T) {
+	g := NewGraph()
+	mustAddResource(t, g, &mockResource{id: "a"})
+	mustAddResource(t, g, &mockResource{id: "b", enabled: new(bool)})
+
+	enabled := g.Enabled()
+	if len(enabled) != 1 {
+		t.Fatalf("Enabled() returned %d resources, want 1", len(enabled))
+	}
+	if enabled[0].ID() != "a" {
+		t.Fatalf("Enabled()[0] = %q, want a", enabled[0].ID())
+	}
+}
+
 func TestGraph_TopologicalOrder(t *testing.T) {
 	g, resources := buildLinearGraph()
 	for _, r := range resources {
@@ -207,6 +240,28 @@ func TestGraph_TopologicalOrder(t *testing.T) {
 	}
 	if len(levels[2]) != 1 || levels[2][0].ID() != "c" {
 		t.Errorf("level 2 = %v, want [c]", levels[2])
+	}
+}
+
+func TestGraph_TopologicalOrder_SkipsDisabledResources(t *testing.T) {
+	a := &mockResource{id: "a"}
+	b := &mockResource{id: "b", enabled: new(bool)}
+	c := &mockResource{id: "c", deps: DepIDs("a")}
+
+	g := NewGraph()
+	mustAddResource(t, g, a)
+	mustAddResource(t, g, b)
+	mustAddResource(t, g, c)
+
+	levels, err := g.TopologicalOrder()
+	if err != nil {
+		t.Fatalf("TopologicalOrder() error = %v", err)
+	}
+	if len(levels) != 2 {
+		t.Fatalf("TopologicalOrder() returned %d levels, want 2", len(levels))
+	}
+	if levels[0][0].ID() != "a" || levels[1][0].ID() != "c" {
+		t.Fatalf("TopologicalOrder() = %v, want a then c", levels)
 	}
 }
 

@@ -74,7 +74,7 @@ func TestRemoteImage_PullPolicies(t *testing.T) {
 		}
 
 		exec := NewExecutor(client)
-		err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullAlways})
+		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullAlways})
 		if err != nil {
 			t.Fatalf("applyRemoteImage() error = %v", err)
 		}
@@ -100,7 +100,7 @@ func TestRemoteImage_PullPolicies(t *testing.T) {
 		}
 
 		exec := NewExecutor(client)
-		err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullIfNotPresent})
+		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullIfNotPresent})
 		if err != nil {
 			t.Fatalf("applyRemoteImage() error = %v", err)
 		}
@@ -121,7 +121,7 @@ func TestRemoteImage_PullPolicies(t *testing.T) {
 		}
 
 		exec := NewExecutor(client)
-		err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullNever})
+		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullNever})
 		if err == nil {
 			t.Fatal("applyRemoteImage() expected error, got nil")
 		}
@@ -137,7 +137,7 @@ func TestRemoteImage_PullPolicies(t *testing.T) {
 		}
 
 		exec := NewExecutor(client)
-		err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullIfNotPresent})
+		_, err := exec.applyRemoteImage(t.Context(), &RemoteImage{Ref: "nginx:latest", PullPolicy: PullIfNotPresent})
 		if err == nil {
 			t.Fatal("applyRemoteImage() expected error, got nil")
 		}

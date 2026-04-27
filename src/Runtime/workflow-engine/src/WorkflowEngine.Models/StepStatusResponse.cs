@@ -70,6 +70,13 @@ public sealed record StepStatusResponse
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RetryStrategy? RetryStrategy { get; init; }
 
+    /// <summary>
+    /// History of errors recorded across this step's execution attempts. Omitted when no errors have occurred.
+    /// </summary>
+    [JsonPropertyName("errorHistory")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ErrorEntry>? ErrorHistory { get; init; }
+
     internal static StepStatusResponse FromStep(Step step) =>
         new()
         {
@@ -83,6 +90,7 @@ public sealed record StepStatusResponse
             RetryCount = step.RequeueCount,
             StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
+            ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,
         };
 
     public sealed record CommandDetails

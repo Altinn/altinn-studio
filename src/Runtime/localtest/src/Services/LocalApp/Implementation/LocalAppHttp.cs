@@ -2,10 +2,9 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
 
-using Altinn.Studio.AppTunnel;
+using Altinn.Studio.EnvTopology;
 using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Configuration;
@@ -30,29 +29,22 @@ namespace LocalTest.Services.LocalApp.Implementation
         public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
         public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
         private static readonly TimeSpan ApplicationMetadataRequestTimeout = TimeSpan.FromSeconds(5);
-        private readonly GeneralSettings _generalSettings;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly string _defaultAppUrl;
         private readonly IMemoryCache _cache;
         private readonly ILogger<LocalAppHttp> _logger;
         private readonly AppTunnelClient _appTunnelClient;
-        private const string DefaultAppSentinel = "org/app";
+        private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger, AppTunnelClient appTunnelClient)
+        public LocalAppHttp(
+            IMemoryCache cache,
+            ILogger<LocalAppHttp> logger,
+            AppTunnelClient appTunnelClient,
+            BoundTopologyIndexAccessor boundTopologyIndex
+        )
         {
-            _generalSettings = generalSettings.Value;
-            _httpClientFactory = httpClientFactory;
-            _defaultAppUrl = localPlatformSettings.Value.LocalAppUrl;
             _cache = cache;
             _logger = logger;
             _appTunnelClient = appTunnelClient;
-        }
-
-        private HttpClient CreateClient(string baseAddress)
-        {
-            var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri(baseAddress);
-            return client;
+            _boundTopologyIndex = boundTopologyIndex;
         }
 
         private async Task<string> GetStringAsync(string requestUri, string? appId, CancellationToken cancellationToken)
@@ -65,45 +57,22 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         private async Task<HttpResponseMessage> Send(HttpRequestMessage request, string? appId, CancellationToken cancellationToken)
         {
-            var tunnelAppId = NormalizeTunnelAppId(appId);
-            if (_appTunnelClient.IsConnected)
+            if (!_appTunnelClient.IsConnected)
             {
-                try
-                {
-                    return await _appTunnelClient.Send(request, tunnelAppId, cancellationToken);
-                }
-                catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
-                {
-                    if (tunnelAppId is not null)
-                        throw;
-
-                    _logger.LogDebug(ex, "Tunnel request failed for app {AppId}, falling back to LocalAppUrl", appId);
-                }
+                throw new InvalidOperationException("app tunnel is not connected");
             }
 
-            return await SendDirectAsync(request, _defaultAppUrl, cancellationToken);
-        }
-
-        private static string? NormalizeTunnelAppId(string? appId) =>
-            string.IsNullOrWhiteSpace(appId) || string.Equals(appId, DefaultAppSentinel, StringComparison.Ordinal)
-                ? null
-                : appId;
-
-        private async Task<HttpResponseMessage> SendDirectAsync(HttpRequestMessage request, string baseAddress, CancellationToken cancellationToken)
-        {
-            var client = CreateClient(baseAddress);
-
-            if (request.RequestUri is null)
+            var resolvedRoute = ResolveAppRoute(appId);
+            if (resolvedRoute is null)
             {
-                throw new InvalidOperationException("local app request is missing uri");
+                throw new InvalidOperationException("local app request requires an app id");
             }
-
-            if (!request.RequestUri.IsAbsoluteUri)
-            {
-                request.RequestUri = new Uri(client.BaseAddress!, request.RequestUri);
-            }
-
-            return await client.SendAsync(request, cancellationToken);
+            return await _appTunnelClient.SendToTarget(
+                request,
+                resolvedRoute.TargetHost,
+                resolvedRoute.TargetPort,
+                cancellationToken
+            );
         }
 
         public async Task<string?> GetXACMLPolicy(string appId, CancellationToken cancellationToken = default)
@@ -117,21 +86,12 @@ namespace LocalTest.Services.LocalApp.Implementation
         }
         public async Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
         {
-            // When the AppPathSelection is null, check if there is exactly one app registered. If there are, that's
-            // the default one (not the one on port 5005)
+            appId = ResolveAppRoute(appId)?.AppId;
             if (string.IsNullOrWhiteSpace(appId))
             {
-                var discoveredApps = await GetDiscoveredApps(cancellationToken);
-                if (discoveredApps.Count == 1)
-                {
-                    appId = discoveredApps[0].AppId;
-                }
+                return null;
             }
 
-            // This works because we call with checkOrgApp=false later, and when the app is running on port 5005 it will
-            // respond with the correct org/app id. If, however, the app is a registered one it runs on a dynamic port,
-            // and so we have to look it up from the registry instead.
-            appId ??= DefaultAppSentinel;
             var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
@@ -177,13 +137,11 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             var ret = new Dictionary<string, Application>();
 
-            // Get all registered apps
-            var discoveredApps = await GetDiscoveredApps(cancellationToken);
-            foreach (var discoveredApp in discoveredApps)
+            foreach (var appRoute in GetBoundAppRoutes())
             {
                 try
                 {
-                    var app = await GetApplicationMetadata(discoveredApp.AppId, cancellationToken);
+                    var app = await GetApplicationMetadata(appRoute.AppId, cancellationToken);
                     if (app != null)
                     {
                         ret.Add(app.Id, app);
@@ -191,24 +149,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to get metadata for discovered app {AppId}", discoveredApp.AppId);
-                }
-            }
-
-            if (ShouldProbeDefaultLocalApp(discoveredApps))
-            {
-                // Only use the legacy default app URL when no app has been registered through the tunnel.
-                try
-                {
-                    var app = await GetApplicationMetadata(null, cancellationToken);
-                    if (app != null && !ret.ContainsKey(app.Id))
-                    {
-                        ret.Add(app.Id, app);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "No app found on default port 5005");
+                    _logger.LogWarning(ex, "Failed to get metadata for discovered app {AppId}", appRoute.AppId);
                 }
             }
 
@@ -251,12 +192,11 @@ namespace LocalTest.Services.LocalApp.Implementation
                 int reachableApps = 0;
                 int appsWithData = 0;
 
-                var discoveredApps = await GetDiscoveredApps(cancellationToken);
-                foreach (var discoveredApp in discoveredApps)
+                foreach (var appRoute in GetBoundAppRoutes())
                 {
                     try
                     {
-                        var result = await FetchAndMergeTestData(discoveredApp.AppId, $"{discoveredApp.AppId}/testData.json", merged, cancellationToken);
+                        var result = await FetchAndMergeTestData(appRoute.AppId, $"{appRoute.AppId}/testData.json", merged, cancellationToken);
                         if (result.AppWasReachable)
                         {
                             reachableApps++;
@@ -269,40 +209,8 @@ namespace LocalTest.Services.LocalApp.Implementation
                     }
                     catch (InvalidOperationException ex)
                     {
-                        _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", discoveredApp.AppId);
+                        _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", appRoute.AppId);
                         throw;
-                    }
-                }
-
-                if (ShouldProbeDefaultLocalApp(discoveredApps))
-                {
-                    // Only use the legacy default app URL when no app has been registered through the tunnel.
-                    try
-                    {
-                        var defaultAppMetadata = await GetApplicationMetadata(DefaultAppSentinel, cancellationToken);
-                        if (defaultAppMetadata != null)
-                        {
-                            var defaultResult = await FetchAndMergeTestData(defaultAppMetadata.Id, $"{defaultAppMetadata.Id}/testData.json", merged, cancellationToken);
-
-                            if (defaultResult.AppWasReachable)
-                            {
-                                reachableApps++;
-                                if (defaultResult.AppHadData)
-                                {
-                                    appsWithData++;
-                                }
-                                merged = defaultResult.MergedData;
-                            }
-                        }
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        _logger.LogCritical(ex, "Test data conflict detected when loading from default app");
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(ex, "No default app found on port 5005");
                     }
                 }
 
@@ -315,9 +223,6 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             return result ?? new ILocalApp.TestDataResult(null, false);
         }
-
-        private static bool ShouldProbeDefaultLocalApp(IReadOnlyList<TunnelDiscoveredApp> discoveredApps) =>
-            discoveredApps.Count == 0;
 
         private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged, CancellationToken cancellationToken = default)
         {
@@ -345,7 +250,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                     var targetModel = merged.GetTestDataModel();
 
                     // MergeTestData will detect conflicts and throw if any already exist
-                    TestDataMerger.MergeTestData(sourceModel, targetModel, appId ?? "default app");
+                    TestDataMerger.MergeTestData(sourceModel, targetModel, appId ?? "unknown app");
                     merged = AppTestDataModel.FromTestDataModel(targetModel);
                     return new FetchResult(merged, AppWasReachable: true, AppHadData: true);
                 }
@@ -364,17 +269,20 @@ namespace LocalTest.Services.LocalApp.Implementation
             _cache.Remove(TEST_DATA_CACHE_KEY);
         }
 
-        private async Task<IReadOnlyList<TunnelDiscoveredApp>> GetDiscoveredApps(CancellationToken cancellationToken)
+        private IReadOnlyList<BoundTopologyAppRoute> GetBoundAppRoutes()
         {
-            try
+            return _boundTopologyIndex.Current.GetApps();
+        }
+
+        private BoundTopologyAppRoute? ResolveAppRoute(string? appId)
+        {
+            var index = _boundTopologyIndex.Current;
+            if (!string.IsNullOrWhiteSpace(appId))
             {
-                return await _appTunnelClient.GetDiscoveredApps(cancellationToken);
+                return index.TryGetApp(appId);
             }
-            catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or JsonException)
-            {
-                _logger.LogDebug(ex, "Failed to get discovered apps from app-manager");
-                return [];
-            }
+
+            return index.TryGetSingleApp();
         }
     }
 }
