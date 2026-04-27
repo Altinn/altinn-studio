@@ -18,7 +18,7 @@ import { useErrorMetricsQuery } from 'admin/features/apps/hooks/queries/useError
 import { TimeRangeSelect } from 'admin/features/apps/components/TimeRangeSelect/TimeRangeSelect';
 import { Alert } from 'admin/features/apps/components/Alert/Alert';
 import { isAxiosError } from 'axios';
-import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { createSearchParams, DEFAULT_SEARCH_PARAMS } from 'admin/constants/constants';
 
 export type AppsTableProps = {
@@ -53,8 +53,9 @@ const sortEnvironments = (a: string, b: string) => {
 };
 
 const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
-  const { t, i18n } = useTranslation();
-  const orgName = useCurrentOrg().name[i18n.language];
+  const { t } = useTranslation();
+  const currentOrg = useCurrentOrg();
+  const orgName = currentOrg.full_name || currentOrg.username;
   const [search, setSearch] = useQueryParamState<string>('appSearch', '');
   const [selectedEnvironment, setSelectedEnvironment] = useQueryParamState<string>(
     'environment',
@@ -118,9 +119,10 @@ const AppsTableContent = ({
   setSearch,
   runningApps,
 }: AppsTableContentProps) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const envTitle = useEnvironmentTitle(environment);
-  const orgName = useCurrentOrg().name[i18n.language];
+  const currentOrg = useCurrentOrg();
+  const orgName = currentOrg.full_name || currentOrg.username;
   const [range, setRange] = useQueryParamState<number>('range', DEFAULT_SEARCH_PARAMS.range);
   const {
     data: errorMetrics,

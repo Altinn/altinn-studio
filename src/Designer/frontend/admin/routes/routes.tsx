@@ -1,4 +1,4 @@
-import { RoutePaths } from 'admin/enums/RoutePaths';
+import { RoutePaths } from 'admin/routes/RoutePaths';
 import { AppsDetails } from 'admin/features/apps/pages/appDetails/AppDetails';
 import { Apps } from 'admin/features/apps/pages/apps/Apps';
 import { InstanceDetails } from 'admin/features/apps/pages/instanceDetails/InstanceDetails';

@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import { Menu } from './Menu';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@studio/feature-flags';
 
 const mockNavigate = jest.fn();
 
@@ -33,7 +33,24 @@ const getBotAccountsTab = () =>
 describe('Menu', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the contact points tab', () => {
+  it('renders the bot accounts tab', () => {
+    mockUseFeatureFlag.mockReturnValue(false);
+    renderMenu();
+    expect(getBotAccountsTab()).toBeInTheDocument();
+  });
+
+  it('does not render the contact points tab when Admin is disabled', () => {
+    mockUseFeatureFlag.mockReturnValue(false);
+    renderMenu();
+    expect(
+      screen.queryByRole('tab', {
+        name: textMock('settings.orgs.contact_points.menu.contact_points'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the contact points tab when Admin is enabled', () => {
+    mockUseFeatureFlag.mockImplementation((flag: FeatureFlag) => flag === FeatureFlag.Admin);
     renderMenu();
     expect(getContactPointsTab()).toBeInTheDocument();
   });
