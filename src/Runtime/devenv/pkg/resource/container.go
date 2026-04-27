@@ -16,6 +16,7 @@ var (
 type Container struct {
 	HealthCheck    *types.HealthCheck
 	Image          ResourceRef
+	Enabled        *bool
 	Labels         map[string]string
 	Lifecycle      ContainerLifecycleOptions
 	Name           string
@@ -56,6 +57,11 @@ func (c *Container) LifecycleOptions() LifecycleOptions {
 	return c.Lifecycle.LifecycleOptions
 }
 
+// IsEnabled reports whether this container participates in graph execution.
+func (c *Container) IsEnabled() bool {
+	return Enabled(c.Enabled)
+}
+
 // Validate checks that the container configuration is valid.
 func (c *Container) Validate() error {
 	if c.Name == "" {
@@ -71,5 +77,6 @@ func (c *Container) Validate() error {
 var (
 	_ Resource                 = (*Container)(nil)
 	_ Validator                = (*Container)(nil)
+	_ EnablementProvider       = (*Container)(nil)
 	_ LifecycleOptionsProvider = (*Container)(nil)
 )

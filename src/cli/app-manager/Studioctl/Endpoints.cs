@@ -89,17 +89,9 @@ internal static class Endpoints
         };
     }
 
-    private static async Task<IResult> Shutdown(IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
+    private static IResult Shutdown(IHostApplicationLifetime lifetime)
     {
-        _ = Task.Run(
-            async () =>
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
-                lifetime.StopApplication();
-            },
-            cancellationToken
-        );
-
+        lifetime.StopApplication();
         return Results.Accepted(value: new CommandResponse("shutdown requested"));
     }
 

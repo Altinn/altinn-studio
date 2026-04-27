@@ -1,26 +1,12 @@
-import React from 'react';
-
-import { render } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
-import * as UseBindingSchema from 'src/features/datamodel/useBindingSchema';
-import { FormStore } from 'src/features/form/FormContext';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrap';
-import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
+import { deriveSchemaValidations } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
-import type { IDataType } from 'src/types/shared';
 
 describe('SchemaValidation', () => {
   describe('format validation', () => {
-    beforeEach(() => {
-      jest.spyOn(FormStore.data, 'useDebounced').mockRestore();
-      jest.spyOn(FormBootstrap, 'useDataModelSchema').mockRestore();
-      jest.spyOn(UseBindingSchema, 'useDataModelType').mockRestore();
-      jest.spyOn(FormStore.validation, 'useUpdateDataModelValidations').mockRestore();
-    });
-
     const formatTests = [
       {
         format: 'date',
@@ -254,22 +240,16 @@ describe('SchemaValidation', () => {
                 },
               },
             };
-            const rootElementPath = '';
-            const validator = createValidator(schema);
-
-            jest.spyOn(FormStore.data, 'useDebounced').mockReturnValue(formData);
-            jest
-              .spyOn(FormBootstrap, 'useDataModelSchema')
-              .mockReturnValue({ schema, rootElementPath, validator } as DataModelSchemaResult);
-            jest.spyOn(FormBootstrap, 'useDataElementIdForDataType').mockReturnValue(defaultMockDataElementId);
-            jest.spyOn(UseBindingSchema, 'useDataModelType').mockReturnValue({} as IDataType);
-
-            const updateDataModelValidations = jest.fn();
-            jest
-              .spyOn(FormStore.validation, 'useUpdateDataModelValidations')
-              .mockImplementation(() => updateDataModelValidations);
-
-            render(<SchemaValidation dataType='mockDataType' />);
+            const schemaResult = {
+              schema,
+              rootElementPath: '',
+              validator: createValidator(schema),
+            } as DataModelSchemaResult;
+            const validations = deriveSchemaValidations({
+              formData,
+              schemaResult,
+              dataElementId: defaultMockDataElementId,
+            });
 
             // If valid, expect empty validations object
             // If not valid, expect an object containing at least field and severity
@@ -279,11 +259,7 @@ describe('SchemaValidation', () => {
                   field: expect.arrayContaining([expect.objectContaining({ field: 'field', severity: 'error' })]),
                 });
 
-            expect(updateDataModelValidations).toHaveBeenCalledWith(
-              'schema',
-              defaultMockDataElementId,
-              expectedValidations,
-            );
+            expect(validations).toEqual(expectedValidations);
           });
         });
       });
