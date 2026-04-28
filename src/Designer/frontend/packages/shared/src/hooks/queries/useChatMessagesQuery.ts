@@ -19,7 +19,6 @@ export const useChatMessagesQuery = (threadId: string | null) => {
 export function mapChatMessageToFrontend(message: ChatMessage) {
   const base = {
     id: message.id,
-    role: message.role,
     content: message.content,
     createdAt: message.createdAt,
   };
@@ -27,6 +26,7 @@ export function mapChatMessageToFrontend(message: ChatMessage) {
   if (message.role === MessageAuthor.User) {
     return {
       ...base,
+      role: MessageAuthor.User as const,
       allowAppChanges: message.allowAppChanges ?? false,
       attachments: message.attachmentFileNames?.map((name) => ({ name })) ?? [],
     };
@@ -34,6 +34,7 @@ export function mapChatMessageToFrontend(message: ChatMessage) {
 
   return {
     ...base,
+    role: MessageAuthor.Assistant as const,
     filesChanged: message.filesChanged,
     sources: message.sources,
   };
