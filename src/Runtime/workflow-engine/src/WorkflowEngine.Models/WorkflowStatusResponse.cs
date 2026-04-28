@@ -113,6 +113,9 @@ public sealed record WorkflowStatusResponse
     [JsonPropertyName("steps")]
     public required IReadOnlyList<StepStatusResponse> Steps { get; init; }
 
+    /// <summary>
+    /// Projects a <see cref="Workflow"/> to its public response representation.
+    /// </summary>
     public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
         new()
         {

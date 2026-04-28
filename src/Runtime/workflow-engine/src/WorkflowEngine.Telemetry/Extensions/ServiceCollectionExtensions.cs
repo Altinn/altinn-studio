@@ -7,10 +7,20 @@ using OpenTelemetry.Trace;
 
 namespace WorkflowEngine.Telemetry.Extensions;
 
+/// <summary>
+/// Service collection extensions for registering the engine's OpenTelemetry pipeline.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
+        /// <summary>
+        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs) and the OTLP exporter.
+        /// </summary>
+        /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
+        /// <param name="enableDatabaseInstrumentation">Enable EF Core and Npgsql tracing instrumentation. Implies <paramref name="enableDatabaseMetrics"/>.</param>
+        /// <param name="enableDatabaseMetrics">Enable Npgsql connection pool and command metrics.</param>
+        /// <param name="traceSamplingRate">Trace sampling rate between 0.0 (drop all) and 1.0 (keep all). Metrics and logs are always exported at full fidelity.</param>
         public IServiceCollection AddTelemetry(
             bool emitQueryParameters = false,
             bool enableDatabaseInstrumentation = false,

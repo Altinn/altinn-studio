@@ -24,8 +24,13 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     private readonly ILogger<WebhookCommand> _logger;
 
     private const string CommandTypeId = "webhook";
+
+    /// <inheritdoc/>
     public override string CommandType => CommandTypeId;
 
+    /// <summary>
+    /// Creates a new <see cref="WebhookCommand"/> with the supplied HTTP client factory, concurrency limiter, and logger.
+    /// </summary>
     public WebhookCommand(
         IHttpClientFactory httpClientFactory,
         IConcurrencyLimiter limiter,
