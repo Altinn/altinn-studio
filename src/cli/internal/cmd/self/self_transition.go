@@ -47,11 +47,6 @@ type TransitionState struct {
 	appManagerWasRunning  bool
 }
 
-// TransitionOptions controls how strict transition preparation should be.
-type TransitionOptions struct {
-	RequireAppStatus bool
-}
-
 // Transition coordinates app/env/app-manager shutdown around self operations.
 type Transition struct {
 	cfg             *config.Config
@@ -86,8 +81,8 @@ func NewTransition(cfg *config.Config, out *ui.Output) *Transition {
 }
 
 // Prepare stops running apps, environments, and app-manager before a self operation.
-func (t *Transition) Prepare(ctx context.Context, opts TransitionOptions) (TransitionState, error) {
-	appManagerWasRunning, studioctlPath, err := t.stopApps(ctx, opts)
+func (t *Transition) Prepare(ctx context.Context) (TransitionState, error) {
+	appManagerWasRunning, studioctlPath, err := t.stopApps(ctx)
 	if err != nil {
 		return TransitionState{}, err
 	}
@@ -148,17 +143,13 @@ func (t *Transition) RestartIfNeeded(
 	return nil
 }
 
-func (t *Transition) stopApps(ctx context.Context, opts TransitionOptions) (bool, string, error) {
+func (t *Transition) stopApps(ctx context.Context) (bool, string, error) {
 	status, err := t.appClient.Status(ctx)
 	if err != nil {
 		if errors.Is(err, appmanager.ErrNotRunning) {
 			return false, "", nil
 		}
-		if opts.RequireAppStatus {
-			return false, "", fmt.Errorf("get app-manager status before self operation: %w", err)
-		}
-		t.out.Verbosef("skipping app shutdown before self operation: %v", err)
-		return false, "", nil
+		return false, "", fmt.Errorf("get app-manager status before self operation: %w", err)
 	}
 
 	apps := sortDiscoveredApps(filterManagedApps(status.Apps))
@@ -209,11 +200,16 @@ func (t *Transition) stopEnvs(ctx context.Context) error {
 		}
 	}()
 
-	for _, env := range envregistry.Envs(
+	envs, err := envregistry.Envs(
 		envregistry.WithConfig(t.cfg),
 		envregistry.WithOutput(t.out),
 		envregistry.WithContainerClient(client),
-	) {
+	)
+	if err != nil {
+		return fmt.Errorf("build environment registry: %w", err)
+	}
+
+	for _, env := range envs {
 		if err := env.Down(ctx); err != nil {
 			if errors.Is(err, envtypes.ErrAlreadyStopped) {
 				continue

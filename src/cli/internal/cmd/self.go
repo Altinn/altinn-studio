@@ -188,9 +188,7 @@ func (c *SelfCommand) performInstall(
 	candidates []selfsvc.Candidate,
 	skipResources bool,
 ) error {
-	state, err := c.transition.Prepare(ctx, selfsvc.TransitionOptions{
-		RequireAppStatus: false,
-	})
+	state, err := c.transition.Prepare(ctx)
 	if err != nil {
 		return fmt.Errorf("prepare install: %w", err)
 	}
@@ -333,9 +331,7 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: windows executable is locked while running", selfsvc.ErrUpdateUnsupported)
 	}
 
-	state, err := c.transition.Prepare(ctx, selfsvc.TransitionOptions{
-		RequireAppStatus: false,
-	})
+	state, err := c.transition.Prepare(ctx)
 	if err != nil {
 		return fmt.Errorf("prepare update: %w", err)
 	}
@@ -459,9 +455,7 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	state, err := c.transition.Prepare(ctx, selfsvc.TransitionOptions{
-		RequireAppStatus: true,
-	})
+	state, err := c.transition.Prepare(ctx)
 	if err != nil {
 		return fmt.Errorf("prepare uninstall: %w", err)
 	}

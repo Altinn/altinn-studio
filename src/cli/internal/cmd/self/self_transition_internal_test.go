@@ -62,7 +62,7 @@ func TestSelfTransitionPrepareStopsAppsBeforeLocaltestAndAppManager(t *testing.T
 		},
 	}
 
-	state, err := transition.Prepare(t.Context(), TransitionOptions{})
+	state, err := transition.Prepare(t.Context())
 	if err != nil {
 		t.Fatalf("Prepare() error = %v", err)
 	}
@@ -79,7 +79,7 @@ func TestSelfTransitionPrepareStopsAppsBeforeLocaltestAndAppManager(t *testing.T
 	}
 }
 
-func TestSelfTransitionStatusFailureIsBestEffortUnlessRequired(t *testing.T) {
+func TestSelfTransitionStatusFailureFails(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
@@ -99,14 +99,11 @@ func TestSelfTransitionStatusFailureIsBestEffortUnlessRequired(t *testing.T) {
 		},
 	}
 
-	if _, err := transition.Prepare(t.Context(), TransitionOptions{RequireAppStatus: false}); err != nil {
-		t.Fatalf("Prepare() optional app status error = %v", err)
-	}
-	if _, err := transition.Prepare(t.Context(), TransitionOptions{RequireAppStatus: true}); !errors.Is(
+	if _, err := transition.Prepare(t.Context()); !errors.Is(
 		err,
 		errSelfTransitionTestStatus,
 	) {
-		t.Fatalf("Prepare() required app status error = %v, want status error", err)
+		t.Fatalf("Prepare() app status error = %v, want status error", err)
 	}
 }
 
@@ -144,7 +141,7 @@ func TestSelfTransitionAppStopFailureFails(t *testing.T) {
 		}
 	}
 
-	if _, err := newTransition().Prepare(t.Context(), TransitionOptions{}); !errors.Is(
+	if _, err := newTransition().Prepare(t.Context()); !errors.Is(
 		err,
 		errStopFailed,
 	) {
