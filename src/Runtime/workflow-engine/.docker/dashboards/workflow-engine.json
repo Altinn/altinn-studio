@@ -1700,7 +1700,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 30,
             "gradientMode": "none",
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -1709,7 +1709,7 @@
             "spanNulls": true,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -1788,7 +1788,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_workflows_time_queue_seconds_bucket[5m])) by (le))",
+          "expr": "sum(rate(engine_workflows_time_queue_seconds_sum[5m])) / sum(rate(engine_workflows_time_queue_seconds_count[5m]))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -1797,13 +1797,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_workflows_time_service_seconds_bucket[5m])) by (le))",
+          "expr": "sum(rate(engine_workflows_time_service_seconds_sum[5m])) / sum(rate(engine_workflows_time_service_seconds_count[5m]))",
           "legendFormat": "Execution",
           "refId": "B"
         }
       ],
-      "title": "Workflow Time Breakdown (P95, per attempt)",
-      "description": "Per-attempt P95 of queue wait and active execution, plotted as independent lines. These do NOT sum to the Workflow Duration P95 \u2014 percentiles are not additive across decompositions. Per individual workflow attempt, queue + service does equal total (by construction in the engine), but the 95th-percentile attempt for queue is rarely the same attempt as the 95th-percentile attempt for service.",
+      "title": "Workflow Time Breakdown (mean, per attempt)",
+      "description": "Per-attempt mean of queue wait and active execution, stacked. Means are additive, so the stack height equals the mean total time per attempt. Use this view to see how time is split on average; for tail latency see Workflow Duration (P95).",
       "type": "timeseries"
     },
     {
@@ -1969,7 +1969,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 30,
             "gradientMode": "none",
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -1978,7 +1978,7 @@
             "spanNulls": true,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -2057,7 +2057,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_queue_seconds_bucket[5m])) by (le))",
+          "expr": "sum(rate(engine_steps_time_queue_seconds_sum[5m])) / sum(rate(engine_steps_time_queue_seconds_count[5m]))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -2066,13 +2066,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_service_seconds_bucket[5m])) by (le))",
+          "expr": "sum(rate(engine_steps_time_service_seconds_sum[5m])) / sum(rate(engine_steps_time_service_seconds_count[5m]))",
           "legendFormat": "Execution",
           "refId": "B"
         }
       ],
-      "title": "Step Time Breakdown (P95, per attempt)",
-      "description": "Per-attempt P95 of step queue wait (engine/DB overhead between steps) and active execution, plotted as independent lines. These do NOT sum to the Step Duration P95 \u2014 percentiles are not additive across decompositions. Use this view to see whether queue or service is the dominant contributor at the tail.",
+      "title": "Step Time Breakdown (mean, per attempt)",
+      "description": "Per-attempt mean of step queue wait (engine/DB overhead between steps) and active execution, stacked. Means are additive, so the stack height equals the mean total time per step. Use this view to see how time is split on average; for tail latency see Step Duration (P95).",
       "type": "timeseries"
     },
     {
@@ -2848,7 +2848,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_mainloop_time_queue_seconds_bucket[5m])) by (le))",
+          "expr": "sum(rate(engine_mainloop_time_queue_seconds_sum[5m])) / sum(rate(engine_mainloop_time_queue_seconds_count[5m]))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -2857,13 +2857,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(engine_mainloop_time_service_seconds_bucket[5m])) by (le))",
+          "expr": "sum(rate(engine_mainloop_time_service_seconds_sum[5m])) / sum(rate(engine_mainloop_time_service_seconds_count[5m]))",
           "legendFormat": "Active Work",
           "refId": "B"
         }
       ],
-      "title": "Main Loop Time (P95)",
-      "description": "P95 of each main-loop iteration broken down: Queue (post-fetch wait \u2014 debounce or ~500ms idle ceiling), Active Work (fetch + dispatch). Note: P95s are independent \u2014 they cannot be summed to derive total iteration time. For iteration throughput, see Main Loop Rate.",
+      "title": "Main Loop Time (mean)",
+      "description": "Mean time per main-loop iteration, stacked. Queue Wait = post-fetch wait (debounce or ~500ms idle ceiling), Active Work = fetch + dispatch. Means are additive so the stack height equals mean total iteration time. For iteration throughput see Main Loop Rate.",
       "type": "timeseries"
     },
     {
