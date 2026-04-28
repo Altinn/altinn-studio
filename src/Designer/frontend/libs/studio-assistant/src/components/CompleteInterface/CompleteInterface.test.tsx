@@ -3,19 +3,16 @@ import { CompleteInterface } from './CompleteInterface';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockTexts } from '../../mocks/mockTexts';
-import type { ChatThread, Message } from '../../types/ChatThread';
+import type { Message } from '../../types/ChatThread';
 import { MessageAuthor } from '../../types/MessageAuthor';
+import { mockChatThreads } from '../../mocks/mockChatThreads';
 
 // Test data
 const onSubmitMessage = jest.fn();
 const onSelectThread = jest.fn();
 
-const threadTitle1 = 'Thread 1';
-const threadTitle2 = 'Thread 2';
-const mockChatThreads: ChatThread[] = [
-  { id: '1', title: threadTitle1, createdAt: new Date().toISOString() },
-  { id: '2', title: threadTitle2, createdAt: new Date().toISOString() },
-];
+const threadTitle1 = mockChatThreads[0].title;
+const threadTitle2 = mockChatThreads[1].title;
 
 const mockMessages: Message[] = [
   {
