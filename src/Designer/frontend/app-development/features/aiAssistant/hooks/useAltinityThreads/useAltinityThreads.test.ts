@@ -62,8 +62,10 @@ describe('useAltinityThreads', () => {
     expect(result.current.currentSessionIdRef.current).toBe(threadId);
   });
 
-  it('clears current session when deleting active thread', () => {
-    const deleteThreadMutate = jest.fn();
+  it('clears current session when deleting active thread succeeds', () => {
+    const deleteThreadMutate = jest
+      .fn()
+      .mockImplementation((_id, options) => options?.onSuccess?.());
     mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: deleteThreadMutate } as any);
 
     const { result } = renderUseAltinityThreads();
@@ -76,7 +78,7 @@ describe('useAltinityThreads', () => {
       result.current.deleteThread(threadId);
     });
 
-    expect(deleteThreadMutate).toHaveBeenCalledWith(threadId);
+    expect(deleteThreadMutate).toHaveBeenCalledWith(threadId, expect.any(Object));
     expect(result.current.currentSessionId).toBeNull();
   });
 });
