@@ -6,3 +6,5 @@ export type ChatThread = {
   createdBy: string;
   createdAt: string;
 };
+
+export type CreateChatThreadPayload = Pick<ChatThread, 'title'>;
