@@ -126,6 +126,9 @@ internal sealed class WorkflowHandler(
                 else
                 {
                     workflow.Status = PersistentItemStatus.Requeued;
+                    Metrics.WorkflowsRequeued.Add(1, ("reason", "shutdown"));
+                    RecordWorkflowServiceTime(workflow);
+                    RecordWorkflowTotalTime(workflow);
                 }
             }
 
@@ -178,6 +181,13 @@ internal sealed class WorkflowHandler(
 
             workflow.EngineActivity?.Errored();
             Metrics.WorkflowsFailed.Add(1, ("reason", "execution"));
+        }
+        else if (workflow.Status == PersistentItemStatus.Requeued)
+        {
+            RecordWorkflowServiceTime(workflow);
+            RecordWorkflowTotalTime(workflow);
+
+            Metrics.WorkflowsRequeued.Add(1, ("reason", "step_retry"));
         }
 
         await statusWriteBuffer.Submit(workflow, ct);
