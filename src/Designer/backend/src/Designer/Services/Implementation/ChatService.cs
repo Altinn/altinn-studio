@@ -47,7 +47,7 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
         if (thread is null)
             return null;
 
@@ -62,7 +62,7 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
         if (thread is null)
             return;
 
@@ -75,7 +75,7 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
         if (thread is null)
             return null;
 
@@ -89,7 +89,7 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
         if (thread is null)
             return null;
 
@@ -116,15 +116,15 @@ public class ChatService(IChatRepository repository) : IChatService
         CancellationToken cancellationToken = default
     )
     {
-        ChatThreadEntity? thread = await GetAuthorizedThreadAsync(threadId, context, cancellationToken);
+        ChatThreadEntity? thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
         if (thread is null)
             return;
 
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
     }
 
-    // Validates the thread belongs to this org/app/developer before any mutation
-    private Task<ChatThreadEntity?> GetAuthorizedThreadAsync(
+    // Validates the thread belongs to this org/app/developer. Use before any mutation.
+    private Task<ChatThreadEntity?> GetOwnedThreadAsync(
         Guid threadId,
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
