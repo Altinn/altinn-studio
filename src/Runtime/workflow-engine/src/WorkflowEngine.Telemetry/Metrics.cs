@@ -74,17 +74,17 @@ public static class Metrics
     public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
         "engine.workflows.time.queue",
         "s",
-        "Amount of time a workflow spent in the queue before and between executions (seconds)"
+        "Time the workflow waited in the queue before this attempt was picked up by a worker (seconds). Recorded once per attempt."
     );
     public static readonly Histogram<double> WorkflowServiceTime = Meter.CreateHistogram<double>(
         "engine.workflows.time.service",
         "s",
-        "Amount of time a workflow's steps spent being actively executed (seconds). Includes time spent on database IO."
+        "Time spent actively processing this workflow attempt (seconds). Includes step execution and database IO. Recorded once per attempt."
     );
     public static readonly Histogram<double> WorkflowTotalTime = Meter.CreateHistogram<double>(
         "engine.workflows.time.total",
         "s",
-        "Amount of time a workflow spent in the engine, start to finish (seconds). Includes time spend on the queue due to retries."
+        "Total wall-clock time of this workflow attempt — queue + service (seconds). Recorded once per attempt."
     );
 
     public static readonly Counter<long> StepRequestsAccepted = Meter.CreateCounter<long>(
@@ -97,17 +97,17 @@ public static class Metrics
     public static readonly Histogram<double> StepQueueTime = Meter.CreateHistogram<double>(
         "engine.steps.time.queue",
         "s",
-        "Amount of time a step spent in the queue before being picked up by a worker (seconds)"
+        "Time between the prior step finishing (or the workflow attempt starting, for the first step) and this step beginning execution (seconds). Mostly captures engine-internal database IO. Recorded once per step per attempt."
     );
     public static readonly Histogram<double> StepServiceTime = Meter.CreateHistogram<double>(
         "engine.steps.time.service",
         "s",
-        "Amount of time a step spent being actively executed (seconds). Includes time spent on database IO."
+        "Time spent actively executing this step (seconds). Includes command execution and database IO. Recorded once per step per attempt."
     );
     public static readonly Histogram<double> StepTotalTime = Meter.CreateHistogram<double>(
         "engine.steps.time.total",
         "s",
-        "Amount of time a step spent in the engine, start to finish (seconds). Includes time spend on the queue due to retries."
+        "Total time for this step within the workflow attempt — queue + service (seconds). Recorded once per step per attempt."
     );
 
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(
