@@ -1700,7 +1700,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "drawStyle": "line",
-            "fillOpacity": 30,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -1709,7 +1709,7 @@
             "spanNulls": true,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -1803,7 +1803,7 @@
         }
       ],
       "title": "Workflow Time Breakdown (P95, per attempt)",
-      "description": "Per-attempt P95 split: time waiting in the queue vs active execution. Stacked because queue + service \u2248 total within a single attempt.",
+      "description": "Per-attempt P95 of queue wait and active execution, plotted as independent lines. These do NOT sum to the Workflow Duration P95 \u2014 percentiles are not additive across decompositions. Per individual workflow attempt, queue + service does equal total (by construction in the engine), but the 95th-percentile attempt for queue is rarely the same attempt as the 95th-percentile attempt for service.",
       "type": "timeseries"
     },
     {
@@ -1969,7 +1969,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "drawStyle": "line",
-            "fillOpacity": 30,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "lineInterpolation": "smooth",
             "lineWidth": 2,
@@ -1978,7 +1978,7 @@
             "spanNulls": true,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -2072,7 +2072,7 @@
         }
       ],
       "title": "Step Time Breakdown (P95, per attempt)",
-      "description": "Per-attempt P95 split: time between the previous step finishing and this one starting (mostly engine/DB overhead) vs active execution. Stacked because queue + service \u2248 total within an attempt.",
+      "description": "Per-attempt P95 of step queue wait (engine/DB overhead between steps) and active execution, plotted as independent lines. These do NOT sum to the Step Duration P95 \u2014 percentiles are not additive across decompositions. Use this view to see whether queue or service is the dominant contributor at the tail.",
       "type": "timeseries"
     },
     {
