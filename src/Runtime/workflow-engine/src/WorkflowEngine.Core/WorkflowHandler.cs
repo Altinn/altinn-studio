@@ -83,7 +83,7 @@ internal sealed class WorkflowHandler(
             workflow.Status = PersistentItemStatus.Canceled;
             workflow.EngineActivity?.Errored(errorMessage: "Canceled before processing started");
 
-            Metrics.WorkflowsCanceled.Add(1);
+            Metrics.WorkflowsCanceled.Add(1, ("reason", "before_processing"));
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
@@ -119,7 +119,7 @@ internal sealed class WorkflowHandler(
                 if (workflow.CancellationRequestedAt is not null)
                 {
                     workflow.Status = PersistentItemStatus.Canceled;
-                    Metrics.WorkflowsCanceled.Add(1);
+                    Metrics.WorkflowsCanceled.Add(1, ("reason", "during_processing"));
                     RecordWorkflowServiceTime(workflow);
                     RecordWorkflowTotalTime(workflow);
                 }
