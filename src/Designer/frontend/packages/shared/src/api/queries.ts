@@ -88,7 +88,7 @@ import {
   botAccountApiKeysPath,
 } from './paths';
 
-import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
@@ -242,8 +242,8 @@ export const getOrgTextResources = (org: string, language: string): Promise<ITex
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
 
 // Assistant chat
-export const getChatThreads = (org: string, app: string) => get(chatThreadsPath(org, app));
-export const getChatMessages = (org: string, app: string, threadId: string) => get(chatMessagesPath(org, app, threadId));
+export const getChatThreads = (org: string, app: string) => get<ChatThread[]>(chatThreadsPath(org, app));
+export const getChatMessages = (org: string, app: string, threadId: string) => get<ChatMessage[]>(chatMessagesPath(org, app, threadId));
 
 // User settings
 export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());

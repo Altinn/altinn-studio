@@ -5,7 +5,6 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type { ChatThread } from 'app-shared/types/api';
 
 export type CreateChatThreadPayload = Pick<ChatThread, 'title'>;
-export type CreateChatThreadResponse = Pick<ChatThread, 'id' | 'title' | 'createdAt'>;
 
 export const useCreateChatThreadMutation = () => {
   const queryClient = useQueryClient();
