@@ -26,7 +26,7 @@ describe('FormComponent', () => {
 
   it('renders the title as the label of the input', () => {
     renderFormComponent();
-    expect(screen.getByLabelText(title)).toBe(screen.getByRole('textbox', { name: title }));
+    expect(screen.getByRole('textbox', { name: title })).toBeInTheDocument();
   });
 
   it('renders the submit button', () => {
@@ -41,32 +41,21 @@ describe('FormComponent', () => {
     expect(onActionMock).not.toHaveBeenCalled();
   });
 
-  it('emits a patchDataModel action with the data model binding and the typed value when the submit button is clicked', async () => {
-    const user = userEvent.setup();
-    renderFormComponent();
-    await user.type(screen.getByRole('textbox', { name: title }), 'Ola');
-    await user.click(screen.getByRole('button', { name: submitButtonText }));
-    expect(onActionMock).toHaveBeenCalledTimes(1);
-    expect(onActionMock).toHaveBeenCalledWith({
-      type: FormComponentActionType.PatchDataModel,
-      payload: { dataModelBinding, value: 'Ola' },
-    });
-  });
-
   it.each<DataModelBinding>([
     { dataType: 'person', field: 'firstName' },
     { dataType: 'person', field: 'lastName' },
     { dataType: 'address', field: 'street' },
   ])(
-    'emits the data model binding $dataType.$field exactly as it was provided',
+    'emits a patchDataModel action with the data model binding $dataType.$field and the typed value when the submit button is clicked',
     async (binding) => {
       const user = userEvent.setup();
       renderFormComponent({ dataModelBinding: binding });
-      await user.type(screen.getByRole('textbox', { name: title }), 'X');
+      await user.type(screen.getByRole('textbox', { name: title }), 'Ola');
       await user.click(screen.getByRole('button', { name: submitButtonText }));
+      expect(onActionMock).toHaveBeenCalledTimes(1);
       expect(onActionMock).toHaveBeenCalledWith({
         type: FormComponentActionType.PatchDataModel,
-        payload: { dataModelBinding: binding, value: 'X' },
+        payload: { dataModelBinding: binding, value: 'Ola' },
       });
     },
   );
