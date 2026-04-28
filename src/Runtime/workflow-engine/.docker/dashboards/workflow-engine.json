@@ -1626,6 +1626,35 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8e8e8e",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
           }
         ]
       },
@@ -1677,10 +1706,19 @@
           "expr": "histogram_quantile(0.99, sum(rate(engine_workflows_time_total_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_workflows_time_total_seconds_sum[5m])) / sum(rate(engine_workflows_time_total_seconds_count[5m]))",
+          "legendFormat": "Mean",
+          "refId": "D"
         }
       ],
       "title": "Workflow Duration (per attempt)",
-      "description": "Workflow duration percentiles for a single attempt (queue + service). Retries land as separate samples; check Outcomes for retry rate.",
+      "description": "Workflow duration percentiles for a single attempt (queue + service). The dashed Mean line matches the stack height of the adjacent Workflow Time Breakdown \u2014 both compute rate(_sum)/rate(_count) over the same _total histogram. Retries land as separate samples; see Outcomes for retry rate.",
       "type": "timeseries"
     },
     {
@@ -1895,6 +1933,35 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8e8e8e",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
           }
         ]
       },
@@ -1946,10 +2013,19 @@
           "expr": "histogram_quantile(0.99, sum(rate(engine_steps_time_total_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(engine_steps_time_total_seconds_sum[5m])) / sum(rate(engine_steps_time_total_seconds_count[5m]))",
+          "legendFormat": "Mean",
+          "refId": "D"
         }
       ],
       "title": "Step Duration (per attempt)",
-      "description": "Step duration percentiles for a single attempt (queue + service). Step retries land as separate samples \u2014 see Step Failures for retry rate.",
+      "description": "Step duration percentiles for a single attempt (queue + service). The dashed Mean line matches the stack height of the adjacent Step Time Breakdown \u2014 both compute rate(_sum)/rate(_count) over the same _total histogram. Step retries land as separate samples \u2014 see Step Failures for retry rate.",
       "type": "timeseries"
     },
     {
