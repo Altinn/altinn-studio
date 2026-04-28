@@ -35,14 +35,14 @@ public abstract class ChatControllerTestsBase<TTestClass>
     protected ChatControllerTestsBase(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
         : base(factory, designerDbFixture) { }
 
-    protected async Task<ChatThreadDbModel> SeedThreadAsync(string title = "Test thread")
+    protected async Task<ChatThreadDbModel> SeedThreadAsync(string title = "Test thread", string createdBy = Developer)
     {
         var thread = new ChatThreadDbModel
         {
             Id = Guid.CreateVersion7(),
             Org = Org,
             App = App,
-            CreatedBy = Developer,
+            CreatedBy = createdBy,
             Title = title,
             CreatedAt = DateTime.UtcNow,
         };
