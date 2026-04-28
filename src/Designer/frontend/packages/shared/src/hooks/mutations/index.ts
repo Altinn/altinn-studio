@@ -2,7 +2,6 @@ export { useAddOptionListMutation } from './useAddOptionListMutation';
 export { useCreateBranchMutation } from './useCreateBranchMutation';
 export { useCreateChatMessageMutation } from './useCreateChatMessageMutation';
 export { useCreateChatThreadMutation } from './useCreateChatThreadMutation';
-export type { CreateChatThreadPayload } from './useCreateChatThreadMutation';
 export { useDeleteChatMessageMutation } from './useDeleteChatMessageMutation';
 export { useDeleteChatThreadMutation } from './useDeleteChatThreadMutation';
 export { useUpdateChatThreadMutation } from './useUpdateChatThreadMutation';

@@ -4,6 +4,7 @@ export * from './ChatThread';
 export * from './AddRepoParams';
 export * from './AppReleasesResponse';
 export * from './BranchTypes';
+export * from './CreateChatThreadPayload';
 export * from './CreateDataModelPayload';
 export * from './CreateDeploymentPayload';
 export * from './CreateReleasePayload';

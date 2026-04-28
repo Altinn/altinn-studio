@@ -85,7 +85,7 @@ import {
   chatMessagePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
-import type { AddRepoParams } from 'app-shared/types/api';
+import type { AddRepoParams, ChatThread, CreateChatMessagePayload, CreateChatThreadPayload } from 'app-shared/types/api';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
@@ -123,8 +123,6 @@ import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyReq
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
-import type { ChatThread, CreateChatMessagePayload } from 'app-shared/types/api';
-import type { CreateChatThreadPayload } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
 
 const headers = {
   Accept: 'application/json',

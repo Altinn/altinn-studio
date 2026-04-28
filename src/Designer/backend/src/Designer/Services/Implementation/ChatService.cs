@@ -123,7 +123,6 @@ public class ChatService(IChatRepository repository) : IChatService
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
     }
 
-    // Validates the thread belongs to this org/app/developer. Use before any mutation.
     private Task<ChatThreadEntity?> GetOwnedThreadAsync(
         Guid threadId,
         AltinnRepoEditingContext context,
