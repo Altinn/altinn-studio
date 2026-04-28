@@ -149,7 +149,14 @@ public class ChatServiceTests
     public async Task CreateMessageAsync_BuildsEntityFromRequest()
     {
         var thread = CreateThreadEntity();
-        var request = new CreateChatMessageRequest(Role.User, "Hello", true, null, null, null);
+        var request = new CreateChatMessageRequest(
+            Role: Role.User,
+            Content: "Hello",
+            AllowAppChanges: true,
+            AttachmentFileNames: null,
+            FilesChanged: null,
+            Sources: null
+        );
         _repositoryMock
             .Setup(r => r.GetThreadAsync(thread.Id, _context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(thread);
@@ -175,7 +182,14 @@ public class ChatServiceTests
 
         var result = await _chatService.CreateMessageAsync(
             Guid.NewGuid(),
-            new CreateChatMessageRequest(Role.User, "Hello", null, null, null, null),
+            new CreateChatMessageRequest(
+                Role: Role.User,
+                Content: "Hello",
+                AllowAppChanges: null,
+                AttachmentFileNames: null,
+                FilesChanged: null,
+                Sources: null
+            ),
             _context
         );
 

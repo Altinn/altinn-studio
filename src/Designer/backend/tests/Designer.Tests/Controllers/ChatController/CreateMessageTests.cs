@@ -25,7 +25,14 @@ public class CreateMessageTests
     public async Task CreateMessage_ReturnsCreatedWithBody()
     {
         var thread = await SeedThreadAsync();
-        var request = new CreateChatMessageRequest(Role.User, "Hello", null, null, null, null);
+        var request = new CreateChatMessageRequest(
+            Role: Role.User,
+            Content: "Hello",
+            AllowAppChanges: null,
+            AttachmentFileNames: null,
+            FilesChanged: null,
+            Sources: null
+        );
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, MessagesUrl(thread.Id))
         {
             Content = CreateJsonContent(request),
@@ -44,7 +51,14 @@ public class CreateMessageTests
     public async Task CreateMessage_PersistsToDatabase()
     {
         var thread = await SeedThreadAsync();
-        var request = new CreateChatMessageRequest(Role.Assistant, "Assistant reply", true, null, null, null);
+        var request = new CreateChatMessageRequest(
+            Role: Role.Assistant,
+            Content: "Assistant reply",
+            AllowAppChanges: true,
+            AttachmentFileNames: null,
+            FilesChanged: null,
+            Sources: null
+        );
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, MessagesUrl(thread.Id))
         {
             Content = CreateJsonContent(request),
@@ -63,7 +77,14 @@ public class CreateMessageTests
     [Fact]
     public async Task CreateMessage_ReturnsNotFound_WhenThreadDoesNotExist()
     {
-        var request = new CreateChatMessageRequest(Role.User, "Hello", null, null, null, null);
+        var request = new CreateChatMessageRequest(
+            Role: Role.User,
+            Content: "Hello",
+            AllowAppChanges: null,
+            AttachmentFileNames: null,
+            FilesChanged: null,
+            Sources: null
+        );
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, MessagesUrl(Guid.NewGuid()))
         {
             Content = CreateJsonContent(request),
