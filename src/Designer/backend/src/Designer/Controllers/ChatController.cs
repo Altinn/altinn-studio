@@ -98,6 +98,7 @@ public class ChatController(IChatService chatService) : ControllerBase
     }
 
     [HttpPost("threads/{threadId:guid}/messages")]
+    [RequestSizeLimit(20_000)]
     public async Task<ActionResult<ChatMessageEntity>> CreateMessage(
         string org,
         string app,
