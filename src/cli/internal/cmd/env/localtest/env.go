@@ -64,6 +64,11 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 	}
 }
 
+// Name returns the runtime name.
+func (e *Env) Name() string {
+	return "localtest"
+}
+
 // Preflight validates prerequisites before startup.
 func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
 	return CheckForLegacyLocaltest(ctx, e.client, opts.PgAdmin)
