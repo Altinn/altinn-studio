@@ -1626,35 +1626,6 @@
                 }
               }
             ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#8e8e8e",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    10,
-                    5
-                  ]
-                }
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 1
-              }
-            ]
           }
         ]
       },
@@ -1706,19 +1677,10 @@
           "expr": "histogram_quantile(0.99, sum(rate(engine_workflows_time_total_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(rate(engine_workflows_time_total_seconds_sum[5m])) / sum(rate(engine_workflows_time_total_seconds_count[5m]))",
-          "legendFormat": "Mean",
-          "refId": "D"
         }
       ],
       "title": "Workflow Duration (per attempt)",
-      "description": "Workflow duration percentiles for a single attempt (queue + service). The dashed Mean line matches the stack height of the adjacent Workflow Time Breakdown \u2014 both compute rate(_sum)/rate(_count) over the same _total histogram. Retries land as separate samples; see Outcomes for retry rate.",
+      "description": "Workflow duration percentiles for a single attempt (queue + service). Retries land as separate samples; see Outcomes for retry rate.",
       "type": "timeseries"
     },
     {
@@ -1826,7 +1788,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_workflows_time_queue_seconds_sum[5m])) / sum(rate(engine_workflows_time_queue_seconds_count[5m]))",
+          "expr": "histogram_quantile(0.95, sum(rate(engine_workflows_time_queue_seconds_bucket[5m])) by (le))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -1835,13 +1797,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_workflows_time_service_seconds_sum[5m])) / sum(rate(engine_workflows_time_service_seconds_count[5m]))",
+          "expr": "histogram_quantile(0.95, sum(rate(engine_workflows_time_service_seconds_bucket[5m])) by (le))",
           "legendFormat": "Execution",
           "refId": "B"
         }
       ],
-      "title": "Workflow Time Breakdown (mean, per attempt)",
-      "description": "Per-attempt mean of queue wait and active execution, stacked. Means are additive, so the stack height equals the mean total time per attempt. Use this view to see how time is split on average; for tail latency see Workflow Duration (P95).",
+      "title": "Workflow Time Breakdown (P95, per attempt)",
+      "description": "Per-attempt P95 of queue wait and active execution, stacked. Stack height is the sum of two marginal P95s \u2014 useful for seeing where tail latency is concentrated, but it does not reconcile arithmetically with the Workflow Duration panel's P95(total) because percentiles are not additive across the queue/service decomposition. Within a single attempt, queue + service does equal total by construction.",
       "type": "timeseries"
     },
     {
@@ -1933,35 +1895,6 @@
                 }
               }
             ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Mean"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#8e8e8e",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    10,
-                    5
-                  ]
-                }
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 1
-              }
-            ]
           }
         ]
       },
@@ -2013,19 +1946,10 @@
           "expr": "histogram_quantile(0.99, sum(rate(engine_steps_time_total_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(rate(engine_steps_time_total_seconds_sum[5m])) / sum(rate(engine_steps_time_total_seconds_count[5m]))",
-          "legendFormat": "Mean",
-          "refId": "D"
         }
       ],
       "title": "Step Duration (per attempt)",
-      "description": "Step duration percentiles for a single attempt (queue + service). The dashed Mean line matches the stack height of the adjacent Step Time Breakdown \u2014 both compute rate(_sum)/rate(_count) over the same _total histogram. Step retries land as separate samples \u2014 see Step Failures for retry rate.",
+      "description": "Step duration percentiles for a single attempt (queue + service). Step retries land as separate samples \u2014 see Step Failures for retry rate.",
       "type": "timeseries"
     },
     {
@@ -2133,7 +2057,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_steps_time_queue_seconds_sum[5m])) / sum(rate(engine_steps_time_queue_seconds_count[5m]))",
+          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_queue_seconds_bucket[5m])) by (le))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -2142,13 +2066,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_steps_time_service_seconds_sum[5m])) / sum(rate(engine_steps_time_service_seconds_count[5m]))",
+          "expr": "histogram_quantile(0.95, sum(rate(engine_steps_time_service_seconds_bucket[5m])) by (le))",
           "legendFormat": "Execution",
           "refId": "B"
         }
       ],
-      "title": "Step Time Breakdown (mean, per attempt)",
-      "description": "Per-attempt mean of step queue wait (engine/DB overhead between steps) and active execution, stacked. Means are additive, so the stack height equals the mean total time per step. Use this view to see how time is split on average; for tail latency see Step Duration (P95).",
+      "title": "Step Time Breakdown (P95, per attempt)",
+      "description": "Per-attempt P95 of step queue wait (engine/DB overhead between steps) and active execution, stacked. Stack height is the sum of two marginal P95s \u2014 useful for seeing whether queue or service drives tail latency, but it does not reconcile arithmetically with the Step Duration panel's P95(total) because percentiles are not additive across the queue/service decomposition. Within a single attempt, queue + service does equal total by construction.",
       "type": "timeseries"
     },
     {
@@ -2924,7 +2848,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_mainloop_time_queue_seconds_sum[5m])) / sum(rate(engine_mainloop_time_queue_seconds_count[5m]))",
+          "expr": "histogram_quantile(0.95, sum(rate(engine_mainloop_time_queue_seconds_bucket[5m])) by (le))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -2933,13 +2857,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(engine_mainloop_time_service_seconds_sum[5m])) / sum(rate(engine_mainloop_time_service_seconds_count[5m]))",
+          "expr": "histogram_quantile(0.95, sum(rate(engine_mainloop_time_service_seconds_bucket[5m])) by (le))",
           "legendFormat": "Active Work",
           "refId": "B"
         }
       ],
-      "title": "Main Loop Time (mean)",
-      "description": "Mean time per main-loop iteration, stacked. Queue Wait = post-fetch wait (debounce or ~500ms idle ceiling), Active Work = fetch + dispatch. Means are additive so the stack height equals mean total iteration time. For iteration throughput see Main Loop Rate.",
+      "title": "Main Loop Time (P95)",
+      "description": "P95 of each main-loop iteration broken down: Queue (post-fetch wait \u2014 debounce or ~500ms idle ceiling) and Active Work (fetch + dispatch). Stacked sum of two marginal P95s \u2014 won't reconcile with a hypothetical joint P95 because percentiles are not additive. For iteration throughput see Main Loop Rate.",
       "type": "timeseries"
     },
     {
