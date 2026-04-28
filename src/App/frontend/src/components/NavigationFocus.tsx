@@ -18,15 +18,16 @@ export function NavigationFocus(): null {
   const isLoadingResult = useIsLoading();
   const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const isLoading = isLoadingResult || hasLoaders;
-  const handledKeyRef = useRef<string | null>(null);
+
+  // We don't want to move focus on first render, so we mark the current navigation key as handled.
+  const handledKeyRef = useRef<string | null>(key);
 
   const handleOnNavigate = useEffectEvent((key: string, isLoading: boolean) => {
     if (handledKeyRef.current === key) {
       return;
     }
 
-    // when the application loads, the value of key from useLocation is 'default'.
-    if (key === 'default' || state?.preventFocusReset) {
+    if (state?.preventFocusReset) {
       handledKeyRef.current = key;
       return;
     }
