@@ -44,7 +44,7 @@ public class UpdateThreadTests
             Content = CreateJsonContent(request),
         };
 
-        await HttpClient.SendAsync(httpRequest);
+        using var response = await HttpClient.SendAsync(httpRequest);
 
         DesignerDbFixture.DbContext.ChangeTracker.Clear();
         var dbRecord = await DesignerDbFixture.DbContext.ChatThreads.SingleAsync(t => t.Id == seeded.Id);
