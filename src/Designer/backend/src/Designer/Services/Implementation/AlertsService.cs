@@ -7,6 +7,9 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
+using Altinn.Studio.Designer.Models.ContactPoints;
+using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
@@ -24,6 +27,7 @@ internal sealed class AlertsService(
     AlertsSettings alertsSettings,
     IAltinnNotificationClient altinnNotificationsClient,
     GeneralSettings generalSettings,
+    IContactPointsRepository contactPointsRepository,
     ILogger<AlertsService> logger
 ) : IAlertsService
 {
@@ -52,30 +56,109 @@ internal sealed class AlertsService(
 
         if (apps.Count > 0)
         {
-            if (!string.IsNullOrWhiteSpace(alertsSettings.Email))
-            {
-                await altinnNotificationsClient.SendEmailNotification(
-                    $"{alert.Id}-email",
-                    alertsSettings.Email,
-                    "Alert fired",
-                    FormatEmailBody(org, environment, apps, alert.Name, alert.Url, alert.LogsUrl),
-                    EmailContentType.Html
-                );
-            }
-
-            if (!string.IsNullOrWhiteSpace(alertsSettings.Phone))
-            {
-                await altinnNotificationsClient.SendSmsNotification(
-                    $"{alert.Id}-sms",
-                    alertsSettings.Phone,
-                    FormatSmsBody(org, environment, apps, alert.Name)
-                );
-            }
-
-            await SendToSlackAsync(org, environment, apps, alert.Name, alert.Url, alert.LogsUrl, cancellationToken);
+            await Task.WhenAll(
+                NotifyInternalAsync(org, environment, apps, alert, cancellationToken),
+                NotifyServiceOwnersAsync(org, environment, apps, alert, cancellationToken)
+            );
         }
 
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
+    }
+
+    private async Task NotifyInternalAsync(
+        string org,
+        AltinnEnvironment environment,
+        List<string> apps,
+        Alert alert,
+        CancellationToken cancellationToken
+    )
+    {
+        await SendToSlackAsync(
+            org,
+            environment,
+            apps,
+            alert.Name,
+            alert.Url,
+            alert.LogsUrl,
+            alertsSettings.GetSlackWebhookUrl(environment),
+            cancellationToken
+        );
+    }
+
+    private async Task NotifyServiceOwnersAsync(
+        string org,
+        AltinnEnvironment environment,
+        List<string> apps,
+        Alert alert,
+        CancellationToken cancellationToken
+    )
+    {
+        IReadOnlyList<ContactPointEntity> contactPoints =
+            await contactPointsRepository.GetActiveByOrgAndEnvironmentAsync(org, environment.Name, cancellationToken);
+
+        IEnumerable<Task> notificationTasks = contactPoints.SelectMany(contactPoint =>
+            contactPoint.Methods.Select(method =>
+                SendContactMethodAsync(contactPoint, method, org, environment, apps, alert, cancellationToken)
+            )
+        );
+
+        await Task.WhenAll(notificationTasks);
+    }
+
+    private async Task SendContactMethodAsync(
+        ContactPointEntity contactPoint,
+        ContactMethodEntity method,
+        string org,
+        AltinnEnvironment environment,
+        List<string> apps,
+        Alert alert,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            switch (method.MethodType)
+            {
+                case ContactMethodType.Email:
+                    await altinnNotificationsClient.SendEmailNotification(
+                        $"{alert.Id}-email-{contactPoint.Id}",
+                        method.Value,
+                        "Alert fired",
+                        FormatEmailBody(org, environment, apps, alert.Name, alert.Url, alert.LogsUrl),
+                        EmailContentType.Html
+                    );
+                    break;
+                case ContactMethodType.Sms:
+                    await altinnNotificationsClient.SendSmsNotification(
+                        $"{alert.Id}-sms-{contactPoint.Id}",
+                        method.Value,
+                        FormatSmsBody(org, environment, apps, alert.Name)
+                    );
+                    break;
+                case ContactMethodType.Slack:
+                    await SendToSlackAsync(
+                        org,
+                        environment,
+                        apps,
+                        alert.Name,
+                        alert.Url,
+                        alert.LogsUrl,
+                        new Uri(method.Value),
+                        cancellationToken
+                    );
+                    break;
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(
+                ex,
+                "Failed to send alert notification to contact point {ContactPointId} via {MethodType}. Alert: {AlertName}",
+                contactPoint.Id,
+                method.MethodType,
+                alert.Name
+            );
+        }
     }
 
     private string FormatSmsBody(string org, AltinnEnvironment environment, List<string> apps, string alertName)
@@ -128,6 +211,7 @@ StudioEnv: {studioEnv}";
         string alertName,
         Uri grafanaUrl,
         Uri appInsightsUrl,
+        Uri webhookUrl,
         CancellationToken cancellationToken
     )
     {
@@ -167,11 +251,7 @@ StudioEnv: {studioEnv}";
         };
         try
         {
-            await slackClient.SendMessageAsync(
-                alertsSettings.GetSlackWebhookUrl(environment),
-                message,
-                cancellationToken
-            );
+            await slackClient.SendMessageAsync(webhookUrl, message, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

@@ -28,6 +28,21 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
         return dbModels.Select(ContactPointMapper.MapToEntity).ToList();
     }
 
+    public async Task<IReadOnlyList<ContactPointEntity>> GetActiveByOrgAndEnvironmentAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var dbModels = await dbContext
+            .ContactPoints.AsNoTracking()
+            .Include(p => p.Methods)
+            .Where(p => p.Org == org && p.IsActive && p.Environments.Contains(environment))
+            .ToListAsync(cancellationToken);
+        return dbModels.Select(ContactPointMapper.MapToEntity).ToList();
+    }
+
     public async Task<ContactPointEntity> AddAsync(
         ContactPointEntity entity,
         CancellationToken cancellationToken = default

@@ -21,16 +21,6 @@ public class AlertsSettings : ISettingsMarker
     public Uri Prod { get; set; }
 
     /// <summary>
-    /// Gets or sets Email for all environments
-    /// </summary>
-    public string Email { get; set; }
-
-    /// <summary>
-    /// Gets or sets Phone number for all environments
-    /// </summary>
-    public string Phone { get; set; }
-
-    /// <summary>
     /// Returns the Slack webhook URL for the given environment.
     /// </summary>
     public Uri GetSlackWebhookUrl(AltinnEnvironment environment)
