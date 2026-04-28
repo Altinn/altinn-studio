@@ -16,9 +16,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Make `--random-host-port` default to `true` for `run` and `app run`.
+- Stop running apps, localtest, and app-manager before `self update`, `self uninstall`, and installer replacement.
 
 ### Fixed
 
+- Fix install and update flows when no interactive terminal prompt is available.
+- Fix workflow-engine database persistence cross-platform support by using a named/managed volume instead of host bind mount.
 - Fix app-manager shutdown waits incorrectly reporting that an exited process is still running on Linux systems.
 - Reading password input when using `studioctl auth` now works on macOS with bracketed paste enabled.
 
