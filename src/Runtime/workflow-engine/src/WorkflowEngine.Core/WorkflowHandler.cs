@@ -195,7 +195,7 @@ internal sealed class WorkflowHandler(
 
     private async Task ProcessSteps(Workflow workflow, CancellationToken ct)
     {
-        var queueAnchor = workflow.ExecutionStartedAt!.Value;
+        var queueAnchor = workflow.ExecutionStartedAt ?? throw new UnreachableException();
 
         for (int i = 0; i < workflow.Steps.Count; i++)
         {
@@ -258,7 +258,7 @@ internal sealed class WorkflowHandler(
             RecordStepTotalTime(step, queueAnchor);
             StopActivity(step);
 
-            queueAnchor = step.UpdatedAt!.Value;
+            queueAnchor = step.UpdatedAt ?? throw new UnreachableException();
 
             if (step.Status == PersistentItemStatus.Completed)
             {
