@@ -827,13 +827,13 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(sum(rate(engine_steps_execution_requeued_total[1m])) or vector(0)) + (sum(rate(engine_workflows_execution_requeued_total[1m])) or vector(0))",
+          "expr": "(sum(rate(engine_steps_execution_requeued_total[1m])) or vector(0)) + (sum(rate(engine_workflows_execution_requeued_total{reason=\"shutdown\"}[1m])) or vector(0))",
           "legendFormat": "Retries",
           "refId": "A"
         }
       ],
       "title": "Retries",
-      "description": "Combined workflow + step requeue rate per second (1m avg). Non-zero means commands are failing and being retried.",
+      "description": "Total retry events per second (1m avg): every step retry plus every shutdown-driven workflow requeue. Step retries already imply a workflow requeue with reason=step_retry, so that path is counted once via the step counter only.",
       "type": "stat"
     },
     {
