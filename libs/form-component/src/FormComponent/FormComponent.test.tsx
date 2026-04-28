@@ -7,7 +7,6 @@ import type { DataModelBinding } from '../types/DataModelBinding';
 
 const onActionMock = vi.fn();
 
-// Test data:
 const title = 'Fornavn';
 const dataModelBinding: DataModelBinding = {
   dataType: 'person',
