@@ -7,35 +7,22 @@
   if (Model.HttpException != null)
   {
     <div class="alert alert-dark" role="alert">
-      An exception occurred while fetching applicationData
+      An exception occurred while fetching application data.
       @if (Model.HttpException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
-        <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
+        <pre>401 (Unauthorized) from local app</pre>
         <p>
-          You are currently running LocalTest in "http" mode, and this requires
-          apps created before December 2021 to update to nuget packages to fix
+          Apps created before December 2021 may need updated NuGet packages to fix
           an access control issue.
         </p>
         <p>
-          You can either change the setting "LocalPlatformSettings.LocalAppMode"
-          to "file", or update the altinn nuget packages in your app to at least
-          4.21.0
+          Update the Altinn NuGet packages in your app to at least 4.21.0.
         </p>
         <p>
           See <a href="https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/">https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/</a> for instructions on how to update.
         </p>
       } else if(Model.HttpException.InnerException is System.Net.Sockets.SocketException) {
-        @if(string.IsNullOrWhiteSpace(Model.LocalAppUrl)){
-          <p>
-            LocalTest is running in "LocalPlatformSettings.LocalAppMode" == "http" mode, but
-            "LocalPlatformSettings.LocalAppUrl" is not set to a valid address.
-          </p>
-        } else {
-          <pre>No application running on @Model.LocalAppUrl</pre>
-          <p>
-            Please start your an app on this address. Typically run the following command in an app directory.
-          </p>
-          <pre>dotnet run</pre>
-        }
+        <p>Could not reach the local app through app discovery/tunneling.</p>
+        <p>Start an app, or run it through <code>studioctl run</code>.</p>
       } else {
         <pre>
           @(Model.HttpException.ToString())
@@ -47,16 +34,9 @@
   else if (Model.TestApps == null || Model.TestApps.Any() == false)
   {
     <div class="alert alert-dark" role="alert">
-      <p>No apps are currently running. This is typically done by running the following command in an app directory:</p>
-      <pre>dotnet run</pre>
+      <p>No apps are currently running.</p>
+      <p>Start one with <code>studioctl run</code> or from the app directory with <code>dotnet run</code>.</p>
     </div>
-  }
-  else if (Model.InvalidAppPath)
-  {
-    <div class="alert alert-dark" role="alert">
-      Check your configured app path in appsettings.json for localtest project  Can't find any Altinn App at this location: @Model.AppPath
-    </div>
-
   }
   else if (Model.InvalidTestDataPath)
   {
@@ -112,23 +92,10 @@
     @if(!string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
     {
       <div class="alert alert-primary" role="alert">
-        Using @(LocalFrontendDescription(Model.LocalFrontendUrl)). @Html.ActionLink("Use a different frontend version", "Index", "FrontendVersion")
+        Using @Model.LocalFrontendDescription. @Html.ActionLink("Use a different frontend version", "Index", "FrontendVersion")
       </div>
     }
   </div>
-  }
-}
-
-@functions {
-  private static string LocalFrontendDescription(string frontendUrl)
-  {
-    if (Uri.TryCreate(frontendUrl, UriKind.Absolute, out var uri) &&
-      uri.Host.Equals("app-frontend.local.altinn.cloud", StringComparison.OrdinalIgnoreCase))
-    {
-      return "local app frontend dev server";
-    }
-
-    return $"frontend js and css from {frontendUrl}";
   }
 }
 

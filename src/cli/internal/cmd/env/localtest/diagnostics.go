@@ -151,18 +151,22 @@ type diagnosticContainerState struct {
 }
 
 func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServiceDefinition {
+	app := topology.MustComponent(envtopology.ComponentApp)
+	pdf := topology.MustComponent(envtopology.ComponentPDF)
+	workflowEngine := topology.MustComponent(envtopology.ComponentWorkflowEngine)
+
 	services := []diagnosticServiceDefinition{
 		{
 			Name:       "localtest",
 			Container:  ContainerLocaltest,
-			Host:       topology.AppHostName(),
+			Host:       app.Host(),
 			HTTPProbes: localtestHTTPProbes(topology),
 			TCPProbes:  localtestTCPProbes(topology),
 		},
 		{
 			Name:      "pdf",
 			Container: ContainerPDF3,
-			Host:      topology.PDFHostName(),
+			Host:      pdf.Host(),
 			HTTPProbes: []diagnosticHTTPProbe{
 				{ID: "pdf_health", Label: "HTTP: health", Path: "/health/ready", Host: "", Port: ""},
 			},
@@ -171,7 +175,7 @@ func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServic
 		{
 			Name:      "workflow-engine",
 			Container: ContainerWorkflowEngine,
-			Host:      topology.WorkflowEngineHostName(),
+			Host:      workflowEngine.Host(),
 			HTTPProbes: []diagnosticHTTPProbe{
 				{ID: "workflow_health", Label: "HTTP: health", Path: "/api/v1/health/ready", Host: "", Port: ""},
 			},
@@ -255,7 +259,7 @@ func newDiagnosticTCPProbe(id, label, network, host, port string) diagnosticTCPP
 }
 
 func normalizeDiagnosticOptions(opts DiagnosticOptions) DiagnosticOptions {
-	if opts.Topology == (envtopology.Local{}) {
+	if opts.Topology.IsZero() {
 		opts.Topology = envtopology.NewLocal(envtopology.DefaultIngressPortString())
 	}
 	if opts.DetectContainer == nil {

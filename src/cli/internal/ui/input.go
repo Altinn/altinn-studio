@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/studioctl/internal/osutil"
+
 	"golang.org/x/term"
 )
 
@@ -39,7 +41,7 @@ const (
 // Supports context cancellation and Ctrl+C detection.
 // Terminal state is always restored, even on interrupt.
 func ReadPassword(ctx context.Context, out *Output) ([]byte, error) {
-	if !StdinIsTerminal() {
+	if !stdinIsTerminal() {
 		return ReadLine(ctx, os.Stdin)
 	}
 
@@ -50,6 +52,19 @@ func ReadPassword(ctx context.Context, out *Output) ([]byte, error) {
 	defer cleanup()
 
 	return readPasswordBytes(ctx, os.Stdin)
+}
+
+// InteractiveInput returns input suitable for interactive prompts.
+func InteractiveInput() (io.Reader, func() error, error) {
+	if stdinIsTerminal() {
+		return os.Stdin, func() error { return nil }, nil
+	}
+
+	input, cleanup, err := osutil.OpenTerminalInput()
+	if err != nil {
+		return nil, nil, fmt.Errorf("open interactive input: %w", err)
+	}
+	return input, cleanup, nil
 }
 
 func makeRawStdin(out *Output) (func(), error) {

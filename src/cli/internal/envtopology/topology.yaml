@@ -1,0 +1,33 @@
+version: 1
+ingress:
+  scheme: http
+  defaultHostPort: 8000
+components:
+  app:
+    kind: app
+    host: local.altinn.cloud
+  platform:
+    kind: platform
+    host: local.altinn.cloud
+  otel:
+    kind: telemetry
+    host: otel.local.altinn.cloud
+    port: 4317
+  pdf:
+    kind: runtime-service
+    host: pdf.local.altinn.cloud
+  grafana:
+    kind: monitoring
+    host: local.altinn.cloud
+    pathPrefix: /grafana
+  pgadmin:
+    kind: tool
+    host: pgadmin.local.altinn.cloud
+  workflowEngine:
+    kind: runtime-service
+    host: workflow-engine.local.altinn.cloud
+  frontendDevServer:
+    kind: frontend-dev
+    host: app-frontend.local.altinn.cloud
+appRouteTemplate:
+  pathPrefixTemplate: /{org}/{app}
