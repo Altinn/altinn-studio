@@ -72,10 +72,10 @@ export const useAltinityThreads = (): AltinityThreadState => {
         payload: {
           role: message.role,
           content: message.content,
-          allowAppChanges: isUser ? message.allowAppChanges : false,
-          attachmentFileNames: isUser ? (message.attachments?.map((a) => a.name) ?? []) : [],
-          filesChanged: isUser ? [] : message.filesChanged,
-          sources: isUser ? null : (message.sources ?? null),
+          allowAppChanges: isUser ? message.allowAppChanges : undefined,
+          attachmentFileNames: isUser ? message.attachments?.map((a) => a.name) : undefined,
+          filesChanged: isUser ? undefined : message.filesChanged,
+          sources: isUser ? undefined : message.sources,
         },
       });
     },
