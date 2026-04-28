@@ -43,8 +43,9 @@ describe('mapChatMessageToFrontend', () => {
       expect(result).toMatchObject({ attachments: [] });
     });
 
-    it('throws when allowAppChanges is missing', () => {
-      expect(() => mapChatMessageToFrontend(baseMessage)).toThrow();
+    it('falls back to false when allowAppChanges is absent', () => {
+      const result = mapChatMessageToFrontend(baseMessage);
+      expect(result).toMatchObject({ allowAppChanges: false });
     });
   });
 

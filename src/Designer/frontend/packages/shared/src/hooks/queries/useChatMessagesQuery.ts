@@ -25,13 +25,9 @@ export function mapChatMessageToFrontend(message: ChatMessage) {
   };
 
   if (message.role === MessageAuthor.User) {
-    if (message.allowAppChanges === undefined) {
-      throw new Error(`User message ${message.id} is missing required field allowAppChanges`);
-    }
-
     return {
       ...base,
-      allowAppChanges: message.allowAppChanges,
+      allowAppChanges: message.allowAppChanges ?? false,
       attachments: message.attachmentFileNames?.map((name) => ({ name })) ?? [],
     };
   }
