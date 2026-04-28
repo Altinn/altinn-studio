@@ -9,6 +9,7 @@ using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.TestData;
 using Microsoft.AspNetCore.Authentication;
@@ -32,6 +33,7 @@ namespace LocalTest.Controllers
         private readonly IParties _partiesService;
 
         private readonly ILocalApp _localApp;
+        private readonly ILocalFrontendService _localFrontendService;
         private readonly TestDataService _testDataService;
         private readonly ILogger<HomeController> _logger;
 
@@ -43,6 +45,7 @@ namespace LocalTest.Controllers
             IApplicationRepository applicationRepository,
             IParties partiesService,
             ILocalApp localApp,
+            ILocalFrontendService localFrontendService,
             TestDataService testDataService,
             ILogger<HomeController> logger
         )
@@ -54,6 +57,7 @@ namespace LocalTest.Controllers
             _applicationRepository = applicationRepository;
             _partiesService = partiesService;
             _localApp = localApp;
+            _localFrontendService = localFrontendService;
             _testDataService = testDataService;
             _logger = logger;
         }
@@ -64,20 +68,14 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Index")]
         public async Task<IActionResult> Index()
         {
-            AppMode appMode = _localPlatformSettings.LocalAppMode switch
-            {
-                "http" => AppMode.Http,
-                _ => AppMode.File
-            };
-
             StartAppModel model = new StartAppModel()
             {
-                AppMode = appMode,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
                 LocalFrontendUrl = HttpContext.Request.Cookies[
                     FrontendVersionController.FRONTEND_URL_COOKIE_NAME
                 ],
             };
+            model.LocalFrontendDescription = _localFrontendService.DescribeFrontendUrl(model.LocalFrontendUrl);
 
             try
             {
@@ -86,10 +84,7 @@ namespace LocalTest.Controllers
                 model.TestApps = await GetAppsList(cancellationToken);
                 model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
-                var firstAppId =
-                    model.AppMode == AppMode.Http && model.TestApps.Count() == 1
-                        ? model.TestApps.First().Value
-                        : null;
+                var firstAppId = model.TestApps.Count() == 1 ? model.TestApps.First().Value : null;
                 var defaultAuthLevel = await GetAppAuthLevel(firstAppId, cancellationToken);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             }
@@ -97,13 +92,6 @@ namespace LocalTest.Controllers
             {
                 model.HttpException = e as HttpRequestException
                     ?? new HttpRequestException($"Request to local app timed out after {LocalAppViewTimeout.TotalSeconds:0} seconds.", e);
-            }
-
-            // In http mode, apps can register themselves, so empty list is OK
-            // Only show invalid path error in file mode
-            if (appMode == AppMode.File && (!model.TestApps?.Any() ?? true))
-            {
-                model.InvalidAppPath = true;
             }
 
             if (!model.TestUsers?.Any() ?? true)
@@ -175,38 +163,38 @@ namespace LocalTest.Controllers
             Application app = await _localApp.GetApplicationMetadata(
                 startAppModel.AppPathSelection
             );
-
-            if (_localPlatformSettings.LocalAppMode == "http")
+            if (app == null)
             {
-                // Instantiate a prefill if a file attachment exists.
-                var prefill = Request.Form.Files.FirstOrDefault();
-                if (prefill != null)
+                return BadRequest("App not found");
+            }
+
+            var prefill = Request.Form.Files.FirstOrDefault();
+            if (prefill != null)
+            {
+                var instance = new Instance
                 {
-                    var instance = new Instance
-                    {
-                        AppId = app.Id,
-                        Org = app.Org,
-                        InstanceOwner = new() { PartyId = startAppModel.PartyId.ToString(), },
-                        DataValues = new() { { "PrefillFilename", prefill.FileName } },
-                    };
+                    AppId = app.Id,
+                    Org = app.Org,
+                    InstanceOwner = new() { PartyId = startAppModel.PartyId.ToString(), },
+                    DataValues = new() { { "PrefillFilename", prefill.FileName } },
+                };
 
-                    var xmlDataId = app.DataTypes.First(dt => dt.AppLogic?.ClassRef is not null).Id;
+                var xmlDataId = app.DataTypes.First(dt => dt.AppLogic?.ClassRef is not null).Id;
 
-                    using var reader = new StreamReader(prefill.OpenReadStream());
-                    var content = await reader.ReadToEndAsync();
-                    var token = await _authenticationService.GenerateTokenForOrg(
-                        app.Id.Split("/")[0]
-                    );
-                    var newInstance = await _localApp.Instantiate(
-                        app.Id,
-                        instance,
-                        content,
-                        xmlDataId,
-                        token
-                    );
+                using var reader = new StreamReader(prefill.OpenReadStream());
+                var content = await reader.ReadToEndAsync();
+                var token = await _authenticationService.GenerateTokenForOrg(
+                    app.Id.Split("/")[0]
+                );
+                var newInstance = await _localApp.Instantiate(
+                    app.Id,
+                    instance,
+                    content,
+                    xmlDataId,
+                    token
+                );
 
-                    return Redirect($"/{app.Id}/instance/{newInstance.Id}");
-                }
+                return Redirect($"/{app.Id}/instance/{newInstance.Id}");
             }
 
             return Redirect($"/{app.Id}/");
@@ -224,10 +212,7 @@ namespace LocalTest.Controllers
                     AuthenticationLevels = GetAuthenticationLevels(2),
                     TestUsers = await GetUsersSelectList(cancellationToken),
                     TestSystemUsers = await GetSystemUsersSelectList(cancellationToken),
-                    DefaultOrg =
-                        _localPlatformSettings.LocalAppMode == "http"
-                            ? (await GetAppsList(cancellationToken)).First().Value?.Split("/").FirstOrDefault()
-                            : null,
+                    DefaultOrg = (await GetAppsList(cancellationToken)).FirstOrDefault()?.Value?.Split("/").FirstOrDefault(),
                 };
 
                 return View(model);
@@ -425,8 +410,7 @@ namespace LocalTest.Controllers
 
         private async Task<int> GetAppAuthLevel(string appId, CancellationToken cancellationToken = default)
         {
-            bool isHttp = _localPlatformSettings.LocalAppMode == "http";
-            if (!isHttp || string.IsNullOrWhiteSpace(appId))
+            if (string.IsNullOrWhiteSpace(appId))
             {
                 return 2;
             }

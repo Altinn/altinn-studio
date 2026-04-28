@@ -19,6 +19,9 @@ var ErrNetworkInUse = errors.New("network in use")
 // ErrImageNotFound is returned when an image does not exist.
 var ErrImageNotFound = errors.New("image not found")
 
+// ErrVolumeNotFound is returned when a volume does not exist.
+var ErrVolumeNotFound = errors.New("volume not found")
+
 // defaultPodmanCapabilities are capabilities that Docker includes by default but Podman doesn't.
 // Adding these ensures consistent behavior across runtimes.
 // See: https://github.com/containers/common/pull/1240
@@ -207,10 +210,20 @@ type ContainerListFilter struct {
 	All    bool
 }
 
-// VolumeMount defines a bind mount.
+// VolumeMountType defines the source type for a container volume mount.
+type VolumeMountType string
+
+// Supported volume mount types.
+const (
+	VolumeMountTypeBind   VolumeMountType = "bind"
+	VolumeMountTypeVolume VolumeMountType = "volume"
+)
+
+// VolumeMount defines a bind mount or named volume mount.
 type VolumeMount struct {
 	HostPath      string
 	ContainerPath string
+	Type          VolumeMountType
 	ReadOnly      bool
 }
 

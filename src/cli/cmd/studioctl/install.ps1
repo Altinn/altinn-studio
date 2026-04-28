@@ -59,10 +59,6 @@ if (-not $Asset) {
     $Asset = "studioctl-$os-$arch.exe"
 }
 
-if (-not $InstallDir -and [Console]::IsInputRedirected) {
-    throw "Non-interactive install requires -InstallDir or STUDIOCTL_INSTALL_DIR"
-}
-
 if ($Version -eq "latest") {
     $baseUrl = "https://github.com/$Repo/releases/latest/download"
 } else {

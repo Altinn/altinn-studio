@@ -161,7 +161,11 @@ export function getTargetUrl(appName: string) {
 
 function getConfiguredFrontendHost() {
   const config = Cypress.config() as Cypress.ConfigOptions & { frontendUrl?: string };
-  return new URL(config.frontendUrl || 'http://localhost:8080').host;
+  if (!config.frontendUrl) {
+    throw new Error('Missing Cypress frontendUrl config. Set frontendUrl, CYPRESS_HOST, or --env host=<host>.');
+  }
+
+  return new URL(config.frontendUrl).host;
 }
 
 function generateHtmlToEval(javascript: string) {

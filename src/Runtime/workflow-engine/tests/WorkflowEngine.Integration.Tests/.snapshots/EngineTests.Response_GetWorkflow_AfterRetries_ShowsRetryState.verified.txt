@@ -21,7 +21,21 @@
         type: webhook
       },
       status: Completed,
-      retryCount: 2
+      retryCount: 2,
+      errorHistory: [
+        {
+          timestamp: DateTimeOffset_1,
+          message: Webhook execution failed with status 500: <no body content>,
+          httpStatusCode: 500,
+          wasRetryable: true
+        },
+        {
+          timestamp: DateTimeOffset_2,
+          message: Webhook execution failed with status 500: <no body content>,
+          httpStatusCode: 500,
+          wasRetryable: true
+        }
+      ]
     }
   ]
 }
