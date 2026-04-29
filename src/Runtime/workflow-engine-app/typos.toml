@@ -8,6 +8,9 @@ extend-exclude = [
     "*.drawio*"
 ]
 
+[default]
+locale = "en-us"
+
 [default.extend-words]
 # Domain words and acronyms that should not be flagged.
 # Add entries as `word = "word"` to whitelist a token.
