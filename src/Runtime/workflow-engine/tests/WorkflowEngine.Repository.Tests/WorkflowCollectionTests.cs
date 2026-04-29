@@ -340,6 +340,40 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task Enqueue_ConcurrentFirstWrites_SerializesNewCollectionRow()
+    {
+        // Arrange
+        var repo1 = fixture.CreateRepository();
+        var repo2 = fixture.CreateRepository();
+
+        var enqueue1 = EnqueueWithCollection(repo1, "concurrent-first", [CreateWorkflowRequest("a")]);
+        var enqueue2 = EnqueueWithCollection(repo2, "concurrent-first", [CreateWorkflowRequest("b")]);
+
+        // Act
+        var results = await Task.WhenAll(enqueue1, enqueue2);
+        var idA = results[0][0].WorkflowIds![0];
+        var idB = results[1][0].WorkflowIds![0];
+
+        // Assert — the final collection should have exactly one head, and that head should depend on
+        // the other workflow. Without seeding before FOR UPDATE, both transactions can compute from
+        // empty heads and race, so the winner would have no dependency.
+        var repo = fixture.CreateRepository();
+        var collection = await repo.GetCollection("concurrent-first", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+
+        var nonHeadId = head.DatabaseId == idA ? idB : idA;
+
+        await using var context = fixture.CreateDbContext();
+        var headEntity = await context
+            .Workflows.Include(w => w.Dependencies)
+            .SingleAsync(w => w.Id == head.DatabaseId, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(headEntity.Dependencies);
+        Assert.Contains(headEntity.Dependencies, d => d.Id == nonHeadId);
+    }
+
+    [Fact]
     public async Task Enqueue_IsHeadFalse_SideChain_HeadsUnchanged_DependencyCreated()
     {
         // Arrange — create a collection with one head

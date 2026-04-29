@@ -606,8 +606,8 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// Processes workflow collection updates for confirmed-new requests that have a CollectionKey.
-    /// Acquires FOR UPDATE locks on all affected collection rows in a single batch query (after the
-    /// heavy bulk COPY) to minimize lock duration and round-trips.
+    /// Seeds and then acquires FOR UPDATE locks on all affected collection rows in two small
+    /// statements (after the heavy bulk COPY) so the first-writer path is serialized too.
     /// Handles same-batch merging: when multiple requests in the same flush target the same collection,
     /// they are folded sequentially in arrival order so the second request sees the heads left by the first.
     /// </summary>
@@ -643,8 +643,8 @@ internal sealed partial class EngineRepository
 
         var now = timeProvider.GetUtcNow();
 
-        // 1. Batch lock all collection rows in one round-trip
-        var allHeads = await BatchLockAndReadCollectionHeads(conn, collectionGroups.Keys, cancellationToken);
+        // 1. Seed and then lock all collection rows in one round-trip
+        var allHeads = await LockAndReadCollectionHeads(conn, collectionGroups.Keys, now, cancellationToken);
 
         // 2. Compute head dep edges and new heads per collection
         var allHeadDepEdges = new List<(Guid, Guid)>();
@@ -674,23 +674,30 @@ internal sealed partial class EngineRepository
         }
 
         // 4. Batch upsert all collection heads in one round-trip
-        await BatchUpsertCollectionHeads(conn, upsertData, now, cancellationToken);
+        await BatchUpdateCollectionHeads(conn, upsertData, now, cancellationToken);
     }
 
     /// <summary>
-    /// Locks multiple collection rows with SELECT ... FOR UPDATE and returns their current heads.
-    /// Collections that don't exist yet are omitted from the result — the caller defaults to empty heads.
+    /// Seeds multiple collection rows if needed, then locks them with SELECT ... FOR UPDATE and
+    /// returns their current heads. Using one command keeps first-writer serialization without
+    /// adding a second database round-trip.
     /// ORDER BY ensures consistent lock acquisition order to prevent deadlocks.
     /// </summary>
-    private static async Task<Dictionary<(string Key, string Ns), Guid[]>> BatchLockAndReadCollectionHeads(
+    private static async Task<Dictionary<(string Key, string Ns), Guid[]>> LockAndReadCollectionHeads(
         NpgsqlConnection conn,
         Dictionary<(string, string), List<int>>.KeyCollection collectionKeys,
+        DateTimeOffset now,
         CancellationToken cancellationToken
     )
     {
         var (keys, namespaces) = collectionKeys.ToArray().Unzip();
 
         const string sql = """
+            INSERT INTO "engine"."WorkflowCollections" ("Key", "Namespace", "Heads", "CreatedAt")
+            SELECT "Key", "Namespace", ARRAY[]::uuid[], @now
+            FROM unnest(@keys, @namespaces) AS t("Key", "Namespace")
+            ON CONFLICT ("Key", "Namespace") DO NOTHING;
+
             SELECT wc."Key", wc."Namespace", wc."Heads"
             FROM unnest(@keys, @namespaces) AS t("Key", "Namespace")
             JOIN "engine"."WorkflowCollections" wc USING ("Key", "Namespace")
@@ -701,6 +708,7 @@ internal sealed partial class EngineRepository
         await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", keys));
         cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
+        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
 
         var result = new Dictionary<(string Key, string Ns), Guid[]>(collectionKeys.Count);
 
@@ -858,10 +866,10 @@ internal sealed partial class EngineRepository
     }
 
     /// <summary>
-    /// Batch-upserts collection rows — INSERT on first use, UPDATE on subsequent appends.
+    /// Batch-updates collection rows after the seed-and-lock step has guaranteed they exist.
     /// Uses the text[] → ::uuid[] cast pattern to avoid unsupported jagged Guid[][] parameters.
     /// </summary>
-    private static async Task BatchUpsertCollectionHeads(
+    private static async Task BatchUpdateCollectionHeads(
         NpgsqlConnection conn,
         List<(string Key, string Ns, Guid[] Heads)> collections,
         DateTimeOffset now,
@@ -879,12 +887,13 @@ internal sealed partial class EngineRepository
         }
 
         const string sql = """
-            INSERT INTO "engine"."WorkflowCollections" ("Key", "Namespace", "Heads", "CreatedAt")
-            SELECT "Key", "Namespace", heads_text::uuid[], @now
+            UPDATE "engine"."WorkflowCollections" AS wc
+            SET "Heads" = t.heads_text::uuid[],
+                "UpdatedAt" = @now
             FROM unnest(@keys, @namespaces, @heads_texts)
                 AS t("Key", "Namespace", heads_text)
-            ON CONFLICT ("Key", "Namespace")
-            DO UPDATE SET "Heads" = EXCLUDED."Heads", "UpdatedAt" = @now
+            WHERE wc."Key" = t."Key"
+              AND wc."Namespace" = t."Namespace"
             """;
 
         await using var cmd = new NpgsqlCommand(sql, conn);
@@ -892,7 +901,13 @@ internal sealed partial class EngineRepository
         cmd.Parameters.Add(new NpgsqlParameter<string[]>("namespaces", namespaces));
         cmd.Parameters.Add(new NpgsqlParameter<string[]>("heads_texts", headsTexts));
         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-        await cmd.ExecuteNonQueryAsync(cancellationToken);
+        var rowsAffected = await cmd.ExecuteNonQueryAsync(cancellationToken);
+        if (rowsAffected != collections.Count)
+        {
+            throw new UnreachableException(
+                $"Expected to update {collections.Count} workflow collections after seed-and-lock, but updated {rowsAffected}."
+            );
+        }
     }
 
     /// <inheritdoc/>
