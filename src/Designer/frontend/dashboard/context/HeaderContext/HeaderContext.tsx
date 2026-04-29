@@ -16,6 +16,7 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import { isOrg } from 'dashboard/utils/orgUtils/orgUtils';
+import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -89,6 +90,8 @@ export const HeaderContextProvider = ({
   };
 
   const studioOidc = environment?.featureFlags?.studioOidc;
+  const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
+  const showSettingsLink = studioOidc || isAdminEnabled;
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
     name: t('top_bar.group_organizations'),
@@ -96,14 +99,14 @@ export const HeaderContextProvider = ({
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
   const profileMenuItems: NavigationMenuItem[] = [
-    ...(studioOidc ? [settingsMenuItem] : []),
+    ...(showSettingsLink ? [settingsMenuItem] : []),
     giteaMenuItem,
     logOutMenuItem,
   ];
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
-    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    ...(showSettingsLink ? [{ items: [settingsMenuItem] }] : []),
     { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];

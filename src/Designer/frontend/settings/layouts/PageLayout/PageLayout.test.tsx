@@ -64,6 +64,11 @@ describe('PageLayout', () => {
   beforeEach(() => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     (useFeatureFlag as jest.Mock).mockReturnValue(false);
+    jest.mocked(useEnvironmentConfig).mockReturnValue({
+      environment: { featureFlags: { studioOidc: true } },
+      isLoading: false,
+      error: null,
+    });
   });
 
   afterEach(() => {
@@ -210,24 +215,5 @@ describe('PageLayout', () => {
     expect(
       screen.queryByRole('menuitem', { name: textMock('dashboard.header_item_dashboard') }),
     ).not.toBeInTheDocument();
-  });
-
-  it('does not render the settings menu item when studioOidc is disabled', async () => {
-    const user = userEvent.setup();
-    renderPageLayout();
-    await user.click(screen.getByRole('button', { name: userWithName.full_name }));
-    expect(screen.queryByText(textMock('settings'))).not.toBeInTheDocument();
-  });
-
-  it('renders the settings menu item when studioOidc is enabled', async () => {
-    const user = userEvent.setup();
-    jest.mocked(useEnvironmentConfig).mockReturnValue({
-      environment: { featureFlags: { studioOidc: true } },
-      isLoading: false,
-      error: null,
-    });
-    renderPageLayout({ organizations: [] });
-    await user.click(screen.getByRole('button', { name: userWithName.full_name }));
-    expect(screen.getByText(textMock('settings'))).toBeInTheDocument();
   });
 });

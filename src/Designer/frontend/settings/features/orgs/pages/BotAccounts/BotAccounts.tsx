@@ -11,20 +11,26 @@ import type { BotAccountForm } from './components/BotAccountDialog/BotAccountDia
 import { AddButton } from '../../../../components/AddButton/AddButton';
 import classes from './BotAccounts.module.css';
 import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { NotFound } from '../../../../components/NotFound/NotFound';
 
 type DialogState = { form: BotAccountForm; editingId: string | null } | null;
 
 export const BotAccounts = (): ReactElement => {
   const { t } = useTranslation();
   const { owner: org } = useRequiredRoutePathsParams(['owner']);
-
+  const { environment } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
   const { data: botAccounts, isPending, isError } = useGetBotAccountsQuery(org);
   const { data: orgs } = useOrgListQuery();
   const availableEnvironments = orgs?.[org]?.environments ?? [];
-
   const [dialogState, setDialogState] = useState<DialogState>(null);
   const [newBotId, setNewBotId] = useState<string | undefined>(undefined);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  if (!studioOidc) {
+    return <NotFound />;
+  }
 
   const openAddDialog = () =>
     setDialogState({

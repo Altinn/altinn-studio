@@ -5,6 +5,7 @@ import { RobotSmileIcon, BellIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { RoutePaths } from '../../routes/RoutePaths';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 
 export function Menu(): ReactElement {
   const { t } = useTranslation();
@@ -12,12 +13,18 @@ export function Menu(): ReactElement {
   const { pathname } = useLocation();
   const selectedTabId = pathname.split('/').at(-1);
   const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
+  const { environment } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
   const menuTabs = [
-    {
-      tabId: RoutePaths.BotAccounts,
-      tabName: t('settings.orgs.bot_accounts.menu.bot_accounts'),
-      icon: <RobotSmileIcon />,
-    },
+    ...(studioOidc
+      ? [
+          {
+            tabId: RoutePaths.BotAccounts,
+            tabName: t('settings.orgs.bot_accounts.menu.bot_accounts'),
+            icon: <RobotSmileIcon />,
+          },
+        ]
+      : []),
     ...(adminEnabled
       ? [
           {
