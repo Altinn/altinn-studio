@@ -108,14 +108,14 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of workflows that terminated in <see cref="Models.PersistentItemStatus.Failed"/>.
+    /// Counter of workflows that terminated in a <c>Failed</c> state.
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
     );
 
     /// <summary>
-    /// Counter of workflows that terminated in <see cref="Models.PersistentItemStatus.Canceled"/>.
+    /// Counter of workflows that terminated in a <c>Canceled</c> state.
     /// </summary>
     public static readonly Counter<long> WorkflowsCanceled = Meter.CreateCounter<long>(
         "engine.workflows.execution.canceled"
@@ -307,7 +307,7 @@ public static class Metrics
     private static long _scheduledWorkflowsCount;
 
     /// <summary>
-    /// Gauge of workflows scheduled for future execution (<see cref="Models.Workflow.StartAt"/> in the future).
+    /// Gauge of workflows scheduled for future execution.
     /// </summary>
     public static readonly ObservableGauge<long> ScheduledWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.scheduled",

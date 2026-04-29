@@ -31,7 +31,7 @@ internal sealed class WorkflowHandler(
     private readonly EngineSettings _settings = settings.Value;
 
     /// <summary>
-    /// Processes a workflow through all its steps. On return, the workflow's <see cref="Workflow.Status"/>
+    /// Processes a workflow through all its steps. On return, the workflow's <c>Status</c>
     /// reflects the final outcome (Completed, Failed, Canceled, or Requeued for retry).
     /// </summary>
     public async Task Handle(Workflow workflow, CancellationToken ct)

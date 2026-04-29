@@ -162,7 +162,9 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
     private HttpClient CreateAuthorizedClient(AppWorkflowContext workflowContext)
     {
+#pragma warning disable S1075
         var baseUrl = _settings.CommandEndpoint.FormatWith(workflowContext).TrimEnd('/') + '/';
+#pragma warning restore S1075
         var client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(baseUrl);
 

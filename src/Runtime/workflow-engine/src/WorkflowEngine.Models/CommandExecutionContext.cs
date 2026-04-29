@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Exceptions;
 
 namespace WorkflowEngine.Models;
