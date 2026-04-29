@@ -118,9 +118,9 @@ public static class TypedHttpClientRegistration
             IAltinnNotificationClient,
             AltinnNotificationClient
         >();
-        if (!env.IsDevelopment())
+        if (env.IsStaging() || env.IsProduction())
         {
-            var settings = GetMaskinportenClientForNotifications(config);
+            var settings = GetMaskinportenClientForNotifications(config, env);
             services.RegisterMaskinportenClientDefinition<SettingsJwkClientDefinition>(
                 MaskinportenClientDefinitionHelper.GetClientDefinitionKey<IAltinnNotificationClient>(),
                 settings
@@ -130,7 +130,10 @@ public static class TypedHttpClientRegistration
         return services;
     }
 
-    private static MaskinportenSettings GetMaskinportenClientForNotifications(IConfiguration config)
+    private static MaskinportenSettings GetMaskinportenClientForNotifications(
+        IConfiguration config,
+        IHostEnvironment env
+    )
     {
         var clients = config
             .GetSection(nameof(MaskinportenClientForNotifications))
@@ -153,6 +156,14 @@ public static class TypedHttpClientRegistration
         {
             throw new InvalidOperationException(
                 $"{nameof(MaskinportenClientForNotifications)} must define ClientId, Scope, Environment and EncodedJwk"
+            );
+        }
+
+        string expectedEnvironment = env.IsProduction() ? "prod" : "test";
+        if (!string.Equals(settings.Environment, expectedEnvironment, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"{nameof(MaskinportenClientForNotifications)} Environment must be '{expectedEnvironment}' when ASPNETCORE_ENVIRONMENT is '{env.EnvironmentName}'"
             );
         }
 
