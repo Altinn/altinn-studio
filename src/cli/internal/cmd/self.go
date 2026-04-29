@@ -466,13 +466,25 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		}
 	}()
 
+	if resetErr := c.transition.ResetEnvs(ctx); resetErr != nil {
+		return fmt.Errorf("reset environments before uninstall: %w", resetErr)
+	}
+	if validateErr := c.service.ValidateHomeRemoval(); validateErr != nil {
+		return fmt.Errorf("validate home directory removal: %w", validateErr)
+	}
+
 	result, err := c.service.UninstallBinary()
 	if err != nil {
 		return fmt.Errorf("self uninstall: %w", err)
 	}
 	removed = true
 
+	removedHome, err := c.service.RemoveHome()
+	if err != nil {
+		return fmt.Errorf("remove home directory: %w", err)
+	}
+
 	c.out.Successf("Removed %s", result.RemovedPath)
-	c.out.Println("Localtest resources and configuration were not removed.")
+	c.out.Successf("Removed %s", removedHome)
 	return nil
 }

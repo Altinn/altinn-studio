@@ -17,6 +17,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Make `--random-host-port` default to `true` for `run` and `app run`.
 - Stop running apps, localtest, and app-manager before `self update`, `self uninstall`, and installer replacement.
+- Make `self uninstall` remove studioctl home data and env runtime resources.
 
 ### Fixed
 
