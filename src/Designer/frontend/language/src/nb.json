@@ -65,6 +65,8 @@
   "admin.metrics.app.health.missing_rights": "Du har ikke rettigheter til å se applikasjonenshelse i {{envTitle}}. Be eierne i {{orgName}} om å gi deg tilgang.",
   "admin.metrics.app.loading": "Laster inn applikasjonsmetrikker for denne appen...",
   "admin.metrics.app.missing_rights": "Du har ikke rettigheter til å se applikasjonsmetrikker i {{envTitle}}. Be eierne i {{orgName}} om å gi deg tilgang.",
+  "admin.metrics.app.no_data": "Fant ingen statistikk om appen for valgt periode.",
+  "admin.metrics.app.no_data_link": "Her kan du se hvordan du setter en innstilling i koden for å samle inn statistikk.",
   "admin.metrics.errors": "Feil fra siste",
   "admin.metrics.errors.error": "Kunne ikke hente applikasjonsfeil. Prøv igjen senere.",
   "admin.metrics.errors.link": "Se logger her",

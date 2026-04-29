@@ -6,7 +6,7 @@ images:
   core:
     localtest:
       image: ghcr.io/altinn/altinn-studio/runtime-localtest
-      tag: "5e9f16df16"
+      tag: "4b5f3ee16a"
     pdf3:
       image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
       tag: "b885f9a75f"

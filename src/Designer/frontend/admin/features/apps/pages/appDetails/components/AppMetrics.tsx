@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import 'chartjs-adapter-date-fns';
 
 import { AppMetric } from './AppMetric';
+import { AppMetricPlaceholder } from './AppMetricPlaceholder';
 import { useAppHealthMetricsQuery } from 'admin/features/apps/hooks/queries/useAppHealthMetricsQuery';
 import { AppHealthMetric } from './AppHealthMetric';
 import { TimeRangeSelect } from 'admin/features/apps/components/TimeRangeSelect/TimeRangeSelect';
@@ -148,6 +149,13 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
       } else {
         return <StudioError className={classes.metric}>{t('admin.metrics.app.error')}</StudioError>;
       }
+    }
+
+    const hasData = appMetrics?.some((metric) => metric.counts.length > 0);
+    if (!hasData) {
+      return appMetrics?.map((metric) => (
+        <AppMetricPlaceholder key={metric.name} metric={metric} range={range} />
+      ));
     }
 
     return appMetrics?.map((metric) => (
