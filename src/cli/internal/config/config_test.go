@@ -155,6 +155,26 @@ func TestNewWithEnvSocketDir(t *testing.T) {
 	if cfg.AppManagerLockPath() != filepath.Join(socketDir, "app-manager.lock") {
 		t.Errorf("AppManagerLockPath() = %q, want lock in socket dir", cfg.AppManagerLockPath())
 	}
+	if cfg.BoundTopologyConfigDir() != filepath.Join(cfg.DataDir, "generated", "topology") {
+		t.Errorf("BoundTopologyConfigDir() = %q, want generated topology dir in data dir", cfg.BoundTopologyConfigDir())
+	}
+	if cfg.BoundTopologyConfigPath() != filepath.Join(cfg.DataDir, "generated", "topology", "bound.json") {
+		t.Errorf(
+			"BoundTopologyConfigPath() = %q, want generated topology config in data dir",
+			cfg.BoundTopologyConfigPath(),
+		)
+	}
+	if cfg.BoundTopologyBaseConfigPath() != filepath.Join(
+		cfg.DataDir,
+		"generated",
+		"topology",
+		"base.json",
+	) {
+		t.Errorf(
+			"BoundTopologyBaseConfigPath() = %q, want generated base topology config in data dir",
+			cfg.BoundTopologyBaseConfigPath(),
+		)
+	}
 }
 
 func TestNewDoctorFallback(t *testing.T) {

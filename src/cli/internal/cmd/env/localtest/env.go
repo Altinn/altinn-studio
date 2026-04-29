@@ -13,7 +13,6 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
-	"altinn.studio/studioctl/internal/appmanager"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
@@ -65,6 +64,11 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 	}
 }
 
+// Name returns the runtime name.
+func (e *Env) Name() string {
+	return "localtest"
+}
+
 // Preflight validates prerequisites before startup.
 func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
 	return CheckForLegacyLocaltest(ctx, e.client, opts.PgAdmin)
@@ -78,15 +82,18 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	runtimeCfg := newRuntimeConfig()
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
-		return ensureErr
-	}
-
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
 	e.out.Verbosef("Image mode: %s", buildOpts.ImageMode)
+
+	if err := envtypes.EnsureBoundTopology(ctx, e.cfg, topology, RuntimeBindings(BindingOptions{
+		IncludeMonitoring: buildOpts.IncludeMonitoring,
+		IncludePgAdmin:    buildOpts.IncludePgAdmin,
+	})); err != nil {
+		return fmt.Errorf("ensure bound topology: %w", err)
+	}
 
 	if err := e.ensureResources(ctx, buildOpts); err != nil {
 		return err
@@ -211,17 +218,6 @@ func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) 
 	return &status, nil
 }
 
-func (e *Env) ensureAppManager(ctx context.Context, topology envtopology.Local) error {
-	if err := appmanager.EnsureStarted(
-		ctx,
-		e.cfg,
-		topology.IngressPort(),
-	); err != nil {
-		return fmt.Errorf("ensure app-manager: %w", err)
-	}
-	return nil
-}
-
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
 	graph, err := buildResourceGraph(BuildResourcesForDestroy(e.buildDestroyOptions()))
 	if err != nil {
@@ -304,7 +300,7 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 	renderer.Start()
 	executor.SetObserver(renderer)
 
-	if err := executor.Apply(ctx, graph); err != nil {
+	if _, err := executor.Apply(ctx, graph); err != nil {
 		renderer.FailAll(err.Error())
 		renderer.Stop()
 		return fmt.Errorf("start environment: %w", err)
@@ -406,9 +402,6 @@ func (e *Env) ensureResources(ctx context.Context, buildOpts ResourceBuildOption
 	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
 		return err
 	}
-	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
-		return err
-	}
 
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
 		return e.reinstallResourcesAfterValidationFailure(ctx, buildOpts, err)
@@ -432,18 +425,8 @@ func (e *Env) reinstallResourcesAfterValidationFailure(
 	if err := ensureLocaltestStorageDir(e.cfg.DataDir); err != nil {
 		return err
 	}
-	if err := ensureWorkflowEngineDbDataDir(e.cfg.DataDir); err != nil {
-		return err
-	}
 	if err := ValidateResourceHostPaths(buildOpts); err != nil {
 		return fmt.Errorf("validate resources after reinstall: %w", err)
-	}
-	return nil
-}
-
-func ensureWorkflowEngineDbDataDir(dataDir string) error {
-	if err := os.MkdirAll(workflowEngineDbDataPath(dataDir), osutil.DirPermDefault); err != nil {
-		return fmt.Errorf("create workflow-engine database data directory: %w", err)
 	}
 	return nil
 }
@@ -459,10 +442,13 @@ func (e *Env) deletePersistedData(ctx context.Context) error {
 	if err := removeResetDataPath(e.cfg.DataDir, filepath.Join(e.cfg.DataDir, "AltinnPlatformLocal")); err != nil {
 		return err
 	}
-	return e.removeWorkflowEngineDbData(ctx, workflowEngineDbDataPath(e.cfg.DataDir))
+	if err := e.removeLegacyWorkflowEngineDbData(ctx, workflowEngineDbDataPath(e.cfg.DataDir)); err != nil {
+		e.out.Verbosef("Failed to remove legacy workflow-engine database data: %v", err)
+	}
+	return e.removeWorkflowEngineDbVolume(ctx)
 }
 
-func (e *Env) removeWorkflowEngineDbData(ctx context.Context, target string) error {
+func (e *Env) removeLegacyWorkflowEngineDbData(ctx context.Context, target string) error {
 	targetAbs, exists, err := resetTargetPath(e.cfg.DataDir, target)
 	if err != nil {
 		return err
@@ -476,6 +462,16 @@ func (e *Env) removeWorkflowEngineDbData(ctx context.Context, target string) err
 	}
 
 	return removeResetDataPath(e.cfg.DataDir, target)
+}
+
+func (e *Env) removeWorkflowEngineDbVolume(ctx context.Context) error {
+	if err := e.client.VolumeRemove(ctx, workflowEngineDbVolume, true); err != nil {
+		if errors.Is(err, containertypes.ErrVolumeNotFound) {
+			return nil
+		}
+		return fmt.Errorf("remove workflow-engine database volume %q: %w", workflowEngineDbVolume, err)
+	}
+	return nil
 }
 
 func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string) error {
@@ -492,6 +488,7 @@ func (e *Env) cleanupWorkflowEngineDbData(ctx context.Context, targetAbs string)
 		Volumes: []containertypes.VolumeMount{{
 			HostPath:      targetAbs,
 			ContainerPath: "/cleanup",
+			Type:          containertypes.VolumeMountTypeBind,
 			ReadOnly:      false,
 		}},
 		Networks: nil,

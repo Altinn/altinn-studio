@@ -35,6 +35,8 @@ internal sealed class WorkflowEntity
 
     public int ReclaimCount { get; set; }
 
+    public Guid? LeaseToken { get; set; }
+
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string>? Labels { get; set; }
 
@@ -72,6 +74,7 @@ internal sealed class WorkflowEntity
             BackoffUntil = workflow.BackoffUntil,
             HeartbeatAt = workflow.HeartbeatAt,
             ReclaimCount = workflow.ReclaimCount,
+            LeaseToken = workflow.LeaseToken,
             Status = workflow.Status,
             Labels = workflow.Labels,
             ContextJson = workflow.Context?.GetRawText(),
@@ -106,6 +109,7 @@ internal sealed class WorkflowEntity
             BackoffUntil = BackoffUntil,
             HeartbeatAt = HeartbeatAt,
             ReclaimCount = ReclaimCount,
+            LeaseToken = LeaseToken,
             Status = Status,
             Labels = Labels,
             Context =

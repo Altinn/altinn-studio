@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"altinn.studio/devenv/pkg/container"
@@ -496,14 +495,24 @@ func (c *EnvCommand) confirmResetIfNeeded(ctx context.Context, flags envResetFla
 	if flags.yes {
 		return true, nil
 	}
-	if !ui.StdinIsTerminal() {
-		return false, fmt.Errorf("%w: --yes is required when stdin is not a terminal", ErrInvalidFlagValue)
+
+	input, cleanup, err := ui.InteractiveInput()
+	if err != nil {
+		return false, fmt.Errorf(
+			"%w: --yes is required when no terminal input is available",
+			ErrInvalidFlagValue,
+		)
 	}
+	defer func() {
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			c.out.Verbosef("failed to close terminal input: %v", cleanupErr)
+		}
+	}()
 
 	confirmed, err := ui.Confirm(
 		ctx,
 		c.out,
-		os.Stdin,
+		input,
 		fmt.Sprintf("Delete persisted %s environment data? [y/N]: ", flags.runtime),
 	)
 	if err != nil {

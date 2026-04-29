@@ -298,7 +298,6 @@ internal sealed class Engine(
 
         if (updated)
         {
-            Metrics.WorkflowsCanceled.Add(1);
             var canceledImmediately = tracker.TryCancel(workflowId);
             return new CancelWorkflowResult.Requested(workflowId, now, canceledImmediately);
         }

@@ -118,6 +118,22 @@ func TestParseRunFlagsUsesProcessMode(t *testing.T) {
 	if flags.mode != runModeProcess {
 		t.Fatalf("mode = %q, want %q", flags.mode, runModeProcess)
 	}
+	if !flags.randomHostPort {
+		t.Fatal("randomHostPort = false, want true")
+	}
+}
+
+func TestParseRunFlagsCanDisableRandomHostPort(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--random-host-port=false"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if flags.randomHostPort {
+		t.Fatal("randomHostPort = true, want false")
+	}
 }
 
 func TestRunDetachedOutputPrintJSON(t *testing.T) {

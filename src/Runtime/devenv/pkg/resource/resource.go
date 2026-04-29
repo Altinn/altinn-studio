@@ -73,6 +73,17 @@ type Resource interface {
 	Dependencies() []ResourceRef
 }
 
+// Enabled reports whether a resource participates in graph validation and execution.
+// A nil enabled value means enabled by default.
+func Enabled(enabled *bool) bool {
+	return enabled == nil || *enabled
+}
+
+// EnablementProvider exposes optional resource enablement.
+type EnablementProvider interface {
+	IsEnabled() bool
+}
+
 // ErrorDecision describes how an executor should handle a lifecycle error.
 type ErrorDecision int
 
