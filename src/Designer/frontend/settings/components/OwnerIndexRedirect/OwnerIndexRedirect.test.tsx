@@ -95,5 +95,7 @@ describe('OwnerIndexRedirect', () => {
     expect(screen.queryByText('User page')).not.toBeInTheDocument();
     expect(screen.queryByText('Bot accounts page')).not.toBeInTheDocument();
     expect(screen.queryByText('Contact points page')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('no-org-selected')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('not-found')).not.toBeInTheDocument();
   });
 });

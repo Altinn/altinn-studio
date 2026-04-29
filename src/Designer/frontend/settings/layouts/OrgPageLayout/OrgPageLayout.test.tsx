@@ -92,7 +92,9 @@ describe('OrgPageLayout', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     mockUseFeatureFlag.mockReturnValue(false);
     renderOrgPageLayout();
-    expect(screen.queryByText('PageLayout')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
+    ).toBeInTheDocument();
   });
 
   it('renders PageLayout when only Admin flag is enabled', () => {

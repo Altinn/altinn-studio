@@ -6,6 +6,7 @@ import { type Organization } from 'app-shared/types/Organization';
 import { type User } from 'app-shared/types/Repository';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { dashboardHeaderMenuItems } from '../../utils/headerUtils/headerUtils';
+import { useFeatureFlagsContext, FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useRepoPath } from '../../hooks/useRepoPath';
 import { useSubroute } from '../../hooks/useSubRoute';
@@ -16,7 +17,6 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import { isOrg } from 'dashboard/utils/orgUtils/orgUtils';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -46,6 +46,7 @@ export const HeaderContextProvider = ({
   const subroute = useSubroute();
 
   const { environment } = useEnvironmentConfig();
+  const { flags } = useFeatureFlagsContext();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
     navigate(`${subroute}/${context}${location.search}`);
@@ -116,7 +117,9 @@ export const HeaderContextProvider = ({
       value={{
         user,
         selectableOrgs,
-        menuItems: dashboardHeaderMenuItems.map((item) => ({ name: t(item.name), ...item })),
+        menuItems: dashboardHeaderMenuItems
+          .filter((item) => !item.featureFlag || flags.includes(item.featureFlag))
+          .map((item) => ({ ...item, name: t(item.name) })),
         profileMenuItems,
         profileMenuGroups,
       }}

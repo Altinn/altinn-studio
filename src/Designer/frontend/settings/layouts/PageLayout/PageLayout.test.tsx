@@ -61,14 +61,17 @@ const renderPageLayout = ({
 };
 
 describe('PageLayout', () => {
+  const mockEnvironmentConfig = (studioOidc: boolean) =>
+    jest.mocked(useEnvironmentConfig).mockReturnValue({
+      environment: { featureFlags: { studioOidc } },
+      isPending: false,
+      error: null,
+    });
+
   beforeEach(() => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
     (useFeatureFlag as jest.Mock).mockReturnValue(false);
-    jest.mocked(useEnvironmentConfig).mockReturnValue({
-      environment: { featureFlags: { studioOidc: true } },
-      isLoading: false,
-      error: null,
-    });
+    mockEnvironmentConfig(true);
   });
 
   afterEach(() => {
@@ -215,5 +218,18 @@ describe('PageLayout', () => {
     expect(
       screen.queryByRole('menuitem', { name: textMock('dashboard.header_item_dashboard') }),
     ).not.toBeInTheDocument();
+  });
+
+  it('shows settings when admin flag is enabled and studioOidc is disabled', async () => {
+    const user = userEvent.setup();
+    (useFeatureFlag as jest.Mock).mockReturnValue(true);
+    mockEnvironmentConfig(false);
+
+    renderPageLayout({ initialEntries: ['/test'] });
+    await user.click(screen.getByRole('button', { name: userWithName.full_name }));
+
+    const settingsLink = screen.getByRole('menuitem', { name: textMock('settings') });
+    expect(settingsLink).toBeInTheDocument();
+    expect(settingsLink).toHaveAttribute('href', '/settings/test');
   });
 });

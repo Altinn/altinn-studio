@@ -7,14 +7,30 @@ import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigConte
 import { NoOrgSelected } from '../NoOrgSelected/NoOrgSelected';
 import { NotFound } from '../NotFound/NotFound';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
+import { StudioPageError } from 'app-shared/components';
+import { useTranslation } from 'react-i18next';
 
 export const OwnerIndexRedirect = () => {
+  const { t } = useTranslation();
   const { owner } = useRequiredRoutePathsParams(['owner']);
-  const { data: user } = useUserQuery();
-  const { environment } = useEnvironmentConfig();
+  const { data: user, isPending: isUserPending, isError: isUserError } = useUserQuery();
+  const { environment, isPending: isEnvironmentPending } = useEnvironmentConfig();
   const studioOidc = environment?.featureFlags?.studioOidc;
   const isAdminEnabled = useFeatureFlag(FeatureFlag.Admin);
-  if (!user) return null;
+
+  if (isUserPending || isEnvironmentPending) {
+    return (
+      <StudioCenter>
+        <StudioPageSpinner spinnerTitle={t('general.loading')} />
+      </StudioCenter>
+    );
+  }
+
+  if (isUserError) {
+    return <StudioPageError />;
+  }
+
   if (!studioOidc && !isAdminEnabled) {
     return <NotFound />;
   }

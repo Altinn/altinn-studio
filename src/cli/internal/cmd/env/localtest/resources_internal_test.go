@@ -200,48 +200,34 @@ func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine ContainerS
 	}
 }
 
-func TestBuildResources_AddsPgAdminOnlyWhenRequested(t *testing.T) {
+func TestResourceBuilder_AddsPgAdminOnlyWhenRequested(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	tests := map[string]struct {
 		includePgAdmin bool
-		wantPgAdmin    bool
+		wantEnabled    bool
 	}{
 		"default": {
 			includePgAdmin: false,
-			wantPgAdmin:    false,
+			wantEnabled:    false,
 		},
 		"requested": {
 			includePgAdmin: true,
-			wantPgAdmin:    true,
+			wantEnabled:    true,
 		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			resources := BuildResources(newResourceBuildOptions(t.TempDir(), false, tt.includePgAdmin))
-			if got := hasResource(resources, resource.ContainerID(ContainerPgAdmin)); got != tt.wantPgAdmin {
-				t.Fatalf("BuildResources() has pgadmin = %v, want %v", got, tt.wantPgAdmin)
+			resources := buildResources(newResourceBuildOptions(t.TempDir(), false, tt.includePgAdmin))
+			pgAdmin := findResource(resources, resource.ContainerID(ContainerPgAdmin))
+			if pgAdmin == nil {
+				t.Fatalf("buildResources() missing %q", ContainerPgAdmin)
+			}
+			if got := resource.IsEnabled(pgAdmin); got != tt.wantEnabled {
+				t.Fatalf("pgAdmin enabled = %v, want %v", got, tt.wantEnabled)
 			}
 		})
-	}
-}
-
-func TestBuildResources_IncludesPgAdminInCIWhenRequested(t *testing.T) {
-	t.Setenv(config.EnvCI, "true")
-
-	resources := BuildResources(newResourceBuildOptions(t.TempDir(), false, true))
-	if !hasResource(resources, resource.ContainerID(ContainerPgAdmin)) {
-		t.Fatalf("BuildResources() missing %q in CI", ContainerPgAdmin)
-	}
-}
-
-func TestBuildResourcesForDestroy_IncludesPgAdmin(t *testing.T) {
-	t.Setenv(config.EnvCI, "true")
-
-	resources := BuildResourcesForDestroy(ResourceDestroyOptions{DataDir: t.TempDir()})
-	if !hasResource(resources, resource.ContainerID(ContainerPgAdmin)) {
-		t.Fatalf("BuildResourcesForDestroy() missing %q", ContainerPgAdmin)
 	}
 }
 
@@ -261,7 +247,7 @@ func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 	}
 }
 
-func TestBuildResources_FailsForUnknownContainerDependency(t *testing.T) {
+func TestResourceBuilder_FailsForUnknownContainerDependency(t *testing.T) {
 	t.Setenv(config.EnvCI, "true")
 
 	specs := []ContainerSpec{
@@ -286,7 +272,7 @@ func TestBuildResources_FailsForUnknownContainerDependency(t *testing.T) {
 		network,
 		nil,
 		"",
-		containerModeApply,
+		nil,
 	)
 
 	graph := resource.NewGraph()
@@ -504,8 +490,15 @@ func createMonitoringLayout(t *testing.T, dataDir string) {
 	}
 }
 
-func hasResource(resources []resource.Resource, id resource.ResourceID) bool {
-	return slices.ContainsFunc(resources, func(res resource.Resource) bool {
-		return res.ID() == id
-	})
+func findResource(resources []resource.Resource, id resource.ResourceID) *resource.Container {
+	for _, res := range resources {
+		if res.ID() == id {
+			containerResource, ok := res.(*resource.Container)
+			if !ok {
+				return nil
+			}
+			return containerResource
+		}
+	}
+	return nil
 }
