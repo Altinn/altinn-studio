@@ -23,13 +23,16 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 	t.Parallel()
 
 	client := mock.New()
-	client.ContainerStateFunc = func(context.Context, string) (containertypes.ContainerState, error) {
-		return containertypes.ContainerState{Status: "running", Running: true}, nil
+	client.ContainerInspectFunc = func(context.Context, string) (containertypes.ContainerInfo, error) {
+		return containertypes.ContainerInfo{
+			Labels: map[string]string{envlocaltest.LabelKey: envlocaltest.LabelValue},
+			State:  containertypes.ContainerState{Status: "running", Running: true},
+		}, nil
 	}
 
 	var out bytes.Buffer
 	command := &EnvCommand{
-		cfg: &config.Config{},
+		cfg: &config.Config{Images: testLocaltestImages()},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
 	err := command.runLocaltestUp(context.Background(), client, envUpFlags{
@@ -47,6 +50,18 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 	}
 	if got.Runtime != runtimeLocaltest || !got.Running || got.Started || !got.AlreadyRunning {
 		t.Fatalf("output = %+v, want already running result", got)
+	}
+}
+
+func testLocaltestImages() config.ImagesConfig {
+	return config.ImagesConfig{
+		Core: config.CoreImages{
+			Localtest:        config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest"},
+			PDF3:             config.ImageSpec{Image: "ghcr.io/altinn/test-pdf3", Tag: "latest"},
+			WorkflowEngineDb: config.ImageSpec{Image: "postgres", Tag: "18"},
+			WorkflowEngine:   config.ImageSpec{Image: "ghcr.io/altinn/test-workflow-engine", Tag: "latest"},
+			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
+		},
 	}
 }
 

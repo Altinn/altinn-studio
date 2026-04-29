@@ -145,21 +145,6 @@ func newContainerSpec(
 	}
 }
 
-func newStatus() Status {
-	return Status{
-		Containers: []ContainerStatus{},
-		Running:    false,
-		AnyRunning: false,
-	}
-}
-
-func newContainerStatus(name, status string) ContainerStatus {
-	return ContainerStatus{
-		Name:   name,
-		Status: status,
-	}
-}
-
 func localtestListenURLs(loadBalancerPort string) string {
 	if loadBalancerPort == localtestServicePort {
 		return "http://*:" + localtestServicePort + "/"
@@ -225,9 +210,7 @@ func coreContainers(
 		),
 		workflowEngineDbContainerSpec(dataDir),
 		workflowEngineContainerSpec(runtimeConfig),
-	}
-	if includePgAdmin {
-		containers = append(containers, pgAdminContainerSpec(dataDir))
+		pgAdminContainerSpec(dataDir),
 	}
 	return containers
 }
@@ -441,59 +424,12 @@ type ResourceBuildOptions struct {
 	IncludePgAdmin    bool
 }
 
-// ResourceDestroyOptions holds minimal options for destroying resources.
-type ResourceDestroyOptions struct {
-	DataDir           string
-	Images            config.ImagesConfig
-	IncludeMonitoring bool
-}
-
-type containerResourceMode int
-
-const (
-	containerModeApply containerResourceMode = iota
-	containerModeDestroy
-)
-
-// BuildResources creates the resource graph for localtest.
-// Returns pure resource types that can be applied via an Executor.
-func BuildResources(opts ResourceBuildOptions) []resource.Resource {
-	return buildResourcesWithMode(
-		opts.DataDir,
-		opts.RuntimeConfig,
-		opts.Topology,
-		opts.IncludeMonitoring,
-		opts.IncludePgAdmin,
-		buildCoreImages(opts),
-		monitoringImageRefs(opts.Images.Monitoring),
-		containerModeApply,
-	)
-}
-
-// BuildResourcesForDestroy creates the list of resources need to shutdown localtest.
-func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
-	runtimeCfg := RuntimeConfig{
-		User: "", // not used for destroy
-	}
-
-	return buildResourcesWithMode(
-		opts.DataDir,
-		runtimeCfg,
-		envtopology.NewLocal(envtopology.DefaultIngressPortString()),
-		opts.IncludeMonitoring,
-		true,
-		buildRemoteCoreImages(opts.Images.Core),
-		monitoringImageRefs(opts.Images.Monitoring),
-		containerModeDestroy,
-	)
-}
-
 func buildCoreImages(opts ResourceBuildOptions) map[string]resource.ImageResource {
 	if opts.ImageMode != DevMode || opts.DevConfig == nil {
-		return buildRemoteCoreImages(opts.Images.Core)
+		return buildRemoteCoreImages(opts.Images.Core, opts.IncludePgAdmin)
 	}
 
-	images := buildRemoteCoreImages(opts.Images.Core)
+	images := buildRemoteCoreImages(opts.Images.Core, opts.IncludePgAdmin)
 
 	images[ContainerLocaltest] = &resource.LocalImage{
 		Enabled:     nil,
@@ -541,7 +477,7 @@ func buildCacheOptions(ref string) types.BuildOptions {
 	return opts
 }
 
-func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageResource {
+func buildRemoteCoreImages(core config.CoreImages, includePgAdmin bool) map[string]resource.ImageResource {
 	return map[string]resource.ImageResource{
 		ContainerLocaltest: &resource.RemoteImage{
 			Enabled:    nil,
@@ -564,31 +500,21 @@ func buildRemoteCoreImages(core config.CoreImages) map[string]resource.ImageReso
 			PullPolicy: resource.PullIfNotPresent,
 		},
 		ContainerPgAdmin: &resource.RemoteImage{
-			Enabled:    nil,
-			Ref:        core.PgAdmin.Ref(),
+			Enabled:    resourceEnabledRef(includePgAdmin),
+			Ref:        imageRef(core.PgAdmin.Ref(), ContainerPgAdmin, includePgAdmin),
 			PullPolicy: resource.PullIfNotPresent,
 		},
 	}
 }
 
-func buildResourcesWithMode(
-	dataDir string,
-	runtimeCfg RuntimeConfig,
-	topology envtopology.Local,
-	includeMonitoring bool,
-	includePgAdmin bool,
-	coreImages map[string]resource.ImageResource,
-	monImages map[string]string,
-	mode containerResourceMode,
-) []resource.Resource {
-	core := coreContainers(dataDir, topology, includeMonitoring, includePgAdmin)
-	mon := monitoringContainers(dataDir, topology)
+func buildResources(opts ResourceBuildOptions) []resource.Resource {
+	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludeMonitoring, opts.IncludePgAdmin)
+	mon := monitoringContainers(opts.DataDir, opts.Topology)
+	coreImages := buildCoreImages(opts)
+	monImages := monitoringImageRefs(opts.Images.Monitoring)
 	labels := map[string]string{LabelKey: LabelValue}
 
-	capacity := 1 + len(core)*2
-	if includeMonitoring {
-		capacity += len(mon) * 2
-	}
+	capacity := 1 + len(core)*2 + len(mon)*2
 	resources := make([]resource.Resource, 0, capacity)
 
 	network := &resource.Network{
@@ -615,37 +541,54 @@ func buildResourcesWithMode(
 
 	for i := range core {
 		spec := &core[i]
+		enabled := coreResourceEnabled(spec.Name, opts.IncludePgAdmin)
 		resources = append(resources, newContainerResource(
 			spec,
 			coreImages[spec.Name],
 			resource.Ref(network),
 			labels,
-			runtimeCfg.User,
-			mode,
+			opts.RuntimeConfig.User,
+			resourceEnabledRef(enabled),
 		))
 	}
 
-	if includeMonitoring {
-		for i := range mon {
-			spec := &mon[i]
-			image := &resource.RemoteImage{
-				Enabled:    nil,
-				Ref:        monImages[spec.Name],
-				PullPolicy: resource.PullIfNotPresent,
-			}
-			resources = append(resources, image)
-			resources = append(resources, newContainerResource(
-				spec,
-				image,
-				resource.Ref(network),
-				labels,
-				"", // Monitoring containers use default user (config mounts are read-only)
-				mode,
-			))
+	for i := range mon {
+		spec := &mon[i]
+		image := &resource.RemoteImage{
+			Enabled:    resourceEnabledRef(opts.IncludeMonitoring),
+			Ref:        imageRef(monImages[spec.Name], spec.Name, opts.IncludeMonitoring),
+			PullPolicy: resource.PullIfNotPresent,
 		}
+		resources = append(resources, image)
+		resources = append(resources, newContainerResource(
+			spec,
+			image,
+			resource.Ref(network),
+			labels,
+			"", // Monitoring containers use default user (config mounts are read-only)
+			resourceEnabledRef(opts.IncludeMonitoring),
+		))
 	}
 
 	return resources
+}
+
+func coreResourceEnabled(name string, includePgAdmin bool) bool {
+	return name != ContainerPgAdmin || includePgAdmin
+}
+
+func resourceEnabledRef(enabled bool) *bool {
+	if enabled {
+		return nil
+	}
+	return new(false)
+}
+
+func imageRef(ref, name string, enabled bool) string {
+	if enabled {
+		return ref
+	}
+	return "disabled.local/" + name + ":disabled"
 }
 
 func newContainerResource(
@@ -654,34 +597,8 @@ func newContainerResource(
 	network resource.ResourceRef,
 	labels map[string]string,
 	user string,
-	mode containerResourceMode,
+	enabled *bool,
 ) *resource.Container {
-	if mode == containerModeDestroy {
-		return &resource.Container{
-			HealthCheck: nil,
-			Name:        spec.Name,
-			Image:       resource.Ref(imageRes),
-			Enabled:     nil,
-			Networks:    []resource.ResourceRef{network},
-			DependsOn:   nil,
-			Lifecycle: resource.ContainerLifecycleOptions{
-				LifecycleOptions: resource.LifecycleOptions{
-					HandleDestroyError: nil,
-				},
-				WaitForReady: false,
-			},
-			Labels:         labels,
-			Ports:          nil,
-			Volumes:        nil,
-			Env:            nil,
-			Command:        nil,
-			ExtraHosts:     nil,
-			NetworkAliases: nil,
-			RestartPolicy:  "",
-			User:           "",
-		}
-	}
-
 	containerUser := user
 	if spec.UseDefaultUser {
 		containerUser = ""
@@ -691,7 +608,7 @@ func newContainerResource(
 		HealthCheck: spec.HealthCheck,
 		Name:        spec.Name,
 		Image:       resource.Ref(imageRes),
-		Enabled:     nil,
+		Enabled:     enabled,
 		Networks:    []resource.ResourceRef{network},
 		DependsOn:   containerDependencyRefs(spec.Dependencies),
 		Ports:       spec.Ports,
@@ -740,19 +657,18 @@ type hostPathExpectation struct {
 }
 
 func hostPathExpectations(opts ResourceBuildOptions) []hostPathExpectation {
-	core := coreContainers(opts.DataDir, opts.Topology, opts.IncludeMonitoring, opts.IncludePgAdmin)
-	all := core
-	if opts.IncludeMonitoring {
-		all = append(all, monitoringContainers(opts.DataDir, opts.Topology)...)
-	}
+	resources := buildResources(opts)
 
 	// Dedupe by host path while preserving first expectation.
-	seen := make(map[string]struct{}, len(all))
-	result := make([]hostPathExpectation, 0, len(all))
-	for i := range all {
-		spec := &all[i]
-		for j := range spec.Volumes {
-			volume := spec.Volumes[j]
+	seen := make(map[string]struct{}, len(resources))
+	result := make([]hostPathExpectation, 0, len(resources))
+	for _, res := range resources {
+		container, ok := res.(*resource.Container)
+		if !ok || !resource.IsEnabled(container) {
+			continue
+		}
+		for j := range container.Volumes {
+			volume := container.Volumes[j]
 			if !isBindMount(volume) {
 				continue
 			}

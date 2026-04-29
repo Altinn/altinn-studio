@@ -16,9 +16,20 @@ func NewLog(
 	operation Operation,
 	startMessage string,
 ) *LogRenderer {
+	return NewLogWithStatus(out, resources, operation, nil, startMessage)
+}
+
+// NewLogWithStatus creates the non-interactive line-based renderer with initial resource status.
+func NewLogWithStatus(
+	out *ui.Output,
+	resources []resource.Resource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+	startMessage string,
+) *LogRenderer {
 	return &LogRenderer{
 		out:          out,
-		model:        newRenderModel(resources, operation),
+		model:        newRenderModel(resources, operation, statuses),
 		startMessage: startMessage,
 		emitted:      make(map[string]string),
 		mu:           sync.Mutex{},

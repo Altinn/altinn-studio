@@ -33,11 +33,12 @@ func newScreenRenderer(
 	out *ui.Output,
 	resources []resource.Resource,
 	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
 	rendererLayout layout,
 ) *screenRenderer {
 	return &screenRenderer{
 		out:           out,
-		model:         newRenderModel(resources, operation),
+		model:         newRenderModel(resources, operation, statuses),
 		layout:        rendererLayout,
 		done:          nil,
 		mu:            sync.Mutex{},
