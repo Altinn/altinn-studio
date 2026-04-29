@@ -365,6 +365,8 @@ public class ResourceAdminController : ControllerBase
                             includeAltinn2: false,
                             includeMigratedApps: true
                         );
+                        
+                        // This might look a bit weird (why not just set includeApps: false above?), but with includeApps: false, MigratedApp resources will not be returned either even with includeMigratedApps: true 
                         environmentResources = environmentResources
                             .Where(resource => resource.ResourceType != ResourceType.AltinnApp)
                             .ToList();
