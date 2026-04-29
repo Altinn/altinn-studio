@@ -476,13 +476,25 @@ func safeHomeRemovalPath(home string) (string, error) {
 		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
 	}
 
-	if userHome, err := os.UserHomeDir(); err == nil && samePath(cleanHome, userHome) {
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("%w: resolve user home directory: %w", ErrUnsafeHomeRemoval, err)
+	}
+	if samePath(cleanHome, userHome) {
 		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
 	}
-	if userConfigDir, err := os.UserConfigDir(); err == nil && samePath(cleanHome, userConfigDir) {
+	userConfigDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", fmt.Errorf("%w: resolve user config directory: %w", ErrUnsafeHomeRemoval, err)
+	}
+	if samePath(cleanHome, userConfigDir) {
 		return "", fmt.Errorf("%w: %s", ErrUnsafeHomeRemoval, cleanHome)
 	}
-	if cwd, err := os.Getwd(); err == nil && pathContains(cleanHome, cwd) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("%w: resolve current directory: %w", ErrUnsafeHomeRemoval, err)
+	}
+	if pathContains(cleanHome, cwd) {
 		return "", fmt.Errorf("%w: %s contains current directory %s", ErrUnsafeHomeRemoval, cleanHome, cwd)
 	}
 

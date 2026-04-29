@@ -473,16 +473,16 @@ func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 		return fmt.Errorf("validate home directory removal: %w", validateErr)
 	}
 
+	removedHome, err := c.service.RemoveHome()
+	if err != nil {
+		return fmt.Errorf("remove home directory: %w", err)
+	}
+
 	result, err := c.service.UninstallBinary()
 	if err != nil {
 		return fmt.Errorf("self uninstall: %w", err)
 	}
 	removed = true
-
-	removedHome, err := c.service.RemoveHome()
-	if err != nil {
-		return fmt.Errorf("remove home directory: %w", err)
-	}
 
 	c.out.Successf("Removed %s", result.RemovedPath)
 	c.out.Successf("Removed %s", removedHome)

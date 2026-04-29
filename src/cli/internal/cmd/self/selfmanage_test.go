@@ -223,9 +223,9 @@ func TestRemoveHomeRejectsUserHome(t *testing.T) {
 		t.Skipf("user home unavailable: %v", err)
 	}
 
-	_, err = self.NewService(&config.Config{Home: home}).RemoveHome()
+	err = self.NewService(&config.Config{Home: home}).ValidateHomeRemoval()
 	if !errors.Is(err, self.ErrUnsafeHomeRemoval) {
-		t.Fatalf("RemoveHome() error = %v, want ErrUnsafeHomeRemoval", err)
+		t.Fatalf("ValidateHomeRemoval() error = %v, want ErrUnsafeHomeRemoval", err)
 	}
 }
 
@@ -237,9 +237,9 @@ func TestRemoveHomeRejectsCurrentDirectory(t *testing.T) {
 		t.Fatalf("get cwd: %v", err)
 	}
 
-	_, err = self.NewService(&config.Config{Home: cwd}).RemoveHome()
+	err = self.NewService(&config.Config{Home: cwd}).ValidateHomeRemoval()
 	if !errors.Is(err, self.ErrUnsafeHomeRemoval) {
-		t.Fatalf("RemoveHome() error = %v, want ErrUnsafeHomeRemoval", err)
+		t.Fatalf("ValidateHomeRemoval() error = %v, want ErrUnsafeHomeRemoval", err)
 	}
 }
 
