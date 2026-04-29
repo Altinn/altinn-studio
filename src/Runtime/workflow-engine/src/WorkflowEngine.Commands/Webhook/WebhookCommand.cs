@@ -142,8 +142,8 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
 internal static partial class WebhookCommandDescriptorLogs
 {
     [LoggerMessage(LogLevel.Information, "[POST] Sending Webhook to {Endpoint} with payload: {Payload}")]
-    public static partial void SendingWebhookPost(this ILogger<WebhookCommand> logger, Uri endpoint, string payload);
+    internal static partial void SendingWebhookPost(this ILogger<WebhookCommand> logger, Uri endpoint, string payload);
 
     [LoggerMessage(LogLevel.Information, "[GET] Sending Webhook to {Endpoint} without payload")]
-    public static partial void SendingWebhookGet(this ILogger<WebhookCommand> logger, Uri endpoint);
+    internal static partial void SendingWebhookGet(this ILogger<WebhookCommand> logger, Uri endpoint);
 }

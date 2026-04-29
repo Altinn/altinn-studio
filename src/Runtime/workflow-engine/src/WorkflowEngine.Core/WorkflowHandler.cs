@@ -449,9 +449,6 @@ internal sealed class WorkflowHandler(
     }
 }
 
-/// <summary>
-/// Source-generated log messages for <see cref="WorkflowHandler"/>.
-/// </summary>
 internal static partial class WorkflowHandlerLogs
 {
     [LoggerMessage(LogLevel.Debug, "Processing workflow: {Workflow}")]

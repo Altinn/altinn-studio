@@ -175,7 +175,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 internal static partial class AppCommandDescriptorLogs
 {
     [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
-    public static partial void SendingAppCommand(
+    internal static partial void SendingAppCommand(
         this ILogger<AppCommand> logger,
         Uri endpoint,
         AppCallbackPayload payload
