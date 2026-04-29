@@ -6,29 +6,33 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os/exec"
 	"runtime"
+	"strings"
 
-	"altinn.studio/studioctl/internal/appmanager"
 	selfsvc "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
 
+const selfMigrateSubcmd = "__migrate"
+
 // SelfCommand implements the 'self' subcommand.
 type SelfCommand struct {
-	cfg     *config.Config
-	out     *ui.Output
-	service *selfsvc.Service
+	cfg        *config.Config
+	out        *ui.Output
+	service    *selfsvc.Service
+	transition *selfsvc.Transition
 }
 
 // NewSelfCommand creates a new self command.
 func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
-		cfg:     cfg,
-		out:     out,
-		service: selfsvc.NewService(cfg),
+		cfg:        cfg,
+		out:        out,
+		service:    selfsvc.NewService(cfg),
+		transition: selfsvc.NewTransition(cfg, out),
 	}
 }
 
@@ -70,7 +74,9 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 	case "update":
 		return c.runUpdate(ctx, subArgs)
 	case "uninstall":
-		return c.runUninstall(subArgs)
+		return c.runUninstall(ctx, subArgs)
+	case selfMigrateSubcmd:
+		return c.runMigrate(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
@@ -182,12 +188,25 @@ func (c *SelfCommand) performInstall(
 	candidates []selfsvc.Candidate,
 	skipResources bool,
 ) error {
+	state, err := c.transition.Prepare(ctx)
+	if err != nil {
+		return fmt.Errorf("prepare install: %w", err)
+	}
+	installedStudioctlPath := ""
+	restoreOnFailure := true
+	defer func() {
+		if restoreOnFailure {
+			c.transition.Restore(ctx, state, installedStudioctlPath)
+		}
+	}()
+
 	c.out.Printlnf("Installing binary to %s...", targetPath)
 
 	result, err := c.service.InstallBinary(targetPath)
 	if err != nil {
 		return fmt.Errorf("install binary: %w", err)
 	}
+	installedStudioctlPath = result.InstalledPath
 
 	if result.AlreadyInstalled {
 		c.out.Successf("%s is already installed at this location.", osutil.CurrentBin())
@@ -208,7 +227,17 @@ func (c *SelfCommand) performInstall(
 		}
 	}
 
-	return c.installAppManager(ctx)
+	if err := c.installAppManager(ctx); err != nil {
+		return err
+	}
+	restoreOnFailure = false
+	if err := c.runInstalledMigrations(ctx, installedStudioctlPath); err != nil {
+		return fmt.Errorf("run install migrations: %w", err)
+	}
+	if err := c.transition.RestartIfNeeded(ctx, state, installedStudioctlPath); err != nil {
+		return fmt.Errorf("restart after install: %w", err)
+	}
+	return nil
 }
 
 func (c *SelfCommand) handleNoWritableLocations() error {
@@ -255,11 +284,6 @@ func (c *SelfCommand) installResources(ctx context.Context) error {
 func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	c.out.Println("")
 
-	wasRunning, err := c.stopAppManagerForReplacement(ctx)
-	if err != nil {
-		return err
-	}
-
 	spinner := ui.NewSpinner(c.out, "Installing app-manager...")
 	if !c.cfg.Verbose {
 		spinner.Start()
@@ -268,14 +292,12 @@ func (c *SelfCommand) installAppManager(ctx context.Context) error {
 	result, err := c.service.InstallAppManager(ctx)
 	if err != nil {
 		spinner.StopWithError("Failed to install app-manager")
-		c.restartAppManagerAfterFailedReplacement(ctx, wasRunning, "")
 		return fmt.Errorf("install app-manager: %w", err)
 	}
 
 	spinner.StopWithSuccess("App-manager installed")
 	c.out.Verbosef("Installed to: %s", result.InstalledPath)
-
-	return c.restartAppManagerIfNeeded(ctx, wasRunning, "")
+	return nil
 }
 
 func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
@@ -305,6 +327,22 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing flags: %w", err)
 	}
 
+	if runtime.GOOS == "windows" {
+		return fmt.Errorf("%w: windows executable is locked while running", selfsvc.ErrUpdateUnsupported)
+	}
+
+	state, err := c.transition.Prepare(ctx)
+	if err != nil {
+		return fmt.Errorf("prepare update: %w", err)
+	}
+	updatedStudioctlPath := ""
+	restoreOnFailure := true
+	defer func() {
+		if restoreOnFailure {
+			c.transition.Restore(ctx, state, updatedStudioctlPath)
+		}
+	}()
+
 	c.out.Printlnf("Current version: %s", c.cfg.Version)
 	result, err := c.service.UpdateBinary(
 		ctx,
@@ -316,103 +354,81 @@ func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("self update: %w", err)
 	}
+	updatedStudioctlPath = result.TargetPath
 
 	c.out.Verbosef("Updated binary path: %s", result.TargetPath)
 	c.out.Verbosef("Release source: %s", result.ReleaseSource)
 	c.out.Verbosef("Asset: %s", result.Asset)
-	if err := c.updateAppManager(ctx, result.Version, result.TargetPath); err != nil {
+	if err := c.updateAppManager(ctx, result.Version); err != nil {
 		return fmt.Errorf("update app-manager: %w", err)
+	}
+
+	restoreOnFailure = false
+	if err := c.runInstalledMigrations(ctx, result.TargetPath); err != nil {
+		return fmt.Errorf("run update migrations: %w", err)
+	}
+	if err := c.transition.RestartIfNeeded(ctx, state, result.TargetPath); err != nil {
+		return fmt.Errorf("restart after update: %w", err)
 	}
 
 	c.out.Successf("%s updated successfully.", osutil.CurrentBin())
 	return nil
 }
 
-func (c *SelfCommand) updateAppManager(ctx context.Context, version, studioctlPath string) error {
-	wasRunning, err := c.stopAppManagerForReplacement(ctx)
-	if err != nil {
-		return err
-	}
+func (c *SelfCommand) updateAppManager(
+	ctx context.Context,
+	version string,
+) error {
 	result, err := c.service.InstallAppManagerVersion(ctx, version)
 	if err != nil {
-		c.restartAppManagerAfterFailedReplacement(ctx, wasRunning, studioctlPath)
 		return fmt.Errorf("install app-manager: %w", err)
 	}
 	c.out.Verbosef("Updated app-manager path: %s", result.InstalledPath)
-
-	return c.restartAppManagerIfNeeded(ctx, wasRunning, studioctlPath)
+	return nil
 }
 
-func (c *SelfCommand) stopAppManagerForReplacement(ctx context.Context) (bool, error) {
-	done, err := appmanager.Shutdown(ctx, c.cfg)
+func (c *SelfCommand) runInstalledMigrations(ctx context.Context, studioctlPath string) error {
+	args := c.migrationCommandArgs()
+	c.out.Verbosef("Running migrations with: %s %v", studioctlPath, args)
+
+	//nolint:gosec // G204: studioctlPath is the just-installed studioctl binary path.
+	cmd := exec.CommandContext(ctx, studioctlPath, args...)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		if errors.Is(err, appmanager.ErrNotRunning) {
-			return false, nil
+		msg := strings.TrimSpace(string(output))
+		if msg != "" {
+			return fmt.Errorf("run installed studioctl migrations: %w: %s", err, msg)
 		}
-		return false, fmt.Errorf("stop existing app-manager before install: %w", err)
-	}
-	if done == nil {
-		return false, nil
-	}
-
-	if shutdownErr := <-done; shutdownErr != nil {
-		if errors.Is(shutdownErr, appmanager.ErrNotRunning) {
-			return false, nil
-		}
-		return false, fmt.Errorf("stop existing app-manager before install: %w", shutdownErr)
-	}
-
-	return true, nil
-}
-
-func (c *SelfCommand) restartAppManagerAfterFailedReplacement(
-	ctx context.Context,
-	wasRunning bool,
-	studioctlPath string,
-) {
-	if !wasRunning {
-		return
-	}
-	if err := c.restartAppManager(ctx, studioctlPath); err != nil {
-		c.out.Verbosef("failed to restart app-manager after failed install: %v", err)
-	}
-}
-
-func (c *SelfCommand) restartAppManagerIfNeeded(ctx context.Context, wasRunning bool, studioctlPath string) error {
-	if !wasRunning {
-		return nil
-	}
-	if err := c.restartAppManager(ctx, studioctlPath); err != nil {
-		return fmt.Errorf("restart app-manager: %w", err)
+		return fmt.Errorf("run installed studioctl migrations: %w", err)
 	}
 	return nil
 }
 
-func (c *SelfCommand) restartAppManager(ctx context.Context, studioctlPath string) error {
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
-	if studioctlPath == "" {
-		if err := appmanager.EnsureStarted(
-			ctx,
-			c.cfg,
-			topology.IngressPort(),
-		); err != nil {
-			return fmt.Errorf("ensure app-manager started: %w", err)
-		}
-		return nil
+func (c *SelfCommand) migrationCommandArgs() []string {
+	args := make([]string, 0, 7)
+	if c.cfg.Home != "" {
+		args = append(args, "--home", c.cfg.Home)
 	}
+	if c.cfg.SocketDir != "" {
+		args = append(args, "--socket-dir", c.cfg.SocketDir)
+	}
+	if c.cfg.Verbose {
+		args = append(args, "--verbose")
+	}
+	return append(args, "self", selfMigrateSubcmd)
+}
 
-	if err := appmanager.EnsureStartedWithStudioctlPath(
-		ctx,
-		c.cfg,
-		topology.IngressPort(),
-		studioctlPath,
-	); err != nil {
-		return fmt.Errorf("ensure app-manager started with studioctl path: %w", err)
+func (c *SelfCommand) runMigrate(ctx context.Context, args []string) error {
+	if len(args) != 0 {
+		return fmt.Errorf("%w: %s", ErrInvalidFlagValue, strings.Join(args, " "))
+	}
+	if err := c.transition.RunMigrations(ctx); err != nil {
+		return fmt.Errorf("run migrations: %w", err)
 	}
 	return nil
 }
 
-func (c *SelfCommand) runUninstall(args []string) error {
+func (c *SelfCommand) runUninstall(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("self uninstall", flag.ContinueOnError)
 	fs.Usage = func() {
 		c.out.Print(joinLines(
@@ -439,10 +455,22 @@ func (c *SelfCommand) runUninstall(args []string) error {
 		return nil
 	}
 
+	state, err := c.transition.Prepare(ctx)
+	if err != nil {
+		return fmt.Errorf("prepare uninstall: %w", err)
+	}
+	removed := false
+	defer func() {
+		if !removed {
+			c.transition.Restore(ctx, state, "")
+		}
+	}()
+
 	result, err := c.service.UninstallBinary()
 	if err != nil {
 		return fmt.Errorf("self uninstall: %w", err)
 	}
+	removed = true
 
 	c.out.Successf("Removed %s", result.RemovedPath)
 	c.out.Println("Localtest resources and configuration were not removed.")

@@ -22,3 +22,7 @@
 .profileMenuFooter {
   padding: var(--ds-size-4);
 }
+
+.dropDownMenuGroup :global([aria-checked='true']) {
+  background-color: var(--fds-semantic-surface-neutral-selected);
+}

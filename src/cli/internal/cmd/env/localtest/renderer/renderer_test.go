@@ -238,6 +238,33 @@ func TestTableRenderer_DestroyUsesRemovedState(t *testing.T) {
 	}
 }
 
+func TestDestroyRenderer_OmitsAlreadyDestroyedRows(t *testing.T) {
+	t.Parallel()
+
+	image := &resource.RemoteImage{Ref: "ghcr.io/altinn/test:latest"}
+	running := &resource.Container{Name: "localtest", Image: resource.Ref(image)}
+	destroyed := &resource.Container{Name: "localtest-pgadmin", Image: resource.Ref(image)}
+	resources := []resource.Resource{image, running, destroyed}
+	statuses := map[resource.ResourceID]resource.Status{
+		running.ID():   resource.StatusReady,
+		destroyed.ID(): resource.StatusDestroyed,
+	}
+
+	renderer := NewTableWithStatus(
+		ui.NewOutput(io.Discard, io.Discard, false),
+		resources,
+		OperationDestroy,
+		statuses,
+	)
+
+	if renderer.model.rows[running.Name] == nil {
+		t.Fatalf("expected row for %q", running.Name)
+	}
+	if renderer.model.rows[destroyed.Name] != nil {
+		t.Fatalf("unexpected row for already destroyed resource %q", destroyed.Name)
+	}
+}
+
 func TestTableRenderer_DestroyGlobalFailureAppearsInFooter(t *testing.T) {
 	t.Setenv("NO_COLOR", "1")
 	restoreTermFuncs := stubTerminalFuncsForTest(

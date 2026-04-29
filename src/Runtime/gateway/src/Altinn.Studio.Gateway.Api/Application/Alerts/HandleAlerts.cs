@@ -49,10 +49,19 @@ internal static class HandleAlerts
         IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
         DesignerClient designerClient,
         AlertPayload alertPayload,
-        CancellationToken cancellationToken,
-        string environment = "prod"
+        IOptionsMonitor<StudioEnvironments> environments,
+        CancellationToken cancellationToken
     )
     {
+        string? designerEnvironmentLabel = alertPayload
+            .Alerts.Select(a => a.Labels.GetValueOrDefault("DesignerEnvironment"))
+            .FirstOrDefault();
+        string designerEnvironment =
+            !string.IsNullOrWhiteSpace(designerEnvironmentLabel)
+            && environments.CurrentValue.ContainsKey(designerEnvironmentLabel)
+                ? designerEnvironmentLabel
+                : "prod";
+
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
             metricsClientSettings.CurrentValue.Provider
         );
@@ -114,7 +123,7 @@ internal static class HandleAlerts
             LogsUrl = logsUrl,
         };
 
-        await designerClient.NotifyAlertsUpdated(alert, environment, cancellationToken);
+        await designerClient.NotifyAlertsUpdated(alert, designerEnvironment, cancellationToken);
 
         return Results.Ok();
     }

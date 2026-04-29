@@ -31,6 +31,7 @@ Notes:
   - Released scripts are pinned to a specific studioctl tag in this monorepo.
   - Binary integrity is verified via SHA256 checksum before execution.
   - The install step also installs app-manager alongside studioctl.
+  - The install step stops running apps and localtest before replacement, and restarts app-manager if it was running.
 USAGE
 }
 

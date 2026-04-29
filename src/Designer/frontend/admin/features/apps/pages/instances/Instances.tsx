@@ -1,5 +1,4 @@
 import classes from './Instances.module.css';
-import { useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioCard, StudioHeading } from '@studio/components';
 import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
@@ -7,6 +6,7 @@ import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { ProcessTaskFilter } from './components/ProcessTaskFilter';
 import { useTranslation } from 'react-i18next';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 const YES_NO_ALL_OPTIONS = [
   { label: 'admin.instances.filter.all', value: undefined },
@@ -34,11 +34,11 @@ function getCurrentDateOnlyStringMinusDays(days: number | undefined) {
 
 export const Instances = () => {
   const { t } = useTranslation();
-  const { org, environment, app } = useParams() as {
-    org: string;
-    environment: string;
-    app: string;
-  };
+  const {
+    owner: org,
+    environment,
+    app,
+  } = useRequiredRoutePathsParams(['owner', 'environment', 'app']);
   const [archiveReference, setArchiveReference] = useQueryParamState<string>(
     'archiveReference',
     undefined,
