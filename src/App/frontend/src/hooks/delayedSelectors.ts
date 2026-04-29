@@ -363,33 +363,6 @@ export interface DSProps<C extends DSConfig> {
 
 type MultiDSProps = DSProps<DSConfig>[];
 
-export type DSPropsForSimpleSelector<
-  Type,
-  SimpleSelector extends (...args: unknown[]) => unknown,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Strictness extends SelectorStrictness = any,
-> = DSProps<DSConfig<Type, SimpleArgMode<Type, Parameters<SimpleSelector>, ReturnType<SimpleSelector>>, Strictness>>;
-
-type DSPropsMatchingSimple<Selector extends (...args: unknown[]) => unknown> = DSProps<
-  DSConfig<unknown, SimpleArgMode<unknown, Parameters<Selector>, ReturnType<Selector>>>
->;
-type DSPropsMatchingInnerSelector<Args extends unknown[]> = DSProps<
-  DSConfig<
-    unknown,
-    InnerSelectorMode<unknown, Args>,
-    SelectorStrictness.returnWhenNotProvided | SelectorStrictness.throwWhenNotProvided
-  >
->;
-
-export type DSPropsMatching<Selector> = Selector extends (
-  selector: (...args: infer Args) => unknown,
-  deps: unknown[],
-) => unknown
-  ? () => DSPropsMatchingInnerSelector<Args>
-  : Selector extends (...args: infer _Args) => unknown
-    ? () => DSPropsMatchingSimple<Selector>
-    : never;
-
 export type DSReturn<C extends DSConfig> =
   ModeFromConf<C> extends SimpleArgMode
     ? (...args: Parameters<C['mode']['selector']>) => ReturnType<ReturnType<C['mode']['selector']>>

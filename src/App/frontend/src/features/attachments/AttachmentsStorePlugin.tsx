@@ -41,7 +41,6 @@ import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { AttachmentStateInfo } from 'src/features/attachments/types';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
-import type { DSPropsForSimpleSelector } from 'src/hooks/delayedSelectors';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 import type { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import type { CompWithBehavior } from 'src/layout/layout';
@@ -127,7 +126,6 @@ export interface AttachmentsStorePluginConfig {
     useAttachments: (nodeId: string) => IAttachment[];
     useFailedAttachments: (nodeId: string) => IFailedAttachment[];
     useAttachmentsSelector: () => AttachmentsSelector;
-    useAttachmentsSelectorProps: () => DSPropsForSimpleSelector<FormStoreState, AttachmentsSelector>;
     useWaitUntilUploaded: () => (nodeId: string, attachment: TemporaryAttachment) => Promise<IData | false>;
 
     useHasPendingAttachments: () => boolean;
@@ -428,12 +426,6 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
       },
       useAttachmentsSelector() {
         return FormStore.raw.useDelayedSelector({
-          mode: 'simple',
-          selector: attachmentSelector,
-        });
-      },
-      useAttachmentsSelectorProps() {
-        return FormStore.raw.useDelayedSelectorProps({
           mode: 'simple',
           selector: attachmentSelector,
         });
