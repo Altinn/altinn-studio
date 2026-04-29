@@ -2,7 +2,6 @@ import type { ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 import { StudioLink, StudioPageHeader } from '@studio/components';
-import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
@@ -29,7 +28,6 @@ type NavigationMenuItemProps = {
 function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement {
   const selectedContext: string = useSelectedContext();
   const subroute = useSubroute();
-  const { t } = useTranslation();
   const path: string = menuItem.getLink(selectedContext);
 
   return (
@@ -39,16 +37,16 @@ function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement
         renderLink={(props) =>
           menuItem.isExternalLink ? (
             <StudioLink href={path} {...props}>
-              {t(menuItem.name)}
+              {menuItem.name}
             </StudioLink>
           ) : (
             <NavLink to={path} {...props}>
               <span
                 className={cn({
-                  [classes.active]: menuItem.getLink().startsWith(subroute),
+                  [classes.active]: menuItem.getLink().startsWith('/' + subroute),
                 })}
               >
-                {t(menuItem.name)}
+                {menuItem.name}
               </span>
             </NavLink>
           )

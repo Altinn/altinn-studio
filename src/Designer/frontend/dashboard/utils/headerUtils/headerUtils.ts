@@ -12,7 +12,7 @@ import { ADMIN_BASENAME } from 'app-shared/constants';
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.AppDashboard,
-    getLink: (selectedContext: string = '') => `${Subroute.AppDashboard}/${selectedContext}`,
+    getLink: (selectedContext: string = '') => `/${Subroute.AppDashboard}/${selectedContext}`,
     name: 'dashboard.header_item_dashboard',
     group: HeaderMenuGroupKey.Tools,
   },
@@ -27,7 +27,7 @@ export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   },
   {
     key: HeaderMenuItemKey.OrgLibrary,
-    getLink: (selectedContext: string = '') => `${Subroute.OrgLibrary}/${selectedContext}`,
+    getLink: (selectedContext: string = '') => `/${Subroute.OrgLibrary}/${selectedContext}`,
     name: 'dashboard.header_item_library',
     group: HeaderMenuGroupKey.Tools,
     isBeta: true,
