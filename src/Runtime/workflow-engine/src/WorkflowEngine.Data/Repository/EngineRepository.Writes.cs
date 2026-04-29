@@ -826,7 +826,7 @@ internal sealed partial class EngineRepository
 
                     var ids = new Guid[sorted.Count];
                     var statuses = new int[sorted.Count];
-                    var backoffUntils = new object[sorted.Count];
+                    var backoffDeadlines = new object[sorted.Count];
                     var engineTraceContexts = new object[sorted.Count];
                     var leaseTokens = new Guid[sorted.Count];
 
@@ -835,7 +835,7 @@ internal sealed partial class EngineRepository
                         var w = sorted[i].Workflow;
                         ids[i] = w.DatabaseId;
                         statuses[i] = (int)w.Status;
-                        backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
+                        backoffDeadlines[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
                         // FetchAndLockWorkflows always stamps a LeaseToken; the throw is an invariant check.
                         leaseTokens[i] =
@@ -862,7 +862,7 @@ internal sealed partial class EngineRepository
                         "EngineTraceContext" = v.engine_trace_context
                     FROM (
                         SELECT *
-                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts, @lease_tokens)
+                        FROM unnest(@ids, @statuses, @backoff_deadlines, @engine_trace_contexts, @lease_tokens)
                             AS t(id, status, backoff_until, engine_trace_context, lease_token)
                         ORDER BY t.id
                     ) AS v
@@ -876,9 +876,9 @@ internal sealed partial class EngineRepository
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", statuses));
                         cmd.Parameters.Add(
-                            new NpgsqlParameter("backoff_untils", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            new NpgsqlParameter("backoff_deadlines", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
                             {
-                                Value = backoffUntils,
+                                Value = backoffDeadlines,
                             }
                         );
                         cmd.Parameters.Add(

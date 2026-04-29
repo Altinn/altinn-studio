@@ -1,0 +1,13 @@
+[files]
+extend-exclude = [
+    "**/wwwroot/**",
+    "**/.k6/**",
+    "**/bin/**",
+    "**/obj/**",
+    "*.svg",
+    "*.drawio*"
+]
+
+[default.extend-words]
+# Domain words and acronyms that should not be flagged.
+# Add entries as `word = "word"` to whitelist a token.

@@ -13,6 +13,7 @@ on:
       - 'src/Runtime/workflow-engine-app/tests/**'
       - 'src/Runtime/workflow-engine-app/Directory.Build.props'
       - 'src/Runtime/workflow-engine-app/Directory.Packages.props'
+      - 'src/Runtime/workflow-engine-app/typos.toml'
       - '.github/workflows/runtime-workflow-engine-app-tests.yaml'
   workflow_dispatch:
 
@@ -51,3 +52,18 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build
+
+  spell-check:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Spell check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Run typos
+        uses: crate-ci/typos@7c572958218557a3272c2d6719629443b5cc26fd # v1.45.2
+        with:
+          config: src/Runtime/workflow-engine-app/typos.toml
+          files: src/Runtime/workflow-engine-app
