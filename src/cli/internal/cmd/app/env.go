@@ -32,25 +32,25 @@ func newAppEnv(current []string) appEnv {
 }
 
 func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local) {
-	platformEndpoint := topology.PlatformAPIBaseURL()
+	endpoints := newAppEndpointConfig(topology)
 
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)
-	e.setDefault("AppSettings__OpenIdWellKnownEndpoint", platformEndpoint+"/authentication/api/v1/openid/")
+	e.setDefault("AppSettings__OpenIdWellKnownEndpoint", endpoints.platform+"/authentication/api/v1/openid/")
 	e.setDefault("GeneralSettings__ExternalAppBaseUrl", topology.AppBaseURL())
 	e.setDefault("GeneralSettings__HostName", topology.AppHostName())
 	e.setDefault("OTEL_EXPORTER_OTLP_ENDPOINT", topology.OTelURL())
-	e.setDefault("PlatformSettings__ApiStorageEndpoint", platformEndpoint+"/storage/api/v1/")
-	e.setDefault("PlatformSettings__ApiRegisterEndpoint", platformEndpoint+"/register/api/v1/")
-	e.setDefault("PlatformSettings__ApiProfileEndpoint", platformEndpoint+"/profile/api/v1/")
-	e.setDefault("PlatformSettings__ApiAuthenticationEndpoint", platformEndpoint+"/authentication/api/v1/")
-	e.setDefault("PlatformSettings__ApiAuthorizationEndpoint", platformEndpoint+"/authorization/api/v1/")
-	e.setDefault("PlatformSettings__ApiEventsEndpoint", platformEndpoint+"/events/api/v1/")
-	e.setDefault("PlatformSettings__ApiPdf2Endpoint", topology.PDFURL())
-	e.setDefault("PlatformSettings__ApiNotificationEndpoint", platformEndpoint+"/notifications/api/v1/")
-	e.setDefault("PlatformSettings__ApiCorrespondenceEndpoint", platformEndpoint+"/correspondence/api/v1/")
-	e.setDefault("PlatformSettings__ApiAccessManagementEndpoint", platformEndpoint+"/accessmanagement/api/v1/")
-	e.setDefault("PlatformSettings__ApiWorkflowEngineEndpoint", topology.WorkflowEngineURL())
+	e.setDefault("PlatformSettings__ApiStorageEndpoint", endpoints.platform+"/storage/api/v1/")
+	e.setDefault("PlatformSettings__ApiRegisterEndpoint", endpoints.platform+"/register/api/v1/")
+	e.setDefault("PlatformSettings__ApiProfileEndpoint", endpoints.platform+"/profile/api/v1/")
+	e.setDefault("PlatformSettings__ApiAuthenticationEndpoint", endpoints.platform+"/authentication/api/v1/")
+	e.setDefault("PlatformSettings__ApiAuthorizationEndpoint", endpoints.platform+"/authorization/api/v1/")
+	e.setDefault("PlatformSettings__ApiEventsEndpoint", endpoints.platform+"/events/api/v1/")
+	e.setDefault("PlatformSettings__ApiPdf2Endpoint", endpoints.pdf)
+	e.setDefault("PlatformSettings__ApiNotificationEndpoint", endpoints.platform+"/notifications/api/v1/")
+	e.setDefault("PlatformSettings__ApiCorrespondenceEndpoint", endpoints.platform+"/correspondence/api/v1/")
+	e.setDefault("PlatformSettings__ApiAccessManagementEndpoint", endpoints.platform+"/accessmanagement/api/v1/")
+	e.setDefault("PlatformSettings__ApiWorkflowEngineEndpoint", endpoints.workflowEngine)
 }
 
 func (e appEnv) setDefault(key, value string) {

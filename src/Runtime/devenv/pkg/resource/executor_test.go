@@ -109,6 +109,30 @@ func TestContainerSpecHash_ChangesOnNetworkAliasChange(t *testing.T) {
 	}
 }
 
+func TestContainerSpecHash_ChangesOnVolumeMountTypeChange(t *testing.T) {
+	t.Parallel()
+
+	base := &Container{
+		Name:    "postgres",
+		Image:   RefID("image:postgres"),
+		Volumes: []types.VolumeMount{{HostPath: "data", ContainerPath: "/var/lib/postgresql"}},
+	}
+
+	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
+
+	modified := *base
+	modified.Volumes = []types.VolumeMount{{
+		HostPath:      "data",
+		ContainerPath: "/var/lib/postgresql",
+		Type:          types.VolumeMountTypeVolume,
+	}}
+	modifiedHash := containerSpecHash(&modified, "sha256:image-v1", []string{"bridge"})
+
+	if baseHash == modifiedHash {
+		t.Fatalf("container spec hash did not change when volume mount type changed")
+	}
+}
+
 func TestExecutor_StopAndRemoveContainer_PropagatesStopError(t *testing.T) {
 	t.Parallel()
 
@@ -226,7 +250,14 @@ func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
 	inspectCalls := 0
 	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
 		inspectCalls++
-		return types.ContainerInfo{}, types.ErrContainerNotFound
+		if inspectCalls == 1 {
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+		return types.ContainerInfo{
+			ID:      "container-id",
+			ImageID: "sha256:mock-image-id",
+			State:   types.ContainerState{Status: "running", Running: true},
+		}, nil
 	}
 
 	graph := NewGraph()
@@ -242,12 +273,130 @@ func TestExecutor_ApplyContainer_DoesNotWaitForReadyByDefault(t *testing.T) {
 		t.Fatalf("graph.Add(container) error = %v", err)
 	}
 
-	err := NewExecutor(client).Apply(t.Context(), graph)
+	_, err := NewExecutor(client).Apply(t.Context(), graph)
 	if err != nil {
 		t.Fatalf("Apply() error = %v, want nil", err)
 	}
-	if inspectCalls != 1 {
-		t.Fatalf("ContainerInspect calls = %d, want 1", inspectCalls)
+	if inspectCalls != 2 {
+		t.Fatalf("ContainerInspect calls = %d, want 2", inspectCalls)
+	}
+}
+
+func TestExecutor_ApplySkipsDisabledResources(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	buildCalled := false
+	client.BuildWithProgressFunc = func(
+		context.Context,
+		string,
+		string,
+		string,
+		types.ProgressHandler,
+		...types.BuildOptions,
+	) error {
+		buildCalled = true
+		return nil
+	}
+
+	graph := NewGraph()
+	disabled := false
+	image := &LocalImage{
+		Enabled:     &disabled,
+		ContextPath: "/tmp/app",
+		Tag:         "app:latest",
+	}
+	if err := graph.Add(image); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+
+	if _, err := NewExecutor(client).Apply(t.Context(), graph); err != nil {
+		t.Fatalf("Apply() error = %v, want nil", err)
+	}
+	if buildCalled {
+		t.Fatal("BuildWithProgress was called for disabled image")
+	}
+}
+
+func TestExecutor_ApplyReturnsImageOutputs(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+		return types.ImageInfo{ID: "sha256:image-id"}, nil
+	}
+
+	graph := NewGraph()
+	image := &RemoteImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
+	if err := graph.Add(image); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+
+	outputs, err := NewExecutor(client).Apply(t.Context(), graph)
+	if err != nil {
+		t.Fatalf("Apply() error = %v", err)
+	}
+
+	output, ok := outputs.Image(image.ID())
+	if !ok {
+		t.Fatal("missing image output")
+	}
+	if output.ImageID != "sha256:image-id" {
+		t.Fatalf("ImageID = %q, want %q", output.ImageID, "sha256:image-id")
+	}
+}
+
+func TestExecutor_ApplyReturnsContainerOutputs(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+		return types.ImageInfo{ID: "sha256:image-id"}, nil
+	}
+
+	inspectCalls := 0
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		inspectCalls++
+		if inspectCalls == 1 {
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+		return types.ContainerInfo{
+			ID:      "container-id",
+			ImageID: "sha256:image-id",
+			Ports: []types.PublishedPort{
+				{ContainerPort: "5005", HostPort: "8080", Protocol: "tcp"},
+			},
+			State: types.ContainerState{Status: "running", Running: true},
+		}, nil
+	}
+	client.CreateContainerFunc = func(context.Context, types.ContainerConfig) (string, error) {
+		return "container-id", nil
+	}
+
+	graph := NewGraph()
+	image := &RemoteImage{Ref: "ghcr.io/altinn/test:latest", PullPolicy: PullIfNotPresent}
+	container := &Container{Name: "app", Image: Ref(image)}
+	if err := graph.Add(image); err != nil {
+		t.Fatalf("graph.Add(image) error = %v", err)
+	}
+	if err := graph.Add(container); err != nil {
+		t.Fatalf("graph.Add(container) error = %v", err)
+	}
+
+	outputs, err := NewExecutor(client).Apply(t.Context(), graph)
+	if err != nil {
+		t.Fatalf("Apply() error = %v", err)
+	}
+
+	output, ok := outputs.Container(container.ID())
+	if !ok {
+		t.Fatal("missing container output")
+	}
+	if output.ContainerID != "container-id" {
+		t.Fatalf("ContainerID = %q, want %q", output.ContainerID, "container-id")
+	}
+	if len(output.HostPorts) != 1 || output.HostPorts[0].HostPort != "8080" {
+		t.Fatalf("HostPorts = %+v, want host port 8080", output.HostPorts)
 	}
 }
 
@@ -288,12 +437,12 @@ func TestExecutor_ApplyContainer_WaitsForReadyWhenEnabled(t *testing.T) {
 		t.Fatalf("graph.Add(container) error = %v", err)
 	}
 
-	err := NewExecutor(client).Apply(t.Context(), graph)
+	_, err := NewExecutor(client).Apply(t.Context(), graph)
 	if err != nil {
 		t.Fatalf("Apply() error = %v, want nil", err)
 	}
-	if inspectCalls != 3 {
-		t.Fatalf("ContainerInspect calls = %d, want 3", inspectCalls)
+	if inspectCalls != 4 {
+		t.Fatalf("ContainerInspect calls = %d, want 4", inspectCalls)
 	}
 }
 
@@ -331,6 +480,15 @@ func TestExecutor_ContainerStatus_UsesHealth(t *testing.T) {
 			},
 			want: StatusFailed,
 		},
+		{
+			name: "exited zero is failed for long running resources",
+			state: types.ContainerState{
+				Status:   "exited",
+				ExitCode: 0,
+				Running:  false,
+			},
+			want: StatusFailed,
+		},
 	}
 
 	for _, tt := range tests {
@@ -350,6 +508,44 @@ func TestExecutor_ContainerStatus_UsesHealth(t *testing.T) {
 				t.Fatalf("containerStatus() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestExecutor_Status_SkipsResources(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return types.ContainerInfo{
+			State: types.ContainerState{
+				Status:  "running",
+				Running: true,
+			},
+		}, nil
+	}
+	client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+		t.Fatal("ImageInspect called for skipped image")
+		return types.ImageInfo{}, nil
+	}
+
+	image := &RemoteImage{Ref: "localtest:latest"}
+	container := &Container{Name: "localtest", Image: Ref(image)}
+	graph := NewGraph()
+	mustAddResource(t, graph, image)
+	mustAddResource(t, graph, container)
+
+	statuses, err := NewExecutor(client).Status(t.Context(), graph, SkipResource(func(r Resource) bool {
+		_, ok := r.(ImageResource)
+		return ok
+	}))
+	if err != nil {
+		t.Fatalf("Status() error = %v, want nil", err)
+	}
+	if _, ok := statuses[image.ID()]; ok {
+		t.Fatalf("Status() included skipped image %q", image.ID())
+	}
+	if statuses[container.ID()] != StatusReady {
+		t.Fatalf("container status = %v, want ready", statuses[container.ID()])
 	}
 }
 
@@ -459,7 +655,7 @@ func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
 		progressEvents++
 	}))
 
-	if err := exec.Apply(t.Context(), graph); err != nil {
+	if _, err := exec.Apply(t.Context(), graph); err != nil {
 		t.Fatalf("Apply() error = %v", err)
 	}
 

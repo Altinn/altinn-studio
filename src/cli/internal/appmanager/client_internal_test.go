@@ -178,6 +178,64 @@ func TestPrepareAppManagerSocketForStart_RejectsDirectory(t *testing.T) {
 	}
 }
 
+func TestBuildStartConfig_IncludesBoundTopologyConfigPathsWhenPresent(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := os.MkdirAll(filepath.Dir(cfg.BoundTopologyBaseConfigPath()), 0o700); err != nil {
+		t.Fatalf("create topology config dir: %v", err)
+	}
+	if err := os.WriteFile(cfg.BoundTopologyBaseConfigPath(), []byte("{}\n"), 0o600); err != nil {
+		t.Fatalf("write base topology config: %v", err)
+	}
+
+	got, err := buildStartConfig(cfg, "8000", "/path/to/studioctl")
+	if err != nil {
+		t.Fatalf("buildStartConfig() error = %v", err)
+	}
+	if got.BoundTopologyBaseConfigPath != cfg.BoundTopologyBaseConfigPath() {
+		t.Fatalf(
+			"BoundTopologyBaseConfigPath = %q, want %q",
+			got.BoundTopologyBaseConfigPath,
+			cfg.BoundTopologyBaseConfigPath(),
+		)
+	}
+	if got.BoundTopologyConfigPath != cfg.BoundTopologyConfigPath() {
+		t.Fatalf(
+			"BoundTopologyConfigPath = %q, want %q",
+			got.BoundTopologyConfigPath,
+			cfg.BoundTopologyConfigPath(),
+		)
+	}
+}
+
+func TestLiveConfig_UsesStatusBoundTopologyPaths(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := os.MkdirAll(filepath.Dir(cfg.BoundTopologyBaseConfigPath()), 0o700); err != nil {
+		t.Fatalf("create topology config dir: %v", err)
+	}
+	if err := os.WriteFile(cfg.BoundTopologyBaseConfigPath(), []byte("{}\n"), 0o600); err != nil {
+		t.Fatalf("write base topology config: %v", err)
+	}
+
+	got := liveConfig(cfg, &Status{
+		Tunnel:                      TunnelStatus{URL: TunnelURL("8000")},
+		LocaltestURL:                LocaltestURL("8000"),
+		StudioctlPath:               "/path/to/studioctl",
+		BoundTopologyBaseConfigPath: "",
+		BoundTopologyConfigPath:     "",
+	})
+
+	if got.BoundTopologyBaseConfigPath != "" {
+		t.Fatalf("BoundTopologyBaseConfigPath = %q, want empty live status value", got.BoundTopologyBaseConfigPath)
+	}
+	if got.BoundTopologyConfigPath != "" {
+		t.Fatalf("BoundTopologyConfigPath = %q, want empty live status value", got.BoundTopologyConfigPath)
+	}
+}
+
 func writeTestLog(t *testing.T, dir, name, content string) string {
 	t.Helper()
 

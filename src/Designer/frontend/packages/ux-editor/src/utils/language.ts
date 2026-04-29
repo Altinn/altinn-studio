@@ -57,13 +57,6 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof 
   }
 }
 
-export function truncate(s: string, size: number) {
-  if (s && s.length > size) {
-    return `${s.substring(0, size)}...`;
-  }
-  return s;
-}
-
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
   if (!resourceKey || !textResources?.length) return;
   const textResource = textResources.find((resource) => resource.id === resourceKey);

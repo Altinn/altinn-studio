@@ -12,7 +12,7 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-_JUDGE_PROMPT_NAME = "llm-as-a-judge/no_hallucination_judge"
+_JUDGE_PROMPT_NAME = "no_hallucination"
 _MAX_SOURCE_CHARS = 8000
 _MAX_RESPONSE_CHARS = 4000
 
@@ -76,7 +76,7 @@ async def run_hallucination_judge(
         return
 
     try:
-        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME)
+        system_prompt, lf_prompt = get_prompt_with_langfuse(_JUDGE_PROMPT_NAME, local_path="llm-as-a-judge/no_hallucination")
     except FileNotFoundError:
         log.error("Judge prompt '%s' not found — skipping no_hallucination", _JUDGE_PROMPT_NAME)
         return

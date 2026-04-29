@@ -19,6 +19,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:18").Build();
     private readonly ConcurrencyLimiter _limiter = new(50, 50, 5);
     private readonly List<NpgsqlDataSource> _dataSources = [];
+    private readonly List<IDisposable> _disposables = [];
 
     private readonly IOptions<EngineSettings> _settings = Options.Create(
         new EngineSettings
@@ -45,6 +46,8 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public string ConnectionString => _container.GetConnectionString();
 
+    internal EngineSettings Settings => _settings.Value;
+
     public async ValueTask InitializeAsync()
     {
         await _container.StartAsync();
@@ -55,6 +58,9 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
+        foreach (var d in _disposables)
+            d.Dispose();
+        _disposables.Clear();
         foreach (var ds in _dataSources)
             await ds.DisposeAsync();
         _dataSources.Clear();
@@ -128,6 +134,21 @@ public sealed class PostgresFixture : IAsyncLifetime
             timeProvider ?? TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
+    }
+
+    internal DbMaintenanceService CreateMaintenanceService(TimeProvider? timeProvider = null)
+    {
+        var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        _dataSources.Add(dataSource);
+        var service = new DbMaintenanceService(
+            NullLogger<DbMaintenanceService>.Instance,
+            timeProvider ?? TimeProvider.System,
+            dataSource,
+            _settings,
+            _limiter
+        );
+        _disposables.Add(service);
+        return service;
     }
 
     internal async Task<Workflow?> GetWorkflow(Guid workflowId)

@@ -103,10 +103,16 @@ public static class ServiceCollectionExtensions
                 .WithMetrics(builder =>
                 {
                     // Bucket boundaries (in seconds) for workflow/step/mainloop timing histograms.
-                    // The default OTel boundaries (0, 5, 10, 25, ...) have no resolution below 5s,
-                    // causing histogram_quantile to report ~4.8s for sub-second workflows.
+                    // Spans sub-millisecond (per-step DB write overhead) up to multi-minute workflows.
+                    // Without sub-ms boundaries, histogram_quantile linearly interpolates inside the
+                    // lowest bucket and pins to a constant value — e.g. P95 = 0.95 × 5ms = 4.75ms when
+                    // all samples land in (0, 5ms].
                     double[] durationBuckets =
                     [
+                        0.0001,
+                        0.0005,
+                        0.001,
+                        0.0025,
                         0.005,
                         0.01,
                         0.025,

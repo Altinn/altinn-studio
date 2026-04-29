@@ -2,6 +2,7 @@
 package localtest
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -38,6 +39,7 @@ func TestReset_RemovesPersistedDataWhenAlreadyStopped(t *testing.T) {
 
 	assertCallRecorded(t, clientCalls(env), "CreateContainer")
 	assertCallRecorded(t, clientCalls(env), "ContainerWait")
+	assertCallRecorded(t, clientCalls(env), "VolumeRemove")
 	assertNotExists(t, localtestDataDir)
 	assertNotExists(t, workflowEngineDataDir)
 }
@@ -73,8 +75,64 @@ func TestReset_StopsManagedResourcesBeforeRemovingPersistedData(t *testing.T) {
 	assertCallRecorded(t, client.Calls, "ContainerWait")
 	assertCallRecorded(t, client.Calls, "ContainerRemove")
 	assertCallRecorded(t, client.Calls, "NetworkRemove")
+	assertCallRecorded(t, client.Calls, "VolumeRemove")
 	assertNotExists(t, localtestDataDir)
 	assertNotExists(t, workflowEngineDataDir)
+}
+
+func TestReset_RemovesWorkflowEngineDbVolumeWithoutLegacyDataDir(t *testing.T) {
+	dataDir := t.TempDir()
+	localtestDataDir := filepath.Join(dataDir, "AltinnPlatformLocal")
+	createDir(t, localtestDataDir)
+
+	client := containermock.New()
+	client.VolumeRemoveFunc = func(_ context.Context, name string, force bool) error {
+		if name != workflowEngineDbVolume {
+			t.Fatalf("VolumeRemove() name = %q, want %q", name, workflowEngineDbVolume)
+		}
+		if !force {
+			t.Fatal("VolumeRemove() force = false, want true")
+		}
+		return nil
+	}
+
+	env := NewEnv(
+		&config.Config{
+			DataDir: dataDir,
+			Images:  testResetImages(),
+		},
+		ui.NewOutput(io.Discard, io.Discard, false),
+		client,
+	)
+	if err := env.Reset(context.Background()); err != nil {
+		t.Fatalf("Reset() error = %v", err)
+	}
+
+	assertCallNotRecorded(t, client.Calls, "CreateContainer")
+	assertCallRecorded(t, client.Calls, "VolumeRemove")
+	assertNotExists(t, localtestDataDir)
+}
+
+func TestReset_IgnoresMissingWorkflowEngineDbVolume(t *testing.T) {
+	dataDir := t.TempDir()
+	createDir(t, filepath.Join(dataDir, "AltinnPlatformLocal"))
+
+	client := containermock.New()
+	client.VolumeRemoveFunc = func(context.Context, string, bool) error {
+		return containertypes.ErrVolumeNotFound
+	}
+
+	env := NewEnv(
+		&config.Config{
+			DataDir: dataDir,
+			Images:  testResetImages(),
+		},
+		ui.NewOutput(io.Discard, io.Discard, false),
+		client,
+	)
+	if err := env.Reset(context.Background()); err != nil {
+		t.Fatalf("Reset() error = %v, want nil", err)
+	}
 }
 
 func TestReset_RefusesLegacyLocaltest(t *testing.T) {
@@ -108,10 +166,11 @@ func TestReset_RefusesLegacyLocaltest(t *testing.T) {
 	}
 }
 
-func TestReset_IncludesCleanupHelperLogsOnFailure(t *testing.T) {
+func TestReset_IgnoresLegacyWorkflowEngineDbDataCleanupFailure(t *testing.T) {
 	dataDir := t.TempDir()
 	createDir(t, filepath.Join(dataDir, "AltinnPlatformLocal"))
 	createDir(t, workflowEngineDbDataPath(dataDir))
+	var stderr bytes.Buffer
 
 	client := containermock.New()
 	client.ContainerWaitFunc = func(context.Context, string) (int, error) {
@@ -132,18 +191,20 @@ func TestReset_IncludesCleanupHelperLogsOnFailure(t *testing.T) {
 			DataDir: dataDir,
 			Images:  testResetImages(),
 		},
-		ui.NewOutput(io.Discard, io.Discard, false),
+		ui.NewOutput(io.Discard, &stderr, true),
 		client,
 	)
 	err := env.Reset(context.Background())
-	if err == nil {
-		t.Fatal("Reset() error = nil, want non-nil")
+	if err != nil {
+		t.Fatalf("Reset() error = %v, want nil", err)
 	}
-	if !errors.Is(err, errResetCleanupFailed) {
-		t.Fatalf("Reset() error = %v, want errResetCleanupFailed", err)
+	assertCallRecorded(t, client.Calls, "VolumeRemove")
+	gotStderr := stderr.String()
+	if !strings.Contains(gotStderr, "Failed to remove legacy workflow-engine database data") {
+		t.Fatalf("stderr = %q, want legacy cleanup verbose message", gotStderr)
 	}
-	if !strings.Contains(err.Error(), "permission denied") {
-		t.Fatalf("Reset() error = %q, want helper log output", err)
+	if !strings.Contains(gotStderr, "permission denied") {
+		t.Fatalf("stderr = %q, want helper log output", gotStderr)
 	}
 }
 
@@ -214,4 +275,13 @@ func assertCallRecorded(t *testing.T, calls []containermock.Call, method string)
 		}
 	}
 	t.Fatalf("calls = %v, want method %q", calls, method)
+}
+
+func assertCallNotRecorded(t *testing.T, calls []containermock.Call, method string) {
+	t.Helper()
+	for _, call := range calls {
+		if call.Method == method {
+			t.Fatalf("calls = %v, want no method %q", calls, method)
+		}
+	}
 }

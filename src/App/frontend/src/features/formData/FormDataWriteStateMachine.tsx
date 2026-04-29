@@ -7,16 +7,25 @@ import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
+import { mapBackendIssuesToFieldValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { updateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
+import { deriveInvalidDataValidations } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
+import { deriveSchemaValidations } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { updateBackendValidations } from 'src/features/validation/validationContext';
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FDLeafValue, FormDataSliceProps } from 'src/features/formData/FormDataWrite';
 import type { Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { DebounceReason } from 'src/features/formData/types';
 import type { InstanceDataSelector } from 'src/features/instance/InstanceContext';
-import type { BackendValidationIssueGroups } from 'src/features/validation';
+import type { BackendValidationIssueGroups, FieldValidations } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IInstance } from 'src/types/shared';
+
+export interface DataModelValidationState {
+  backend: FieldValidations;
+  schema: FieldValidations;
+  invalidData: FieldValidations;
+}
 
 export interface DataModelState {
   // These values contain the current data model, with the values immediately available whenever the user is typing.
@@ -51,6 +60,9 @@ export interface DataModelState {
   // This identifies the specific data element in storage. This is needed for identifying the correct model when receiving updates from the server.
   // For stateless apps, this will be null.
   dataElementId: string | null;
+
+  // Validation state is owned by each data model, so data and validations stay in the same part of the store.
+  validations: DataModelValidationState;
 }
 
 interface LockRequest {
@@ -244,6 +256,27 @@ function makeActions(
     }
   }
 
+  function updateSchemaValidations(state: FormStoreState, dataType: string) {
+    const model = state.data.models[dataType];
+    if (model) {
+      model.validations.schema = deriveSchemaValidations({
+        formData: model.debouncedCurrentData,
+        schemaResult: dataModels[dataType].schemaResult,
+        dataElementId: model.dataElementId ?? dataType,
+      });
+    }
+  }
+
+  function updateInvalidDataValidations(state: FormStoreState, dataType: string) {
+    const model = state.data.models[dataType];
+    if (model) {
+      model.validations.invalidData = deriveInvalidDataValidations({
+        invalidData: model.invalidDebouncedCurrentData,
+        dataElementId: model.dataElementId ?? dataType,
+      });
+    }
+  }
+
   function processChanges(state: FormStoreState, toProcess: FDSaveFinished) {
     const { validationIssues, savedData, newDataModels, instance } = toProcess;
     state.data.manualSaveRequested = false;
@@ -295,12 +328,14 @@ function makeActions(
 
     for (const dataType of Object.keys(state.data.models)) {
       state.data.models[dataType].invalidDebouncedCurrentData = state.data.models[dataType].invalidCurrentData;
+      updateInvalidDataValidations(state, dataType);
       if (deepEqual(state.data.models[dataType].debouncedCurrentData, state.data.models[dataType].currentData)) {
         state.data.models[dataType].debouncedCurrentData = state.data.models[dataType].currentData;
         continue;
       }
 
       state.data.models[dataType].debouncedCurrentData = state.data.models[dataType].currentData;
+      updateSchemaValidations(state, dataType);
     }
   }
 
@@ -424,6 +459,7 @@ function makeActions(
             dot.str(reference.field, [newValue], model);
           }
         }
+        updateSchemaValidations(state, reference.dataType);
       }),
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
@@ -492,6 +528,7 @@ function makeActions(
             index++;
           }
         }
+        updateSchemaValidations(state, reference.dataType);
       }),
 
     setMultiLeafValues: ({ changes, ...rest }) =>
@@ -590,18 +627,36 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
     };
   }
 
-  const models = Object.keys(props.dataModels).reduce((dm, dt) => {
+  const models: FormDataSliceState['models'] = {};
+  for (const [dataType, model] of Object.entries(props.dataModels)) {
     const emptyInvalidData = {};
-    dm[dt] = {
-      currentData: props.dataModels[dt].initialData,
+    const backendValidations: FieldValidations = {};
+    for (const validation of mapBackendIssuesToFieldValidations(model.initialValidationIssues ?? [])) {
+      backendValidations[validation.field] ??= [];
+      backendValidations[validation.field].push(validation);
+    }
+
+    models[dataType] = {
+      currentData: model.initialData,
       invalidCurrentData: emptyInvalidData,
-      debouncedCurrentData: props.dataModels[dt].initialData,
+      debouncedCurrentData: model.initialData,
       invalidDebouncedCurrentData: emptyInvalidData,
-      lastSavedData: props.dataModels[dt].initialData,
-      dataElementId: props.dataModels[dt].dataElementId,
+      lastSavedData: model.initialData,
+      dataElementId: model.dataElementId,
+      validations: {
+        backend: backendValidations,
+        schema: deriveSchemaValidations({
+          formData: model.initialData,
+          schemaResult: model.schemaResult,
+          dataElementId: model.dataElementId,
+        }),
+        invalidData: deriveInvalidDataValidations({
+          invalidData: emptyInvalidData,
+          dataElementId: model.dataElementId,
+        }),
+      },
     } satisfies DataModelState;
-    return dm;
-  }, {});
+  }
 
   return {
     models,

@@ -27,10 +27,11 @@ Examples:
   curl -sSL .../install.sh | sh -s -- --version studioctl/v0.1.0
 
 Notes:
-  - If stdin is not a TTY, --install-dir or STUDIOCTL_INSTALL_DIR is required.
+  - Without --install-dir, studioctl selects an install location.
   - Released scripts are pinned to a specific studioctl tag in this monorepo.
   - Binary integrity is verified via SHA256 checksum before execution.
   - The install step also installs app-manager alongside studioctl.
+  - The install step stops running apps and localtest before replacement, and restarts app-manager if it was running.
 USAGE
 }
 
@@ -126,11 +127,6 @@ case "$arch" in
 
 if [ -z "$ASSET" ]; then
 	ASSET="studioctl-${os}-${arch}"
-fi
-
-if [ -z "$INSTALL_DIR" ] && [ ! -t 0 ]; then
-	echo "error: non-interactive install requires --install-dir or STUDIOCTL_INSTALL_DIR"
-	exit 1
 fi
 
 if [ "$VERSION" = "latest" ]; then
