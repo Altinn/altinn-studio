@@ -3,6 +3,7 @@ package self
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -140,5 +141,14 @@ func TestResolveLatestStudioctlVersion_Paginates(t *testing.T) {
 	}
 	if requests < 2 {
 		t.Fatalf("expected at least 2 requests, got %d", requests)
+	}
+}
+
+func TestValidateNewerVersionRejectsSameVersion(t *testing.T) {
+	t.Parallel()
+
+	err := validateNewerVersion("1.2.0", "studioctl/v1.2.0")
+	if !errors.Is(err, ErrInstallVersionNotNewer) {
+		t.Fatalf("validateNewerVersion() error = %v, want ErrInstallVersionNotNewer", err)
 	}
 }

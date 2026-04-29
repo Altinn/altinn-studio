@@ -52,6 +52,8 @@ var (
 	ErrUnexpectedHTTPStatus = errors.New("unexpected HTTP status")
 	// ErrStudioctlReleaseNotFound is returned when no studioctl release tags are found.
 	ErrStudioctlReleaseNotFound = errors.New("studioctl release not found")
+	// ErrInstallVersionNotNewer is returned when an install/update target is not newer than the installed version.
+	ErrInstallVersionNotNewer = errors.New("studioctl install version is not newer")
 )
 
 // UpdateOptions controls self update behavior.
@@ -99,6 +101,9 @@ func (s *Service) UpdateBinary(ctx context.Context, opts UpdateOptions) (result 
 	resolved, err := resolveUpdateOptions(ctx, opts, execPath)
 	if err != nil {
 		return UpdateResult{}, err
+	}
+	if versionErr := validateNewerVersion(s.cfg.Version, resolved.version); versionErr != nil {
+		return UpdateResult{}, versionErr
 	}
 
 	tmpBinaryPath, cleanup, err := downloadUpdateBinary(ctx, resolved)
@@ -257,19 +262,21 @@ func parseVersionNumber(raw string) (int, bool) {
 	return value, true
 }
 
-func compareCoreVersion(a, b studioctlTagVersion) int {
+func compareStudioctlVersion(a, b studioctlTagVersion) int {
 	if a.major != b.major {
 		return compareInt(a.major, b.major)
 	}
 	if a.minor != b.minor {
 		return compareInt(a.minor, b.minor)
 	}
-	return compareInt(a.patch, b.patch)
-}
-
-func comparePreviewVersion(a, b studioctlTagVersion) int {
-	if cmp := compareCoreVersion(a, b); cmp != 0 {
-		return cmp
+	if a.patch != b.patch {
+		return compareInt(a.patch, b.patch)
+	}
+	if a.isPreview != b.isPreview {
+		if a.isPreview {
+			return -1
+		}
+		return 1
 	}
 	return compareInt(a.preview, b.preview)
 }
@@ -353,14 +360,14 @@ func (c *releaseCandidates) include(releases []githubRelease) {
 		}
 
 		if tag.isPreview {
-			if c.bestPreviewTag == "" || comparePreviewVersion(tag, c.bestPreview) > 0 {
+			if c.bestPreviewTag == "" || compareStudioctlVersion(tag, c.bestPreview) > 0 {
 				c.bestPreview = tag
 				c.bestPreviewTag = rel.TagName
 			}
 			continue
 		}
 
-		if c.bestStableTag == "" || compareCoreVersion(tag, c.bestStable) > 0 {
+		if c.bestStableTag == "" || compareStudioctlVersion(tag, c.bestStable) > 0 {
 			c.bestStable = tag
 			c.bestStableTag = rel.TagName
 		}
@@ -421,6 +428,34 @@ func installFromDownloadedBinary(downloadedBinaryPath, targetPath string) error 
 		}
 	}
 	return nil
+}
+
+func validateNewerVersion(installedVersion, candidateVersion string) error {
+	installed, installedOK := parseComparableStudioctlVersion(installedVersion)
+	candidate, candidateOK := parseComparableStudioctlVersion(candidateVersion)
+	if !installedOK || !candidateOK {
+		return nil
+	}
+	if compareStudioctlVersion(candidate, installed) <= 0 {
+		return fmt.Errorf(
+			"%w: installed version %s is not older than candidate %s",
+			ErrInstallVersionNotNewer,
+			installedVersion,
+			candidateVersion,
+		)
+	}
+	return nil
+}
+
+func parseComparableStudioctlVersion(raw string) (studioctlTagVersion, bool) {
+	version := strings.TrimSpace(raw)
+	version = strings.TrimPrefix(version, "studioctl/")
+	version = strings.TrimPrefix(version, "v")
+	if version == "" {
+		var empty studioctlTagVersion
+		return empty, false
+	}
+	return parseStudioctlTagVersion("studioctl/v" + version)
 }
 
 // UninstallBinary removes the current executable from disk.
