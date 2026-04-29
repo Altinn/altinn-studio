@@ -88,8 +88,11 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
-        // Put the enriched instance into the cache before navigating so any component reading
-        // `useCurrentInstance` sees the post-transition state atomically — no URL/state race.
+        // Navigate before updating the cache so the URL leads the cache, not the other way
+        // around. If the cache flips to the new currentTask while the URL still points at
+        // the old task, ProcessWrapper sees a "wrong task" state for the duration of the
+        // await and briefly renders the forbidden message.
+        navigateToTask(task);
         if (instanceOwnerPartyId && instanceGuid) {
           queryClient.setQueryData<IInstance>(
             instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
@@ -97,7 +100,6 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           );
         }
         await invalidateFormDataQueries(queryClient);
-        navigateToTask(task);
       } else if (validationIssues) {
         if (!onValidationIssues) {
           throw new Error(

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
+import { useIsMutating } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -74,9 +73,9 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-  const isRunningProcessNext = useIsRunningProcessNext();
+  const isRunningProcessNext = useIsMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
 
-  if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
+  if (isRunningProcessNext) {
     return <Loader reason='process-wrapper' />;
   }
 
@@ -175,22 +174,4 @@ function useIsWrongTask(taskId: string | undefined) {
   }
 
   return currentTaskId !== taskId;
-}
-
-function isRunningProcessNext(queryClient: QueryClient) {
-  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
-}
-
-function useIsRunningProcessNext() {
-  const queryClient = useQueryClient();
-  const [isMutating, setIsMutating] = useState<boolean | null>(null);
-
-  // Intentionally wrapped in a useEffect() and saved as a state. If this happens, we'll seemingly be locked out
-  // with a <Loader /> forever, but when this happens, we also know we'll be re-rendered soon. This is only meant to
-  // block rendering when we're calling process/next.
-  useEffect(() => {
-    setIsMutating(isRunningProcessNext(queryClient));
-  }, [queryClient]);
-
-  return isMutating;
 }
