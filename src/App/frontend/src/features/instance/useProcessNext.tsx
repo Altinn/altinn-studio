@@ -87,17 +87,16 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
-        // Navigate before updating the cache so the URL leads the cache, not the other way
-        // around. If the cache flips to the new currentTask while the URL still points at
-        // the old task, ProcessWrapper sees a "wrong task" state for the duration of the
-        // await and briefly renders the forbidden message.
-        navigateToTask(task);
+        // Atomic flip: cache and navigate dispatch in the same task so React 18 batches both
+        // into one commit. ProcessWrapper covers the cache/URL gap during the router's loading
+        // state via useNavigation() and the useIsMutating() guard on this mutation.
         if (instanceOwnerPartyId && instanceGuid) {
           queryClient.setQueryData<IInstance>(
             instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
             newInstance,
           );
         }
+        navigateToTask(task);
         await invalidateFormDataQueries(queryClient);
       } else if (validationIssues) {
         if (!onValidationIssues) {

@@ -8,8 +8,8 @@ import type { LooseAutocomplete } from 'src/types';
 import type { IActionType, IProcess } from 'src/types/shared';
 
 export function useProcessQuery() {
-  const { data } = useInstanceDataQuery({ select: (instance) => instance.process });
-  return { data };
+  const { data, refetch } = useInstanceDataQuery({ select: (instance) => instance.process });
+  return { data, refetch };
 }
 
 export const useIsAuthorized = () => {
