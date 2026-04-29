@@ -54,7 +54,7 @@ internal static class MetadataExtractor
             WorkflowMetadataConstants.QueryParams.CollectionKey
         );
 
-        return string.IsNullOrWhiteSpace(raw) ? null : raw;
+        return string.IsNullOrWhiteSpace(raw) ? null : raw.Trim();
     }
 
     /// <summary>
