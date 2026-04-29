@@ -115,7 +115,7 @@ export const HeaderContextProvider = ({
         selectableOrgs,
         menuItems: dashboardHeaderMenuItems
           .filter((item) => !item.featureFlag || flags.includes(item.featureFlag))
-          .map((item) => ({ name: t(item.name), ...item })),
+          .map((item) => ({ ...item, name: t(item.name) })),
         profileMenuItems,
         profileMenuGroups,
       }}
