@@ -31,7 +31,7 @@ function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement
   const path: string = menuItem.getLink(selectedContext);
 
   return (
-    <li key={menuItem.name}>
+    <li key={menuItem.key}>
       <StudioPageHeader.HeaderLink
         isBeta={menuItem.isBeta}
         renderLink={(props) =>
@@ -43,7 +43,7 @@ function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement
             <NavLink to={path} {...props}>
               <span
                 className={cn({
-                  [classes.active]: menuItem.getLink().startsWith('/' + subroute),
+                  [classes.active]: path.startsWith('/' + subroute),
                 })}
               >
                 {menuItem.name}

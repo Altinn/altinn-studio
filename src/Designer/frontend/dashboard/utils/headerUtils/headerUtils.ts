@@ -7,7 +7,7 @@ import { isOrg } from '../orgUtils/orgUtils';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import { type StudioProfileMenuGroup } from '@studio/components';
 import { FeatureFlag } from '@studio/feature-flags';
-import { ADMIN_BASENAME } from 'app-shared/constants';
+import { ADMIN_BASENAME, DASHBOARD_BASENAME } from 'app-shared/constants';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
@@ -49,13 +49,14 @@ export const groupMenuItemsByGroup = (menuItems: HeaderMenuItem[]): HeaderMenuGr
 
 export const mapHeaderMenuGroupToNavigationMenu = (
   menuGroup: HeaderMenuGroup,
+  selectedContext: string = '',
 ): NavigationMenuGroup => ({
   name: menuGroup.groupName,
   showName: menuGroup.groupName === HeaderMenuGroupKey.Tools,
   items: menuGroup.menuItems.map((menuItem: HeaderMenuItem) => ({
     action: {
       type: 'link',
-      href: menuItem.getLink(),
+      href: `${menuItem.isExternalLink ? '' : DASHBOARD_BASENAME}${menuItem.getLink(selectedContext)}`,
     },
     itemName: menuItem.name,
   })),
