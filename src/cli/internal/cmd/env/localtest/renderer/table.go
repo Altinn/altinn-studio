@@ -11,8 +11,18 @@ import (
 
 // NewTable creates the wide interactive table renderer.
 func NewTable(out *ui.Output, resources []resource.Resource, operation Operation) *TableRenderer {
+	return NewTableWithStatus(out, resources, operation, nil)
+}
+
+// NewTableWithStatus creates the wide interactive table renderer with initial resource status.
+func NewTableWithStatus(
+	out *ui.Output,
+	resources []resource.Resource,
+	operation Operation,
+	statuses map[resource.ResourceID]resource.Status,
+) *TableRenderer {
 	return &TableRenderer{
-		screenRenderer: newScreenRenderer(out, resources, operation, tableLayout{}),
+		screenRenderer: newScreenRenderer(out, resources, operation, statuses, tableLayout{}),
 	}
 }
 

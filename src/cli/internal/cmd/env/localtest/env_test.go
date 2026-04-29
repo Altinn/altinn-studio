@@ -78,12 +78,12 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 			t.Parallel()
 
 			client := mock.New()
-			client.ContainerStateFunc = func(_ context.Context, nameOrID string) (types.ContainerState, error) {
+			client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
 				state, ok := tt.states[nameOrID]
 				if !ok {
-					return types.ContainerState{}, types.ErrContainerNotFound
+					return types.ContainerInfo{}, types.ErrContainerNotFound
 				}
-				return state, nil
+				return types.ContainerInfo{State: state}, nil
 			}
 
 			env := newTestEnv(client)
@@ -105,11 +105,11 @@ func TestStatus_ReturnsErrorForNonNotFoundStateError(t *testing.T) {
 	t.Parallel()
 
 	client := mock.New()
-	client.ContainerStateFunc = func(_ context.Context, nameOrID string) (types.ContainerState, error) {
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
 		if nameOrID == localtest.ContainerPDF3 {
-			return types.ContainerState{}, errStateUnavailable
+			return types.ContainerInfo{}, errStateUnavailable
 		}
-		return types.ContainerState{Status: "running", Running: true}, nil
+		return types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}, nil
 	}
 
 	env := newTestEnv(client)
@@ -123,11 +123,11 @@ func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
 	t.Parallel()
 
 	client := mock.New()
-	client.ContainerStateFunc = func(_ context.Context, nameOrID string) (types.ContainerState, error) {
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
 		if nameOrID == localtest.ContainerPgAdmin {
-			return types.ContainerState{}, types.ErrContainerNotFound
+			return types.ContainerInfo{}, types.ErrContainerNotFound
 		}
-		return types.ContainerState{Status: "running", Running: true}, nil
+		return types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}, nil
 	}
 
 	env := newTestEnv(client)
@@ -195,5 +195,21 @@ func TestLogs_JSONOutputsOneObjectPerLine(t *testing.T) {
 }
 
 func newTestEnv(client container.ContainerClient) *localtest.Env {
-	return localtest.NewEnv(&config.Config{}, ui.NewOutput(io.Discard, io.Discard, false), client)
+	return localtest.NewEnv(
+		&config.Config{Images: testImages()},
+		ui.NewOutput(io.Discard, io.Discard, false),
+		client,
+	)
+}
+
+func testImages() config.ImagesConfig {
+	return config.ImagesConfig{
+		Core: config.CoreImages{
+			Localtest:        config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest"},
+			PDF3:             config.ImageSpec{Image: "ghcr.io/altinn/test-pdf3", Tag: "latest"},
+			WorkflowEngineDb: config.ImageSpec{Image: "postgres", Tag: "18"},
+			WorkflowEngine:   config.ImageSpec{Image: "ghcr.io/altinn/test-workflow-engine", Tag: "latest"},
+			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
+		},
+	}
 }
