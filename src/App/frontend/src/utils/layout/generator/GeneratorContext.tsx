@@ -59,7 +59,7 @@ interface GeneratorContext {
   setNodeProp: (request: SetNodePropRequest) => void;
 }
 
-const { Provider, useCtx, useLaxCtx } = createContext<GeneratorContext>({
+const { Provider, useCtx } = createContext<GeneratorContext>({
   name: 'Generator',
   required: true,
 });
