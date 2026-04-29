@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Extensions;
+using Altinn.ApiClients.Maskinporten.Helpers;
 using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -118,17 +120,43 @@ public static class TypedHttpClientRegistration
         >();
         if (!env.IsDevelopment())
         {
-            clientBuilder.AddMaskinportenHttpMessageHandler<SettingsJwkClientDefinition, AltinnNotificationClient>(
-                def =>
-                {
-                    var clients = config
-                        .GetSection(nameof(MaskinportenClientForNotifications))
-                        .Get<MaskinportenClientForNotifications>();
-                    def.ClientSettings = clients.FirstOrDefault().Value;
-                }
+            var settings = GetMaskinportenClientForNotifications(config);
+            services.RegisterMaskinportenClientDefinition<SettingsJwkClientDefinition>(
+                MaskinportenClientDefinitionHelper.GetClientDefinitionKey<IAltinnNotificationClient>(),
+                settings
             );
+            clientBuilder.AddMaskinportenHttpMessageHandler<SettingsJwkClientDefinition, IAltinnNotificationClient>();
         }
         return services;
+    }
+
+    private static MaskinportenSettings GetMaskinportenClientForNotifications(IConfiguration config)
+    {
+        var clients = config
+            .GetSection(nameof(MaskinportenClientForNotifications))
+            .Get<MaskinportenClientForNotifications>();
+        if (clients?.Count != 1)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(MaskinportenClientForNotifications)} configuration must contain exactly one client"
+            );
+        }
+
+        var settings = clients.Single().Value;
+
+        if (
+            string.IsNullOrWhiteSpace(settings.ClientId)
+            || string.IsNullOrWhiteSpace(settings.Scope)
+            || string.IsNullOrWhiteSpace(settings.Environment)
+            || string.IsNullOrWhiteSpace(settings.EncodedJwk)
+        )
+        {
+            throw new InvalidOperationException(
+                $"{nameof(MaskinportenClientForNotifications)} must define ClientId, Scope, Environment and EncodedJwk"
+            );
+        }
+
+        return settings;
     }
 
     private static IHttpClientBuilder AddAzureDevOpsTypedHttpClient(
