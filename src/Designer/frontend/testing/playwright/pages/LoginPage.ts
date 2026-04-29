@@ -31,7 +31,7 @@ export class LoginPage extends BasePage {
 
   public async goToGiteaLoginPage(): Promise<void> {
     await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
-    await this.page.waitForURL('/repos/user/login');
+    await this.page.waitForURL(/\/repos\/user\/login/);
   }
 
   public async writeUsername(username: string): Promise<void> {
