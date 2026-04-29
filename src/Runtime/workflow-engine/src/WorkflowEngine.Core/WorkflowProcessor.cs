@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -25,7 +24,6 @@ internal sealed class WorkflowProcessor(
     IConcurrencyLimiter limiter,
     InFlightTracker tracker,
     IEngineStatus engineStatus,
-    IOptions<EngineSettings> settings,
     ILogger<WorkflowProcessor> logger
 ) : BackgroundService
 {
@@ -47,7 +45,6 @@ internal sealed class WorkflowProcessor(
         using var activity = Metrics.Source.StartActivity("WorkflowProcessor.ExecuteAsync");
         activity?.DontRecord();
 
-        var config = settings.Value;
         var maxWorkers = limiter.WorkerSlotStatus.Total;
         int consecutiveDbFailures = 0;
 
@@ -70,12 +67,7 @@ internal sealed class WorkflowProcessor(
 
                     try
                     {
-                        var result = await repo.FetchAndLockWorkflows(
-                            available,
-                            config.StaleWorkflowThreshold,
-                            config.MaxReclaimCount,
-                            stoppingToken
-                        );
+                        var workflows = await repo.FetchAndLockWorkflows(available, stoppingToken);
 
                         if (consecutiveDbFailures > 0)
                         {
@@ -84,24 +76,12 @@ internal sealed class WorkflowProcessor(
                             engineStatus.ClearDatabaseUnavailable();
                         }
 
-                        if (result.Workflows.Count > 0)
+                        if (workflows.Count > 0)
                         {
-                            logger.FetchedWorkflows(result.Workflows.Count, available);
+                            logger.FetchedWorkflows(workflows.Count, available);
                         }
 
-                        if (result.ReclaimedCount > 0)
-                        {
-                            Metrics.WorkflowsReclaimed.Add(result.ReclaimedCount);
-                            logger.ReclaimedStaleWorkflows(result.ReclaimedCount);
-                        }
-
-                        if (result.AbandonedCount > 0)
-                        {
-                            Metrics.WorkflowsFailed.Add(result.AbandonedCount);
-                            logger.AbandonedStaleWorkflows(result.AbandonedCount);
-                        }
-
-                        foreach (var workflow in result.Workflows)
+                        foreach (var workflow in workflows)
                         {
                             await limiter.AcquireWorkerSlot(stoppingToken);
                             _ = ProcessWorkflow(workflow, stoppingToken);
@@ -168,10 +148,16 @@ internal sealed class WorkflowProcessor(
     {
         using var workflowCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
 
+        if (!tracker.TryAdd(workflow.DatabaseId, workflowCts, workflow))
+        {
+            logger.WorkflowAlreadyTracked(workflow.DatabaseId);
+            Metrics.WorkflowFetchRaceDropped.Add(1);
+            limiter.ReleaseWorkerSlot();
+            return;
+        }
+
         try
         {
-            tracker.TryAdd(workflow.DatabaseId, workflowCts, workflow);
-
             // If cancellation was already requested before we picked up the workflow,
             // trigger the CTS immediately so the handler sees it
             if (workflow.CancellationRequestedAt is not null)
@@ -185,7 +171,7 @@ internal sealed class WorkflowProcessor(
         }
         finally
         {
-            tracker.TryRemove(workflow.DatabaseId, out _);
+            tracker.Remove(workflow.DatabaseId);
             limiter.ReleaseWorkerSlot();
         }
 
@@ -235,15 +221,6 @@ internal static partial class WorkflowProcessorLogs
         Exception ex
     );
 
-    [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
-    internal static partial void ReclaimedStaleWorkflows(this ILogger<WorkflowProcessor> logger, int count);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Abandoned {Count} stale workflows that exceeded the reclaim limit — marked as Failed"
-    )]
-    internal static partial void AbandonedStaleWorkflows(this ILogger<WorkflowProcessor> logger, int count);
-
     [LoggerMessage(
         LogLevel.Warning,
         "Database unavailable (consecutive failures: {FailureCount}), backing off for {Delay}"
@@ -257,4 +234,10 @@ internal static partial class WorkflowProcessorLogs
 
     [LoggerMessage(LogLevel.Information, "Database connection restored after {FailureCount} consecutive failures")]
     internal static partial void DatabaseConnectionRestored(this ILogger<WorkflowProcessor> logger, int failureCount);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Workflow {WorkflowId} re-fetched while still in flight on this host — dropping duplicate attempt"
+    )]
+    internal static partial void WorkflowAlreadyTracked(this ILogger<WorkflowProcessor> logger, Guid workflowId);
 }

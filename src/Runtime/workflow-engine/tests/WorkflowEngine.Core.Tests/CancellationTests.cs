@@ -277,7 +277,7 @@ public class CancellationTests
         using var cts = new CancellationTokenSource();
 
         tracker.TryAdd(id, cts, workflow);
-        tracker.TryRemove(id, out _);
+        tracker.Remove(id);
 
         var result = tracker.TryCancel(id);
         Assert.False(result);

@@ -53,6 +53,6 @@ For a decent editing experience, run `npm install` and use an editor with JS sup
 
 If Localtest and your app are running, but Localtest reports that the app is not running, it might be that the port is not open in the firewall.
 
-Verify the app by opening `http://localhost:5005/<app-org-name>/<app-name>/swagger/index.html`.
+Verify the app by opening `http://local.altinn.cloud:8000/<app-org-name>/<app-name>`.
 
 If this is the case, open Windows PowerShell as administrator and run `OpenAppPortInHyperVFirewall.ps1` from the `scripts` folder.

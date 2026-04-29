@@ -216,8 +216,8 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         var ns = Guid.NewGuid().ToString("N");
 
         var wf1 = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
-        var wf2 = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
-        var wf3 = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
+        _ = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
+        _ = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
 
         // Act — first page of 2 (ID DESC: wf3, wf2), then cursor to next page
         var page1 = await repo.QueryWorkflows(

@@ -66,7 +66,7 @@ describe('HeaderContext', () => {
 
     renderHeaderContext();
 
-    expect(screen.getByTestId('settings-href')).not.toHaveTextContent('none');
+    expect(screen.getByTestId('settings-href')).not.toHaveTextContent(/^none$/);
   });
 
   it('should not include user settings link in profile menu when studioOidc feature flag is disabled', () => {
@@ -74,6 +74,6 @@ describe('HeaderContext', () => {
 
     renderHeaderContext();
 
-    expect(screen.getByTestId('settings-href')).toHaveTextContent('none');
+    expect(screen.getByTestId('settings-href')).toHaveTextContent(/^none$/);
   });
 });

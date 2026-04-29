@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Threading.Channels;
 using Altinn.Studio.AppTunnel;
+using Altinn.Studio.EnvTopology;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
@@ -12,36 +13,35 @@ namespace Altinn.Studio.AppManager.Tunnel;
 
 internal sealed class TunnelWorker : BackgroundService
 {
-    private const string LocalFallbackHost = "127.0.0.1";
-    private const int LocalFallbackPort = 5005;
-    internal static readonly Uri LocalFallbackUpstreamUri = new UriBuilder(
-        Uri.UriSchemeHttp,
-        LocalFallbackHost,
-        LocalFallbackPort
-    ).Uri;
+    private static readonly HttpClient HttpClient = new(
+        new SocketsHttpHandler
+        {
+            UseProxy = false,
+            AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.None,
+            UseCookies = false,
+            EnableMultipleHttp2Connections = true,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+            ConnectTimeout = TimeSpan.FromSeconds(5),
+        }
+    );
 
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly Discovery.AppRegistry _appRegistry;
     private readonly TunnelOptions _options;
     private readonly TunnelState _state;
     private readonly ILogger<TunnelWorker> _logger;
-    private readonly LoadBalancer _loadBalancer;
+    private readonly BoundTopologyIndexAccessor _boundTopologyIndex;
 
     public TunnelWorker(
-        IHttpClientFactory httpClientFactory,
-        Discovery.AppRegistry appRegistry,
         IOptions<TunnelOptions> options,
         TunnelState state,
         ILogger<TunnelWorker> logger,
-        LoadBalancer loadBalancer
+        BoundTopologyIndexAccessor boundTopologyIndex
     )
     {
-        _httpClientFactory = httpClientFactory;
-        _appRegistry = appRegistry;
         _options = options.Value;
         _state = state;
         _logger = logger;
-        _loadBalancer = loadBalancer;
+        _boundTopologyIndex = boundTopologyIndex;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -162,17 +162,13 @@ internal sealed class TunnelWorker : BackgroundService
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
                     _logger.LogDebug(
-                        "Accepted tunnel request {RequestId} for app {AppId} path {Path}",
+                        "Accepted tunnel request {RequestId} for target {Target}:{TargetPort} path {Path}",
                         frame.RequestId,
-                        frame.AppId ?? "<default>",
+                        frame.Target,
+                        frame.TargetPort,
                         frame.PathAndQuery
                     );
                 }
-
-                if (request.IsDiscoveryRequest)
-                    request.StartProcessing(() =>
-                        ProcessRequest(socket, sendLock, request, pending, cancellationToken)
-                    );
                 break;
             }
             case TunnelFrameKind.RequestBody:
@@ -217,9 +213,7 @@ internal sealed class TunnelWorker : BackgroundService
 
         try
         {
-            using var response = pendingRequest.IsDiscoveryRequest
-                ? CreateDiscoveryResponse()
-                : await SendUpstreamRequest(pendingRequest);
+            using var response = await SendUpstreamRequest(pendingRequest);
 
             var responseStart = new ResponseStartFrame(
                 pendingRequest.RequestId,
@@ -253,9 +247,10 @@ internal sealed class TunnelWorker : BackgroundService
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug(
-                    "Completed tunnel request {RequestId} for app {AppId} with status {StatusCode}",
+                    "Completed tunnel request {RequestId} for target {Target}:{TargetPort} with status {StatusCode}",
                     pendingRequest.RequestId,
-                    pendingRequest.AppId ?? "<default>",
+                    pendingRequest.Target,
+                    pendingRequest.TargetPort,
                     (int)response.StatusCode
                 );
             }
@@ -266,9 +261,10 @@ internal sealed class TunnelWorker : BackgroundService
             {
                 _logger.LogDebug(
                     ex,
-                    "App tunnel request {RequestId} for app {AppId} cancelled",
+                    "App tunnel request {RequestId} for target {Target}:{TargetPort} cancelled",
                     pendingRequest.RequestId,
-                    pendingRequest.AppId ?? "<default>"
+                    pendingRequest.Target,
+                    pendingRequest.TargetPort
                 );
             }
         }
@@ -294,13 +290,10 @@ internal sealed class TunnelWorker : BackgroundService
 
     private async Task<HttpResponseMessage> SendUpstreamRequest(PendingRequest pendingRequest)
     {
-        var upstreamUri = ResolveUpstreamUri(pendingRequest);
-
-        var request = pendingRequest.BuildHttpRequest(upstreamUri);
+        var request = pendingRequest.BuildHttpRequest(ResolveTargetUri(pendingRequest));
         try
         {
-            using var client = _httpClientFactory.CreateClient(TunnelHttpClient.Name);
-            return await client.SendAsync(
+            return await HttpClient.SendAsync(
                 request,
                 HttpCompletionOption.ResponseHeadersRead,
                 pendingRequest.CancellationTokenSource.Token
@@ -311,24 +304,6 @@ internal sealed class TunnelWorker : BackgroundService
             request.Dispose();
             throw;
         }
-    }
-
-    private HttpResponseMessage CreateDiscoveryResponse()
-    {
-        var apps = _appRegistry
-            .GetAll()
-            .Select(app => new TunnelDiscoveredApp(
-                app.AppId,
-                app.BaseUri.ToString(),
-                app.Source,
-                app.ProcessId,
-                app.Description
-            ))
-            .ToArray();
-        var body = TunnelProtocol.Serialize(new TunnelDiscoveredAppsResponse(apps));
-        var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(body) };
-        response.Content.Headers.ContentType = new("application/json");
-        return response;
     }
 
     private static async Task SendBodyFrames(
@@ -441,35 +416,14 @@ internal sealed class TunnelWorker : BackgroundService
         return headers;
     }
 
-    private Uri ResolveUpstreamUri(PendingRequest pendingRequest)
-    {
-        if (!string.IsNullOrWhiteSpace(pendingRequest.Target))
-            return ResolveTargetUri(pendingRequest);
-
-        if (string.IsNullOrWhiteSpace(pendingRequest.AppId))
-            return LocalFallbackUpstreamUri;
-
-        var apps = _appRegistry.GetByAppId(pendingRequest.AppId);
-        if (_loadBalancer.Next(pendingRequest.AppId, apps) is { } app)
-            return app.BaseUri.Value;
-
-        if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug(
-                "App {AppId} is not discovered yet, falling back to default local app",
-                pendingRequest.AppId
-            );
-        return LocalFallbackUpstreamUri;
-    }
-
-    private static Uri ResolveTargetUri(PendingRequest pendingRequest)
+    private Uri ResolveTargetUri(PendingRequest pendingRequest)
     {
         if (
-            string.Equals(pendingRequest.Target, TunnelDefaults.FrontendDevServerTarget, StringComparison.Ordinal)
-            && pendingRequest.TargetPort is { } port
-            && port == TunnelDefaults.FrontendDevServerPort
+            _boundTopologyIndex.Current.ResolveHostHttpUpstream(pendingRequest.Target, pendingRequest.TargetPort) is
+            { } upstream
         )
         {
-            return new UriBuilder(Uri.UriSchemeHttp, LocalFallbackHost, port).Uri;
+            return upstream;
         }
 
         throw new InvalidDataException("unsupported app tunnel target");
@@ -508,15 +462,10 @@ internal sealed class TunnelWorker : BackgroundService
         }
 
         public long RequestId => _start.RequestId;
-        public string? AppId => _start.AppId;
-        public string? Target => _start.Target;
-        public int? TargetPort => _start.TargetPort;
+        public string Target => _start.Target;
+        public int TargetPort => _start.TargetPort;
         public bool IsStarted => Volatile.Read(ref _started) != 0;
         public CancellationTokenSource CancellationTokenSource { get; }
-        private bool _isTargetRequest => !string.IsNullOrWhiteSpace(_start.Target);
-        public bool IsDiscoveryRequest =>
-            string.Equals(_start.Method, HttpMethod.Get.Method, StringComparison.OrdinalIgnoreCase)
-            && string.Equals(_start.PathAndQuery, TunnelDefaults.DiscoveredAppsPath, StringComparison.Ordinal);
 
         public void StartProcessing(Func<Task> process)
         {
@@ -565,18 +514,17 @@ internal sealed class TunnelWorker : BackgroundService
                 new Uri(upstreamBaseUri, _start.PathAndQuery)
             );
 
-            var useStreamingBody = !IsDiscoveryRequest && _start.HasBody;
-            if (useStreamingBody)
+            if (_start.HasBody)
                 request.Content = new StreamingRequestContent(_body.Reader, CancellationTokenSource.Token);
 
             foreach (var header in _start.Headers)
             {
                 if (string.Equals(header.Key, HeaderNames.Host, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (_isTargetRequest)
-                        continue;
-
-                    request.Headers.Host = header.Value.FirstOrDefault();
+                    if (header.Value is [var host, ..] && !string.IsNullOrWhiteSpace(host))
+                    {
+                        request.Headers.Host = host;
+                    }
                     continue;
                 }
 
