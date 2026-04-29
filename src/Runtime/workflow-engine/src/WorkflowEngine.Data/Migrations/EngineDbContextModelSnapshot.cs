@@ -164,6 +164,9 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("Labels")
                         .HasColumnType("jsonb");
 
+                    b.Property<Guid?>("LeaseToken")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Namespace")
                         .IsRequired()
                         .HasMaxLength(200)

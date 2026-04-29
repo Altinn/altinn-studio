@@ -16,6 +16,8 @@ import (
 	"altinn.studio/studioctl/internal/osutil"
 )
 
+const testWindowsGOOS = "windows"
+
 func TestValidateResourceHostPaths(t *testing.T) {
 	t.Parallel()
 
@@ -100,9 +102,10 @@ func TestValidateResourceHostPaths(t *testing.T) {
 func TestCoreContainers_ServiceCallbacksUseLocaltestNetworkAlias(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
-	containers := coreContainers(t.TempDir(), testTopology(), true)
+	dataDir := t.TempDir()
+	containers := coreContainers(dataDir, testTopology(), false, true)
 	assertCoreContainerLayout(t, containers)
-	assertLocaltestContainerConfig(t, containers[0])
+	assertLocaltestContainerConfig(t, containers[0], dataDir)
 	assertPdf3ContainerConfig(t, containers[1])
 	assertWorkflowEngineDbContainerConfig(t, containers[2])
 	assertWorkflowEngineContainerConfig(t, containers[3])
@@ -122,18 +125,10 @@ func assertCoreContainerLayout(t *testing.T, containers []ContainerSpec) {
 	}
 }
 
-func assertLocaltestContainerConfig(t *testing.T, localtest ContainerSpec) {
+func assertLocaltestContainerConfig(t *testing.T, localtest ContainerSpec, dataDir string) {
 	t.Helper()
 	topology := testTopology()
-	wantAliases := topology.LocaltestIngressHosts()
-	if got := localtest.NetworkAliases; !slices.Equal(got, wantAliases) {
-		t.Fatalf("localtest.NetworkAliases = %v, want %v", got, wantAliases)
-	}
-	assertEnvValue(t, localtest.Environment, "ASPNETCORE_URLS", "http://*:5101/;http://*:8000/")
-	assertEnvValue(t, localtest.Environment, "DOTNET_ENVIRONMENT", "Development")
-	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalAppMode", "http")
-	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalAppUrl", "")
-	assertEnvValue(t, localtest.Environment, "LocalPlatformSettings__LocalPdfServiceUrl", "http://localtest-pdf3:5031")
+	assertLocaltestCoreContainer(t, localtest, topology, dataDir)
 }
 
 func assertPdf3ContainerConfig(t *testing.T, pdf3 ContainerSpec) {
@@ -205,48 +200,34 @@ func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine ContainerS
 	}
 }
 
-func TestBuildResources_AddsPgAdminOnlyWhenRequested(t *testing.T) {
+func TestResourceBuilder_AddsPgAdminOnlyWhenRequested(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	tests := map[string]struct {
 		includePgAdmin bool
-		wantPgAdmin    bool
+		wantEnabled    bool
 	}{
 		"default": {
 			includePgAdmin: false,
-			wantPgAdmin:    false,
+			wantEnabled:    false,
 		},
 		"requested": {
 			includePgAdmin: true,
-			wantPgAdmin:    true,
+			wantEnabled:    true,
 		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			resources := BuildResources(newResourceBuildOptions(t.TempDir(), false, tt.includePgAdmin))
-			if got := hasResource(resources, resource.ContainerID(ContainerPgAdmin)); got != tt.wantPgAdmin {
-				t.Fatalf("BuildResources() has pgadmin = %v, want %v", got, tt.wantPgAdmin)
+			resources := buildResources(newResourceBuildOptions(t.TempDir(), false, tt.includePgAdmin))
+			pgAdmin := findResource(resources, resource.ContainerID(ContainerPgAdmin))
+			if pgAdmin == nil {
+				t.Fatalf("buildResources() missing %q", ContainerPgAdmin)
+			}
+			if got := resource.IsEnabled(pgAdmin); got != tt.wantEnabled {
+				t.Fatalf("pgAdmin enabled = %v, want %v", got, tt.wantEnabled)
 			}
 		})
-	}
-}
-
-func TestBuildResources_IncludesPgAdminInCIWhenRequested(t *testing.T) {
-	t.Setenv(config.EnvCI, "true")
-
-	resources := BuildResources(newResourceBuildOptions(t.TempDir(), false, true))
-	if !hasResource(resources, resource.ContainerID(ContainerPgAdmin)) {
-		t.Fatalf("BuildResources() missing %q in CI", ContainerPgAdmin)
-	}
-}
-
-func TestBuildResourcesForDestroy_IncludesPgAdmin(t *testing.T) {
-	t.Setenv(config.EnvCI, "true")
-
-	resources := BuildResourcesForDestroy(ResourceDestroyOptions{DataDir: t.TempDir()})
-	if !hasResource(resources, resource.ContainerID(ContainerPgAdmin)) {
-		t.Fatalf("BuildResourcesForDestroy() missing %q", ContainerPgAdmin)
 	}
 }
 
@@ -266,7 +247,7 @@ func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 	}
 }
 
-func TestBuildResources_FailsForUnknownContainerDependency(t *testing.T) {
+func TestResourceBuilder_FailsForUnknownContainerDependency(t *testing.T) {
 	t.Setenv(config.EnvCI, "true")
 
 	specs := []ContainerSpec{
@@ -291,7 +272,7 @@ func TestBuildResources_FailsForUnknownContainerDependency(t *testing.T) {
 		network,
 		nil,
 		"",
-		containerModeApply,
+		nil,
 	)
 
 	graph := resource.NewGraph()
@@ -314,7 +295,7 @@ func TestCoreContainers_PgAdminUsesImportedPassfile(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
 	dataDir := t.TempDir()
-	containers := coreContainers(dataDir, testTopology(), true)
+	containers := coreContainers(dataDir, testTopology(), false, true)
 
 	index := slices.IndexFunc(containers, func(spec ContainerSpec) bool {
 		return spec.Name == ContainerPgAdmin
@@ -368,7 +349,7 @@ func TestEnsurePgpassWritesReadableSourceFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat pgpass: %v", err)
 	}
-	if runtime.GOOS != osWindows && info.Mode().Perm() != osutil.FilePermDefault {
+	if runtime.GOOS != testWindowsGOOS && info.Mode().Perm() != osutil.FilePermDefault {
 		got := info.Mode().Perm()
 		t.Fatalf("pgpass mode = %v, want %v", got, osutil.FilePermDefault)
 	}
@@ -399,6 +380,46 @@ func assertEnvValue(t *testing.T, env map[string]string, key, want string) {
 	}
 }
 
+func assertEnvMissing(t *testing.T, env map[string]string, key string) {
+	t.Helper()
+	if got, ok := env[key]; ok {
+		t.Fatalf("env[%s] unexpectedly present with value %q", key, got)
+	}
+}
+
+func assertLocaltestCoreContainer(t *testing.T, spec ContainerSpec, topology envtopology.Local, dataDir string) {
+	t.Helper()
+
+	wantAliases := topology.LocaltestIngressHosts()
+	if got := spec.NetworkAliases; !slices.Equal(got, wantAliases) {
+		t.Fatalf("localtest.NetworkAliases = %v, want %v", got, wantAliases)
+	}
+
+	assertEnvValue(t, spec.Environment, "ASPNETCORE_URLS", "http://*:5101/;http://*:8000/")
+	assertEnvValue(t, spec.Environment, "DOTNET_ENVIRONMENT", "Development")
+	assertEnvValue(
+		t,
+		spec.Environment,
+		envtopology.BoundTopologyOptionsBaseConfigPathEnv,
+		envtopology.BoundTopologyBaseConfigContainerPath,
+	)
+	assertEnvValue(
+		t,
+		spec.Environment,
+		envtopology.BoundTopologyOptionsConfigPathEnv,
+		envtopology.BoundTopologyConfigContainerPath,
+	)
+	assertEnvMissing(t, spec.Environment, "LocalPlatformSettings__LocalGrafanaUrl")
+
+	wantMount := newReadOnlyVolume(
+		envtopology.BoundTopologyHostDir(dataDir),
+		envtopology.BoundTopologyContainerDir,
+	)
+	if !slices.Contains(spec.Volumes, wantMount) {
+		t.Fatalf("localtest.Volumes missing bound topology config mount: %v", spec.Volumes)
+	}
+}
+
 func createCoreLayout(t *testing.T, dataDir string) {
 	t.Helper()
 	for _, dir := range []string{
@@ -419,6 +440,14 @@ func createCoreLayout(t *testing.T, dataDir string) {
 		if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
 			t.Fatalf("write %q: %v", path, err)
 		}
+	}
+
+	path := envtopology.BoundTopologyHostPath(dataDir)
+	if err := os.MkdirAll(envtopology.BoundTopologyHostDir(dataDir), 0o755); err != nil {
+		t.Fatalf("create directory %q: %v", envtopology.BoundTopologyHostDir(dataDir), err)
+	}
+	if err := os.WriteFile(path, []byte("{}\n"), 0o644); err != nil {
+		t.Fatalf("write %q: %v", path, err)
 	}
 }
 
@@ -461,8 +490,15 @@ func createMonitoringLayout(t *testing.T, dataDir string) {
 	}
 }
 
-func hasResource(resources []resource.Resource, id resource.ResourceID) bool {
-	return slices.ContainsFunc(resources, func(res resource.Resource) bool {
-		return res.ID() == id
-	})
+func findResource(resources []resource.Resource, id resource.ResourceID) *resource.Container {
+	for _, res := range resources {
+		if res.ID() == id {
+			containerResource, ok := res.(*resource.Container)
+			if !ok {
+				return nil
+			}
+			return containerResource
+		}
+	}
+	return nil
 }

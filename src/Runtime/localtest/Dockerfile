@@ -3,11 +3,13 @@ WORKDIR /src
 
 COPY Runtime/localtest/src/LocalTest.csproj Runtime/localtest/src/
 COPY Shared/AppTunnel/ Shared/AppTunnel/
+COPY Shared/EnvTopology/ Shared/EnvTopology/
 WORKDIR /src/Runtime/localtest/src
 RUN dotnet restore LocalTest.csproj
 
 COPY Runtime/localtest/src/ .
 COPY Shared/AppTunnel/ /src/Shared/AppTunnel/
+COPY Shared/EnvTopology/ /src/Shared/EnvTopology/
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:0389d5b7d60f75ebbeec3bfffd2ad0a06d234e7b998231a5a86abf5e919a7d01 AS final

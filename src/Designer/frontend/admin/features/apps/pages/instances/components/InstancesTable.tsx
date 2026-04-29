@@ -15,7 +15,7 @@ import { useMutation } from '@tanstack/react-query';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
 import { Skeleton } from '@digdir/designsystemet-react';
-import { useCurrentOrg } from 'admin/layout/PageLayout';
+import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { Link } from 'react-router-dom';
 
 type InstancesTableProps = {
@@ -55,8 +55,9 @@ export const InstancesTable = ({
     isHardDeleted,
     createdBefore,
   );
-  const { t, i18n } = useTranslation();
-  const orgName = useCurrentOrg().name[i18n.language];
+  const { t } = useTranslation();
+  const currentOrg = useCurrentOrg();
+  const orgName = currentOrg.full_name || currentOrg.username;
   const envTitle = useEnvironmentTitle(environment);
 
   switch (status) {

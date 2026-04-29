@@ -84,6 +84,12 @@ type EnablementProvider interface {
 	IsEnabled() bool
 }
 
+// IsEnabled reports whether a resource participates in graph validation and execution.
+func IsEnabled(r Resource) bool {
+	provider, ok := r.(EnablementProvider)
+	return !ok || provider.IsEnabled()
+}
+
 // ErrorDecision describes how an executor should handle a lifecycle error.
 type ErrorDecision int
 

@@ -603,40 +603,20 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<FetchResult> FetchAndLockWorkflows(
-        int count,
-        TimeSpan staleThreshold,
-        int maxReclaimCount,
-        CancellationToken cancellationToken
-    )
+    public async Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.FetchAndLockWorkflows");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var now = timeProvider.GetUtcNow();
-        var staleDeadline = now - staleThreshold;
 
         await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // 1) Abandon stale workflows that have exceeded the reclaim limit (mark as Failed).
-        //    This runs first so they are not picked up by the candidate query below.
-        var abandonedCount = await context.Database.ExecuteSqlAsync(
-            $"""
-            UPDATE "engine"."Workflows"
-            SET "Status" = {PersistentItemStatus.Failed}, "UpdatedAt" = {now}, "HeartbeatAt" = NULL
-            WHERE "Status" = {PersistentItemStatus.Processing}
-              AND "HeartbeatAt" IS NOT NULL
-              AND "HeartbeatAt" < {staleDeadline}
-              AND "ReclaimCount" >= {maxReclaimCount}
-            """,
-            cancellationToken
-        );
-
-        // 2) Fetch ready workflows (Enqueued/Requeued) + reclaim stale Processing workflows
-        //    in a single atomic UPDATE. The "was_stale" flag lets us count reclaims.
-        //    FOR UPDATE SKIP LOCKED must be on each individual SELECT (PG disallows it on UNION).
-        var rows = await context
-            .Database.SqlQuery<FetchRow>(
+        // Fetch ready rows and stamp a LeaseToken in a single atomic UPDATE. Poison abandonment
+        // and stale reclaim run as separate sweeps in DbMaintenanceService — reclaimed rows
+        // re-enter here as Enqueued.
+        var ids = await context
+            .Database.SqlQuery<Guid>(
                 $"""
                 WITH ready AS (
                     SELECT w."Id"
@@ -656,44 +636,25 @@ internal sealed partial class EngineRepository
                     FOR UPDATE SKIP LOCKED
                     LIMIT {count}
                 ),
-                stale AS (
-                    SELECT w."Id"
-                    FROM "engine"."Workflows" w
-                    WHERE w."Status" = {PersistentItemStatus.Processing}
-                      AND w."HeartbeatAt" IS NOT NULL
-                      AND w."HeartbeatAt" < {staleDeadline}
-                      AND w."ReclaimCount" < {maxReclaimCount}
-                    ORDER BY w."HeartbeatAt"
-                    FOR UPDATE SKIP LOCKED
-                    LIMIT GREATEST(0, {count} - (SELECT count(*) FROM ready))
-                ),
-                candidates AS (
-                    SELECT "Id", FALSE AS was_stale FROM ready
-                    UNION ALL
-                    SELECT "Id", TRUE  AS was_stale FROM stale
-                ),
                 updated AS (
                     UPDATE "engine"."Workflows" w
-                    SET "Status"       = {PersistentItemStatus.Processing},
-                        "UpdatedAt"    = {now},
-                        "HeartbeatAt"  = {now},
-                        "ReclaimCount" = w."ReclaimCount" + (CASE WHEN c.was_stale THEN 1 ELSE 0 END)
-                    FROM candidates c
-                    WHERE w."Id" = c."Id"
-                    RETURNING w."Id", c.was_stale AS "WasStale"
+                    SET "Status"      = {PersistentItemStatus.Processing},
+                        "UpdatedAt"   = {now},
+                        "HeartbeatAt" = {now},
+                        "LeaseToken"  = gen_random_uuid()
+                    FROM ready r
+                    WHERE w."Id" = r."Id"
+                    RETURNING w."Id"
                 )
-                SELECT "Id", "WasStale" FROM updated
+                SELECT "Id" AS "Value" FROM updated
                 """
             )
             .ToListAsync(cancellationToken);
 
-        if (rows.Count == 0)
+        if (ids.Count == 0)
         {
-            return new FetchResult([], 0, abandonedCount);
+            return [];
         }
-
-        var ids = rows.Select(r => r.Id).ToList();
-        var reclaimedCount = rows.Count(r => r.WasStale);
 
         var entities = await context
             .Workflows.AsNoTracking()
@@ -707,7 +668,7 @@ internal sealed partial class EngineRepository
 
         Metrics.DbOperationsSucceeded.Add(1);
 
-        return new FetchResult(workflows, reclaimedCount, abandonedCount);
+        return workflows;
     }
 
     /// <inheritdoc/>
@@ -767,12 +728,12 @@ internal sealed partial class EngineRepository
 
     /// <inheritdoc/>
     public async Task BatchUpdateHeartbeats(
-        IReadOnlyList<Guid> workflowIds,
+        IReadOnlyList<(Guid WorkflowId, Guid LeaseToken)> leases,
         TimeSpan staleThreshold,
         CancellationToken cancellationToken
     )
     {
-        if (workflowIds.Count == 0)
+        if (leases.Count == 0)
             return;
 
         using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateHeartbeats");
@@ -781,25 +742,41 @@ internal sealed partial class EngineRepository
         var now = timeProvider.GetUtcNow();
         var updatedBefore = now - staleThreshold;
 
+        var ids = new Guid[leases.Count];
+        var tokens = new Guid[leases.Count];
+        for (int i = 0; i < leases.Count; i++)
+        {
+            ids[i] = leases[i].WorkflowId;
+            tokens[i] = leases[i].LeaseToken;
+        }
+
         try
         {
             await ExecuteWithRetry(
                 async ct =>
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    // (id, lease_token) paired via unnest so WHERE matches both columns on the
+                    // same row — ANY(@ids) + ANY(@tokens) would accept any cross-product.
+                    // Stale-token rows silently no-op: the new owner's lease token is on the row,
+                    // the old worker's heartbeat write skips it, and the row keeps aging normally.
                     const string sql = """
-                    UPDATE "engine"."Workflows"
+                    UPDATE "engine"."Workflows" w
                     SET "HeartbeatAt" = @now
-                    WHERE "Id" = ANY(@ids)
-                      AND "Status" = @status
-                      AND "UpdatedAt" < @updatedBefore
+                    FROM unnest(@ids, @lease_tokens) AS i(id, lease_token)
+                    WHERE w."Id" = i.id
+                      AND w."LeaseToken" = i.lease_token
+                      AND w."Status" = @status
+                      AND w."UpdatedAt" < @updatedBefore
                     """;
 
                     await using var cmd = new NpgsqlCommand(sql, conn);
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", [.. workflowIds]));
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("lease_tokens", tokens));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Processing));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("updatedBefore", updatedBefore));
+
                     await cmd.ExecuteNonQueryAsync(ct);
                 },
                 cancellationToken
@@ -812,25 +789,20 @@ internal sealed partial class EngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.FailedToBatchUpdateHeartbeats(workflowIds.Count, ex.Message, ex);
+            logger.FailedToBatchUpdateHeartbeats(leases.Count, ex.Message, ex);
             throw;
         }
     }
 
-    /// <summary>
-    /// Row shape returned by the FetchAndLockWorkflows CTE.
-    /// </summary>
-    private sealed record FetchRow(Guid Id, bool WasStale);
-
     /// <inheritdoc/>
-    public async Task BatchUpdateWorkflowsAndSteps(
+    public async Task<BatchUpdateResult> BatchUpdateWorkflowsAndSteps(
         IReadOnlyList<BatchWorkflowStatusUpdate> updates,
         CancellationToken cancellationToken
     )
     {
         if (updates.Count == 0)
         {
-            return;
+            return new BatchUpdateResult([], []);
         }
 
         using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowsAndSteps");
@@ -839,21 +811,24 @@ internal sealed partial class EngineRepository
 
         try
         {
+            List<Guid> accepted = [];
             await ExecuteWithRetry(
                 async ct =>
                 {
+                    accepted.Clear();
+
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // 1. Bulk update all workflows
-                    // Sort by ID to ensure consistent row-lock acquisition order across
-                    // concurrent transactions, preventing deadlocks.
+                    // Sort by ID for consistent row-lock order across concurrent transactions,
+                    // preventing deadlocks.
                     var sorted = updates.OrderBy(u => u.Workflow.DatabaseId).ToList();
 
                     var ids = new Guid[sorted.Count];
                     var statuses = new int[sorted.Count];
                     var backoffUntils = new object[sorted.Count];
                     var engineTraceContexts = new object[sorted.Count];
+                    var leaseTokens = new Guid[sorted.Count];
 
                     for (int i = 0; i < sorted.Count; i++)
                     {
@@ -862,22 +837,38 @@ internal sealed partial class EngineRepository
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
+                        // FetchAndLockWorkflows always stamps a LeaseToken; the throw is an invariant check.
+                        leaseTokens[i] =
+                            w.LeaseToken
+                            ?? throw new UnreachableException(
+                                $"Workflow {w.DatabaseId} reached write-back without a LeaseToken; expected FetchAndLockWorkflows to stamp one"
+                            );
                     }
 
+                    // Lease-token CAS: mismatched rows are silently skipped; RETURNING yields the
+                    // accepted ids, any input id not in that set is lease-lost.
+                    //
+                    // Writes leaving Processing clear LeaseToken, preserving the invariant
+                    // "LeaseToken IS NOT NULL iff Status = Processing". Without this, a frozen
+                    // worker's later CAS could match a row that has since moved on under the
+                    // same token.
                     const string updateWorkflowsSql = """
                     UPDATE "engine"."Workflows" AS w
                     SET "Status"             = v.status,
                         "UpdatedAt"          = @now,
                         "BackoffUntil"       = v.backoff_until,
-                        "HeartbeatAt"        = CASE WHEN v.status = 1 THEN @now ELSE NULL END,
+                        "HeartbeatAt"        = CASE WHEN v.status = @processing THEN @now ELSE NULL END,
+                        "LeaseToken"         = CASE WHEN v.status = @processing THEN w."LeaseToken" ELSE NULL END,
                         "EngineTraceContext" = v.engine_trace_context
                     FROM (
                         SELECT *
-                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
-                            AS t(id, status, backoff_until, engine_trace_context)
+                        FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts, @lease_tokens)
+                            AS t(id, status, backoff_until, engine_trace_context, lease_token)
                         ORDER BY t.id
                     ) AS v
                     WHERE w."Id" = v.id
+                      AND w."LeaseToken" = v.lease_token
+                    RETURNING w."Id"
                     """;
 
                     await using (var cmd = new NpgsqlCommand(updateWorkflowsSql, conn, tx))
@@ -896,12 +887,27 @@ internal sealed partial class EngineRepository
                                 Value = engineTraceContexts,
                             }
                         );
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("lease_tokens", leaseTokens));
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                        await cmd.ExecuteNonQueryAsync(ct);
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter<int>("processing", (int)PersistentItemStatus.Processing)
+                        );
+
+                        await using var reader = await cmd.ExecuteReaderAsync(ct);
+                        while (await reader.ReadAsync(ct))
+                        {
+                            accepted.Add(reader.GetGuid(0));
+                        }
                     }
 
-                    // 2. Bulk update all dirty steps across all workflows
-                    var allSteps = sorted.SelectMany(u => u.DirtySteps).OrderBy(s => s.DatabaseId).ToList();
+                    // Only update steps for accepted workflows — otherwise we leak step state
+                    // into a workflow we no longer own.
+                    var acceptedIds = accepted.ToHashSet();
+                    var allSteps = sorted
+                        .Where(u => acceptedIds.Contains(u.Workflow.DatabaseId))
+                        .SelectMany(u => u.DirtySteps)
+                        .OrderBy(s => s.DatabaseId)
+                        .ToList();
 
                     if (allSteps.Count > 0)
                     {
@@ -969,14 +975,45 @@ internal sealed partial class EngineRepository
                         await cmd.ExecuteNonQueryAsync(ct);
                     }
 
-                    await tx.CommitAsync(ct);
+                    // NOTIFY inside the tx: PG queues it until commit and drops it on rollback,
+                    // so it's safe to run before CommitAsync. Running after commit would allow a
+                    // transient NOTIFY failure to re-enter the retry, whose CAS would then see
+                    // LeaseToken already cleared and classify every workflow as lease-lost.
+                    await using (var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx))
+                    {
+                        await notifyCmd.ExecuteNonQueryAsync(ct);
+                    }
 
-                    // Signal dashboard SSE subscribers via PG NOTIFY
-                    await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
-                    await notifyCmd.ExecuteNonQueryAsync(ct);
+                    // Known gap: an ambiguous CommitAsync failure (server committed, client saw a
+                    // transient ack error) triggers a retry whose CAS sees LeaseToken already
+                    // cleared and misclassifies terminal-transition writes as lease-lost.
+                    // Telemetry-only: DB state is consistent, callers get a spurious
+                    // LeaseLostException, WorkflowsLeaseLost over-counts. Accepted as-is —
+                    // ambiguous commits are rare and the alternatives (hoisting CommitAsync out
+                    // of the retry, or a verification SELECT) are worse trade-offs.
+                    await tx.CommitAsync(ct);
                 },
                 cancellationToken
             );
+
+            var acceptedSet = accepted.ToHashSet();
+            List<Guid> rejected = [];
+            foreach (var u in updates)
+            {
+                if (!acceptedSet.Contains(u.Workflow.DatabaseId))
+                {
+                    rejected.Add(u.Workflow.DatabaseId);
+                }
+            }
+
+            if (rejected.Count > 0)
+            {
+                activity?.SetTag("lease.lost", true);
+                activity?.SetTag("lease.lost.count", rejected.Count);
+                logger.BatchUpdateLeaseLost(rejected.Count, updates.Count);
+            }
+
+            return new BatchUpdateResult(accepted, rejected);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -1013,13 +1050,15 @@ internal sealed partial class EngineRepository
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
 
-                    // Reset the primary workflow — terminal states + Requeued (skips backoff wait)
+                    // Reset from terminal + Requeued (Requeued skips the backoff wait). Clearing
+                    // LeaseToken preserves the "NOT NULL iff Processing" invariant.
                     const string resetPrimarySql = """
                     UPDATE engine."Workflows"
                     SET "Status" = @enqueued,
                         "CancellationRequestedAt" = NULL,
                         "BackoffUntil" = NULL,
                         "HeartbeatAt" = NULL,
+                        "LeaseToken" = NULL,
                         "ReclaimCount" = 0,
                         "UpdatedAt" = @now
                     WHERE "Id" = @id
@@ -1073,6 +1112,7 @@ internal sealed partial class EngineRepository
                             "CancellationRequestedAt" = NULL,
                             "BackoffUntil" = NULL,
                             "HeartbeatAt" = NULL,
+                            "LeaseToken" = NULL,
                             "ReclaimCount" = 0,
                             "UpdatedAt" = @now
                         FROM dependents d

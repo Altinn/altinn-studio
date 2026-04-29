@@ -2,6 +2,7 @@ using System.Reflection;
 using Altinn.Studio.AppManager.Discovery;
 using Altinn.Studio.AppManager.Platform;
 using Altinn.Studio.AppManager.Tunnel;
+using Altinn.Studio.EnvTopology;
 
 namespace Altinn.Studio.AppManager.Studioctl;
 
@@ -18,7 +19,12 @@ internal static class Endpoints
         return studioctl;
     }
 
-    private static IResult GetStatus(AppRegistry registry, TunnelState tunnelState, IConfiguration configuration)
+    private static IResult GetStatus(
+        AppRegistry registry,
+        TunnelState tunnelState,
+        IConfiguration configuration,
+        BoundTopologyOptions boundTopologyOptions
+    )
     {
         return Results.Ok(
             new StatusResponse(
@@ -29,6 +35,8 @@ internal static class Endpoints
                 EnvironmentValues.IsTruthy(Environment.GetEnvironmentVariable("STUDIOCTL_INTERNAL_DEV")),
                 Environment.GetEnvironmentVariable("Studioctl__Path") ?? "",
                 configuration["Localtest:Url"] ?? "",
+                boundTopologyOptions.BaseConfigPath ?? "",
+                boundTopologyOptions.ConfigPath ?? "",
                 new TunnelStatusResponse(tunnelState.Enabled, tunnelState.IsConnected, tunnelState.Url),
                 [
                     .. registry
@@ -108,6 +116,8 @@ internal static class Endpoints
         bool InternalDev,
         string StudioctlPath,
         string LocaltestUrl,
+        string BoundTopologyBaseConfigPath,
+        string BoundTopologyConfigPath,
         TunnelStatusResponse Tunnel,
         IReadOnlyList<DiscoveredAppResponse> Apps
     );

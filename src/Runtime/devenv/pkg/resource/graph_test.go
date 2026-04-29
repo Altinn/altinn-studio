@@ -93,12 +93,15 @@ func TestGraph_Get(t *testing.T) {
 
 func TestGraph_All(t *testing.T) {
 	g := NewGraph()
-	mustAddResource(t, g, &mockResource{id: "a"})
 	mustAddResource(t, g, &mockResource{id: "b"})
+	mustAddResource(t, g, &mockResource{id: "a"})
 
 	all := g.All()
 	if len(all) != 2 {
 		t.Errorf("All() returned %d resources, want 2", len(all))
+	}
+	if all[0].ID() != "a" || all[1].ID() != "b" {
+		t.Fatalf("All() order = [%s %s], want [a b]", all[0].ID(), all[1].ID())
 	}
 }
 
@@ -203,15 +206,16 @@ func TestGraph_Validate(t *testing.T) {
 
 func TestGraph_Enabled(t *testing.T) {
 	g := NewGraph()
-	mustAddResource(t, g, &mockResource{id: "a"})
+	mustAddResource(t, g, &mockResource{id: "c"})
 	mustAddResource(t, g, &mockResource{id: "b", enabled: new(bool)})
+	mustAddResource(t, g, &mockResource{id: "a"})
 
 	enabled := g.Enabled()
-	if len(enabled) != 1 {
-		t.Fatalf("Enabled() returned %d resources, want 1", len(enabled))
+	if len(enabled) != 2 {
+		t.Fatalf("Enabled() returned %d resources, want 2", len(enabled))
 	}
-	if enabled[0].ID() != "a" {
-		t.Fatalf("Enabled()[0] = %q, want a", enabled[0].ID())
+	if enabled[0].ID() != "a" || enabled[1].ID() != "c" {
+		t.Fatalf("Enabled() order = [%s %s], want [a c]", enabled[0].ID(), enabled[1].ID())
 	}
 }
 
@@ -289,6 +293,9 @@ func TestGraph_TopologicalOrder_ParallelLevel(t *testing.T) {
 	// First level should have both a and b
 	if len(levels[0]) != 2 {
 		t.Errorf("level 0 has %d resources, want 2", len(levels[0]))
+	}
+	if levels[0][0].ID() != "a" || levels[0][1].ID() != "b" {
+		t.Fatalf("level 0 order = [%s %s], want [a b]", levels[0][0].ID(), levels[0][1].ID())
 	}
 
 	// Second level should have c

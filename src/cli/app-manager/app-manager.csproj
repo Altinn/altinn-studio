@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Compile Include="../../Shared/AppTunnel/**/*.cs" LinkBase="AppTunnel" />
+    <Compile Include="../../Shared/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
     <Compile Remove="Studioctl/Upgrade/**/*.cs" />
     <Compile Remove="Studioctl/Version/**/*.cs" />
   </ItemGroup>

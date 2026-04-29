@@ -13,7 +13,6 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
-	"altinn.studio/studioctl/internal/appmanager"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
@@ -65,6 +64,11 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 	}
 }
 
+// Name returns the runtime name.
+func (e *Env) Name() string {
+	return "localtest"
+}
+
 // Preflight validates prerequisites before startup.
 func (e *Env) Preflight(ctx context.Context, opts envtypes.UpOptions) error {
 	return CheckForLegacyLocaltest(ctx, e.client, opts.PgAdmin)
@@ -78,15 +82,18 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	runtimeCfg := newRuntimeConfig()
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
-	if ensureErr := e.ensureAppManager(ctx, topology); ensureErr != nil {
-		return ensureErr
-	}
-
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeCfg, topology, opts.Monitoring, opts.PgAdmin)
 	if err != nil {
 		return err
 	}
 	e.out.Verbosef("Image mode: %s", buildOpts.ImageMode)
+
+	if err := envtypes.EnsureBoundTopology(ctx, e.cfg, topology, RuntimeBindings(BindingOptions{
+		IncludeMonitoring: buildOpts.IncludeMonitoring,
+		IncludePgAdmin:    buildOpts.IncludePgAdmin,
+	})); err != nil {
+		return fmt.Errorf("ensure bound topology: %w", err)
+	}
 
 	if err := e.ensureResources(ctx, buildOpts); err != nil {
 		return err
@@ -183,67 +190,53 @@ func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
 }
 
 func (e *Env) status(ctx context.Context, includePgAdmin bool) (*Status, error) {
-	// TODO: graph resource model package should handle this (retrieving the current state of a graph of resources).
-	status := newStatus()
-
-	containers := coreContainerNames(includePgAdmin)
-	runningCoreContainers := 0
-	for _, name := range containers {
-		state, err := e.client.ContainerState(ctx, name)
-		if err != nil {
-			if errors.Is(err, containertypes.ErrContainerNotFound) {
-				status.Containers = append(status.Containers, newContainerStatus(name, "not found"))
-				continue
-			}
-			return nil, fmt.Errorf("get state for container %q: %w", name, err)
-		}
-
-		info := newContainerStatus(name, state.Status)
-		status.Containers = append(status.Containers, info)
-
-		if state.Running {
-			runningCoreContainers++
-		}
+	resources := buildResources(ResourceBuildOptions{
+		DevConfig:         nil,
+		DataDir:           e.cfg.DataDir,
+		Images:            e.cfg.Images,
+		RuntimeConfig:     RuntimeConfig{User: ""},
+		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
+		ImageMode:         ReleaseMode,
+		IncludeMonitoring: false,
+		IncludePgAdmin:    includePgAdmin,
+	})
+	graph, err := buildResourceGraph(resources)
+	if err != nil {
+		return nil, fmt.Errorf("build resource graph: %w", err)
 	}
-	status.Running = runningCoreContainers == len(containers)
-	status.AnyRunning = runningCoreContainers > 0
 
-	return &status, nil
-}
-
-func (e *Env) ensureAppManager(ctx context.Context, topology envtopology.Local) error {
-	if err := appmanager.EnsureStarted(
-		ctx,
-		e.cfg,
-		topology.IngressPort(),
-	); err != nil {
-		return fmt.Errorf("ensure app-manager: %w", err)
+	executor := resource.NewExecutor(e.client)
+	statuses, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	if err != nil {
+		return nil, fmt.Errorf("get resource status: %w", err)
 	}
-	return nil
+
+	return localtestStatus(graph.Enabled(), statuses), nil
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
-	graph, err := buildResourceGraph(BuildResourcesForDestroy(e.buildDestroyOptions()))
+	resources := buildResources(e.buildDestroyOptions())
+	graph, err := buildResourceGraph(resources)
 	if err != nil {
 		return false, fmt.Errorf("build resource graph: %w", err)
 	}
 
 	executor := resource.NewExecutor(e.client)
-	statuses, err := executor.Status(ctx, graph)
+	statuses, err := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
 	if err != nil {
 		return false, fmt.Errorf("get resource status: %w", err)
 	}
 
-	for _, res := range graph.All() {
-		switch res.(type) {
-		case *resource.Container, *resource.Network:
-			status, ok := statuses[res.ID()]
-			if !ok {
-				return true, nil
-			}
-			if status != resource.StatusDestroyed {
-				return true, nil
-			}
+	for _, res := range graph.Enabled() {
+		if !isRuntimeResource(res) {
+			continue
+		}
+		status, ok := statuses[res.ID()]
+		if !ok {
+			return true, nil
+		}
+		if status != resource.StatusDestroyed {
+			return true, nil
 		}
 	}
 
@@ -280,7 +273,7 @@ func (e *Env) runForeground(
 }
 
 func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) error {
-	resources := BuildResources(opts)
+	resources := buildResources(opts)
 	graph, err := buildResourceGraph(resources)
 	if err != nil {
 		return err
@@ -295,11 +288,11 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 	var renderer localtestrenderer.Renderer
 	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
 	case localtestrenderer.ModeTable:
-		renderer = localtestrenderer.NewTable(e.out, resources, localtestrenderer.OperationApply)
+		renderer = localtestrenderer.NewTable(e.out, graph.Enabled(), localtestrenderer.OperationApply)
 	case localtestrenderer.ModeCompact:
-		renderer = localtestrenderer.NewCompact(e.out, resources, localtestrenderer.OperationApply)
+		renderer = localtestrenderer.NewCompact(e.out, graph.Enabled(), localtestrenderer.OperationApply)
 	case localtestrenderer.ModeLog:
-		renderer = localtestrenderer.NewLog(e.out, resources, localtestrenderer.OperationApply, spinnerMsg)
+		renderer = localtestrenderer.NewLog(e.out, graph.Enabled(), localtestrenderer.OperationApply, spinnerMsg)
 	}
 	renderer.Start()
 	executor.SetObserver(renderer)
@@ -315,31 +308,42 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 	return nil
 }
 
-func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions, logStartMessage string) error {
-	// TODO: we should probably load resources as "current state" instead
-	resources := BuildResourcesForDestroy(opts)
+func (e *Env) destroyResources(ctx context.Context, opts ResourceBuildOptions, logStartMessage string) error {
+	resources := buildResources(opts)
 	graph, err := buildResourceGraph(resources)
 	if err != nil {
 		return err
 	}
 
 	executor := resource.NewExecutor(e.client)
-	renderResources, err := currentDestroyRenderResources(ctx, executor, graph, resources)
-	if err != nil {
-		e.out.Verbosef("Failed to probe current resource status for destroy rendering: %v", err)
-		renderResources = resources
+	statuses, statusErr := executor.Status(ctx, graph, resource.SkipResource(isImageResource))
+	if statusErr != nil {
+		e.out.Verbosef("Failed to probe current resource status for destroy rendering: %v", statusErr)
+		statuses = nil
 	}
+	renderResources := graph.Enabled()
 	var renderer localtestrenderer.Renderer
 	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
 	case localtestrenderer.ModeTable:
-		renderer = localtestrenderer.NewTable(e.out, renderResources, localtestrenderer.OperationDestroy)
-	case localtestrenderer.ModeCompact:
-		renderer = localtestrenderer.NewCompact(e.out, renderResources, localtestrenderer.OperationDestroy)
-	case localtestrenderer.ModeLog:
-		renderer = localtestrenderer.NewLog(
+		renderer = localtestrenderer.NewTableWithStatus(
 			e.out,
 			renderResources,
 			localtestrenderer.OperationDestroy,
+			statuses,
+		)
+	case localtestrenderer.ModeCompact:
+		renderer = localtestrenderer.NewCompactWithStatus(
+			e.out,
+			renderResources,
+			localtestrenderer.OperationDestroy,
+			statuses,
+		)
+	case localtestrenderer.ModeLog:
+		renderer = localtestrenderer.NewLogWithStatus(
+			e.out,
+			renderResources,
+			localtestrenderer.OperationDestroy,
+			statuses,
 			logStartMessage,
 		)
 	}
@@ -356,40 +360,76 @@ func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions,
 	return nil
 }
 
-func currentDestroyRenderResources(
-	ctx context.Context,
-	executor *resource.Executor,
-	graph *resource.Graph,
-	resources []resource.Resource,
-) ([]resource.Resource, error) {
-	statuses, err := executor.Status(ctx, graph)
-	if err != nil {
-		return nil, fmt.Errorf("get resource status: %w", err)
-	}
-
-	return filterRenderResources(resources, statuses), nil
-}
-
-func filterRenderResources(
+func localtestStatus(
 	resources []resource.Resource,
 	statuses map[resource.ResourceID]resource.Status,
-) []resource.Resource {
-	filtered := make([]resource.Resource, 0, len(resources))
+) *Status {
+	status := Status{
+		Containers: []ContainerStatus{},
+		Running:    false,
+		AnyRunning: false,
+	}
+	containerCount := 0
+	readyContainers := 0
+
 	for _, res := range resources {
-		status, ok := statuses[res.ID()]
-		if ok && status == resource.StatusDestroyed {
+		containerResource, ok := res.(*resource.Container)
+		if !ok {
 			continue
 		}
-		filtered = append(filtered, res)
+
+		resourceStatus := statuses[containerResource.ID()]
+		status.Containers = append(
+			status.Containers,
+			ContainerStatus{Name: containerResource.Name, Status: localtestStatusString(resourceStatus)},
+		)
+		containerCount++
+		if resourceStatus.IsHealthy() {
+			readyContainers++
+		}
+		if resourceStatus != resource.StatusDestroyed {
+			status.AnyRunning = true
+		}
 	}
-	return filtered
+
+	status.Running = containerCount > 0 && readyContainers == containerCount
+	return &status
 }
 
-func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
-	return ResourceDestroyOptions{
+func localtestStatusString(status resource.Status) string {
+	if status == resource.StatusDestroyed {
+		return "not found"
+	}
+	if status == resource.StatusReady {
+		return "running"
+	}
+	return status.String()
+}
+
+func isRuntimeResource(res resource.Resource) bool {
+	switch res.(type) {
+	case *resource.Container, *resource.Network:
+		return true
+	default:
+		return false
+	}
+}
+
+func isImageResource(res resource.Resource) bool {
+	_, ok := res.(resource.ImageResource)
+	return ok
+}
+
+func (e *Env) buildDestroyOptions() ResourceBuildOptions {
+	return ResourceBuildOptions{
+		DevConfig:         nil,
 		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
+		RuntimeConfig:     RuntimeConfig{User: ""},
+		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
+		ImageMode:         ReleaseMode,
 		IncludeMonitoring: true, // include all for cleanup
+		IncludePgAdmin:    true,
 	}
 }
 

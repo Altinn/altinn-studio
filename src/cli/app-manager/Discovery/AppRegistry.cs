@@ -18,6 +18,7 @@ internal sealed class AppRegistry : BackgroundService
 
     private DiscoveredApp[] _apps = [];
     private bool _lastRefreshFailed;
+    private Action? _changed;
 
     public AppRegistry(
         IEnumerable<IAppDiscovery> discoveries,
@@ -32,9 +33,13 @@ internal sealed class AppRegistry : BackgroundService
         _logger = logger;
     }
 
-    public IReadOnlyList<DiscoveredApp> GetAll()
+    public IReadOnlyList<DiscoveredApp> GetAll() => [.. Volatile.Read(ref _apps)];
+
+    public IDisposable OnChanged(Action callback)
     {
-        return [.. Volatile.Read(ref _apps)];
+        ArgumentNullException.ThrowIfNull(callback);
+        _changed += callback;
+        return new ChangeSubscription(this, callback);
     }
 
     public IReadOnlyList<DiscoveredApp> GetByAppId(string appId)
@@ -75,10 +80,8 @@ internal sealed class AppRegistry : BackgroundService
         return await waiter.Task;
     }
 
-    public void AppStopped(string? appId)
-    {
+    public void AppStopped(string? appId) =>
         _messages.Writer.TryWrite(new AppStoppedMessage(string.IsNullOrWhiteSpace(appId) ? null : appId.Trim()));
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -194,11 +197,17 @@ internal sealed class AppRegistry : BackgroundService
         var previous = Volatile.Read(ref _apps);
 
         var apps = await DiscoverApps(cancellationToken);
-        Volatile.Write(ref _apps, apps);
+        if (!previous.SequenceEqual(apps))
+        {
+            Volatile.Write(ref _apps, apps);
+            LogRefresh(previous, apps);
+            _changed?.Invoke();
+        }
 
-        LogRefresh(previous, apps);
         await CompleteReadyStarts(apps, cancellationToken);
     }
+
+    private void RemoveChangedCallback(Action callback) => _changed -= callback;
 
     private async Task<DiscoveredApp[]> DiscoverApps(CancellationToken cancellationToken)
     {
@@ -432,5 +441,26 @@ internal sealed class AppRegistry : BackgroundService
         public void TrySetException(Exception exception) => _result.TrySetException(exception);
 
         public void TrySetCanceled() => _result.TrySetCanceled();
+    }
+
+    private sealed class ChangeSubscription : IDisposable
+    {
+        private readonly AppRegistry _registry;
+        private Action? _callback;
+
+        public ChangeSubscription(AppRegistry registry, Action callback)
+        {
+            _registry = registry;
+            _callback = callback;
+        }
+
+        public void Dispose()
+        {
+            var callback = Interlocked.Exchange(ref _callback, null);
+            if (callback is not null)
+            {
+                _registry.RemoveChangedCallback(callback);
+            }
+        }
     }
 }

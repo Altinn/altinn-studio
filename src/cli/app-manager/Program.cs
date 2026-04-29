@@ -11,8 +11,8 @@ internal static class Program
     public static Task Main(string[] args)
     {
         var builder = WebApplication.CreateSlimBuilder(args);
-        // Default reloadable config sources recurse badly on Windows when the app is launched from a WSL UNC path.
-        // app-manager only needs env/CLI configuration, so disable file-backed reload entirely.
+        // Default reloadable config sources recurse badly on Windows when launched from a WSL UNC path.
+        // Keep main app configuration env/CLI-only. Bound topology files are loaded separately as named options.
         builder.Configuration.Sources.Clear();
         builder.Configuration.AddEnvironmentVariables();
         builder.Configuration.AddCommandLine(args);
