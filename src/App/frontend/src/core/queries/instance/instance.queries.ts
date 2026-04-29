@@ -33,6 +33,10 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instance
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     queryFn: () => instanceApi.getInstance({ instanceOwnerPartyId, instanceGuid }),
+    // Cache is canonical; refresh is explicit via mutations, poll-driven setQueryData,
+    // or invalidateQueries. Prevents the route loader from refetching on every URL change
+    // and prevents transient cache-vs-URL mismatches in ProcessWrapper.
+    staleTime: Infinity,
   });
 }
 

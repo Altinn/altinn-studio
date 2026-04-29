@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { instanceApi } from 'src/core/api-client/instance.api';
-import { useCurrentInstance } from 'src/core/queries/instance';
+import { useCurrentInstance, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
 import { LangAsParagraph } from 'src/features/language/Lang';
@@ -18,16 +18,15 @@ export function Feedback() {
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
   const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const updateInstance = useOptimisticallyUpdateInstance();
 
   const callback = useCallback(async () => {
     if (!instanceOwnerPartyId || !instanceGuid) {
       return;
     }
 
-    // Fetch instance data directly from the API instead of through React Query.
-    // This avoids updating the shared query cache, which would cause ProcessWrapper
-    // to briefly see new process data while the URL still points to the feedback task,
-    // resulting in a flash of the NavigationError.
+    // The poll bypasses the query cache so it can detect external transitions
+    // without triggering a re-render of the currently-mounted ProcessWrapper.
     let instance: Awaited<ReturnType<typeof instanceApi.getInstance>>;
     try {
       instance = await instanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
@@ -48,9 +47,14 @@ export function Feedback() {
     }
 
     if (navigateTo) {
+      // Atomic flip: write the fresh instance into the cache *and* navigate in the same task.
+      // React 18 batches both updates into one commit, so the new ProcessWrapper mounts with
+      // URL and cache already aligned — no transient "wrong task" render either side of the
+      // transition.
+      updateInstance(() => instance);
       navigateToTask(navigateTo);
     }
-  }, [navigateToTask, previousProcess?.currentTask?.elementId, instanceOwnerPartyId, instanceGuid]);
+  }, [navigateToTask, previousProcess?.currentTask?.elementId, instanceOwnerPartyId, instanceGuid, updateInstance]);
 
   // Continually re-fetch process data while the user is on the feedback page
   useBackoff(callback);

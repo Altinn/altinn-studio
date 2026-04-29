@@ -52,6 +52,13 @@ function prefetchInstanceData(
   return queryClient.prefetchQuery(instanceDataQuery(params));
 }
 
+function ensureInstanceData(
+  queryClient: QueryClient,
+  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+) {
+  return queryClient.ensureQueryData(instanceDataQuery(params));
+}
+
 function fetchFreshInstanceData(
   queryClient: QueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
@@ -84,6 +91,8 @@ export {
   prefetchActiveInstances,
   fetchFreshInstanceData,
   prefetchInstanceData,
+  ensureInstanceData,
+  instanceQueryKeys,
   useActiveInstances,
   useCreateInstance,
   useCurrentInstance,

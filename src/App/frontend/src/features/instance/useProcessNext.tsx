@@ -4,8 +4,7 @@ import { toast } from 'react-toastify';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
-import { useCurrentInstance } from 'src/core/queries/instance';
-import { instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
+import { instanceQueryKeys, useCurrentInstance } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import {
