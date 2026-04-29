@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
@@ -14,8 +15,7 @@ namespace WorkflowEngine.Core.Tests;
 /// </summary>
 public class WorkflowHandlerTests
 {
-    private static readonly TimeProvider FixedTime = TimeProvider.System;
-
+    private static readonly TimeProvider _fixedTime = TimeProvider.System;
     private static readonly EngineSettings _defaultSettings = new()
     {
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
@@ -37,30 +37,49 @@ public class WorkflowHandlerTests
         },
     };
 
-    private static WorkflowHandler CreateHandler(IWorkflowExecutor executor, EngineSettings? settings = null)
-    {
-        settings ??= _defaultSettings;
-
-        var buffer = new Mock<IWorkflowUpdateBuffer>();
-        buffer
-            .Setup(b =>
-                b.Submit(
-                    It.IsAny<Workflow>(),
-                    It.IsAny<CancellationToken>(),
-                    It.IsAny<IReadOnlyList<Step>?>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<Activity?>()
-                )
-            )
-            .Returns(Task.CompletedTask);
-
-        return new WorkflowHandler(
+    private static WorkflowHandler CreateHandler(
+        IWorkflowExecutor executor,
+        EngineSettings? settings = null,
+        IWorkflowUpdateBuffer? buffer = null
+    ) =>
+        new(
             executor,
-            buffer.Object,
-            Options.Create(settings),
-            FixedTime,
+            buffer ?? MockBuffer().Object,
+            Options.Create(settings ?? _defaultSettings),
+            _fixedTime,
             NullLogger<WorkflowHandler>.Instance
         );
+
+    /// <summary>
+    /// Builds a mock <see cref="IWorkflowUpdateBuffer"/>. Without <paramref name="onSubmit"/> all
+    /// Submit calls return <see cref="Task.CompletedTask"/>; otherwise the lambda decides per call
+    /// (it receives the workflow and cancellation token — the remaining matcher args are discarded).
+    /// </summary>
+    private static Mock<IWorkflowUpdateBuffer> MockBuffer(Func<Workflow, CancellationToken, Task>? onSubmit = null)
+    {
+        var buffer = new Mock<IWorkflowUpdateBuffer>();
+        var setup = buffer.Setup(b =>
+            b.Submit(
+                It.IsAny<Workflow>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<IReadOnlyList<Step>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Activity?>()
+            )
+        );
+
+        if (onSubmit is null)
+        {
+            setup.Returns(Task.CompletedTask);
+        }
+        else
+        {
+            setup.Returns<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
+                (w, ct, _, _, _) => onSubmit(w, ct)
+            );
+        }
+
+        return buffer;
     }
 
     private static Workflow CreateWorkflow(params Step[] steps) =>
@@ -103,6 +122,47 @@ public class WorkflowHandlerTests
             });
 
         return mock;
+    }
+
+    [Fact]
+    public async Task Handle_WhenBufferRaisesLeaseLost_ExitsCleanlyWithoutThrowing()
+    {
+        var executor = MockExecutor(ExecutionResult.Success());
+        var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
+
+        // The final Submit (workflow.Completed) throws LeaseLostException, simulating a
+        // worker whose lease was reclaimed mid-processing.
+        var buffer = MockBuffer(
+            (w, _) =>
+                w.Status == PersistentItemStatus.Completed
+                    ? Task.FromException(new LeaseLostException(w.DatabaseId))
+                    : Task.CompletedTask
+        );
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object);
+
+        // Must not rethrow — caller should observe a clean return and rely on warn log + counter.
+        var handleTask = handler.Handle(workflow, CancellationToken.None);
+        await handleTask;
+        Assert.True(handleTask.IsCompletedSuccessfully);
+    }
+
+    [Fact]
+    public async Task Handle_WhenFinalSubmitThrowsOCE_Rethrows()
+    {
+        var executor = MockExecutor(ExecutionResult.Success());
+        var workflow = CreateWorkflow(CreateStep("step-0", processingOrder: 0));
+
+        using var cts = new CancellationTokenSource();
+
+        var buffer = MockBuffer(
+            (w, ct) =>
+                w.Status == PersistentItemStatus.Completed
+                    ? Task.FromException(new OperationCanceledException(ct))
+                    : Task.CompletedTask
+        );
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => handler.Handle(workflow, cts.Token));
     }
 
     [Fact]

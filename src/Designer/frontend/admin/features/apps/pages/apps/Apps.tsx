@@ -1,10 +1,10 @@
-import { useParams } from 'react-router-dom';
 import { AppsTable } from './components/AppsTable';
 import { useTranslation } from 'react-i18next';
+import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 export const Apps = () => {
   const { t } = useTranslation();
-  const { org } = useParams() as { org: string };
+  const { owner: org } = useRequiredRoutePathsParams('owner');
 
   return (
     <div>

@@ -1,4 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
+import { Route, Routes } from 'react-router-dom';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,11 +23,17 @@ const organizationsMock = [
   },
 ];
 
+const RoutedPageLayout = () => (
+  <Routes>
+    <Route path=':owner/*' element={<PageLayout />} />
+  </Routes>
+);
+
 describe('PageLayout', () => {
   let queryClient: QueryClient;
 
-  const renderPageLayout = (initialEntries = ['/orgs/ttd/contact-points']) =>
-    renderWithProviders(<PageLayout />, { initialEntries, queryClient });
+  const renderPageLayout = (initialEntries = ['/ttd/contact-points']) =>
+    renderWithProviders(<RoutedPageLayout />, { initialEntries, queryClient });
 
   beforeEach(() => {
     queryClient = createQueryClientMock();
@@ -55,23 +62,16 @@ describe('PageLayout', () => {
 
   it('renders the loading spinner while data is pending', () => {
     const localQueryClient = createQueryClientMock();
-    renderWithProviders(<PageLayout />, {
-      initialEntries: ['/orgs/ttd/contact-points'],
+    renderWithProviders(<RoutedPageLayout />, {
+      initialEntries: ['/ttd/contact-points'],
       queryClient: localQueryClient,
       queries: { getOrganizations: () => new Promise<never>(() => {}) },
     });
-    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
   });
 
   it('renders the not-found page when org is not in the org list', () => {
-    renderPageLayout(['/orgs/unknown-org/contact-points']);
-    expect(
-      screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders the not-found page when there is no org in the path', () => {
-    renderPageLayout(['/']);
+    renderPageLayout(['/unknown-org/contact-points']);
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
     ).toBeInTheDocument();
@@ -80,18 +80,18 @@ describe('PageLayout', () => {
   it('renders the loading spinner while org permissions are pending', () => {
     const localQueryClient = createQueryClientMock();
     localQueryClient.setQueryData([QueryKey.Organizations], organizationsMock);
-    renderWithProviders(<PageLayout />, {
-      initialEntries: ['/orgs/ttd/contact-points'],
+    renderWithProviders(<RoutedPageLayout />, {
+      initialEntries: ['/ttd/contact-points'],
       queryClient: localQueryClient,
       queries: { getUserOrgPermissions: () => new Promise<never>(() => {}) },
     });
-    expect(screen.getByRole('img', { name: textMock('repo_status.loading') })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
   });
 
   it('renders error page when organizations query fails', async () => {
     const localQueryClient = createQueryClientMock();
-    renderWithProviders(<PageLayout />, {
-      initialEntries: ['/orgs/ttd/contact-points'],
+    renderWithProviders(<RoutedPageLayout />, {
+      initialEntries: ['/ttd/contact-points'],
       queryClient: localQueryClient,
       queries: { getOrganizations: () => Promise.reject(new Error('error')) },
     });
@@ -105,8 +105,8 @@ describe('PageLayout', () => {
   it('renders error page when org permissions query fails', async () => {
     const localQueryClient = createQueryClientMock();
     localQueryClient.setQueryData([QueryKey.Organizations], organizationsMock);
-    renderWithProviders(<PageLayout />, {
-      initialEntries: ['/orgs/ttd/contact-points'],
+    renderWithProviders(<RoutedPageLayout />, {
+      initialEntries: ['/ttd/contact-points'],
       queryClient: localQueryClient,
       queries: { getUserOrgPermissions: () => Promise.reject(new Error('error')) },
     });
@@ -118,7 +118,7 @@ describe('PageLayout', () => {
   });
 
   it('renders not-found page when org is not in the list and permissions are pending', () => {
-    renderPageLayout(['/orgs/unknown-org/contact-points']);
+    renderPageLayout(['/unknown-org/contact-points']);
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading') }),
     ).toBeInTheDocument();

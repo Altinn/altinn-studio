@@ -87,7 +87,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: `${SETTINGS_BASENAME}/${org}`,
       openInNewTab: false,
     },
     itemName: t('settings'),
@@ -98,14 +98,10 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
     itemName: t('shared.header_logout'),
   };
 
-  const otherMenuItems: StudioProfileMenuItem[] = [
-    ...(studioOidc ? [settingsMenuItem] : []),
-    giteaMenuItem,
-  ];
-
   const profileMenuGroups: StudioProfileMenuGroup[] = [
     { items: selectableOrgMenuItems },
-    { items: otherMenuItems },
+    ...(studioOidc ? [{ items: [settingsMenuItem] }] : []),
+    { items: [giteaMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

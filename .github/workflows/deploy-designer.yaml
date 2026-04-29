@@ -10,6 +10,7 @@ on:
       - 'src/Designer/backend/**'
       - 'src/Designer/frontend/**'
       - 'src/Designer/Dockerfile'
+      - 'src/App/template/**'
       - 'package.json'
       - 'charts/altinn-designer/**'
       - 'charts/altinn-designer-config/**'

@@ -13,7 +13,7 @@ export const PageLayout = () => {
   if (isUserPending) {
     return (
       <StudioCenter>
-        <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
+        <StudioPageSpinner spinnerTitle={t('general.loading')} />
       </StudioCenter>
     );
   }
