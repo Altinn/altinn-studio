@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioCenter, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioCenter, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export const NoOrgSelected = (): ReactElement => {

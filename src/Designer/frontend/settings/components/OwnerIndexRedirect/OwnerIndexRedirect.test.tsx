@@ -15,6 +15,12 @@ const mockEnvironment: { environment: { featureFlags: { studioOidc: boolean } } 
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => mockEnvironment,
 }));
+jest.mock('../NoOrgSelected/NoOrgSelected', () => ({
+  NoOrgSelected: () => <div data-testid='no-org-selected' />,
+}));
+jest.mock('../NotFound/NotFound', () => ({
+  NotFound: () => <div data-testid='not-found' />,
+}));
 
 const mockUseFeatureFlag = jest.fn();
 jest.mock('@studio/feature-flags', () => ({
@@ -62,7 +68,7 @@ describe('OwnerIndexRedirect', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     mockUseFeatureFlag.mockReturnValue(true);
     renderOwnerIndexRedirect('/testuser');
-    expect(screen.queryByText('User page')).not.toBeInTheDocument();
+    expect(screen.getByTestId('no-org-selected')).toBeInTheDocument();
   });
 
   it('redirects to the bot-accounts page when owner is an org and studioOidc is enabled', () => {
@@ -81,8 +87,7 @@ describe('OwnerIndexRedirect', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
     mockUseFeatureFlag.mockReturnValue(false);
     renderOwnerIndexRedirect('/ttd');
-    expect(screen.queryByText('Bot accounts page')).not.toBeInTheDocument();
-    expect(screen.queryByText('Contact points page')).not.toBeInTheDocument();
+    expect(screen.getByTestId('not-found')).toBeInTheDocument();
   });
 
   it('renders nothing when user data is not yet available', () => {

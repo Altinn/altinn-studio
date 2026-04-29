@@ -9,6 +9,7 @@ import type {
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientConfigMock, createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 export type MockServicesContextWrapperProps = {
   children: ReactNode;
@@ -31,7 +32,9 @@ export const MockServicesContextWrapper = ({
 
   return (
     <MemoryRouter initialEntries={initialEntries}>
-      <ServicesContextProvider {...queries}>{children}</ServicesContextProvider>
+      <ServicesContextProvider {...queries}>
+        <FeatureFlagsContextProvider value={{ flags: [] }}>{children}</FeatureFlagsContextProvider>
+      </ServicesContextProvider>
     </MemoryRouter>
   );
 };

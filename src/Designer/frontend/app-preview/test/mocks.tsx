@@ -5,6 +5,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { MemoryRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -15,7 +16,9 @@ export const renderWithProviders =
     const renderResult = render(
       <MemoryRouter>
         <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-          <PreviewConnectionContextProvider>{component}</PreviewConnectionContextProvider>
+          <FeatureFlagsProvider>
+            <PreviewConnectionContextProvider>{component}</PreviewConnectionContextProvider>
+          </FeatureFlagsProvider>
         </ServicesContextProvider>
       </MemoryRouter>,
     );
@@ -33,7 +36,9 @@ const wrapper =
   (component: ReactNode) => (
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <PreviewConnectionContextProvider>{component}</PreviewConnectionContextProvider>
+        <FeatureFlagsProvider>
+          <PreviewConnectionContextProvider>{component}</PreviewConnectionContextProvider>
+        </FeatureFlagsProvider>
       </ServicesContextProvider>
     </MemoryRouter>
   );
