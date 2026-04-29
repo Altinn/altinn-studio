@@ -168,13 +168,17 @@ public static class TelemetryExtensions
 
     extension(Counter<long> counter)
     {
-        /// <summary>Adds <paramref name="value"/> to the counter, attaching a single tuple-encoded tag.</summary>
+        /// <summary>
+        /// Adds <paramref name="value"/> to the counter, attaching a single tuple-encoded tag.
+        /// </summary>
         public void Add(long value, (string tag, object? value) tag)
         {
             counter.Add(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
-        /// <summary>Adds <paramref name="value"/> to the counter, attaching tuple-encoded tags.</summary>
+        /// <summary>
+        /// Adds <paramref name="value"/> to the counter, attaching tuple-encoded tags.
+        /// </summary>
         public void Add(long value, params (string tag, object? value)[] tags)
         {
             counter.Add(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());
@@ -183,13 +187,17 @@ public static class TelemetryExtensions
 
     extension(Histogram<double> histogram)
     {
-        /// <summary>Records <paramref name="value"/> on the histogram, attaching a single tuple-encoded tag.</summary>
+        /// <summary>
+        /// Records <paramref name="value"/> on the histogram, attaching a single tuple-encoded tag.
+        /// </summary>
         public void Record(double value, (string tag, object? value) tag)
         {
             histogram.Record(value, new KeyValuePair<string, object?>(tag.tag, tag.value));
         }
 
-        /// <summary>Records <paramref name="value"/> on the histogram, attaching tuple-encoded tags.</summary>
+        /// <summary>
+        /// Records <paramref name="value"/> on the histogram, attaching tuple-encoded tags.
+        /// </summary>
         public void Record(double value, params (string tag, object? value)[] tags)
         {
             histogram.Record(value, tags.Select(t => new KeyValuePair<string, object?>(t.tag, t.value)).ToArray());

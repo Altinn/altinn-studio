@@ -7,7 +7,9 @@ namespace WorkflowEngine.Models.Exceptions;
 /// </summary>
 public sealed class IdempotencyConflictException : EngineException
 {
-    /// <summary>The idempotency key that produced the conflict.</summary>
+    /// <summary>
+    /// The idempotency key that produced the conflict.
+    /// </summary>
     public string IdempotencyKey { get; }
 
     /// <summary>

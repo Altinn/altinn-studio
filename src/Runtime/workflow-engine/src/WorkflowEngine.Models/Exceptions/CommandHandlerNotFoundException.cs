@@ -8,10 +8,14 @@ namespace WorkflowEngine.Models.Exceptions;
 /// </summary>
 public sealed class CommandHandlerNotFoundException : EngineException
 {
-    /// <summary>The unresolved command type discriminator.</summary>
+    /// <summary>
+    /// The unresolved command type discriminator.
+    /// </summary>
     public string CommandType { get; }
 
-    /// <summary>The command types that were registered when resolution failed, for diagnostics.</summary>
+    /// <summary>
+    /// The command types that were registered when resolution failed, for diagnostics.
+    /// </summary>
     public IReadOnlyList<string> RegisteredTypes { get; }
 
     /// <summary>

@@ -5,9 +5,13 @@ namespace WorkflowEngine.Resilience.Models;
 /// </summary>
 public enum RetryDecision
 {
-    /// <summary>Stop retrying and rethrow the captured exception.</summary>
+    /// <summary>
+    /// Stop retrying and rethrow the captured exception.
+    /// </summary>
     Abort,
 
-    /// <summary>Continue retrying according to the active <see cref="RetryStrategy"/>.</summary>
+    /// <summary>
+    /// Continue retrying according to the active <see cref="RetryStrategy"/>.
+    /// </summary>
     Retry,
 }

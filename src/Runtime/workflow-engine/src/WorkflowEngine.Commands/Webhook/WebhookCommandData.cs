@@ -11,15 +11,21 @@ namespace WorkflowEngine.Commands.Webhook;
 /// </summary>
 public sealed record WebhookCommandData
 {
-    /// <summary>Absolute URI to call.</summary>
+    /// <summary>
+    /// Absolute URI to call.
+    /// </summary>
     [JsonPropertyName("uri")]
     public required string Uri { get; init; }
 
-    /// <summary>Optional request body. Sent verbatim; format is the caller's responsibility.</summary>
+    /// <summary>
+    /// Optional request body. Sent verbatim; format is the caller's responsibility.
+    /// </summary>
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }
 
-    /// <summary>Optional <c>Content-Type</c> header value applied when <see cref="Payload"/> is present.</summary>
+    /// <summary>
+    /// Optional <c>Content-Type</c> header value applied when <see cref="Payload"/> is present.
+    /// </summary>
     [JsonPropertyName("contentType")]
     public string? ContentType { get; init; }
 }
