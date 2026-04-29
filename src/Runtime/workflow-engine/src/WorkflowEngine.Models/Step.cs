@@ -6,7 +6,8 @@ using WorkflowEngine.Resilience.Models;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// A single unit of work within a <see cref="Workflow"/>. Steps execute in ascending <see cref="ProcessingOrder"/>.
+/// A Step is a single unit of work within a <see cref="Workflow"/>.
+/// Steps execute in ascending <see cref="ProcessingOrder"/>.
 /// </summary>
 public sealed record Step : PersistentItem
 {

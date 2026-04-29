@@ -3,8 +3,8 @@ using System.Text.Json;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// A persisted workflow: a sequence of steps executed by the engine in <see cref="Step.ProcessingOrder"/>.
-/// Identified by <see cref="IdempotencyKey"/> within a <see cref="Namespace"/>.
+/// A Workflow defines a logical collection of <see cref="Step">Steps</see> along with optional
+/// dependencies and links to other workflows.
 /// </summary>
 public sealed record Workflow : PersistentItem
 {
